@@ -1,13 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Briefcase, User } from "lucide-react";
+import { Home, LayoutDashboard, Briefcase, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
 
   const navItems = [
-    { path: "/", icon: LayoutDashboard, label: "Dashboard" },
-    { path: "/jobs", icon: Briefcase, label: "Browse Jobs" },
+    { path: "/", icon: Home, label: "Home" },
+    { path: "/dashboard", icon: LayoutDashboard, label: "My Pipeline" },
+    { path: "/jobs", icon: Briefcase, label: "Opportunities" },
   ];
 
   return (
