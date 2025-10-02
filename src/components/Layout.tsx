@@ -50,10 +50,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             })}
           </nav>
 
-          <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
-            <User className="w-4 h-4" />
-            <span className="hidden md:inline">Profile</span>
-          </button>
+          <Link to="/profile">
+            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
+              <User className="w-4 h-4" />
+              <span className="hidden md:inline">Profile</span>
+            </button>
+          </Link>
         </div>
       </header>
 
