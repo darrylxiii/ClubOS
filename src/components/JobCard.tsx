@@ -12,7 +12,9 @@ interface JobCardProps {
   postedDate: string;
   status?: "applied" | "screening" | "interview" | "offer" | "rejected";
   tags: string[];
+  salary?: string;
   onApply?: () => void;
+  onRefer?: () => void;
 }
 
 export const JobCard = ({
@@ -23,7 +25,9 @@ export const JobCard = ({
   postedDate,
   status,
   tags,
+  salary,
   onApply,
+  onRefer,
 }: JobCardProps) => {
   return (
     <Card className="hover:shadow-lg transition-all duration-300 border border-border bg-gradient-card">
@@ -71,9 +75,16 @@ export const JobCard = ({
             {status ? (
               <StatusBadge status={status} />
             ) : (
-              <Button onClick={onApply} size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
-                Apply Now
-              </Button>
+              <>
+                <Button onClick={onApply} size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  Apply Now
+                </Button>
+                {onRefer && (
+                  <Button onClick={onRefer} size="sm" variant="outline">
+                    Refer a Friend
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </div>

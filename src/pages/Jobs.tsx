@@ -72,6 +72,12 @@ const Jobs = () => {
     });
   };
 
+  const handleRefer = (jobTitle: string) => {
+    toast.success(`Referral initiated for ${jobTitle}!`, {
+      description: "Share this opportunity with your network to earn rewards.",
+    });
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -116,6 +122,7 @@ const Jobs = () => {
               postedDate={job.postedDate}
               tags={job.tags}
               onApply={() => handleApply(job.title)}
+              onRefer={() => handleRefer(job.title)}
             />
           ))}
         </div>

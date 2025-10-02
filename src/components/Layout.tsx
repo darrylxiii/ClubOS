@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, LayoutDashboard, Briefcase, User } from "lucide-react";
+import { Home, LayoutDashboard, Briefcase, User, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
@@ -9,6 +9,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: "/", icon: Home, label: "Home" },
     { path: "/dashboard", icon: LayoutDashboard, label: "My Pipeline" },
     { path: "/jobs", icon: Briefcase, label: "Opportunities" },
+    { path: "/referrals", icon: Users, label: "Referrals" },
   ];
 
   return (
