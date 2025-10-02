@@ -14,11 +14,17 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-hero flex items-center justify-center">
-              <Briefcase className="w-5 h-5 text-white" />
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-accent blur-sm opacity-50"></div>
+              <div className="relative w-10 h-10 rounded bg-gradient-hero flex items-center justify-center border border-accent/20">
+                <span className="text-accent font-bold text-lg">QC</span>
+              </div>
             </div>
-            <h1 className="text-xl font-bold text-foreground">CareerTrack</h1>
+            <div>
+              <h1 className="text-lg font-bold text-foreground tracking-tight">The Quantum Club</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Operating System</p>
+            </div>
           </div>
           
           <nav className="hidden md:flex items-center gap-1">

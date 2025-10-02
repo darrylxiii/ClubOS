@@ -1,33 +1,38 @@
+import { useState } from "react";
 import { Layout } from "@/components/Layout";
 import { PipelineStage } from "@/components/PipelineStage";
 import { JobCard } from "@/components/JobCard";
+import { StagePreparation } from "@/components/StagePreparation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, Briefcase, Clock } from "lucide-react";
+import { TrendingUp, Briefcase, Clock, Award } from "lucide-react";
+import { toast } from "sonner";
 
 const Dashboard = () => {
+  const [selectedApplication, setSelectedApplication] = useState<number>(1);
+
   // Mock data for active applications
   const activeApplications = [
     {
       id: 1,
-      title: "Senior Frontend Developer",
-      company: "TechCorp",
-      location: "San Francisco, CA",
-      type: "Full-time",
-      postedDate: "2 days ago",
+      title: "Chief Technology Officer",
+      company: "Stealth Startup",
+      location: "Undisclosed",
+      type: "Executive",
+      postedDate: "3 days ago",
       status: "interview" as const,
       currentStage: 2,
-      tags: ["React", "TypeScript", "Tailwind CSS"],
+      tags: ["Leadership", "AI/ML", "Strategy"],
     },
     {
       id: 2,
-      title: "UI/UX Designer",
-      company: "DesignHub",
+      title: "VP of Product",
+      company: "Elite Tech Fund",
       location: "Remote",
-      type: "Full-time",
+      type: "Executive",
       postedDate: "1 week ago",
       status: "screening" as const,
       currentStage: 1,
-      tags: ["Figma", "User Research", "Prototyping"],
+      tags: ["Product Strategy", "Growth", "Innovation"],
     },
   ];
 
@@ -40,35 +45,43 @@ const Dashboard = () => {
 
   const stats = [
     {
-      title: "Active Applications",
+      title: "Elite Opportunities",
       value: "5",
       icon: Briefcase,
-      trend: "+2 this week",
+      trend: "+2 exclusive roles",
     },
     {
-      title: "Interviews Scheduled",
+      title: "Executive Interviews",
       value: "3",
       icon: Clock,
-      trend: "Next: Tomorrow",
+      trend: "Next: Tomorrow 2PM",
     },
     {
-      title: "Response Rate",
-      value: "68%",
-      icon: TrendingUp,
-      trend: "+12% this month",
+      title: "Success Rate",
+      value: "92%",
+      icon: Award,
+      trend: "Top 5% of candidates",
     },
   ];
+
+  const handleStageClick = (appId: number, stageIndex: number) => {
+    setSelectedApplication(appId);
+    toast.success("Stage Information", {
+      description: "Viewing preparation materials for this stage.",
+    });
+  };
 
   return (
     <Layout>
       <div className="space-y-8">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold mb-2 bg-gradient-hero bg-clip-text text-transparent">
-            Welcome back, Alex!
+        <div className="relative">
+          <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-accent blur-3xl opacity-20 rounded-full"></div>
+          <h1 className="text-4xl font-bold mb-2 relative">
+            Welcome back, <span className="text-accent">Alex</span>
           </h1>
-          <p className="text-muted-foreground">
-            Track your applications and discover new opportunities
+          <p className="text-muted-foreground italic">
+            "Success is a luxury reserved for those who turn ambition into action"
           </p>
         </div>
 
@@ -77,17 +90,19 @@ const Dashboard = () => {
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.title} className="border border-border bg-gradient-card shadow-card">
+              <Card key={stat.title} className="border border-accent/20 bg-gradient-card shadow-glow hover:shadow-lg transition-all duration-300">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                       {stat.title}
                     </CardTitle>
-                    <Icon className="w-4 h-4 text-primary" />
+                    <div className="p-2 rounded-lg bg-accent/10">
+                      <Icon className="w-4 h-4 text-accent" />
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold mb-1">{stat.value}</div>
+                  <div className="text-3xl font-bold mb-1 bg-gradient-accent bg-clip-text text-transparent">{stat.value}</div>
                   <p className="text-xs text-muted-foreground">{stat.trend}</p>
                 </CardContent>
               </Card>
@@ -97,17 +112,23 @@ const Dashboard = () => {
 
         {/* Active Applications */}
         <div className="space-y-6">
-          <h2 className="text-2xl font-bold">Active Applications</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Elite Opportunities Pipeline</h2>
+            <span className="text-xs text-muted-foreground italic">Click stages for preparation guides</span>
+          </div>
           
           {activeApplications.map((app) => (
             <div key={app.id} className="space-y-4">
               {/* Pipeline Visualization */}
-              <Card className="border border-border bg-gradient-card shadow-card">
+              <Card className="border border-accent/20 bg-gradient-card shadow-glow">
                 <CardHeader>
-                  <CardTitle className="text-lg">Application Progress</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <div className="w-1 h-6 bg-gradient-accent rounded-full"></div>
+                    Application Progress - {app.title}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center justify-between px-4">
+                  <div className="flex items-center justify-between px-4 mb-6">
                     {stages.map((stage, index) => (
                       <PipelineStage
                         key={stage.title}
@@ -115,11 +136,17 @@ const Dashboard = () => {
                         isActive={stage.stage === app.currentStage}
                         isCompleted={stage.stage < app.currentStage}
                         isLast={index === stages.length - 1}
+                        onClick={() => handleStageClick(app.id, stage.stage)}
                       />
                     ))}
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Stage Preparation - Show for current stage */}
+              {selectedApplication === app.id && (
+                <StagePreparation stage={app.status} />
+              )}
 
               {/* Job Details */}
               <JobCard

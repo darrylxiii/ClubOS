@@ -12,57 +12,57 @@ const Jobs = () => {
   const jobs = [
     {
       id: 1,
-      title: "Full Stack Developer",
-      company: "InnovateTech",
-      location: "New York, NY",
-      type: "Full-time",
+      title: "Chief Executive Officer",
+      company: "AI Infrastructure Fund",
+      location: "Undisclosed",
+      type: "Executive",
       postedDate: "3 days ago",
-      tags: ["React", "Node.js", "MongoDB"],
+      tags: ["Leadership", "Venture-backed", "AI"],
     },
     {
       id: 2,
-      title: "Product Manager",
-      company: "StartupCo",
+      title: "VP Engineering",
+      company: "Quantum Computing Lab",
       location: "Remote",
-      type: "Full-time",
+      type: "Executive",
       postedDate: "5 days ago",
-      tags: ["Agile", "Product Strategy", "Roadmap"],
+      tags: ["Deep Tech", "Scale", "Innovation"],
     },
     {
       id: 3,
-      title: "Data Scientist",
-      company: "DataWorks",
-      location: "Boston, MA",
-      type: "Full-time",
+      title: "Global Head of Design",
+      company: "Luxury Tech Brand",
+      location: "New York, NY",
+      type: "Executive",
       postedDate: "1 week ago",
-      tags: ["Python", "Machine Learning", "SQL"],
+      tags: ["Design Leadership", "Brand", "UX"],
     },
     {
       id: 4,
-      title: "DevOps Engineer",
-      company: "CloudScale",
-      location: "Austin, TX",
-      type: "Contract",
+      title: "Chief Product Officer",
+      company: "Next-Gen Platform",
+      location: "San Francisco, CA",
+      type: "Executive",
       postedDate: "2 days ago",
-      tags: ["AWS", "Docker", "Kubernetes"],
+      tags: ["Product Strategy", "Growth", "Innovation"],
     },
     {
       id: 5,
-      title: "UX Researcher",
-      company: "UserFirst",
-      location: "Seattle, WA",
-      type: "Full-time",
+      title: "Head of AI Research",
+      company: "Stealth Startup",
+      location: "Remote",
+      type: "Executive",
       postedDate: "4 days ago",
-      tags: ["User Testing", "Research", "Analytics"],
+      tags: ["AI/ML", "Research", "PhD Required"],
     },
     {
       id: 6,
-      title: "Backend Engineer",
-      company: "ScaleSystems",
-      location: "San Francisco, CA",
-      type: "Full-time",
+      title: "Chief Revenue Officer",
+      company: "SaaS Unicorn",
+      location: "Undisclosed",
+      type: "Executive",
       postedDate: "1 day ago",
-      tags: ["Go", "PostgreSQL", "Microservices"],
+      tags: ["Revenue", "Scale", "Enterprise"],
     },
   ];
 
@@ -76,10 +76,13 @@ const Jobs = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Browse Jobs</h1>
-          <p className="text-muted-foreground">
-            Discover opportunities that match your skills
+        <div className="relative">
+          <div className="absolute -top-4 -right-4 w-32 h-32 bg-gradient-accent blur-3xl opacity-20 rounded-full"></div>
+          <h1 className="text-3xl font-bold mb-2 relative">
+            Elite <span className="text-accent">Opportunities</span>
+          </h1>
+          <p className="text-muted-foreground italic">
+            Invite-only roles curated exclusively for visionary talent
           </p>
         </div>
 

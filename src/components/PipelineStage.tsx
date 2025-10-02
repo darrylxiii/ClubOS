@@ -1,11 +1,13 @@
 import { cn } from "@/lib/utils";
 import { Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface PipelineStageProps {
   title: string;
   isActive: boolean;
   isCompleted: boolean;
   isLast?: boolean;
+  onClick?: () => void;
 }
 
 export const PipelineStage = ({
@@ -13,19 +15,22 @@ export const PipelineStage = ({
   isActive,
   isCompleted,
   isLast = false,
+  onClick,
 }: PipelineStageProps) => {
   return (
     <div className="flex items-center flex-1">
       <div className="flex flex-col items-center">
-        <div
+        <Button
+          variant="ghost"
           className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all duration-300",
+            "w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-300 p-0 hover:scale-110",
             isCompleted
-              ? "bg-success border-success text-success-foreground"
+              ? "bg-success border-success text-success-foreground hover:bg-success/90 shadow-glow"
               : isActive
-              ? "bg-primary border-primary text-primary-foreground scale-110"
-              : "bg-card border-border text-muted-foreground"
+              ? "bg-accent border-accent text-accent-foreground scale-110 shadow-glow hover:bg-accent/90"
+              : "bg-card border-border text-muted-foreground hover:border-accent/50"
           )}
+          onClick={onClick}
         >
           {isCompleted ? (
             <Check className="w-5 h-5" />
@@ -34,11 +39,11 @@ export const PipelineStage = ({
               {isActive ? "●" : "○"}
             </span>
           )}
-        </div>
+        </Button>
         <p
           className={cn(
             "mt-2 text-xs font-medium text-center max-w-[80px]",
-            isActive ? "text-primary" : "text-muted-foreground"
+            isActive ? "text-accent font-bold" : "text-muted-foreground"
           )}
         >
           {title}
@@ -48,7 +53,7 @@ export const PipelineStage = ({
         <div
           className={cn(
             "flex-1 h-0.5 mx-2 transition-all duration-300",
-            isCompleted ? "bg-success" : "bg-border"
+            isCompleted ? "bg-gradient-accent" : "bg-border"
           )}
         />
       )}
