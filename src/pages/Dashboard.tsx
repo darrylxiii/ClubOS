@@ -3,6 +3,7 @@ import { Layout } from "@/components/Layout";
 import { PipelineStage } from "@/components/PipelineStage";
 import { JobCard } from "@/components/JobCard";
 import { StagePreparation } from "@/components/StagePreparation";
+import { AIChat } from "@/components/AIChat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Briefcase, Clock, Award } from "lucide-react";
 import { toast } from "sonner";
@@ -160,6 +161,12 @@ const Dashboard = () => {
               />
             </div>
           ))}
+        </div>
+
+        {/* AI Chat Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold mb-6">AI Assistant</h2>
+          <AIChat />
         </div>
       </div>
     </Layout>

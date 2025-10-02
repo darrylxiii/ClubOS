@@ -1,1 +1,4 @@
 project_id = "dpjucecmoyfzrduhlctt"
+
+[functions.chat-ollama]
+verify_jwt = false
