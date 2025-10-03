@@ -46,27 +46,14 @@ const Dashboard = () => {
           .select('role')
           .eq('user_id', user.id);
 
-        const isAdmin = rolesData?.some(r => r.role === 'admin');
+        // Authenticated users can view their assigned strategists with full contact info
+        const { data, error } = await supabase
+          .from('talent_strategists')
+          .select('*')
+          .order('full_name');
 
-        // Admins get full contact info from base table
-        if (isAdmin) {
-          const { data, error } = await supabase
-            .from('talent_strategists')
-            .select('*')
-            .order('full_name');
-
-          if (error) throw error;
-          if (data) setStrategists(data);
-        } else {
-          // Regular users get public view only (no contact info)
-          const { data, error } = await supabase
-            .from('public_talent_strategists')
-            .select('*')
-            .order('full_name');
-
-          if (error) throw error;
-          if (data) setStrategists(data);
-        }
+        if (error) throw error;
+        if (data) setStrategists(data);
       } catch (error) {
         console.error('Error fetching strategists:', error);
       }

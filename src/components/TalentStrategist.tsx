@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Mail, Phone, Linkedin, Twitter, Instagram, User } from "lucide-react";
+import { Mail, Phone, Linkedin, Twitter, Instagram, User, MessageCircle } from "lucide-react";
 import { useState } from "react";
 import {
   Dialog,
@@ -42,13 +42,17 @@ export const TalentStrategist = ({ strategist, compact = false }: TalentStrategi
       .slice(0, 2);
   };
 
-  const handleContact = (type: 'email' | 'phone', value?: string) => {
+  const handleContact = (type: 'email' | 'phone' | 'whatsapp', value?: string) => {
     if (!value) return;
     
     if (type === 'email') {
       window.location.href = `mailto:${value}`;
     } else if (type === 'phone') {
       window.location.href = `tel:${value}`;
+    } else if (type === 'whatsapp') {
+      // Remove all non-numeric characters from phone number
+      const cleanPhone = value.replace(/\D/g, '');
+      window.open(`https://wa.me/${cleanPhone}`, '_blank');
     }
   };
 
@@ -124,14 +128,24 @@ export const TalentStrategist = ({ strategist, compact = false }: TalentStrategi
                   </Button>
                 )}
                 {strategist.phone && (
-                  <Button
-                    variant="outline"
-                    className="justify-start"
-                    onClick={() => handleContact('phone', strategist.phone)}
-                  >
-                    <Phone className="w-4 h-4 mr-2" />
-                    Call
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      className="justify-start"
+                      onClick={() => handleContact('phone', strategist.phone)}
+                    >
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="justify-start bg-[#25D366]/10 hover:bg-[#25D366]/20 border-[#25D366]/30"
+                      onClick={() => handleContact('whatsapp', strategist.phone)}
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2 text-[#25D366]" />
+                      WhatsApp
+                    </Button>
+                  </>
                 )}
                 {strategist.linkedin_url && (
                   <Button
@@ -214,15 +228,26 @@ export const TalentStrategist = ({ strategist, compact = false }: TalentStrategi
             </Button>
           )}
           {strategist.phone && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="justify-start"
-              onClick={() => handleContact('phone', strategist.phone)}
-            >
-              <Phone className="w-3 h-3 mr-1" />
-              Call
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="justify-start"
+                onClick={() => handleContact('phone', strategist.phone)}
+              >
+                <Phone className="w-3 h-3 mr-1" />
+                Call
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="justify-start bg-[#25D366]/10 hover:bg-[#25D366]/20 border-[#25D366]/30"
+                onClick={() => handleContact('whatsapp', strategist.phone)}
+              >
+                <MessageCircle className="w-3 h-3 mr-1 text-[#25D366]" />
+                WhatsApp
+              </Button>
+            </>
           )}
           {strategist.linkedin_url && (
             <Button
