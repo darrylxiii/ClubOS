@@ -79,55 +79,51 @@ export const PhoneVerification = ({
     <div className="space-y-4">
       <div>
         <Label htmlFor="phone">Phone Number</Label>
-        <div className="relative">
-          <PhoneInput
-            international
-            defaultCountry="US"
-            value={phoneNumber}
-            onChange={onPhoneChange}
-            disabled={phoneVerified || otpSent}
-            className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          />
-          
-          {phoneNumber && !otpSent && (
-            <div className="mt-2 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {phoneVerified ? (
+        <div className="relative space-y-2">
+          <div className="flex gap-2 items-center p-3 rounded-lg border border-input bg-background/50">
+            <div className="flex-1">
+              <PhoneInput
+                international
+                defaultCountry="US"
+                value={phoneNumber}
+                onChange={onPhoneChange}
+                disabled={phoneVerified || otpSent}
+                className="bg-transparent border-none focus:outline-none"
+              />
+            </div>
+            
+            {phoneNumber && isPhoneValid && !otpSent && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSendOTP}
+                disabled={isSendingOtp}
+                className={phoneVerified 
+                  ? "bg-green-600 hover:bg-green-700 text-white"
+                  : "bg-red-600 hover:bg-red-700 text-white"
+                }
+              >
+                {isSendingOtp ? (
                   <>
-                    <CheckCircle2 className="w-4 h-4 text-green-500" />
-                    <span className="text-xs text-green-500 font-medium">Phone verified</span>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Sending...
                   </>
-                ) : isPhoneValid ? (
+                ) : phoneVerified ? (
                   <>
-                    <Shield className="w-4 h-4 text-amber-500" />
-                    <span className="text-xs text-amber-500 font-medium">Not verified</span>
+                    <CheckCircle2 className="w-4 h-4 mr-1" />
+                    Verified
                   </>
                 ) : (
-                  <>
-                    <XCircle className="w-4 h-4 text-destructive" />
-                    <span className="text-xs text-destructive">Invalid phone number</span>
-                  </>
+                  'Verify'
                 )}
-              </div>
-              
-              {!phoneVerified && isPhoneValid && (
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleSendOTP}
-                  disabled={isSendingOtp}
-                  className="bg-accent text-background hover:bg-accent/90"
-                >
-                  {isSendingOtp ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    'Verify Phone'
-                  )}
-                </Button>
-              )}
+              </Button>
+            )}
+          </div>
+          
+          {phoneNumber && !isPhoneValid && !otpSent && (
+            <div className="flex items-center gap-2 text-xs text-destructive px-3">
+              <XCircle className="w-4 h-4" />
+              <span>Invalid phone number</span>
             </div>
           )}
         </div>
