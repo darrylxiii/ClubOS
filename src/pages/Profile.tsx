@@ -18,15 +18,15 @@ import { useAuth } from "@/contexts/AuthContext";
 const Profile = () => {
   const { user } = useAuth();
   const [profileData, setProfileData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    phone: "+1 234 567 8900",
-    location: "San Francisco, USA",
-    currentTitle: "Senior Product Manager",
-    linkedin: "https://linkedin.com/in/johndoe",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    location: "",
+    currentTitle: "",
+    linkedin: "",
     noticePeriod: "2_weeks",
-    preferences: "Remote-first companies, Tech industry, Leadership opportunities",
+    preferences: "",
   });
 
   const [currentSalaryRange, setCurrentSalaryRange] = useState<[number, number]>([150000, 180000]);
@@ -34,6 +34,7 @@ const Profile = () => {
   const [blockedCompanies, setBlockedCompanies] = useState<string[]>([]);
   const [companySearchQuery, setCompanySearchQuery] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -161,9 +162,107 @@ const Profile = () => {
     if (e.target.files && e.target.files[0]) {
       setResume(e.target.files[0]);
       localStorage.setItem('resume_uploaded', 'true');
-      toast.success("Resume uploaded successfully");
+      toast.success("Resume uploaded - will be saved with profile");
     }
   };
+
+  // Load profile data on mount
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
+      }
+
+      if (data) {
+        // Split full_name into firstName and lastName
+        const nameParts = (data.full_name || '').split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ') || '';
+
+        setProfileData({
+          firstName,
+          lastName,
+          email: data.email || '',
+          phone: data.phone || '',
+          location: data.location || '',
+          currentTitle: data.current_title || '',
+          linkedin: data.linkedin_url || '',
+          noticePeriod: data.notice_period || '2_weeks',
+          preferences: data.career_preferences || '',
+        });
+
+        setCurrentSalaryRange([
+          data.current_salary_min || 150000,
+          data.current_salary_max || 180000
+        ]);
+        setDesiredSalaryRange([
+          data.desired_salary_min || 200000,
+          data.desired_salary_max || 250000
+        ]);
+        setBlockedCompanies((data.blocked_companies as string[]) || []);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
+
+  // Auto-save profile data with debouncing
+  useEffect(() => {
+    const saveProfile = async () => {
+      if (!user) return;
+
+      setIsSaving(true);
+      try {
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            full_name: `${profileData.firstName} ${profileData.lastName}`.trim(),
+            phone: profileData.phone,
+            location: profileData.location,
+            current_title: profileData.currentTitle,
+            linkedin_url: profileData.linkedin,
+            notice_period: profileData.noticePeriod,
+            career_preferences: profileData.preferences,
+            current_salary_min: currentSalaryRange[0],
+            current_salary_max: currentSalaryRange[1],
+            desired_salary_min: desiredSalaryRange[0],
+            desired_salary_max: desiredSalaryRange[1],
+            blocked_companies: blockedCompanies,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id);
+
+        if (error) throw error;
+
+        setLastSaved(new Date());
+        
+        // Update completion tracking
+        if (currentSalaryRange || desiredSalaryRange) {
+          localStorage.setItem('salary_set', 'true');
+        }
+        if (profileData.preferences) {
+          localStorage.setItem('preferences_set', 'true');
+        }
+      } catch (error) {
+        console.error('Error saving profile:', error);
+        toast.error('Failed to save profile changes');
+      } finally {
+        setIsSaving(false);
+      }
+    };
+
+    const debounceTimer = setTimeout(saveProfile, 1000);
+    return () => clearTimeout(debounceTimer);
+  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, user]);
 
   // Load profile data from database
   useEffect(() => {
@@ -381,6 +480,12 @@ const Profile = () => {
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />
               Saving changes...
+            </div>
+          )}
+          {!isSaving && lastSaved && (
+            <div className="flex items-center gap-2 text-sm text-green-600">
+              <CheckCircle2 className="w-4 h-4" />
+              All changes saved
             </div>
           )}
         </div>
@@ -942,6 +1047,12 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
+          
+          <div className="text-center pb-6">
+            <p className="text-sm text-muted-foreground">
+              ✨ All changes are automatically saved
+            </p>
+          </div>
         </form>
       </div>
     </Layout>
