@@ -1687,6 +1687,135 @@ export type Database = {
         }
         Relationships: []
       }
+      target_companies: {
+        Row: {
+          company_id: string
+          company_insider: string | null
+          created_at: string
+          created_by: string
+          id: string
+          industry: string | null
+          job_specifications: Json | null
+          location: string | null
+          logo_url: string | null
+          name: string
+          notes: string | null
+          priority: number | null
+          status: string
+          updated_at: string
+          votes: number | null
+          website_url: string | null
+        }
+        Insert: {
+          company_id: string
+          company_insider?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          industry?: string | null
+          job_specifications?: Json | null
+          location?: string | null
+          logo_url?: string | null
+          name: string
+          notes?: string | null
+          priority?: number | null
+          status?: string
+          updated_at?: string
+          votes?: number | null
+          website_url?: string | null
+        }
+        Update: {
+          company_id?: string
+          company_insider?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          industry?: string | null
+          job_specifications?: Json | null
+          location?: string | null
+          logo_url?: string | null
+          name?: string
+          notes?: string | null
+          priority?: number | null
+          status?: string
+          updated_at?: string
+          votes?: number | null
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "target_companies_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      target_company_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          target_company_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          target_company_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          target_company_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "target_company_comments_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "target_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      target_company_votes: {
+        Row: {
+          created_at: string
+          id: string
+          target_company_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          target_company_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          target_company_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "target_company_votes_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "target_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_scheduling_preferences: {
         Row: {
           auto_schedule_enabled: boolean | null

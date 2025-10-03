@@ -12,6 +12,7 @@ import { JobManagement } from "@/components/partner/JobManagement";
 import { TeamManagement } from "@/components/partner/TeamManagement";
 import { ApplicantPipeline } from "@/components/partner/ApplicantPipeline";
 import { PartnerAnalytics } from "@/components/partner/PartnerAnalytics";
+import { TargetCompanies } from "@/components/partner/TargetCompanies";
 import { useNavigate } from "react-router-dom";
 import { useEffect as useEffectNavigation } from "react";
 
@@ -185,9 +186,10 @@ const PartnerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="jobs" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="jobs">Jobs</TabsTrigger>
             <TabsTrigger value="applicants">Applicants</TabsTrigger>
+            <TabsTrigger value="targets">Target Bedrijven</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="company">Company</TabsTrigger>
@@ -199,6 +201,10 @@ const PartnerDashboard = () => {
 
           <TabsContent value="applicants" className="space-y-4">
             <ApplicantPipeline companyId={companyId} />
+          </TabsContent>
+
+          <TabsContent value="targets" className="space-y-4">
+            <TargetCompanies companyId={companyId} />
           </TabsContent>
 
           <TabsContent value="team" className="space-y-4">
