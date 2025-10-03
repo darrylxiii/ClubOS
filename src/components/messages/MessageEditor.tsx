@@ -20,21 +20,28 @@ export function MessageEditor({ messageId, currentContent, onSave, onCancel }: M
 
     setSaving(true);
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user?.id) throw new Error('User not authenticated');
+
       // Store edit history
-      await supabase.from('message_edits').insert({
+      const { error: historyError } = await supabase.from('message_edits').insert({
         message_id: messageId,
         previous_content: currentContent,
-        edited_by: (await supabase.auth.getUser()).data.user?.id,
+        edited_by: userData.user.id,
       });
 
+      if (historyError) throw historyError;
+
       // Update message
-      await supabase
+      const { error: updateError } = await supabase
         .from('messages')
         .update({
           content: content.trim(),
           edited_at: new Date().toISOString(),
         })
         .eq('id', messageId);
+
+      if (updateError) throw updateError;
 
       toast.success('Message updated');
       onSave();

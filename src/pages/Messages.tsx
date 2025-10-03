@@ -50,7 +50,7 @@ export default function Messages() {
   const { conversations, loading: loadingConversations } = useMessages();
   
   // Load messages for selected conversation
-  const { messages, sendMessage, sending, loading: loadingMessages } = useMessages(
+  const { messages, sendMessage, sending, loading: loadingMessages, loadMessages } = useMessages(
     selectedConversationId || undefined
   );
 
@@ -302,15 +302,21 @@ export default function Messages() {
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <Avatar className="h-10 w-10">
-                <AvatarImage src={selectedConversation?.application?.company_name} />
+                <AvatarImage src={
+                  selectedConversation?.participants?.find(p => p.user_id !== user?.id)?.profile?.avatar_url || undefined
+                } />
                 <AvatarFallback>
-                  {selectedConversation?.application?.company_name?.charAt(0) || 'C'}
+                  {selectedConversation?.participants?.find(p => p.user_id !== user?.id)?.profile?.full_name?.charAt(0) || 
+                   selectedConversation?.title?.charAt(0) || 'C'}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h2 className="font-semibold">{selectedConversation?.application?.company_name}</h2>
+                <h2 className="font-semibold">
+                  {selectedConversation?.participants?.find(p => p.user_id !== user?.id)?.profile?.full_name || 
+                   selectedConversation?.title}
+                </h2>
                 <p className="text-sm text-muted-foreground">
-                  {selectedConversation?.application?.position}
+                  {selectedConversation?.application?.position || 'Conversation'}
                 </p>
               </div>
             </div>
@@ -381,10 +387,10 @@ export default function Messages() {
                           <MessageEditor
                             messageId={message.id}
                             currentContent={message.content}
-                            onSave={() => {
+                            onSave={async () => {
                               setEditingMessageId(null);
                               // Reload messages to show the update
-                              window.location.reload();
+                              await loadMessages();
                             }}
                             onCancel={() => setEditingMessageId(null)}
                           />

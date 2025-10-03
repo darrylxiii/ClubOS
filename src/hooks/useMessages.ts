@@ -202,26 +202,40 @@ export const useMessages = (conversationId?: string) => {
     if (!conversationId || !user?.id) return;
 
     try {
-      const { data, error } = await supabase
+      // Fetch messages
+      const { data: messagesData, error: messagesError } = await supabase
         .from('messages')
-        .select(`
-          *,
-          sender:profiles!messages_sender_id_fkey(full_name, avatar_url),
-          attachments:message_attachments(*)
-        `)
+        .select('*, attachments:message_attachments(*)')
         .eq('conversation_id', conversationId)
+        .is('deleted_at', null)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (messagesError) throw messagesError;
 
-      setMessages((data || []) as unknown as Message[]);
+      // Fetch sender profiles for all messages
+      const senderIds = [...new Set(messagesData?.map((m) => m.sender_id) || [])];
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', senderIds);
+
+      // Combine messages with sender data
+      const messagesWithSenders = (messagesData || []).map((msg) => ({
+        ...msg,
+        sender: profiles?.find((p) => p.id === msg.sender_id),
+      }));
+
+      setMessages(messagesWithSenders as unknown as Message[]);
 
       // Mark messages as read
-      await supabase
-        .from('message_notifications')
-        .update({ is_read: true, read_at: new Date().toISOString() })
-        .eq('user_id', user.id)
-        .in('message_id', (data || []).map((m) => m.id));
+      if (messagesData && messagesData.length > 0) {
+        const messageIds = messagesData.map((m) => m.id);
+        await supabase
+          .from('message_notifications')
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq('user_id', user.id)
+          .in('message_id', messageIds);
+      }
     } catch (error: any) {
       console.error('Error loading messages:', error);
       toast.error('Failed to load messages');
@@ -307,10 +321,13 @@ export const useMessages = (conversationId?: string) => {
         async (payload) => {
           const newMessage = payload.new as Message;
 
+          // Skip if deleted
+          if (newMessage.deleted_at) return;
+
           // Fetch sender details
           const { data: sender } = await supabase
             .from('profiles')
-            .select('full_name, avatar_url')
+            .select('id, full_name, avatar_url')
             .eq('id', newMessage.sender_id)
             .maybeSingle();
 
