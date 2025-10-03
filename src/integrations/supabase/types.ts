@@ -17,26 +17,62 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          blocked_companies: Json | null
+          career_preferences: string | null
           created_at: string | null
+          current_salary_max: number | null
+          current_salary_min: number | null
+          current_title: string | null
+          desired_salary_max: number | null
+          desired_salary_min: number | null
           email: string | null
           full_name: string | null
           id: string
+          linkedin_url: string | null
+          location: string | null
+          notice_period: string | null
+          phone: string | null
+          resume_url: string | null
           updated_at: string | null
         }
         Insert: {
           avatar_url?: string | null
+          blocked_companies?: Json | null
+          career_preferences?: string | null
           created_at?: string | null
+          current_salary_max?: number | null
+          current_salary_min?: number | null
+          current_title?: string | null
+          desired_salary_max?: number | null
+          desired_salary_min?: number | null
           email?: string | null
           full_name?: string | null
           id: string
+          linkedin_url?: string | null
+          location?: string | null
+          notice_period?: string | null
+          phone?: string | null
+          resume_url?: string | null
           updated_at?: string | null
         }
         Update: {
           avatar_url?: string | null
+          blocked_companies?: Json | null
+          career_preferences?: string | null
           created_at?: string | null
+          current_salary_max?: number | null
+          current_salary_min?: number | null
+          current_title?: string | null
+          desired_salary_max?: number | null
+          desired_salary_min?: number | null
           email?: string | null
           full_name?: string | null
           id?: string
+          linkedin_url?: string | null
+          location?: string | null
+          notice_period?: string | null
+          phone?: string | null
+          resume_url?: string | null
           updated_at?: string | null
         }
         Relationships: []

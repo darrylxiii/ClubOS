@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,13 +8,15 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban } from "lucide-react";
+import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { CompanySearch } from "@/components/CompanySearch";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Profile = () => {
+  const { user } = useAuth();
   const [profileData, setProfileData] = useState({
     firstName: "John",
     lastName: "Doe",
@@ -31,6 +33,9 @@ const Profile = () => {
   const [desiredSalaryRange, setDesiredSalaryRange] = useState<[number, number]>([200000, 250000]);
   const [blockedCompanies, setBlockedCompanies] = useState<string[]>([]);
   const [companySearchQuery, setCompanySearchQuery] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
 
   const [settings, setSettings] = useState({
     emailNotifications: true,
@@ -50,11 +55,66 @@ const Profile = () => {
   const [microsoftCalendarLoading, setMicrosoftCalendarLoading] = useState(false);
   const [microsoftAccessToken, setMicrosoftAccessToken] = useState<string | null>(null);
 
+  // Auto-save function
+  const saveProfile = useCallback(async () => {
+    if (!user) return;
+
+    setIsSaving(true);
+    try {
+      const fullName = `${profileData.firstName} ${profileData.lastName}`.trim();
+      
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: fullName,
+          phone: profileData.phone,
+          location: profileData.location,
+          current_title: profileData.currentTitle,
+          linkedin_url: profileData.linkedin,
+          notice_period: profileData.noticePeriod,
+          career_preferences: profileData.preferences,
+          current_salary_min: currentSalaryRange[0],
+          current_salary_max: currentSalaryRange[1],
+          desired_salary_min: desiredSalaryRange[0],
+          desired_salary_max: desiredSalaryRange[1],
+          blocked_companies: blockedCompanies,
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      // Update localStorage for completion tracking
+      if (currentSalaryRange[0] || desiredSalaryRange[0]) {
+        localStorage.setItem('salary_set', 'true');
+      }
+      if (profileData.preferences) {
+        localStorage.setItem('preferences_set', 'true');
+      }
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save changes');
+    } finally {
+      setIsSaving(false);
+    }
+  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies]);
+
+  // Debounced auto-save
+  const debouncedSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      saveProfile();
+    }, 1000); // Save 1 second after user stops typing
+  }, [saveProfile]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProfileData({
       ...profileData,
       [e.target.name]: e.target.value,
     });
+    debouncedSave();
   };
 
   const handleNoticePeriodChange = (value: string) => {
@@ -62,19 +122,23 @@ const Profile = () => {
       ...profileData,
       noticePeriod: value,
     });
+    debouncedSave();
   };
 
   const handleAddBlockedCompany = (company: { name: string; domain?: string }) => {
     if (company.name && !blockedCompanies.includes(company.name)) {
-      setBlockedCompanies([...blockedCompanies, company.name]);
+      const newCompanies = [...blockedCompanies, company.name];
+      setBlockedCompanies(newCompanies);
       setCompanySearchQuery("");
       toast.success("Company added to blocklist");
+      debouncedSave();
     }
   };
 
   const handleRemoveBlockedCompany = (company: string) => {
     setBlockedCompanies(blockedCompanies.filter(c => c !== company));
     toast.success("Company removed from blocklist");
+    debouncedSave();
   };
 
   const formatSalary = (value: number) => {
@@ -101,8 +165,57 @@ const Profile = () => {
     }
   };
 
+  // Load profile data from database
   useEffect(() => {
-    // Check if we have stored access tokens
+    const loadProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data) {
+          // Parse full name into first and last name
+          const [firstName, ...lastNameParts] = (data.full_name || '').split(' ');
+          
+          setProfileData({
+            firstName: firstName || '',
+            lastName: lastNameParts.join(' ') || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            location: data.location || '',
+            currentTitle: data.current_title || '',
+            linkedin: data.linkedin_url || '',
+            noticePeriod: data.notice_period || '2_weeks',
+            preferences: data.career_preferences || '',
+          });
+
+          if (data.current_salary_min && data.current_salary_max) {
+            setCurrentSalaryRange([data.current_salary_min, data.current_salary_max]);
+          }
+          
+          if (data.desired_salary_min && data.desired_salary_max) {
+            setDesiredSalaryRange([data.desired_salary_min, data.desired_salary_max]);
+          }
+
+          if (data.blocked_companies) {
+            const companies = data.blocked_companies as any;
+            setBlockedCompanies(Array.isArray(companies) ? companies.filter((c): c is string => typeof c === 'string') : []);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Check calendar tokens
     const googleToken = localStorage.getItem('google_calendar_token');
     if (googleToken) {
       setGoogleAccessToken(googleToken);
@@ -114,7 +227,9 @@ const Profile = () => {
       setMicrosoftAccessToken(microsoftToken);
       setMicrosoftCalendarConnected(true);
     }
-  }, []);
+
+    loadProfile();
+  }, [user]);
 
   const handleConnectGoogleCalendar = async () => {
     try {
@@ -233,36 +348,41 @@ const Profile = () => {
     }
   }, [googleAccessToken, microsoftAccessToken]);
 
+  useEffect(() => {
+    // Auto-save on slider changes
+    debouncedSave();
+  }, [currentSalaryRange, desiredSalaryRange, debouncedSave]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Track completion items
-    if (currentSalaryRange || desiredSalaryRange) {
-      localStorage.setItem('salary_set', 'true');
-    }
-    
-    if (profileData.preferences) {
-      localStorage.setItem('preferences_set', 'true');
-    }
-    
-    // Here you would typically send data to backend
-    console.log("Profile updated:", profileData);
-    console.log("Current Salary Range:", currentSalaryRange);
-    console.log("Desired Salary Range:", desiredSalaryRange);
-    console.log("Blocked Companies:", blockedCompanies);
-    console.log("Settings updated:", settings);
-    
-    toast.success("Profile updated successfully!");
+    // Auto-save handles everything, no manual save needed
   };
 
   return (
     <Layout>
       <div className="max-w-4xl mx-auto py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Profile & Settings</h1>
-          <p className="text-muted-foreground">
-            Manage your personal information and preferences
-          </p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Profile & Settings</h1>
+            <p className="text-muted-foreground">
+              Manage your personal information and preferences
+            </p>
+          </div>
+          {isSaving && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Saving changes...
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -822,23 +942,6 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
-
-          {/* Submit Button */}
-          <div className="flex gap-4 justify-end pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => window.history.back()}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              className="bg-gradient-accent text-background font-semibold px-8 shadow-glow hover:opacity-90 transition-opacity"
-            >
-              Save Changes
-            </Button>
-          </div>
         </form>
       </div>
     </Layout>
