@@ -12,7 +12,8 @@ const Admin = () => {
 
   console.log('[Admin] Current role:', role, 'loading:', loading);
 
-  if (loading) {
+  // Wait for role to be loaded before making any decisions
+  if (loading || role === null) {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8">
@@ -26,6 +27,7 @@ const Admin = () => {
   }
 
   if (role !== 'admin') {
+    console.log('[Admin] Redirecting - role is not admin:', role);
     return <Navigate to="/dashboard" replace />;
   }
 
