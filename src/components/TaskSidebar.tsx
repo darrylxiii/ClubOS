@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { Calendar, CheckCircle2, Circle, Clock, Plus, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { CreateTaskDialog } from "./CreateTaskDialog";
+import { TaskTemplates } from "./TaskTemplates";
 
 interface Task {
   id: string;
@@ -168,20 +170,35 @@ export function TaskSidebar() {
   return (
     <Card className="h-full flex flex-col border-0 shadow-glow bg-card/50 backdrop-blur-sm">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="text-lg">Tasks</CardTitle>
-            <CardDescription>Manage your pipeline activities</CardDescription>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Tasks</CardTitle>
+              <CardDescription>Manage your pipeline activities</CardDescription>
+            </div>
           </div>
-          <Button
-            size="sm"
-            onClick={handleScheduleTasks}
-            disabled={schedulingLoading || unscheduledTasks.length === 0}
-            className="bg-gradient-accent text-background"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            {schedulingLoading ? 'Scheduling...' : 'AI Schedule'}
-          </Button>
+          
+          <div className="flex items-center gap-2">
+            <CreateTaskDialog 
+              trigger={
+                <Button size="sm" variant="outline" className="flex-1">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Task
+                </Button>
+              }
+              onTaskCreated={loadTasks}
+            />
+            <TaskTemplates />
+            <Button
+              size="sm"
+              onClick={handleScheduleTasks}
+              disabled={schedulingLoading || unscheduledTasks.length === 0}
+              className="bg-gradient-accent text-background flex-1"
+            >
+              <Sparkles className="w-4 h-4 mr-2" />
+              {schedulingLoading ? 'Scheduling...' : 'AI Schedule'}
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
