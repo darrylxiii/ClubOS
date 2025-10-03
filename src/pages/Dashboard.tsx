@@ -122,18 +122,16 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-8 lg:py-12">
-          {/* Header */}
-          <div className="space-y-4 mb-12">
-            <p className="text-caps text-muted-foreground">Welcome back{firstName ? `, ${firstName}` : ''}</p>
-            <h1 className="text-hero">
-              Your Elite
-              <br />
-              Pipeline
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl">
-              "Success is a luxury reserved for those who turn ambition into action"
-            </p>
-          </div>
+        {/* Header */}
+        <div className="space-y-4 mb-12">
+          <p className="text-caps text-muted-foreground">Welcome back{firstName ? `, ${firstName}` : ''}</p>
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
+            Your Elite Pipeline
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-2xl">
+            "Success is a luxury reserved for those who turn ambition into action"
+          </p>
+        </div>
 
           {/* Profile Completion, Feedback Tasks and Stats */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-12">

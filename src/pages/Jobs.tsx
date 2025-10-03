@@ -153,10 +153,8 @@ const Jobs = () => {
         {/* Header */}
         <div className="space-y-4 border-b-2 border-foreground pb-8">
           <p className="text-caps text-muted-foreground">Curated Roles</p>
-          <h1 className="text-hero">
-            Elite
-            <br />
-            <span className="italic">Opportunities</span>
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
+            Elite Opportunities
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
             Invite-only roles curated exclusively for visionary talent

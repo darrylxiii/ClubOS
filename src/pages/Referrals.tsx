@@ -130,10 +130,8 @@ const Referrals = () => {
         {/* Header */}
         <div className="space-y-4">
           <p className="text-caps text-muted-foreground">Build Your Network</p>
-          <h1 className="text-hero">
-            Invite & Earn
-            <br />
-            <span className="italic">Rewards</span>
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
+            Invite & Earn Rewards
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl">
             Curate our elite community and earn competitive bonuses when your referrals succeed
