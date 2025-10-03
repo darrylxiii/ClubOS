@@ -87,6 +87,11 @@ export const JobCard = ({
               {tag}
             </Badge>
           ))}
+          {salary && (
+            <Badge variant="outline" className="text-xs font-semibold">
+              {salary}
+            </Badge>
+          )}
         </div>
 
         {matchScore !== undefined && (

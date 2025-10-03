@@ -53,6 +53,8 @@ const Profile = () => {
     shareWithPartners: true,
   });
 
+  const [preferredCurrency, setPreferredCurrency] = useState<'EUR' | 'USD' | 'GBP' | 'AED'>('EUR');
+
   const [privacySettings, setPrivacySettings] = useState({
     share_full_name: true,
     share_email: true,
@@ -264,6 +266,26 @@ const Profile = () => {
     debouncedSave();
   };
 
+  const handleCurrencyChange = async (currency: 'EUR' | 'USD' | 'GBP' | 'AED') => {
+    setPreferredCurrency(currency);
+    
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ preferred_currency: currency })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      toast.success(`Currency preference updated to ${currency}`);
+    } catch (error) {
+      console.error('Error updating currency:', error);
+      toast.error('Failed to update currency preference');
+    }
+  };
+
   const countSharedFields = () => {
     return Object.values(privacySettings).filter(Boolean).length;
   };
@@ -447,6 +469,11 @@ const Profile = () => {
         // Set privacy settings if they exist
         if (data.privacy_settings) {
           setPrivacySettings(data.privacy_settings as any);
+        }
+        
+        // Set preferred currency
+        if (data.preferred_currency) {
+          setPreferredCurrency(data.preferred_currency as any);
         }
       }
     };
@@ -1907,6 +1934,37 @@ const Profile = () => {
                     checked={settings.shareWithPartners}
                     onCheckedChange={() => handleSettingChange('shareWithPartners')}
                   />
+                </div>
+              </div>
+
+              <Separator className="my-6" />
+
+              {/* Currency Preference */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Globe className="w-4 h-4 text-accent" />
+                  <h4 className="font-semibold">Currency Preference</h4>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Display Currency</Label>
+                  <Select
+                    value={preferredCurrency}
+                    onValueChange={handleCurrencyChange}
+                  >
+                    <SelectTrigger id="currency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="EUR">EUR (€) - Euro</SelectItem>
+                      <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
+                      <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
+                      <SelectItem value="AED">AED (د.إ) - UAE Dirham</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Job salaries will be automatically converted to your preferred currency
+                  </p>
                 </div>
               </div>
             </CardContent>

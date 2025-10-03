@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
@@ -14,91 +14,99 @@ import { Switch } from "@/components/ui/switch";
 import { Search, SlidersHorizontal, Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { ReferralDialog } from "@/components/ReferralDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyConversion";
 
 type SortOption = "match" | "newest" | "salary";
 
 const Jobs = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("match");
-  const [savedJobIds, setSavedJobIds] = useState<number[]>([]);
+  const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [clubSyncEnabled, setClubSyncEnabled] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<{ id: string; title: string; company: string } | null>(null);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [userCurrency, setUserCurrency] = useState<Currency>('EUR');
 
-  const jobs = [
-    {
-      id: 1,
-      title: "Chief Executive Officer",
-      company: "AI Infrastructure Fund",
-      location: "Undisclosed",
-      type: "Executive",
-      postedDate: "3 days ago",
-      postedDaysAgo: 3,
-      tags: ["Leadership", "Venture-backed", "AI"],
-      matchScore: 95,
-      salary: 450000,
-    },
-    {
-      id: 2,
-      title: "VP Engineering",
-      company: "Quantum Computing Lab",
-      location: "Remote",
-      type: "Executive",
-      postedDate: "5 days ago",
-      postedDaysAgo: 5,
-      tags: ["Deep Tech", "Scale", "Innovation"],
-      matchScore: 88,
-      salary: 380000,
-    },
-    {
-      id: 3,
-      title: "Global Head of Design",
-      company: "Luxury Tech Brand",
-      location: "New York, NY",
-      type: "Executive",
-      postedDate: "1 week ago",
-      postedDaysAgo: 7,
-      tags: ["Design Leadership", "Brand", "UX"],
-      matchScore: 76,
-      salary: 320000,
-    },
-    {
-      id: 4,
-      title: "Chief Product Officer",
-      company: "Next-Gen Platform",
-      location: "San Francisco, CA",
-      type: "Executive",
-      postedDate: "2 days ago",
-      postedDaysAgo: 2,
-      tags: ["Product Strategy", "Growth", "Innovation"],
-      matchScore: 92,
-      salary: 420000,
-    },
-    {
-      id: 5,
-      title: "Head of AI Research",
-      company: "Stealth Startup",
-      location: "Remote",
-      type: "Executive",
-      postedDate: "4 days ago",
-      postedDaysAgo: 4,
-      tags: ["AI/ML", "Research", "PhD Required"],
-      matchScore: 84,
-      salary: 350000,
-    },
-    {
-      id: 6,
-      title: "Chief Revenue Officer",
-      company: "SaaS Unicorn",
-      location: "Undisclosed",
-      type: "Executive",
-      postedDate: "1 day ago",
-      postedDaysAgo: 1,
-      tags: ["Revenue", "Scale", "Enterprise"],
-      matchScore: 91,
-      salary: 400000,
-    },
-  ];
+  // Fetch user's preferred currency
+  useEffect(() => {
+    const fetchUserCurrency = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('preferred_currency')
+        .eq('id', user.id)
+        .single();
+      
+      if (data?.preferred_currency) {
+        setUserCurrency(data.preferred_currency as Currency);
+      }
+    };
+    
+    fetchUserCurrency();
+  }, [user]);
+
+  // Fetch jobs from database
+  useEffect(() => {
+    const fetchJobs = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('jobs')
+          .select(`
+            id,
+            title,
+            location,
+            employment_type,
+            salary_min,
+            salary_max,
+            currency,
+            created_at,
+            company_id,
+            companies (
+              name,
+              slug
+            )
+          `)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Transform data for display
+        const transformedJobs = data?.map((job: any) => ({
+          id: job.id,
+          title: job.title,
+          company: job.companies?.name || 'Unknown Company',
+          companySlug: job.companies?.slug,
+          location: job.location || 'Remote',
+          type: job.employment_type || 'fulltime',
+          postedDate: new Date(job.created_at).toLocaleDateString(),
+          postedDaysAgo: Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)),
+          tags: ['Leadership', 'Innovation'], // TODO: Add tags to jobs table
+          matchScore: Math.floor(Math.random() * 30) + 70, // TODO: Calculate real match score
+          salary: job.salary_max || 0,
+          salaryMin: job.salary_min || 0,
+          salaryMax: job.salary_max || 0,
+          currency: job.currency as Currency,
+        })) || [];
+
+        setJobs(transformedJobs);
+      } catch (error) {
+        console.error('Error fetching jobs:', error);
+        toast.error('Failed to load jobs');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchJobs();
+  }, []);
 
   const sortedJobs = [...jobs].sort((a, b) => {
     switch (sortBy) {
@@ -130,7 +138,7 @@ const Jobs = () => {
     });
   };
 
-  const toggleSaveJob = (jobId: number, jobTitle: string) => {
+  const toggleSaveJob = (jobId: string, jobTitle: string) => {
     setSavedJobIds((prev) => {
       const isSaved = prev.includes(jobId);
       if (isSaved) {
@@ -143,6 +151,20 @@ const Jobs = () => {
         return [...prev, jobId];
       }
     });
+  };
+
+  // Convert salary for display
+  const getConvertedSalary = (job: any) => {
+    if (!job.salaryMax) return null;
+    
+    const convertedMin = convertCurrency(job.salaryMin || 0, job.currency, userCurrency);
+    const convertedMax = convertCurrency(job.salaryMax, job.currency, userCurrency);
+    
+    return {
+      min: convertedMin,
+      max: convertedMax,
+      formatted: `${formatCurrency(convertedMin, userCurrency, { compact: true })} - ${formatCurrency(convertedMax, userCurrency, { compact: true })}`
+    };
   };
 
   const savedJobs = sortedJobs.filter((job) => savedJobIds.includes(job.id));
@@ -245,25 +267,39 @@ const Jobs = () => {
             </div>
 
             {/* Job Listings */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {sortedJobs.map((job) => (
-                <JobCard
-                  key={job.id}
-                  title={job.title}
-                  company={job.company}
-                  location={job.location}
-                  type={job.type}
-                  postedDate={job.postedDate}
-                  tags={job.tags}
-                  matchScore={job.matchScore}
-                  isSaved={savedJobIds.includes(job.id)}
-                  onApply={() => handleApply(job.title)}
-                  onRefer={() => handleRefer(job.id.toString(), job.title, job.company)}
-                  onClubSync={() => handleClubSync(job.title)}
-                  onToggleSave={() => toggleSaveJob(job.id, job.title)}
-                />
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Loading jobs...</p>
+              </div>
+            ) : sortedJobs.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No jobs available</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {sortedJobs.map((job) => {
+                  const convertedSalary = getConvertedSalary(job);
+                  return (
+                    <JobCard
+                      key={job.id}
+                      title={job.title}
+                      company={job.company}
+                      location={job.location}
+                      type={job.type}
+                      postedDate={job.postedDate}
+                      tags={job.tags}
+                      salary={convertedSalary?.formatted}
+                      matchScore={job.matchScore}
+                      isSaved={savedJobIds.includes(job.id)}
+                      onApply={() => handleApply(job.title)}
+                      onRefer={() => handleRefer(job.id, job.title, job.company)}
+                      onClubSync={() => handleClubSync(job.title)}
+                      onToggleSave={() => toggleSaveJob(job.id, job.title)}
+                    />
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="saved" className="space-y-6">
@@ -348,23 +384,27 @@ const Jobs = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {savedJobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    title={job.title}
-                    company={job.company}
-                    location={job.location}
-                    type={job.type}
-                    postedDate={job.postedDate}
-                    tags={job.tags}
-                    matchScore={job.matchScore}
-                    isSaved={true}
-                    onApply={() => handleApply(job.title)}
-                    onRefer={() => handleRefer(job.id.toString(), job.title, job.company)}
-                    onClubSync={() => handleClubSync(job.title)}
-                    onToggleSave={() => toggleSaveJob(job.id, job.title)}
-                  />
-                ))}
+                {savedJobs.map((job) => {
+                  const convertedSalary = getConvertedSalary(job);
+                  return (
+                    <JobCard
+                      key={job.id}
+                      title={job.title}
+                      company={job.company}
+                      location={job.location}
+                      type={job.type}
+                      postedDate={job.postedDate}
+                      tags={job.tags}
+                      salary={convertedSalary?.formatted}
+                      matchScore={job.matchScore}
+                      isSaved={true}
+                      onApply={() => handleApply(job.title)}
+                      onRefer={() => handleRefer(job.id, job.title, job.company)}
+                      onClubSync={() => handleClubSync(job.title)}
+                      onToggleSave={() => toggleSaveJob(job.id, job.title)}
+                    />
+                  );
+                })}
               </div>
             )}
           </TabsContent>

@@ -745,6 +745,7 @@ export type Database = {
           company_id: string
           created_at: string | null
           created_by: string
+          currency: string
           description: string | null
           employment_type: string | null
           id: string
@@ -765,6 +766,7 @@ export type Database = {
           company_id: string
           created_at?: string | null
           created_by: string
+          currency?: string
           description?: string | null
           employment_type?: string | null
           id?: string
@@ -785,6 +787,7 @@ export type Database = {
           company_id?: string
           created_at?: string | null
           created_by?: string
+          currency?: string
           description?: string | null
           employment_type?: string | null
           id?: string
@@ -1235,6 +1238,7 @@ export type Database = {
           notice_period: string | null
           phone: string | null
           phone_verified: boolean | null
+          preferred_currency: string
           preferred_work_locations: Json | null
           privacy_settings: Json | null
           remote_work_preference: boolean | null
@@ -1280,6 +1284,7 @@ export type Database = {
           notice_period?: string | null
           phone?: string | null
           phone_verified?: boolean | null
+          preferred_currency?: string
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
           remote_work_preference?: boolean | null
@@ -1325,6 +1330,7 @@ export type Database = {
           notice_period?: string | null
           phone?: string | null
           phone_verified?: boolean | null
+          preferred_currency?: string
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
           remote_work_preference?: boolean | null

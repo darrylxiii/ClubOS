@@ -26,6 +26,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
     employment_type: 'fulltime',
     salary_min: '',
     salary_max: '',
+    currency: 'EUR',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,6 +45,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
           employment_type: formData.employment_type,
           salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
           salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
+          currency: formData.currency,
           status: 'draft',
         });
 
@@ -59,6 +61,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
         employment_type: 'fulltime',
         salary_min: '',
         salary_max: '',
+        currency: 'EUR',
       });
     } catch (error) {
       console.error('Error creating job:', error);
@@ -124,22 +127,44 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="salary_min">Min Salary (k)</Label>
+              <Label htmlFor="currency">Currency</Label>
+              <Select
+                value={formData.currency}
+                onValueChange={(value) => setFormData({ ...formData, currency: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="EUR">EUR (€) - Euro</SelectItem>
+                  <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
+                  <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
+                  <SelectItem value="AED">AED (د.إ) - UAE Dirham</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="salary_min">Min Salary</Label>
               <Input
                 id="salary_min"
                 type="number"
                 value={formData.salary_min}
                 onChange={(e) => setFormData({ ...formData, salary_min: e.target.value })}
+                placeholder="e.g., 100000"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="salary_max">Max Salary (k)</Label>
+              <Label htmlFor="salary_max">Max Salary</Label>
               <Input
                 id="salary_max"
                 type="number"
                 value={formData.salary_max}
                 onChange={(e) => setFormData({ ...formData, salary_max: e.target.value })}
+                placeholder="e.g., 150000"
               />
             </div>
           </div>
