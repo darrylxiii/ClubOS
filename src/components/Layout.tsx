@@ -1,8 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, LayoutDashboard, Briefcase, User, Users, LogOut, Video } from "lucide-react";
+import { useState } from "react";
+import { Home, LayoutDashboard, Briefcase, User, Users, LogOut, Video, CheckSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { TaskSidebar } from "@/components/TaskSidebar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +16,7 @@ import {
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const [showMobileTasks, setShowMobileTasks] = useState(false);
 
   const navItems = [
     { path: "/", icon: Home, label: "Home" },
@@ -56,6 +60,22 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 </Link>
               );
             })}
+            
+            {/* Tasks Button for Mobile/Tablet */}
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="xl:hidden flex items-center gap-2 border-2 border-foreground hover:bg-foreground hover:text-background font-bold uppercase text-xs tracking-wider"
+                >
+                  <CheckSquare className="w-4 h-4" />
+                  <span>Tasks</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-full sm:w-96 p-0">
+                <TaskSidebar />
+              </SheetContent>
+            </Sheet>
           </nav>
 
           <DropdownMenu>
@@ -92,9 +112,16 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8">
-        {children}
-      </main>
+      <div className="flex">
+        <main className="flex-1 container mx-auto px-4 py-8">
+          {children}
+        </main>
+
+        {/* Task Sidebar - Desktop Only */}
+        <aside className="hidden xl:block w-96 border-l border-border sticky top-[73px] h-[calc(100vh-73px)] overflow-hidden">
+          <TaskSidebar />
+        </aside>
+      </div>
 
       {/* Mobile Navigation */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t-2 border-foreground">

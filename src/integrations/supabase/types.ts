@@ -460,6 +460,117 @@ export type Database = {
         }
         Relationships: []
       }
+      task_scheduling_preferences: {
+        Row: {
+          auto_schedule_enabled: boolean | null
+          break_between_tasks_minutes: number | null
+          created_at: string
+          focus_time_blocks: Json | null
+          id: string
+          max_tasks_per_day: number | null
+          preferred_task_duration_minutes: number | null
+          updated_at: string
+          user_id: string
+          working_days: number[] | null
+          working_hours_end: string | null
+          working_hours_start: string | null
+        }
+        Insert: {
+          auto_schedule_enabled?: boolean | null
+          break_between_tasks_minutes?: number | null
+          created_at?: string
+          focus_time_blocks?: Json | null
+          id?: string
+          max_tasks_per_day?: number | null
+          preferred_task_duration_minutes?: number | null
+          updated_at?: string
+          user_id: string
+          working_days?: number[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Update: {
+          auto_schedule_enabled?: boolean | null
+          break_between_tasks_minutes?: number | null
+          created_at?: string
+          focus_time_blocks?: Json | null
+          id?: string
+          max_tasks_per_day?: number | null
+          preferred_task_duration_minutes?: number | null
+          updated_at?: string
+          user_id?: string
+          working_days?: number[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Relationships: []
+      }
+      tasks: {
+        Row: {
+          application_id: string | null
+          auto_scheduled: boolean | null
+          company_name: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          metadata: Json | null
+          position: string | null
+          priority: string
+          scheduled_end: string | null
+          scheduled_start: string | null
+          status: string
+          task_type: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          auto_scheduled?: boolean | null
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          metadata?: Json | null
+          position?: string | null
+          priority?: string
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          status?: string
+          task_type: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          auto_scheduled?: boolean | null
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          metadata?: Json | null
+          position?: string | null
+          priority?: string
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null

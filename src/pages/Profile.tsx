@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { CompanySearch } from "@/components/CompanySearch";
+import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
 import { useAuth } from "@/contexts/AuthContext";
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
@@ -819,7 +820,7 @@ const Profile = () => {
   useEffect(() => {
     // Auto-save on slider changes
     debouncedSave();
-  }, [currentSalaryRange, desiredSalaryRange, debouncedSave]);
+  }, [currentSalaryRange, desiredSalaryRange, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, debouncedSave]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -1735,6 +1736,9 @@ const Profile = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* AI Task Scheduling */}
+          <TaskSchedulingPreferences />
 
           {/* Notifications & Privacy Settings */}
           <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
