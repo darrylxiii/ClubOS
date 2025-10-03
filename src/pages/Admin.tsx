@@ -10,6 +10,8 @@ import { Navigate } from "react-router-dom";
 const Admin = () => {
   const { role, loading } = useUserRole();
 
+  console.log('[Admin] Current role:', role, 'loading:', loading);
+
   if (loading) {
     return (
       <AppLayout>
