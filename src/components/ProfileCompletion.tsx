@@ -24,6 +24,7 @@ export const ProfileCompletion = () => {
       if (!user) return;
 
       const items: CompletionItem[] = [
+        { id: "avatar", label: "Upload profile picture", completed: false, link: "/profile#personal" },
         { id: "profile", label: "Complete personal information", completed: false, link: "/profile#personal" },
         { id: "salary", label: "Set salary expectations", completed: false, link: "/profile#salary" },
         { id: "resume", label: "Upload resume/CV", completed: false, link: "/profile#resume" },
@@ -41,6 +42,11 @@ export const ProfileCompletion = () => {
         .single();
 
       if (profile) {
+        // Check if avatar is uploaded
+        if (profile.avatar_url) {
+          items.find(i => i.id === "avatar")!.completed = true;
+        }
+
         // Check if basic profile is complete
         if (profile.full_name && profile.email) {
           items.find(i => i.id === "profile")!.completed = true;

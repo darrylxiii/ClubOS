@@ -15,6 +15,7 @@ import { Slider } from "@/components/ui/slider";
 import { CompanySearch } from "@/components/CompanySearch";
 import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
 import { StealthModeToggle } from "@/components/StealthModeToggle";
+import { AvatarUpload } from "@/components/AvatarUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
@@ -23,6 +24,7 @@ import { isValidPhoneNumber } from 'react-phone-number-input';
 
 const Profile = () => {
   const { user } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
@@ -414,6 +416,7 @@ const Profile = () => {
         const firstName = nameParts[0] || '';
         const lastName = nameParts.slice(1).join(' ') || '';
 
+        setAvatarUrl(data.avatar_url || null);
         setProfileData({
           firstName,
           lastName,
@@ -920,6 +923,17 @@ const Profile = () => {
               <CardDescription>Update your personal details</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {user && (
+                <AvatarUpload
+                  avatarUrl={avatarUrl}
+                  onAvatarChange={setAvatarUrl}
+                  userId={user.id}
+                  required={true}
+                />
+              )}
+              
+              <Separator />
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName">First Name</Label>
