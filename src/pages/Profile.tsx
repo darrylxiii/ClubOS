@@ -8,8 +8,10 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles } from "lucide-react";
+import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 
 const Profile = () => {
   const [profileData, setProfileData] = useState({
@@ -20,11 +22,14 @@ const Profile = () => {
     location: "San Francisco, USA",
     currentTitle: "Senior Product Manager",
     linkedin: "https://linkedin.com/in/johndoe",
-    currentSalary: "$150,000 - $180,000",
-    desiredSalary: "$200,000 - $250,000",
-    noticePeriod: "2 weeks",
+    noticePeriod: "2_weeks",
     preferences: "Remote-first companies, Tech industry, Leadership opportunities",
   });
+
+  const [currentSalaryRange, setCurrentSalaryRange] = useState<[number, number]>([150000, 180000]);
+  const [desiredSalaryRange, setDesiredSalaryRange] = useState<[number, number]>([200000, 250000]);
+  const [blockedCompanies, setBlockedCompanies] = useState<string[]>([]);
+  const [newBlockedCompany, setNewBlockedCompany] = useState("");
 
   const [settings, setSettings] = useState({
     emailNotifications: true,
@@ -49,6 +54,35 @@ const Profile = () => {
       ...profileData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handleNoticePeriodChange = (value: string) => {
+    setProfileData({
+      ...profileData,
+      noticePeriod: value,
+    });
+  };
+
+  const handleAddBlockedCompany = () => {
+    if (newBlockedCompany.trim() && !blockedCompanies.includes(newBlockedCompany.trim())) {
+      setBlockedCompanies([...blockedCompanies, newBlockedCompany.trim()]);
+      setNewBlockedCompany("");
+      toast.success("Company added to blocklist");
+    }
+  };
+
+  const handleRemoveBlockedCompany = (company: string) => {
+    setBlockedCompanies(blockedCompanies.filter(c => c !== company));
+    toast.success("Company removed from blocklist");
+  };
+
+  const formatSalary = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
   };
 
   const handleSettingChange = (setting: keyof typeof settings) => {
@@ -202,7 +236,7 @@ const Profile = () => {
     e.preventDefault();
     
     // Track completion items
-    if (profileData.currentSalary || profileData.desiredSalary) {
+    if (currentSalaryRange || desiredSalaryRange) {
       localStorage.setItem('salary_set', 'true');
     }
     
@@ -212,6 +246,9 @@ const Profile = () => {
     
     // Here you would typically send data to backend
     console.log("Profile updated:", profileData);
+    console.log("Current Salary Range:", currentSalaryRange);
+    console.log("Desired Salary Range:", desiredSalaryRange);
+    console.log("Blocked Companies:", blockedCompanies);
     console.log("Settings updated:", settings);
     
     toast.success("Profile updated successfully!");
@@ -436,45 +473,128 @@ const Profile = () => {
               </CardTitle>
               <CardDescription>Help us match you with appropriate opportunities</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="space-y-8">
+              <div className="space-y-6">
                 <div>
-                  <Label htmlFor="currentSalary">Current Salary Range (Optional)</Label>
-                  <Input
-                    id="currentSalary"
-                    name="currentSalary"
-                    value={profileData.currentSalary}
-                    onChange={handleInputChange}
-                    placeholder="e.g., $150,000 - $200,000"
-                    className="bg-background/50"
+                  <div className="flex justify-between items-center mb-4">
+                    <Label className="text-base font-semibold">Current Salary Range (Optional)</Label>
+                    <span className="text-sm font-bold">
+                      {formatSalary(currentSalaryRange[0])} - {formatSalary(currentSalaryRange[1])}
+                    </span>
+                  </div>
+                  <Slider
+                    value={currentSalaryRange}
+                    onValueChange={(value) => setCurrentSalaryRange(value as [number, number])}
+                    min={50000}
+                    max={500000}
+                    step={5000}
+                    className="py-4"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Confidential - helps us better match opportunities
                   </p>
                 </div>
+
                 <div>
-                  <Label htmlFor="desiredSalary">Desired Salary Range</Label>
-                  <Input
-                    id="desiredSalary"
-                    name="desiredSalary"
-                    value={profileData.desiredSalary}
-                    onChange={handleInputChange}
-                    placeholder="e.g., $180,000 - $250,000"
-                    className="bg-background/50"
+                  <div className="flex justify-between items-center mb-4">
+                    <Label className="text-base font-semibold">Desired Salary Range</Label>
+                    <span className="text-sm font-bold">
+                      {formatSalary(desiredSalaryRange[0])} - {formatSalary(desiredSalaryRange[1])}
+                    </span>
+                  </div>
+                  <Slider
+                    value={desiredSalaryRange}
+                    onValueChange={(value) => setDesiredSalaryRange(value as [number, number])}
+                    min={50000}
+                    max={500000}
+                    step={5000}
+                    className="py-4"
                   />
                 </div>
               </div>
 
               <div>
                 <Label htmlFor="noticePeriod">Notice Period</Label>
+                <Select value={profileData.noticePeriod} onValueChange={handleNoticePeriodChange}>
+                  <SelectTrigger className="bg-background/50">
+                    <SelectValue placeholder="Select notice period" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="immediate">Available Immediately</SelectItem>
+                    <SelectItem value="2_weeks">2 Weeks</SelectItem>
+                    <SelectItem value="1_month">1 Month</SelectItem>
+                    <SelectItem value="2_months">2 Months</SelectItem>
+                    <SelectItem value="3_months">3 Months</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Company Blocklist */}
+          <Card id="blocklist" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Ban className="w-5 h-5 text-accent" />
+                Company Blocklist
+              </CardTitle>
+              <CardDescription>
+                Ensure complete discretion - these companies won't see your profile or opportunities
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
                 <Input
-                  id="noticePeriod"
-                  name="noticePeriod"
-                  value={profileData.noticePeriod}
-                  onChange={handleInputChange}
-                  placeholder="e.g., 2 weeks, 1 month, Immediate"
+                  placeholder="Enter company name..."
+                  value={newBlockedCompany}
+                  onChange={(e) => setNewBlockedCompany(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddBlockedCompany())}
                   className="bg-background/50"
                 />
+                <Button 
+                  type="button"
+                  onClick={handleAddBlockedCompany}
+                  className="bg-foreground text-background hover:bg-foreground/90"
+                >
+                  Add
+                </Button>
+              </div>
+
+              {blockedCompanies.length > 0 ? (
+                <div className="space-y-2 mt-4">
+                  <p className="text-sm font-medium mb-3">Blocked Companies:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {blockedCompanies.map((company) => (
+                      <div
+                        key={company}
+                        className="flex items-center gap-2 px-3 py-2 bg-destructive/10 border border-destructive/20 rounded-lg group hover:bg-destructive/20 transition-colors"
+                      >
+                        <span className="text-sm font-medium">{company}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveBlockedCompany(company)}
+                          className="text-destructive hover:text-destructive/80 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+                  <Ban className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    No companies blocked yet. Add companies to maintain your privacy.
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Note:</strong> Blocked companies will not be able to view your profile, contact you, 
+                  or see that you've applied to their opportunities. Your information remains completely confidential.
+                </p>
               </div>
             </CardContent>
           </Card>
