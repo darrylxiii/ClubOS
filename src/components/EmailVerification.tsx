@@ -1,27 +1,24 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CheckCircle2, XCircle, Loader2, Shield } from 'lucide-react';
-import PhoneInput from 'react-phone-number-input';
-import { isValidPhoneNumber } from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
-import '@/styles/phone-input.css';
+import { CheckCircle2, XCircle, Loader2, Mail } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { usePhoneVerification } from '@/hooks/usePhoneVerification';
+import { useEmailVerification } from '@/hooks/useEmailVerification';
 
-interface PhoneVerificationProps {
-  phoneNumber: string;
-  phoneVerified: boolean;
-  onPhoneChange: (value: string | undefined) => void;
+interface EmailVerificationProps {
+  email: string;
+  emailVerified: boolean;
+  onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onVerificationComplete?: () => void;
 }
 
-export const PhoneVerification = ({
-  phoneNumber,
-  phoneVerified,
-  onPhoneChange,
+export const EmailVerification = ({
+  email,
+  emailVerified,
+  onEmailChange,
   onVerificationComplete,
-}: PhoneVerificationProps) => {
+}: EmailVerificationProps) => {
   const [otpCode, setOtpCode] = useState('');
   const {
     otpSent,
@@ -31,33 +28,26 @@ export const PhoneVerification = ({
     sendOTP,
     verifyOTP,
     resetVerification,
-  } = usePhoneVerification();
+  } = useEmailVerification();
 
-  const isPhoneValid = phoneNumber && isValidPhoneNumber(phoneNumber);
+  const isEmailValid = email && email.includes('@');
 
   const handleSendOTP = async () => {
-    if (!isPhoneValid) {
-      return;
-    }
-    await sendOTP(phoneNumber);
+    if (!isEmailValid) return;
+    await sendOTP(email);
   };
 
   const handleVerifyOTP = async () => {
-    const success = await verifyOTP(phoneNumber, otpCode, () => {
+    const success = await verifyOTP(otpCode, () => {
       onVerificationComplete?.();
       setOtpCode('');
     });
-    
-    if (success) {
-      // Trigger parent save by updating phone as verified
-      onPhoneChange(phoneNumber);
-    }
   };
 
   const handleResendOTP = async () => {
     if (resendCooldown > 0) return;
     setOtpCode('');
-    await sendOTP(phoneNumber);
+    await sendOTP(email);
   };
 
   // Auto-submit when 6 digits are entered
@@ -67,28 +57,29 @@ export const PhoneVerification = ({
     }
   }, [otpCode]);
 
-  // Reset OTP state when phone number changes
+  // Reset OTP state when email changes
   useEffect(() => {
     if (otpSent) {
       resetVerification();
       setOtpCode('');
     }
-  }, [phoneNumber]);
+  }, [email]);
 
   return (
     <div className="space-y-4">
       <div>
-        <Label htmlFor="phone">Phone Number</Label>
+        <Label htmlFor="email">Email</Label>
         <div className="flex gap-2">
-          <PhoneInput
-            international
-            defaultCountry="US"
-            value={phoneNumber}
-            onChange={onPhoneChange}
-            disabled={phoneVerified || otpSent}
-            className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={email}
+            onChange={onEmailChange}
+            disabled={emailVerified || otpSent}
+            className="bg-background/50"
           />
-          {!phoneVerified && isPhoneValid && !otpSent && (
+          {!emailVerified && isEmailValid && !otpSent && (
             <Button
               type="button"
               onClick={handleSendOTP}
@@ -105,7 +96,7 @@ export const PhoneVerification = ({
               )}
             </Button>
           )}
-          {phoneVerified && (
+          {emailVerified && (
             <Button
               type="button"
               disabled
@@ -116,22 +107,23 @@ export const PhoneVerification = ({
             </Button>
           )}
         </div>
-        {phoneNumber && !isPhoneValid && !otpSent && (
+        {email && !isEmailValid && !otpSent && (
           <div className="flex items-center gap-2 text-xs text-destructive mt-2">
             <XCircle className="w-4 h-4" />
-            <span>Invalid phone number</span>
+            <span>Invalid email address</span>
           </div>
         )}
       </div>
 
-      {otpSent && !phoneVerified && (
+      {otpSent && !emailVerified && (
         <div className="p-4 border border-accent/20 rounded-lg bg-accent/5 space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="otp" className="text-sm font-medium">
+            <Label htmlFor="email-otp" className="text-sm font-medium flex items-center gap-2">
+              <Mail className="w-4 h-4" />
               Enter 6-digit verification code
             </Label>
             <p className="text-xs text-muted-foreground">
-              We sent a code to {phoneNumber}
+              We sent a code to {email}
             </p>
           </div>
 

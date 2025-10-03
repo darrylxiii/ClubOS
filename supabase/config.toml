@@ -3,6 +3,9 @@ project_id = "dpjucecmoyfzrduhlctt"
 [functions.chat-ollama]
 verify_jwt = false
 
+[functions.send-verification-code]
+verify_jwt = true
+
 [functions.google-calendar-auth]
 verify_jwt = true
 

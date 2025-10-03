@@ -18,6 +18,7 @@ import { StealthModeToggle } from "@/components/StealthModeToggle";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { PhoneVerification } from "@/components/PhoneVerification";
+import { EmailVerification } from "@/components/EmailVerification";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -99,6 +100,7 @@ const Profile = () => {
   // New state for phone verification and location
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
   const [cities, setCities] = useState<Array<{ id: string; name: string; country: string }>>([]);
   const [preferredWorkLocations, setPreferredWorkLocations] = useState<string[]>([]);
   const [remoteWorkPreference, setRemoteWorkPreference] = useState(false);
@@ -271,6 +273,11 @@ const Profile = () => {
 
   const handleVerificationComplete = () => {
     setPhoneVerified(true);
+    debouncedSave();
+  };
+
+  const handleEmailVerificationComplete = () => {
+    setEmailVerified(true);
     debouncedSave();
   };
 
@@ -954,25 +961,18 @@ const Profile = () => {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={profileData.email}
-                    onChange={handleInputChange}
-                    className="bg-background/50"
-                  />
-                </div>
-                <div>
-                  <PhoneVerification
-                    phoneNumber={phoneNumber}
-                    phoneVerified={phoneVerified}
-                    onPhoneChange={handlePhoneChange}
-                    onVerificationComplete={handleVerificationComplete}
-                  />
-                </div>
+                <EmailVerification
+                  email={profileData.email}
+                  emailVerified={emailVerified}
+                  onEmailChange={handleInputChange}
+                  onVerificationComplete={handleEmailVerificationComplete}
+                />
+                <PhoneVerification
+                  phoneNumber={phoneNumber}
+                  phoneVerified={phoneVerified}
+                  onPhoneChange={handlePhoneChange}
+                  onVerificationComplete={handleVerificationComplete}
+                />
               </div>
 
               <div>
