@@ -3,6 +3,7 @@ import { Layout } from "@/components/Layout";
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ type SortOption = "match" | "newest" | "salary";
 const Jobs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("match");
+  const [savedJobIds, setSavedJobIds] = useState<number[]>([]);
 
   const jobs = [
     {
@@ -124,6 +126,23 @@ const Jobs = () => {
     });
   };
 
+  const toggleSaveJob = (jobId: number, jobTitle: string) => {
+    setSavedJobIds((prev) => {
+      const isSaved = prev.includes(jobId);
+      if (isSaved) {
+        toast.info(`Removed ${jobTitle} from saved jobs`);
+        return prev.filter((id) => id !== jobId);
+      } else {
+        toast.success(`Saved ${jobTitle}!`, {
+          description: "You can view all saved jobs in the Saved tab.",
+        });
+        return [...prev, jobId];
+      }
+    });
+  };
+
+  const savedJobs = sortedJobs.filter((job) => savedJobIds.includes(job.id));
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -139,68 +158,159 @@ const Jobs = () => {
         </div>
 
         {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              type="text"
-              placeholder="Search jobs by title, company, or skills..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="shrink-0">
-                <SlidersHorizontal className="w-4 h-4 mr-2" />
-                Sort by: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-background border-border z-50" align="end">
-              <DropdownMenuItem 
-                onClick={() => setSortBy("match")}
-                className="cursor-pointer"
-              >
-                <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
-                Match %
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setSortBy("newest")}
-                className="cursor-pointer"
-              >
-                <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
-                Newest
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => setSortBy("salary")}
-                className="cursor-pointer"
-              >
-                <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
-                Salary (High to Low)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <Tabs defaultValue="all" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="all">
+              All Jobs ({sortedJobs.length})
+            </TabsTrigger>
+            <TabsTrigger value="saved">
+              Saved Jobs ({savedJobs.length})
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Job Listings */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {sortedJobs.map((job) => (
-            <JobCard
-              key={job.id}
-              title={job.title}
-              company={job.company}
-              location={job.location}
-              type={job.type}
-              postedDate={job.postedDate}
-              tags={job.tags}
-              matchScore={job.matchScore}
-              onApply={() => handleApply(job.title)}
-              onRefer={() => handleRefer(job.title)}
-              onClubSync={() => handleClubSync(job.title)}
-            />
-          ))}
-        </div>
+          <TabsContent value="all" className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search jobs by title, company, or skills..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="shrink-0">
+                    <SlidersHorizontal className="w-4 h-4 mr-2" />
+                    Sort by: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-background border-border z-50" align="end">
+                  <DropdownMenuItem 
+                    onClick={() => setSortBy("match")}
+                    className="cursor-pointer"
+                  >
+                    <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
+                    Match %
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setSortBy("newest")}
+                    className="cursor-pointer"
+                  >
+                    <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
+                    Newest
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setSortBy("salary")}
+                    className="cursor-pointer"
+                  >
+                    <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
+                    Salary (High to Low)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Job Listings */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {sortedJobs.map((job) => (
+                <JobCard
+                  key={job.id}
+                  title={job.title}
+                  company={job.company}
+                  location={job.location}
+                  type={job.type}
+                  postedDate={job.postedDate}
+                  tags={job.tags}
+                  matchScore={job.matchScore}
+                  isSaved={savedJobIds.includes(job.id)}
+                  onApply={() => handleApply(job.title)}
+                  onRefer={() => handleRefer(job.title)}
+                  onClubSync={() => handleClubSync(job.title)}
+                  onToggleSave={() => toggleSaveJob(job.id, job.title)}
+                />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="saved" className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Search saved jobs..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="shrink-0">
+                    <SlidersHorizontal className="w-4 h-4 mr-2" />
+                    Sort by: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-background border-border z-50" align="end">
+                  <DropdownMenuItem 
+                    onClick={() => setSortBy("match")}
+                    className="cursor-pointer"
+                  >
+                    <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
+                    Match %
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setSortBy("newest")}
+                    className="cursor-pointer"
+                  >
+                    <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
+                    Newest
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => setSortBy("salary")}
+                    className="cursor-pointer"
+                  >
+                    <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
+                    Salary (High to Low)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Saved Job Listings */}
+            {savedJobs.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No saved jobs yet</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Click the bookmark icon on any job to save it here
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {savedJobs.map((job) => (
+                  <JobCard
+                    key={job.id}
+                    title={job.title}
+                    company={job.company}
+                    location={job.location}
+                    type={job.type}
+                    postedDate={job.postedDate}
+                    tags={job.tags}
+                    matchScore={job.matchScore}
+                    isSaved={true}
+                    onApply={() => handleApply(job.title)}
+                    onRefer={() => handleRefer(job.title)}
+                    onClubSync={() => handleClubSync(job.title)}
+                    onToggleSave={() => toggleSaveJob(job.id, job.title)}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );

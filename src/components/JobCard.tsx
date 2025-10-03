@@ -15,9 +15,11 @@ interface JobCardProps {
   tags: string[];
   salary?: string;
   matchScore?: number;
+  isSaved?: boolean;
   onApply?: () => void;
   onRefer?: () => void;
   onClubSync?: () => void;
+  onToggleSave?: () => void;
 }
 
 export const JobCard = ({
@@ -30,9 +32,11 @@ export const JobCard = ({
   tags,
   salary,
   matchScore,
+  isSaved = false,
   onApply,
   onRefer,
   onClubSync,
+  onToggleSave,
 }: JobCardProps) => {
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-accent";
@@ -62,8 +66,13 @@ export const JobCard = ({
               </div>
             </div>
           </div>
-          <Button variant="ghost" size="icon" className="shrink-0">
-            <Bookmark className="w-4 h-4" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="shrink-0"
+            onClick={onToggleSave}
+          >
+            <Bookmark className={`w-4 h-4 ${isSaved ? "fill-accent text-accent" : ""}`} />
           </Button>
         </div>
       </CardHeader>
