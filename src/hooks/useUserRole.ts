@@ -13,33 +13,42 @@ export const useUserRole = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       if (!user) {
+        console.log('[useUserRole] No user found, stopping loading');
         setLoading(false);
         return;
       }
 
+      console.log('[useUserRole] Fetching role for user:', user.id);
+
       try {
         // Get user roles
-        const { data: rolesData } = await supabase
+        const { data: rolesData, error: rolesError } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
+
+        console.log('[useUserRole] User roles data:', rolesData, 'error:', rolesError);
 
         // Get profile with company info
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('company_id')
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
+
+        console.log('[useUserRole] Profile data:', profileData, 'error:', profileError);
 
         // Check if user is a company member
         if (profileData?.company_id) {
-          const { data: memberData } = await supabase
+          const { data: memberData, error: memberError } = await supabase
             .from('company_members')
             .select('role, company_id')
             .eq('user_id', user.id)
             .eq('is_active', true)
-            .single();
+            .maybeSingle();
+
+          console.log('[useUserRole] Member data:', memberData, 'error:', memberError);
 
           if (memberData) {
             setCompanyId(memberData.company_id);
@@ -56,9 +65,12 @@ export const useUserRole = () => {
         if (rolesData) {
           setRole(rolesData.role as UserRole);
         }
+
+        console.log('[useUserRole] Final state - role:', rolesData?.role, 'companyId:', profileData?.company_id);
       } catch (error) {
-        console.error('Error fetching user role:', error);
+        console.error('[useUserRole] Error fetching user role:', error);
       } finally {
+        console.log('[useUserRole] Setting loading to false');
         setLoading(false);
       }
     };

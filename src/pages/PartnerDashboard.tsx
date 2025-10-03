@@ -24,18 +24,35 @@ const PartnerDashboard = () => {
   const [company, setCompany] = useState<any>(null);
   const [loadingStats, setLoadingStats] = useState(true);
 
+  console.log('[PartnerDashboard] Current state:', { 
+    roleLoading, 
+    loadingStats, 
+    companyId, 
+    role, 
+    hasUser: !!user 
+  });
+
   useEffect(() => {
+    // Always stop loading stats if there's no companyId
+    if (!companyId && !roleLoading) {
+      console.log('[PartnerDashboard] No companyId, stopping stats loading');
+      setLoadingStats(false);
+      return;
+    }
+
     if (!companyId) return;
 
     const fetchCompanyAndStats = async () => {
+      console.log('[PartnerDashboard] Fetching company and stats for:', companyId);
       try {
         // Fetch company details
-        const { data: companyData } = await supabase
+        const { data: companyData, error: companyError } = await supabase
           .from('companies')
           .select('*')
           .eq('id', companyId)
           .single();
 
+        console.log('[PartnerDashboard] Company data:', companyData, 'error:', companyError);
         setCompany(companyData);
 
         // Fetch jobs for stats
@@ -44,6 +61,7 @@ const PartnerDashboard = () => {
           .select('id, status')
           .eq('company_id', companyId);
 
+        console.log('[PartnerDashboard] Jobs data:', jobsData);
         const activeJobs = jobsData?.filter(j => j.status === 'published').length || 0;
 
         // Fetch applications
@@ -52,6 +70,7 @@ const PartnerDashboard = () => {
           .select('id, status, job_id')
           .in('job_id', jobsData?.map(j => j.id) || []);
 
+        console.log('[PartnerDashboard] Applications data:', applicationsData);
         const activeApplications = applicationsData?.filter(a => a.status === 'active').length || 0;
 
         setStats({
@@ -61,15 +80,16 @@ const PartnerDashboard = () => {
           activeApplications,
         });
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error('[PartnerDashboard] Error fetching stats:', error);
         toast.error("Failed to load dashboard data");
       } finally {
+        console.log('[PartnerDashboard] Stats loading complete');
         setLoadingStats(false);
       }
     };
 
     fetchCompanyAndStats();
-  }, [companyId]);
+  }, [companyId, roleLoading]);
 
   if (roleLoading || loadingStats) {
     return (
