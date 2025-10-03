@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { Building2, MapPin, Clock, Bookmark, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "./StatusBadge";
+import { MatchScoreDialog } from "./MatchScoreDialog";
 
 interface JobCardProps {
   title: string;
@@ -38,6 +40,8 @@ export const JobCard = ({
   onClubSync,
   onToggleSave,
 }: JobCardProps) => {
+  const [showBreakdown, setShowBreakdown] = useState(false);
+
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-accent";
     if (score >= 70) return "text-primary";
@@ -86,21 +90,37 @@ export const JobCard = ({
         </div>
 
         {matchScore !== undefined && (
-          <div className="mb-4 p-3 rounded-lg bg-gradient-card border border-border/50">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Match Score</span>
-              <span className={`text-lg font-bold ${getScoreColor(matchScore)}`}>
-                {matchScore}%
-              </span>
-            </div>
-            <Progress value={matchScore} className="h-2" />
-            {matchScore >= 90 && (
-              <div className="mt-2 flex items-center gap-1 text-xs text-accent">
-                <Zap className="w-3 h-3" />
-                <span className="font-medium">Elite Match - Auto-apply eligible</span>
+          <>
+            <div 
+              className="mb-4 p-3 rounded-lg bg-gradient-card border border-border/50 cursor-pointer hover:border-primary/50 transition-colors"
+              onClick={() => setShowBreakdown(true)}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Match Score</span>
+                <span className={`text-lg font-bold ${getScoreColor(matchScore)}`}>
+                  {matchScore}%
+                </span>
               </div>
-            )}
-          </div>
+              <Progress value={matchScore} className="h-2" />
+              {matchScore >= 90 && (
+                <div className="mt-2 flex items-center gap-1 text-xs text-accent">
+                  <Zap className="w-3 h-3" />
+                  <span className="font-medium">Elite Match - Auto-apply eligible</span>
+                </div>
+              )}
+              <p className="mt-2 text-xs text-muted-foreground">Click to see detailed breakdown</p>
+            </div>
+
+            <MatchScoreDialog
+              open={showBreakdown}
+              onOpenChange={setShowBreakdown}
+              jobId={`${company}-${title}`}
+              jobTitle={title}
+              company={company}
+              tags={tags}
+              matchScore={matchScore}
+            />
+          </>
         )}
         
         <div className="flex items-center justify-between gap-4 pt-4 border-t border-border">

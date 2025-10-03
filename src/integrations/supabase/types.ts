@@ -122,6 +122,66 @@ export type Database = {
         }
         Relationships: []
       }
+      match_scores: {
+        Row: {
+          additional_factors: Json
+          calculated_at: string
+          club_match_factors: Json
+          club_match_score: number
+          gaps: Json
+          hard_stops: Json
+          id: string
+          job_id: string
+          longer_term_actions: Json
+          overall_score: number
+          preferred_criteria_met: Json
+          preferred_criteria_total: number
+          quick_wins: Json
+          required_criteria_met: Json
+          required_criteria_total: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          additional_factors?: Json
+          calculated_at?: string
+          club_match_factors?: Json
+          club_match_score?: number
+          gaps?: Json
+          hard_stops?: Json
+          id?: string
+          job_id: string
+          longer_term_actions?: Json
+          overall_score: number
+          preferred_criteria_met?: Json
+          preferred_criteria_total?: number
+          quick_wins?: Json
+          required_criteria_met?: Json
+          required_criteria_total?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          additional_factors?: Json
+          calculated_at?: string
+          club_match_factors?: Json
+          club_match_score?: number
+          gaps?: Json
+          hard_stops?: Json
+          id?: string
+          job_id?: string
+          longer_term_actions?: Json
+          overall_score?: number
+          preferred_criteria_met?: Json
+          preferred_criteria_total?: number
+          quick_wins?: Json
+          required_criteria_met?: Json
+          required_criteria_total?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meeting_recordings: {
         Row: {
           ai_analysis: Json | null

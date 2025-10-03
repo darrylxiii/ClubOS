@@ -1,0 +1,164 @@
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { jobId, jobTitle, company, tags, userId } = await req.json();
+    console.log('Calculating match score for:', { jobId, jobTitle, company, userId });
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY not configured');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch user profile
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      throw new Error('Failed to fetch user profile');
+    }
+
+    // Construct AI prompt
+    const prompt = `Analyze this job match and provide a detailed breakdown:
+
+JOB DETAILS:
+- Title: ${jobTitle}
+- Company: ${company}
+- Tags/Skills: ${tags.join(', ')}
+
+CANDIDATE PROFILE:
+- Current Title: ${profile.current_title || 'Not specified'}
+- Location: ${profile.location || 'Not specified'}
+- Career Preferences: ${profile.career_preferences || 'Not specified'}
+- Employment Preference: ${profile.employment_type_preference || 'Not specified'}
+- Remote Preference: ${profile.remote_work_preference ? 'Yes' : 'No'}
+- Desired Salary: ${profile.desired_salary_min && profile.desired_salary_max ? `$${profile.desired_salary_min}-$${profile.desired_salary_max}` : 'Not specified'}
+
+Provide a JSON response with this exact structure:
+{
+  "overall_score": <number 0-100>,
+  "required_criteria_met": [
+    {"criterion": "string", "met": true/false}
+  ],
+  "required_criteria_total": <number>,
+  "preferred_criteria_met": [
+    {"criterion": "string", "met": true/false}
+  ],
+  "preferred_criteria_total": <number>,
+  "club_match_factors": [
+    {"factor": "string", "score": <number 0-10>, "description": "string"}
+  ],
+  "club_match_score": <number 0-100>,
+  "additional_factors": [
+    {"factor": "string", "impact": "positive/negative/neutral", "description": "string"}
+  ],
+  "gaps": [
+    {"gap": "string", "impact": "string (e.g., -3% match score)"}
+  ],
+  "hard_stops": [
+    {"issue": "string", "description": "string"}
+  ],
+  "quick_wins": [
+    {"action": "string", "timeframe": "string (e.g., 1-2 weeks)", "impact": "string (e.g., +2% match)"}
+  ],
+  "longer_term_actions": [
+    {"action": "string", "timeframe": "string (e.g., 4-6 months)", "impact": "string (e.g., +5% match)"}
+  ]
+}
+
+Be specific and realistic. Timeframes should match the actual effort needed (e.g., "3 days", "2 weeks", "8 months", etc.).`;
+
+    // Call Lovable AI
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          { role: 'system', content: 'You are a career matching expert. Analyze job-candidate matches and provide detailed, actionable breakdowns in JSON format.' },
+          { role: 'user', content: prompt }
+        ],
+        response_format: { type: "json_object" }
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      if (aiResponse.status === 429) {
+        throw new Error('Rate limit exceeded. Please try again later.');
+      }
+      if (aiResponse.status === 402) {
+        throw new Error('Payment required. Please add credits to your workspace.');
+      }
+      const errorText = await aiResponse.text();
+      console.error('AI gateway error:', aiResponse.status, errorText);
+      throw new Error('AI analysis failed');
+    }
+
+    const aiData = await aiResponse.json();
+    const analysisText = aiData.choices[0].message.content;
+    const analysis = JSON.parse(analysisText);
+
+    console.log('AI analysis complete:', analysis);
+
+    // Store in database
+    const { error: insertError } = await supabase
+      .from('match_scores')
+      .upsert({
+        user_id: userId,
+        job_id: jobId,
+        overall_score: analysis.overall_score,
+        required_criteria_met: analysis.required_criteria_met,
+        required_criteria_total: analysis.required_criteria_total,
+        preferred_criteria_met: analysis.preferred_criteria_met,
+        preferred_criteria_total: analysis.preferred_criteria_total,
+        club_match_factors: analysis.club_match_factors,
+        club_match_score: analysis.club_match_score,
+        additional_factors: analysis.additional_factors,
+        gaps: analysis.gaps,
+        hard_stops: analysis.hard_stops,
+        quick_wins: analysis.quick_wins,
+        longer_term_actions: analysis.longer_term_actions,
+      });
+
+    if (insertError) {
+      console.error('Error storing match score:', insertError);
+      throw new Error('Failed to store match score');
+    }
+
+    return new Response(
+      JSON.stringify({ success: true, analysis }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Error in calculate-match-score:', error);
+    return new Response(
+      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      { 
+        status: 500, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+  }
+});
