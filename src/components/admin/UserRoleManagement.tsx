@@ -111,12 +111,12 @@ export function UserRoleManagement() {
 
       // Insert new roles
       if (selectedRoles.length > 0) {
-        const { error: insertError } = await supabase
-          .from('user_roles')
-          .insert(selectedRoles.map(role => ({
-            user_id: editingUser.id,
-            role: role as 'admin' | 'strategist' | 'partner' | 'user'
-          })));
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert(selectedRoles.map(role => ({
+          user_id: editingUser.id,
+          role: role as 'admin' | 'strategist' | 'partner' | 'user'
+        })));
 
         if (insertError) throw insertError;
       }

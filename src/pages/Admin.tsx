@@ -4,6 +4,7 @@ import { Shield } from "lucide-react";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
 import { UserCompanyAssignment } from "@/components/admin/UserCompanyAssignment";
 import { UserRoleManagement } from "@/components/admin/UserRoleManagement";
+import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navigate } from "react-router-dom";
@@ -53,6 +54,11 @@ const Admin = () => {
           <p className="text-lg text-muted-foreground">
             Manage companies, users, and system configuration
           </p>
+        </div>
+
+        {/* Role Switcher */}
+        <div className="mb-8">
+          <AdminRoleSwitcher />
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
