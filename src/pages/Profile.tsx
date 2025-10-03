@@ -77,8 +77,8 @@ const Profile = () => {
   // Employment and compensation preferences
   const [employmentType, setEmploymentType] = useState<'fulltime' | 'freelance' | 'both'>('fulltime');
   const [freelanceHourlyRate, setFreelanceHourlyRate] = useState<[number, number]>([100, 200]);
-  const [fulltimeHoursPerWeek, setFulltimeHoursPerWeek] = useState(40);
-  const [freelanceHoursPerWeek, setFreelanceHoursPerWeek] = useState(20);
+  const [fulltimeHoursPerWeek, setFulltimeHoursPerWeek] = useState<[number, number]>([35, 45]);
+  const [freelanceHoursPerWeek, setFreelanceHoursPerWeek] = useState<[number, number]>([15, 25]);
 
   const [resume, setResume] = useState<File | null>(null);
   
@@ -133,8 +133,10 @@ const Profile = () => {
           employment_type_preference: employmentType,
           freelance_hourly_rate_min: freelanceHourlyRate[0],
           freelance_hourly_rate_max: freelanceHourlyRate[1],
-          fulltime_hours_per_week: fulltimeHoursPerWeek,
-          freelance_hours_per_week: freelanceHoursPerWeek,
+          fulltime_hours_per_week_min: fulltimeHoursPerWeek[0],
+          fulltime_hours_per_week_max: fulltimeHoursPerWeek[1],
+          freelance_hours_per_week_min: freelanceHoursPerWeek[0],
+          freelance_hours_per_week_max: freelanceHoursPerWeek[1],
         })
         .eq('id', user.id);
 
@@ -432,8 +434,10 @@ const Profile = () => {
             employment_type_preference: employmentType,
             freelance_hourly_rate_min: freelanceHourlyRate[0],
             freelance_hourly_rate_max: freelanceHourlyRate[1],
-            fulltime_hours_per_week: fulltimeHoursPerWeek,
-            freelance_hours_per_week: freelanceHoursPerWeek,
+            fulltime_hours_per_week_min: fulltimeHoursPerWeek[0],
+            fulltime_hours_per_week_max: fulltimeHoursPerWeek[1],
+            freelance_hours_per_week_min: freelanceHoursPerWeek[0],
+            freelance_hours_per_week_max: freelanceHoursPerWeek[1],
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id);
@@ -555,11 +559,11 @@ const Profile = () => {
           if (data.freelance_hourly_rate_min && data.freelance_hourly_rate_max) {
             setFreelanceHourlyRate([data.freelance_hourly_rate_min, data.freelance_hourly_rate_max]);
           }
-          if (data.fulltime_hours_per_week) {
-            setFulltimeHoursPerWeek(data.fulltime_hours_per_week);
+          if (data.fulltime_hours_per_week_min && data.fulltime_hours_per_week_max) {
+            setFulltimeHoursPerWeek([data.fulltime_hours_per_week_min, data.fulltime_hours_per_week_max]);
           }
-          if (data.freelance_hours_per_week) {
-            setFreelanceHoursPerWeek(data.freelance_hours_per_week);
+          if (data.freelance_hours_per_week_min && data.freelance_hours_per_week_max) {
+            setFreelanceHoursPerWeek([data.freelance_hours_per_week_min, data.freelance_hours_per_week_max]);
           }
         }
       } catch (error) {
@@ -1464,17 +1468,14 @@ const Profile = () => {
 
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <Label className="text-base font-semibold">Hours Per Week</Label>
+                      <Label className="text-base font-semibold">Desired Hours Per Week</Label>
                       <span className="text-sm font-bold">
-                        {fulltimeHoursPerWeek} hours/week
+                        {fulltimeHoursPerWeek[0]} - {fulltimeHoursPerWeek[1]} hours/week
                       </span>
                     </div>
                     <Slider
-                      value={[fulltimeHoursPerWeek]}
-                      onValueChange={(value) => {
-                        setFulltimeHoursPerWeek(value[0]);
-                        debouncedSave();
-                      }}
+                      value={fulltimeHoursPerWeek}
+                      onValueChange={(value) => setFulltimeHoursPerWeek(value as [number, number])}
                       min={20}
                       max={60}
                       step={1}
@@ -1482,10 +1483,10 @@ const Profile = () => {
                     />
                     <div className="flex justify-between items-center mt-2">
                       <p className="text-xs text-muted-foreground">
-                        Standard full-time is typically 40 hours/week
+                        Standard full-time is typically 35-45 hours/week
                       </p>
                       <p className="text-xs font-medium text-accent">
-                        {fulltimeHoursPerWeek * 52} hours/year
+                        {fulltimeHoursPerWeek[0] * 52} - {fulltimeHoursPerWeek[1] * 52} hours/year
                       </p>
                     </div>
                   </div>
@@ -1521,27 +1522,24 @@ const Profile = () => {
                         Your hourly rate for freelance projects
                       </p>
                       <p className="text-xs font-medium text-accent">
-                        Annual estimate: {formatSalary(freelanceHourlyRate[1] * freelanceHoursPerWeek * 52)}
+                        Annual estimate: {formatSalary(freelanceHourlyRate[1] * freelanceHoursPerWeek[1] * 52)}
                       </p>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Based on {freelanceHoursPerWeek} hours/week × 52 weeks = {freelanceHoursPerWeek * 52} hours per year
+                      Based on {freelanceHoursPerWeek[0]}-{freelanceHoursPerWeek[1]} hours/week × 52 weeks
                     </p>
                   </div>
 
                   <div>
                     <div className="flex justify-between items-center mb-4">
-                      <Label className="text-base font-semibold">Hours Per Week</Label>
+                      <Label className="text-base font-semibold">Desired Hours Per Week</Label>
                       <span className="text-sm font-bold">
-                        {freelanceHoursPerWeek} hours/week
+                        {freelanceHoursPerWeek[0]} - {freelanceHoursPerWeek[1]} hours/week
                       </span>
                     </div>
                     <Slider
-                      value={[freelanceHoursPerWeek]}
-                      onValueChange={(value) => {
-                        setFreelanceHoursPerWeek(value[0]);
-                        debouncedSave();
-                      }}
+                      value={freelanceHoursPerWeek}
+                      onValueChange={(value) => setFreelanceHoursPerWeek(value as [number, number])}
                       min={5}
                       max={60}
                       step={1}
@@ -1552,7 +1550,7 @@ const Profile = () => {
                         Adjust based on your availability for freelance work
                       </p>
                       <p className="text-xs font-medium text-accent">
-                        {freelanceHoursPerWeek * 52} hours/year
+                        {freelanceHoursPerWeek[0] * 52} - {freelanceHoursPerWeek[1] * 52} hours/year
                       </p>
                     </div>
                   </div>

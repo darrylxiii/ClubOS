@@ -263,9 +263,11 @@ export type Database = {
           employment_type_preference: string | null
           freelance_hourly_rate_max: number | null
           freelance_hourly_rate_min: number | null
-          freelance_hours_per_week: number | null
+          freelance_hours_per_week_max: number | null
+          freelance_hours_per_week_min: number | null
           full_name: string | null
-          fulltime_hours_per_week: number | null
+          fulltime_hours_per_week_max: number | null
+          fulltime_hours_per_week_min: number | null
           github_connected: boolean | null
           github_profile_data: Json | null
           github_username: string | null
@@ -301,9 +303,11 @@ export type Database = {
           employment_type_preference?: string | null
           freelance_hourly_rate_max?: number | null
           freelance_hourly_rate_min?: number | null
-          freelance_hours_per_week?: number | null
+          freelance_hours_per_week_max?: number | null
+          freelance_hours_per_week_min?: number | null
           full_name?: string | null
-          fulltime_hours_per_week?: number | null
+          fulltime_hours_per_week_max?: number | null
+          fulltime_hours_per_week_min?: number | null
           github_connected?: boolean | null
           github_profile_data?: Json | null
           github_username?: string | null
@@ -339,9 +343,11 @@ export type Database = {
           employment_type_preference?: string | null
           freelance_hourly_rate_max?: number | null
           freelance_hourly_rate_min?: number | null
-          freelance_hours_per_week?: number | null
+          freelance_hours_per_week_max?: number | null
+          freelance_hours_per_week_min?: number | null
           full_name?: string | null
-          fulltime_hours_per_week?: number | null
+          fulltime_hours_per_week_max?: number | null
+          fulltime_hours_per_week_min?: number | null
           github_connected?: boolean | null
           github_profile_data?: Json | null
           github_username?: string | null
