@@ -24,6 +24,7 @@ import {
   Building,
   Bot,
   Users,
+  Rss,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -39,6 +40,7 @@ import { NotificationBell } from "@/components/NotificationBell";
 const candidateNavigationItems = [
   { name: "Club AI", icon: Sparkles, path: "/club-ai" },
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { name: "Feed", icon: Rss, path: "/feed" },
   { name: "Messages", icon: MessageSquare, path: "/messages" },
   { name: "Scheduling", icon: Calendar, path: "/scheduling" },
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
@@ -51,6 +53,7 @@ const candidateNavigationItems = [
 
 const partnerNavigationItems = [
   { name: "Partner Dashboard", icon: Building2, path: "/partner-dashboard" },
+  { name: "Feed", icon: Rss, path: "/feed" },
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
   { name: "Applications", icon: FileText, path: "/applications" },
   { name: "Messages", icon: MessageSquare, path: "/messages" },
