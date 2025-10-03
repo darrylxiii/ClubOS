@@ -102,10 +102,13 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
     <>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-black uppercase">Job Postings</h2>
-        <Button onClick={() => setCreateDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Job
-        </Button>
+        <div className="flex gap-2">
+          <LinkedInJobImport companyId={companyId} />
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Job
+          </Button>
+        </div>
       </div>
 
       {jobs.length === 0 ? (
