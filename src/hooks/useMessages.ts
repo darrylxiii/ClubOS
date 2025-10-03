@@ -17,6 +17,12 @@ export interface Message {
   reply_count?: number;
   deleted_at?: string | null;
   edited_at?: string | null;
+  priority?: string;
+  is_urgent?: boolean;
+  sentiment_score?: number;
+  media_type?: string;
+  media_url?: string;
+  media_duration?: number;
   sender?: {
     full_name: string | null;
     avatar_url: string | null;
@@ -135,14 +141,17 @@ export const useMessages = (conversationId?: string) => {
             .limit(1)
             .maybeSingle();
 
-          let lastMessageWithSender = lastMsg;
+          let lastMessageWithSender: Message | null = null;
           if (lastMsg) {
             const { data: sender } = await supabase
               .from('profiles')
               .select('full_name, avatar_url')
               .eq('id', lastMsg.sender_id)
               .maybeSingle();
-            lastMessageWithSender = { ...lastMsg, sender };
+            lastMessageWithSender = { 
+              ...lastMsg as any,
+              sender: sender || undefined
+            } as Message;
           }
 
           // Get unread count
@@ -221,10 +230,9 @@ export const useMessages = (conversationId?: string) => {
     }
   }, [conversationId, user?.id]);
 
-  // Send a new message
   const sendMessage = useCallback(
-    async (content: string, files?: File[]) => {
-      if (!conversationId || !user?.id || !content.trim()) return;
+    async (content: string, files?: File[], metadata?: Record<string, any>) => {
+      if (!conversationId || !user?.id || (!content.trim() && !files?.length && !metadata?.media_url)) return;
 
       setSending(true);
       try {
@@ -234,8 +242,13 @@ export const useMessages = (conversationId?: string) => {
           .insert({
             conversation_id: conversationId,
             sender_id: user.id,
-            content: content.trim(),
+            content: content.trim() || '',
             message_type: 'text',
+            media_type: metadata?.media_type || 'text',
+            media_url: metadata?.media_url,
+            media_duration: metadata?.media_duration,
+            priority: metadata?.priority || 'normal',
+            is_urgent: metadata?.is_urgent || false,
           })
           .select()
           .single();

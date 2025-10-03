@@ -9,13 +9,16 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Search, Send, Paperclip, Phone, Video, MoreVertical, ArrowLeft, Bot, Pin, Archive, MessageSquarePlus } from 'lucide-react';
+import { MessageSquare, Search, Send, Paperclip, Phone, Video, MoreVertical, ArrowLeft, Bot, Pin, Archive, MessageSquarePlus, Filter } from 'lucide-react';
 import { MessageReactions } from '@/components/messages/MessageReactions';
 import { MessageEditor } from '@/components/messages/MessageEditor';
 import { ThreadView } from '@/components/messages/ThreadView';
 import { MessageTemplates } from '@/components/messages/MessageTemplates';
 import { MessageActions } from '@/components/messages/MessageActions';
 import { CreateConversationDialog } from '@/components/messages/CreateConversationDialog';
+import { MessageSearch } from '@/components/messages/MessageSearch';
+import { VoiceRecorder } from '@/components/messages/VoiceRecorder';
+import { ReadReceipts } from '@/components/messages/ReadReceipts';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -41,6 +44,7 @@ export default function Messages() {
   const [threadOpen, setThreadOpen] = useState(false);
   const [reactions, setReactions] = useState<Record<string, any[]>>({});
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // Load conversations for inbox view
   const { conversations, loading: loadingConversations } = useMessages();
@@ -187,7 +191,26 @@ export default function Messages() {
                 <MessageSquarePlus className="h-4 w-4 mr-2" />
                 New Conversation
               </Button>
+              <Button 
+                onClick={() => setSearchOpen(!searchOpen)}
+                className="w-full"
+                variant="outline"
+              >
+                <Filter className="h-4 w-4 mr-2" />
+                Advanced Search
+              </Button>
             </div>
+
+            {searchOpen && (
+              <div className="p-4 border-t">
+                <MessageSearch 
+                  onSelectMessage={(convId, msgId) => {
+                    setSelectedConversationId(convId);
+                    setSearchOpen(false);
+                  }}
+                />
+              </div>
+            )}
 
             <ScrollArea className="h-[600px]">
               {loadingConversations ? (
@@ -415,6 +438,23 @@ export default function Messages() {
                                   })}
                                 </span>
                                 {message.edited_at && <span>(edited)</span>}
+                                {message.is_urgent && (
+                                  <Badge variant="destructive" className="text-[10px] h-4 px-1">
+                                    URGENT
+                                  </Badge>
+                                )}
+                                {message.priority === 'high' && (
+                                  <Badge variant="default" className="text-[10px] h-4 px-1">
+                                    High Priority
+                                  </Badge>
+                                )}
+                                {isOwnMessage && (
+                                  <ReadReceipts
+                                    messageId={message.id}
+                                    senderId={message.sender_id}
+                                    conversationId={selectedConversationId || ''}
+                                  />
+                                )}
                                 {message.reply_count > 0 && (
                                   <Button
                                     variant="ghost"
@@ -494,6 +534,38 @@ export default function Messages() {
                     onChange={handleFileSelect}
                   />
                 </Button>
+                <VoiceRecorder 
+                  onRecordingComplete={async (audioBlob, duration) => {
+                    // Upload audio to storage
+                    const fileName = `voice-${Date.now()}.webm`;
+                    const filePath = `${selectedConversationId}/${fileName}`;
+                    
+                    const { error: uploadError } = await supabase.storage
+                      .from('message-attachments')
+                      .upload(filePath, audioBlob);
+
+                    if (uploadError) {
+                      toast({
+                        title: 'Error',
+                        description: 'Failed to upload voice message',
+                        variant: 'destructive',
+                      });
+                      return;
+                    }
+
+                    // Get public URL
+                    const { data: urlData } = supabase.storage
+                      .from('message-attachments')
+                      .getPublicUrl(filePath);
+
+                    // Send as message with media metadata
+                    await sendMessage('[Voice Message]', [], {
+                      media_type: 'voice',
+                      media_url: urlData.publicUrl,
+                      media_duration: duration
+                    });
+                  }}
+                />
                 <Button
                   variant="outline"
                   size="icon"
