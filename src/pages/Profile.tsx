@@ -77,6 +77,8 @@ const Profile = () => {
   // Employment and compensation preferences
   const [employmentType, setEmploymentType] = useState<'fulltime' | 'freelance' | 'both'>('fulltime');
   const [freelanceHourlyRate, setFreelanceHourlyRate] = useState<[number, number]>([100, 200]);
+  const [fulltimeHoursPerWeek, setFulltimeHoursPerWeek] = useState(40);
+  const [freelanceHoursPerWeek, setFreelanceHoursPerWeek] = useState(20);
 
   const [resume, setResume] = useState<File | null>(null);
   
@@ -131,6 +133,8 @@ const Profile = () => {
           employment_type_preference: employmentType,
           freelance_hourly_rate_min: freelanceHourlyRate[0],
           freelance_hourly_rate_max: freelanceHourlyRate[1],
+          fulltime_hours_per_week: fulltimeHoursPerWeek,
+          freelance_hours_per_week: freelanceHoursPerWeek,
         })
         .eq('id', user.id);
 
@@ -149,7 +153,7 @@ const Profile = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate]);
+  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek]);
 
   // Debounced auto-save
   const debouncedSave = useCallback(() => {
@@ -428,6 +432,8 @@ const Profile = () => {
             employment_type_preference: employmentType,
             freelance_hourly_rate_min: freelanceHourlyRate[0],
             freelance_hourly_rate_max: freelanceHourlyRate[1],
+            fulltime_hours_per_week: fulltimeHoursPerWeek,
+            freelance_hours_per_week: freelanceHoursPerWeek,
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id);
@@ -453,7 +459,7 @@ const Profile = () => {
 
     const debounceTimer = setTimeout(saveProfile, 1000);
     return () => clearTimeout(debounceTimer);
-  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, user]);
+  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, user]);
 
   // Load profile data from database
   useEffect(() => {
@@ -548,6 +554,12 @@ const Profile = () => {
           }
           if (data.freelance_hourly_rate_min && data.freelance_hourly_rate_max) {
             setFreelanceHourlyRate([data.freelance_hourly_rate_min, data.freelance_hourly_rate_max]);
+          }
+          if (data.fulltime_hours_per_week) {
+            setFulltimeHoursPerWeek(data.fulltime_hours_per_week);
+          }
+          if (data.freelance_hours_per_week) {
+            setFreelanceHoursPerWeek(data.freelance_hours_per_week);
           }
         }
       } catch (error) {
@@ -1449,6 +1461,34 @@ const Profile = () => {
                       </p>
                     </div>
                   </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <Label className="text-base font-semibold">Hours Per Week</Label>
+                      <span className="text-sm font-bold">
+                        {fulltimeHoursPerWeek} hours/week
+                      </span>
+                    </div>
+                    <Slider
+                      value={[fulltimeHoursPerWeek]}
+                      onValueChange={(value) => {
+                        setFulltimeHoursPerWeek(value[0]);
+                        debouncedSave();
+                      }}
+                      min={20}
+                      max={60}
+                      step={1}
+                      className="py-4"
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-muted-foreground">
+                        Standard full-time is typically 40 hours/week
+                      </p>
+                      <p className="text-xs font-medium text-accent">
+                        {fulltimeHoursPerWeek * 52} hours/year
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -1481,12 +1521,40 @@ const Profile = () => {
                         Your hourly rate for freelance projects
                       </p>
                       <p className="text-xs font-medium text-accent">
-                        Annual estimate: {formatSalary(freelanceHourlyRate[1] * 2080)}
+                        Annual estimate: {formatSalary(freelanceHourlyRate[1] * freelanceHoursPerWeek * 52)}
                       </p>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2">
-                      Based on 40 hours/week × 52 weeks = 2,080 hours per year
+                      Based on {freelanceHoursPerWeek} hours/week × 52 weeks = {freelanceHoursPerWeek * 52} hours per year
                     </p>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <Label className="text-base font-semibold">Hours Per Week</Label>
+                      <span className="text-sm font-bold">
+                        {freelanceHoursPerWeek} hours/week
+                      </span>
+                    </div>
+                    <Slider
+                      value={[freelanceHoursPerWeek]}
+                      onValueChange={(value) => {
+                        setFreelanceHoursPerWeek(value[0]);
+                        debouncedSave();
+                      }}
+                      min={5}
+                      max={60}
+                      step={1}
+                      className="py-4"
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-muted-foreground">
+                        Adjust based on your availability for freelance work
+                      </p>
+                      <p className="text-xs font-medium text-accent">
+                        {freelanceHoursPerWeek * 52} hours/year
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
