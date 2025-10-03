@@ -9,12 +9,13 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Search, Send, Paperclip, Phone, Video, MoreVertical, ArrowLeft, Bot, Pin, Archive } from 'lucide-react';
+import { MessageSquare, Search, Send, Paperclip, Phone, Video, MoreVertical, ArrowLeft, Bot, Pin, Archive, MessageSquarePlus } from 'lucide-react';
 import { MessageReactions } from '@/components/messages/MessageReactions';
 import { MessageEditor } from '@/components/messages/MessageEditor';
 import { ThreadView } from '@/components/messages/ThreadView';
 import { MessageTemplates } from '@/components/messages/MessageTemplates';
 import { MessageActions } from '@/components/messages/MessageActions';
+import { CreateConversationDialog } from '@/components/messages/CreateConversationDialog';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -39,6 +40,7 @@ export default function Messages() {
   const [threadParentId, setThreadParentId] = useState<string | null>(null);
   const [threadOpen, setThreadOpen] = useState(false);
   const [reactions, setReactions] = useState<Record<string, any[]>>({});
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   // Load conversations for inbox view
   const { conversations, loading: loadingConversations } = useMessages();
@@ -167,7 +169,7 @@ export default function Messages() {
           </div>
 
           <Card className="border-2">
-            <div className="p-4 border-b">
+            <div className="p-4 border-b space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -177,6 +179,14 @@ export default function Messages() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
+              <Button 
+                onClick={() => setCreateDialogOpen(true)}
+                className="w-full"
+                variant="outline"
+              >
+                <MessageSquarePlus className="h-4 w-4 mr-2" />
+                New Conversation
+              </Button>
             </div>
 
             <ScrollArea className="h-[600px]">
@@ -241,6 +251,14 @@ export default function Messages() {
               )}
             </ScrollArea>
           </Card>
+
+          <CreateConversationDialog
+            open={createDialogOpen}
+            onOpenChange={setCreateDialogOpen}
+            onConversationCreated={(conversationId) => {
+              setSelectedConversationId(conversationId);
+            }}
+          />
         </div>
       </AppLayout>
     );

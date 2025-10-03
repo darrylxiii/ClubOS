@@ -4,9 +4,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, FileText, Bookmark, Trash2, Edit, Copy, Flag } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, FileText, Bookmark, Trash2, Edit, Copy, Flag, Mail } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { PostComments } from "./PostComments";
+import { CreateConversationDialog } from "@/components/messages/CreateConversationDialog";
+import { useNavigate } from 'react-router-dom';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +25,9 @@ interface PostCardProps {
 
 export function PostCard({ post, onUpdate }: PostCardProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [showComments, setShowComments] = useState(false);
+  const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(
     post.post_likes?.some((like: any) => like.user_id === user?.id)
   );
@@ -237,6 +241,17 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 {post.post_comments?.length > 0 && <span className="text-sm">{post.post_comments.length}</span>}
               </Button>
               
+              {!isOwnPost && user && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMessageDialogOpen(true)}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  <span className="text-sm">Message</span>
+                </Button>
+              )}
+              
               <Button variant="ghost" size="sm" onClick={handleShare}>
                 <Share2 className="w-4 h-4 mr-2" />
                 <span className="text-sm">Share</span>
@@ -261,6 +276,15 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           )}
         </div>
       </div>
+
+      <CreateConversationDialog
+        open={messageDialogOpen}
+        onOpenChange={setMessageDialogOpen}
+        preselectedUserId={post.user_id}
+        onConversationCreated={(conversationId) => {
+          navigate('/messages');
+        }}
+      />
     </Card>
   );
 }
