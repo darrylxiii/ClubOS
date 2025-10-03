@@ -21,12 +21,11 @@ export const useUserRole = () => {
       console.log('[useUserRole] Fetching role for user:', user.id);
 
       try {
-        // Get user roles
+        // Get ALL user roles (user can have multiple)
         const { data: rolesData, error: rolesError } = await supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', user.id)
-          .maybeSingle();
+          .eq('user_id', user.id);
 
         console.log('[useUserRole] User roles data:', rolesData, 'error:', rolesError);
 
@@ -61,12 +60,21 @@ export const useUserRole = () => {
           }
         }
 
-        // Override with system role if exists
-        if (rolesData) {
-          setRole(rolesData.role as UserRole);
+        // Override with system role if exists (prioritize admin)
+        if (rolesData && rolesData.length > 0) {
+          // Check for admin role first (highest priority)
+          if (rolesData.some(r => r.role === 'admin')) {
+            setRole('admin');
+          } else if (rolesData.some(r => r.role === 'strategist')) {
+            setRole('strategist');
+          } else if (rolesData.some(r => r.role === 'partner')) {
+            setRole('partner');
+          } else {
+            setRole('user');
+          }
         }
 
-        console.log('[useUserRole] Final state - role:', rolesData?.role, 'companyId:', profileData?.company_id);
+        console.log('[useUserRole] Final state - roles:', rolesData, 'companyId:', profileData?.company_id);
       } catch (error) {
         console.error('[useUserRole] Error fetching user role:', error);
       } finally {
