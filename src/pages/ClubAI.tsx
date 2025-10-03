@@ -233,109 +233,90 @@ const ClubAI = () => {
           </p>
         </div>
 
-        <div className="flex-1 flex gap-6 min-h-0">
-          {/* Sidebar with suggested prompts */}
-          <div className="w-80 space-y-4 flex-shrink-0">
-            <Card className="border-2 border-border">
-              <CardContent className="p-4">
-                <h3 className="font-bold mb-3 flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  Suggested Prompts
-                </h3>
-                <div className="space-y-2">
-                  {suggestedPrompts.map((prompt, index) => {
-                    const Icon = prompt.icon;
-                    return (
-                      <Button
-                        key={index}
-                        variant="outline"
-                        className="w-full justify-start h-auto py-3 text-left"
-                        onClick={() => handleSuggestedPrompt(prompt.prompt)}
-                        disabled={isLoading}
-                      >
-                        <Icon className="w-4 h-4 mr-2 flex-shrink-0" />
-                        <span className="text-sm">{prompt.title}</span>
-                      </Button>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-primary bg-primary/5">
-              <CardContent className="p-4">
-                <h3 className="font-bold mb-2 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  Pro Tips
-                </h3>
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  <li>• Be specific about your goals</li>
-                  <li>• Share context about your situation</li>
-                  <li>• Ask follow-up questions</li>
-                  <li>• Request actionable advice</li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Chat area */}
-          <Card className="flex-1 border-2 border-border flex flex-col min-h-0">
-            <CardContent className="p-0 flex flex-col h-full">
-              {/* Messages */}
-              <ScrollArea className="flex-1 p-6" ref={scrollRef}>
-                {messages.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-full text-center py-12">
-                    <Sparkles className="w-16 h-16 text-primary mb-4" />
-                    <h2 className="text-2xl font-bold mb-2">Welcome to Club AI</h2>
-                    <p className="text-muted-foreground max-w-md">
-                      I'm here to help you with career strategy, interview prep,
-                      salary negotiation, and more. Choose a suggested prompt or ask
-                      me anything!
-                    </p>
+        {/* Chat area - Full Screen */}
+        <Card className="flex-1 border-2 border-border flex flex-col min-h-0">
+          <CardContent className="p-0 flex flex-col h-full">
+            {/* Messages */}
+            <ScrollArea className="flex-1 p-6" ref={scrollRef}>
+              {messages.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-full text-center py-12 max-w-4xl mx-auto">
+                  <Sparkles className="w-16 h-16 text-primary mb-6" />
+                  <h2 className="text-2xl font-bold mb-3">Welcome to Club AI</h2>
+                  <p className="text-muted-foreground mb-8 max-w-md">
+                    I'm here to help you with career strategy, interview prep,
+                    salary negotiation, and more. Choose a suggested prompt or ask
+                    me anything!
+                  </p>
+                  
+                  {/* Suggested Prompts */}
+                  <div className="w-full max-w-2xl">
+                    <h3 className="font-bold mb-4 text-left flex items-center gap-2">
+                      <Target className="w-5 h-5" />
+                      Suggested Prompts
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {suggestedPrompts.map((prompt, index) => {
+                        const Icon = prompt.icon;
+                        return (
+                          <Button
+                            key={index}
+                            variant="outline"
+                            className="w-full justify-start h-auto py-4 text-left"
+                            onClick={() => handleSuggestedPrompt(prompt.prompt)}
+                            disabled={isLoading}
+                          >
+                            <Icon className="w-5 h-5 mr-3 flex-shrink-0" />
+                            <span className="text-sm font-medium">{prompt.title}</span>
+                          </Button>
+                        );
+                      })}
+                    </div>
                   </div>
-                ) : (
-                  <div className="space-y-6">
-                    {messages.map((message, index) => (
+                </div>
+              ) : (
+                <div className="space-y-6 max-w-4xl mx-auto w-full">
+                  {messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`flex gap-4 ${
+                        message.role === "user" ? "justify-end" : "justify-start"
+                      }`}
+                    >
+                      {message.role === "assistant" && (
+                        <Avatar className="h-10 w-10 border-2 border-primary flex-shrink-0">
+                          <AvatarFallback className="bg-primary text-primary-foreground">
+                            <Sparkles className="w-5 h-5" />
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
                       <div
-                        key={index}
-                        className={`flex gap-4 ${
-                          message.role === "user" ? "justify-end" : "justify-start"
+                        className={`rounded-lg p-4 max-w-[80%] ${
+                          message.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
                         }`}
                       >
-                        {message.role === "assistant" && (
-                          <Avatar className="h-10 w-10 border-2 border-primary flex-shrink-0">
-                            <AvatarFallback className="bg-primary text-primary-foreground">
-                              <Sparkles className="w-5 h-5" />
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
-                        <div
-                          className={`rounded-lg p-4 max-w-[80%] ${
-                            message.role === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
-                          }`}
-                        >
-                          <p className="text-sm whitespace-pre-wrap">
-                            {message.content}
-                          </p>
-                        </div>
-                        {message.role === "user" && (
-                          <Avatar className="h-10 w-10 border-2 border-border flex-shrink-0">
-                            <AvatarFallback className="bg-card">
-                              {profile?.full_name?.[0]?.toUpperCase() || "U"}
-                            </AvatarFallback>
-                          </Avatar>
-                        )}
+                        <p className="text-sm whitespace-pre-wrap">
+                          {message.content}
+                        </p>
                       </div>
-                    ))}
-                    <div ref={messagesEndRef} />
-                  </div>
-                )}
-              </ScrollArea>
+                      {message.role === "user" && (
+                        <Avatar className="h-10 w-10 border-2 border-border flex-shrink-0">
+                          <AvatarFallback className="bg-card">
+                            {profile?.full_name?.[0]?.toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      )}
+                    </div>
+                  ))}
+                  <div ref={messagesEndRef} />
+                </div>
+              )}
+            </ScrollArea>
 
-              {/* Input area */}
-              <div className="border-t border-border p-4">
+            {/* Input area */}
+            <div className="border-t border-border p-4">
+              <div className="max-w-4xl mx-auto">
                 <div className="flex gap-2">
                   <Input
                     placeholder="Ask me anything about your career..."
@@ -363,9 +344,9 @@ const ClubAI = () => {
                   </p>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </AppLayout>
   );
