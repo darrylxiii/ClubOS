@@ -24,25 +24,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-
-        // Redirect based on role on sign in
-        if (event === 'SIGNED_IN' && session) {
-          setTimeout(async () => {
-            // Check if user is a company member
-            const { data: memberData } = await supabase
-              .from('company_members')
-              .select('company_id, role')
-              .eq('user_id', session.user.id)
-              .eq('is_active', true)
-              .maybeSingle();
-
-            if (memberData) {
-              navigate('/partner-dashboard');
-            } else {
-              navigate('/dashboard');
-            }
-          }, 0);
-        }
       }
     );
 
