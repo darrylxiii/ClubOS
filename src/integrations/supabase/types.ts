@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      applications: {
+        Row: {
+          applied_at: string
+          company_name: string
+          created_at: string
+          current_stage_index: number
+          id: string
+          job_id: string
+          position: string
+          stages: Json
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          applied_at?: string
+          company_name: string
+          created_at?: string
+          current_stage_index?: number
+          id?: string
+          job_id: string
+          position: string
+          stages?: Json
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          applied_at?: string
+          company_name?: string
+          created_at?: string
+          current_stage_index?: number
+          id?: string
+          job_id?: string
+          position?: string
+          stages?: Json
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           country: string
@@ -119,6 +161,36 @@ export type Database = {
           updated_at?: string
           used_at?: string | null
           used_by?: string | null
+        }
+        Relationships: []
+      }
+      job_pipelines: {
+        Row: {
+          company_name: string
+          created_at: string
+          id: string
+          job_id: string
+          position: string
+          stages: Json
+          updated_at: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          id?: string
+          job_id: string
+          position: string
+          stages?: Json
+          updated_at?: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          position?: string
+          stages?: Json
+          updated_at?: string
         }
         Relationships: []
       }
