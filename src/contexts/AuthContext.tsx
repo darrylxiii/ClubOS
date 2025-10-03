@@ -19,33 +19,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log('[AuthContext] Setting up auth listener');
-    
-    // Check for existing session immediately
-    const initAuth = async () => {
-      try {
-        console.log('[AuthContext] Getting initial session');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('[AuthContext] Initial session:', session, 'error:', error);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        console.log('[AuthContext] Initial auth state set, loading = false');
-      } catch (error) {
-        console.error('[AuthContext] Error getting session:', error);
-        setLoading(false);
-      }
-    };
-
-    initAuth();
-
-    // Set up auth state listener
+    // Set up auth state listener - this fires immediately with current session
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log('[AuthContext] Auth state changed:', event, 'has session:', !!session);
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
+        setLoading(false);
 
         // Redirect based on role on sign in
         if (event === 'SIGNED_IN' && session) {
@@ -68,10 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    return () => {
-      console.log('[AuthContext] Cleaning up auth listener');
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const signOut = async () => {
