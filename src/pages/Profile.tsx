@@ -12,6 +12,7 @@ import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, 
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { CompanySearch } from "@/components/CompanySearch";
 
 const Profile = () => {
   const [profileData, setProfileData] = useState({
@@ -61,6 +62,14 @@ const Profile = () => {
       ...profileData,
       noticePeriod: value,
     });
+  };
+
+  const handleAddBlockedCompany = (company: { name: string; domain?: string }) => {
+    if (company.name && !blockedCompanies.includes(company.name)) {
+      setBlockedCompanies([...blockedCompanies, company.name]);
+      setCompanySearchQuery("");
+      toast.success("Company added to blocklist");
+    }
   };
 
   const handleRemoveBlockedCompany = (company: string) => {
@@ -535,38 +544,11 @@ const Profile = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter company name..."
-                  value={companySearchQuery}
-                  onChange={(e) => setCompanySearchQuery(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (companySearchQuery.trim() && !blockedCompanies.includes(companySearchQuery.trim())) {
-                        setBlockedCompanies([...blockedCompanies, companySearchQuery.trim()]);
-                        setCompanySearchQuery("");
-                        toast.success("Company added to blocklist");
-                      }
-                    }
-                  }}
-                  className="bg-background/50"
-                />
-                <Button 
-                  type="button"
-                  onClick={() => {
-                    if (companySearchQuery.trim() && !blockedCompanies.includes(companySearchQuery.trim())) {
-                      setBlockedCompanies([...blockedCompanies, companySearchQuery.trim()]);
-                      setCompanySearchQuery("");
-                      toast.success("Company added to blocklist");
-                    }
-                  }}
-                  disabled={!companySearchQuery.trim()}
-                  className="bg-foreground text-background hover:bg-foreground/90"
-                >
-                  Add
-                </Button>
-              </div>
+              <CompanySearch
+                value={companySearchQuery}
+                onChange={setCompanySearchQuery}
+                onSelect={handleAddBlockedCompany}
+              />
 
               {blockedCompanies.length > 0 ? (
                 <div className="space-y-2 mt-4">
