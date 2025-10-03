@@ -10,13 +10,19 @@ import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 
 const emailSchema = z.string().email("Invalid email address");
-const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
+const passwordSchema = z.string()
+  .min(12, "Password must be at least 12 characters")
+  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
+  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
+  .regex(/[0-9]/, "Password must contain at least one number")
+  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
 const Auth = () => {
   const { user, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -35,7 +41,16 @@ const Auth = () => {
     try {
       // Validate inputs
       emailSchema.parse(email);
-      passwordSchema.parse(password);
+      
+      if (!isLogin) {
+        // Additional validation for sign up
+        passwordSchema.parse(password);
+        
+        if (password !== confirmPassword) {
+          toast.error("Passwords do not match");
+          return;
+        }
+      }
 
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
@@ -162,7 +177,39 @@ const Auth = () => {
                   required
                   className="border-2 border-foreground uppercase font-bold text-xs tracking-wider placeholder:text-muted-foreground"
                 />
+                {!isLogin && password && (
+                  <div className="text-xs space-y-1 mt-2">
+                    <p className={password.length >= 12 ? "text-green-600" : "text-muted-foreground"}>
+                      ✓ At least 12 characters
+                    </p>
+                    <p className={/[A-Z]/.test(password) ? "text-green-600" : "text-muted-foreground"}>
+                      ✓ One uppercase letter
+                    </p>
+                    <p className={/[a-z]/.test(password) ? "text-green-600" : "text-muted-foreground"}>
+                      ✓ One lowercase letter
+                    </p>
+                    <p className={/[0-9]/.test(password) ? "text-green-600" : "text-muted-foreground"}>
+                      ✓ One number
+                    </p>
+                    <p className={/[^A-Za-z0-9]/.test(password) ? "text-green-600" : "text-muted-foreground"}>
+                      ✓ One special character
+                    </p>
+                  </div>
+                )}
               </div>
+
+              {!isLogin && (
+                <div className="space-y-2">
+                  <Input
+                    type="password"
+                    placeholder="CONFIRM PASSWORD"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="border-2 border-foreground uppercase font-bold text-xs tracking-wider placeholder:text-muted-foreground"
+                  />
+                </div>
+              )}
 
               <Button
                 type="submit"
@@ -179,6 +226,7 @@ const Auth = () => {
                 onClick={() => {
                   setIsLogin(!isLogin);
                   setPassword("");
+                  setConfirmPassword("");
                 }}
                 className="text-foreground hover:underline font-bold uppercase text-xs tracking-wider"
               >
