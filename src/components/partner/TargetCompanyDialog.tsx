@@ -119,21 +119,8 @@ export function TargetCompanyDialog({
       ...prev,
       name: company.name,
       website_url: company.domain ? `https://${company.domain}` : prev.website_url,
-      logo_url: company.logo || prev.logo_url,
     }));
-
-    // Try to get company data from our database
-    if (company.name) {
-      const { data } = await supabase
-        .from("companies")
-        .select("industry")
-        .ilike("name", company.name)
-        .maybeSingle();
-
-      if (data?.industry) {
-        setFormData(prev => ({ ...prev, industry: data.industry }));
-      }
-    }
+    setAddMode("manual"); // Switch to manual to show the filled form
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -199,7 +186,7 @@ export function TargetCompanyDialog({
                     onSelect={handleCompanySelect}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Zoek bestaande bedrijven of voeg handmatig toe
+                    Zoek bestaande bedrijven - naam en website worden automatisch ingevuld
                   </p>
                 </div>
               </TabsContent>
@@ -221,8 +208,20 @@ export function TargetCompanyDialog({
 
           {(targetCompany || formData.name) && (
             <>
-              <div className="grid gap-4 md:grid-cols-2">
-                {targetCompany && (
+              {!targetCompany && (
+                <div className="space-y-2">
+                  <Label htmlFor="name-display">Bedrijfsnaam *</Label>
+                  <Input
+                    id="name-display"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                  />
+                </div>
+              )}
+
+              {targetCompany && (
+                <>
                   <div className="space-y-2">
                     <Label htmlFor="name">Bedrijfsnaam *</Label>
                     <Input
@@ -232,70 +231,49 @@ export function TargetCompanyDialog({
                       required
                     />
                   </div>
-                )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value) => setFormData({ ...formData, status: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(value) => setFormData({ ...formData, status: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {STATUS_OPTIONS.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
 
-                <div className="space-y-2">
-                  <Label htmlFor="industry">Industrie</Label>
-                  <Input
-                    id="industry"
-                    value={formData.industry}
-                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                    placeholder="bijv. Fashion, Tech, Health"
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Locatie</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  placeholder="bijv. Amsterdam, Nederland"
+                />
+              </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="location">Locatie</Label>
-                  <Input
-                    id="location"
-                    value={formData.location}
-                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                    placeholder="bijv. Amsterdam, Nederland"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="website_url">Website URL</Label>
-                  <Input
-                    id="website_url"
-                    type="url"
-                    value={formData.website_url}
-                    onChange={(e) =>
-                      setFormData({ ...formData, website_url: e.target.value })
-                    }
-                    placeholder="https://..."
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="logo_url">Logo URL</Label>
-                  <Input
-                    id="logo_url"
-                    type="url"
-                    value={formData.logo_url}
-                    onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                    placeholder="https://..."
-                  />
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="website_url">Website URL</Label>
+                <Input
+                  id="website_url"
+                  type="url"
+                  value={formData.website_url}
+                  onChange={(e) =>
+                    setFormData({ ...formData, website_url: e.target.value })
+                  }
+                  placeholder="https://..."
+                />
               </div>
 
               <div className="space-y-2">
