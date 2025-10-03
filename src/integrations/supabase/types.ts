@@ -124,10 +124,14 @@ export type Database = {
       }
       meeting_recordings: {
         Row: {
+          ai_analysis: Json | null
+          analysis_status: string | null
+          analyzed_at: string | null
           company_name: string | null
           created_at: string
           description: string | null
           duration_minutes: number | null
+          follow_up_draft: string | null
           id: string
           meeting_date: string
           meeting_type: string | null
@@ -138,14 +142,19 @@ export type Database = {
           tags: string[] | null
           thumbnail_url: string | null
           title: string
+          transcript: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          ai_analysis?: Json | null
+          analysis_status?: string | null
+          analyzed_at?: string | null
           company_name?: string | null
           created_at?: string
           description?: string | null
           duration_minutes?: number | null
+          follow_up_draft?: string | null
           id?: string
           meeting_date: string
           meeting_type?: string | null
@@ -156,14 +165,19 @@ export type Database = {
           tags?: string[] | null
           thumbnail_url?: string | null
           title: string
+          transcript?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          ai_analysis?: Json | null
+          analysis_status?: string | null
+          analyzed_at?: string | null
           company_name?: string | null
           created_at?: string
           description?: string | null
           duration_minutes?: number | null
+          follow_up_draft?: string | null
           id?: string
           meeting_date?: string
           meeting_type?: string | null
@@ -174,6 +188,7 @@ export type Database = {
           tags?: string[] | null
           thumbnail_url?: string | null
           title?: string
+          transcript?: string | null
           updated_at?: string
           user_id?: string
         }

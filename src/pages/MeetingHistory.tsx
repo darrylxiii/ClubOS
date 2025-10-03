@@ -9,12 +9,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Video, Calendar, Clock, Building2, Upload, Search, Filter, Play, Download, Trash2, Plus, AlertCircle, Settings } from "lucide-react";
+import { Video, Calendar, Clock, Building2, Upload, Search, Filter, Play, Download, Trash2, Plus, AlertCircle, Settings, Sparkles, Loader2, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { MeetingAnalysisCard } from "@/components/MeetingAnalysisCard";
 
 interface MeetingRecording {
   id: string;
@@ -31,6 +32,11 @@ interface MeetingRecording {
   notes: string | null;
   tags: string[] | null;
   created_at: string;
+  transcript: string | null;
+  ai_analysis: any;
+  follow_up_draft: string | null;
+  analyzed_at: string | null;
+  analysis_status: string;
 }
 
 const MeetingHistory = () => {
@@ -45,6 +51,9 @@ const MeetingHistory = () => {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [hasCalendarConnected, setHasCalendarConnected] = useState(false);
+  const [analyzingRecording, setAnalyzingRecording] = useState<string | null>(null);
+  const [selectedRecordingAnalysis, setSelectedRecordingAnalysis] = useState<MeetingRecording | null>(null);
+  const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState(false);
 
   // Upload form state
   const [uploadForm, setUploadForm] = useState({
@@ -192,6 +201,32 @@ const MeetingHistory = () => {
     } finally {
       setUploadProgress(0);
     }
+  };
+
+  const analyzeRecording = async (recordingId: string) => {
+    try {
+      setAnalyzingRecording(recordingId);
+      toast.info('Starting AI analysis... This may take a few minutes.');
+
+      const { error } = await supabase.functions.invoke('meeting-debrief', {
+        body: { recordingId }
+      });
+
+      if (error) throw error;
+
+      toast.success('Analysis completed successfully!');
+      loadRecordings();
+    } catch (error) {
+      console.error('Error analyzing recording:', error);
+      toast.error('Failed to analyze recording. Please try again.');
+    } finally {
+      setAnalyzingRecording(null);
+    }
+  };
+
+  const viewAnalysis = (recording: MeetingRecording) => {
+    setSelectedRecordingAnalysis(recording);
+    setIsAnalysisDialogOpen(true);
   };
 
   const deleteRecording = async (id: string, recordingUrl: string | null) => {
@@ -563,12 +598,58 @@ const MeetingHistory = () => {
                         </Button>
                       </>
                     )}
+                  </div>
+
+                  <Separator />
+
+                  {/* Analysis Section */}
+                  <div className="space-y-2">
+                    {recording.analysis_status === 'completed' && recording.ai_analysis ? (
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="w-full"
+                        onClick={() => viewAnalysis(recording)}
+                      >
+                        <Eye className="w-3 h-3 mr-2" />
+                        View AI Analysis
+                      </Button>
+                    ) : recording.analysis_status === 'processing' || analyzingRecording === recording.id ? (
+                      <Button size="sm" variant="secondary" className="w-full" disabled>
+                        <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                        Analyzing...
+                      </Button>
+                    ) : recording.analysis_status === 'failed' ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full text-orange-500 border-orange-500/50"
+                        onClick={() => analyzeRecording(recording.id)}
+                      >
+                        <Sparkles className="w-3 h-3 mr-2" />
+                        Retry Analysis
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => analyzeRecording(recording.id)}
+                        disabled={!recording.recording_url}
+                      >
+                        <Sparkles className="w-3 h-3 mr-2" />
+                        Analyze with AI
+                      </Button>
+                    )}
+                    
                     <Button
                       size="sm"
-                      variant="destructive"
+                      variant="ghost"
+                      className="w-full text-destructive"
                       onClick={() => deleteRecording(recording.id, recording.recording_url)}
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3 h-3 mr-2" />
+                      Delete
                     </Button>
                   </div>
                 </CardContent>
@@ -576,6 +657,26 @@ const MeetingHistory = () => {
             ))}
           </div>
         )}
+
+        {/* Analysis Dialog */}
+        <Dialog open={isAnalysisDialogOpen} onOpenChange={setIsAnalysisDialogOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>{selectedRecordingAnalysis?.title}</DialogTitle>
+              <DialogDescription>
+                AI-powered interview debrief and analysis
+              </DialogDescription>
+            </DialogHeader>
+            {selectedRecordingAnalysis?.ai_analysis && (
+              <MeetingAnalysisCard
+                analysis={selectedRecordingAnalysis.ai_analysis}
+                transcript={selectedRecordingAnalysis.transcript || undefined}
+                analyzedAt={selectedRecordingAnalysis.analyzed_at || new Date().toISOString()}
+                tasksCreated={selectedRecordingAnalysis.ai_analysis.actionItems?.length}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
