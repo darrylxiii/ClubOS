@@ -1,172 +1,104 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Briefcase, Users, TrendingUp, Building2, Plus } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { Building2, Briefcase, Users, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { CompanyProfile } from "@/components/partner/CompanyProfile";
+import { JobManagement } from "@/components/partner/JobManagement";
+import { TeamManagement } from "@/components/partner/TeamManagement";
+import { ApplicantPipeline } from "@/components/partner/ApplicantPipeline";
 
 const PartnerDashboard = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [companyData, setCompanyData] = useState<any>(null);
+  const { role, companyId, loading: roleLoading } = useUserRole();
   const [stats, setStats] = useState({
+    totalJobs: 0,
     activeJobs: 0,
     totalApplications: 0,
-    activeConversations: 0,
-    teamMembers: 0
+    activeApplications: 0,
   });
+  const [company, setCompany] = useState<any>(null);
+  const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
-    fetchCompanyData();
-    fetchStats();
-  }, [user]);
+    if (!companyId) return;
 
-  const fetchCompanyData = async () => {
-    if (!user) return;
+    const fetchCompanyAndStats = async () => {
+      try {
+        // Fetch company details
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('*')
+          .eq('id', companyId)
+          .single();
 
-    try {
-      // Get user's company membership
-      const { data: membership, error: memberError } = await supabase
-        .from('company_members')
-        .select('company_id, role, companies(*)')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
+        setCompany(companyData);
 
-      if (memberError) throw memberError;
+        // Fetch jobs for stats
+        const { data: jobsData } = await supabase
+          .from('jobs')
+          .select('id, status')
+          .eq('company_id', companyId);
 
-      if (membership) {
-        setCompanyData(membership);
+        const activeJobs = jobsData?.filter(j => j.status === 'published').length || 0;
+
+        // Fetch applications
+        const { data: applicationsData } = await supabase
+          .from('applications')
+          .select('id, status, job_id')
+          .in('job_id', jobsData?.map(j => j.id) || []);
+
+        const activeApplications = applicationsData?.filter(a => a.status === 'active').length || 0;
+
+        setStats({
+          totalJobs: jobsData?.length || 0,
+          activeJobs,
+          totalApplications: applicationsData?.length || 0,
+          activeApplications,
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        toast.error("Failed to load dashboard data");
+      } finally {
+        setLoadingStats(false);
       }
-    } catch (error: any) {
-      console.error('Error fetching company:', error);
-      toast.error("Failed to load company data");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  const fetchStats = async () => {
-    if (!user) return;
+    fetchCompanyAndStats();
+  }, [companyId]);
 
-    try {
-      // Get company from membership
-      const { data: membership } = await supabase
-        .from('company_members')
-        .select('company_id')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .single();
-
-      if (!membership) return;
-
-      // Get jobs count
-      const { count: jobsCount } = await supabase
-        .from('jobs')
-        .select('*', { count: 'exact', head: true })
-        .eq('company_id', membership.company_id)
-        .eq('status', 'published');
-
-      // Get applications count
-      const { data: jobs } = await supabase
-        .from('jobs')
-        .select('id')
-        .eq('company_id', membership.company_id);
-
-      const jobIds = jobs?.map(j => j.id) || [];
-      
-      const { count: appsCount } = await supabase
-        .from('applications')
-        .select('*', { count: 'exact', head: true })
-        .in('job_id', jobIds);
-
-      // Get conversations count
-      const { data: applications } = await supabase
-        .from('applications')
-        .select('id')
-        .in('job_id', jobIds);
-
-      const appIds = applications?.map(a => a.id) || [];
-
-      const { count: convsCount } = await supabase
-        .from('conversations')
-        .select('*', { count: 'exact', head: true })
-        .in('application_id', appIds);
-
-      // Get team members count
-      const { count: membersCount } = await supabase
-        .from('company_members')
-        .select('*', { count: 'exact', head: true })
-        .eq('company_id', membership.company_id)
-        .eq('is_active', true);
-
-      setStats({
-        activeJobs: jobsCount || 0,
-        totalApplications: appsCount || 0,
-        activeConversations: convsCount || 0,
-        teamMembers: membersCount || 0
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
-
-  const statCards = [
-    {
-      title: "Active Jobs",
-      value: stats.activeJobs,
-      icon: Briefcase,
-      trend: "Published positions"
-    },
-    {
-      title: "Total Applications",
-      value: stats.totalApplications,
-      icon: TrendingUp,
-      trend: "Candidates applied"
-    },
-    {
-      title: "Active Conversations",
-      value: stats.activeConversations,
-      icon: Users,
-      trend: "Ongoing dialogues"
-    },
-    {
-      title: "Team Members",
-      value: stats.teamMembers,
-      icon: Building2,
-      trend: "Company access"
-    }
-  ];
-
-  if (loading) {
+  if (roleLoading || loadingStats) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center">Loading...</div>
+        <div className="container mx-auto px-4 py-8">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/4"></div>
+            <div className="h-64 bg-muted rounded"></div>
+          </div>
         </div>
       </AppLayout>
     );
   }
 
-  if (!companyData) {
+  if (!companyId) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-12">
-          <Card className="border-2 border-foreground">
-            <CardContent className="p-12 text-center">
-              <Building2 className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h2 className="text-2xl font-black uppercase mb-2">No Company Access</h2>
-              <p className="text-muted-foreground mb-6">
-                You need to be added to a company to access the partner dashboard.
+        <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Company Setup Required</CardTitle>
+              <CardDescription>
+                You need to be associated with a company to access the partner dashboard.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                Please contact an administrator to set up your company profile.
               </p>
-              <Button onClick={() => navigate('/dashboard')}>
-                Go to Candidate Dashboard
-              </Button>
             </CardContent>
           </Card>
         </div>
@@ -174,135 +106,91 @@ const PartnerDashboard = () => {
     );
   }
 
+  const statsCards = [
+    {
+      title: "Total Jobs",
+      value: stats.totalJobs,
+      icon: Briefcase,
+      description: `${stats.activeJobs} active`,
+    },
+    {
+      title: "Applications",
+      value: stats.totalApplications,
+      icon: Users,
+      description: `${stats.activeApplications} active`,
+    },
+    {
+      title: "Engagement Rate",
+      value: stats.totalJobs > 0 
+        ? `${Math.round((stats.totalApplications / stats.totalJobs) * 10) / 10}`
+        : "0",
+      icon: TrendingUp,
+      description: "avg per job",
+    },
+  ];
+
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-8 lg:py-12">
         {/* Header */}
         <div className="space-y-4 mb-12">
-          <p className="text-caps text-muted-foreground">Partner Dashboard</p>
-          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
-            {companyData.companies.name}
-          </h1>
+          <div className="flex items-center gap-2">
+            <Building2 className="w-8 h-8" />
+            <h1 className="text-4xl font-black uppercase tracking-tight">
+              {company?.name || "Partner Dashboard"}
+            </h1>
+          </div>
           <p className="text-lg text-muted-foreground">
-            {companyData.role.toUpperCase()} · Manage jobs, candidates, and team
+            Manage your company profile, job postings, and candidate pipeline
           </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-          {statCards.map((stat) => {
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {statsCards.map((stat) => {
             const Icon = stat.icon;
             return (
-              <div
-                key={stat.title}
-                className="border-2 border-foreground p-8 hover:bg-foreground hover:text-background transition-all duration-300 group"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-caps">{stat.title}</p>
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="text-5xl font-black mb-2">{stat.value}</div>
-                <p className="text-sm font-bold">{stat.trend}</p>
-              </div>
+              <Card key={stat.title} className="border-2 border-foreground">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-bold uppercase">
+                    {stat.title}
+                  </CardTitle>
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-4xl font-black">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stat.description}
+                  </p>
+                </CardContent>
+              </Card>
             );
           })}
         </div>
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="jobs" className="space-y-6">
-          <TabsList className="border-2 border-foreground">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="jobs">Jobs</TabsTrigger>
-            <TabsTrigger value="applications">Applications</TabsTrigger>
-            <TabsTrigger value="company">Company Profile</TabsTrigger>
+            <TabsTrigger value="applicants">Applicants</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="company">Company</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="jobs">
-            <Card className="border-2 border-foreground">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-2xl font-black uppercase">
-                    Job Postings
-                  </CardTitle>
-                  <Button className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Create Job
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-center py-8">
-                  Job management interface coming soon
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="jobs" className="space-y-4">
+            <JobManagement companyId={companyId} />
           </TabsContent>
 
-          <TabsContent value="applications">
-            <Card className="border-2 border-foreground">
-              <CardHeader>
-                <CardTitle className="text-2xl font-black uppercase">
-                  Candidate Pipeline
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-center py-8">
-                  Applicant pipeline interface coming soon
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="applicants" className="space-y-4">
+            <ApplicantPipeline companyId={companyId} />
           </TabsContent>
 
-          <TabsContent value="company">
-            <Card className="border-2 border-foreground">
-              <CardHeader>
-                <CardTitle className="text-2xl font-black uppercase">
-                  Company Profile
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label className="text-sm font-bold uppercase text-muted-foreground">
-                    Company Name
-                  </label>
-                  <p className="text-lg">{companyData.companies.name}</p>
-                </div>
-                {companyData.companies.tagline && (
-                  <div>
-                    <label className="text-sm font-bold uppercase text-muted-foreground">
-                      Tagline
-                    </label>
-                    <p className="text-lg">{companyData.companies.tagline}</p>
-                  </div>
-                )}
-                <p className="text-muted-foreground text-sm">
-                  Full company management interface coming soon
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="team" className="space-y-4">
+            <TeamManagement companyId={companyId} canManage={role === 'company_admin'} />
           </TabsContent>
 
-          <TabsContent value="team">
-            <Card className="border-2 border-foreground">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-2xl font-black uppercase">
-                    Team Management
-                  </CardTitle>
-                  {(companyData.role === 'owner' || companyData.role === 'admin') && (
-                    <Button className="gap-2">
-                      <Plus className="w-4 h-4" />
-                      Invite Member
-                    </Button>
-                  )}
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-center py-8">
-                  Team management interface coming soon
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="company" className="space-y-4">
+            <CompanyProfile companyId={companyId} canEdit={role === 'company_admin'} />
           </TabsContent>
         </Tabs>
       </div>

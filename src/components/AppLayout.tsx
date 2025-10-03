@@ -1,4 +1,4 @@
-import { useState, ReactNode } from "react";
+import { useState, useEffect, ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import quantumClubLogo from "@/assets/quantum-club-logo.png";
 import { Button } from "@/components/ui/button";
@@ -63,8 +63,27 @@ interface AppLayoutProps {
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, isPartner } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
+  const [isPartner, setIsPartner] = useState(false);
+
+  // Check if user is a partner/company member
+  useEffect(() => {
+    const checkPartnerStatus = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('company_members')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      setIsPartner(!!data);
+    };
+
+    checkPartnerStatus();
+  }, [user]);
   
   const navigationItems = isPartner ? partnerNavigationItems : candidateNavigationItems;
 
