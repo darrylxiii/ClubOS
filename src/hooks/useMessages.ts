@@ -82,50 +82,98 @@ export const useMessages = (conversationId?: string) => {
     if (!user?.id) return;
 
     try {
-      // Get user's conversations
+      // Get user's conversations through participants
+      const { data: userParticipations, error: participantsError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+
+      if (participantsError) throw participantsError;
+
+      if (!userParticipations || userParticipations.length === 0) {
+        setConversations([]);
+        setLoading(false);
+        return;
+      }
+
+      const conversationIds = userParticipations.map(p => p.conversation_id);
+
       const { data: convos, error: convosError } = await supabase
         .from('conversations')
-        .select(`
-          *,
-          application:applications(company_name, position),
-          participants:conversation_participants(
-            *,
-            profile:profiles(full_name, avatar_url)
-          )
-        `)
+        .select('*')
+        .in('id', conversationIds)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
       if (convosError) throw convosError;
 
-      // Get last message and unread count for each conversation
+      // Get last message, participants, and unread count for each conversation
       const conversationsWithDetails = await Promise.all(
         (convos || []).map(async (convo) => {
+          // Get participants with profiles
+          const { data: participants } = await supabase
+            .from('conversation_participants')
+            .select('user_id, role')
+            .eq('conversation_id', convo.id);
+
+          const participantIds = participants?.map(p => p.user_id) || [];
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url')
+            .in('id', participantIds);
+
+          const participantsWithProfiles = participants?.map(p => ({
+            ...p,
+            profile: profiles?.find(prof => prof.id === p.user_id)
+          }));
+
+          // Get last message with sender
           const { data: lastMsg } = await supabase
             .from('messages')
-            .select('*, sender:profiles!messages_sender_id_fkey(full_name, avatar_url)')
+            .select('*')
             .eq('conversation_id', convo.id)
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
+
+          let lastMessageWithSender = lastMsg;
+          if (lastMsg) {
+            const { data: sender } = await supabase
+              .from('profiles')
+              .select('full_name, avatar_url')
+              .eq('id', lastMsg.sender_id)
+              .maybeSingle();
+            lastMessageWithSender = { ...lastMsg, sender };
+          }
+
+          // Get unread count
+          const { data: messageIds } = await supabase
+            .from('messages')
+            .select('id')
+            .eq('conversation_id', convo.id);
 
           const { count } = await supabase
             .from('message_notifications')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id)
             .eq('is_read', false)
-            .in(
-              'message_id',
-              (
-                await supabase
-                  .from('messages')
-                  .select('id')
-                  .eq('conversation_id', convo.id)
-              ).data?.map((m) => m.id) || []
-            );
+            .in('message_id', messageIds?.map(m => m.id) || []);
+
+          // Get application info if exists
+          let application = null;
+          if (convo.application_id) {
+            const { data: app } = await supabase
+              .from('applications')
+              .select('company_name, position')
+              .eq('id', convo.application_id)
+              .maybeSingle();
+            application = app;
+          }
 
           return {
             ...convo,
-            last_message: lastMsg,
+            application,
+            participants: participantsWithProfiles,
+            last_message: lastMessageWithSender,
             unread_count: count || 0,
           };
         })

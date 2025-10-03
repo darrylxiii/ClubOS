@@ -102,14 +102,27 @@ export const CreateConversationDialog = ({
         .eq('id', recipientId)
         .single();
 
-      // Create new conversation
+      // Check if user has any application to link (optional)
+      const { data: userApplications } = await supabase
+        .from('applications')
+        .select('id')
+        .eq('user_id', user.id)
+        .limit(1);
+
+      // Create new conversation - use first application if exists, otherwise create without
+      let conversationData: any = {
+        title: recipient?.full_name || 'New Conversation',
+        status: 'active',
+      };
+
+      // Only add application_id if user has applications
+      if (userApplications && userApplications.length > 0) {
+        conversationData.application_id = userApplications[0].id;
+      }
+
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
-        .insert({
-          title: recipient?.full_name || 'New Conversation',
-          application_id: '00000000-0000-0000-0000-000000000000', // Placeholder
-          status: 'active',
-        })
+        .insert(conversationData)
         .select()
         .single();
 
