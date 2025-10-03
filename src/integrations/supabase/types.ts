@@ -349,6 +349,53 @@ export type Database = {
         }
         Relationships: []
       }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          is_active: boolean | null
+          joined_at: string | null
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean | null
+          joined_at?: string | null
+          role: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean | null
+          joined_at?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -552,6 +599,77 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      jobs: {
+        Row: {
+          benefits: Json | null
+          closed_at: string | null
+          company_id: string
+          created_at: string | null
+          created_by: string
+          description: string | null
+          employment_type: string | null
+          id: string
+          location: string | null
+          pipeline_stages: Json | null
+          published_at: string | null
+          requirements: Json | null
+          responsibilities: Json | null
+          salary_max: number | null
+          salary_min: number | null
+          status: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          benefits?: Json | null
+          closed_at?: string | null
+          company_id: string
+          created_at?: string | null
+          created_by: string
+          description?: string | null
+          employment_type?: string | null
+          id?: string
+          location?: string | null
+          pipeline_stages?: Json | null
+          published_at?: string | null
+          requirements?: Json | null
+          responsibilities?: Json | null
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          benefits?: Json | null
+          closed_at?: string | null
+          company_id?: string
+          created_at?: string | null
+          created_by?: string
+          description?: string | null
+          employment_type?: string | null
+          id?: string
+          location?: string | null
+          pipeline_stages?: Json | null
+          published_at?: string | null
+          requirements?: Json | null
+          responsibilities?: Json | null
+          salary_max?: number | null
+          salary_min?: number | null
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       match_scores: {
         Row: {
@@ -913,6 +1031,7 @@ export type Database = {
           avatar_url: string | null
           blocked_companies: Json | null
           career_preferences: string | null
+          company_id: string | null
           created_at: string | null
           current_salary_max: number | null
           current_salary_min: number | null
@@ -957,6 +1076,7 @@ export type Database = {
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
+          company_id?: string | null
           created_at?: string | null
           current_salary_max?: number | null
           current_salary_min?: number | null
@@ -1001,6 +1121,7 @@ export type Database = {
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
+          company_id?: string | null
           created_at?: string | null
           current_salary_max?: number | null
           current_salary_min?: number | null
@@ -1040,7 +1161,15 @@ export type Database = {
           twitter_username?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       referral_metadata: {
         Row: {
@@ -1331,11 +1460,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      has_company_role: {
+        Args: { _company_id: string; _role: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
+        Returns: boolean
+      }
+      is_company_member: {
+        Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
       use_invite_code: {
@@ -1344,7 +1481,15 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "moderator" | "user" | "hiring_manager" | "strategist"
+      app_role:
+        | "admin"
+        | "moderator"
+        | "user"
+        | "hiring_manager"
+        | "strategist"
+        | "partner"
+        | "company_admin"
+        | "recruiter"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1472,7 +1617,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "moderator", "user", "hiring_manager", "strategist"],
+      app_role: [
+        "admin",
+        "moderator",
+        "user",
+        "hiring_manager",
+        "strategist",
+        "partner",
+        "company_admin",
+        "recruiter",
+      ],
     },
   },
 } as const

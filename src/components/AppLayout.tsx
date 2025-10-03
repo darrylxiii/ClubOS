@@ -19,6 +19,11 @@ import {
   Sparkles,
   Calendar,
   MessageSquare,
+  Video,
+  Home,
+  Building,
+  Bot,
+  Users,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,7 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const navigationItems = [
+const candidateNavigationItems = [
   { name: "Club AI", icon: Sparkles, path: "/club-ai" },
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
   { name: "Messages", icon: MessageSquare, path: "/messages" },
@@ -43,14 +48,25 @@ const navigationItems = [
   { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
 ];
 
+const partnerNavigationItems = [
+  { name: "Partner Dashboard", icon: Building2, path: "/partner-dashboard" },
+  { name: "Jobs", icon: Briefcase, path: "/jobs" },
+  { name: "Applications", icon: FileText, path: "/applications" },
+  { name: "Messages", icon: MessageSquare, path: "/messages" },
+  { name: "Companies", icon: Building, path: "/companies" },
+  { name: "Profile", icon: User, path: "/profile" },
+];
+
 interface AppLayoutProps {
   children: ReactNode;
 }
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user } = useAuth();
+  const { user, isPartner } = useAuth();
   const location = useLocation();
+  
+  const navigationItems = isPartner ? partnerNavigationItems : candidateNavigationItems;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();

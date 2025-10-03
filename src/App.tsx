@@ -20,6 +20,7 @@ import Applications from "./pages/Applications";
 import Companies from "./pages/Companies";
 import CompanyPage from "./pages/CompanyPage";
 import Scheduling from "./pages/Scheduling";
+import PartnerDashboard from "./pages/PartnerDashboard";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -48,6 +49,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/partner-dashboard"
+              element={
+                <ProtectedRoute>
+                  <PartnerDashboard />
                 </ProtectedRoute>
               }
             />
