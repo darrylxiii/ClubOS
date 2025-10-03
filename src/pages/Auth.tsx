@@ -109,7 +109,7 @@ const Auth = () => {
         }
 
         toast.success("Welcome back!");
-        navigate("/");
+        // Let AuthContext handle navigation to avoid session conflicts
       } else {
         if (!fullName.trim()) {
           toast.error("Please enter your full name");
