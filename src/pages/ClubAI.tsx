@@ -10,6 +10,7 @@ import { Sparkles, Send, Loader2, Briefcase, TrendingUp, MessageSquare, Target }
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import ReactMarkdown from "react-markdown";
 
 interface Message {
   role: "user" | "assistant";
@@ -296,9 +297,15 @@ const ClubAI = () => {
                             : "bg-muted"
                         }`}
                       >
-                        <p className="text-sm whitespace-pre-wrap">
-                          {message.content}
-                        </p>
+                        {message.role === "assistant" ? (
+                          <div className="text-sm prose prose-sm max-w-none dark:prose-invert">
+                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap">
+                            {message.content}
+                          </p>
+                        )}
                       </div>
                       {message.role === "user" && (
                         <Avatar className="h-10 w-10 border-2 border-border flex-shrink-0">
