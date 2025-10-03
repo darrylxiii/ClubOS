@@ -847,36 +847,46 @@ const Profile = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Connected Calendars List */}
-              {connectedCalendars.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-medium text-sm mb-3">Connected Calendars</h4>
-                  {connectedCalendars.map((calendar) => (
-                    <div
-                      key={calendar.id}
-                      className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50"
-                    >
-                      <div className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
-                        <div>
-                          <p className="font-medium">
-                            {calendar.provider === 'google' ? 'Google' : 'Microsoft'} - {calendar.label}
-                          </p>
-                          <p className="text-sm text-muted-foreground">{calendar.email}</p>
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDisconnectCalendar(calendar.id)}
-                        className="text-destructive hover:text-destructive/80"
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm mb-3">Currently Connected Calendars</h4>
+                {connectedCalendars.length > 0 ? (
+                  <div className="space-y-2">
+                    {connectedCalendars.map((calendar) => (
+                      <div
+                        key={calendar.id}
+                        className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50"
                       >
-                        Remove
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          <div>
+                            <p className="font-medium">
+                              {calendar.provider === 'google' ? 'Google' : 'Microsoft'} - {calendar.label}
+                            </p>
+                            <p className="text-sm text-muted-foreground">{calendar.email}</p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDisconnectCalendar(calendar.id)}
+                          className="text-destructive hover:text-destructive/80"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+                    <Calendar className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                    <p className="text-sm font-medium mb-1">No calendars connected yet</p>
+                    <p className="text-xs text-muted-foreground">
+                      Connect your calendars to enable automatic scheduling and prevent conflicts
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* Add Calendar Buttons */}
               <div className="space-y-2">
