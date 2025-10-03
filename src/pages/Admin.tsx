@@ -6,14 +6,20 @@ import { UserCompanyAssignment } from "@/components/admin/UserCompanyAssignment"
 import { useUserRole } from "@/hooks/useUserRole";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const Admin = () => {
   const { role, loading } = useUserRole();
 
-  console.log('[Admin] Current role:', role, 'loading:', loading);
+  useEffect(() => {
+    console.log('[Admin] Role/Loading changed - role:', role, 'loading:', loading);
+  }, [role, loading]);
+
+  console.log('[Admin] Render - role:', role, 'loading:', loading);
 
   // Wait for role to be loaded before making any decisions
   if (loading || role === null) {
+    console.log('[Admin] Showing loading state');
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8">
@@ -30,6 +36,8 @@ const Admin = () => {
     console.log('[Admin] Redirecting - role is not admin:', role);
     return <Navigate to="/dashboard" replace />;
   }
+
+  console.log('[Admin] Rendering admin panel');
 
   return (
     <AppLayout>

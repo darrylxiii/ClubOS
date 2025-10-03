@@ -23,6 +23,7 @@ export const useUserRole = () => {
       try {
         // Check for manually selected role in localStorage
         const selectedRole = localStorage.getItem('selected_role');
+        console.log('[useUserRole] Selected role from localStorage:', selectedRole);
         
         // Get ALL user roles (user can have multiple)
         const { data: rolesData, error: rolesError } = await supabase
@@ -45,17 +46,18 @@ export const useUserRole = () => {
         if (selectedRole && rolesData?.some(r => r.role === selectedRole)) {
           console.log('[useUserRole] Using selected role from localStorage:', selectedRole);
           setRole(selectedRole as UserRole);
+          console.log('[useUserRole] Role state set to:', selectedRole);
         } else if (rolesData && rolesData.length > 0) {
           // Otherwise prioritize admin role (highest priority)
-          if (rolesData.some(r => r.role === 'admin')) {
-            setRole('admin');
-          } else if (rolesData.some(r => r.role === 'strategist')) {
-            setRole('strategist');
-          } else if (rolesData.some(r => r.role === 'partner')) {
-            setRole('partner');
-          } else {
-            setRole('user');
-          }
+          const finalRole = rolesData.some(r => r.role === 'admin') ? 'admin' 
+            : rolesData.some(r => r.role === 'strategist') ? 'strategist'
+            : rolesData.some(r => r.role === 'partner') ? 'partner'
+            : 'user';
+          console.log('[useUserRole] No selected role, using priority role:', finalRole);
+          setRole(finalRole);
+        } else {
+          console.log('[useUserRole] No roles found, defaulting to user');
+          setRole('user');
         }
 
         // Check if user is a company member (for company_id, not role override)
