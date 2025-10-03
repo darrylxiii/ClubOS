@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ThumbsUp, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
+import { ThumbsUp, MessageCircle, Share2, MoreHorizontal, FileText } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { PostComments } from "./PostComments";
 
@@ -78,6 +78,38 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           </div>
           
           <p className="mt-3 whitespace-pre-wrap">{post.content}</p>
+          
+          {post.media_urls && post.media_urls.length > 0 && (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              {post.media_urls.map((media: any, index: number) => (
+                <div key={index} className="relative">
+                  {media.type === 'image' ? (
+                    <img 
+                      src={media.url} 
+                      alt={media.name || `Media ${index + 1}`}
+                      className="w-full h-64 object-cover rounded-lg"
+                    />
+                  ) : media.type === 'video' ? (
+                    <video 
+                      src={media.url}
+                      controls
+                      className="w-full h-64 rounded-lg"
+                    />
+                  ) : (
+                    <a 
+                      href={media.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-3 p-4 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
+                    >
+                      <FileText className="w-8 h-8 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm truncate">{media.name}</span>
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
           
           <div className="flex items-center gap-4 mt-4 pt-3 border-t">
             <Button
