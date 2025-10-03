@@ -3,6 +3,9 @@ project_id = "dpjucecmoyfzrduhlctt"
 [functions.chat-ollama]
 verify_jwt = false
 
+[functions.interview-voice-session]
+verify_jwt = true
+
 [functions.send-verification-code]
 verify_jwt = true
 

@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
+import { useElevenLabsConversation } from "@/hooks/useElevenLabsConversation";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Mic, MicOff, AlertCircle, CheckCircle2, Building2, Briefcase, Target, Trophy, Clock, MessageSquare } from "lucide-react";
+import { Mic, MicOff, AlertCircle, CheckCircle2, Building2, Briefcase, Target, Trophy, Clock, MessageSquare, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
@@ -35,7 +36,43 @@ const InterviewPrep = () => {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
   const [interviewDuration, setInterviewDuration] = useState(0);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [conversationId, setConversationId] = useState<string>("");
   const timerRef = useRef<NodeJS.Timeout>();
+
+  const conversation = useElevenLabsConversation({
+    onConnect: () => {
+      console.log("Voice conversation connected");
+      setIsConnecting(false);
+      toast.success("Voice interview ready! Start speaking.");
+    },
+    onDisconnect: () => {
+      console.log("Voice conversation disconnected");
+    },
+    onMessage: (message) => {
+      console.log("Received message:", message);
+      
+      // Add messages to transcript
+      if (message.type === 'user_transcript' || message.type === 'agent_response') {
+        const role = message.type === 'user_transcript' ? 'user' : 'assistant';
+        const content = message.message || message.text || '';
+        
+        if (content.trim()) {
+          setMessages(prev => [...prev, {
+            role,
+            content,
+            timestamp: new Date()
+          }]);
+        }
+      }
+    },
+    onError: (error) => {
+      console.error("Voice conversation error:", error);
+      toast.error("Voice conversation error. Please try again.");
+      setIsConnecting(false);
+      setIsRecording(false);
+    },
+  });
 
   // Mock company/job data - will be replaced with real data from database
   const mockJobData = {
@@ -54,24 +91,52 @@ const InterviewPrep = () => {
     };
   }, []);
 
-  const startInterview = () => {
-    setConversationStarted(true);
-    setIsRecording(true);
-    setMessages([{
-      role: 'assistant',
-      content: `Hello! I'm your interviewer for the ${mockJobData.position} position at ${mockJobData.company}. Let's start with a brief introduction - tell me about yourself and why you're interested in this role.`,
-      timestamp: new Date()
-    }]);
-    
-    // Start timer
-    timerRef.current = setInterval(() => {
-      setInterviewDuration(prev => prev + 1);
-    }, 1000);
+  const startInterview = async () => {
+    try {
+      setIsConnecting(true);
+      setConversationStarted(true);
+      
+      // Request microphone access first
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // For now, show a helpful message about setting up ElevenLabs
+      toast.error(
+        "To enable voice interviews, you need to:\n" +
+        "1. Create an AI Agent in your ElevenLabs dashboard\n" +
+        "2. Configure it with interview prompts\n" +
+        "3. Add the agent ID to the code\n\n" +
+        "For now, using text-based interview mode.",
+        { duration: 8000 }
+      );
+      
+      // Fall back to text mode
+      setMessages([{
+        role: 'assistant',
+        content: `Hello! I'm your interviewer for the ${mockJobData.position} position at ${mockJobData.company}. Let's start with a brief introduction - tell me about yourself and why you're interested in this role.`,
+        timestamp: new Date()
+      }]);
+      
+      setIsRecording(true);
+      setIsConnecting(false);
+      
+      // Start timer
+      timerRef.current = setInterval(() => {
+        setInterviewDuration(prev => prev + 1);
+      }, 1000);
 
-    toast.info("Voice agent integration pending - ElevenLabs API key required");
+    } catch (error) {
+      console.error("Error starting interview:", error);
+      toast.error("Failed to start interview. Please check your microphone permissions.");
+      setIsConnecting(false);
+      setConversationStarted(false);
+      setIsRecording(false);
+    }
   };
 
   const endInterview = async () => {
+    // End the voice conversation
+    await conversation.endSession();
+    
     setIsRecording(false);
     setConversationStarted(false);
     if (timerRef.current) {
@@ -204,7 +269,7 @@ const InterviewPrep = () => {
                   <Alert>
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
-                      <strong>Note:</strong> Voice conversation requires ElevenLabs API key. Once configured, you'll have realistic voice-to-voice interviews. For now, the system will work with text-based responses.
+                      <strong>Setup Required:</strong> To enable voice interviews, you need to create an AI Agent in your ElevenLabs dashboard and configure it. For now, the system uses text-based mode.
                     </AlertDescription>
                   </Alert>
                   
@@ -212,9 +277,19 @@ const InterviewPrep = () => {
                     onClick={startInterview}
                     className="w-full bg-gradient-accent text-background hover:opacity-90"
                     size="lg"
+                    disabled={isConnecting}
                   >
-                    <Mic className="w-5 h-5 mr-2" />
-                    Start Interview
+                    {isConnecting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-5 h-5 mr-2" />
+                        Start Interview
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>
