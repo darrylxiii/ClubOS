@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Video, Calendar, Clock, Building2, Upload, Search, Filter, Play, Download, Trash2, Plus } from "lucide-react";
+import { Video, Calendar, Clock, Building2, Upload, Search, Filter, Play, Download, Trash2, Plus, AlertCircle, Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
@@ -33,6 +35,7 @@ interface MeetingRecording {
 
 const MeetingHistory = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [recordings, setRecordings] = useState<MeetingRecording[]>([]);
   const [filteredRecordings, setFilteredRecordings] = useState<MeetingRecording[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +44,7 @@ const MeetingHistory = () => {
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [hasCalendarConnected, setHasCalendarConnected] = useState(false);
 
   // Upload form state
   const [uploadForm, setUploadForm] = useState({
@@ -55,6 +59,18 @@ const MeetingHistory = () => {
 
   useEffect(() => {
     loadRecordings();
+    
+    // Check if calendar is connected
+    const savedCalendars = localStorage.getItem('connected_calendars');
+    if (savedCalendars) {
+      try {
+        const calendars = JSON.parse(savedCalendars);
+        setHasCalendarConnected(Array.isArray(calendars) && calendars.length > 0);
+      } catch (error) {
+        console.error('Error parsing calendars:', error);
+        setHasCalendarConnected(false);
+      }
+    }
   }, [user]);
 
   useEffect(() => {
@@ -242,6 +258,29 @@ const MeetingHistory = () => {
             Access and review all your interview recordings in one place
           </p>
         </div>
+
+        {/* Calendar Integration Warning */}
+        {!hasCalendarConnected && (
+          <Alert className="mb-6 border-accent/50 bg-accent/5">
+            <AlertCircle className="h-5 w-5 text-accent" />
+            <AlertTitle className="text-lg font-bold">Calendar Integration Not Connected</AlertTitle>
+            <AlertDescription className="mt-2 space-y-3">
+              <p className="text-muted-foreground">
+                Connect your calendar to automatically capture all online meetings here. 
+                Once linked, all interview meetings will be automatically recorded and saved to this repository.
+              </p>
+              <Button 
+                onClick={() => navigate("/profile")}
+                variant="default"
+                size="sm"
+                className="mt-2"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Connect Calendar in Profile
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Filters and Search */}
         <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm mb-6">

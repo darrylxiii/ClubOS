@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Video, BookOpen, CheckCircle2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 interface StagePreparationProps {
   stage: "applied" | "screening" | "interview" | "offer";
@@ -102,8 +103,15 @@ const preparationContent = {
 
 export const StagePreparation = ({ stage }: StagePreparationProps) => {
   const content = preparationContent[stage];
+  const navigate = useNavigate();
 
   const handleAction = (actionTitle: string) => {
+    // Navigate to Interview Prep page for "Interview Prep" action
+    if (actionTitle === "Interview Prep") {
+      navigate("/interview-prep");
+      return;
+    }
+    
     toast.success(`Opening ${actionTitle}`, {
       description: "This feature will be available soon.",
     });
