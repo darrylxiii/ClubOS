@@ -24,7 +24,7 @@ interface UserWithRoles {
 const AVAILABLE_ROLES = [
   { value: 'admin', label: 'Admin', description: 'Full system access' },
   { value: 'strategist', label: 'Talent Strategist', description: 'Manage candidates and placements' },
-  { value: 'partner', label: 'Partner', description: 'Company partner access' },
+  { value: 'partner', label: 'Partner', description: 'Company partner with full hiring pipeline control' },
   { value: 'user', label: 'Candidate', description: 'Standard user access' },
 ];
 
