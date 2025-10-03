@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Jobs from "./pages/Jobs";
 import TasksPilot from "./pages/TasksPilot";
+import ClubAI from "./pages/ClubAI";
 import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
 import Referrals from "./pages/Referrals";
@@ -32,6 +33,14 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Index />} />
+            <Route
+              path="/club-ai"
+              element={
+                <ProtectedRoute>
+                  <ClubAI />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/dashboard"
               element={
