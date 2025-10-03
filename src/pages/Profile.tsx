@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Eye } from "lucide-react";
+import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Profile = () => {
   const [profileData, setProfileData] = useState({
@@ -34,6 +35,10 @@ const Profile = () => {
   });
 
   const [resume, setResume] = useState<File | null>(null);
+  
+  const [calendarConnected, setCalendarConnected] = useState(false);
+  const [calendarLoading, setCalendarLoading] = useState(false);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProfileData({
@@ -55,6 +60,77 @@ const Profile = () => {
       toast.success("Resume uploaded successfully");
     }
   };
+
+  useEffect(() => {
+    // Check if we have a stored access token
+    const storedToken = localStorage.getItem('google_calendar_token');
+    if (storedToken) {
+      setAccessToken(storedToken);
+      setCalendarConnected(true);
+    }
+  }, []);
+
+  const handleConnectCalendar = async () => {
+    try {
+      setCalendarLoading(true);
+      
+      const redirectUri = `${window.location.origin}/profile`;
+      
+      const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+        body: { action: 'getAuthUrl', redirectUri }
+      });
+
+      if (error) throw error;
+
+      // Redirect to Google OAuth
+      window.location.href = data.authUrl;
+    } catch (error) {
+      console.error('Calendar connection error:', error);
+      toast.error('Failed to connect Google Calendar');
+    } finally {
+      setCalendarLoading(false);
+    }
+  };
+
+  const handleDisconnectCalendar = () => {
+    localStorage.removeItem('google_calendar_token');
+    setAccessToken(null);
+    setCalendarConnected(false);
+    toast.success('Google Calendar disconnected');
+  };
+
+  useEffect(() => {
+    // Handle OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    
+    if (code && !accessToken) {
+      (async () => {
+        try {
+          const redirectUri = `${window.location.origin}/profile`;
+          
+          const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+            body: { action: 'exchangeCode', code, redirectUri }
+          });
+
+          if (error) throw error;
+
+          const token = data.tokens.access_token;
+          localStorage.setItem('google_calendar_token', token);
+          setAccessToken(token);
+          setCalendarConnected(true);
+          
+          // Clean up URL
+          window.history.replaceState({}, document.title, '/profile');
+          
+          toast.success('Google Calendar connected successfully!');
+        } catch (error) {
+          console.error('Token exchange error:', error);
+          toast.error('Failed to complete calendar connection');
+        }
+      })();
+    }
+  }, [accessToken]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,6 +354,77 @@ const Profile = () => {
                   className="bg-background/50"
                 />
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Google Calendar Integration */}
+          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-accent" />
+                Google Calendar Integration
+              </CardTitle>
+              <CardDescription>
+                Connect your Google Calendar to automatically schedule meetings and sync with client/recruiter agendas
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50">
+                <div className="flex items-center gap-3">
+                  {calendarConnected ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <div>
+                        <p className="font-medium">Calendar Connected</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your Google Calendar is synced and ready
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Calendar Not Connected</p>
+                        <p className="text-sm text-muted-foreground">
+                          Connect to enable automatic scheduling
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                {calendarConnected ? (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleDisconnectCalendar}
+                  >
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleConnectCalendar}
+                    disabled={calendarLoading}
+                    className="bg-gradient-accent text-background"
+                  >
+                    {calendarLoading ? 'Connecting...' : 'Connect Calendar'}
+                  </Button>
+                )}
+              </div>
+
+              {calendarConnected && (
+                <div className="space-y-2 p-4 border border-border rounded-lg bg-background/30">
+                  <h4 className="font-medium text-sm">Features Enabled:</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>✓ Automatic meeting creation for interviews</li>
+                    <li>✓ Find open time slots with recruiters and clients</li>
+                    <li>✓ Sync your availability across all calendars</li>
+                    <li>✓ Prevent double-booking conflicts</li>
+                  </ul>
+                </div>
+              )}
             </CardContent>
           </Card>
 

@@ -2,3 +2,9 @@ project_id = "dpjucecmoyfzrduhlctt"
 
 [functions.chat-ollama]
 verify_jwt = false
+
+[functions.google-calendar-auth]
+verify_jwt = true
+
+[functions.google-calendar-events]
+verify_jwt = true
