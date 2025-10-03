@@ -36,9 +36,13 @@ const Profile = () => {
 
   const [resume, setResume] = useState<File | null>(null);
   
-  const [calendarConnected, setCalendarConnected] = useState(false);
-  const [calendarLoading, setCalendarLoading] = useState(false);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [googleCalendarConnected, setGoogleCalendarConnected] = useState(false);
+  const [googleCalendarLoading, setGoogleCalendarLoading] = useState(false);
+  const [googleAccessToken, setGoogleAccessToken] = useState<string | null>(null);
+
+  const [microsoftCalendarConnected, setMicrosoftCalendarConnected] = useState(false);
+  const [microsoftCalendarLoading, setMicrosoftCalendarLoading] = useState(false);
+  const [microsoftAccessToken, setMicrosoftAccessToken] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setProfileData({
@@ -62,17 +66,23 @@ const Profile = () => {
   };
 
   useEffect(() => {
-    // Check if we have a stored access token
-    const storedToken = localStorage.getItem('google_calendar_token');
-    if (storedToken) {
-      setAccessToken(storedToken);
-      setCalendarConnected(true);
+    // Check if we have stored access tokens
+    const googleToken = localStorage.getItem('google_calendar_token');
+    if (googleToken) {
+      setGoogleAccessToken(googleToken);
+      setGoogleCalendarConnected(true);
+    }
+
+    const microsoftToken = localStorage.getItem('microsoft_calendar_token');
+    if (microsoftToken) {
+      setMicrosoftAccessToken(microsoftToken);
+      setMicrosoftCalendarConnected(true);
     }
   }, []);
 
-  const handleConnectCalendar = async () => {
+  const handleConnectGoogleCalendar = async () => {
     try {
-      setCalendarLoading(true);
+      setGoogleCalendarLoading(true);
       
       const redirectUri = `${window.location.origin}/profile`;
       
@@ -85,52 +95,107 @@ const Profile = () => {
       // Redirect to Google OAuth
       window.location.href = data.authUrl;
     } catch (error) {
-      console.error('Calendar connection error:', error);
+      console.error('Google Calendar connection error:', error);
       toast.error('Failed to connect Google Calendar');
     } finally {
-      setCalendarLoading(false);
+      setGoogleCalendarLoading(false);
     }
   };
 
-  const handleDisconnectCalendar = () => {
+  const handleDisconnectGoogleCalendar = () => {
     localStorage.removeItem('google_calendar_token');
-    setAccessToken(null);
-    setCalendarConnected(false);
+    setGoogleAccessToken(null);
+    setGoogleCalendarConnected(false);
     toast.success('Google Calendar disconnected');
+  };
+
+  const handleConnectMicrosoftCalendar = async () => {
+    try {
+      setMicrosoftCalendarLoading(true);
+      
+      const redirectUri = `${window.location.origin}/profile`;
+      
+      const { data, error } = await supabase.functions.invoke('microsoft-calendar-auth', {
+        body: { action: 'getAuthUrl', redirectUri }
+      });
+
+      if (error) throw error;
+
+      // Redirect to Microsoft OAuth
+      window.location.href = data.authUrl;
+    } catch (error) {
+      console.error('Microsoft Calendar connection error:', error);
+      toast.error('Failed to connect Microsoft Calendar');
+    } finally {
+      setMicrosoftCalendarLoading(false);
+    }
+  };
+
+  const handleDisconnectMicrosoftCalendar = () => {
+    localStorage.removeItem('microsoft_calendar_token');
+    setMicrosoftAccessToken(null);
+    setMicrosoftCalendarConnected(false);
+    toast.success('Microsoft Calendar disconnected');
   };
 
   useEffect(() => {
     // Handle OAuth callback
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
+    const state = urlParams.get('state'); // Can be used to determine provider
     
-    if (code && !accessToken) {
+    if (code && !googleAccessToken && !microsoftAccessToken) {
       (async () => {
         try {
           const redirectUri = `${window.location.origin}/profile`;
           
-          const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+          // Try Google first (you might want to add state parameter to determine provider)
+          try {
+            const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+              body: { action: 'exchangeCode', code, redirectUri }
+            });
+
+            if (!error && data.tokens) {
+              const token = data.tokens.access_token;
+              localStorage.setItem('google_calendar_token', token);
+              setGoogleAccessToken(token);
+              setGoogleCalendarConnected(true);
+              
+              // Clean up URL
+              window.history.replaceState({}, document.title, '/profile');
+              
+              toast.success('Google Calendar connected successfully!');
+              return;
+            }
+          } catch (googleError) {
+            console.log('Not a Google auth code, trying Microsoft...');
+          }
+
+          // Try Microsoft
+          const { data, error } = await supabase.functions.invoke('microsoft-calendar-auth', {
             body: { action: 'exchangeCode', code, redirectUri }
           });
 
           if (error) throw error;
 
-          const token = data.tokens.access_token;
-          localStorage.setItem('google_calendar_token', token);
-          setAccessToken(token);
-          setCalendarConnected(true);
+          const token = data.access_token;
+          localStorage.setItem('microsoft_calendar_token', token);
+          setMicrosoftAccessToken(token);
+          setMicrosoftCalendarConnected(true);
           
           // Clean up URL
           window.history.replaceState({}, document.title, '/profile');
           
-          toast.success('Google Calendar connected successfully!');
+          toast.success('Microsoft Calendar connected successfully!');
         } catch (error) {
           console.error('Token exchange error:', error);
           toast.error('Failed to complete calendar connection');
+          // Clean up URL even on error
+          window.history.replaceState({}, document.title, '/profile');
         }
       })();
     }
-  }, [accessToken]);
+  }, [googleAccessToken, microsoftAccessToken]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -357,25 +422,26 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          {/* Google Calendar Integration */}
+          {/* Calendar Integration */}
           <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-accent" />
-                Google Calendar Integration
+                Calendar Integration
               </CardTitle>
               <CardDescription>
-                Connect your Google Calendar to automatically schedule meetings and sync with client/recruiter agendas
+                Connect your calendar to automatically schedule meetings and sync with client/recruiter agendas
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Google Calendar */}
               <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50">
                 <div className="flex items-center gap-3">
-                  {calendarConnected ? (
+                  {googleCalendarConnected ? (
                     <>
                       <CheckCircle2 className="w-5 h-5 text-green-500" />
                       <div>
-                        <p className="font-medium">Calendar Connected</p>
+                        <p className="font-medium">Google Calendar Connected</p>
                         <p className="text-sm text-muted-foreground">
                           Your Google Calendar is synced and ready
                         </p>
@@ -385,7 +451,7 @@ const Profile = () => {
                     <>
                       <XCircle className="w-5 h-5 text-muted-foreground" />
                       <div>
-                        <p className="font-medium">Calendar Not Connected</p>
+                        <p className="font-medium">Google Calendar Not Connected</p>
                         <p className="text-sm text-muted-foreground">
                           Connect to enable automatic scheduling
                         </p>
@@ -394,27 +460,73 @@ const Profile = () => {
                   )}
                 </div>
                 
-                {calendarConnected ? (
+                {googleCalendarConnected ? (
                   <Button
                     type="button"
                     variant="destructive"
-                    onClick={handleDisconnectCalendar}
+                    onClick={handleDisconnectGoogleCalendar}
                   >
                     Disconnect
                   </Button>
                 ) : (
                   <Button
                     type="button"
-                    onClick={handleConnectCalendar}
-                    disabled={calendarLoading}
+                    onClick={handleConnectGoogleCalendar}
+                    disabled={googleCalendarLoading}
                     className="bg-gradient-accent text-background"
                   >
-                    {calendarLoading ? 'Connecting...' : 'Connect Calendar'}
+                    {googleCalendarLoading ? 'Connecting...' : 'Connect Google'}
                   </Button>
                 )}
               </div>
 
-              {calendarConnected && (
+              {/* Microsoft Calendar */}
+              <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50">
+                <div className="flex items-center gap-3">
+                  {microsoftCalendarConnected ? (
+                    <>
+                      <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      <div>
+                        <p className="font-medium">Microsoft Calendar Connected</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your Microsoft Calendar is synced and ready
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-5 h-5 text-muted-foreground" />
+                      <div>
+                        <p className="font-medium">Microsoft Calendar Not Connected</p>
+                        <p className="text-sm text-muted-foreground">
+                          Connect to enable automatic scheduling
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+                
+                {microsoftCalendarConnected ? (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    onClick={handleDisconnectMicrosoftCalendar}
+                  >
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={handleConnectMicrosoftCalendar}
+                    disabled={microsoftCalendarLoading}
+                    className="bg-gradient-accent text-background"
+                  >
+                    {microsoftCalendarLoading ? 'Connecting...' : 'Connect Microsoft'}
+                  </Button>
+                )}
+              </div>
+
+              {(googleCalendarConnected || microsoftCalendarConnected) && (
                 <div className="space-y-2 p-4 border border-border rounded-lg bg-background/30">
                   <h4 className="font-medium text-sm">Features Enabled:</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">

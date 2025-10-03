@@ -8,3 +8,9 @@ verify_jwt = true
 
 [functions.google-calendar-events]
 verify_jwt = true
+
+[functions.microsoft-calendar-auth]
+verify_jwt = true
+
+[functions.microsoft-calendar-events]
+verify_jwt = true
