@@ -12,6 +12,7 @@ import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
 import Referrals from "./pages/Referrals";
 import InterviewPrep from "./pages/InterviewPrep";
+import MeetingHistory from "./pages/MeetingHistory";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -72,6 +73,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <InterviewPrep />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/meeting-history"
+              element={
+                <ProtectedRoute>
+                  <MeetingHistory />
                 </ProtectedRoute>
               }
             />

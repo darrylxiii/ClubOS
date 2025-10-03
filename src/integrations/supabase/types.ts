@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      meeting_recordings: {
+        Row: {
+          company_name: string | null
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          meeting_date: string
+          meeting_type: string | null
+          notes: string | null
+          participants: Json | null
+          position: string | null
+          recording_url: string | null
+          tags: string[] | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          meeting_date: string
+          meeting_type?: string | null
+          notes?: string | null
+          participants?: Json | null
+          position?: string | null
+          recording_url?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          meeting_date?: string
+          meeting_type?: string | null
+          notes?: string | null
+          participants?: Json | null
+          position?: string | null
+          recording_url?: string | null
+          tags?: string[] | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
