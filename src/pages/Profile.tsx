@@ -12,6 +12,7 @@ import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, 
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { CompanySearch } from "@/components/CompanySearch";
 
 const Profile = () => {
   const [profileData, setProfileData] = useState({
@@ -29,7 +30,7 @@ const Profile = () => {
   const [currentSalaryRange, setCurrentSalaryRange] = useState<[number, number]>([150000, 180000]);
   const [desiredSalaryRange, setDesiredSalaryRange] = useState<[number, number]>([200000, 250000]);
   const [blockedCompanies, setBlockedCompanies] = useState<string[]>([]);
-  const [newBlockedCompany, setNewBlockedCompany] = useState("");
+  const [companySearchQuery, setCompanySearchQuery] = useState("");
 
   const [settings, setSettings] = useState({
     emailNotifications: true,
@@ -63,10 +64,10 @@ const Profile = () => {
     });
   };
 
-  const handleAddBlockedCompany = () => {
-    if (newBlockedCompany.trim() && !blockedCompanies.includes(newBlockedCompany.trim())) {
-      setBlockedCompanies([...blockedCompanies, newBlockedCompany.trim()]);
-      setNewBlockedCompany("");
+  const handleAddBlockedCompany = (company: { name: string; domain?: string }) => {
+    if (company.name && !blockedCompanies.includes(company.name)) {
+      setBlockedCompanies([...blockedCompanies, company.name]);
+      setCompanySearchQuery("");
       toast.success("Company added to blocklist");
     }
   };
@@ -543,22 +544,11 @@ const Profile = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter company name..."
-                  value={newBlockedCompany}
-                  onChange={(e) => setNewBlockedCompany(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddBlockedCompany())}
-                  className="bg-background/50"
-                />
-                <Button 
-                  type="button"
-                  onClick={handleAddBlockedCompany}
-                  className="bg-foreground text-background hover:bg-foreground/90"
-                >
-                  Add
-                </Button>
-              </div>
+              <CompanySearch
+                value={companySearchQuery}
+                onChange={setCompanySearchQuery}
+                onSelect={handleAddBlockedCompany}
+              />
 
               {blockedCompanies.length > 0 ? (
                 <div className="space-y-2 mt-4">
