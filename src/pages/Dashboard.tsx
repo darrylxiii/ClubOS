@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { AppLayout } from "@/components/AppLayout";
 import { PipelineStage } from "@/components/PipelineStage";
 import { JobCard } from "@/components/JobCard";
 import { StagePreparation } from "@/components/StagePreparation";
@@ -8,48 +8,16 @@ import { ProfileCompletion } from "@/components/ProfileCompletion";
 import { TalentStrategist } from "@/components/TalentStrategist";
 import { PendingFeedbackTasks } from "@/components/PendingFeedbackTasks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  LayoutDashboard, 
-  Briefcase, 
-  Building2, 
-  Users, 
-  Gift,
-  FileText,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  Clock,
-  Award
-} from "lucide-react";
+import { Briefcase, Clock, Award } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-const navigationItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { name: "Jobs", icon: Briefcase, path: "/jobs" },
-  { name: "Applications", icon: FileText, path: "/applications" },
-  { name: "Companies", icon: Building2, path: "/companies" },
-  { name: "Referrals", icon: Gift, path: "/referrals" },
-];
 
 const Dashboard = () => {
   const [selectedApplication, setSelectedApplication] = useState<number>(1);
   const [firstName, setFirstName] = useState<string>("");
   const [strategists, setStrategists] = useState<any[]>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
-  const location = useLocation();
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -86,11 +54,6 @@ const Dashboard = () => {
     fetchProfile();
     fetchStrategists();
   }, [user]);
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = '/auth';
-  };
 
   const activeApplications = [
     {
@@ -157,104 +120,8 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen flex w-full bg-background">
-      {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-        <span className="font-black text-lg">TQC</span>
-        <div className="w-10" />
-      </div>
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        )}
-      >
-        {/* Logo */}
-        <div className="h-16 flex items-center justify-center border-b border-border">
-          <span className="font-black text-2xl">qc</span>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-6 px-3">
-          <div className="space-y-1">
-            {navigationItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-
-        {/* User Profile */}
-        <div className="p-4 border-t border-border">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="w-full justify-start gap-3 h-auto py-3 px-3"
-              >
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {firstName ? firstName[0].toUpperCase() : "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-medium">{firstName || "User"}</p>
-                  <p className="text-xs text-muted-foreground">View profile</p>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-card">
-              <DropdownMenuItem asChild>
-                <Link to="/profile" className="cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </aside>
-
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="container mx-auto px-4 py-8 lg:py-12 mt-16 lg:mt-0">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8 lg:py-12">
           {/* Header */}
           <div className="space-y-4 mb-12">
             <p className="text-caps text-muted-foreground">Welcome back{firstName ? `, ${firstName}` : ''}</p>
@@ -365,28 +232,7 @@ const Dashboard = () => {
             <AIChat />
           </div>
         </div>
-      </main>
-
-      {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border z-50 flex items-center justify-around">
-        {navigationItems.slice(0, 5).map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 flex-1 h-full",
-                isActive ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              <span className="text-xs">{item.name}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </div>
+    </AppLayout>
   );
 };
 

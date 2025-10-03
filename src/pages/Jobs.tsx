@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Layout } from "@/components/Layout";
+import { AppLayout } from "@/components/AppLayout";
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -148,8 +148,8 @@ const Jobs = () => {
   const savedJobs = sortedJobs.filter((job) => savedJobIds.includes(job.id));
 
   return (
-    <Layout>
-      <div className="space-y-6">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="space-y-4 border-b-2 border-foreground pb-8">
           <p className="text-caps text-muted-foreground">Curated Roles</p>
@@ -382,7 +382,7 @@ const Jobs = () => {
           />
         )}
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

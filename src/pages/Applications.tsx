@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Layout } from "@/components/Layout";
+import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,20 +57,17 @@ export default function Applications() {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="min-h-screen bg-gradient-subtle px-4 py-8">
-          <div className="max-w-7xl mx-auto">
-            <p className="text-center text-muted-foreground">Loading applications...</p>
-          </div>
+      <AppLayout>
+        <div className="container mx-auto px-4 py-8">
+          <p className="text-center text-muted-foreground">Loading applications...</p>
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gradient-subtle px-4 py-8">
-        <div className="max-w-7xl mx-auto space-y-6">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8 space-y-6">
           {/* Header */}
           <div>
             <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
@@ -118,8 +115,7 @@ export default function Applications() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
-    </Layout>
+    </AppLayout>
   );
 }
 

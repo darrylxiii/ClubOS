@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Layout } from "@/components/Layout";
+import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,38 +91,34 @@ export default function CompanyPage() {
 
   if (loading) {
     return (
-      <Layout>
-        <div className="min-h-screen bg-gradient-subtle px-4 py-8">
-          <div className="max-w-7xl mx-auto">
-            <p className="text-center text-muted-foreground">Loading company...</p>
-          </div>
+      <AppLayout>
+        <div className="container mx-auto px-4 py-8">
+          <p className="text-center text-muted-foreground">Loading company...</p>
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
 
   if (!company) {
     return (
-      <Layout>
-        <div className="min-h-screen bg-gradient-subtle px-4 py-8">
-          <div className="max-w-7xl mx-auto">
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Building2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h2 className="text-2xl font-bold mb-2">Company Not Found</h2>
-                <p className="text-muted-foreground">
-                  This company is not part of The Quantum Club network.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+      <AppLayout>
+        <div className="container mx-auto px-4 py-8">
+          <Card>
+            <CardContent className="py-12 text-center">
+              <Building2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <h2 className="text-2xl font-bold mb-2">Company Not Found</h2>
+              <p className="text-muted-foreground">
+                This company is not part of The Quantum Club network.
+              </p>
+            </CardContent>
+          </Card>
         </div>
-      </Layout>
+      </AppLayout>
     );
   }
 
   return (
-    <Layout>
+    <AppLayout>
       <div className="min-h-screen bg-gradient-subtle">
         {/* Cover Image */}
         {company.cover_image_url && (
@@ -383,6 +379,6 @@ export default function CompanyPage() {
           )}
         </div>
       </div>
-    </Layout>
+    </AppLayout>
   );
 }

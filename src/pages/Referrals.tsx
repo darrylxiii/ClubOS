@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Layout } from "@/components/Layout";
+import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -125,8 +125,8 @@ const Referrals = () => {
   ];
 
   return (
-    <Layout>
-      <div className="space-y-8">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8 space-y-8">
         {/* Header */}
         <div className="space-y-4">
           <p className="text-caps text-muted-foreground">Build Your Network</p>
@@ -306,7 +306,7 @@ const Referrals = () => {
       </TabsContent>
     </Tabs>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

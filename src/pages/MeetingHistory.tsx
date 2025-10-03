@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Layout } from "@/components/Layout";
+import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -285,8 +285,8 @@ const MeetingHistory = () => {
   };
 
   return (
-    <Layout>
-      <div className="max-w-7xl mx-auto py-8">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Meeting Recordings</h1>
           <p className="text-muted-foreground">
@@ -678,7 +678,7 @@ const MeetingHistory = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </Layout>
+    </AppLayout>
   );
 };
 

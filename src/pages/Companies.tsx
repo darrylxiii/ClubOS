@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Layout } from "@/components/Layout";
+import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -56,9 +56,8 @@ export default function Companies() {
   );
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-gradient-subtle px-4 py-8">
-        <div className="max-w-7xl mx-auto space-y-6">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8 space-y-6">
           {/* Header */}
           <div>
             <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
@@ -152,7 +151,6 @@ export default function Companies() {
             </div>
           )}
         </div>
-      </div>
-    </Layout>
+    </AppLayout>
   );
 }
