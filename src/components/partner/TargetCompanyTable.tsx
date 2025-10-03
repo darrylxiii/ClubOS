@@ -24,7 +24,7 @@ interface TargetCompany {
   status: string;
   industry: string | null;
   priority: number | null;
-  job_specifications: any;
+  job_id: string | null;
   votes: number;
   company_insider: string | null;
   location: string | null;
@@ -34,6 +34,7 @@ interface TargetCompany {
   created_by: string;
   created_at: string;
   profiles?: { full_name: string | null };
+  jobs?: { title: string; status: string };
   target_company_votes?: Array<{ user_id: string; profiles?: { full_name: string | null } }>;
   target_company_comments?: Array<any>;
 }
@@ -123,9 +124,6 @@ export function TargetCompanyTable({
               const hasVoted = company.target_company_votes?.some(
                 (vote) => vote.user_id === currentUserId
               );
-              const jobSpecs = Array.isArray(company.job_specifications)
-                ? company.job_specifications
-                : [];
 
               return (
                 <TableRow key={company.id} className="cursor-pointer hover:bg-muted/50">
@@ -183,21 +181,13 @@ export function TargetCompanyTable({
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex flex-wrap gap-1 max-w-[200px]">
-                      {jobSpecs.slice(0, 2).map((spec: string, idx: number) => (
-                        <Badge key={idx} variant="outline" className="text-xs">
-                          {spec}
-                        </Badge>
-                      ))}
-                      {jobSpecs.length > 2 && (
-                        <Badge variant="outline" className="text-xs">
-                          +{jobSpecs.length - 2}
-                        </Badge>
-                      )}
-                      {jobSpecs.length === 0 && (
-                        <span className="text-muted-foreground text-sm">-</span>
-                      )}
-                    </div>
+                    {company.jobs ? (
+                      <Badge variant="secondary" className="text-xs">
+                        {company.jobs.title}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground text-sm">Alle jobs</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Button

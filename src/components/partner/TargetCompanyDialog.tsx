@@ -19,8 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CompanySearch } from "@/components/CompanySearch";
 import { toast } from "sonner";
 
 interface TargetCompanyDialogProps {
@@ -48,6 +48,9 @@ export function TargetCompanyDialog({
 }: TargetCompanyDialogProps) {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [addMode, setAddMode] = useState<"search" | "manual">("search");
+  const [companySearchQuery, setCompanySearchQuery] = useState("");
+  const [openJobs, setOpenJobs] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     name: "",
     status: "new",
@@ -58,9 +61,12 @@ export function TargetCompanyDialog({
     logo_url: "",
     company_insider: "",
     notes: "",
+    job_id: "",
   });
-  const [jobSpecs, setJobSpecs] = useState<string[]>([]);
-  const [newJobSpec, setNewJobSpec] = useState("");
+
+  useEffect(() => {
+    loadOpenJobs();
+  }, [companyId]);
 
   useEffect(() => {
     if (targetCompany) {
@@ -74,12 +80,8 @@ export function TargetCompanyDialog({
         logo_url: targetCompany.logo_url || "",
         company_insider: targetCompany.company_insider || "",
         notes: targetCompany.notes || "",
+        job_id: targetCompany.job_id || "",
       });
-      setJobSpecs(
-        Array.isArray(targetCompany.job_specifications)
-          ? targetCompany.job_specifications
-          : []
-      );
     } else {
       setFormData({
         name: "",
@@ -91,10 +93,48 @@ export function TargetCompanyDialog({
         logo_url: "",
         company_insider: "",
         notes: "",
+        job_id: "",
       });
-      setJobSpecs([]);
     }
   }, [targetCompany, open]);
+
+  const loadOpenJobs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("jobs")
+        .select("id, title, status")
+        .eq("company_id", companyId)
+        .in("status", ["draft", "published"])
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      setOpenJobs(data || []);
+    } catch (error) {
+      console.error("Error loading jobs:", error);
+    }
+  };
+
+  const handleCompanySelect = async (company: { name: string; domain?: string; logo?: string }) => {
+    setFormData(prev => ({
+      ...prev,
+      name: company.name,
+      website_url: company.domain ? `https://${company.domain}` : prev.website_url,
+      logo_url: company.logo || prev.logo_url,
+    }));
+
+    // Try to get company data from our database
+    if (company.name) {
+      const { data } = await supabase
+        .from("companies")
+        .select("industry")
+        .ilike("name", company.name)
+        .maybeSingle();
+
+      if (data?.industry) {
+        setFormData(prev => ({ ...prev, industry: data.industry }));
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,7 +144,7 @@ export function TargetCompanyDialog({
     try {
       const data = {
         ...formData,
-        job_specifications: jobSpecs,
+        job_id: formData.job_id || null,
         company_id: companyId,
         created_by: user.id,
       };
@@ -133,17 +173,6 @@ export function TargetCompanyDialog({
     }
   };
 
-  const addJobSpec = () => {
-    if (newJobSpec.trim() && !jobSpecs.includes(newJobSpec.trim())) {
-      setJobSpecs([...jobSpecs, newJobSpec.trim()]);
-      setNewJobSpec("");
-    }
-  };
-
-  const removeJobSpec = (spec: string) => {
-    setJobSpecs(jobSpecs.filter((s) => s !== spec));
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -154,150 +183,184 @@ export function TargetCompanyDialog({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="name">Bedrijfsnaam *</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-            </div>
+          {!targetCompany && (
+            <Tabs value={addMode} onValueChange={(v) => setAddMode(v as "search" | "manual")}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="search">Zoek in Repository</TabsTrigger>
+                <TabsTrigger value="manual">Handmatig Toevoegen</TabsTrigger>
+              </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUS_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="industry">Industrie</Label>
-              <Input
-                id="industry"
-                value={formData.industry}
-                onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                placeholder="bijv. Fashion, Tech, Health"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Locatie</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                placeholder="bijv. Amsterdam, Nederland"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="website_url">Website URL</Label>
-              <Input
-                id="website_url"
-                type="url"
-                value={formData.website_url}
-                onChange={(e) =>
-                  setFormData({ ...formData, website_url: e.target.value })
-                }
-                placeholder="https://..."
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="logo_url">Logo URL</Label>
-              <Input
-                id="logo_url"
-                type="url"
-                value={formData.logo_url}
-                onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Prioriteit: {formData.priority}</Label>
-            <Slider
-              value={[formData.priority]}
-              onValueChange={([value]) => setFormData({ ...formData, priority: value })}
-              min={1}
-              max={10}
-              step={1}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Laag (1)</span>
-              <span>Hoog (10)</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Functie Specificaties</Label>
-            <div className="flex gap-2">
-              <Input
-                value={newJobSpec}
-                onChange={(e) => setNewJobSpec(e.target.value)}
-                placeholder="bijv. Retail Manager, E-Commerce Lead"
-                onKeyPress={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    addJobSpec();
-                  }
-                }}
-              />
-              <Button type="button" onClick={addJobSpec} variant="secondary">
-                Toevoegen
-              </Button>
-            </div>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {jobSpecs.map((spec) => (
-                <Badge key={spec} variant="secondary" className="gap-1">
-                  {spec}
-                  <X
-                    className="h-3 w-3 cursor-pointer"
-                    onClick={() => removeJobSpec(spec)}
+              <TabsContent value="search" className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label>Zoek Bedrijf</Label>
+                  <CompanySearch
+                    value={companySearchQuery}
+                    onChange={setCompanySearchQuery}
+                    onSelect={handleCompanySelect}
                   />
-                </Badge>
-              ))}
-            </div>
-          </div>
+                  <p className="text-xs text-muted-foreground">
+                    Zoek bestaande bedrijven of voeg handmatig toe
+                  </p>
+                </div>
+              </TabsContent>
 
-          <div className="space-y-2">
-            <Label htmlFor="company_insider">Company Insider</Label>
-            <Input
-              id="company_insider"
-              value={formData.company_insider}
-              onChange={(e) =>
-                setFormData({ ...formData, company_insider: e.target.value })
-              }
-              placeholder="Naam van interne contact"
-            />
-          </div>
+              <TabsContent value="manual" className="space-y-4 mt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Bedrijfsnaam *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    required
+                    placeholder="Naam van het bedrijf"
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notities</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Aanvullende opmerkingen, strategie, etc."
-              rows={4}
-            />
-          </div>
+          {(targetCompany || formData.name) && (
+            <>
+              <div className="grid gap-4 md:grid-cols-2">
+                {targetCompany && (
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Bedrijfsnaam *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={formData.status}
+                    onValueChange={(value) => setFormData({ ...formData, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="industry">Industrie</Label>
+                  <Input
+                    id="industry"
+                    value={formData.industry}
+                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                    placeholder="bijv. Fashion, Tech, Health"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="location">Locatie</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                    placeholder="bijv. Amsterdam, Nederland"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="website_url">Website URL</Label>
+                  <Input
+                    id="website_url"
+                    type="url"
+                    value={formData.website_url}
+                    onChange={(e) =>
+                      setFormData({ ...formData, website_url: e.target.value })
+                    }
+                    placeholder="https://..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="logo_url">Logo URL</Label>
+                  <Input
+                    id="logo_url"
+                    type="url"
+                    value={formData.logo_url}
+                    onChange={(e) => setFormData({ ...formData, logo_url: e.target.value })}
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Prioriteit: {formData.priority}</Label>
+                <Slider
+                  value={[formData.priority]}
+                  onValueChange={([value]) => setFormData({ ...formData, priority: value })}
+                  min={1}
+                  max={10}
+                  step={1}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>Laag (1)</span>
+                  <span>Hoog (10)</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="job_id">Target voor Specifieke Job</Label>
+                <Select
+                  value={formData.job_id}
+                  onValueChange={(value) => setFormData({ ...formData, job_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecteer een open job" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Geen specifieke job</SelectItem>
+                    {openJobs.map((job) => (
+                      <SelectItem key={job.id} value={job.id}>
+                        {job.title} ({job.status})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Selecteer de job waarvoor dit bedrijf getarget wordt
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="company_insider">Company Insider</Label>
+                <Input
+                  id="company_insider"
+                  value={formData.company_insider}
+                  onChange={(e) =>
+                    setFormData({ ...formData, company_insider: e.target.value })
+                  }
+                  placeholder="Naam van interne contact"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notities</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Aanvullende opmerkingen, strategie, etc."
+                  rows={4}
+                />
+              </div>
+            </>
+          )}
 
           <div className="flex justify-end gap-2">
             <Button

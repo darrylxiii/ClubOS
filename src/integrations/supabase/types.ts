@@ -1695,6 +1695,7 @@ export type Database = {
           created_by: string
           id: string
           industry: string | null
+          job_id: string | null
           job_specifications: Json | null
           location: string | null
           logo_url: string | null
@@ -1713,6 +1714,7 @@ export type Database = {
           created_by: string
           id?: string
           industry?: string | null
+          job_id?: string | null
           job_specifications?: Json | null
           location?: string | null
           logo_url?: string | null
@@ -1731,6 +1733,7 @@ export type Database = {
           created_by?: string
           id?: string
           industry?: string | null
+          job_id?: string | null
           job_specifications?: Json | null
           location?: string | null
           logo_url?: string | null
@@ -1748,6 +1751,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "target_companies_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]

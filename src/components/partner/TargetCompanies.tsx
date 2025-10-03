@@ -14,7 +14,7 @@ interface TargetCompany {
   status: string;
   industry: string | null;
   priority: number | null;
-  job_specifications: any;
+  job_id: string | null;
   votes: number;
   company_insider: string | null;
   location: string | null;
@@ -24,6 +24,7 @@ interface TargetCompany {
   created_by: string;
   created_at: string;
   profiles?: { full_name: string | null };
+  jobs?: { title: string; status: string };
   target_company_votes?: Array<{ user_id: string; profiles?: { full_name: string | null } }>;
   target_company_comments?: Array<{ 
     id: string;
@@ -57,6 +58,7 @@ export function TargetCompanies({ companyId }: TargetCompaniesProps) {
         .from("target_companies")
         .select(`
           *,
+          jobs(title, status),
           target_company_votes(
             user_id
           ),
