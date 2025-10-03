@@ -1,9 +1,18 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, LayoutDashboard, Briefcase, User, Users } from "lucide-react";
+import { Home, LayoutDashboard, Briefcase, User, Users, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const navItems = [
     { path: "/", icon: Home, label: "Home" },
@@ -48,12 +57,37 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             })}
           </nav>
 
-          <Link to="/profile">
-            <button className="flex items-center gap-2 px-4 py-2 border-2 border-foreground hover:bg-foreground hover:text-background transition-all font-bold uppercase text-xs tracking-wider">
-              <User className="w-4 h-4" />
-              <span className="hidden md:inline">Profile</span>
-            </button>
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2 border-2 border-foreground hover:bg-foreground hover:text-background font-bold uppercase text-xs tracking-wider"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden md:inline">
+                  {user?.email?.split("@")[0] || "Account"}
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-background border-2 border-foreground z-50" align="end">
+              <DropdownMenuItem asChild>
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 cursor-pointer font-bold uppercase text-xs tracking-wider"
+                >
+                  <User className="w-4 h-4" />
+                  PROFILE
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={signOut}
+                className="flex items-center gap-2 cursor-pointer font-bold uppercase text-xs tracking-wider text-destructive"
+              >
+                <LogOut className="w-4 h-4" />
+                SIGN OUT
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 
