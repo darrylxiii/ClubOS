@@ -21,6 +21,9 @@ export const useUserRole = () => {
       console.log('[useUserRole] Fetching role for user:', user.id);
 
       try {
+        // Check for manually selected role in localStorage
+        const selectedRole = localStorage.getItem('selected_role');
+        
         // Get ALL user roles (user can have multiple)
         const { data: rolesData, error: rolesError } = await supabase
           .from('user_roles')
@@ -53,16 +56,22 @@ export const useUserRole = () => {
             setCompanyId(memberData.company_id);
             // Map company role to user role
             if (memberData.role === 'owner' || memberData.role === 'admin') {
-              setRole('company_admin');
+              if (!selectedRole || selectedRole === 'company_admin') {
+                setRole('company_admin');
+              }
             } else if (memberData.role === 'recruiter') {
-              setRole('recruiter');
+              if (!selectedRole || selectedRole === 'recruiter') {
+                setRole('recruiter');
+              }
             }
           }
         }
 
-        // Override with system role if exists (prioritize admin)
-        if (rolesData && rolesData.length > 0) {
-          // Check for admin role first (highest priority)
+        // Use manually selected role if available and user has that role
+        if (selectedRole && rolesData?.some(r => r.role === selectedRole)) {
+          setRole(selectedRole as UserRole);
+        } else if (rolesData && rolesData.length > 0) {
+          // Otherwise prioritize admin role (highest priority)
           if (rolesData.some(r => r.role === 'admin')) {
             setRole('admin');
           } else if (rolesData.some(r => r.role === 'strategist')) {

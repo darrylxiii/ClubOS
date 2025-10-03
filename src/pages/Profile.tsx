@@ -19,6 +19,7 @@ import { AvatarUpload } from "@/components/AvatarUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { PhoneVerification } from "@/components/PhoneVerification";
 import { EmailVerification } from "@/components/EmailVerification";
+import { RoleSwitcher } from "@/components/RoleSwitcher";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -928,6 +929,9 @@ const Profile = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Role Switcher (only shows if user has multiple roles) */}
+          <RoleSwitcher />
+          
           {/* Personal Information */}
           <Card id="personal" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
             <CardHeader>
