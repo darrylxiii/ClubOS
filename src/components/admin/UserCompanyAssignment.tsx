@@ -52,6 +52,7 @@ export function UserCompanyAssignment() {
 
   const fetchData = async () => {
     try {
+      console.log('[UserCompanyAssignment] Fetching data...');
       const [usersRes, companiesRes, membersRes] = await Promise.all([
         supabase.from('profiles').select('id, email, full_name'),
         supabase.from('companies').select('id, name').order('name'),
@@ -68,15 +69,23 @@ export function UserCompanyAssignment() {
           .eq('is_active', true)
       ]);
 
+      console.log('[UserCompanyAssignment] Users response:', usersRes);
+      console.log('[UserCompanyAssignment] Companies response:', companiesRes);
+      console.log('[UserCompanyAssignment] Members response:', membersRes);
+
       if (usersRes.error) throw usersRes.error;
       if (companiesRes.error) throw companiesRes.error;
       if (membersRes.error) throw membersRes.error;
+
+      console.log('[UserCompanyAssignment] Setting users:', usersRes.data);
+      console.log('[UserCompanyAssignment] Setting companies:', companiesRes.data);
+      console.log('[UserCompanyAssignment] Setting members:', membersRes.data);
 
       setUsers(usersRes.data || []);
       setCompanies(companiesRes.data || []);
       setMembers(membersRes.data as any || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('[UserCompanyAssignment] Error fetching data:', error);
       toast.error("Failed to load data");
     } finally {
       setLoading(false);
