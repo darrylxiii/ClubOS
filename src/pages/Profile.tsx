@@ -442,6 +442,11 @@ const Profile = () => {
           data.desired_salary_max || 250000
         ]);
         setBlockedCompanies((data.blocked_companies as string[]) || []);
+
+        // Set privacy settings if they exist
+        if (data.privacy_settings) {
+          setPrivacySettings(data.privacy_settings as any);
+        }
       }
     };
 
@@ -528,6 +533,9 @@ const Profile = () => {
         if (data) {
           // Parse full name into first and last name
           const [firstName, ...lastNameParts] = (data.full_name || '').split(' ');
+          
+          // Load avatar URL
+          setAvatarUrl(data.avatar_url || null);
           
           setProfileData({
             firstName: firstName || '',
