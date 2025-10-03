@@ -18,6 +18,7 @@ import MeetingHistory from "./pages/MeetingHistory";
 import Applications from "./pages/Applications";
 import Companies from "./pages/Companies";
 import CompanyPage from "./pages/CompanyPage";
+import Scheduling from "./pages/Scheduling";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -126,6 +127,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <CompanyPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/scheduling"
+              element={
+                <ProtectedRoute>
+                  <Scheduling />
                 </ProtectedRoute>
               }
             />

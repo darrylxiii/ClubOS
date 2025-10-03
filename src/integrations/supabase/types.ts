@@ -56,6 +56,137 @@ export type Database = {
         }
         Relationships: []
       }
+      booking_links: {
+        Row: {
+          advance_booking_days: number | null
+          buffer_after_minutes: number | null
+          buffer_before_minutes: number | null
+          color: string | null
+          confirmation_message: string | null
+          created_at: string
+          custom_questions: Json | null
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          min_notice_hours: number | null
+          redirect_url: string | null
+          slug: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          advance_booking_days?: number | null
+          buffer_after_minutes?: number | null
+          buffer_before_minutes?: number | null
+          color?: string | null
+          confirmation_message?: string | null
+          created_at?: string
+          custom_questions?: Json | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          min_notice_hours?: number | null
+          redirect_url?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          advance_booking_days?: number | null
+          buffer_after_minutes?: number | null
+          buffer_before_minutes?: number | null
+          color?: string | null
+          confirmation_message?: string | null
+          created_at?: string
+          custom_questions?: Json | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          min_notice_hours?: number | null
+          redirect_url?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bookings: {
+        Row: {
+          booking_link_id: string
+          calendar_event_id: string | null
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          created_at: string
+          custom_responses: Json | null
+          guest_email: string
+          guest_name: string
+          guest_phone: string | null
+          id: string
+          notes: string | null
+          reminder_sent: boolean | null
+          scheduled_end: string
+          scheduled_start: string
+          status: string
+          timezone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_link_id: string
+          calendar_event_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          custom_responses?: Json | null
+          guest_email: string
+          guest_name: string
+          guest_phone?: string | null
+          id?: string
+          notes?: string | null
+          reminder_sent?: boolean | null
+          scheduled_end: string
+          scheduled_start: string
+          status?: string
+          timezone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_link_id?: string
+          calendar_event_id?: string | null
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          created_at?: string
+          custom_responses?: Json | null
+          guest_email?: string
+          guest_name?: string
+          guest_phone?: string | null
+          id?: string
+          notes?: string | null
+          reminder_sent?: boolean | null
+          scheduled_end?: string
+          scheduled_start?: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_booking_link_id_fkey"
+            columns: ["booking_link_id"]
+            isOneToOne: false
+            referencedRelation: "booking_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cities: {
         Row: {
           country: string
