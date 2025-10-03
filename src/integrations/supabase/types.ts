@@ -260,7 +260,13 @@ export type Database = {
           desired_salary_max: number | null
           desired_salary_min: number | null
           email: string | null
+          employment_type_preference: string | null
+          freelance_hourly_rate_max: number | null
+          freelance_hourly_rate_min: number | null
           full_name: string | null
+          github_connected: boolean | null
+          github_profile_data: Json | null
+          github_username: string | null
           id: string
           instagram_connected: boolean | null
           instagram_username: string | null
@@ -290,7 +296,13 @@ export type Database = {
           desired_salary_max?: number | null
           desired_salary_min?: number | null
           email?: string | null
+          employment_type_preference?: string | null
+          freelance_hourly_rate_max?: number | null
+          freelance_hourly_rate_min?: number | null
           full_name?: string | null
+          github_connected?: boolean | null
+          github_profile_data?: Json | null
+          github_username?: string | null
           id: string
           instagram_connected?: boolean | null
           instagram_username?: string | null
@@ -320,7 +332,13 @@ export type Database = {
           desired_salary_max?: number | null
           desired_salary_min?: number | null
           email?: string | null
+          employment_type_preference?: string | null
+          freelance_hourly_rate_max?: number | null
+          freelance_hourly_rate_min?: number | null
           full_name?: string | null
+          github_connected?: boolean | null
+          github_profile_data?: Json | null
+          github_username?: string | null
           id?: string
           instagram_connected?: boolean | null
           instagram_username?: string | null

@@ -68,9 +68,15 @@ const Profile = () => {
     linkedin: false,
     instagram: false,
     twitter: false,
+    github: false,
     instagramUsername: '',
     twitterUsername: '',
+    githubUsername: '',
   });
+
+  // Employment and compensation preferences
+  const [employmentType, setEmploymentType] = useState<'fulltime' | 'freelance' | 'both'>('fulltime');
+  const [freelanceHourlyRate, setFreelanceHourlyRate] = useState<[number, number]>([100, 200]);
 
   const [resume, setResume] = useState<File | null>(null);
   
@@ -122,6 +128,9 @@ const Profile = () => {
           privacy_settings: privacySettings,
           preferred_work_locations: preferredWorkLocations,
           remote_work_preference: remoteWorkPreference,
+          employment_type_preference: employmentType,
+          freelance_hourly_rate_min: freelanceHourlyRate[0],
+          freelance_hourly_rate_max: freelanceHourlyRate[1],
         })
         .eq('id', user.id);
 
@@ -140,7 +149,7 @@ const Profile = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference]);
+  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate]);
 
   // Debounced auto-save
   const debouncedSave = useCallback(() => {
@@ -272,7 +281,7 @@ const Profile = () => {
     debouncedSave();
   };
 
-  const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram') => {
+  const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github') => {
     try {
       const redirectTo = `${window.location.origin}/profile`;
       
@@ -280,7 +289,8 @@ const Profile = () => {
         provider: provider as any,
         options: {
           redirectTo,
-          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : undefined,
+          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : 
+                  provider === 'github' ? 'read:user user:email' : undefined,
         }
       });
 
@@ -293,7 +303,7 @@ const Profile = () => {
     }
   };
 
-  const handleDisconnectSocial = async (platform: 'linkedin' | 'instagram' | 'twitter') => {
+  const handleDisconnectSocial = async (platform: 'linkedin' | 'instagram' | 'twitter' | 'github') => {
     try {
       const updates: any = {};
       
@@ -306,6 +316,10 @@ const Profile = () => {
       } else if (platform === 'twitter') {
         updates.twitter_connected = false;
         updates.twitter_username = null;
+      } else if (platform === 'github') {
+        updates.github_connected = false;
+        updates.github_username = null;
+        updates.github_profile_data = null;
       }
 
       const { error } = await supabase
@@ -411,6 +425,9 @@ const Profile = () => {
             privacy_settings: privacySettings,
             preferred_work_locations: preferredWorkLocations,
             remote_work_preference: remoteWorkPreference,
+            employment_type_preference: employmentType,
+            freelance_hourly_rate_min: freelanceHourlyRate[0],
+            freelance_hourly_rate_max: freelanceHourlyRate[1],
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id);
@@ -436,7 +453,7 @@ const Profile = () => {
 
     const debounceTimer = setTimeout(saveProfile, 1000);
     return () => clearTimeout(debounceTimer);
-  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, user]);
+  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, user]);
 
   // Load profile data from database
   useEffect(() => {
@@ -516,6 +533,21 @@ const Profile = () => {
               twitter: true, 
               twitterUsername: data.twitter_username 
             }));
+          }
+          if (data.github_connected && data.github_username) {
+            setSocialConnections(prev => ({ 
+              ...prev, 
+              github: true, 
+              githubUsername: data.github_username 
+            }));
+          }
+
+          // Load employment preferences
+          if (data.employment_type_preference) {
+            setEmploymentType(data.employment_type_preference as 'fulltime' | 'freelance' | 'both');
+          }
+          if (data.freelance_hourly_rate_min && data.freelance_hourly_rate_max) {
+            setFreelanceHourlyRate([data.freelance_hourly_rate_min, data.freelance_hourly_rate_max]);
           }
         }
       } catch (error) {
@@ -731,6 +763,25 @@ const Profile = () => {
                     twitterUsername: username,
                   }));
                   toast.success('Twitter connected successfully!');
+                }
+              } else if (provider === 'github') {
+                const username = session.session.user.user_metadata.user_name || session.session.user.user_metadata.preferred_username;
+                const { error } = await supabase
+                  .from('profiles')
+                  .update({
+                    github_connected: true,
+                    github_username: username,
+                    github_profile_data: session.session.user.user_metadata,
+                  })
+                  .eq('id', session.session.user.id);
+
+                if (!error) {
+                  setSocialConnections(prev => ({ 
+                    ...prev, 
+                    github: true,
+                    githubUsername: username,
+                  }));
+                  toast.success('GitHub connected successfully!');
                 }
               }
               
@@ -1163,6 +1214,44 @@ const Profile = () => {
                 )}
               </div>
 
+              {/* GitHub */}
+              <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#24292e] rounded-lg">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium">GitHub</p>
+                    <p className="text-sm text-muted-foreground">
+                      {socialConnections.github 
+                        ? `@${socialConnections.githubUsername}` 
+                        : 'Not connected'}
+                    </p>
+                  </div>
+                </div>
+                {socialConnections.github ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDisconnectSocial('github')}
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={() => handleConnectSocial('github')}
+                    className="bg-[#24292e] text-white hover:bg-[#1b1f23]"
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+
               <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
                 <p className="text-xs text-muted-foreground">
                   <strong>Professional Presence:</strong> Connecting your social media profiles helps verify your identity 
@@ -1260,54 +1349,149 @@ const Profile = () => {
               <CardDescription>Help us match you with appropriate opportunities</CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
-              <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <Label className="text-base font-semibold">Current Salary Range (Optional)</Label>
-                    <span className="text-sm font-bold">
-                      {formatSalary(currentSalaryRange[0])} - {formatSalary(currentSalaryRange[1])}
-                    </span>
-                  </div>
-                  <Slider
-                    value={currentSalaryRange}
-                    onValueChange={(value) => setCurrentSalaryRange(value as [number, number])}
-                    min={50000}
-                    max={500000}
-                    step={5000}
-                    className="py-4"
-                  />
-                  <div className="flex justify-between items-center mt-2">
-                    <p className="text-xs text-muted-foreground">
-                      Confidential - helps us better match opportunities
-                    </p>
-                    <p className="text-xs font-medium text-accent">
-                      {getPercentileMessage(calculateSalaryPercentile(currentSalaryRange[1]))}
-                    </p>
-                  </div>
+              {/* Employment Type Preference */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Employment Type Preference</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Button
+                    type="button"
+                    variant={employmentType === 'fulltime' ? 'default' : 'outline'}
+                    onClick={() => {
+                      setEmploymentType('fulltime');
+                      debouncedSave();
+                    }}
+                    className="w-full"
+                  >
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Full-Time
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={employmentType === 'freelance' ? 'default' : 'outline'}
+                    onClick={() => {
+                      setEmploymentType('freelance');
+                      debouncedSave();
+                    }}
+                    className="w-full"
+                  >
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Freelance
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={employmentType === 'both' ? 'default' : 'outline'}
+                    onClick={() => {
+                      setEmploymentType('both');
+                      debouncedSave();
+                    }}
+                    className="w-full"
+                  >
+                    Both
+                  </Button>
                 </div>
-
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <Label className="text-base font-semibold">Desired Salary Range</Label>
-                    <span className="text-sm font-bold">
-                      {formatSalary(desiredSalaryRange[0])} - {formatSalary(desiredSalaryRange[1])}
-                    </span>
-                  </div>
-                  <Slider
-                    value={desiredSalaryRange}
-                    onValueChange={(value) => setDesiredSalaryRange(value as [number, number])}
-                    min={50000}
-                    max={500000}
-                    step={5000}
-                    className="py-4"
-                  />
-                  <div className="flex justify-end mt-2">
-                    <p className="text-xs font-medium text-accent">
-                      Target: {getPercentileMessage(calculateSalaryPercentile(desiredSalaryRange[1]))}
-                    </p>
-                  </div>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  Select your preferred employment type to see relevant opportunities
+                </p>
               </div>
+
+              <Separator />
+
+              {/* Full-Time Compensation */}
+              {(employmentType === 'fulltime' || employmentType === 'both') && (
+                <div className="space-y-6">
+                  <h4 className="text-base font-semibold flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-accent" />
+                    Full-Time Compensation
+                  </h4>
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <Label className="text-base font-semibold">Current Salary Range (Optional)</Label>
+                      <span className="text-sm font-bold">
+                        {formatSalary(currentSalaryRange[0])} - {formatSalary(currentSalaryRange[1])}
+                      </span>
+                    </div>
+                    <Slider
+                      value={currentSalaryRange}
+                      onValueChange={(value) => setCurrentSalaryRange(value as [number, number])}
+                      min={50000}
+                      max={500000}
+                      step={5000}
+                      className="py-4"
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-muted-foreground">
+                        Confidential - helps us better match opportunities
+                      </p>
+                      <p className="text-xs font-medium text-accent">
+                        {getPercentileMessage(calculateSalaryPercentile(currentSalaryRange[1]))}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <Label className="text-base font-semibold">Desired Salary Range</Label>
+                      <span className="text-sm font-bold">
+                        {formatSalary(desiredSalaryRange[0])} - {formatSalary(desiredSalaryRange[1])}
+                      </span>
+                    </div>
+                    <Slider
+                      value={desiredSalaryRange}
+                      onValueChange={(value) => setDesiredSalaryRange(value as [number, number])}
+                      min={50000}
+                      max={500000}
+                      step={5000}
+                      className="py-4"
+                    />
+                    <div className="flex justify-end mt-2">
+                      <p className="text-xs font-medium text-accent">
+                        Target: {getPercentileMessage(calculateSalaryPercentile(desiredSalaryRange[1]))}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {employmentType === 'both' && <Separator />}
+
+              {/* Freelance Hourly Rate */}
+              {(employmentType === 'freelance' || employmentType === 'both') && (
+                <div className="space-y-6">
+                  <h4 className="text-base font-semibold flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-accent" />
+                    Freelance Hourly Rate
+                  </h4>
+                  <div>
+                    <div className="flex justify-between items-center mb-4">
+                      <Label className="text-base font-semibold">Hourly Rate Range</Label>
+                      <span className="text-sm font-bold">
+                        ${freelanceHourlyRate[0]}/hr - ${freelanceHourlyRate[1]}/hr
+                      </span>
+                    </div>
+                    <Slider
+                      value={freelanceHourlyRate}
+                      onValueChange={(value) => setFreelanceHourlyRate(value as [number, number])}
+                      min={50}
+                      max={500}
+                      step={5}
+                      className="py-4"
+                    />
+                    <div className="flex justify-between items-center mt-2">
+                      <p className="text-xs text-muted-foreground">
+                        Your hourly rate for freelance projects
+                      </p>
+                      <p className="text-xs font-medium text-accent">
+                        Annual estimate: {formatSalary(freelanceHourlyRate[1] * 2080)}
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Based on 40 hours/week × 52 weeks = 2,080 hours per year
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <Separator />
 
               <div>
                 <Label htmlFor="noticePeriod">Notice Period</Label>
