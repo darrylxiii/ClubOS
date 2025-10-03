@@ -22,6 +22,7 @@ import CompanyPage from "./pages/CompanyPage";
 import Scheduling from "./pages/Scheduling";
 import PartnerDashboard from "./pages/PartnerDashboard";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -153,6 +154,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Scheduling />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <Admin />
                 </ProtectedRoute>
               }
             />

@@ -66,23 +66,35 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const { user } = useAuth();
   const location = useLocation();
   const [isPartner, setIsPartner] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check if user is a partner/company member
+  // Check if user is a partner/company member and admin
   useEffect(() => {
-    const checkPartnerStatus = async () => {
+    const checkUserStatus = async () => {
       if (!user) return;
       
-      const { data } = await supabase
+      // Check partner status
+      const { data: memberData } = await supabase
         .from('company_members')
         .select('id')
         .eq('user_id', user.id)
         .eq('is_active', true)
         .maybeSingle();
       
-      setIsPartner(!!data);
+      setIsPartner(!!memberData);
+
+      // Check admin status
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+      
+      setIsAdmin(!!roleData);
     };
 
-    checkPartnerStatus();
+    checkUserStatus();
   }, [user]);
   
   const navigationItems = isPartner ? partnerNavigationItems : candidateNavigationItems;
@@ -132,6 +144,23 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-6 px-3">
           <div className="space-y-1">
+            {/* Admin link at the top if user is admin */}
+            {isAdmin && (
+              <Link
+                to="/admin"
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors",
+                  location.pathname === "/admin"
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                <Users className="h-5 w-5" />
+                <span>Admin Panel</span>
+              </Link>
+            )}
+            
             {navigationItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
