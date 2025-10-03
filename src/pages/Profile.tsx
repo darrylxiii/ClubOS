@@ -61,6 +61,7 @@ const Profile = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setResume(e.target.files[0]);
+      localStorage.setItem('resume_uploaded', 'true');
       toast.success("Resume uploaded successfully");
     }
   };
@@ -199,6 +200,15 @@ const Profile = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Track completion items
+    if (profileData.currentSalary || profileData.desiredSalary) {
+      localStorage.setItem('salary_set', 'true');
+    }
+    
+    if (profileData.preferences) {
+      localStorage.setItem('preferences_set', 'true');
+    }
     
     // Here you would typically send data to backend
     console.log("Profile updated:", profileData);

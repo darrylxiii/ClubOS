@@ -4,6 +4,7 @@ import { PipelineStage } from "@/components/PipelineStage";
 import { JobCard } from "@/components/JobCard";
 import { StagePreparation } from "@/components/StagePreparation";
 import { AIChat } from "@/components/AIChat";
+import { ProfileCompletion } from "@/components/ProfileCompletion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Briefcase, Clock, Award } from "lucide-react";
 import { toast } from "sonner";
@@ -114,21 +115,29 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div key={stat.title} className="border-2 border-foreground p-8 hover:bg-foreground hover:text-background transition-all duration-300 group">
-                <div className="flex items-center justify-between mb-4">
-                  <p className="text-caps">{stat.title}</p>
-                  <Icon className="w-5 h-5" />
+        {/* Profile Completion and Stats */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Profile Completion - Takes full width on mobile, 1 column on desktop */}
+          <div className="lg:col-span-1">
+            <ProfileCompletion />
+          </div>
+          
+          {/* Stats Grid - Takes 2 columns on desktop */}
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {stats.map((stat) => {
+              const Icon = stat.icon;
+              return (
+                <div key={stat.title} className="border-2 border-foreground p-8 hover:bg-foreground hover:text-background transition-all duration-300 group">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-caps">{stat.title}</p>
+                    <Icon className="w-5 h-5" />
+                  </div>
+                  <div className="text-5xl font-black mb-2">{stat.value}</div>
+                  <p className="text-sm font-bold">{stat.trend}</p>
                 </div>
-                <div className="text-5xl font-black mb-2">{stat.value}</div>
-                <p className="text-sm font-bold">{stat.trend}</p>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
 
         {/* Active Applications */}
