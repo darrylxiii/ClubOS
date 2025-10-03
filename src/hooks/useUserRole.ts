@@ -41,7 +41,24 @@ export const useUserRole = () => {
 
         console.log('[useUserRole] Profile data:', profileData, 'error:', profileError);
 
-        // Check if user is a company member
+        // Use manually selected role if available and user has that role (PRIORITY)
+        if (selectedRole && rolesData?.some(r => r.role === selectedRole)) {
+          console.log('[useUserRole] Using selected role from localStorage:', selectedRole);
+          setRole(selectedRole as UserRole);
+        } else if (rolesData && rolesData.length > 0) {
+          // Otherwise prioritize admin role (highest priority)
+          if (rolesData.some(r => r.role === 'admin')) {
+            setRole('admin');
+          } else if (rolesData.some(r => r.role === 'strategist')) {
+            setRole('strategist');
+          } else if (rolesData.some(r => r.role === 'partner')) {
+            setRole('partner');
+          } else {
+            setRole('user');
+          }
+        }
+
+        // Check if user is a company member (for company_id, not role override)
         if (profileData?.company_id) {
           const { data: memberData, error: memberError } = await supabase
             .from('company_members')
@@ -54,32 +71,6 @@ export const useUserRole = () => {
 
           if (memberData) {
             setCompanyId(memberData.company_id);
-            // Map company role to user role
-            if (memberData.role === 'owner' || memberData.role === 'admin') {
-              if (!selectedRole || selectedRole === 'company_admin') {
-                setRole('company_admin');
-              }
-            } else if (memberData.role === 'recruiter') {
-              if (!selectedRole || selectedRole === 'recruiter') {
-                setRole('recruiter');
-              }
-            }
-          }
-        }
-
-        // Use manually selected role if available and user has that role
-        if (selectedRole && rolesData?.some(r => r.role === selectedRole)) {
-          setRole(selectedRole as UserRole);
-        } else if (rolesData && rolesData.length > 0) {
-          // Otherwise prioritize admin role (highest priority)
-          if (rolesData.some(r => r.role === 'admin')) {
-            setRole('admin');
-          } else if (rolesData.some(r => r.role === 'strategist')) {
-            setRole('strategist');
-          } else if (rolesData.some(r => r.role === 'partner')) {
-            setRole('partner');
-          } else {
-            setRole('user');
           }
         }
 
