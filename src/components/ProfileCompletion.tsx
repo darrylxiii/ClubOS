@@ -11,6 +11,7 @@ interface CompletionItem {
   id: string;
   label: string;
   completed: boolean;
+  link: string;
 }
 
 export const ProfileCompletion = () => {
@@ -23,12 +24,13 @@ export const ProfileCompletion = () => {
       if (!user) return;
 
       const items: CompletionItem[] = [
-        { id: "profile", label: "Complete personal information", completed: false },
-        { id: "salary", label: "Set salary expectations", completed: false },
-        { id: "resume", label: "Upload resume/CV", completed: false },
-        { id: "google_calendar", label: "Connect Google Calendar", completed: false },
-        { id: "microsoft_calendar", label: "Connect Microsoft Calendar", completed: false },
-        { id: "preferences", label: "Set career preferences", completed: false },
+        { id: "profile", label: "Complete personal information", completed: false, link: "/profile#personal" },
+        { id: "salary", label: "Set salary expectations", completed: false, link: "/profile#salary" },
+        { id: "resume", label: "Upload resume/CV", completed: false, link: "/profile#resume" },
+        { id: "tqc_resume", label: "Create TQC resume", completed: false, link: "/profile#tqc-resume" },
+        { id: "google_calendar", label: "Connect Google Calendar", completed: false, link: "/profile#calendar" },
+        { id: "microsoft_calendar", label: "Connect Microsoft Calendar", completed: false, link: "/profile#calendar" },
+        { id: "preferences", label: "Set career preferences", completed: false, link: "/profile#preferences" },
       ];
 
       // Check profile data
@@ -64,6 +66,7 @@ export const ProfileCompletion = () => {
       const hasResume = localStorage.getItem('resume_uploaded') === 'true';
       const hasSalary = localStorage.getItem('salary_set') === 'true';
       const hasPreferences = localStorage.getItem('preferences_set') === 'true';
+      const hasTQCResume = localStorage.getItem('tqc_resume_created') === 'true';
 
       if (hasResume) {
         items.find(i => i.id === "resume")!.completed = true;
@@ -73,6 +76,9 @@ export const ProfileCompletion = () => {
       }
       if (hasPreferences) {
         items.find(i => i.id === "preferences")!.completed = true;
+      }
+      if (hasTQCResume) {
+        items.find(i => i.id === "tqc_resume")!.completed = true;
       }
 
       setCompletionItems(items);
@@ -102,19 +108,23 @@ export const ProfileCompletion = () => {
         
         <div className="space-y-3">
           {completionItems.map((item) => (
-            <div
+            <Link
               key={item.id}
-              className="flex items-center gap-3 p-3 border border-border hover:bg-accent/5 transition-colors"
+              to={item.link}
+              className="flex items-center gap-3 p-3 border border-border hover:bg-accent/5 transition-colors group"
             >
               {item.completed ? (
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
               ) : (
-                <Circle className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                <Circle className="w-5 h-5 text-muted-foreground group-hover:text-foreground flex-shrink-0 transition-colors" />
               )}
-              <span className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : 'font-medium'}`}>
+              <span className={`text-sm flex-1 ${item.completed ? 'line-through text-muted-foreground' : 'font-medium group-hover:text-foreground transition-colors'}`}>
                 {item.label}
               </span>
-            </div>
+              {!item.completed && (
+                <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground opacity-0 group-hover:opacity-100 transition-all" />
+              )}
+            </Link>
           ))}
         </div>
 

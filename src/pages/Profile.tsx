@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle } from "lucide-react";
+import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 const Profile = () => {
@@ -229,7 +229,7 @@ const Profile = () => {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Personal Information */}
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+          <Card id="personal" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5 text-accent" />
@@ -301,7 +301,7 @@ const Profile = () => {
           </Card>
 
           {/* Professional Details */}
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+          <Card id="preferences" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-accent" />
@@ -350,7 +350,7 @@ const Profile = () => {
           </Card>
 
           {/* Resume/CV */}
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+          <Card id="resume" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Upload className="w-5 h-5 text-accent" />
@@ -380,8 +380,55 @@ const Profile = () => {
             </CardContent>
           </Card>
 
+          {/* The Quantum Club Resume */}
+          <Card id="tqc-resume" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-accent" />
+                The Quantum Club Resume
+              </CardTitle>
+              <CardDescription>
+                Create an AI-powered executive resume optimized for elite opportunities
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="p-6 border-2 border-accent/30 rounded-lg bg-accent/5">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-accent/10 rounded-lg">
+                      <FileText className="w-6 h-6 text-accent" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold mb-2">Premium Resume Builder</h4>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Our AI analyzes your experience and creates a tailored resume that highlights your executive presence and achievements for premium positions.
+                      </p>
+                      <ul className="text-sm text-muted-foreground space-y-2 mb-4">
+                        <li>✓ Executive-level formatting and tone</li>
+                        <li>✓ ATS-optimized for top-tier recruiters</li>
+                        <li>✓ Highlights leadership and strategic impact</li>
+                        <li>✓ Multiple versions for different roles</li>
+                      </ul>
+                      <Button 
+                        type="button"
+                        disabled
+                        className="bg-gradient-accent text-background"
+                      >
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Coming Soon - Create TQC Resume
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        This feature will be available soon
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Compensation Bands */}
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+          <Card id="salary" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-accent" />
@@ -433,7 +480,7 @@ const Profile = () => {
           </Card>
 
           {/* Calendar Integration */}
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+          <Card id="calendar" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-accent" />

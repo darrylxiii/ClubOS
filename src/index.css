@@ -8,6 +8,10 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 */
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   :root {
     /* Core Colors - Minimal palette */
     --background: 40 20% 97%;
