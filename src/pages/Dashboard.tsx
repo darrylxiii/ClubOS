@@ -5,6 +5,7 @@ import { JobCard } from "@/components/JobCard";
 import { StagePreparation } from "@/components/StagePreparation";
 import { AIChat } from "@/components/AIChat";
 import { ProfileCompletion } from "@/components/ProfileCompletion";
+import { TalentStrategist } from "@/components/TalentStrategist";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Briefcase, Clock, Award } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const Dashboard = () => {
   const [selectedApplication, setSelectedApplication] = useState<number>(1);
   const [firstName, setFirstName] = useState<string>("");
+  const [strategists, setStrategists] = useState<any[]>([]);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -33,10 +35,22 @@ const Dashboard = () => {
       }
     };
 
+    const fetchStrategists = async () => {
+      const { data, error } = await supabase
+        .from('talent_strategists')
+        .select('*')
+        .order('full_name');
+
+      if (data) {
+        setStrategists(data);
+      }
+    };
+
     fetchProfile();
+    fetchStrategists();
   }, [user]);
 
-  // Mock data for active applications
+  // Mock data for active applications with strategist assignments
   const activeApplications = [
     {
       id: 1,
@@ -49,6 +63,7 @@ const Dashboard = () => {
       currentStage: 2,
       tags: ["Leadership", "AI/ML", "Strategy"],
       matchScore: 94,
+      strategistName: "Darryl Mehilal",
     },
     {
       id: 2,
@@ -61,6 +76,7 @@ const Dashboard = () => {
       currentStage: 1,
       tags: ["Product Strategy", "Growth", "Innovation"],
       matchScore: 87,
+      strategistName: "Jasper Biezepol",
     },
   ];
 
@@ -147,50 +163,63 @@ const Dashboard = () => {
             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Click stages for guides</span>
           </div>
           
-          {activeApplications.map((app) => (
-            <div key={app.id} className="space-y-4">
-              {/* Pipeline Visualization */}
-              <Card className="border-2 border-foreground bg-background">
-                <CardHeader>
-                  <CardTitle className="text-lg font-black uppercase flex items-center gap-2">
-                    <div className="w-1 h-6 bg-foreground"></div>
-                    Application Progress - {app.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between px-4 mb-6">
-                    {stages.map((stage, index) => (
-                      <PipelineStage
-                        key={stage.title}
-                        title={stage.title}
-                        isActive={stage.stage === app.currentStage}
-                        isCompleted={stage.stage < app.currentStage}
-                        isLast={index === stages.length - 1}
-                        onClick={() => handleStageClick(app.id, stage.stage)}
-                      />
-                    ))}
+          {activeApplications.map((app) => {
+            // Find the strategist for this application
+            const strategist = strategists.find(s => s.full_name === app.strategistName);
+            
+            return (
+              <div key={app.id} className="space-y-4">
+                {/* Pipeline Visualization */}
+                <Card className="border-2 border-foreground bg-background">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-black uppercase flex items-center gap-2">
+                      <div className="w-1 h-6 bg-foreground"></div>
+                      Application Progress - {app.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between px-4 mb-6">
+                      {stages.map((stage, index) => (
+                        <PipelineStage
+                          key={stage.title}
+                          title={stage.title}
+                          isActive={stage.stage === app.currentStage}
+                          isCompleted={stage.stage < app.currentStage}
+                          isLast={index === stages.length - 1}
+                          onClick={() => handleStageClick(app.id, stage.stage)}
+                        />
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Dedicated Talent Strategist */}
+                {strategist && (
+                  <div className="space-y-2">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Your Dedicated Talent Strategist</h3>
+                    <TalentStrategist strategist={strategist} compact />
                   </div>
-                </CardContent>
-              </Card>
+                )}
 
-              {/* Stage Preparation - Show for current stage */}
-              {selectedApplication === app.id && (
-                <StagePreparation stage={app.status} />
-              )}
+                {/* Stage Preparation - Show for current stage */}
+                {selectedApplication === app.id && (
+                  <StagePreparation stage={app.status} />
+                )}
 
-              {/* Job Details */}
-              <JobCard
-                title={app.title}
-                company={app.company}
-                location={app.location}
-                type={app.type}
-                postedDate={app.postedDate}
-                status={app.status}
-                tags={app.tags}
-                matchScore={app.matchScore}
-              />
-            </div>
-          ))}
+                {/* Job Details */}
+                <JobCard
+                  title={app.title}
+                  company={app.company}
+                  location={app.location}
+                  type={app.type}
+                  postedDate={app.postedDate}
+                  status={app.status}
+                  tags={app.tags}
+                  matchScore={app.matchScore}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* AI Chat Section */}

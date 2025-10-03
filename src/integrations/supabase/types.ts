@@ -134,6 +134,57 @@ export type Database = {
         }
         Relationships: []
       }
+      talent_strategists: {
+        Row: {
+          availability: string | null
+          bio: string | null
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          instagram_url: string | null
+          linkedin_url: string | null
+          phone: string | null
+          photo_url: string | null
+          specialties: string[] | null
+          title: string
+          twitter_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          availability?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          specialties?: string[] | null
+          title: string
+          twitter_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          availability?: string | null
+          bio?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
+          photo_url?: string | null
+          specialties?: string[] | null
+          title?: string
+          twitter_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
