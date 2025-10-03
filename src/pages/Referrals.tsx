@@ -3,8 +3,10 @@ import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, TrendingUp, Euro, Award } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
+import { InviteSystem } from "@/components/InviteSystem";
 
 // Utility function to calculate referral bonus based on salary
 const calculateReferralBonus = (salary: number): number => {
@@ -94,17 +96,32 @@ const Referrals = () => {
     <Layout>
       <div className="space-y-8">
         {/* Header */}
-        <div className="relative">
-          <div className="absolute -top-4 -right-4 w-32 h-32 bg-gradient-accent blur-3xl opacity-20 rounded-full"></div>
-          <h1 className="text-4xl font-bold mb-2 relative">
-            Referral <span className="text-accent">Dashboard</span>
+        <div className="space-y-4">
+          <p className="text-caps text-muted-foreground">Build Your Network</p>
+          <h1 className="text-hero">
+            Invite & Earn
+            <br />
+            <span className="italic">Rewards</span>
           </h1>
-          <p className="text-muted-foreground italic">
-            Earn rewards by connecting elite talent with exclusive opportunities
+          <p className="text-lg text-muted-foreground max-w-2xl">
+            Curate our elite community and earn competitive bonuses when your referrals succeed
           </p>
         </div>
 
-        {/* Stats Grid */}
+        {/* Tabs for Invite System and Referral Tracking */}
+        <Tabs defaultValue="invites" className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="invites">Invite Codes</TabsTrigger>
+            <TabsTrigger value="tracking">Referral Tracking</TabsTrigger>
+          </TabsList>
+
+          {/* Invite System Tab */}
+          <TabsContent value="invites" className="space-y-6">
+            <InviteSystem />
+          </TabsContent>
+
+          {/* Referral Tracking Tab */}
+          <TabsContent value="tracking" className="space-y-6">{/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {stats.map((stat) => {
             const Icon = stat.icon;
@@ -223,6 +240,8 @@ const Referrals = () => {
             );
           })}
         </div>
+      </TabsContent>
+    </Tabs>
       </div>
     </Layout>
   );

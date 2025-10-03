@@ -53,6 +53,48 @@ export type Database = {
         }
         Relationships: []
       }
+      invite_codes: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          created_by_type: string
+          expires_at: string
+          id: string
+          is_active: boolean
+          metadata: Json | null
+          updated_at: string
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          created_by: string
+          created_by_type: string
+          expires_at: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          updated_at?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          created_by_type?: string
+          expires_at?: string
+          id?: string
+          is_active?: boolean
+          metadata?: Json | null
+          updated_at?: string
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       meeting_recordings: {
         Row: {
           company_name: string | null
@@ -242,6 +284,44 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_network: {
+        Row: {
+          id: string
+          invite_code: string | null
+          joined_at: string
+          referral_level: number
+          referred_by: string | null
+          referred_by_type: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invite_code?: string | null
+          joined_at?: string
+          referral_level?: number
+          referred_by?: string | null
+          referred_by_type?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invite_code?: string | null
+          joined_at?: string
+          referral_level?: number
+          referred_by?: string | null
+          referred_by_type?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_network_invite_code_fkey"
+            columns: ["invite_code"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       talent_strategists: {
         Row: {
           availability: string | null
@@ -319,12 +399,20 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      use_invite_code: {
+        Args: { _code: string; _user_id: string }
+        Returns: Json
       }
     }
     Enums: {

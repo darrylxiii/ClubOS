@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
 
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,20 +22,58 @@ const passwordSchema = z.string()
 
 const Auth = () => {
   const { user, loading } = useAuth();
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const inviteCode = searchParams.get("invite");
+  
+  const [isLogin, setIsLogin] = useState(!inviteCode); // Start with signup if invite code present
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [inviteValid, setInviteValid] = useState<boolean | null>(null);
+  const [inviteInfo, setInviteInfo] = useState<any>(null);
   const navigate = useNavigate();
 
   // Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
-      navigate('/dashboard');
+      navigate("/dashboard");
     }
   }, [user, loading, navigate]);
+
+  // Validate invite code if present
+  useEffect(() => {
+    if (inviteCode) {
+      validateInviteCode(inviteCode);
+    }
+  }, [inviteCode]);
+
+  const validateInviteCode = async (code: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("invite_codes")
+        .select("*, profiles!invite_codes_created_by_fkey(full_name)")
+        .eq("code", code)
+        .eq("is_active", true)
+        .is("used_by", null)
+        .gt("expires_at", new Date().toISOString())
+        .single();
+
+      if (error || !data) {
+        setInviteValid(false);
+        toast.error("Invalid or expired invite code");
+        return;
+      }
+
+      setInviteValid(true);
+      setInviteInfo(data);
+      toast.success("Valid invite code! Please create your account.");
+    } catch (error) {
+      console.error("Error validating invite:", error);
+      setInviteValid(false);
+    }
+  };
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +118,7 @@ const Auth = () => {
 
         const redirectUrl = `${window.location.origin}/`;
         
-        const { error } = await supabase.auth.signUp({
+        const { data: authData, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -95,6 +136,28 @@ const Auth = () => {
             toast.error(error.message);
           }
           return;
+        }
+
+        // Process invite code if present
+        if (inviteCode && inviteValid && authData.user) {
+          try {
+            const { data: result, error: inviteError } = await supabase.rpc(
+              "use_invite_code",
+              {
+                _code: inviteCode,
+                _user_id: authData.user.id,
+              }
+            );
+
+            if (inviteError) {
+              console.error("Error processing invite:", inviteError);
+              toast.error("Account created but invite code processing failed");
+            } else if (result && typeof result === 'object' && 'success' in result && result.success) {
+              toast.success("Account created with referral link!");
+            }
+          } catch (inviteError) {
+            console.error("Error using invite:", inviteError);
+          }
         }
 
         toast.success("Account created! You can now sign in.");
@@ -214,27 +277,29 @@ const Auth = () => {
               <Button
                 type="submit"
                 className="w-full bg-foreground text-background hover:bg-foreground/90 font-black uppercase text-xs tracking-wider"
-                disabled={isLoading}
+                disabled={isLoading || (inviteCode && !isLogin && inviteValid === false)}
               >
                 {isLoading ? "LOADING..." : isLogin ? "SIGN IN" : "SIGN UP"}
               </Button>
             </form>
 
-            <div className="text-center text-sm">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setPassword("");
-                  setConfirmPassword("");
-                }}
-                className="text-foreground hover:underline font-bold uppercase text-xs tracking-wider"
-              >
-                {isLogin
-                  ? "Need an account? Sign up"
-                  : "Already have an account? Sign in"}
-              </button>
-            </div>
+            {!inviteCode && (
+              <div className="text-center text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsLogin(!isLogin);
+                    setPassword("");
+                    setConfirmPassword("");
+                  }}
+                  className="text-foreground hover:underline font-bold uppercase text-xs tracking-wider"
+                >
+                  {isLogin
+                    ? "Need an account? Sign up"
+                    : "Already have an account? Sign in"}
+                </button>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
