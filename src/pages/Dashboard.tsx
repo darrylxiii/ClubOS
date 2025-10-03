@@ -23,6 +23,7 @@ const Dashboard = () => {
       status: "interview" as const,
       currentStage: 2,
       tags: ["Leadership", "AI/ML", "Strategy"],
+      matchScore: 94,
     },
     {
       id: 2,
@@ -34,6 +35,7 @@ const Dashboard = () => {
       status: "screening" as const,
       currentStage: 1,
       tags: ["Product Strategy", "Growth", "Innovation"],
+      matchScore: 87,
     },
   ];
 
@@ -158,6 +160,7 @@ const Dashboard = () => {
                 postedDate={app.postedDate}
                 status={app.status}
                 tags={app.tags}
+                matchScore={app.matchScore}
               />
             </div>
           ))}

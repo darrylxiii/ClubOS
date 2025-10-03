@@ -18,6 +18,7 @@ const Jobs = () => {
       type: "Executive",
       postedDate: "3 days ago",
       tags: ["Leadership", "Venture-backed", "AI"],
+      matchScore: 95,
     },
     {
       id: 2,
@@ -27,6 +28,7 @@ const Jobs = () => {
       type: "Executive",
       postedDate: "5 days ago",
       tags: ["Deep Tech", "Scale", "Innovation"],
+      matchScore: 88,
     },
     {
       id: 3,
@@ -36,6 +38,7 @@ const Jobs = () => {
       type: "Executive",
       postedDate: "1 week ago",
       tags: ["Design Leadership", "Brand", "UX"],
+      matchScore: 76,
     },
     {
       id: 4,
@@ -45,6 +48,7 @@ const Jobs = () => {
       type: "Executive",
       postedDate: "2 days ago",
       tags: ["Product Strategy", "Growth", "Innovation"],
+      matchScore: 92,
     },
     {
       id: 5,
@@ -54,6 +58,7 @@ const Jobs = () => {
       type: "Executive",
       postedDate: "4 days ago",
       tags: ["AI/ML", "Research", "PhD Required"],
+      matchScore: 84,
     },
     {
       id: 6,
@@ -63,6 +68,7 @@ const Jobs = () => {
       type: "Executive",
       postedDate: "1 day ago",
       tags: ["Revenue", "Scale", "Enterprise"],
+      matchScore: 91,
     },
   ];
 
@@ -75,6 +81,12 @@ const Jobs = () => {
   const handleRefer = (jobTitle: string) => {
     toast.success(`Referral initiated for ${jobTitle}!`, {
       description: "Share this opportunity with your network to earn rewards.",
+    });
+  };
+
+  const handleClubSync = (jobTitle: string) => {
+    toast.success(`Club Sync activated for ${jobTitle}!`, {
+      description: "Elite auto-apply initiated. You'll be notified of next steps.",
     });
   };
 
@@ -121,8 +133,10 @@ const Jobs = () => {
               type={job.type}
               postedDate={job.postedDate}
               tags={job.tags}
+              matchScore={job.matchScore}
               onApply={() => handleApply(job.title)}
               onRefer={() => handleRefer(job.title)}
+              onClubSync={() => handleClubSync(job.title)}
             />
           ))}
         </div>
