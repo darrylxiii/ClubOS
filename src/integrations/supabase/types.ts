@@ -812,6 +812,53 @@ export type Database = {
           },
         ]
       }
+      linkedin_job_imports: {
+        Row: {
+          company_id: string
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          import_details: Json | null
+          imported_by: string
+          jobs_failed: number
+          jobs_imported: number
+          status: string
+        }
+        Insert: {
+          company_id: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_details?: Json | null
+          imported_by: string
+          jobs_failed?: number
+          jobs_imported?: number
+          status: string
+        }
+        Update: {
+          company_id?: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          import_details?: Json | null
+          imported_by?: string
+          jobs_failed?: number
+          jobs_imported?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "linkedin_job_imports_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_scores: {
         Row: {
           additional_factors: Json
@@ -1096,6 +1143,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notifications: {
+        Row: {
+          action_url: string | null
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          read_at: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          read_at?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          action_url?: string | null
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          read_at?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       pipeline_events: {
         Row: {
