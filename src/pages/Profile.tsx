@@ -17,10 +17,7 @@ import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreference
 import { StealthModeToggle } from "@/components/StealthModeToggle";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { useAuth } from "@/contexts/AuthContext";
-import PhoneInput from 'react-phone-number-input';
-import 'react-phone-number-input/style.css';
-import '../styles/phone-input.css';
-import { isValidPhoneNumber } from 'react-phone-number-input';
+import { PhoneVerification } from "@/components/PhoneVerification";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -269,12 +266,11 @@ const Profile = () => {
 
   const handlePhoneChange = (value: string | undefined) => {
     setPhoneNumber(value || '');
-    if (value && isValidPhoneNumber(value)) {
-      setPhoneVerified(true);
-      toast.success('Phone number is valid');
-    } else {
-      setPhoneVerified(false);
-    }
+    debouncedSave();
+  };
+
+  const handleVerificationComplete = () => {
+    setPhoneVerified(true);
     debouncedSave();
   };
 
@@ -970,31 +966,12 @@ const Profile = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <div className="relative">
-                    <PhoneInput
-                      international
-                      defaultCountry="US"
-                      value={phoneNumber}
-                      onChange={handlePhoneChange}
-                      className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    />
-                    {phoneNumber && (
-                      <div className="mt-2 flex items-center gap-2">
-                        {phoneVerified ? (
-                          <>
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            <span className="text-xs text-green-500">Valid phone number</span>
-                          </>
-                        ) : (
-                          <>
-                            <XCircle className="w-4 h-4 text-destructive" />
-                            <span className="text-xs text-destructive">Invalid phone number</span>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  <PhoneVerification
+                    phoneNumber={phoneNumber}
+                    phoneVerified={phoneVerified}
+                    onPhoneChange={handlePhoneChange}
+                    onVerificationComplete={handleVerificationComplete}
+                  />
                 </div>
               </div>
 
