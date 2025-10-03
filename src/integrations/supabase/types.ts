@@ -480,6 +480,27 @@ export type Database = {
           },
         ]
       }
+      contact_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_custom: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_custom?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_custom?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -1790,6 +1811,66 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "target_company_comments_target_company_id_fkey"
+            columns: ["target_company_id"]
+            isOneToOne: false
+            referencedRelation: "target_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      target_company_contacts: {
+        Row: {
+          created_at: string | null
+          created_by: string
+          custom_role: string | null
+          email: string | null
+          id: string
+          linkedin_url: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          role_id: string | null
+          target_company_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by: string
+          custom_role?: string | null
+          email?: string | null
+          id?: string
+          linkedin_url?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          role_id?: string | null
+          target_company_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string
+          custom_role?: string | null
+          email?: string | null
+          id?: string
+          linkedin_url?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          role_id?: string | null
+          target_company_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "target_company_contacts_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "contact_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "target_company_contacts_target_company_id_fkey"
             columns: ["target_company_id"]
             isOneToOne: false
             referencedRelation: "target_companies"
