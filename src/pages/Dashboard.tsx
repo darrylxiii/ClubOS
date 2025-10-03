@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { PipelineStage } from "@/components/PipelineStage";
 import { JobCard } from "@/components/JobCard";
@@ -7,9 +7,33 @@ import { AIChat } from "@/components/AIChat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Briefcase, Clock, Award } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Dashboard = () => {
   const [selectedApplication, setSelectedApplication] = useState<number>(1);
+  const [firstName, setFirstName] = useState<string>("");
+  const { user } = useAuth();
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      if (data?.full_name) {
+        // Extract first name from full name
+        const name = data.full_name.split(' ')[0];
+        setFirstName(name);
+      }
+    };
+
+    fetchProfile();
+  }, [user]);
 
   // Mock data for active applications
   const activeApplications = [
@@ -79,7 +103,7 @@ const Dashboard = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="space-y-4">
-          <p className="text-caps text-muted-foreground">Welcome back, Alex</p>
+          <p className="text-caps text-muted-foreground">Welcome back{firstName ? `, ${firstName}` : ''}</p>
           <h1 className="text-hero">
             Your Elite
             <br />
