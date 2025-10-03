@@ -63,6 +63,15 @@ const Profile = () => {
     share_notice_period: true,
   });
 
+  // Social media connections
+  const [socialConnections, setSocialConnections] = useState({
+    linkedin: false,
+    instagram: false,
+    twitter: false,
+    instagramUsername: '',
+    twitterUsername: '',
+  });
+
   const [resume, setResume] = useState<File | null>(null);
   
   interface CalendarConnection {
@@ -263,6 +272,62 @@ const Profile = () => {
     debouncedSave();
   };
 
+  const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram') => {
+    try {
+      const redirectTo = `${window.location.origin}/profile`;
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider as any,
+        options: {
+          redirectTo,
+          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : undefined,
+        }
+      });
+
+      if (error) throw error;
+      
+      toast.success(`Redirecting to ${provider} login...`);
+    } catch (error) {
+      console.error(`${provider} connection error:`, error);
+      toast.error(`Failed to connect ${provider}`);
+    }
+  };
+
+  const handleDisconnectSocial = async (platform: 'linkedin' | 'instagram' | 'twitter') => {
+    try {
+      const updates: any = {};
+      
+      if (platform === 'linkedin') {
+        updates.linkedin_connected = false;
+        updates.linkedin_profile_data = null;
+      } else if (platform === 'instagram') {
+        updates.instagram_connected = false;
+        updates.instagram_username = null;
+      } else if (platform === 'twitter') {
+        updates.twitter_connected = false;
+        updates.twitter_username = null;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user?.id);
+
+      if (error) throw error;
+
+      setSocialConnections(prev => ({
+        ...prev,
+        [platform]: false,
+        [`${platform}Username`]: '',
+      }));
+
+      toast.success(`${platform} disconnected`);
+    } catch (error) {
+      console.error(`Error disconnecting ${platform}:`, error);
+      toast.error(`Failed to disconnect ${platform}`);
+    }
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setResume(e.target.files[0]);
@@ -433,6 +498,25 @@ const Profile = () => {
           if (data.remote_work_preference !== undefined) {
             setRemoteWorkPreference(data.remote_work_preference);
           }
+
+          // Load social media connections
+          if (data.linkedin_connected) {
+            setSocialConnections(prev => ({ ...prev, linkedin: true }));
+          }
+          if (data.instagram_connected && data.instagram_username) {
+            setSocialConnections(prev => ({ 
+              ...prev, 
+              instagram: true, 
+              instagramUsername: data.instagram_username 
+            }));
+          }
+          if (data.twitter_connected && data.twitter_username) {
+            setSocialConnections(prev => ({ 
+              ...prev, 
+              twitter: true, 
+              twitterUsername: data.twitter_username 
+            }));
+          }
         }
       } catch (error) {
         console.error('Error loading profile:', error);
@@ -529,76 +613,134 @@ const Profile = () => {
       (async () => {
         try {
           const pendingConnection = localStorage.getItem('pending_calendar_connection');
-          if (!pendingConnection) {
-            throw new Error('No pending calendar connection found');
-          }
-
-          const { provider, label } = JSON.parse(pendingConnection);
-          const redirectUri = `${window.location.origin}/profile`;
-          
-          let token: string;
-          let email: string = 'Calendar Account';
-
-          if (provider === 'google') {
-            const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
-              body: { action: 'exchangeCode', code, redirectUri }
-            });
-
-            if (error) throw error;
-            token = data.tokens.access_token;
+          if (pendingConnection) {
+            const { provider, label } = JSON.parse(pendingConnection);
+            const redirectUri = `${window.location.origin}/profile`;
             
-            // Try to get user email from Google
-            try {
-              const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                headers: { Authorization: `Bearer ${token}` }
+            let token: string;
+            let email: string = 'Calendar Account';
+
+            if (provider === 'google') {
+              const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+                body: { action: 'exchangeCode', code, redirectUri }
               });
-              const userInfo = await userInfoResponse.json();
-              email = userInfo.email || email;
-            } catch (e) {
-              console.log('Could not fetch user email');
+
+              if (error) throw error;
+              token = data.tokens.access_token;
+              
+              // Try to get user email from Google
+              try {
+                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                const userInfo = await userInfoResponse.json();
+                email = userInfo.email || email;
+              } catch (e) {
+                console.log('Could not fetch user email');
+              }
+            } else {
+              const { data, error } = await supabase.functions.invoke('microsoft-calendar-auth', {
+                body: { action: 'exchangeCode', code, redirectUri }
+              });
+
+              if (error) throw error;
+              token = data.access_token;
+              
+              // Try to get user email from Microsoft
+              try {
+                const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                const userInfo = await userInfoResponse.json();
+                email = userInfo.mail || userInfo.userPrincipalName || email;
+              } catch (e) {
+                console.log('Could not fetch user email');
+              }
             }
+
+            // Create new calendar connection
+            const newConnection: CalendarConnection = {
+              id: `${provider}-${Date.now()}`,
+              provider,
+              email,
+              label,
+              token,
+              connectedAt: new Date().toISOString(),
+            };
+
+            const updatedCalendars = [...connectedCalendars, newConnection];
+            setConnectedCalendars(updatedCalendars);
+            localStorage.setItem('connected_calendars', JSON.stringify(updatedCalendars));
+            localStorage.removeItem('pending_calendar_connection');
+            
+            // Clean up URL
+            window.history.replaceState({}, document.title, '/profile');
+            
+            toast.success(`${provider === 'google' ? 'Google' : 'Microsoft'} Calendar "${label}" connected successfully!`);
           } else {
-            const { data, error } = await supabase.functions.invoke('microsoft-calendar-auth', {
-              body: { action: 'exchangeCode', code, redirectUri }
-            });
+            // Check if it's a social media OAuth callback
+            const { data: session } = await supabase.auth.getSession();
+            if (session?.session?.user) {
+              const provider = session.session.user.app_metadata.provider;
+              
+              if (provider === 'linkedin_oidc' || provider === 'linkedin') {
+                const { error } = await supabase
+                  .from('profiles')
+                  .update({
+                    linkedin_connected: true,
+                    linkedin_profile_data: session.session.user.user_metadata,
+                  })
+                  .eq('id', session.session.user.id);
 
-            if (error) throw error;
-            token = data.access_token;
-            
-            // Try to get user email from Microsoft
-            try {
-              const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
-                headers: { Authorization: `Bearer ${token}` }
-              });
-              const userInfo = await userInfoResponse.json();
-              email = userInfo.mail || userInfo.userPrincipalName || email;
-            } catch (e) {
-              console.log('Could not fetch user email');
+                if (!error) {
+                  setSocialConnections(prev => ({ ...prev, linkedin: true }));
+                  toast.success('LinkedIn connected successfully!');
+                }
+              } else if (provider === 'instagram') {
+                const username = session.session.user.user_metadata.user_name || session.session.user.user_metadata.username;
+                const { error } = await supabase
+                  .from('profiles')
+                  .update({
+                    instagram_connected: true,
+                    instagram_username: username,
+                  })
+                  .eq('id', session.session.user.id);
+
+                if (!error) {
+                  setSocialConnections(prev => ({ 
+                    ...prev, 
+                    instagram: true,
+                    instagramUsername: username,
+                  }));
+                  toast.success('Instagram connected successfully!');
+                }
+              } else if (provider === 'twitter') {
+                const username = session.session.user.user_metadata.user_name || session.session.user.user_metadata.preferred_username;
+                const { error } = await supabase
+                  .from('profiles')
+                  .update({
+                    twitter_connected: true,
+                    twitter_username: username,
+                  })
+                  .eq('id', session.session.user.id);
+
+                if (!error) {
+                  setSocialConnections(prev => ({ 
+                    ...prev, 
+                    twitter: true,
+                    twitterUsername: username,
+                  }));
+                  toast.success('Twitter connected successfully!');
+                }
+              }
+              
+              // Clean up URL
+              window.history.replaceState({}, document.title, '/profile');
             }
           }
-
-          // Create new calendar connection
-          const newConnection: CalendarConnection = {
-            id: `${provider}-${Date.now()}`,
-            provider,
-            email,
-            label,
-            token,
-            connectedAt: new Date().toISOString(),
-          };
-
-          const updatedCalendars = [...connectedCalendars, newConnection];
-          setConnectedCalendars(updatedCalendars);
-          localStorage.setItem('connected_calendars', JSON.stringify(updatedCalendars));
-          localStorage.removeItem('pending_calendar_connection');
-          
-          // Clean up URL
-          window.history.replaceState({}, document.title, '/profile');
-          
-          toast.success(`${provider === 'google' ? 'Google' : 'Microsoft'} Calendar "${label}" connected successfully!`);
         } catch (error) {
-          console.error('Token exchange error:', error);
-          toast.error('Failed to complete calendar connection');
+          console.error('OAuth callback error:', error);
+          toast.error('Failed to complete connection');
           localStorage.removeItem('pending_calendar_connection');
           // Clean up URL even on error
           window.history.replaceState({}, document.title, '/profile');
@@ -893,6 +1035,139 @@ const Profile = () => {
                   rows={4}
                   className="bg-background/50 resize-none"
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Social Media Connections */}
+          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="w-5 h-5 text-accent" />
+                Social Media Profiles
+              </CardTitle>
+              <CardDescription>
+                Connect your professional social media accounts
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* LinkedIn */}
+              <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#0A66C2]/10 rounded-lg">
+                    <svg className="w-5 h-5 text-[#0A66C2]" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium">LinkedIn</p>
+                    <p className="text-sm text-muted-foreground">
+                      {socialConnections.linkedin ? 'Connected' : 'Not connected'}
+                    </p>
+                  </div>
+                </div>
+                {socialConnections.linkedin ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDisconnectSocial('linkedin')}
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={() => handleConnectSocial('linkedin_oidc')}
+                    className="bg-[#0A66C2] text-white hover:bg-[#004182]"
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+
+              {/* Instagram */}
+              <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCB045] rounded-lg">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium">Instagram</p>
+                    <p className="text-sm text-muted-foreground">
+                      {socialConnections.instagram 
+                        ? `@${socialConnections.instagramUsername}` 
+                        : 'Not connected'}
+                    </p>
+                  </div>
+                </div>
+                {socialConnections.instagram ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDisconnectSocial('instagram')}
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={() => handleConnectSocial('instagram')}
+                    className="bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCB045] text-white"
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+
+              {/* Twitter */}
+              <div className="flex items-center justify-between p-4 border border-border rounded-lg bg-background/50">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-black rounded-lg">
+                    <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="font-medium">X (Twitter)</p>
+                    <p className="text-sm text-muted-foreground">
+                      {socialConnections.twitter 
+                        ? `@${socialConnections.twitterUsername}` 
+                        : 'Not connected'}
+                    </p>
+                  </div>
+                </div>
+                {socialConnections.twitter ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDisconnectSocial('twitter')}
+                  >
+                    <XCircle className="w-4 h-4 mr-2" />
+                    Disconnect
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    onClick={() => handleConnectSocial('twitter')}
+                    className="bg-black text-white hover:bg-gray-900"
+                  >
+                    Connect
+                  </Button>
+                )}
+              </div>
+
+              <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Professional Presence:</strong> Connecting your social media profiles helps verify your identity 
+                  and allows employers to learn more about your professional background and achievements.
+                </p>
               </div>
             </CardContent>
           </Card>

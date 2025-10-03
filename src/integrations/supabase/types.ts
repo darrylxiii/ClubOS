@@ -262,6 +262,10 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          instagram_connected: boolean | null
+          instagram_username: string | null
+          linkedin_connected: boolean | null
+          linkedin_profile_data: Json | null
           linkedin_url: string | null
           location: string | null
           notice_period: string | null
@@ -271,6 +275,8 @@ export type Database = {
           privacy_settings: Json | null
           remote_work_preference: boolean | null
           resume_url: string | null
+          twitter_connected: boolean | null
+          twitter_username: string | null
           updated_at: string | null
         }
         Insert: {
@@ -286,6 +292,10 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          instagram_connected?: boolean | null
+          instagram_username?: string | null
+          linkedin_connected?: boolean | null
+          linkedin_profile_data?: Json | null
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
@@ -295,6 +305,8 @@ export type Database = {
           privacy_settings?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
+          twitter_connected?: boolean | null
+          twitter_username?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -310,6 +322,10 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          instagram_connected?: boolean | null
+          instagram_username?: string | null
+          linkedin_connected?: boolean | null
+          linkedin_profile_data?: Json | null
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
@@ -319,6 +335,8 @@ export type Database = {
           privacy_settings?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
+          twitter_connected?: boolean | null
+          twitter_username?: string | null
           updated_at?: string | null
         }
         Relationships: []
