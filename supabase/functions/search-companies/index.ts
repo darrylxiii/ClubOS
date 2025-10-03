@@ -27,8 +27,11 @@ serve(async (req) => {
       `https://autocomplete.clearbit.com/v1/companies/suggest?query=${encodeURIComponent(query)}`
     );
 
+    console.log('Clearbit response status:', response.status);
+
     if (!response.ok) {
-      console.error('Clearbit API error:', response.status);
+      console.error('Clearbit API error:', response.status, await response.text());
+      // Return empty array instead of erroring out
       return new Response(
         JSON.stringify({ companies: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -36,6 +39,7 @@ serve(async (req) => {
     }
 
     const companies = await response.json();
+    console.log('Raw companies from Clearbit:', companies);
     
     // Transform to our format
     const formattedCompanies = companies.map((company: any) => ({
