@@ -961,81 +961,8 @@ const Profile = () => {
           {/* Role Switcher (only shows if user has multiple roles) */}
           <AdminRoleSwitcher />
           
-          {/* Partner vs Candidate Content */}
-          {isPartner ? (
-            // Partner-specific profile sections
-            <>
-              {/* Company Information */}
-              <Card id="company" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    Company Information
-                  </CardTitle>
-                  <CardDescription>
-                    Manage your company profile and team
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="company_name">Company Name</Label>
-                      <Input
-                        id="company_name"
-                        value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="role">Your Role</Label>
-                      <Input
-                        id="role"
-                        value={formData.current_title}
-                        onChange={(e) => setFormData({ ...formData, current_title: e.target.value })}
-                        placeholder="e.g., HR Manager, Recruiter"
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Contact Information */}
-              <Card id="contact" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Mail className="h-5 w-5" />
-                    Contact Information
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Email</Label>
-                      <div className="flex items-center gap-2">
-                        <Input value={user?.email || ''} disabled />
-                        <EmailVerification />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Phone</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          placeholder="+1234567890"
-                        />
-                        <PhoneVerification />
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            // Candidate-specific profile sections
-            <>
-              {/* Personal Information */}
-              <Card id="personal" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+          {/* Personal Information */}
+          <Card id="personal" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5 text-accent" />
@@ -2275,8 +2202,6 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
-          </>
-          )}
           
           <div className="text-center pb-6">
             <p className="text-sm text-muted-foreground">
