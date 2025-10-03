@@ -156,6 +156,33 @@ const Profile = () => {
     }).format(value);
   };
 
+  // Calculate global salary percentile based on income distribution
+  const calculateSalaryPercentile = (salary: number): number => {
+    // Based on global income distribution data (World Bank, OECD)
+    // Simplified model for tech professionals
+    if (salary <= 20000) return 25;
+    if (salary <= 35000) return 50;
+    if (salary <= 50000) return 65;
+    if (salary <= 75000) return 75;
+    if (salary <= 100000) return 82;
+    if (salary <= 125000) return 87;
+    if (salary <= 150000) return 91;
+    if (salary <= 175000) return 93;
+    if (salary <= 200000) return 95;
+    if (salary <= 250000) return 97;
+    if (salary <= 300000) return 98;
+    if (salary <= 400000) return 99;
+    return 99.5;
+  };
+
+  const getPercentileMessage = (percentile: number): string => {
+    if (percentile >= 99) return `Top ${(100 - percentile).toFixed(1)}% worldwide 🌟`;
+    if (percentile >= 95) return `Top ${100 - percentile}% worldwide 🚀`;
+    if (percentile >= 90) return `Top ${100 - percentile}% worldwide ⭐`;
+    if (percentile >= 75) return `Higher than ${percentile}% globally 📈`;
+    return `${percentile}th percentile globally`;
+  };
+
   const handleSettingChange = (setting: keyof typeof settings) => {
     setSettings({
       ...settings,
@@ -735,9 +762,14 @@ const Profile = () => {
                     step={5000}
                     className="py-4"
                   />
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Confidential - helps us better match opportunities
-                  </p>
+                  <div className="flex justify-between items-center mt-2">
+                    <p className="text-xs text-muted-foreground">
+                      Confidential - helps us better match opportunities
+                    </p>
+                    <p className="text-xs font-medium text-accent">
+                      {getPercentileMessage(calculateSalaryPercentile(currentSalaryRange[1]))}
+                    </p>
+                  </div>
                 </div>
 
                 <div>
@@ -755,6 +787,11 @@ const Profile = () => {
                     step={5000}
                     className="py-4"
                   />
+                  <div className="flex justify-end mt-2">
+                    <p className="text-xs font-medium text-accent">
+                      Target: {getPercentileMessage(calculateSalaryPercentile(desiredSalaryRange[1]))}
+                    </p>
+                  </div>
                 </div>
               </div>
 
