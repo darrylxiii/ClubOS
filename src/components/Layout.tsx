@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState } from "react";
-import { Home, LayoutDashboard, Briefcase, User, Users, LogOut, Video, CheckSquare, FolderOpen } from "lucide-react";
+import { Home, LayoutDashboard, Briefcase, User, Users, LogOut, Video, CheckSquare, FolderOpen, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: "/", icon: Home, label: "Home" },
     { path: "/dashboard", icon: LayoutDashboard, label: "My Pipeline" },
     { path: "/applications", icon: FolderOpen, label: "Applications" },
+    { path: "/companies", icon: Building2, label: "Companies" },
     { path: "/jobs", icon: Briefcase, label: "Opportunities" },
     { path: "/meeting-history", icon: Video, label: "Recordings" },
     { path: "/referrals", icon: Users, label: "Referrals" },

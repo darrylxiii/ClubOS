@@ -122,6 +122,102 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          benefits: Json | null
+          careers_email: string | null
+          careers_page_url: string | null
+          company_size: string | null
+          cover_image_url: string | null
+          created_at: string
+          culture_highlights: Json | null
+          description: string | null
+          founded_year: number | null
+          headquarters_location: string | null
+          id: string
+          industry: string | null
+          is_active: boolean
+          linkedin_url: string | null
+          logo_url: string | null
+          member_since: string | null
+          membership_tier: string | null
+          meta_description: string | null
+          meta_title: string | null
+          mission: string | null
+          name: string
+          slug: string
+          tagline: string | null
+          tech_stack: Json | null
+          twitter_url: string | null
+          updated_at: string
+          values: Json | null
+          vision: string | null
+          website_url: string | null
+        }
+        Insert: {
+          benefits?: Json | null
+          careers_email?: string | null
+          careers_page_url?: string | null
+          company_size?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          culture_highlights?: Json | null
+          description?: string | null
+          founded_year?: number | null
+          headquarters_location?: string | null
+          id?: string
+          industry?: string | null
+          is_active?: boolean
+          linkedin_url?: string | null
+          logo_url?: string | null
+          member_since?: string | null
+          membership_tier?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          mission?: string | null
+          name: string
+          slug: string
+          tagline?: string | null
+          tech_stack?: Json | null
+          twitter_url?: string | null
+          updated_at?: string
+          values?: Json | null
+          vision?: string | null
+          website_url?: string | null
+        }
+        Update: {
+          benefits?: Json | null
+          careers_email?: string | null
+          careers_page_url?: string | null
+          company_size?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          culture_highlights?: Json | null
+          description?: string | null
+          founded_year?: number | null
+          headquarters_location?: string | null
+          id?: string
+          industry?: string | null
+          is_active?: boolean
+          linkedin_url?: string | null
+          logo_url?: string | null
+          member_since?: string | null
+          membership_tier?: string | null
+          meta_description?: string | null
+          meta_title?: string | null
+          mission?: string | null
+          name?: string
+          slug?: string
+          tagline?: string | null
+          tech_stack?: Json | null
+          twitter_url?: string | null
+          updated_at?: string
+          values?: Json | null
+          vision?: string | null
+          website_url?: string | null
+        }
+        Relationships: []
+      }
       invite_codes: {
         Row: {
           code: string

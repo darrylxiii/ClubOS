@@ -14,6 +14,8 @@ import Referrals from "./pages/Referrals";
 import InterviewPrep from "./pages/InterviewPrep";
 import MeetingHistory from "./pages/MeetingHistory";
 import Applications from "./pages/Applications";
+import Companies from "./pages/Companies";
+import CompanyPage from "./pages/CompanyPage";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -90,6 +92,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Applications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/companies"
+              element={
+                <ProtectedRoute>
+                  <Companies />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/companies/:slug"
+              element={
+                <ProtectedRoute>
+                  <CompanyPage />
                 </ProtectedRoute>
               }
             />
