@@ -131,11 +131,19 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
     <div className="space-y-4">
       <Label className="flex items-center gap-2">
         Profile Picture
-        {required && <span className="text-destructive">*</span>}
+        {required && <span className="text-destructive text-lg">* Required</span>}
       </Label>
       
+      {required && !previewUrl && (
+        <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md">
+          <p className="text-sm text-destructive font-medium">
+            ⚠️ A profile picture is mandatory to complete your profile
+          </p>
+        </div>
+      )}
+      
       <div className="flex items-center gap-6">
-        <Avatar className="w-24 h-24 border-2 border-border">
+        <Avatar className={`w-24 h-24 border-2 ${required && !previewUrl ? 'border-destructive' : 'border-border'}`}>
           {previewUrl ? (
             <AvatarImage src={previewUrl} alt="Profile picture" />
           ) : (
@@ -157,7 +165,7 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
           
           <Button
             type="button"
-            variant="outline"
+            variant={required && !previewUrl ? "default" : "outline"}
             size="sm"
             onClick={() => fileInputRef.current?.click()}
             disabled={uploading}
@@ -192,11 +200,6 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
 
           <p className="text-xs text-muted-foreground">
             JPG, PNG or WEBP. Max 5MB.
-            {required && !previewUrl && (
-              <span className="text-destructive block mt-1">
-                Profile picture is required
-              </span>
-            )}
           </p>
         </div>
       </div>

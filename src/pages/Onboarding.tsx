@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,10 +6,15 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Upload, Briefcase, DollarSign, Target } from "lucide-react";
+import { Upload, Briefcase, DollarSign, Target, User } from "lucide-react";
+import { AvatarUpload } from "@/components/AvatarUpload";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Onboarding = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -24,6 +29,24 @@ const Onboarding = () => {
     preferences: "",
   });
   const [resume, setResume] = useState<File | null>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .single();
+
+      if (data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+    };
+
+    loadProfile();
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -41,6 +64,11 @@ const Onboarding = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!avatarUrl) {
+      toast.error("Please upload a profile picture to continue");
+      return;
+    }
     
     // Here you would typically send data to backend for processing
     console.log("Form submitted:", formData);
@@ -67,12 +95,23 @@ const Onboarding = () => {
           <Card className="border-primary/20 shadow-glow">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Briefcase className="w-5 h-5 text-primary" />
+                <User className="w-5 h-5 text-primary" />
                 Personal Information
               </CardTitle>
               <CardDescription>Tell us about yourself</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {user && (
+                <>
+                  <AvatarUpload
+                    avatarUrl={avatarUrl}
+                    onAvatarChange={setAvatarUrl}
+                    userId={user.id}
+                    required={true}
+                  />
+                  <div className="pt-4 border-t" />
+                </>
+              )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="firstName">First Name *</Label>
