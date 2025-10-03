@@ -25,10 +25,15 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
   useEffect(() => {
     if (!canvasRef.current || !open) return;
 
+    // Clean up previous canvas
+    if (fabricCanvas) {
+      fabricCanvas.dispose();
+    }
+
     const canvas = new FabricCanvas(canvasRef.current, {
-      width: 600,
-      height: 400,
-      backgroundColor: "#000000",
+      width: 800,
+      height: 600,
+      backgroundColor: "#ffffff",
     });
 
     setFabricCanvas(canvas);
@@ -40,20 +45,23 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
       imgElement.src = e.target?.result as string;
       imgElement.onload = () => {
         FabricImage.fromURL(e.target?.result as string).then((img) => {
-          // Scale image to fit canvas
+          // Calculate scale to fit canvas while maintaining aspect ratio
           const scale = Math.min(
-            canvas.width! / img.width!,
-            canvas.height! / img.height!
+            (canvas.width! - 40) / img.width!,
+            (canvas.height! - 40) / img.height!
           );
+          
           img.scale(scale);
           img.set({
             left: canvas.width! / 2,
             top: canvas.height! / 2,
             originX: 'center',
             originY: 'center',
+            selectable: false, // Prevent accidental dragging
           });
+          
           canvas.add(img);
-          canvas.setActiveObject(img);
+          canvas.centerObject(img);
           setImage(img);
           canvas.renderAll();
         });
@@ -147,8 +155,8 @@ export function MediaEditor({ file, open, onClose, onSave }: MediaEditorProps) {
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="flex justify-center bg-black rounded-lg">
-            <canvas ref={canvasRef} />
+          <div className="flex justify-center bg-muted rounded-lg border p-4">
+            <canvas ref={canvasRef} className="max-w-full" />
           </div>
 
           <Tabs defaultValue="adjust" className="w-full">
