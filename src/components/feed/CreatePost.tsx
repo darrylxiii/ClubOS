@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Image, Video, FileText, Send, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { MediaEditor } from "./MediaEditor";
+import { VideoEditor } from "./VideoEditor";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -20,6 +22,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [editingFile, setEditingFile] = useState<File | null>(null);
+  const [editingFileType, setEditingFileType] = useState<'image' | 'video' | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -36,12 +40,36 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = acceptedTypes;
-    input.multiple = true;
+    input.multiple = false; // Changed to single file for editing
     input.onchange = (e) => {
       const files = Array.from((e.target as HTMLInputElement).files || []);
-      handleFiles(files);
+      if (files.length > 0) {
+        const file = files[0];
+        // Check if it's an image or video to open editor
+        if (file.type.startsWith('image/')) {
+          setEditingFile(file);
+          setEditingFileType('image');
+        } else if (file.type.startsWith('video/')) {
+          setEditingFile(file);
+          setEditingFileType('video');
+        } else {
+          // For documents, add directly
+          handleFiles([file]);
+        }
+      }
     };
     input.click();
+  };
+
+  const handleEditorSave = (editedFile: File) => {
+    handleFiles([editedFile]);
+    setEditingFile(null);
+    setEditingFileType(null);
+  };
+
+  const handleEditorClose = () => {
+    setEditingFile(null);
+    setEditingFileType(null);
   };
 
   const handleFiles = (files: File[]) => {
@@ -223,6 +251,24 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           </div>
         </div>
       </div>
+
+      {editingFile && editingFileType === 'image' && (
+        <MediaEditor
+          file={editingFile}
+          open={true}
+          onClose={handleEditorClose}
+          onSave={handleEditorSave}
+        />
+      )}
+
+      {editingFile && editingFileType === 'video' && (
+        <VideoEditor
+          file={editingFile}
+          open={true}
+          onClose={handleEditorClose}
+          onSave={handleEditorSave}
+        />
+      )}
     </Card>
   );
 }
