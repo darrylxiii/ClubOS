@@ -3,6 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield } from "lucide-react";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
 import { UserCompanyAssignment } from "@/components/admin/UserCompanyAssignment";
+import { UserRoleManagement } from "@/components/admin/UserRoleManagement";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navigate } from "react-router-dom";
@@ -55,9 +56,10 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
+          <TabsList className="grid w-full grid-cols-3 max-w-2xl">
             <TabsTrigger value="companies">Companies</TabsTrigger>
             <TabsTrigger value="users">User Assignment</TabsTrigger>
+            <TabsTrigger value="user-management">Users & Roles</TabsTrigger>
           </TabsList>
 
           <TabsContent value="companies" className="space-y-4">
@@ -66,6 +68,10 @@ const Admin = () => {
 
           <TabsContent value="users" className="space-y-4">
             <UserCompanyAssignment />
+          </TabsContent>
+
+          <TabsContent value="user-management" className="space-y-4">
+            <UserRoleManagement />
           </TabsContent>
         </Tabs>
       </div>
