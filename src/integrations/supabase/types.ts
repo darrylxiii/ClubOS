@@ -239,6 +239,7 @@ export type Database = {
           location: string | null
           notice_period: string | null
           phone: string | null
+          privacy_settings: Json | null
           resume_url: string | null
           updated_at: string | null
         }
@@ -259,6 +260,7 @@ export type Database = {
           location?: string | null
           notice_period?: string | null
           phone?: string | null
+          privacy_settings?: Json | null
           resume_url?: string | null
           updated_at?: string | null
         }
@@ -279,6 +281,7 @@ export type Database = {
           location?: string | null
           notice_period?: string | null
           phone?: string | null
+          privacy_settings?: Json | null
           resume_url?: string | null
           updated_at?: string | null
         }

@@ -46,6 +46,19 @@ const Profile = () => {
     shareWithPartners: true,
   });
 
+  const [privacySettings, setPrivacySettings] = useState({
+    share_full_name: true,
+    share_email: true,
+    share_phone: true,
+    share_location: true,
+    share_current_title: true,
+    share_linkedin_url: true,
+    share_career_preferences: true,
+    share_resume: true,
+    share_salary_expectations: true,
+    share_notice_period: true,
+  });
+
   const [resume, setResume] = useState<File | null>(null);
   
   interface CalendarConnection {
@@ -84,6 +97,7 @@ const Profile = () => {
           desired_salary_min: desiredSalaryRange[0],
           desired_salary_max: desiredSalaryRange[1],
           blocked_companies: blockedCompanies,
+          privacy_settings: privacySettings,
         })
         .eq('id', user.id);
 
@@ -102,7 +116,7 @@ const Profile = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies]);
+  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings]);
 
   // Debounced auto-save
   const debouncedSave = useCallback(() => {
@@ -190,6 +204,18 @@ const Profile = () => {
     });
   };
 
+  const handlePrivacyToggle = (setting: keyof typeof privacySettings) => {
+    setPrivacySettings({
+      ...privacySettings,
+      [setting]: !privacySettings[setting],
+    });
+    debouncedSave();
+  };
+
+  const countSharedFields = () => {
+    return Object.values(privacySettings).filter(Boolean).length;
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setResume(e.target.files[0]);
@@ -269,6 +295,7 @@ const Profile = () => {
             desired_salary_min: desiredSalaryRange[0],
             desired_salary_max: desiredSalaryRange[1],
             blocked_companies: blockedCompanies,
+            privacy_settings: privacySettings,
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id);
@@ -294,7 +321,7 @@ const Profile = () => {
 
     const debounceTimer = setTimeout(saveProfile, 1000);
     return () => clearTimeout(debounceTimer);
-  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, user]);
+  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, user]);
 
   // Load profile data from database
   useEffect(() => {
@@ -337,6 +364,10 @@ const Profile = () => {
           if (data.blocked_companies) {
             const companies = data.blocked_companies as any;
             setBlockedCompanies(Array.isArray(companies) ? companies.filter((c): c is string => typeof c === 'string') : []);
+          }
+
+          if (data.privacy_settings) {
+            setPrivacySettings(data.privacy_settings as any);
           }
         }
       } catch (error) {
@@ -1084,6 +1115,227 @@ const Profile = () => {
                     onCheckedChange={() => handleSettingChange('shareWithPartners')}
                   />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Profile Sharing Settings */}
+          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5 text-accent" />
+                Profile Information Sharing
+              </CardTitle>
+              <CardDescription>
+                Choose what information you'd like to share with potential employers
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Warning Banner */}
+              <div className="p-4 border-2 border-amber-500/20 rounded-lg bg-amber-500/5">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5">
+                    <Shield className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-amber-500 mb-1">Matching Impact</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Sharing less information reduces the likelihood of finding the perfect match. 
+                      Our AI uses your complete profile to find opportunities that align with your goals and expertise.
+                      Currently sharing <strong>{countSharedFields()} of 10</strong> fields.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy Toggles */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_full_name" className="font-normal cursor-pointer">
+                      Full Name
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Share your name with employers
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_full_name"
+                    checked={privacySettings.share_full_name}
+                    onCheckedChange={() => handlePrivacyToggle('share_full_name')}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_email" className="font-normal cursor-pointer">
+                      Email Address
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Allow employers to contact you via email
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_email"
+                    checked={privacySettings.share_email}
+                    onCheckedChange={() => handlePrivacyToggle('share_email')}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_phone" className="font-normal cursor-pointer">
+                      Phone Number
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Share your contact number with employers
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_phone"
+                    checked={privacySettings.share_phone}
+                    onCheckedChange={() => handlePrivacyToggle('share_phone')}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_location" className="font-normal cursor-pointer">
+                      Location
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Share your city/country for local opportunities
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_location"
+                    checked={privacySettings.share_location}
+                    onCheckedChange={() => handlePrivacyToggle('share_location')}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_current_title" className="font-normal cursor-pointer">
+                      Current Job Title
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Show your current position to employers
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_current_title"
+                    checked={privacySettings.share_current_title}
+                    onCheckedChange={() => handlePrivacyToggle('share_current_title')}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_linkedin_url" className="font-normal cursor-pointer">
+                      LinkedIn Profile
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Share your LinkedIn for verification
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_linkedin_url"
+                    checked={privacySettings.share_linkedin_url}
+                    onCheckedChange={() => handlePrivacyToggle('share_linkedin_url')}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_career_preferences" className="font-normal cursor-pointer">
+                      Career Preferences
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Share your work style and industry preferences
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_career_preferences"
+                    checked={privacySettings.share_career_preferences}
+                    onCheckedChange={() => handlePrivacyToggle('share_career_preferences')}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_resume" className="font-normal cursor-pointer">
+                      Resume/CV
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Allow employers to view your resume
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_resume"
+                    checked={privacySettings.share_resume}
+                    onCheckedChange={() => handlePrivacyToggle('share_resume')}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_salary_expectations" className="font-normal cursor-pointer">
+                      Salary Expectations
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Share your desired salary range for better matches
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_salary_expectations"
+                    checked={privacySettings.share_salary_expectations}
+                    onCheckedChange={() => handlePrivacyToggle('share_salary_expectations')}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="share_notice_period" className="font-normal cursor-pointer">
+                      Notice Period
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Share your availability timeline with employers
+                    </p>
+                  </div>
+                  <Switch
+                    id="share_notice_period"
+                    checked={privacySettings.share_notice_period}
+                    onCheckedChange={() => handlePrivacyToggle('share_notice_period')}
+                  />
+                </div>
+              </div>
+
+              {/* Additional Privacy Note */}
+              <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Your Privacy Matters:</strong> You have complete control over your information. 
+                  Disabled fields will not be visible to employers or recruiters. However, providing more 
+                  information helps our AI find opportunities that truly match your skills and preferences.
+                </p>
               </div>
             </CardContent>
           </Card>
