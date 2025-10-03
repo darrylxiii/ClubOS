@@ -13,6 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
 
 interface BookingLink {
   id: string;
@@ -368,6 +369,10 @@ export default function Scheduling() {
               <Calendar className="h-4 w-4 mr-2" />
               Upcoming Bookings
             </TabsTrigger>
+            <TabsTrigger value="availability">
+              <Clock className="h-4 w-4 mr-2" />
+              Availability Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="links" className="space-y-4 mt-6">
@@ -509,6 +514,10 @@ export default function Scheduling() {
                 })}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="availability" className="mt-6">
+            <TaskSchedulingPreferences />
           </TabsContent>
         </Tabs>
       </div>
