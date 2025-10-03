@@ -15,6 +15,8 @@ const Onboarding = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [referralMetadata, setReferralMetadata] = useState<any>(null);
+  const [referrerName, setReferrerName] = useState<string>("");
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -42,6 +44,48 @@ const Onboarding = () => {
 
       if (data?.avatar_url) {
         setAvatarUrl(data.avatar_url);
+      }
+
+      // Check for invite code with metadata
+      const urlParams = new URLSearchParams(window.location.search);
+      const inviteCode = urlParams.get('invite');
+      
+      if (inviteCode) {
+        const { data: inviteData } = await supabase
+          .from('invite_codes')
+          .select(`
+            *,
+            referral_metadata (*)
+          `)
+          .eq('code', inviteCode)
+          .single();
+
+        if (inviteData?.referral_metadata?.[0]) {
+          const metadata = inviteData.referral_metadata[0];
+          setReferralMetadata(metadata);
+          
+          // Get referrer name
+          const { data: referrerData } = await supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('id', inviteData.created_by)
+            .single();
+          
+          setReferrerName(referrerData?.full_name || referrerData?.email || 'Your friend');
+
+          // Pre-fill form data
+          setFormData(prev => ({
+            ...prev,
+            firstName: metadata.friend_name?.split(' ')[0] || prev.firstName,
+            lastName: metadata.friend_name?.split(' ').slice(1).join(' ') || prev.lastName,
+            currentTitle: metadata.friend_current_role || prev.currentTitle,
+            linkedin: metadata.friend_linkedin || prev.linkedin,
+          }));
+
+          toast.success(`Welcome! ${referrerName} referred you for ${metadata.job_title} at ${metadata.company_name}`, {
+            description: "We've pre-filled some information to get you started faster."
+          });
+        }
       }
     };
 
@@ -114,7 +158,14 @@ const Onboarding = () => {
               )}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="firstName">First Name *</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="firstName">First Name *</Label>
+                    {referralMetadata && formData.firstName && (
+                      <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                        Provided by {referrerName}
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="firstName"
                     name="firstName"
@@ -125,7 +176,14 @@ const Onboarding = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="lastName">Last Name *</Label>
+                    {referralMetadata && formData.lastName && (
+                      <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                        Provided by {referrerName}
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="lastName"
                     name="lastName"
@@ -177,7 +235,14 @@ const Onboarding = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="currentTitle">Current Title *</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="currentTitle">Current Title *</Label>
+                    {referralMetadata && formData.currentTitle && (
+                      <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                        Provided by {referrerName}
+                      </span>
+                    )}
+                  </div>
                   <Input
                     id="currentTitle"
                     name="currentTitle"
@@ -190,7 +255,14 @@ const Onboarding = () => {
               </div>
 
               <div>
-                <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                  {referralMetadata && formData.linkedin && (
+                    <span className="text-xs text-primary bg-primary/10 px-2 py-0.5 rounded">
+                      Provided by {referrerName}
+                    </span>
+                  )}
+                </div>
                 <Input
                   id="linkedin"
                   name="linkedin"

@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, TrendingUp, Euro, Award } from "lucide-react";
+import { Users, TrendingUp, Euro, Award, Briefcase } from "lucide-react";
 import { StatusBadge } from "@/components/StatusBadge";
 import { InviteSystem } from "@/components/InviteSystem";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Utility function to calculate referral bonus based on salary
 const calculateReferralBonus = (salary: number): number => {
@@ -17,7 +19,37 @@ const calculateReferralBonus = (salary: number): number => {
 };
 
 const Referrals = () => {
-  // Mock data for referrals
+  const { user } = useAuth();
+  const [referralData, setReferralData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReferrals = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('invite_codes')
+        .select(`
+          *,
+          referral_metadata (*),
+          referral_network (
+            user_id,
+            joined_at
+          )
+        `)
+        .eq('created_by', user.id)
+        .order('created_at', { ascending: false });
+
+      if (!error && data) {
+        setReferralData(data);
+      }
+      setLoading(false);
+    };
+
+    fetchReferrals();
+  }, [user]);
+
+  // Mock data for referrals (keeping for now as fallback)
   const referrals = [
     {
       id: 1,
@@ -183,62 +215,93 @@ const Referrals = () => {
         <div className="space-y-4">
           <h2 className="text-2xl font-bold">Your Referrals</h2>
           
-          {referrals.map((referral) => {
-            const bonus = calculateReferralBonus(referral.salary);
-            return (
-              <Card key={referral.id} className="border border-accent/20 bg-gradient-card hover:shadow-lg transition-all duration-300">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle className="text-lg">{referral.friendName}</CardTitle>
-                        <StatusBadge status={referral.status} />
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {referral.jobTitle} at {referral.company}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-muted-foreground mb-1">Potential Bonus</div>
-                      <div className="text-xl font-bold text-accent">€{bonus.toLocaleString()}</div>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <div className="text-xs text-muted-foreground mb-1">Match Score</div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-gradient-accent rounded-full transition-all duration-500"
-                            style={{ width: `${referral.matchScore}%` }}
-                          />
+          {loading ? (
+            <Card className="border border-accent/20 bg-gradient-card">
+              <CardContent className="py-8 text-center text-muted-foreground">
+                Loading referrals...
+              </CardContent>
+            </Card>
+          ) : referralData.length === 0 ? (
+            <Card className="border border-accent/20 bg-gradient-card">
+              <CardContent className="py-8 text-center text-muted-foreground">
+                No referrals yet. Start by inviting friends using the Invite Codes tab!
+              </CardContent>
+            </Card>
+          ) : (
+            referralData.map((invite) => {
+              const metadata = invite.referral_metadata?.[0];
+              const hasJoined = invite.referral_network?.length > 0;
+              
+              return (
+                <Card key={invite.id} className="border border-accent/20 bg-gradient-card hover:shadow-lg transition-all duration-300">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <CardTitle className="text-lg">
+                            {metadata?.friend_name || 'Pending Signup'}
+                          </CardTitle>
+                          {hasJoined ? (
+                            <StatusBadge status="applied" />
+                          ) : (
+                            <Badge variant="outline">Pending</Badge>
+                          )}
                         </div>
-                        <span className="text-sm font-semibold">{referral.matchScore}%</span>
+                        {metadata && (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <Briefcase className="w-4 h-4" />
+                              {metadata.job_title} at {metadata.company_name}
+                            </div>
+                            {metadata.friend_current_role && (
+                              <div className="text-sm text-muted-foreground">
+                                Currently: {metadata.friend_current_role}
+                                {metadata.friend_current_company && ` at ${metadata.friend_current_company}`}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-muted-foreground mb-1">Invite Code</div>
+                        <Badge variant="outline" className="font-mono">
+                          {invite.code}
+                        </Badge>
                       </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground mb-1">Current Stage</div>
-                      <div className="text-sm font-medium">{referral.currentStage}</div>
+                  </CardHeader>
+                  <CardContent>
+                    {metadata?.why_good_fit && (
+                      <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                        <div className="text-xs text-muted-foreground mb-1">Why good fit?</div>
+                        <div className="text-sm">{metadata.why_good_fit}</div>
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Status</div>
+                        <div className="text-sm font-medium">
+                          {hasJoined ? 'Signed Up' : invite.used_by ? 'Code Used' : 'Invite Sent'}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Sent</div>
+                        <div className="text-sm font-medium">
+                          {new Date(invite.created_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-1">Expires</div>
+                        <div className="text-sm font-medium">
+                          {new Date(invite.expires_at).toLocaleDateString()}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground mb-1">Referred</div>
-                      <div className="text-sm font-medium">{referral.referredDate}</div>
-                    </div>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                    <div className="text-xs text-muted-foreground">
-                      Salary Range: €{referral.salary.toLocaleString()}
-                    </div>
-                    <Button size="sm" variant="outline">
-                      View Details
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
         </div>
       </TabsContent>
     </Tabs>

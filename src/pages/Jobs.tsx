@@ -13,6 +13,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Search, SlidersHorizontal, Check, Zap } from "lucide-react";
 import { toast } from "sonner";
+import { ReferralDialog } from "@/components/ReferralDialog";
 
 type SortOption = "match" | "newest" | "salary";
 
@@ -21,6 +22,8 @@ const Jobs = () => {
   const [sortBy, setSortBy] = useState<SortOption>("match");
   const [savedJobIds, setSavedJobIds] = useState<number[]>([]);
   const [clubSyncEnabled, setClubSyncEnabled] = useState(false);
+  const [referralDialogOpen, setReferralDialogOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<{ id: string; title: string; company: string } | null>(null);
 
   const jobs = [
     {
@@ -116,10 +119,9 @@ const Jobs = () => {
     });
   };
 
-  const handleRefer = (jobTitle: string) => {
-    toast.success(`Referral initiated for ${jobTitle}!`, {
-      description: "Share this opportunity with your network to earn rewards.",
-    });
+  const handleRefer = (jobId: string, jobTitle: string, company: string) => {
+    setSelectedJob({ id: jobId, title: jobTitle, company });
+    setReferralDialogOpen(true);
   };
 
   const handleClubSync = (jobTitle: string) => {
@@ -258,7 +260,7 @@ const Jobs = () => {
                   matchScore={job.matchScore}
                   isSaved={savedJobIds.includes(job.id)}
                   onApply={() => handleApply(job.title)}
-                  onRefer={() => handleRefer(job.title)}
+                  onRefer={() => handleRefer(job.id.toString(), job.title, job.company)}
                   onClubSync={() => handleClubSync(job.title)}
                   onToggleSave={() => toggleSaveJob(job.id, job.title)}
                 />
@@ -360,7 +362,7 @@ const Jobs = () => {
                     matchScore={job.matchScore}
                     isSaved={true}
                     onApply={() => handleApply(job.title)}
-                    onRefer={() => handleRefer(job.title)}
+                    onRefer={() => handleRefer(job.id.toString(), job.title, job.company)}
                     onClubSync={() => handleClubSync(job.title)}
                     onToggleSave={() => toggleSaveJob(job.id, job.title)}
                   />
@@ -369,6 +371,16 @@ const Jobs = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {selectedJob && (
+          <ReferralDialog
+            open={referralDialogOpen}
+            onOpenChange={setReferralDialogOpen}
+            jobId={selectedJob.id}
+            jobTitle={selectedJob.title}
+            companyName={selectedJob.company}
+          />
+        )}
       </div>
     </Layout>
   );

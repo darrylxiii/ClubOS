@@ -626,6 +626,65 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_metadata: {
+        Row: {
+          company_name: string
+          created_at: string
+          expires_at: string
+          friend_current_company: string | null
+          friend_current_role: string | null
+          friend_email: string | null
+          friend_linkedin: string | null
+          friend_name: string | null
+          id: string
+          invite_code_id: string | null
+          job_id: string
+          job_title: string
+          referrer_notes: string | null
+          why_good_fit: string | null
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          expires_at?: string
+          friend_current_company?: string | null
+          friend_current_role?: string | null
+          friend_email?: string | null
+          friend_linkedin?: string | null
+          friend_name?: string | null
+          id?: string
+          invite_code_id?: string | null
+          job_id: string
+          job_title: string
+          referrer_notes?: string | null
+          why_good_fit?: string | null
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          expires_at?: string
+          friend_current_company?: string | null
+          friend_current_role?: string | null
+          friend_email?: string | null
+          friend_linkedin?: string | null
+          friend_name?: string | null
+          id?: string
+          invite_code_id?: string | null
+          job_id?: string
+          job_title?: string
+          referrer_notes?: string | null
+          why_good_fit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_metadata_invite_code_id_fkey"
+            columns: ["invite_code_id"]
+            isOneToOne: false
+            referencedRelation: "invite_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_network: {
         Row: {
           id: string
