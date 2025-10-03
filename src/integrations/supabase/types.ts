@@ -250,6 +250,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          allow_stealth_cold_outreach: boolean | null
           avatar_url: string | null
           blocked_companies: Json | null
           career_preferences: string | null
@@ -285,11 +286,14 @@ export type Database = {
           privacy_settings: Json | null
           remote_work_preference: boolean | null
           resume_url: string | null
+          stealth_mode_enabled: boolean | null
+          stealth_mode_level: number | null
           twitter_connected: boolean | null
           twitter_username: string | null
           updated_at: string | null
         }
         Insert: {
+          allow_stealth_cold_outreach?: boolean | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
@@ -325,11 +329,14 @@ export type Database = {
           privacy_settings?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
+          stealth_mode_enabled?: boolean | null
+          stealth_mode_level?: number | null
           twitter_connected?: boolean | null
           twitter_username?: string | null
           updated_at?: string | null
         }
         Update: {
+          allow_stealth_cold_outreach?: boolean | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
@@ -365,6 +372,8 @@ export type Database = {
           privacy_settings?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
+          stealth_mode_enabled?: boolean | null
+          stealth_mode_level?: number | null
           twitter_connected?: boolean | null
           twitter_username?: string | null
           updated_at?: string | null

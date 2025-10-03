@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Slider } from "@/components/ui/slider";
 import { CompanySearch } from "@/components/CompanySearch";
 import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
+import { StealthModeToggle } from "@/components/StealthModeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import PhoneInput from 'react-phone-number-input';
 import 'react-phone-number-input/style.css';
@@ -104,6 +105,11 @@ const Profile = () => {
   const [remoteWorkPreference, setRemoteWorkPreference] = useState(false);
   const [selectedCity, setSelectedCity] = useState('');
 
+  // Stealth mode state
+  const [stealthModeEnabled, setStealthModeEnabled] = useState(false);
+  const [stealthModeLevel, setStealthModeLevel] = useState(1);
+  const [allowStealthColdOutreach, setAllowStealthColdOutreach] = useState(true);
+
   // Auto-save function
   const saveProfile = useCallback(async () => {
     if (!user) return;
@@ -138,6 +144,9 @@ const Profile = () => {
           fulltime_hours_per_week_max: fulltimeHoursPerWeek[1],
           freelance_hours_per_week_min: freelanceHoursPerWeek[0],
           freelance_hours_per_week_max: freelanceHoursPerWeek[1],
+          stealth_mode_enabled: stealthModeEnabled,
+          stealth_mode_level: stealthModeLevel,
+          allow_stealth_cold_outreach: allowStealthColdOutreach,
         })
         .eq('id', user.id);
 
@@ -156,7 +165,7 @@ const Profile = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek]);
+  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, stealthModeEnabled, stealthModeLevel, allowStealthColdOutreach]);
 
   // Debounced auto-save
   const debouncedSave = useCallback(() => {
@@ -285,6 +294,32 @@ const Profile = () => {
 
   const handleRemoteToggle = () => {
     setRemoteWorkPreference(!remoteWorkPreference);
+    debouncedSave();
+  };
+
+  const handleStealthModeChange = (enabled: boolean) => {
+    setStealthModeEnabled(enabled);
+    if (enabled) {
+      toast.success('Stealth Mode enabled - Your profile is now anonymized');
+    } else {
+      toast.success('Stealth Mode disabled - Your profile is now visible');
+    }
+    debouncedSave();
+  };
+
+  const handleStealthLevelChange = (level: number) => {
+    setStealthModeLevel(level);
+    toast.success(`Anonymization level updated to Level ${level}`);
+    debouncedSave();
+  };
+
+  const handleColdOutreachChange = (allowed: boolean) => {
+    setAllowStealthColdOutreach(allowed);
+    if (allowed) {
+      toast.success('Cold outreach permission granted');
+    } else {
+      toast.success('Cold outreach permission revoked');
+    }
     debouncedSave();
   };
 
@@ -439,6 +474,9 @@ const Profile = () => {
             fulltime_hours_per_week_max: fulltimeHoursPerWeek[1],
             freelance_hours_per_week_min: freelanceHoursPerWeek[0],
             freelance_hours_per_week_max: freelanceHoursPerWeek[1],
+            stealth_mode_enabled: stealthModeEnabled,
+            stealth_mode_level: stealthModeLevel,
+            allow_stealth_cold_outreach: allowStealthColdOutreach,
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id);
@@ -464,7 +502,7 @@ const Profile = () => {
 
     const debounceTimer = setTimeout(saveProfile, 1000);
     return () => clearTimeout(debounceTimer);
-  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, user]);
+  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, stealthModeEnabled, stealthModeLevel, allowStealthColdOutreach, user]);
 
   // Load profile data from database
   useEffect(() => {
@@ -565,6 +603,17 @@ const Profile = () => {
           }
           if (data.freelance_hours_per_week_min && data.freelance_hours_per_week_max) {
             setFreelanceHoursPerWeek([data.freelance_hours_per_week_min, data.freelance_hours_per_week_max]);
+          }
+
+          // Load stealth mode settings
+          if (data.stealth_mode_enabled !== undefined) {
+            setStealthModeEnabled(data.stealth_mode_enabled);
+          }
+          if (data.stealth_mode_level) {
+            setStealthModeLevel(data.stealth_mode_level);
+          }
+          if (data.allow_stealth_cold_outreach !== undefined) {
+            setAllowStealthColdOutreach(data.allow_stealth_cold_outreach);
           }
         }
       } catch (error) {
@@ -1855,6 +1904,16 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Stealth Mode */}
+          <StealthModeToggle
+            stealthModeEnabled={stealthModeEnabled}
+            stealthModeLevel={stealthModeLevel}
+            allowStealthColdOutreach={allowStealthColdOutreach}
+            onStealthModeChange={handleStealthModeChange}
+            onStealthLevelChange={handleStealthLevelChange}
+            onColdOutreachChange={handleColdOutreachChange}
+          />
 
           {/* Profile Sharing Settings */}
           <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
