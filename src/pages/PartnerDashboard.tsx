@@ -12,9 +12,12 @@ import { JobManagement } from "@/components/partner/JobManagement";
 import { TeamManagement } from "@/components/partner/TeamManagement";
 import { ApplicantPipeline } from "@/components/partner/ApplicantPipeline";
 import { PartnerAnalytics } from "@/components/partner/PartnerAnalytics";
+import { useNavigate } from "react-router-dom";
+import { useEffect as useEffectNavigation } from "react";
 
 const PartnerDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { role, companyId, loading: roleLoading } = useUserRole();
   const [stats, setStats] = useState({
     totalJobs: 0,
@@ -24,6 +27,13 @@ const PartnerDashboard = () => {
   });
   const [company, setCompany] = useState<any>(null);
   const [loadingStats, setLoadingStats] = useState(true);
+
+  // Redirect to partner onboarding if no company is set
+  useEffectNavigation(() => {
+    if (!roleLoading && !companyId) {
+      navigate('/partner-onboarding');
+    }
+  }, [roleLoading, companyId, navigate]);
 
   // Set loadingStats to false immediately if no companyId and roleLoading is complete
   useEffect(() => {

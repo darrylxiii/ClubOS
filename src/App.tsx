@@ -11,6 +11,7 @@ import Jobs from "./pages/Jobs";
 import TasksPilot from "./pages/TasksPilot";
 import ClubAI from "./pages/ClubAI";
 import Onboarding from "./pages/Onboarding";
+import PartnerOnboarding from "./pages/PartnerOnboarding";
 import Profile from "./pages/Profile";
 import Referrals from "./pages/Referrals";
 import InterviewPrep from "./pages/InterviewPrep";
@@ -82,6 +83,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Onboarding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/partner-onboarding"
+              element={
+                <ProtectedRoute>
+                  <PartnerOnboarding />
                 </ProtectedRoute>
               }
             />
