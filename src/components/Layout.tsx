@@ -14,22 +14,19 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-border bg-card sticky top-0 z-50 shadow-sm">
+      <header className="border-b-2 border-foreground bg-background sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-accent blur-sm opacity-50"></div>
-              <div className="relative w-10 h-10 rounded bg-gradient-hero flex items-center justify-center border border-accent/20">
-                <span className="text-accent font-bold text-lg">QC</span>
-              </div>
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-foreground text-background flex items-center justify-center font-black text-lg group-hover:scale-110 transition-transform">
+              QC
             </div>
             <div>
-              <h1 className="text-lg font-bold text-foreground tracking-tight">The Quantum Club</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Operating System</p>
+              <h1 className="text-lg font-black uppercase tracking-tight">The Quantum Club</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">OS v1.0</p>
             </div>
-          </div>
+          </Link>
           
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
@@ -38,10 +35,10 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   key={item.path}
                   to={item.path}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-200",
+                    "flex items-center gap-2 px-4 py-2 border-2 transition-all duration-200 font-bold uppercase text-xs tracking-wider",
                     isActive
-                      ? "bg-primary text-primary-foreground font-medium"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      ? "bg-foreground text-background border-foreground"
+                      : "border-foreground hover:bg-foreground hover:text-background"
                   )}
                 >
                   <Icon className="w-4 h-4" />
@@ -52,7 +49,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           </nav>
 
           <Link to="/profile">
-            <button className="flex items-center gap-2 px-3 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-colors">
+            <button className="flex items-center gap-2 px-4 py-2 border-2 border-foreground hover:bg-foreground hover:text-background transition-all font-bold uppercase text-xs tracking-wider">
               <User className="w-4 h-4" />
               <span className="hidden md:inline">Profile</span>
             </button>
@@ -65,7 +62,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </main>
 
       {/* Mobile Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t-2 border-foreground">
         <div className="flex items-center justify-around py-3">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -75,14 +72,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-4 py-2 rounded-lg transition-all duration-200",
+                  "flex flex-col items-center gap-1 px-4 py-2 transition-all duration-200",
                   isActive
-                    ? "text-primary"
+                    ? "text-foreground font-bold"
                     : "text-muted-foreground"
                 )}
               >
                 <Icon className="w-5 h-5" />
-                <span className="text-xs">{item.label}</span>
+                <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>
               </Link>
             );
           })}

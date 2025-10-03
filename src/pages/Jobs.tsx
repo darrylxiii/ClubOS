@@ -147,12 +147,14 @@ const Jobs = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="relative">
-          <div className="absolute -top-4 -right-4 w-32 h-32 bg-gradient-accent blur-3xl opacity-20 rounded-full"></div>
-          <h1 className="text-3xl font-bold mb-2 relative">
-            Elite <span className="text-accent">Opportunities</span>
+        <div className="space-y-4 border-b-2 border-foreground pb-8">
+          <p className="text-caps text-muted-foreground">Curated Roles</p>
+          <h1 className="text-hero">
+            Elite
+            <br />
+            <span className="italic">Opportunities</span>
           </h1>
-          <p className="text-muted-foreground italic">
+          <p className="text-lg text-muted-foreground max-w-2xl">
             Invite-only roles curated exclusively for visionary talent
           </p>
         </div>

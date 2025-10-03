@@ -78,55 +78,49 @@ const Dashboard = () => {
     <Layout>
       <div className="space-y-8">
         {/* Header */}
-        <div className="relative">
-          <div className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-accent blur-3xl opacity-20 rounded-full"></div>
-          <h1 className="text-4xl font-bold mb-2 relative">
-            Welcome back, <span className="text-accent">Alex</span>
+        <div className="space-y-4">
+          <p className="text-caps text-muted-foreground">Welcome back, Alex</p>
+          <h1 className="text-hero">
+            Your Elite
+            <br />
+            Pipeline
           </h1>
-          <p className="text-muted-foreground italic">
+          <p className="text-lg text-muted-foreground max-w-2xl">
             "Success is a luxury reserved for those who turn ambition into action"
           </p>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.title} className="border border-accent/20 bg-gradient-card shadow-glow hover:shadow-lg transition-all duration-300">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                      {stat.title}
-                    </CardTitle>
-                    <div className="p-2 rounded-lg bg-accent/10">
-                      <Icon className="w-4 h-4 text-accent" />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold mb-1 bg-gradient-accent bg-clip-text text-transparent">{stat.value}</div>
-                  <p className="text-xs text-muted-foreground">{stat.trend}</p>
-                </CardContent>
-              </Card>
+              <div key={stat.title} className="border-2 border-foreground p-8 hover:bg-foreground hover:text-background transition-all duration-300 group">
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-caps">{stat.title}</p>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <div className="text-5xl font-black mb-2">{stat.value}</div>
+                <p className="text-sm font-bold">{stat.trend}</p>
+              </div>
             );
           })}
         </div>
 
         {/* Active Applications */}
         <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Elite Opportunities Pipeline</h2>
-            <span className="text-xs text-muted-foreground italic">Click stages for preparation guides</span>
+          <div className="flex items-center justify-between border-b-2 border-foreground pb-4">
+            <h2 className="text-3xl font-black uppercase">Elite Opportunities Pipeline</h2>
+            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Click stages for guides</span>
           </div>
           
           {activeApplications.map((app) => (
             <div key={app.id} className="space-y-4">
               {/* Pipeline Visualization */}
-              <Card className="border border-accent/20 bg-gradient-card shadow-glow">
+              <Card className="border-2 border-foreground bg-background">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <div className="w-1 h-6 bg-gradient-accent rounded-full"></div>
+                  <CardTitle className="text-lg font-black uppercase flex items-center gap-2">
+                    <div className="w-1 h-6 bg-foreground"></div>
                     Application Progress - {app.title}
                   </CardTitle>
                 </CardHeader>
@@ -167,8 +161,8 @@ const Dashboard = () => {
         </div>
 
         {/* AI Chat Section */}
-        <div className="mt-12">
-          <h2 className="text-2xl font-bold mb-6">AI Assistant</h2>
+        <div className="mt-12 border-t-2 border-foreground pt-12">
+          <h2 className="text-3xl font-black uppercase mb-6">AI Assistant</h2>
           <AIChat />
         </div>
       </div>
