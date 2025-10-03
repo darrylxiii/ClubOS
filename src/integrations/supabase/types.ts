@@ -349,6 +349,138 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          is_muted: boolean | null
+          joined_at: string
+          last_read_at: string | null
+          notifications_enabled: boolean | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          is_muted?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          notifications_enabled?: boolean | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          is_muted?: boolean | null
+          joined_at?: string
+          last_read_at?: string | null
+          notifications_enabled?: boolean | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversation_stats: {
+        Row: {
+          avg_response_time_minutes: number | null
+          candidate_messages: number | null
+          conversation_id: string
+          hiring_manager_messages: number | null
+          id: string
+          last_candidate_message_at: string | null
+          last_hiring_manager_message_at: string | null
+          needs_response_reminder: boolean | null
+          strategist_messages: number | null
+          total_messages: number | null
+          updated_at: string
+        }
+        Insert: {
+          avg_response_time_minutes?: number | null
+          candidate_messages?: number | null
+          conversation_id: string
+          hiring_manager_messages?: number | null
+          id?: string
+          last_candidate_message_at?: string | null
+          last_hiring_manager_message_at?: string | null
+          needs_response_reminder?: boolean | null
+          strategist_messages?: number | null
+          total_messages?: number | null
+          updated_at?: string
+        }
+        Update: {
+          avg_response_time_minutes?: number | null
+          candidate_messages?: number | null
+          conversation_id?: string
+          hiring_manager_messages?: number | null
+          id?: string
+          last_candidate_message_at?: string | null
+          last_hiring_manager_message_at?: string | null
+          needs_response_reminder?: boolean | null
+          strategist_messages?: number | null
+          total_messages?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_stats_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: true
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          application_id: string
+          created_at: string
+          id: string
+          last_message_at: string | null
+          metadata: Json | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          metadata?: Json | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          metadata?: Json | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversations_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invite_codes: {
         Row: {
           code: string
@@ -552,6 +684,159 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      message_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          message_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          message_id: string
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          message_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          resource_id: string
+          resource_type: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id: string
+          resource_type: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          resource_id?: string
+          resource_type?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      message_notifications: {
+        Row: {
+          id: string
+          is_read: boolean | null
+          message_id: string
+          notified_at: string
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          is_read?: boolean | null
+          message_id: string
+          notified_at?: string
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          id?: string
+          is_read?: boolean | null
+          message_id?: string
+          notified_at?: string
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_notifications_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          is_read: boolean | null
+          message_type: string
+          metadata: Json | null
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message_type?: string
+          metadata?: Json | null
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          is_read?: boolean | null
+          message_type?: string
+          metadata?: Json | null
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pipeline_feedback: {
         Row: {
