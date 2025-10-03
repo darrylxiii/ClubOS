@@ -8,12 +8,16 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, Loader2 } from "lucide-react";
+import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, Loader2, MapPin, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { CompanySearch } from "@/components/CompanySearch";
 import { useAuth } from "@/contexts/AuthContext";
+import PhoneInput from 'react-phone-number-input';
+import 'react-phone-number-input/style.css';
+import '../styles/phone-input.css';
+import { isValidPhoneNumber } from 'react-phone-number-input';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -73,6 +77,14 @@ const Profile = () => {
   const [connectedCalendars, setConnectedCalendars] = useState<CalendarConnection[]>([]);
   const [calendarLoading, setCalendarLoading] = useState(false);
   const [pendingCalendarLabel, setPendingCalendarLabel] = useState('');
+  
+  // New state for phone verification and location
+  const [phoneNumber, setPhoneNumber] = useState<string>('');
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [cities, setCities] = useState<Array<{ id: string; name: string; country: string }>>([]);
+  const [preferredWorkLocations, setPreferredWorkLocations] = useState<string[]>([]);
+  const [remoteWorkPreference, setRemoteWorkPreference] = useState(false);
+  const [selectedCity, setSelectedCity] = useState('');
 
   // Auto-save function
   const saveProfile = useCallback(async () => {
@@ -86,7 +98,8 @@ const Profile = () => {
         .from('profiles')
         .update({
           full_name: fullName,
-          phone: profileData.phone,
+          phone: phoneNumber,
+          phone_verified: phoneVerified,
           location: profileData.location,
           current_title: profileData.currentTitle,
           linkedin_url: profileData.linkedin,
@@ -98,6 +111,8 @@ const Profile = () => {
           desired_salary_max: desiredSalaryRange[1],
           blocked_companies: blockedCompanies,
           privacy_settings: privacySettings,
+          preferred_work_locations: preferredWorkLocations,
+          remote_work_preference: remoteWorkPreference,
         })
         .eq('id', user.id);
 
@@ -116,7 +131,7 @@ const Profile = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings]);
+  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference]);
 
   // Debounced auto-save
   const debouncedSave = useCallback(() => {
@@ -216,6 +231,38 @@ const Profile = () => {
     return Object.values(privacySettings).filter(Boolean).length;
   };
 
+  const handlePhoneChange = (value: string | undefined) => {
+    setPhoneNumber(value || '');
+    if (value && isValidPhoneNumber(value)) {
+      setPhoneVerified(true);
+      toast.success('Phone number is valid');
+    } else {
+      setPhoneVerified(false);
+    }
+    debouncedSave();
+  };
+
+  const handleAddPreferredLocation = () => {
+    if (selectedCity && !preferredWorkLocations.includes(selectedCity)) {
+      const newLocations = [...preferredWorkLocations, selectedCity];
+      setPreferredWorkLocations(newLocations);
+      setSelectedCity('');
+      toast.success('Location added to preferences');
+      debouncedSave();
+    }
+  };
+
+  const handleRemovePreferredLocation = (location: string) => {
+    setPreferredWorkLocations(preferredWorkLocations.filter(loc => loc !== location));
+    toast.success('Location removed from preferences');
+    debouncedSave();
+  };
+
+  const handleRemoteToggle = () => {
+    setRemoteWorkPreference(!remoteWorkPreference);
+    debouncedSave();
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setResume(e.target.files[0]);
@@ -284,7 +331,8 @@ const Profile = () => {
           .from('profiles')
           .update({
             full_name: `${profileData.firstName} ${profileData.lastName}`.trim(),
-            phone: profileData.phone,
+            phone: phoneNumber,
+            phone_verified: phoneVerified,
             location: profileData.location,
             current_title: profileData.currentTitle,
             linkedin_url: profileData.linkedin,
@@ -296,6 +344,8 @@ const Profile = () => {
             desired_salary_max: desiredSalaryRange[1],
             blocked_companies: blockedCompanies,
             privacy_settings: privacySettings,
+            preferred_work_locations: preferredWorkLocations,
+            remote_work_preference: remoteWorkPreference,
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id);
@@ -321,7 +371,7 @@ const Profile = () => {
 
     const debounceTimer = setTimeout(saveProfile, 1000);
     return () => clearTimeout(debounceTimer);
-  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, user]);
+  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, user]);
 
   // Load profile data from database
   useEffect(() => {
@@ -369,11 +419,43 @@ const Profile = () => {
           if (data.privacy_settings) {
             setPrivacySettings(data.privacy_settings as any);
           }
+
+          // Load new fields
+          if (data.phone) {
+            setPhoneNumber(data.phone);
+          }
+          if (data.phone_verified) {
+            setPhoneVerified(data.phone_verified);
+          }
+          if (data.preferred_work_locations) {
+            setPreferredWorkLocations(data.preferred_work_locations as string[]);
+          }
+          if (data.remote_work_preference !== undefined) {
+            setRemoteWorkPreference(data.remote_work_preference);
+          }
         }
       } catch (error) {
         console.error('Error loading profile:', error);
       } finally {
         setIsLoading(false);
+      }
+    };
+
+    // Load cities from database
+    const loadCities = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('cities')
+          .select('id, name, country')
+          .eq('is_active', true)
+          .order('name');
+
+        if (error) throw error;
+        if (data) {
+          setCities(data);
+        }
+      } catch (error) {
+        console.error('Error loading cities:', error);
       }
     };
 
@@ -389,6 +471,7 @@ const Profile = () => {
     }
 
     loadProfile();
+    loadCities();
   }, [user]);
 
   const handleConnectCalendar = async (provider: 'google' | 'microsoft') => {
@@ -614,28 +697,153 @@ const Profile = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={profileData.phone}
-                    onChange={handleInputChange}
-                    className="bg-background/50"
-                  />
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <div className="relative">
+                    <PhoneInput
+                      international
+                      defaultCountry="US"
+                      value={phoneNumber}
+                      onChange={handlePhoneChange}
+                      className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    />
+                    {phoneNumber && (
+                      <div className="mt-2 flex items-center gap-2">
+                        {phoneVerified ? (
+                          <>
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                            <span className="text-xs text-green-500">Valid phone number</span>
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="w-4 h-4 text-destructive" />
+                            <span className="text-xs text-destructive">Invalid phone number</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  name="location"
-                  value={profileData.location}
-                  onChange={handleInputChange}
-                  placeholder="City, Country"
-                  className="bg-background/50"
+                <Label htmlFor="location">Current Location</Label>
+                <Select value={profileData.location} onValueChange={(value) => {
+                  setProfileData({ ...profileData, location: value });
+                  debouncedSave();
+                }}>
+                  <SelectTrigger className="bg-background/50">
+                    <SelectValue placeholder="Select your current location" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {cities.map((city) => (
+                      <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
+                        {city.name}, {city.country}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Preferred Work Locations */}
+          <Card id="work-locations" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="w-5 h-5 text-accent" />
+                Preferred Work Locations
+              </CardTitle>
+              <CardDescription>
+                Specify where you'd like to work - add multiple cities or toggle remote
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Remote Toggle */}
+              <div className="flex items-center justify-between p-4 border-2 border-accent/20 rounded-lg bg-accent/5">
+                <div className="flex items-center gap-3">
+                  <Globe className="w-5 h-5 text-accent" />
+                  <div>
+                    <Label htmlFor="remoteWork" className="text-base font-semibold cursor-pointer">
+                      Open to Remote Work
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Work from anywhere in the world
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  id="remoteWork"
+                  checked={remoteWorkPreference}
+                  onCheckedChange={handleRemoteToggle}
                 />
+              </div>
+
+              {/* City Selection */}
+              <div className="space-y-3">
+                <Label>Add Preferred Cities</Label>
+                <div className="flex gap-2">
+                  <Select value={selectedCity} onValueChange={setSelectedCity}>
+                    <SelectTrigger className="bg-background/50">
+                      <SelectValue placeholder="Select a city" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {cities
+                        .filter(city => !preferredWorkLocations.includes(`${city.name}, ${city.country}`))
+                        .map((city) => (
+                          <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
+                            {city.name}, {city.country}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    onClick={handleAddPreferredLocation}
+                    disabled={!selectedCity}
+                    className="bg-accent text-background hover:bg-accent/90"
+                  >
+                    Add
+                  </Button>
+                </div>
+              </div>
+
+              {/* Selected Locations */}
+              {preferredWorkLocations.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Selected Locations:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {preferredWorkLocations.map((location) => (
+                      <div
+                        key={location}
+                        className="flex items-center gap-2 px-3 py-2 bg-accent/10 border border-accent/20 rounded-lg group hover:bg-accent/20 transition-colors"
+                      >
+                        <MapPin className="w-4 h-4 text-accent" />
+                        <span className="text-sm font-medium">{location}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemovePreferredLocation(location)}
+                          className="text-accent hover:text-accent/80 transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8 border-2 border-dashed border-border rounded-lg">
+                  <MapPin className="w-12 h-12 mx-auto mb-3 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    No preferred locations added yet. {remoteWorkPreference ? 'Remote work is enabled.' : 'Add cities or enable remote work.'}
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-4 p-4 bg-accent/5 border border-accent/20 rounded-lg">
+                <p className="text-xs text-muted-foreground">
+                  <strong>Note:</strong> Adding preferred locations helps us match you with opportunities in areas where you'd like to work. 
+                  Enable remote work to see opportunities from anywhere.
+                </p>
               </div>
             </CardContent>
           </Card>

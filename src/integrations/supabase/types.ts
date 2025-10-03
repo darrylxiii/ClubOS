@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      cities: {
+        Row: {
+          country: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          region: string | null
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          region?: string | null
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          region?: string | null
+        }
+        Relationships: []
+      }
       closed_pipelines: {
         Row: {
           application_id: string
@@ -239,7 +266,10 @@ export type Database = {
           location: string | null
           notice_period: string | null
           phone: string | null
+          phone_verified: boolean | null
+          preferred_work_locations: Json | null
           privacy_settings: Json | null
+          remote_work_preference: boolean | null
           resume_url: string | null
           updated_at: string | null
         }
@@ -260,7 +290,10 @@ export type Database = {
           location?: string | null
           notice_period?: string | null
           phone?: string | null
+          phone_verified?: boolean | null
+          preferred_work_locations?: Json | null
           privacy_settings?: Json | null
+          remote_work_preference?: boolean | null
           resume_url?: string | null
           updated_at?: string | null
         }
@@ -281,7 +314,10 @@ export type Database = {
           location?: string | null
           notice_period?: string | null
           phone?: string | null
+          phone_verified?: boolean | null
+          preferred_work_locations?: Json | null
           privacy_settings?: Json | null
+          remote_work_preference?: boolean | null
           resume_url?: string | null
           updated_at?: string | null
         }
