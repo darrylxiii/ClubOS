@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMessages } from '@/hooks/useMessages';
 import { AppLayout } from '@/components/AppLayout';
 import { Card } from '@/components/ui/card';
@@ -9,7 +9,12 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { MessageSquare, Search, Send, Paperclip, Phone, Video, MoreVertical, ArrowLeft, Bot } from 'lucide-react';
+import { MessageSquare, Search, Send, Paperclip, Phone, Video, MoreVertical, ArrowLeft, Bot, Pin, Archive } from 'lucide-react';
+import { MessageReactions } from '@/components/messages/MessageReactions';
+import { MessageEditor } from '@/components/messages/MessageEditor';
+import { ThreadView } from '@/components/messages/ThreadView';
+import { MessageTemplates } from '@/components/messages/MessageTemplates';
+import { MessageActions } from '@/components/messages/MessageActions';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
@@ -21,6 +26,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { toast as sonnerToast } from 'sonner';
 
 export default function Messages() {
   const { user } = useAuth();
@@ -29,6 +35,10 @@ export default function Messages() {
   const [messageInput, setMessageInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [threadParentId, setThreadParentId] = useState<string | null>(null);
+  const [threadOpen, setThreadOpen] = useState(false);
+  const [reactions, setReactions] = useState<Record<string, any[]>>({});
 
   // Load conversations for inbox view
   const { conversations, loading: loadingConversations } = useMessages();
@@ -39,6 +49,58 @@ export default function Messages() {
   );
 
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId);
+
+  useEffect(() => {
+    if (selectedConversationId && messages.length > 0) {
+      loadReactionsForMessages();
+    }
+  }, [selectedConversationId, messages]);
+
+  const loadReactionsForMessages = async () => {
+    const messageIds = messages.map(m => m.id);
+    const { data } = await supabase
+      .from('message_reactions')
+      .select('*')
+      .in('message_id', messageIds);
+
+    const grouped = (data || []).reduce((acc, reaction) => {
+      if (!acc[reaction.message_id]) {
+        acc[reaction.message_id] = [];
+      }
+      acc[reaction.message_id].push(reaction);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    setReactions(grouped);
+  };
+
+  const togglePin = async () => {
+    if (!selectedConversation) return;
+    
+    await supabase
+      .from('conversations')
+      .update({
+        is_pinned: !selectedConversation.is_pinned,
+        pinned_at: !selectedConversation.is_pinned ? new Date().toISOString() : null,
+      })
+      .eq('id', selectedConversationId);
+
+    sonnerToast.success(selectedConversation.is_pinned ? 'Unpinned' : 'Pinned');
+  };
+
+  const toggleArchive = async () => {
+    if (!selectedConversation) return;
+    
+    await supabase
+      .from('conversations')
+      .update({
+        archived_at: selectedConversation.archived_at ? null : new Date().toISOString(),
+      })
+      .eq('id', selectedConversationId);
+
+    sonnerToast.success(selectedConversation.archived_at ? 'Unarchived' : 'Archived');
+    setSelectedConversationId(null);
+  };
 
   const handleSend = async () => {
     if (!messageInput.trim() && attachments.length === 0) return;
@@ -225,8 +287,15 @@ export default function Messages() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={togglePin}>
+                    <Pin className="h-4 w-4 mr-2" />
+                    {selectedConversation?.is_pinned ? 'Unpin' : 'Pin'} conversation
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={toggleArchive}>
+                    <Archive className="h-4 w-4 mr-2" />
+                    Archive conversation
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Mute notifications</DropdownMenuItem>
-                  <DropdownMenuItem>Archive conversation</DropdownMenuItem>
                   <DropdownMenuItem className="text-destructive">
                     Close conversation
                   </DropdownMenuItem>
@@ -251,12 +320,14 @@ export default function Messages() {
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((message) => {
+                {messages.filter(m => !m.deleted_at).map((message) => {
                   const isOwnMessage = message.sender_id === user?.id;
+                  const isEditing = editingMessageId === message.id;
+                  
                   return (
                     <div
                       key={message.id}
-                      className={cn('flex gap-3', isOwnMessage && 'flex-row-reverse')}
+                      className={cn('flex gap-3 group', isOwnMessage && 'flex-row-reverse')}
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={message.sender?.avatar_url || undefined} />
@@ -264,40 +335,92 @@ export default function Messages() {
                           {message.sender?.full_name?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
-                      <div
-                        className={cn(
-                          'rounded-lg p-3 max-w-[70%]',
-                          isOwnMessage
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted',
-                          message.message_type === 'ai_generated' && 'border-2 border-primary/30'
-                        )}
-                      >
-                        {message.message_type === 'ai_generated' && (
-                          <div className="flex items-center gap-1 text-xs mb-1 opacity-70">
-                            <Bot className="h-3 w-3" />
-                            <span>AI Generated</span>
-                          </div>
-                        )}
-                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                        {message.attachments && message.attachments.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {message.attachments.map((att) => (
-                              <div
-                                key={att.id}
-                                className="text-xs opacity-70 flex items-center gap-1"
-                              >
-                                <Paperclip className="h-3 w-3" />
-                                {att.file_name}
+                      <div className="flex-1 max-w-[70%]">
+                        {isEditing ? (
+                          <MessageEditor
+                            messageId={message.id}
+                            currentContent={message.content}
+                            onSave={() => {
+                              setEditingMessageId(null);
+                              // Reload messages to show the update
+                              window.location.reload();
+                            }}
+                            onCancel={() => setEditingMessageId(null)}
+                          />
+                        ) : (
+                          <>
+                            <div
+                              className={cn(
+                                'rounded-lg p-3',
+                                isOwnMessage
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-muted',
+                                message.message_type === 'ai_generated' && 'border-2 border-primary/30'
+                              )}
+                            >
+                              {message.message_type === 'ai_generated' && (
+                                <div className="flex items-center gap-1 text-xs mb-1 opacity-70">
+                                  <Bot className="h-3 w-3" />
+                                  <span>AI Generated</span>
+                                </div>
+                              )}
+                              <div className="flex items-start justify-between gap-2">
+                                <p className="text-sm whitespace-pre-wrap flex-1">{message.content}</p>
+                                <MessageActions
+                                  message={message}
+                                  isOwnMessage={isOwnMessage}
+                                  onEdit={() => setEditingMessageId(message.id)}
+                                  onReply={() => {
+                                    setThreadParentId(message.id);
+                                    setThreadOpen(true);
+                                  }}
+                                  onDelete={() => window.location.reload()}
+                                />
                               </div>
-                            ))}
-                          </div>
+                              {message.attachments && message.attachments.length > 0 && (
+                                <div className="mt-2 space-y-1">
+                                  {message.attachments.map((att) => (
+                                    <div
+                                      key={att.id}
+                                      className="text-xs opacity-70 flex items-center gap-1"
+                                    >
+                                      <Paperclip className="h-3 w-3" />
+                                      {att.file_name}
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              <div className={cn('text-xs mt-1 flex items-center gap-2', isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                                <span>
+                                  {formatDistanceToNow(new Date(message.created_at), {
+                                    addSuffix: true,
+                                  })}
+                                </span>
+                                {message.edited_at && <span>(edited)</span>}
+                                {message.reply_count > 0 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-5 px-2 text-xs"
+                                    onClick={() => {
+                                      setThreadParentId(message.id);
+                                      setThreadOpen(true);
+                                    }}
+                                  >
+                                    {message.reply_count} {message.reply_count === 1 ? 'reply' : 'replies'}
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                            {reactions[message.id] && (
+                              <MessageReactions
+                                messageId={message.id}
+                                reactions={reactions[message.id]}
+                                onReactionsChange={loadReactionsForMessages}
+                              />
+                            )}
+                          </>
                         )}
-                        <div className={cn('text-xs mt-1', isOwnMessage ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                          {formatDistanceToNow(new Date(message.created_at), {
-                            addSuffix: true,
-                          })}
-                        </div>
                       </div>
                     </div>
                   );
@@ -307,9 +430,15 @@ export default function Messages() {
           </ScrollArea>
 
           {/* Input */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t space-y-2">
+            <div className="flex gap-2">
+              <MessageTemplates
+                onSelectTemplate={(content) => setMessageInput(content)}
+                companyId={selectedConversation?.application?.company_name}
+              />
+            </div>
             {attachments.length > 0 && (
-              <div className="mb-2 flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2">
                 {attachments.map((file, idx) => (
                   <Badge key={idx} variant="secondary">
                     {file.name}
@@ -361,6 +490,13 @@ export default function Messages() {
               </div>
             </div>
           </div>
+
+          <ThreadView
+            parentMessageId={threadParentId}
+            conversationId={selectedConversationId || ''}
+            open={threadOpen}
+            onOpenChange={setThreadOpen}
+          />
         </Card>
       </div>
     </AppLayout>

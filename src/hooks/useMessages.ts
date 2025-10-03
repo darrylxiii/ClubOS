@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 export interface Message {
   id: string;
@@ -13,6 +13,10 @@ export interface Message {
   metadata: any;
   created_at: string;
   updated_at: string;
+  parent_message_id?: string | null;
+  reply_count?: number;
+  deleted_at?: string | null;
+  edited_at?: string | null;
   sender?: {
     full_name: string | null;
     avatar_url: string | null;
@@ -39,6 +43,9 @@ export interface Conversation {
   created_at: string;
   updated_at: string;
   metadata: any;
+  is_pinned?: boolean;
+  pinned_at?: string | null;
+  archived_at?: string | null;
   application?: {
     company_name: string;
     position: string;
@@ -65,7 +72,6 @@ export interface ConversationParticipant {
 
 export const useMessages = (conversationId?: string) => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,15 +134,11 @@ export const useMessages = (conversationId?: string) => {
       setConversations(conversationsWithDetails as unknown as Conversation[]);
     } catch (error: any) {
       console.error('Error loading conversations:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load conversations',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load conversations');
     } finally {
       setLoading(false);
     }
-  }, [user?.id, toast]);
+  }, [user?.id]);
 
   // Load messages for a specific conversation
   const loadMessages = useCallback(async () => {
@@ -165,15 +167,11 @@ export const useMessages = (conversationId?: string) => {
         .in('message_id', (data || []).map((m) => m.id));
     } catch (error: any) {
       console.error('Error loading messages:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load messages',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load messages');
     } finally {
       setLoading(false);
     }
-  }, [conversationId, user?.id, toast]);
+  }, [conversationId, user?.id]);
 
   // Send a new message
   const sendMessage = useCallback(
@@ -218,22 +216,17 @@ export const useMessages = (conversationId?: string) => {
           }
         }
 
-        toast({
-          title: 'Message sent',
+        toast.success('Message sent', {
           description: 'Your message has been delivered',
         });
       } catch (error: any) {
         console.error('Error sending message:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to send message',
-          variant: 'destructive',
-        });
+        toast.error('Failed to send message');
       } finally {
         setSending(false);
       }
     },
-    [conversationId, user?.id, toast]
+    [conversationId, user?.id]
   );
 
   // Subscribe to real-time updates
