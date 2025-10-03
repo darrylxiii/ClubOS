@@ -4,6 +4,7 @@ import { CreatePost } from "@/components/feed/CreatePost";
 import { PostCard } from "@/components/feed/PostCard";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AppLayout } from "@/components/AppLayout";
 
 export default function Feed() {
   const { user } = useAuth();
@@ -37,8 +38,8 @@ export default function Feed() {
         .from('posts')
         .select(`
           *,
-          profiles:user_id(full_name, avatar_url, current_title),
-          companies:company_id(name, logo_url),
+          profiles!posts_user_id_fkey(full_name, avatar_url, current_title),
+          companies!posts_company_id_fkey(name, logo_url),
           post_likes(user_id),
           post_comments(id)
         `)
@@ -54,7 +55,7 @@ export default function Feed() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <AppLayout>
       <div className="max-w-3xl mx-auto py-8 px-4">
         {user && <CreatePost onPostCreated={fetchPosts} />}
         
@@ -80,6 +81,6 @@ export default function Feed() {
           )}
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
