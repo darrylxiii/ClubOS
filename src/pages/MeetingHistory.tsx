@@ -4,13 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Video, Calendar, Clock, Building2, Search, Play, Download, FileText, Tag } from "lucide-react";
+import { Video, Calendar, Clock, Building2, Upload, Search, Filter, Play, Download, Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { format } from "date-fns";
-import { UploadMeetingRecording } from "@/components/UploadMeetingRecording";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 
 interface MeetingRecording {
   id: string;
@@ -33,12 +35,23 @@ const MeetingHistory = () => {
   const { user } = useAuth();
   const [recordings, setRecordings] = useState<MeetingRecording[]>([]);
   const [filteredRecordings, setFilteredRecordings] = useState<MeetingRecording[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedType, setSelectedType] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedRecording, setSelectedRecording] = useState<MeetingRecording | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<string>("all");
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  const meetingTypes = ['screening', 'technical', 'behavioral', 'final', 'other'];
+  // Upload form state
+  const [uploadForm, setUploadForm] = useState({
+    title: "",
+    description: "",
+    company_name: "",
+    position: "",
+    meeting_date: new Date().toISOString().split('T')[0],
+    meeting_type: "technical",
+    notes: "",
+  });
 
   useEffect(() => {
     loadRecordings();
@@ -46,12 +59,13 @@ const MeetingHistory = () => {
 
   useEffect(() => {
     filterRecordings();
-  }, [searchQuery, selectedType, recordings]);
+  }, [recordings, searchQuery, filterType]);
 
   const loadRecordings = async () => {
     if (!user) return;
 
     try {
+      setIsLoading(true);
       const { data, error } = await supabase
         .from('meeting_recordings')
         .select('*')
@@ -59,7 +73,6 @@ const MeetingHistory = () => {
         .order('meeting_date', { ascending: false });
 
       if (error) throw error;
-
       setRecordings(data || []);
     } catch (error) {
       console.error('Error loading recordings:', error);
@@ -70,27 +83,141 @@ const MeetingHistory = () => {
   };
 
   const filterRecordings = () => {
-    let filtered = [...recordings];
+    let filtered = recordings;
 
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(rec =>
-        rec.title.toLowerCase().includes(query) ||
-        rec.company_name?.toLowerCase().includes(query) ||
-        rec.position?.toLowerCase().includes(query) ||
-        rec.description?.toLowerCase().includes(query)
-      );
+    // Apply type filter
+    if (filterType !== "all") {
+      filtered = filtered.filter(r => r.meeting_type === filterType);
     }
 
-    if (selectedType) {
-      filtered = filtered.filter(rec => rec.meeting_type === selectedType);
+    // Apply search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(r =>
+        r.title.toLowerCase().includes(query) ||
+        r.company_name?.toLowerCase().includes(query) ||
+        r.position?.toLowerCase().includes(query) ||
+        r.notes?.toLowerCase().includes(query)
+      );
     }
 
     setFilteredRecordings(filtered);
   };
 
+  const handleFileUpload = async () => {
+    if (!user || !uploadFile) {
+      toast.error('Please select a file to upload');
+      return;
+    }
+
+    if (!uploadForm.title) {
+      toast.error('Please enter a title for the recording');
+      return;
+    }
+
+    try {
+      setUploadProgress(10);
+      
+      // Upload file to storage
+      const fileExt = uploadFile.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      setUploadProgress(30);
+      
+      const { error: uploadError } = await supabase.storage
+        .from('meeting-recordings')
+        .upload(fileName, uploadFile);
+
+      if (uploadError) throw uploadError;
+
+      setUploadProgress(60);
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('meeting-recordings')
+        .getPublicUrl(fileName);
+
+      setUploadProgress(80);
+
+      // Create database record
+      const { error: dbError } = await supabase
+        .from('meeting_recordings')
+        .insert({
+          user_id: user.id,
+          title: uploadForm.title,
+          description: uploadForm.description,
+          company_name: uploadForm.company_name,
+          position: uploadForm.position,
+          meeting_date: new Date(uploadForm.meeting_date).toISOString(),
+          meeting_type: uploadForm.meeting_type,
+          recording_url: publicUrl,
+          notes: uploadForm.notes,
+        });
+
+      if (dbError) throw dbError;
+
+      setUploadProgress(100);
+      toast.success('Recording uploaded successfully!');
+      setIsUploadOpen(false);
+      setUploadFile(null);
+      setUploadForm({
+        title: "",
+        description: "",
+        company_name: "",
+        position: "",
+        meeting_date: new Date().toISOString().split('T')[0],
+        meeting_type: "technical",
+        notes: "",
+      });
+      loadRecordings();
+    } catch (error) {
+      console.error('Error uploading recording:', error);
+      toast.error('Failed to upload recording');
+    } finally {
+      setUploadProgress(0);
+    }
+  };
+
+  const deleteRecording = async (id: string, recordingUrl: string | null) => {
+    if (!confirm('Are you sure you want to delete this recording?')) return;
+
+    try {
+      // Delete from storage if URL exists
+      if (recordingUrl) {
+        const path = recordingUrl.split('/meeting-recordings/')[1];
+        if (path) {
+          await supabase.storage
+            .from('meeting-recordings')
+            .remove([path]);
+        }
+      }
+
+      // Delete from database
+      const { error } = await supabase
+        .from('meeting_recordings')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast.success('Recording deleted successfully');
+      loadRecordings();
+    } catch (error) {
+      console.error('Error deleting recording:', error);
+      toast.error('Failed to delete recording');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
   const formatDuration = (minutes: number | null) => {
-    if (!minutes) return 'N/A';
+    if (!minutes) return "N/A";
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
@@ -98,267 +225,313 @@ const MeetingHistory = () => {
 
   const getMeetingTypeColor = (type: string | null) => {
     switch (type) {
-      case 'screening': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
-      case 'technical': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
-      case 'behavioral': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'final': return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-      default: return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+      case 'screening': return 'bg-blue-500';
+      case 'technical': return 'bg-purple-500';
+      case 'behavioral': return 'bg-green-500';
+      case 'final': return 'bg-yellow-500';
+      default: return 'bg-gray-500';
     }
-  };
-
-  const getTotalInterviewTime = () => {
-    return recordings.reduce((total, rec) => total + (rec.duration_minutes || 0), 0);
   };
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto py-8 px-4">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Interview Recordings</h1>
-            <p className="text-muted-foreground">
-              Review all your interview sessions and track your progress
-            </p>
-          </div>
-          <UploadMeetingRecording onUploadComplete={loadRecordings} />
+      <div className="max-w-7xl mx-auto py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold mb-2">Meeting Recordings</h1>
+          <p className="text-muted-foreground">
+            Access and review all your interview recordings in one place
+          </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Video className="w-8 h-8 text-accent" />
-                <div>
-                  <p className="text-2xl font-bold">{recordings.length}</p>
-                  <p className="text-xs text-muted-foreground">Total Recordings</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Clock className="w-8 h-8 text-accent" />
-                <div>
-                  <p className="text-2xl font-bold">{formatDuration(getTotalInterviewTime())}</p>
-                  <p className="text-xs text-muted-foreground">Total Interview Time</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Building2 className="w-8 h-8 text-accent" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {new Set(recordings.map(r => r.company_name).filter(Boolean)).size}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Companies</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <Calendar className="w-8 h-8 text-accent" />
-                <div>
-                  <p className="text-2xl font-bold">
-                    {recordings.length > 0 
-                      ? format(new Date(recordings[0].meeting_date), 'MMM d')
-                      : 'N/A'
-                    }
-                  </p>
-                  <p className="text-xs text-muted-foreground">Latest Interview</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filters */}
+        {/* Filters and Search */}
         <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm mb-6">
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by company, position, or title..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by title, company, or position..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
-              
-              <div className="flex gap-2 flex-wrap">
-                <Button
-                  variant={selectedType === null ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedType(null)}
-                >
-                  All
-                </Button>
-                {meetingTypes.map((type) => (
-                  <Button
-                    key={type}
-                    variant={selectedType === type ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedType(type)}
-                    className="capitalize"
-                  >
-                    {type}
-                  </Button>
-                ))}
+              <div className="flex gap-2">
+                <Select value={filterType} onValueChange={setFilterType}>
+                  <SelectTrigger>
+                    <Filter className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Filter by type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="screening">Screening</SelectItem>
+                    <SelectItem value="technical">Technical</SelectItem>
+                    <SelectItem value="behavioral">Behavioral</SelectItem>
+                    <SelectItem value="final">Final Round</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="bg-gradient-accent text-background">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Upload
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Upload Meeting Recording</DialogTitle>
+                      <DialogDescription>
+                        Add a new interview recording to your library
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="file">Recording File</Label>
+                        <Input
+                          id="file"
+                          type="file"
+                          accept="video/*,audio/*"
+                          onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                          className="cursor-pointer"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Supported formats: MP4, WebM, QuickTime, MP3, WAV (Max 500MB)
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="title">Title *</Label>
+                          <Input
+                            id="title"
+                            value={uploadForm.title}
+                            onChange={(e) => setUploadForm({ ...uploadForm, title: e.target.value })}
+                            placeholder="e.g., Technical Interview with Google"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="meeting_date">Meeting Date</Label>
+                          <Input
+                            id="meeting_date"
+                            type="date"
+                            value={uploadForm.meeting_date}
+                            onChange={(e) => setUploadForm({ ...uploadForm, meeting_date: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="company_name">Company</Label>
+                          <Input
+                            id="company_name"
+                            value={uploadForm.company_name}
+                            onChange={(e) => setUploadForm({ ...uploadForm, company_name: e.target.value })}
+                            placeholder="e.g., Google"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="position">Position</Label>
+                          <Input
+                            id="position"
+                            value={uploadForm.position}
+                            onChange={(e) => setUploadForm({ ...uploadForm, position: e.target.value })}
+                            placeholder="e.g., Senior Software Engineer"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="meeting_type">Interview Type</Label>
+                        <Select
+                          value={uploadForm.meeting_type}
+                          onValueChange={(value) => setUploadForm({ ...uploadForm, meeting_type: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="screening">Screening</SelectItem>
+                            <SelectItem value="technical">Technical</SelectItem>
+                            <SelectItem value="behavioral">Behavioral</SelectItem>
+                            <SelectItem value="final">Final Round</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="description">Description</Label>
+                        <Textarea
+                          id="description"
+                          value={uploadForm.description}
+                          onChange={(e) => setUploadForm({ ...uploadForm, description: e.target.value })}
+                          placeholder="Brief description of the interview..."
+                          rows={2}
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="notes">Notes</Label>
+                        <Textarea
+                          id="notes"
+                          value={uploadForm.notes}
+                          onChange={(e) => setUploadForm({ ...uploadForm, notes: e.target.value })}
+                          placeholder="Any additional notes or observations..."
+                          rows={3}
+                        />
+                      </div>
+
+                      {uploadProgress > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Uploading...</span>
+                            <span>{uploadProgress}%</span>
+                          </div>
+                          <div className="w-full bg-muted rounded-full h-2">
+                            <div
+                              className="bg-accent h-2 rounded-full transition-all"
+                              style={{ width: `${uploadProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      <Button
+                        onClick={handleFileUpload}
+                        disabled={!uploadFile || uploadProgress > 0}
+                        className="w-full"
+                      >
+                        <Upload className="w-4 h-4 mr-2" />
+                        Upload Recording
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Recordings List */}
+        {/* Recordings Grid */}
         {isLoading ? (
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-            <CardContent className="py-12 text-center">
-              <p className="text-muted-foreground">Loading recordings...</p>
-            </CardContent>
-          </Card>
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Loading recordings...</p>
+          </div>
         ) : filteredRecordings.length === 0 ? (
           <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-            <CardContent className="py-12 text-center">
+            <CardContent className="text-center py-12">
               <Video className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold mb-2">No Recordings Found</h3>
+              <h3 className="text-lg font-semibold mb-2">No Recordings Yet</h3>
               <p className="text-muted-foreground mb-4">
-                {searchQuery || selectedType
-                  ? "Try adjusting your filters"
-                  : "Your interview recordings will appear here once they're uploaded"}
+                {searchQuery || filterType !== "all"
+                  ? "No recordings match your search criteria"
+                  : "Upload your first interview recording to get started"}
               </p>
+              <Button onClick={() => setIsUploadOpen(true)} className="bg-gradient-accent text-background">
+                <Plus className="w-4 h-4 mr-2" />
+                Upload Recording
+              </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecordings.map((recording) => (
-              <Card
-                key={recording.id}
-                className="border-0 shadow-glow bg-card/50 backdrop-blur-sm hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => setSelectedRecording(recording)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-start gap-4">
-                    {/* Thumbnail */}
-                    <div className="w-32 h-20 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                      {recording.thumbnail_url ? (
-                        <img 
-                          src={recording.thumbnail_url} 
-                          alt={recording.title}
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      ) : (
-                        <Video className="w-8 h-8 text-muted-foreground" />
-                      )}
+              <Card key={recording.id} className="border-0 shadow-glow bg-card/50 backdrop-blur-sm overflow-hidden">
+                <div className="aspect-video bg-muted relative">
+                  {recording.thumbnail_url ? (
+                    <img src={recording.thumbnail_url} alt={recording.title} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Video className="w-12 h-12 text-muted-foreground" />
                     </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4 mb-2">
-                        <div>
-                          <h3 className="font-semibold text-lg mb-1">{recording.title}</h3>
-                          <div className="flex items-center gap-3 text-sm text-muted-foreground mb-2">
-                            {recording.company_name && (
-                              <span className="flex items-center gap-1">
-                                <Building2 className="w-4 h-4" />
-                                {recording.company_name}
-                              </span>
-                            )}
-                            {recording.position && (
-                              <span>• {recording.position}</span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {recording.meeting_type && (
-                          <Badge 
-                            variant="outline" 
-                            className={`capitalize ${getMeetingTypeColor(recording.meeting_type)}`}
-                          >
-                            {recording.meeting_type}
-                          </Badge>
-                        )}
+                  )}
+                  {recording.meeting_type && (
+                    <Badge className={`absolute top-2 right-2 ${getMeetingTypeColor(recording.meeting_type)}`}>
+                      {recording.meeting_type}
+                    </Badge>
+                  )}
+                </div>
+                <CardHeader>
+                  <CardTitle className="text-lg line-clamp-1">{recording.title}</CardTitle>
+                  {recording.company_name && (
+                    <CardDescription className="flex items-center gap-1">
+                      <Building2 className="w-3 h-3" />
+                      {recording.company_name}
+                      {recording.position && ` - ${recording.position}`}
+                    </CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {recording.description && (
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {recording.description}
+                    </p>
+                  )}
+                  
+                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      {formatDate(recording.meeting_date)}
+                    </div>
+                    {recording.duration_minutes && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {formatDuration(recording.duration_minutes)}
                       </div>
-
-                      {recording.description && (
-                        <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-                          {recording.description}
-                        </p>
-                      )}
-
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="flex items-center gap-1 text-muted-foreground">
-                          <Calendar className="w-4 h-4" />
-                          {format(new Date(recording.meeting_date), 'MMM d, yyyy')}
-                        </span>
-                        {recording.duration_minutes && (
-                          <span className="flex items-center gap-1 text-muted-foreground">
-                            <Clock className="w-4 h-4" />
-                            {formatDuration(recording.duration_minutes)}
-                          </span>
-                        )}
-                        {recording.tags && recording.tags.length > 0 && (
-                          <div className="flex items-center gap-1">
-                            <Tag className="w-4 h-4 text-muted-foreground" />
-                            {recording.tags.slice(0, 2).map((tag, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {recording.tags.length > 2 && (
-                              <span className="text-xs text-muted-foreground">
-                                +{recording.tags.length - 2}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex flex-col gap-2">
-                      {recording.recording_url ? (
-                        <>
-                          <Button size="sm" className="gap-2">
-                            <Play className="w-4 h-4" />
-                            Play
-                          </Button>
-                          <Button size="sm" variant="outline" className="gap-2">
-                            <Download className="w-4 h-4" />
-                            Download
-                          </Button>
-                        </>
-                      ) : (
-                        <Badge variant="outline" className="text-xs">
-                          Processing
-                        </Badge>
-                      )}
-                    </div>
+                    )}
                   </div>
 
                   {recording.notes && (
                     <>
-                      <Separator className="my-4" />
-                      <div className="flex items-start gap-2">
-                        <FileText className="w-4 h-4 text-muted-foreground mt-1" />
-                        <div>
-                          <p className="text-sm font-medium mb-1">Notes</p>
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {recording.notes}
-                          </p>
-                        </div>
+                      <Separator />
+                      <div>
+                        <p className="text-xs font-semibold mb-1">Notes:</p>
+                        <p className="text-xs text-muted-foreground line-clamp-3">
+                          {recording.notes}
+                        </p>
                       </div>
                     </>
                   )}
+
+                  <div className="flex gap-2">
+                    {recording.recording_url && (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => window.open(recording.recording_url!, '_blank')}
+                        >
+                          <Play className="w-3 h-3 mr-1" />
+                          Play
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = recording.recording_url!;
+                            link.download = recording.title;
+                            link.click();
+                          }}
+                        >
+                          <Download className="w-3 h-3" />
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => deleteRecording(recording.id, recording.recording_url)}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
