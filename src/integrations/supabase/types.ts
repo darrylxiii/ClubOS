@@ -336,6 +336,7 @@ export type Database = {
           desired_salary_max: number | null
           desired_salary_min: number | null
           email: string | null
+          email_verified: boolean | null
           employment_type_preference: string | null
           freelance_hourly_rate_max: number | null
           freelance_hourly_rate_min: number | null
@@ -379,6 +380,7 @@ export type Database = {
           desired_salary_max?: number | null
           desired_salary_min?: number | null
           email?: string | null
+          email_verified?: boolean | null
           employment_type_preference?: string | null
           freelance_hourly_rate_max?: number | null
           freelance_hourly_rate_min?: number | null
@@ -422,6 +424,7 @@ export type Database = {
           desired_salary_max?: number | null
           desired_salary_min?: number | null
           email?: string | null
+          email_verified?: boolean | null
           employment_type_preference?: string | null
           freelance_hourly_rate_max?: number | null
           freelance_hourly_rate_min?: number | null

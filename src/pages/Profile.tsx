@@ -125,6 +125,7 @@ const Profile = () => {
           full_name: fullName,
           phone: phoneNumber,
           phone_verified: phoneVerified,
+          email_verified: emailVerified,
           location: profileData.location,
           current_title: profileData.currentTitle,
           linkedin_url: profileData.linkedin,
@@ -563,6 +564,9 @@ const Profile = () => {
           }
           if (data.phone_verified) {
             setPhoneVerified(data.phone_verified);
+          }
+          if (data.email_verified) {
+            setEmailVerified(data.email_verified);
           }
           if (data.preferred_work_locations) {
             setPreferredWorkLocations(data.preferred_work_locations as string[]);
