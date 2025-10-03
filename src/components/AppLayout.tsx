@@ -1,5 +1,6 @@
 import { useState, ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
+import quantumClubLogo from "@/assets/quantum-club-logo.png";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -69,7 +70,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
-        <span className="font-black text-lg">TQC</span>
+        <img src={quantumClubLogo} alt="Quantum Club" className="h-8 w-auto" />
         <div className="w-10" />
       </div>
 
@@ -81,8 +82,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         )}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-center border-b border-border">
-          <span className="font-black text-2xl">qc</span>
+        <div className="h-16 flex items-center justify-center border-b border-border px-4">
+          <img src={quantumClubLogo} alt="Quantum Club" className="h-10 w-auto" />
         </div>
 
         {/* Navigation */}
