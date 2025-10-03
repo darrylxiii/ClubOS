@@ -880,6 +880,39 @@ export type Database = {
           },
         ]
       }
+      linkedin_imports: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          import_status: string | null
+          import_type: string
+          imported_data: Json
+          sections_imported: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          import_status?: string | null
+          import_type: string
+          imported_data: Json
+          sections_imported?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          import_status?: string | null
+          import_type?: string
+          imported_data?: Json
+          sections_imported?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       linkedin_job_imports: {
         Row: {
           company_id: string
@@ -1734,6 +1767,555 @@ export type Database = {
           },
         ]
       }
+      profile_achievements: {
+        Row: {
+          certificate_file_url: string | null
+          created_at: string | null
+          credential_id: string | null
+          credential_url: string | null
+          description: string | null
+          display_order: number | null
+          expiry_date: string | null
+          id: string
+          issue_date: string | null
+          issuer: string | null
+          metadata: Json | null
+          title: string
+          type: string
+          updated_at: string | null
+          user_id: string
+          verification_status: string | null
+          visibility: string | null
+        }
+        Insert: {
+          certificate_file_url?: string | null
+          created_at?: string | null
+          credential_id?: string | null
+          credential_url?: string | null
+          description?: string | null
+          display_order?: number | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuer?: string | null
+          metadata?: Json | null
+          title: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+          verification_status?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          certificate_file_url?: string | null
+          created_at?: string | null
+          credential_id?: string | null
+          credential_url?: string | null
+          description?: string | null
+          display_order?: number | null
+          expiry_date?: string | null
+          id?: string
+          issue_date?: string | null
+          issuer?: string | null
+          metadata?: Json | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          verification_status?: string | null
+          visibility?: string | null
+        }
+        Relationships: []
+      }
+      profile_activity: {
+        Row: {
+          activity_type: string
+          actor_id: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          activity_type: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          activity_type?: string
+          actor_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profile_custom_fields: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          field_type: string
+          icon: string | null
+          id: string
+          label: string
+          updated_at: string | null
+          url: string | null
+          user_id: string
+          value: string
+          visibility: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          field_type: string
+          icon?: string | null
+          id?: string
+          label: string
+          updated_at?: string | null
+          url?: string | null
+          user_id: string
+          value: string
+          visibility?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          field_type?: string
+          icon?: string | null
+          id?: string
+          label?: string
+          updated_at?: string | null
+          url?: string | null
+          user_id?: string
+          value?: string
+          visibility?: string | null
+        }
+        Relationships: []
+      }
+      profile_data_exports: {
+        Row: {
+          completed_at: string | null
+          expires_at: string | null
+          export_file_url: string | null
+          export_status: string | null
+          id: string
+          requested_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          expires_at?: string | null
+          export_file_url?: string | null
+          export_status?: string | null
+          id?: string
+          requested_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          expires_at?: string | null
+          export_file_url?: string | null
+          export_status?: string | null
+          id?: string
+          requested_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profile_education: {
+        Row: {
+          activities: Json | null
+          certificate_url: string | null
+          certificate_verified: boolean | null
+          created_at: string | null
+          degree_type: string | null
+          description: string | null
+          display_order: number | null
+          end_date: string | null
+          field_of_study: string | null
+          grade: string | null
+          id: string
+          institution_name: string
+          is_current: boolean | null
+          start_date: string | null
+          updated_at: string | null
+          user_id: string
+          visibility: string | null
+        }
+        Insert: {
+          activities?: Json | null
+          certificate_url?: string | null
+          certificate_verified?: boolean | null
+          created_at?: string | null
+          degree_type?: string | null
+          description?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          field_of_study?: string | null
+          grade?: string | null
+          id?: string
+          institution_name: string
+          is_current?: boolean | null
+          start_date?: string | null
+          updated_at?: string | null
+          user_id: string
+          visibility?: string | null
+        }
+        Update: {
+          activities?: Json | null
+          certificate_url?: string | null
+          certificate_verified?: boolean | null
+          created_at?: string | null
+          degree_type?: string | null
+          description?: string | null
+          display_order?: number | null
+          end_date?: string | null
+          field_of_study?: string | null
+          grade?: string | null
+          id?: string
+          institution_name?: string
+          is_current?: boolean | null
+          start_date?: string | null
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string | null
+        }
+        Relationships: []
+      }
+      profile_experience: {
+        Row: {
+          achievements: Json | null
+          company_name: string
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          employment_type: string | null
+          end_date: string | null
+          id: string
+          is_current: boolean | null
+          location: string | null
+          location_type: string | null
+          position_title: string
+          projects: Json | null
+          skills_used: Json | null
+          start_date: string
+          updated_at: string | null
+          user_id: string
+          visibility: string | null
+        }
+        Insert: {
+          achievements?: Json | null
+          company_name: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          employment_type?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean | null
+          location?: string | null
+          location_type?: string | null
+          position_title: string
+          projects?: Json | null
+          skills_used?: Json | null
+          start_date: string
+          updated_at?: string | null
+          user_id: string
+          visibility?: string | null
+        }
+        Update: {
+          achievements?: Json | null
+          company_name?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          employment_type?: string | null
+          end_date?: string | null
+          id?: string
+          is_current?: boolean | null
+          location?: string | null
+          location_type?: string | null
+          position_title?: string
+          projects?: Json | null
+          skills_used?: Json | null
+          start_date?: string
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string | null
+        }
+        Relationships: []
+      }
+      profile_media: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration_seconds: number | null
+          file_size: number | null
+          file_url: string
+          id: string
+          is_primary: boolean | null
+          mime_type: string | null
+          thumbnail_url: string | null
+          title: string
+          type: string
+          updated_at: string | null
+          user_id: string
+          views_count: number | null
+          visibility: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          file_size?: number | null
+          file_url: string
+          id?: string
+          is_primary?: boolean | null
+          mime_type?: string | null
+          thumbnail_url?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+          views_count?: number | null
+          visibility?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration_seconds?: number | null
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          is_primary?: boolean | null
+          mime_type?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          views_count?: number | null
+          visibility?: string | null
+        }
+        Relationships: []
+      }
+      profile_portfolio: {
+        Row: {
+          collaborators: Json | null
+          created_at: string | null
+          date_completed: string | null
+          description: string | null
+          display_order: number | null
+          featured: boolean | null
+          github_url: string | null
+          id: string
+          likes_count: number | null
+          media_urls: Json | null
+          project_url: string | null
+          tags: Json | null
+          thumbnail_url: string | null
+          title: string
+          type: string
+          updated_at: string | null
+          user_id: string
+          views_count: number | null
+          visibility: string | null
+        }
+        Insert: {
+          collaborators?: Json | null
+          created_at?: string | null
+          date_completed?: string | null
+          description?: string | null
+          display_order?: number | null
+          featured?: boolean | null
+          github_url?: string | null
+          id?: string
+          likes_count?: number | null
+          media_urls?: Json | null
+          project_url?: string | null
+          tags?: Json | null
+          thumbnail_url?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+          user_id: string
+          views_count?: number | null
+          visibility?: string | null
+        }
+        Update: {
+          collaborators?: Json | null
+          created_at?: string | null
+          date_completed?: string | null
+          description?: string | null
+          display_order?: number | null
+          featured?: boolean | null
+          github_url?: string | null
+          id?: string
+          likes_count?: number | null
+          media_urls?: Json | null
+          project_url?: string | null
+          tags?: Json | null
+          thumbnail_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          user_id?: string
+          views_count?: number | null
+          visibility?: string | null
+        }
+        Relationships: []
+      }
+      profile_recommendations: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          featured: boolean | null
+          id: string
+          rating: number | null
+          recommendation_text: string
+          recommender_company: string | null
+          recommender_id: string | null
+          recommender_name: string
+          recommender_title: string | null
+          relationship: string | null
+          skills_highlighted: Json | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+          visibility: string | null
+          voice_message_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          featured?: boolean | null
+          id?: string
+          rating?: number | null
+          recommendation_text: string
+          recommender_company?: string | null
+          recommender_id?: string | null
+          recommender_name: string
+          recommender_title?: string | null
+          relationship?: string | null
+          skills_highlighted?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+          visibility?: string | null
+          voice_message_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          featured?: boolean | null
+          id?: string
+          rating?: number | null
+          recommendation_text?: string
+          recommender_company?: string | null
+          recommender_id?: string | null
+          recommender_name?: string
+          recommender_title?: string | null
+          relationship?: string | null
+          skills_highlighted?: Json | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string | null
+          voice_message_url?: string | null
+        }
+        Relationships: []
+      }
+      profile_skills: {
+        Row: {
+          ai_verified: boolean | null
+          category: string | null
+          created_at: string | null
+          display_order: number | null
+          endorsement_count: number | null
+          id: string
+          last_used: string | null
+          proficiency_level: number | null
+          proof_of_work: Json | null
+          skill_name: string
+          updated_at: string | null
+          user_id: string
+          visibility: string | null
+          years_experience: number | null
+        }
+        Insert: {
+          ai_verified?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          endorsement_count?: number | null
+          id?: string
+          last_used?: string | null
+          proficiency_level?: number | null
+          proof_of_work?: Json | null
+          skill_name: string
+          updated_at?: string | null
+          user_id: string
+          visibility?: string | null
+          years_experience?: number | null
+        }
+        Update: {
+          ai_verified?: boolean | null
+          category?: string | null
+          created_at?: string | null
+          display_order?: number | null
+          endorsement_count?: number | null
+          id?: string
+          last_used?: string | null
+          proficiency_level?: number | null
+          proof_of_work?: Json | null
+          skill_name?: string
+          updated_at?: string | null
+          user_id?: string
+          visibility?: string | null
+          years_experience?: number | null
+        }
+        Relationships: []
+      }
+      profile_visibility_rules: {
+        Row: {
+          allowed_companies: Json | null
+          allowed_roles: Json | null
+          blocked_companies: Json | null
+          created_at: string | null
+          id: string
+          section_name: string
+          updated_at: string | null
+          user_id: string
+          visibility_level: string | null
+        }
+        Insert: {
+          allowed_companies?: Json | null
+          allowed_roles?: Json | null
+          blocked_companies?: Json | null
+          created_at?: string | null
+          id?: string
+          section_name: string
+          updated_at?: string | null
+          user_id: string
+          visibility_level?: string | null
+        }
+        Update: {
+          allowed_companies?: Json | null
+          allowed_roles?: Json | null
+          blocked_companies?: Json | null
+          created_at?: string | null
+          id?: string
+          section_name?: string
+          updated_at?: string | null
+          user_id?: string
+          visibility_level?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           allow_stealth_cold_outreach: boolean | null
@@ -2023,6 +2605,44 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      skill_endorsements: {
+        Row: {
+          comment: string | null
+          created_at: string | null
+          endorsed_by: string
+          id: string
+          rating: number | null
+          relationship: string | null
+          skill_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string | null
+          endorsed_by: string
+          id?: string
+          rating?: number | null
+          relationship?: string | null
+          skill_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string | null
+          endorsed_by?: string
+          id?: string
+          rating?: number | null
+          relationship?: string | null
+          skill_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "skill_endorsements_skill_id_fkey"
+            columns: ["skill_id"]
+            isOneToOne: false
+            referencedRelation: "profile_skills"
             referencedColumns: ["id"]
           },
         ]

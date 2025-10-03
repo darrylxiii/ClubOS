@@ -13,6 +13,7 @@ import ClubAI from "./pages/ClubAI";
 import Onboarding from "./pages/Onboarding";
 import PartnerOnboarding from "./pages/PartnerOnboarding";
 import Profile from "./pages/Profile";
+import EnhancedProfile from "./pages/EnhancedProfile";
 import Referrals from "./pages/Referrals";
 import InterviewPrep from "./pages/InterviewPrep";
 import MeetingHistory from "./pages/MeetingHistory";
@@ -100,6 +101,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile-enhanced"
+              element={
+                <ProtectedRoute>
+                  <EnhancedProfile />
                 </ProtectedRoute>
               }
             />
