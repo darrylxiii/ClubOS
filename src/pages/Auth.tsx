@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -7,21 +7,30 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Apple } from "lucide-react";
 import { z } from "zod";
+import { useAuth } from "@/contexts/AuthContext";
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
 const Auth = () => {
+  const { user, loading } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard');
+    }
+  }, [user, loading, navigate]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsLoading(true);
 
     try {
       // Validate inputs
@@ -84,9 +93,17 @@ const Auth = () => {
         toast.error("An unexpected error occurred");
       }
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-2xl font-black uppercase tracking-tight">LOADING...</div>
+      </div>
+    );
+  }
 
   const handleGoogleAuth = async () => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -226,9 +243,9 @@ const Auth = () => {
               <Button
                 type="submit"
                 className="w-full bg-foreground text-background hover:bg-foreground/90 font-black uppercase text-xs tracking-wider"
-                disabled={loading}
+                disabled={isLoading}
               >
-                {loading ? "LOADING..." : isLogin ? "SIGN IN" : "SIGN UP"}
+                {isLoading ? "LOADING..." : isLogin ? "SIGN IN" : "SIGN UP"}
               </Button>
             </form>
 

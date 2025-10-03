@@ -3,8 +3,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Briefcase, TrendingUp, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Index = () => {
+  const { user } = useAuth();
   const clients = [
     { name: "TYSON 2.0" },
     { name: "No Art Music" },
@@ -44,17 +46,28 @@ const Index = () => {
                   </p>
                   
                   <div className="flex flex-col sm:flex-row gap-4">
-                    <Link to="/dashboard" className="w-full sm:w-auto">
-                      <Button size="lg" className="w-full sm:w-auto text-sm font-black uppercase tracking-wider">
-                        ENTER DASHBOARD
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </Link>
-                    <Link to="/jobs" className="w-full sm:w-auto">
-                      <Button size="lg" variant="outline" className="w-full sm:w-auto text-sm font-black uppercase tracking-wider">
-                        BROWSE ROLES
-                      </Button>
-                    </Link>
+                    {user ? (
+                      <>
+                        <Link to="/dashboard" className="w-full sm:w-auto">
+                          <Button size="lg" className="w-full sm:w-auto text-sm font-black uppercase tracking-wider">
+                            ENTER DASHBOARD
+                            <ArrowRight className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
+                        <Link to="/jobs" className="w-full sm:w-auto">
+                          <Button size="lg" variant="outline" className="w-full sm:w-auto text-sm font-black uppercase tracking-wider">
+                            BROWSE ROLES
+                          </Button>
+                        </Link>
+                      </>
+                    ) : (
+                      <Link to="/auth" className="w-full sm:w-auto">
+                        <Button size="lg" className="w-full text-sm font-black uppercase tracking-wider">
+                          SIGN IN TO ACCESS
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </Button>
+                      </Link>
+                    )}
                   </div>
                 </div>
               </div>
