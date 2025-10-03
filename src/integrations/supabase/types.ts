@@ -678,7 +678,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_talent_strategists: {
+        Row: {
+          availability: string | null
+          bio: string | null
+          created_at: string | null
+          full_name: string | null
+          id: string | null
+          photo_url: string | null
+          specialties: string[] | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          availability?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          photo_url?: string | null
+          specialties?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          availability?: string | null
+          bio?: string | null
+          created_at?: string | null
+          full_name?: string | null
+          id?: string | null
+          photo_url?: string | null
+          specialties?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_invite_code: {
