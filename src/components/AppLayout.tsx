@@ -32,7 +32,7 @@ const navigationItems = [
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
   { name: "Applications", icon: FileText, path: "/applications" },
   { name: "Companies", icon: Building2, path: "/companies" },
-  { name: "Club Task Bar", icon: ListTodo, path: "/meeting-history" },
+  { name: "Club Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
   { name: "Referrals", icon: Gift, path: "/referrals" },
   { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
 ];

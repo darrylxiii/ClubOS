@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Jobs from "./pages/Jobs";
+import TasksPilot from "./pages/TasksPilot";
 import Onboarding from "./pages/Onboarding";
 import Profile from "./pages/Profile";
 import Referrals from "./pages/Referrals";
@@ -44,6 +45,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Jobs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/tasks-pilot"
+              element={
+                <ProtectedRoute>
+                  <TasksPilot />
                 </ProtectedRoute>
               }
             />
