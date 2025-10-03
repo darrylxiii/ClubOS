@@ -316,24 +316,35 @@ export function TargetCompanyDialog({
 
               <div className="space-y-2">
                 <Label htmlFor="job_id">Target voor Specifieke Job</Label>
-                <Select
-                  value={formData.job_id}
-                  onValueChange={(value) => setFormData({ ...formData, job_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecteer een open job" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Geen specifieke job</SelectItem>
-                    {openJobs.map((job) => (
-                      <SelectItem key={job.id} value={job.id}>
-                        {job.title} ({job.status})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select
+                    value={formData.job_id || undefined}
+                    onValueChange={(value) => setFormData({ ...formData, job_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecteer een open job (optioneel)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {openJobs.map((job) => (
+                        <SelectItem key={job.id} value={job.id}>
+                          {job.title} ({job.status})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {formData.job_id && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setFormData({ ...formData, job_id: "" })}
+                    >
+                      ×
+                    </Button>
+                  )}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  Selecteer de job waarvoor dit bedrijf getarget wordt
+                  Selecteer de job waarvoor dit bedrijf getarget wordt, of laat leeg voor alle jobs
                 </p>
               </div>
 
