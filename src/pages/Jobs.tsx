@@ -10,7 +10,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Search, SlidersHorizontal, Check } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Search, SlidersHorizontal, Check, Zap } from "lucide-react";
 import { toast } from "sonner";
 
 type SortOption = "match" | "newest" | "salary";
@@ -19,6 +20,7 @@ const Jobs = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("match");
   const [savedJobIds, setSavedJobIds] = useState<number[]>([]);
+  const [clubSyncEnabled, setClubSyncEnabled] = useState(false);
 
   const jobs = [
     {
@@ -171,48 +173,75 @@ const Jobs = () => {
           </TabsList>
 
           <TabsContent value="all" className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search jobs by title, company, or skills..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search jobs by title, company, or skills..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="shrink-0">
+                      <SlidersHorizontal className="w-4 h-4 mr-2" />
+                      Sort by: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-background border-border z-50" align="end">
+                    <DropdownMenuItem 
+                      onClick={() => setSortBy("match")}
+                      className="cursor-pointer"
+                    >
+                      <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
+                      Match %
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setSortBy("newest")}
+                      className="cursor-pointer"
+                    >
+                      <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
+                      Newest
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setSortBy("salary")}
+                      className="cursor-pointer"
+                    >
+                      <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
+                      Salary (High to Low)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Club Sync Toggle */}
+              <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-card">
+                <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-primary" : "text-muted-foreground"}`} />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Club Sync</span>
+                    <span className="text-xs text-muted-foreground">AUTO-APPLY</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically apply to all matches above 90%
+                  </p>
+                </div>
+                <Switch
+                  checked={clubSyncEnabled}
+                  onCheckedChange={(checked) => {
+                    setClubSyncEnabled(checked);
+                    toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
+                      description: checked 
+                        ? "You'll automatically apply to roles with 90%+ match" 
+                        : "Auto-apply has been turned off"
+                    });
+                  }}
                 />
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="shrink-0">
-                    <SlidersHorizontal className="w-4 h-4 mr-2" />
-                    Sort by: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-background border-border z-50" align="end">
-                  <DropdownMenuItem 
-                    onClick={() => setSortBy("match")}
-                    className="cursor-pointer"
-                  >
-                    <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
-                    Match %
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => setSortBy("newest")}
-                    className="cursor-pointer"
-                  >
-                    <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
-                    Newest
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => setSortBy("salary")}
-                    className="cursor-pointer"
-                  >
-                    <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
-                    Salary (High to Low)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
 
             {/* Job Listings */}
@@ -238,48 +267,75 @@ const Jobs = () => {
           </TabsContent>
 
           <TabsContent value="saved" className="space-y-6">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search saved jobs..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    type="text"
+                    placeholder="Search saved jobs..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="shrink-0">
+                      <SlidersHorizontal className="w-4 h-4 mr-2" />
+                      Sort by: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-background border-border z-50" align="end">
+                    <DropdownMenuItem 
+                      onClick={() => setSortBy("match")}
+                      className="cursor-pointer"
+                    >
+                      <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
+                      Match %
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setSortBy("newest")}
+                      className="cursor-pointer"
+                    >
+                      <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
+                      Newest
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => setSortBy("salary")}
+                      className="cursor-pointer"
+                    >
+                      <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
+                      Salary (High to Low)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Club Sync Toggle */}
+              <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-card">
+                <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-primary" : "text-muted-foreground"}`} />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Club Sync</span>
+                    <span className="text-xs text-muted-foreground">AUTO-APPLY</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically apply to all matches above 90%
+                  </p>
+                </div>
+                <Switch
+                  checked={clubSyncEnabled}
+                  onCheckedChange={(checked) => {
+                    setClubSyncEnabled(checked);
+                    toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
+                      description: checked 
+                        ? "You'll automatically apply to roles with 90%+ match" 
+                        : "Auto-apply has been turned off"
+                    });
+                  }}
                 />
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="shrink-0">
-                    <SlidersHorizontal className="w-4 h-4 mr-2" />
-                    Sort by: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="bg-background border-border z-50" align="end">
-                  <DropdownMenuItem 
-                    onClick={() => setSortBy("match")}
-                    className="cursor-pointer"
-                  >
-                    <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
-                    Match %
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => setSortBy("newest")}
-                    className="cursor-pointer"
-                  >
-                    <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
-                    Newest
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => setSortBy("salary")}
-                    className="cursor-pointer"
-                  >
-                    <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
-                    Salary (High to Low)
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
             </div>
 
             {/* Saved Job Listings */}
