@@ -11,6 +11,7 @@ import { CompanyProfile } from "@/components/partner/CompanyProfile";
 import { JobManagement } from "@/components/partner/JobManagement";
 import { TeamManagement } from "@/components/partner/TeamManagement";
 import { ApplicantPipeline } from "@/components/partner/ApplicantPipeline";
+import { PartnerAnalytics } from "@/components/partner/PartnerAnalytics";
 
 const PartnerDashboard = () => {
   const { user } = useAuth();
@@ -174,10 +175,11 @@ const PartnerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="jobs" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="jobs">Jobs</TabsTrigger>
             <TabsTrigger value="applicants">Applicants</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="company">Company</TabsTrigger>
           </TabsList>
 
@@ -191,6 +193,10 @@ const PartnerDashboard = () => {
 
           <TabsContent value="team" className="space-y-4">
             <TeamManagement companyId={companyId} canManage={role === 'company_admin'} />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <PartnerAnalytics companyId={companyId} />
           </TabsContent>
 
           <TabsContent value="company" className="space-y-4">

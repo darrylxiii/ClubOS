@@ -187,6 +187,90 @@ export type Database = {
           },
         ]
       }
+      candidate_comments: {
+        Row: {
+          application_id: string
+          comment: string
+          created_at: string
+          id: string
+          is_internal: boolean | null
+          mentioned_users: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          comment: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          mentioned_users?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          comment?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          mentioned_users?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      candidate_scorecards: {
+        Row: {
+          application_id: string
+          communication_score: number | null
+          concerns: string | null
+          created_at: string
+          cultural_fit_score: number | null
+          evaluator_id: string
+          id: string
+          notes: string | null
+          overall_rating: number | null
+          recommendation: string | null
+          stage_index: number
+          strengths: string | null
+          technical_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          communication_score?: number | null
+          concerns?: string | null
+          created_at?: string
+          cultural_fit_score?: number | null
+          evaluator_id: string
+          id?: string
+          notes?: string | null
+          overall_rating?: number | null
+          recommendation?: string | null
+          stage_index: number
+          strengths?: string | null
+          technical_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          communication_score?: number | null
+          concerns?: string | null
+          created_at?: string
+          cultural_fit_score?: number | null
+          evaluator_id?: string
+          id?: string
+          notes?: string | null
+          overall_rating?: number | null
+          recommendation?: string | null
+          stage_index?: number
+          strengths?: string | null
+          technical_score?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cities: {
         Row: {
           country: string
@@ -527,6 +611,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      interviews: {
+        Row: {
+          application_id: string
+          created_at: string
+          created_by: string
+          id: string
+          interview_type: string
+          interviewers: string[] | null
+          job_id: string
+          location: string | null
+          meeting_link: string | null
+          notes: string | null
+          scheduled_end: string
+          scheduled_start: string
+          stage_index: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          interview_type: string
+          interviewers?: string[] | null
+          job_id: string
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_end: string
+          scheduled_start: string
+          stage_index: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          interview_type?: string
+          interviewers?: string[] | null
+          job_id?: string
+          location?: string | null
+          meeting_link?: string | null
+          notes?: string | null
+          scheduled_end?: string
+          scheduled_start?: string
+          stage_index?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       invite_codes: {
         Row: {
@@ -955,6 +1093,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      pipeline_events: {
+        Row: {
+          application_id: string
+          created_at: string
+          event_type: string
+          from_stage: number | null
+          id: string
+          job_id: string
+          metadata: Json | null
+          performed_by: string
+          to_stage: number | null
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          event_type: string
+          from_stage?: number | null
+          id?: string
+          job_id: string
+          metadata?: Json | null
+          performed_by: string
+          to_stage?: number | null
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          event_type?: string
+          from_stage?: number | null
+          id?: string
+          job_id?: string
+          metadata?: Json | null
+          performed_by?: string
+          to_stage?: number | null
+        }
+        Relationships: []
       }
       pipeline_feedback: {
         Row: {

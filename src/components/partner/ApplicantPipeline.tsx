@@ -4,8 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Users, MessageSquare, Eye } from "lucide-react";
-import { ExpandablePipelineStage } from "@/components/ExpandablePipelineStage";
+import { Users, MessageSquare, Eye, Settings } from "lucide-react";
+import { CandidateDetailDialog } from "./CandidateDetailDialog";
+import { PipelineCustomizer } from "./PipelineCustomizer";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 interface ApplicantPipelineProps {
   companyId: string;
@@ -15,6 +17,9 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [selectedJob, setSelectedJob] = useState<string | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [customizerOpen, setCustomizerOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -100,6 +105,27 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-black uppercase">Applicant Pipeline</h2>
         <div className="flex gap-2">
+          <Dialog open={customizerOpen} onOpenChange={setCustomizerOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Settings className="w-4 h-4 mr-2" />
+                Customize Pipeline
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              {selectedJobData && (
+                <PipelineCustomizer
+                  jobId={selectedJobData.id}
+                  currentStages={selectedJobData.pipeline_stages}
+                  onUpdate={() => {
+                    fetchJobsAndApplications();
+                    setCustomizerOpen(false);
+                  }}
+                />
+              )}
+            </DialogContent>
+          </Dialog>
+          
           {jobs.map(job => (
             <Button
               key={job.id}
@@ -166,13 +192,16 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
                             </div>
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="outline">
+                            <Button 
+                              size="sm" 
+                              variant="outline"
+                              onClick={() => {
+                                setSelectedCandidate(app);
+                                setDetailDialogOpen(true);
+                              }}
+                            >
                               <Eye className="w-4 h-4 mr-2" />
-                              View
-                            </Button>
-                            <Button size="sm" variant="outline">
-                              <MessageSquare className="w-4 h-4 mr-2" />
-                              Message
+                              View Details
                             </Button>
                           </div>
                         </div>
@@ -184,6 +213,15 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
             );
           })}
         </div>
+      )}
+
+      {selectedCandidate && (
+        <CandidateDetailDialog
+          open={detailDialogOpen}
+          onOpenChange={setDetailDialogOpen}
+          application={selectedCandidate}
+          stages={stages}
+        />
       )}
     </div>
   );
