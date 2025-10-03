@@ -18,6 +18,7 @@ import {
   ListTodo,
   Sparkles,
   Calendar,
+  MessageSquare,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -32,6 +33,7 @@ import {
 const navigationItems = [
   { name: "Club AI", icon: Sparkles, path: "/club-ai" },
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { name: "Messages", icon: MessageSquare, path: "/messages" },
   { name: "Scheduling", icon: Calendar, path: "/scheduling" },
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
   { name: "Applications", icon: FileText, path: "/applications" },

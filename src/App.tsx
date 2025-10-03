@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import Referrals from "./pages/Referrals";
 import InterviewPrep from "./pages/InterviewPrep";
 import MeetingHistory from "./pages/MeetingHistory";
+import Messages from "./pages/Messages";
 import Applications from "./pages/Applications";
 import Companies from "./pages/Companies";
 import CompanyPage from "./pages/CompanyPage";
@@ -103,6 +104,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <MeetingHistory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/messages"
+              element={
+                <ProtectedRoute>
+                  <Messages />
                 </ProtectedRoute>
               }
             />
