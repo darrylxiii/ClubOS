@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      closed_pipelines: {
+        Row: {
+          application_id: string
+          closed_at: string
+          company_name: string
+          created_at: string
+          feedback_completed: boolean
+          feedback_requested: boolean
+          id: string
+          outcome: string
+          position: string
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          closed_at?: string
+          company_name: string
+          created_at?: string
+          feedback_completed?: boolean
+          feedback_requested?: boolean
+          id?: string
+          outcome: string
+          position: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          closed_at?: string
+          company_name?: string
+          created_at?: string
+          feedback_completed?: boolean
+          feedback_requested?: boolean
+          id?: string
+          outcome?: string
+          position?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       meeting_recordings: {
         Row: {
           company_name: string | null
@@ -68,6 +107,75 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      pipeline_feedback: {
+        Row: {
+          additional_feedback: string | null
+          application_id: string
+          communication_rating: number | null
+          company_name: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          interview_experience_rating: number | null
+          nps_score: number | null
+          outcome: string
+          position: string
+          process_clarity_rating: number | null
+          strategist_rating: number | null
+          suggestions: string | null
+          timeline_rating: number | null
+          updated_at: string
+          user_id: string
+          what_could_improve: string | null
+          what_went_well: string | null
+          would_apply_again: boolean | null
+        }
+        Insert: {
+          additional_feedback?: string | null
+          application_id: string
+          communication_rating?: number | null
+          company_name: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          interview_experience_rating?: number | null
+          nps_score?: number | null
+          outcome: string
+          position: string
+          process_clarity_rating?: number | null
+          strategist_rating?: number | null
+          suggestions?: string | null
+          timeline_rating?: number | null
+          updated_at?: string
+          user_id: string
+          what_could_improve?: string | null
+          what_went_well?: string | null
+          would_apply_again?: boolean | null
+        }
+        Update: {
+          additional_feedback?: string | null
+          application_id?: string
+          communication_rating?: number | null
+          company_name?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          interview_experience_rating?: number | null
+          nps_score?: number | null
+          outcome?: string
+          position?: string
+          process_clarity_rating?: number | null
+          strategist_rating?: number | null
+          suggestions?: string | null
+          timeline_rating?: number | null
+          updated_at?: string
+          user_id?: string
+          what_could_improve?: string | null
+          what_went_well?: string | null
+          would_apply_again?: boolean | null
         }
         Relationships: []
       }

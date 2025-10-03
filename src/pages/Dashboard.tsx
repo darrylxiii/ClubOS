@@ -6,6 +6,7 @@ import { StagePreparation } from "@/components/StagePreparation";
 import { AIChat } from "@/components/AIChat";
 import { ProfileCompletion } from "@/components/ProfileCompletion";
 import { TalentStrategist } from "@/components/TalentStrategist";
+import { PendingFeedbackTasks } from "@/components/PendingFeedbackTasks";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Briefcase, Clock, Award } from "lucide-react";
 import { toast } from "sonner";
@@ -131,11 +132,12 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Profile Completion and Stats */}
+        {/* Profile Completion, Feedback Tasks and Stats */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Profile Completion - Takes full width on mobile, 1 column on desktop */}
-          <div className="lg:col-span-1">
+          {/* Left column - Profile Completion & Feedback Tasks */}
+          <div className="lg:col-span-1 space-y-6">
             <ProfileCompletion />
+            <PendingFeedbackTasks />
           </div>
           
           {/* Stats Grid - Takes 2 columns on desktop */}
