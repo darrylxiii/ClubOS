@@ -15,6 +15,7 @@ import {
   X,
   Clock,
   User,
+  ListTodo,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,6 +32,7 @@ const navigationItems = [
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
   { name: "Applications", icon: FileText, path: "/applications" },
   { name: "Companies", icon: Building2, path: "/companies" },
+  { name: "Club Task Bar", icon: ListTodo, path: "/meeting-history" },
   { name: "Referrals", icon: Gift, path: "/referrals" },
   { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
 ];
