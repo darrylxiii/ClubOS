@@ -53,37 +53,45 @@ export function UserCompanyAssignment() {
   const fetchData = async () => {
     try {
       console.log('[UserCompanyAssignment] Fetching data...');
-      const [usersRes, companiesRes, membersRes] = await Promise.all([
+      
+      // Fetch users and companies first
+      const [usersRes, companiesRes] = await Promise.all([
         supabase.from('profiles').select('id, email, full_name'),
         supabase.from('companies').select('id, name').order('name'),
-        supabase
-          .from('company_members')
-          .select(`
-            id,
-            user_id,
-            company_id,
-            role,
-            profiles!inner(email, full_name),
-            companies!inner(name)
-          `)
-          .eq('is_active', true)
       ]);
 
       console.log('[UserCompanyAssignment] Users response:', usersRes);
       console.log('[UserCompanyAssignment] Companies response:', companiesRes);
-      console.log('[UserCompanyAssignment] Members response:', membersRes);
 
       if (usersRes.error) throw usersRes.error;
       if (companiesRes.error) throw companiesRes.error;
-      if (membersRes.error) throw membersRes.error;
-
-      console.log('[UserCompanyAssignment] Setting users:', usersRes.data);
-      console.log('[UserCompanyAssignment] Setting companies:', companiesRes.data);
-      console.log('[UserCompanyAssignment] Setting members:', membersRes.data);
 
       setUsers(usersRes.data || []);
       setCompanies(companiesRes.data || []);
-      setMembers(membersRes.data as any || []);
+
+      // Fetch members separately - manual join
+      const { data: membersData, error: membersError } = await supabase
+        .from('company_members')
+        .select('id, user_id, company_id, role')
+        .eq('is_active', true);
+
+      if (membersError) {
+        console.error('[UserCompanyAssignment] Members error:', membersError);
+      } else if (membersData) {
+        // Manually join with profiles and companies
+        const enrichedMembers = membersData.map(member => {
+          const profile = usersRes.data?.find(u => u.id === member.user_id);
+          const company = companiesRes.data?.find(c => c.id === member.company_id);
+          return {
+            ...member,
+            profiles: profile ? { email: profile.email, full_name: profile.full_name } : undefined,
+            companies: company ? { name: company.name } : undefined,
+          };
+        });
+        setMembers(enrichedMembers as any);
+        console.log('[UserCompanyAssignment] Enriched members:', enrichedMembers);
+      }
+
     } catch (error) {
       console.error('[UserCompanyAssignment] Error fetching data:', error);
       toast.error("Failed to load data");
