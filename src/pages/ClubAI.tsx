@@ -6,6 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Sparkles, Send, Loader2, Briefcase, TrendingUp, MessageSquare, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -15,6 +25,8 @@ import ReactMarkdown from "react-markdown";
 interface Message {
   role: "user" | "assistant";
   content: string;
+  needsConfirmation?: boolean;
+  confirmationMessage?: string;
 }
 
 const ClubAI = () => {
@@ -23,6 +35,8 @@ const ClubAI = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingAction, setPendingAction] = useState<string>("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -297,9 +311,24 @@ const ClubAI = () => {
                             : "bg-muted"
                         }`}
                       >
-                        {message.role === "assistant" ? (
-                          <div className="text-sm prose prose-sm max-w-none dark:prose-invert">
-                            <ReactMarkdown>{message.content}</ReactMarkdown>
+                         {message.role === "assistant" ? (
+                          <div className="space-y-3">
+                            <div className="text-sm prose prose-sm max-w-none dark:prose-invert">
+                              <ReactMarkdown>{message.content}</ReactMarkdown>
+                            </div>
+                            {message.needsConfirmation && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setPendingAction(message.confirmationMessage || "");
+                                  setShowConfirmDialog(true);
+                                }}
+                                className="mt-2"
+                              >
+                                Confirm Action
+                              </Button>
+                            )}
                           </div>
                         ) : (
                           <p className="text-sm whitespace-pre-wrap">
@@ -354,6 +383,27 @@ const ClubAI = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Confirmation Dialog */}
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirm Action</AlertDialogTitle>
+              <AlertDialogDescription>
+                {pendingAction || "Would you like me to proceed with this action?"}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => {
+                toast.success("Action confirmed");
+                setShowConfirmDialog(false);
+              }}>
+                Confirm
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
