@@ -66,6 +66,7 @@ const partnerNavigationItems = [
   { name: "Meeting History", icon: Video, path: "/meeting-history" },
   { name: "Companies", icon: Building, path: "/companies" },
   { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+  { name: "Club Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
   { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
@@ -79,6 +80,7 @@ const adminNavigationItems = [
   { name: "Messages", icon: MessageSquare, path: "/messages" },
   { name: "Scheduling", icon: Calendar, path: "/scheduling" },
   { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+  { name: "Club Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
   { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
