@@ -433,6 +433,150 @@ export type Database = {
         }
         Relationships: []
       }
+      company_analytics: {
+        Row: {
+          application_completes: number | null
+          application_starts: number | null
+          company_id: string
+          created_at: string
+          date: string
+          follower_count: number | null
+          id: string
+          job_views: number | null
+          post_engagements: number | null
+          post_views: number | null
+          profile_views: number | null
+          referral_sources: Json | null
+        }
+        Insert: {
+          application_completes?: number | null
+          application_starts?: number | null
+          company_id: string
+          created_at?: string
+          date?: string
+          follower_count?: number | null
+          id?: string
+          job_views?: number | null
+          post_engagements?: number | null
+          post_views?: number | null
+          profile_views?: number | null
+          referral_sources?: Json | null
+        }
+        Update: {
+          application_completes?: number | null
+          application_starts?: number | null
+          company_id?: string
+          created_at?: string
+          date?: string
+          follower_count?: number | null
+          id?: string
+          job_views?: number | null
+          post_engagements?: number | null
+          post_views?: number | null
+          profile_views?: number | null
+          referral_sources?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_analytics_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_branding: {
+        Row: {
+          accent_color: string | null
+          company_id: string
+          created_at: string
+          custom_css: string | null
+          favicon_url: string | null
+          font_body: string | null
+          font_heading: string | null
+          id: string
+          logo_dark_url: string | null
+          logo_light_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          social_preview_image: string | null
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          company_id: string
+          created_at?: string
+          custom_css?: string | null
+          favicon_url?: string | null
+          font_body?: string | null
+          font_heading?: string | null
+          id?: string
+          logo_dark_url?: string | null
+          logo_light_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          social_preview_image?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          company_id?: string
+          created_at?: string
+          custom_css?: string | null
+          favicon_url?: string | null
+          font_body?: string | null
+          font_heading?: string | null
+          id?: string
+          logo_dark_url?: string | null
+          logo_light_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          social_preview_image?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_branding_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_followers: {
+        Row: {
+          company_id: string
+          followed_at: string
+          id: string
+          notification_enabled: boolean | null
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          followed_at?: string
+          id?: string
+          notification_enabled?: boolean | null
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          followed_at?: string
+          id?: string
+          notification_enabled?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_followers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_members: {
         Row: {
           company_id: string
@@ -473,6 +617,135 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_post_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "company_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_post_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "company_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_posts: {
+        Row: {
+          author_id: string
+          company_id: string
+          content: string
+          created_at: string
+          id: string
+          is_featured: boolean | null
+          is_public: boolean | null
+          media_types: Json | null
+          media_urls: Json | null
+          post_type: string
+          published_at: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          view_count: number | null
+        }
+        Insert: {
+          author_id: string
+          company_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          media_types?: Json | null
+          media_urls?: Json | null
+          post_type: string
+          published_at?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Update: {
+          author_id?: string
+          company_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_featured?: boolean | null
+          is_public?: boolean | null
+          media_types?: Json | null
+          media_urls?: Json | null
+          post_type?: string
+          published_at?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_posts_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
@@ -775,6 +1048,59 @@ export type Database = {
           used_by?: string | null
         }
         Relationships: []
+      }
+      job_analytics: {
+        Row: {
+          application_completes: number | null
+          application_starts: number | null
+          avg_time_on_page: number | null
+          created_at: string
+          date: string
+          id: string
+          job_id: string
+          referral_sources: Json | null
+          saves: number | null
+          shares: number | null
+          unique_views: number | null
+          views: number | null
+        }
+        Insert: {
+          application_completes?: number | null
+          application_starts?: number | null
+          avg_time_on_page?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          job_id: string
+          referral_sources?: Json | null
+          saves?: number | null
+          shares?: number | null
+          unique_views?: number | null
+          views?: number | null
+        }
+        Update: {
+          application_completes?: number | null
+          application_starts?: number | null
+          avg_time_on_page?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          job_id?: string
+          referral_sources?: Json | null
+          saves?: number | null
+          shares?: number | null
+          unique_views?: number | null
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_analytics_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_pipelines: {
         Row: {

@@ -13,6 +13,9 @@ import { TeamManagement } from "@/components/partner/TeamManagement";
 import { ApplicantPipeline } from "@/components/partner/ApplicantPipeline";
 import { PartnerAnalytics } from "@/components/partner/PartnerAnalytics";
 import { TargetCompanies } from "@/components/partner/TargetCompanies";
+import { CompanyWall } from "@/components/partner/CompanyWall";
+import { CompanyFollowers } from "@/components/partner/CompanyFollowers";
+import { CompanyBrandingEditor } from "@/components/partner/CompanyBrandingEditor";
 import { useNavigate } from "react-router-dom";
 import { useEffect as useEffectNavigation } from "react";
 
@@ -186,12 +189,14 @@ const PartnerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="jobs" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="jobs">Jobs</TabsTrigger>
             <TabsTrigger value="applicants">Applicants</TabsTrigger>
-            <TabsTrigger value="targets">Target Bedrijven</TabsTrigger>
+            <TabsTrigger value="targets">Targets</TabsTrigger>
+            <TabsTrigger value="wall">Wall</TabsTrigger>
+            <TabsTrigger value="followers">Followers</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+            <TabsTrigger value="branding">Branding</TabsTrigger>
             <TabsTrigger value="company">Company</TabsTrigger>
           </TabsList>
 
@@ -207,12 +212,20 @@ const PartnerDashboard = () => {
             <TargetCompanies companyId={companyId} />
           </TabsContent>
 
+          <TabsContent value="wall" className="space-y-4">
+            <CompanyWall companyId={companyId} canCreate={true} />
+          </TabsContent>
+
+          <TabsContent value="followers" className="space-y-4">
+            <CompanyFollowers companyId={companyId} />
+          </TabsContent>
+
           <TabsContent value="team" className="space-y-4">
             <TeamManagement companyId={companyId} canManage={role === 'company_admin'} />
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-4">
-            <PartnerAnalytics companyId={companyId} />
+          <TabsContent value="branding" className="space-y-4">
+            <CompanyBrandingEditor companyId={companyId} canEdit={role === 'company_admin'} />
           </TabsContent>
 
           <TabsContent value="company" className="space-y-4">
