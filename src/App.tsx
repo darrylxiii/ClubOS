@@ -23,6 +23,7 @@ import Companies from "./pages/Companies";
 import CompanyPage from "./pages/CompanyPage";
 import Scheduling from "./pages/Scheduling";
 import PartnerDashboard from "./pages/PartnerDashboard";
+import JobDashboard from "./pages/JobDashboard";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Feed from "./pages/Feed";
@@ -62,6 +63,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <PartnerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/:jobId/dashboard"
+              element={
+                <ProtectedRoute>
+                  <JobDashboard />
                 </ProtectedRoute>
               }
             />

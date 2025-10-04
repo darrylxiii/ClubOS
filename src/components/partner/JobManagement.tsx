@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Briefcase, MapPin, DollarSign, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Briefcase, MapPin, DollarSign, LayoutDashboard, Edit, Trash2 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
 
 interface JobManagementProps {
@@ -12,6 +13,7 @@ interface JobManagementProps {
 }
 
 export const JobManagement = ({ companyId }: JobManagementProps) => {
+  const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -155,6 +157,14 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="default"
+                      onClick={() => navigate(`/jobs/${job.id}/dashboard`)}
+                    >
+                      <LayoutDashboard className="w-4 h-4 mr-2" />
+                      Dashboard
+                    </Button>
                     {job.status === 'draft' && (
                       <Button
                         size="sm"
