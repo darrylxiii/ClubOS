@@ -20,7 +20,6 @@ import { CompanyWall } from "@/components/partner/CompanyWall";
 import { CompanyFollowers } from "@/components/partner/CompanyFollowers";
 import { CompanyBrandingEditor } from "@/components/partner/CompanyBrandingEditor";
 import { useNavigate } from "react-router-dom";
-import { useEffect as useEffectNavigation } from "react";
 
 const PartnerDashboard = () => {
   const { user } = useAuth();
@@ -36,7 +35,7 @@ const PartnerDashboard = () => {
   const [loadingStats, setLoadingStats] = useState(true);
 
   // Redirect to partner onboarding if no company is set
-  useEffectNavigation(() => {
+  useEffect(() => {
     if (!roleLoading && !companyId) {
       navigate('/partner-onboarding');
     }
