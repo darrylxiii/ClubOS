@@ -13,6 +13,9 @@ import { TeamManagement } from "@/components/partner/TeamManagement";
 import { ApplicantPipeline } from "@/components/partner/ApplicantPipeline";
 import { PartnerAnalytics } from "@/components/partner/PartnerAnalytics";
 import { TargetCompanies } from "@/components/partner/TargetCompanies";
+import { CompanyPosts } from "@/components/partner/CompanyPosts";
+import { CompanyBranding } from "@/components/partner/CompanyBranding";
+import { CompanyAnalyticsChart } from "@/components/partner/CompanyAnalyticsChart";
 import { CompanyWall } from "@/components/partner/CompanyWall";
 import { CompanyFollowers } from "@/components/partner/CompanyFollowers";
 import { CompanyBrandingEditor } from "@/components/partner/CompanyBrandingEditor";
@@ -189,15 +192,16 @@ const PartnerDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="jobs" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9 lg:grid-cols-9">
             <TabsTrigger value="jobs">Jobs</TabsTrigger>
             <TabsTrigger value="applicants">Applicants</TabsTrigger>
-            <TabsTrigger value="targets">Targets</TabsTrigger>
             <TabsTrigger value="wall">Wall</TabsTrigger>
+            <TabsTrigger value="targets">Targets</TabsTrigger>
             <TabsTrigger value="followers">Followers</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="analytics">Analytics</TabsTrigger>
             <TabsTrigger value="branding">Branding</TabsTrigger>
-            <TabsTrigger value="company">Company</TabsTrigger>
+            <TabsTrigger value="company">Profile</TabsTrigger>
           </TabsList>
 
           <TabsContent value="jobs" className="space-y-4">
@@ -206,6 +210,10 @@ const PartnerDashboard = () => {
 
           <TabsContent value="applicants" className="space-y-4">
             <ApplicantPipeline companyId={companyId} />
+          </TabsContent>
+
+          <TabsContent value="posts" className="space-y-4">
+            <CompanyPosts companyId={companyId} />
           </TabsContent>
 
           <TabsContent value="targets" className="space-y-4">
@@ -222,6 +230,11 @@ const PartnerDashboard = () => {
 
           <TabsContent value="team" className="space-y-4">
             <TeamManagement companyId={companyId} canManage={role === 'company_admin'} />
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <CompanyAnalyticsChart companyId={companyId} />
+            <PartnerAnalytics companyId={companyId} />
           </TabsContent>
 
           <TabsContent value="branding" className="space-y-4">
