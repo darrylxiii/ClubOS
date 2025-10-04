@@ -40,40 +40,43 @@ import { NotificationBell } from "@/components/NotificationBell";
 // Candidate Navigation - Based on Quantum Club Sitemap
 const candidateNavigationItems = [
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+  { name: "Feed", icon: Rss, path: "/feed" },
   { name: "Profile", icon: User, path: "/profile" },
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
   { name: "Applications", icon: FileText, path: "/applications" },
   { name: "Messages", icon: MessageSquare, path: "/messages" },
-  { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
-  { name: "Meeting History", icon: Video, path: "/meeting-history" },
   { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+  { name: "Meeting History", icon: Video, path: "/meeting-history" },
+  { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
   { name: "Companies", icon: Building2, path: "/companies" },
   { name: "Referrals", icon: Gift, path: "/referrals" },
   { name: "Club AI", icon: Sparkles, path: "/club-ai" },
   { name: "Club Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
-  { name: "Feed", icon: Rss, path: "/feed" },
   { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
 // Partner Navigation - Based on Quantum Club Sitemap
 const partnerNavigationItems = [
   { name: "Partner Dashboard", icon: Building2, path: "/partner-dashboard" },
+  { name: "Feed", icon: Rss, path: "/feed" },
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
   { name: "Applications", icon: FileText, path: "/applications" },
   { name: "Messages", icon: MessageSquare, path: "/messages" },
   { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+  { name: "Meeting History", icon: Video, path: "/meeting-history" },
   { name: "Companies", icon: Building, path: "/companies" },
-  { name: "Feed", icon: Rss, path: "/feed" },
   { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
 // Admin Navigation - Based on Quantum Club Sitemap
 const adminNavigationItems = [
   { name: "Admin Dashboard", icon: Users, path: "/admin" },
-  { name: "User Management", icon: Users, path: "/admin" },
+  { name: "Feed", icon: Rss, path: "/feed" },
   { name: "Companies", icon: Building, path: "/companies" },
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
+  { name: "Applications", icon: FileText, path: "/applications" },
   { name: "Messages", icon: MessageSquare, path: "/messages" },
+  { name: "Scheduling", icon: Calendar, path: "/scheduling" },
   { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
