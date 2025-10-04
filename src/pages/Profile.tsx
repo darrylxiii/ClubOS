@@ -754,6 +754,29 @@ const Profile = () => {
     // Handle OAuth callback
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    // Handle OAuth errors
+    if (error) {
+      const pendingConnection = localStorage.getItem('pending_calendar_connection');
+      if (pendingConnection) {
+        const { provider } = JSON.parse(pendingConnection);
+        const providerName = provider === 'google' ? 'Google' : 'Microsoft';
+        
+        let errorMessage = `${providerName} Calendar connection failed`;
+        if (error === 'access_denied') {
+          errorMessage = `You denied access to ${providerName} Calendar`;
+        } else if (errorDescription) {
+          errorMessage = `${providerName} Calendar: ${errorDescription}`;
+        }
+        
+        toast.error(errorMessage);
+        localStorage.removeItem('pending_calendar_connection');
+        window.history.replaceState({}, document.title, '/profile');
+      }
+      return;
+    }
     
     if (code) {
       (async () => {
@@ -767,11 +790,19 @@ const Profile = () => {
             let email: string = 'Calendar Account';
 
             if (provider === 'google') {
-              const { data, error } = await supabase.functions.invoke('google-calendar-auth', {
+              const { data, error: invocationError } = await supabase.functions.invoke('google-calendar-auth', {
                 body: { action: 'exchangeCode', code, redirectUri }
               });
 
-              if (error) throw error;
+              if (invocationError) {
+                console.error('Google Calendar auth error:', invocationError);
+                throw new Error(invocationError.message || 'Failed to authenticate with Google Calendar');
+              }
+              
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              
               token = data.tokens.access_token;
               
               // Try to get user email from Google
@@ -785,11 +816,19 @@ const Profile = () => {
                 console.log('Could not fetch user email');
               }
             } else {
-              const { data, error } = await supabase.functions.invoke('microsoft-calendar-auth', {
+              const { data, error: invocationError } = await supabase.functions.invoke('microsoft-calendar-auth', {
                 body: { action: 'exchangeCode', code, redirectUri }
               });
 
-              if (error) throw error;
+              if (invocationError) {
+                console.error('Microsoft Calendar auth error:', invocationError);
+                throw new Error(invocationError.message || 'Failed to authenticate with Microsoft Calendar');
+              }
+              
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              
               token = data.access_token;
               
               // Try to get user email from Microsoft
