@@ -718,6 +718,8 @@ const Profile = () => {
       setCalendarLoading(true);
       
       const redirectUri = `${window.location.origin}/profile`;
+      console.log(`[Calendar] Connecting ${provider} with redirect URI:`, redirectUri);
+      
       const functionName = provider === 'google' ? 'google-calendar-auth' : 'microsoft-calendar-auth';
       
       // Store the label and provider for after OAuth redirect
@@ -730,13 +732,23 @@ const Profile = () => {
         body: { action: 'getAuthUrl', redirectUri }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error(`[Calendar] ${provider} auth error:`, error);
+        throw error;
+      }
+      
+      if (!data || !data.authUrl) {
+        console.error(`[Calendar] No auth URL returned from ${provider}`);
+        throw new Error('No authentication URL received');
+      }
 
+      console.log(`[Calendar] Redirecting to ${provider} OAuth...`);
       // Redirect to OAuth
       window.location.href = data.authUrl;
     } catch (error) {
-      console.error(`${provider} Calendar connection error:`, error);
-      toast.error(`Failed to connect ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar`);
+      console.error(`[Calendar] ${provider} Calendar connection error:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to connect ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar: ${errorMessage}`);
       localStorage.removeItem('pending_calendar_connection');
     } finally {
       setCalendarLoading(false);

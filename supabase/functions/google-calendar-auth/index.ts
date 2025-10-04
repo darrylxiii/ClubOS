@@ -39,6 +39,8 @@ serve(async (req) => {
         `&access_type=offline` +
         `&prompt=consent`;
 
+      console.log('Generated Google OAuth URL with redirect:', redirectUri);
+
       return new Response(
         JSON.stringify({ authUrl }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
