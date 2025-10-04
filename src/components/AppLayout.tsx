@@ -37,28 +37,44 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { NotificationBell } from "@/components/NotificationBell";
 
+// Candidate Navigation - Based on Quantum Club Sitemap
 const candidateNavigationItems = [
-  { name: "Club AI", icon: Sparkles, path: "/club-ai" },
   { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { name: "Feed", icon: Rss, path: "/feed" },
-  { name: "Messages", icon: MessageSquare, path: "/messages" },
-  { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+  { name: "Profile", icon: User, path: "/profile" },
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
   { name: "Applications", icon: FileText, path: "/applications" },
-  { name: "Companies", icon: Building2, path: "/companies" },
-  { name: "Club Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
-  { name: "Referrals", icon: Gift, path: "/referrals" },
+  { name: "Messages", icon: MessageSquare, path: "/messages" },
   { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
+  { name: "Meeting History", icon: Video, path: "/meeting-history" },
+  { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+  { name: "Companies", icon: Building2, path: "/companies" },
+  { name: "Referrals", icon: Gift, path: "/referrals" },
+  { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+  { name: "Club Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
+  { name: "Feed", icon: Rss, path: "/feed" },
+  { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
+// Partner Navigation - Based on Quantum Club Sitemap
 const partnerNavigationItems = [
   { name: "Partner Dashboard", icon: Building2, path: "/partner-dashboard" },
-  { name: "Feed", icon: Rss, path: "/feed" },
   { name: "Jobs", icon: Briefcase, path: "/jobs" },
   { name: "Applications", icon: FileText, path: "/applications" },
   { name: "Messages", icon: MessageSquare, path: "/messages" },
+  { name: "Scheduling", icon: Calendar, path: "/scheduling" },
   { name: "Companies", icon: Building, path: "/companies" },
-  { name: "Profile", icon: User, path: "/profile" },
+  { name: "Feed", icon: Rss, path: "/feed" },
+  { name: "Settings", icon: Settings, path: "/settings" },
+];
+
+// Admin Navigation - Based on Quantum Club Sitemap
+const adminNavigationItems = [
+  { name: "Admin Dashboard", icon: Users, path: "/admin" },
+  { name: "User Management", icon: Users, path: "/admin" },
+  { name: "Companies", icon: Building, path: "/companies" },
+  { name: "Jobs", icon: Briefcase, path: "/jobs" },
+  { name: "Messages", icon: MessageSquare, path: "/messages" },
+  { name: "Settings", icon: Settings, path: "/settings" },
 ];
 
 interface AppLayoutProps {
@@ -98,7 +114,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     checkUserStatus();
   }, [user]);
   
-  const navigationItems = isPartner ? partnerNavigationItems : candidateNavigationItems;
+  // Determine navigation based on role priority: Admin > Partner > Candidate
+  const navigationItems = isAdmin 
+    ? adminNavigationItems 
+    : isPartner 
+    ? partnerNavigationItems 
+    : candidateNavigationItems;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -208,7 +229,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/profile" className="cursor-pointer">
+                <Link to="/settings" className="cursor-pointer">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </Link>

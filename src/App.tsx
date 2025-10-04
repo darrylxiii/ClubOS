@@ -26,6 +26,7 @@ import PartnerDashboard from "./pages/PartnerDashboard";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Feed from "./pages/Feed";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -189,6 +190,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Feed />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <Settings />
                 </ProtectedRoute>
               }
             />
