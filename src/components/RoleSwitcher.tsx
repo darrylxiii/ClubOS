@@ -110,6 +110,8 @@ export function RoleSwitcher() {
     if (!user) return;
     
     try {
+      console.log('[RoleSwitcher] Attempting to switch role to:', newRole);
+      
       // Save preference to database (secure, server-side)
       const { error } = await supabase
         .from('user_preferences')
@@ -121,10 +123,12 @@ export function RoleSwitcher() {
         });
       
       if (error) {
-        console.error('Error saving role preference:', error);
+        console.error('[RoleSwitcher] Error saving role preference:', error);
         toast.error("Failed to switch roles. Please try again.");
         return;
       }
+      
+      console.log('[RoleSwitcher] Successfully saved preference, reloading...');
       
       // Update local state only after successful DB update
       setCurrentRole(newRole);
@@ -133,12 +137,12 @@ export function RoleSwitcher() {
         description: "Reloading dashboard"
       });
       
-      // Reload page after confirming DB update
+      // Force hard reload to ensure fresh state
       setTimeout(() => {
-        window.location.reload();
-      }, 800);
+        window.location.href = window.location.origin + '/club-home';
+      }, 500);
     } catch (error) {
-      console.error('Error saving role preference:', error);
+      console.error('[RoleSwitcher] Error saving role preference:', error);
       toast.error("Failed to switch roles. Please try again.");
     }
   };
