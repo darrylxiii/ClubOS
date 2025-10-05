@@ -48,9 +48,9 @@ const Index = () => {
                   <div className="flex flex-col sm:flex-row gap-4">
                     {user ? (
                       <>
-                        <Link to="/dashboard" className="w-full sm:w-auto">
+                        <Link to="/home" className="w-full sm:w-auto">
                           <Button size="lg" className="w-full sm:w-auto text-sm font-black uppercase tracking-wider">
-                            ENTER DASHBOARD
+                            ENTER CLUB HOME
                             <ArrowRight className="ml-2 h-4 w-4" />
                           </Button>
                         </Link>
@@ -107,12 +107,12 @@ const Index = () => {
         <section className="px-6 py-12 md:py-16 border-y-2 border-foreground">
           <div className="max-w-7xl mx-auto">
             <div className="grid md:grid-cols-2 gap-6">
-              <Link to="/dashboard">
+              <Link to="/home">
                 <Card className="border-2 border-foreground hover:bg-foreground hover:text-background transition-all duration-300 group cursor-pointer">
                   <CardContent className="p-8 md:p-12">
                     <Briefcase className="h-10 w-10 md:h-12 md:w-12 mb-6 group-hover:scale-110 transition-transform" />
-                    <h3 className="text-2xl md:text-3xl font-black mb-3 uppercase tracking-tight">MY PIPELINE</h3>
-                    <p className="text-sm md:text-base">Track applications, prepare for interviews, and manage your elite opportunities</p>
+                    <h3 className="text-2xl md:text-3xl font-black mb-3 uppercase tracking-tight">MY CLUB HOME</h3>
+                    <p className="text-sm md:text-base">Access your personalized dashboard with insights, actions, and opportunities</p>
                   </CardContent>
                 </Card>
               </Link>

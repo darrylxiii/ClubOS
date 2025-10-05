@@ -48,6 +48,7 @@ const candidateNavigationGroups = [
     title: "Overview",
     icon: Layers,
     items: [
+      { name: "Club Home", icon: Home, path: "/home" },
       { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
       { name: "Feed", icon: Rss, path: "/feed" },
     ],
@@ -96,6 +97,7 @@ const partnerNavigationGroups = [
     title: "Overview",
     icon: Layers,
     items: [
+      { name: "Club Home", icon: Home, path: "/home" },
       { name: "Dashboard", icon: Building2, path: "/partner-dashboard" },
       { name: "Feed", icon: Rss, path: "/feed" },
     ],
@@ -141,6 +143,7 @@ const adminNavigationGroups = [
     title: "Overview",
     icon: Layers,
     items: [
+      { name: "Club Home", icon: Home, path: "/home" },
       { name: "Admin Panel", icon: Users, path: "/admin" },
       { name: "Feed", icon: Rss, path: "/feed" },
     ],

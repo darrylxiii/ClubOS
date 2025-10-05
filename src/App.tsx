@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
+import ClubHome from "./pages/ClubHome";
 import Dashboard from "./pages/Dashboard";
 import Jobs from "./pages/Jobs";
 import TasksPilot from "./pages/TasksPilot";
@@ -42,6 +43,14 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Index />} />
+            <Route
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <ClubHome />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/club-ai"
               element={
