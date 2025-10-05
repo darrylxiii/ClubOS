@@ -330,35 +330,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       )}
 
       <main className="flex-1 overflow-y-auto">
-        <div className="min-h-screen mt-16 lg:mt-0">{children}</div>
+        <div className="min-h-screen mt-16 lg:mt-0 pb-4">{children}</div>
       </main>
 
-      {/* Global Utility Bar - Always Accessible */}
+      {/* Global Navigation Tools - Always Accessible */}
       <CommandPalette />
       <GlobalUtilityBar />
-
-      {/* Mobile Bottom Navigation - Show Top 5 Most Used */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border z-50 flex items-center justify-around">
-        {navigationGroups
-          .flatMap(group => group.items)
-          .slice(0, 5)
-          .map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.name}
-                to={item.path}
-                className={cn(
-                  "flex flex-col items-center justify-center gap-1 flex-1 h-full",
-                  isActive ? "text-primary" : "text-muted-foreground"
-                )}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className="text-xs">{item.name}</span>
-              </Link>
-            );
-          })}
-      </div>
     </div>
   );
 };
