@@ -120,8 +120,8 @@ export function RoleSwitcher() {
           preferred_role_view: newRole 
         });
       
-      toast.success(`Switched to ${roleOptions[newRole]?.label || newRole} role`, {
-        description: "Refresh the page to see changes"
+      toast.success(`Switching to ${roleOptions[newRole]?.label || newRole} view...`, {
+        description: "Loading your personalized dashboard"
       });
       
       // Reload page after a short delay

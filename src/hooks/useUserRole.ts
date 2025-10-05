@@ -29,6 +29,15 @@ export const useUserRole = () => {
 
         console.log('[useUserRole] User roles data:', rolesData, 'error:', rolesError);
 
+        // Get user's preferred role view from preferences
+        const { data: prefsData } = await supabase
+          .from('user_preferences')
+          .select('preferred_role_view')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        console.log('[useUserRole] User preference:', prefsData);
+
         // Get profile with company info
         const { data: profileData, error: profileError } = await supabase
           .from('profiles')
@@ -38,15 +47,29 @@ export const useUserRole = () => {
 
         console.log('[useUserRole] Profile data:', profileData, 'error:', profileError);
 
-        // Determine role based on database only (server-side priority)
+        // Determine role: respect preference if valid, otherwise use priority
         if (rolesData && rolesData.length > 0) {
-          // Priority: admin > strategist > partner > user
-          const finalRole = rolesData.some(r => r.role === 'admin') ? 'admin' 
-            : rolesData.some(r => r.role === 'strategist') ? 'strategist'
-            : rolesData.some(r => r.role === 'partner') ? 'partner'
-            : 'user';
-          console.log('[useUserRole] Using server-side priority role:', finalRole);
-          setRole(finalRole);
+          const userRoles = rolesData.map(r => r.role);
+          const preferredRole = prefsData?.preferred_role_view;
+          
+          // Type guard to ensure preferredRole is a valid UserRole
+          const isValidRole = (role: string): role is UserRole => {
+            return ['admin', 'partner', 'company_admin', 'recruiter', 'user', 'strategist'].includes(role);
+          };
+          
+          // If user has a valid preferred role, use it
+          if (preferredRole && isValidRole(preferredRole) && userRoles.includes(preferredRole)) {
+            console.log('[useUserRole] Using preferred role:', preferredRole);
+            setRole(preferredRole);
+          } else {
+            // Otherwise use priority: admin > strategist > partner > user
+            const finalRole: UserRole = rolesData.some(r => r.role === 'admin') ? 'admin' 
+              : rolesData.some(r => r.role === 'strategist') ? 'strategist'
+              : rolesData.some(r => r.role === 'partner') ? 'partner'
+              : 'user';
+            console.log('[useUserRole] Using priority role:', finalRole);
+            setRole(finalRole);
+          }
         } else {
           console.log('[useUserRole] No roles found, defaulting to user');
           setRole('user');
