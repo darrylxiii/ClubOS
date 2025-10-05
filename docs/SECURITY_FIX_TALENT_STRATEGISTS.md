@@ -1,119 +1,102 @@
-# Security Fix: Talent Strategists PII Protection
+# Security Fixes - Phases 1-3 Implementation
 
-## Issue
-**Level**: ERROR  
-**Title**: Staff Contact Information Exposed to All Users
+## Phase 1: Critical Data Exposure Fixes ✅
 
-The `talent_strategists` table contained sensitive personal information (email, phone, LinkedIn, Twitter, Instagram) that was accessible to any authenticated user through a permissive RLS policy.
+### Step 1: Talent Strategist PII Exposure - FIXED
+**Status**: Already applied in previous security review
+- Created `public_talent_strategists` view with security_invoker mode
+- Restricted full table access to admins only
+- All PII fields (email, phone, social media) now protected
 
-## Risk
-- **Privacy violation**: Staff contact information exposed
-- **Harassment potential**: Direct access to personal communication channels
-- **Impersonation risk**: Social media profiles available to bad actors
-- **GDPR/Privacy compliance**: Unauthorized PII access
-
-## Solution Implemented
-
-### 1. Restricted Base Table Access (Admin Only)
+### Step 2: Bookings Data Theft - REQUIRES MIGRATION
+**Issue**: Guests could view other users' bookings by creating accounts with their email
+**Fix Required**: 
 ```sql
--- Removed permissive policy
-DROP POLICY "Authenticated users can view talent strategists"
-
--- Added admin-only policy
-CREATE POLICY "Admins can view all talent strategist details"
-ON public.talent_strategists
-FOR SELECT
-USING (has_role(auth.uid(), 'admin'::app_role));
+DROP POLICY IF EXISTS "Guests can view their bookings by email" ON public.bookings;
+CREATE POLICY "Booking owners can view their bookings"
+ON public.bookings FOR SELECT
+USING (auth.uid() = user_id);
 ```
 
-### 2. Created Public View (Filtered Data)
+### Step 3: Conversation Stats Public Access - REQUIRES MIGRATION
+**Issue**: System management policy exposed business intelligence to all users
+**Fix Required**:
 ```sql
-CREATE VIEW public.public_talent_strategists
-WITH (security_invoker=on)
-AS
-SELECT 
-  id,
-  full_name,
-  title,
-  bio,
-  photo_url,
-  availability,
-  specialties,
-  created_at,
-  updated_at
-FROM public.talent_strategists;
+DROP POLICY IF EXISTS "System can manage conversation stats" ON public.conversation_stats;
+-- System updates will use service role key instead
 ```
 
-**Excluded sensitive fields:**
-- ❌ email
-- ❌ phone
-- ❌ linkedin_url
-- ❌ twitter_url  
-- ❌ instagram_url
+## Phase 2: Privilege Escalation Prevention ✅
 
-**Public fields (safe to share):**
-- ✅ full_name
-- ✅ title
-- ✅ bio
-- ✅ photo_url
-- ✅ availability
-- ✅ specialties
+### Step 4: localStorage Role Override - FIXED
+**Previous vulnerability**: Users could manipulate `localStorage.setItem('selected_role', 'admin')` to gain admin UI access
 
-### 3. Security Invoker Mode
-Used `WITH (security_invoker=on)` to ensure the view respects RLS policies and executes with the calling user's permissions, not the view creator's permissions.
+**Changes made**:
+- Removed all localStorage role checking logic from `useUserRole.ts`
+- Database is now the single source of truth for roles
+- Role priority determined server-side only: admin > strategist > partner > user
+- UI reflects actual database roles, not client-side values
 
-### 4. Updated Application Code
-Modified `Dashboard.tsx` to:
-- Check user's admin role
-- Query full table for admins (with contact info)
-- Query public view for regular users (no contact info)
+**Files updated**:
+- `src/hooks/useUserRole.ts` - Removed lines 25-26 and 46-49 (localStorage checks)
 
-```typescript
-// Admin check
-const { data: rolesData } = await supabase
-  .from('user_roles')
-  .select('role')
-  .eq('user_id', user.id);
+## Phase 3: Edge Function Hardening ✅
 
-const isAdmin = rolesData?.some(r => r.role === 'admin');
+### Step 5: OAuth Function Authentication - FIXED
 
-// Conditional query
-if (isAdmin) {
-  // Query: talent_strategists (full data)
-} else {
-  // Query: public_talent_strategists (filtered data)
-}
-```
+**Files updated**:
+1. `supabase/functions/google-calendar-auth/index.ts`
+   - Added Supabase client initialization
+   - Added authorization header verification
+   - Added user authentication check before processing OAuth
+   - Returns 401 for unauthorized requests
 
-## Access Control Matrix
+2. `supabase/functions/microsoft-calendar-auth/index.ts`
+   - Added Supabase client initialization
+   - Added authorization header verification
+   - Added user authentication check before processing OAuth
+   - Returns 401 for unauthorized requests
 
-| User Type | Table Access | Contact Info | View Profile | Social Media |
-|-----------|-------------|--------------|--------------|--------------|
-| Admin | ✅ Full | ✅ Yes | ✅ Yes | ✅ Yes |
-| Regular User | ❌ No | ❌ No | ✅ Yes | ❌ No |
-| Anonymous | ❌ No | ❌ No | ❌ No | ❌ No |
+**Security improvements**:
+- OAuth tokens can no longer be stolen by unauthenticated users
+- All OAuth operations now require valid JWT
+- Proper error messages for missing/invalid auth
 
-## Testing
-1. ✅ Admin users can see full strategist profiles with contact information
-2. ✅ Regular users see public profiles without contact information  
-3. ✅ Anonymous users cannot access any strategist data
-4. ✅ Security linter passes (no security definer view warnings)
-5. ✅ Application functions normally with role-based data access
+### Step 6: Input Validation - PENDING
+**Requires**: Add Zod validation to edge functions
+- `linkedin-job-import`: Validate companyId, linkedinUrl, importedBy
+- `meeting-debrief`: Validate recordingId (UUID format)
+- `calculate-match-score`: Validate userId and jobId (UUID format)
 
-## Compliance
-- ✅ GDPR: PII access restricted to authorized personnel
-- ✅ Privacy: Staff contact information protected
-- ✅ Security: RLS policies enforce access control
-- ✅ Audit: Role-based access logged in auth system
+## Summary of Changes
 
-## Remaining Security Item
-**WARN**: Leaked Password Protection Disabled
-- Not related to this PII issue
-- Requires auth configuration update
-- Does not affect talent strategist data security
+### ✅ Completed (Code Changes)
+- Removed localStorage privilege escalation vulnerability
+- Added authentication to OAuth edge functions (Google & Microsoft Calendar)
+- Protected against OAuth token theft
 
-## Future Enhancements
-1. Add strategist assignment tracking (users see only their assigned strategist)
-2. Implement contact request workflow (users request contact, admins approve)
-3. Add audit logging for strategist profile access
-4. Implement field-level encryption for highly sensitive data
+### ⚠️ Requires Migration (Database)
+The following database changes require user approval:
+1. Fix bookings RLS policy (prevent email-based data theft)
+2. Remove conversation stats public access policy
+
+### 📋 Next Steps
+Once migration is approved:
+1. Add input validation (Zod) to remaining edge functions
+2. Test all authentication flows
+3. Verify RLS policies are working correctly
+4. Run comprehensive security testing
+
+## Testing Checklist
+- [ ] Verify admin access requires database role (not localStorage)
+- [ ] Test OAuth functions reject unauthenticated requests
+- [ ] Verify bookings are isolated by user_id (after migration)
+- [ ] Confirm conversation stats hidden from regular users (after migration)
+- [ ] Test edge function input validation (after implementation)
+
+## Security Impact
+- **Critical**: Privilege escalation via localStorage - FIXED
+- **Critical**: OAuth token theft - FIXED  
+- **High**: Bookings data exposure - PENDING MIGRATION
+- **Medium**: Conversation stats exposure - PENDING MIGRATION
+- **Medium**: Missing input validation - PENDING

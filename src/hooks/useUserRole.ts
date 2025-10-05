@@ -21,11 +21,7 @@ export const useUserRole = () => {
       console.log('[useUserRole] Fetching role for user:', user.id);
 
       try {
-        // Check for manually selected role in localStorage
-        const selectedRole = localStorage.getItem('selected_role');
-        console.log('[useUserRole] Selected role from localStorage:', selectedRole);
-        
-        // Get ALL user roles (user can have multiple)
+        // Get ALL user roles from database (single source of truth)
         const { data: rolesData, error: rolesError } = await supabase
           .from('user_roles')
           .select('role')
@@ -42,18 +38,14 @@ export const useUserRole = () => {
 
         console.log('[useUserRole] Profile data:', profileData, 'error:', profileError);
 
-        // Use manually selected role if available and user has that role (PRIORITY)
-        if (selectedRole && rolesData?.some(r => r.role === selectedRole)) {
-          console.log('[useUserRole] Using selected role from localStorage:', selectedRole);
-          setRole(selectedRole as UserRole);
-          console.log('[useUserRole] Role state set to:', selectedRole);
-        } else if (rolesData && rolesData.length > 0) {
-          // Otherwise prioritize admin role (highest priority)
+        // Determine role based on database only (server-side priority)
+        if (rolesData && rolesData.length > 0) {
+          // Priority: admin > strategist > partner > user
           const finalRole = rolesData.some(r => r.role === 'admin') ? 'admin' 
             : rolesData.some(r => r.role === 'strategist') ? 'strategist'
             : rolesData.some(r => r.role === 'partner') ? 'partner'
             : 'user';
-          console.log('[useUserRole] No selected role, using priority role:', finalRole);
+          console.log('[useUserRole] Using server-side priority role:', finalRole);
           setRole(finalRole);
         } else {
           console.log('[useUserRole] No roles found, defaulting to user');
