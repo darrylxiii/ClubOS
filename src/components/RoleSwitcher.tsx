@@ -109,28 +109,37 @@ export function RoleSwitcher() {
   const handleRoleChange = async (newRole: string) => {
     if (!user) return;
     
-    setCurrentRole(newRole);
-    
     try {
       // Save preference to database (secure, server-side)
-      await supabase
+      const { error } = await supabase
         .from('user_preferences')
         .upsert({ 
           user_id: user.id, 
           preferred_role_view: newRole 
+        }, {
+          onConflict: 'user_id'
         });
       
+      if (error) {
+        console.error('Error saving role preference:', error);
+        toast.error("Failed to switch roles. Please try again.");
+        return;
+      }
+      
+      // Update local state only after successful DB update
+      setCurrentRole(newRole);
+      
       toast.success(`Switching to ${roleOptions[newRole]?.label || newRole} view...`, {
-        description: "Loading your personalized dashboard"
+        description: "Reloading dashboard"
       });
       
-      // Reload page after a short delay
+      // Reload page after confirming DB update
       setTimeout(() => {
         window.location.reload();
-      }, 1500);
+      }, 800);
     } catch (error) {
       console.error('Error saving role preference:', error);
-      toast.error("Failed to save role preference");
+      toast.error("Failed to switch roles. Please try again.");
     }
   };
 
