@@ -15,6 +15,9 @@ import {
   Clock
 } from "lucide-react";
 import { ProfileCompletion } from "@/components/ProfileCompletion";
+import { LivePulse } from "@/components/LivePulse";
+import { ProfileViewers } from "@/components/ProfileViewers";
+import { AICareerChat } from "@/components/AICareerChat";
 import { Link } from "react-router-dom";
 
 export const CandidateHome = () => {
@@ -190,6 +193,15 @@ export const CandidateHome = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Live Pulse & Profile Views */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <LivePulse />
+        <ProfileViewers />
+      </div>
+
+      {/* AI Career Chat */}
+      <AICareerChat />
 
       {/* Recent Activity */}
       <Card>

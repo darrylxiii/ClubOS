@@ -14,6 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
+      activity_feed: {
+        Row: {
+          company_id: string | null
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          user_id: string | null
+          visibility: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          user_id?: string | null
+          visibility?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          user_id?: string | null
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_feed_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_conversations: {
+        Row: {
+          context: Json | null
+          conversation_type: string
+          created_at: string | null
+          id: string
+          messages: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          context?: Json | null
+          conversation_type: string
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          context?: Json | null
+          conversation_type?: string
+          created_at?: string | null
+          id?: string
+          messages?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_copilot_tips: {
+        Row: {
+          context_page: string | null
+          id: string
+          is_dismissed: boolean | null
+          shown_at: string | null
+          tip_content: string
+          tip_type: string
+          user_id: string
+        }
+        Insert: {
+          context_page?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          shown_at?: string | null
+          tip_content: string
+          tip_type: string
+          user_id: string
+        }
+        Update: {
+          context_page?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          shown_at?: string | null
+          tip_content?: string
+          tip_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       applications: {
         Row: {
           applied_at: string
@@ -2605,6 +2703,41 @@ export type Database = {
           years_experience?: number | null
         }
         Relationships: []
+      }
+      profile_views: {
+        Row: {
+          id: string
+          is_anonymous: boolean | null
+          viewed_at: string | null
+          viewed_user_id: string
+          viewer_company_id: string | null
+          viewer_user_id: string | null
+        }
+        Insert: {
+          id?: string
+          is_anonymous?: boolean | null
+          viewed_at?: string | null
+          viewed_user_id: string
+          viewer_company_id?: string | null
+          viewer_user_id?: string | null
+        }
+        Update: {
+          id?: string
+          is_anonymous?: boolean | null
+          viewed_at?: string | null
+          viewed_user_id?: string
+          viewer_company_id?: string | null
+          viewer_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_views_viewer_company_id_fkey"
+            columns: ["viewer_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profile_visibility_rules: {
         Row: {
