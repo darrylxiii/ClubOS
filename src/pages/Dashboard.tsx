@@ -41,15 +41,28 @@ const Dashboard = () => {
       if (!user) return;
 
       try {
+        // Query profiles table for strategists - safer approach
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('user_id')
+          .eq('role', 'strategist');
+
+        if (!roleData) return;
+
+        const strategistIds = roleData.map(r => r.user_id);
+        if (strategistIds.length === 0) return;
+
         const { data, error } = await supabase
-          .from('talent_strategists')
-          .select('*')
+          .from('profiles')
+          .select('id, full_name, avatar_url, bio')
+          .in('id', strategistIds)
           .order('full_name');
 
         if (error) throw error;
         if (data) setStrategists(data);
       } catch (error) {
         console.error('Error fetching strategists:', error);
+        // Fail silently - strategists are optional UI element
       }
     };
 
