@@ -3381,6 +3381,51 @@ export type Database = {
       }
     }
     Views: {
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          current_title: string | null
+          employment_type_preference: string | null
+          full_name: string | null
+          github_username: string | null
+          id: string | null
+          instagram_username: string | null
+          linkedin_url: string | null
+          location: string | null
+          remote_work_preference: boolean | null
+          twitter_username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          current_title?: string | null
+          employment_type_preference?: string | null
+          full_name?: string | null
+          github_username?: string | null
+          id?: string | null
+          instagram_username?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          remote_work_preference?: boolean | null
+          twitter_username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          current_title?: string | null
+          employment_type_preference?: string | null
+          full_name?: string | null
+          github_username?: string | null
+          id?: string | null
+          instagram_username?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          remote_work_preference?: boolean | null
+          twitter_username?: string | null
+        }
+        Relationships: []
+      }
       public_talent_strategists: {
         Row: {
           availability: string | null

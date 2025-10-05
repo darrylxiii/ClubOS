@@ -19,7 +19,7 @@ interface UserResult {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
-  email: string;
+  current_title: string | null;
 }
 
 export const CreateConversationDialog = ({
@@ -46,11 +46,12 @@ export const CreateConversationDialog = ({
 
     setLoading(true);
     try {
+      // Use public view to avoid exposing email/phone/salary
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url, email')
+        .from('public_profiles')
+        .select('id, full_name, avatar_url, current_title')
         .neq('id', user.id)
-        .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+        .ilike('full_name', `%${query}%`)
         .limit(10);
 
       if (error) throw error;
@@ -193,12 +194,12 @@ export const CreateConversationDialog = ({
                     <Avatar>
                       <AvatarImage src={result.avatar_url || ''} />
                       <AvatarFallback>
-                        {result.full_name?.charAt(0) || result.email.charAt(0).toUpperCase()}
+                        {result.full_name?.charAt(0)?.toUpperCase() || '?'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <p className="font-medium">{result.full_name || 'No name'}</p>
-                      <p className="text-sm text-muted-foreground">{result.email}</p>
+                      <p className="text-sm text-muted-foreground">{result.current_title || 'Member'}</p>
                     </div>
                   </div>
                   <Button
