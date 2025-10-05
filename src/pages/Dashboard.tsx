@@ -41,21 +41,10 @@ const Dashboard = () => {
       if (!user) return;
 
       try {
-        // Query profiles table for strategists - safer approach
-        const { data: roleData } = await supabase
-          .from('user_roles')
-          .select('user_id')
-          .eq('role', 'strategist');
-
-        if (!roleData) return;
-
-        const strategistIds = roleData.map(r => r.user_id);
-        if (strategistIds.length === 0) return;
-
+        // Use public view that excludes PII (email, phone)
         const { data, error } = await supabase
-          .from('profiles')
-          .select('id, full_name, avatar_url, bio')
-          .in('id', strategistIds)
+          .from('public_talent_strategists')
+          .select('*')
           .order('full_name');
 
         if (error) throw error;

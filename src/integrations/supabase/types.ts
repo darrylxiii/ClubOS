@@ -3381,7 +3381,45 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_talent_strategists: {
+        Row: {
+          availability: string | null
+          bio: string | null
+          full_name: string | null
+          id: string | null
+          instagram_url: string | null
+          linkedin_url: string | null
+          photo_url: string | null
+          specialties: string[] | null
+          title: string | null
+          twitter_url: string | null
+        }
+        Insert: {
+          availability?: string | null
+          bio?: string | null
+          full_name?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          photo_url?: string | null
+          specialties?: string[] | null
+          title?: string | null
+          twitter_url?: string | null
+        }
+        Update: {
+          availability?: string | null
+          bio?: string | null
+          full_name?: string | null
+          id?: string | null
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          photo_url?: string | null
+          specialties?: string[] | null
+          title?: string | null
+          twitter_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_invite_code: {
