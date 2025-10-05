@@ -63,8 +63,14 @@ export function RoleSwitcher() {
 
       if (error) throw error;
 
-      // Get currently selected role from localStorage
-      const savedRole = localStorage.getItem('selected_role');
+      // Get user preferences from database (secure, server-side)
+      const { data: prefsData } = await supabase
+        .from('user_preferences')
+        .select('preferred_role_view')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      const savedRole = prefsData?.preferred_role_view;
       
       const roles: UserRoleOption[] = [];
       
@@ -83,7 +89,7 @@ export function RoleSwitcher() {
 
       setAvailableRoles(roles);
       
-      // Set current role
+      // Set current role from database preferences
       if (savedRole && roles.find(r => r.value === savedRole)) {
         setCurrentRole(savedRole);
       } else if (rolesData && rolesData.length > 0) {
@@ -101,9 +107,28 @@ export function RoleSwitcher() {
     }
   };
 
-  const handleRoleChange = (newRole: string) => {
+  const handleRoleChange = async (newRole: string) => {
+    if (!user) return;
+    
     setCurrentRole(newRole);
-    localStorage.setItem('selected_role', newRole);
+    
+    // Save to database instead of localStorage (secure, server-side)
+    const { error } = await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: user.id,
+        preferred_role_view: newRole,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
+    
+    if (error) {
+      console.error('Error saving preference:', error);
+      toast.error("Failed to save role preference");
+      return;
+    }
+    
     toast.success(`Switched to ${roleOptions[newRole]?.label || newRole} role`, {
       description: "Refresh the page to see changes"
     });

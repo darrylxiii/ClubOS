@@ -41,8 +41,9 @@ const Dashboard = () => {
       if (!user) return;
 
       try {
+        // Use public view instead of direct table access for security
         const { data, error } = await supabase
-          .from('talent_strategists')
+          .from('public_talent_strategists')
           .select('*')
           .order('full_name');
 

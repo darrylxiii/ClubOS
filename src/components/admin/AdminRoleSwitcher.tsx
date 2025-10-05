@@ -16,9 +16,8 @@ export const AdminRoleSwitcher = () => {
 
   useEffect(() => {
     fetchUserRoles();
-    const stored = localStorage.getItem('viewMode');
-    if (stored) setCurrentView(stored);
-  }, []);
+    fetchUserPreferences();
+  }, [user]);
 
   const fetchUserRoles = async () => {
     if (!user) return;
@@ -31,8 +30,40 @@ export const AdminRoleSwitcher = () => {
     setRoles(data?.map(r => r.role) || []);
   };
 
-  const handleSwitchView = (role: string) => {
-    localStorage.setItem('viewMode', role);
+  const fetchUserPreferences = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('user_preferences')
+      .select('preferred_role_view')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (data?.preferred_role_view) {
+      setCurrentView(data.preferred_role_view);
+    }
+  };
+
+  const handleSwitchView = async (role: string) => {
+    if (!user) return;
+
+    // Save to database instead of localStorage (secure, server-side)
+    const { error } = await supabase
+      .from('user_preferences')
+      .upsert({
+        user_id: user.id,
+        preferred_role_view: role,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
+      });
+
+    if (error) {
+      console.error('Error saving preference:', error);
+      toast.error("Failed to save view preference");
+      return;
+    }
+
     setCurrentView(role);
     toast.success(`Switched to ${role} view`);
 
