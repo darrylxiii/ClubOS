@@ -22,9 +22,11 @@ import {
   Video,
   Home,
   Building,
-  Bot,
   Users,
   Rss,
+  Layers,
+  Zap,
+  Cog,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,52 +38,145 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationBell } from "@/components/NotificationBell";
+import { NavigationGroup } from "@/components/NavigationGroup";
+import { CommandPalette } from "@/components/CommandPalette";
+import { GlobalUtilityBar } from "@/components/GlobalUtilityBar";
 
-// Candidate Navigation - Based on Quantum Club Sitemap
-const candidateNavigationItems = [
-  { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { name: "Feed", icon: Rss, path: "/feed" },
-  { name: "Profile", icon: User, path: "/profile" },
-  { name: "Jobs", icon: Briefcase, path: "/jobs" },
-  { name: "Applications", icon: FileText, path: "/applications" },
-  { name: "Messages", icon: MessageSquare, path: "/messages" },
-  { name: "Scheduling", icon: Calendar, path: "/scheduling" },
-  { name: "Meeting History", icon: Video, path: "/meeting-history" },
-  { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
-  { name: "Companies", icon: Building2, path: "/companies" },
-  { name: "Referrals", icon: Gift, path: "/referrals" },
-  { name: "Club AI", icon: Sparkles, path: "/club-ai" },
-  { name: "Club Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
-  { name: "Settings", icon: Settings, path: "/settings" },
+// Grouped Candidate Navigation
+const candidateNavigationGroups = [
+  {
+    title: "Overview",
+    icon: Layers,
+    items: [
+      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+      { name: "Feed", icon: Rss, path: "/feed" },
+    ],
+  },
+  {
+    title: "Career",
+    icon: Briefcase,
+    items: [
+      { name: "Profile", icon: User, path: "/profile" },
+      { name: "Jobs", icon: Briefcase, path: "/jobs" },
+      { name: "Applications", icon: FileText, path: "/applications" },
+      { name: "Companies", icon: Building2, path: "/companies" },
+      { name: "Referrals", icon: Gift, path: "/referrals" },
+    ],
+  },
+  {
+    title: "Communication",
+    icon: MessageSquare,
+    items: [
+      { name: "Messages", icon: MessageSquare, path: "/messages" },
+      { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+      { name: "Meeting History", icon: Video, path: "/meeting-history" },
+      { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
+    ],
+  },
+  {
+    title: "AI & Tools",
+    icon: Zap,
+    items: [
+      { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+      { name: "Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
+    ],
+  },
+  {
+    title: "Settings",
+    icon: Cog,
+    items: [
+      { name: "Settings", icon: Settings, path: "/settings" },
+    ],
+  },
 ];
 
-// Partner Navigation - Based on Quantum Club Sitemap
-const partnerNavigationItems = [
-  { name: "Partner Dashboard", icon: Building2, path: "/partner-dashboard" },
-  { name: "Feed", icon: Rss, path: "/feed" },
-  { name: "Jobs", icon: Briefcase, path: "/jobs" },
-  { name: "Applications", icon: FileText, path: "/applications" },
-  { name: "Messages", icon: MessageSquare, path: "/messages" },
-  { name: "Scheduling", icon: Calendar, path: "/scheduling" },
-  { name: "Meeting History", icon: Video, path: "/meeting-history" },
-  { name: "Companies", icon: Building, path: "/companies" },
-  { name: "Club AI", icon: Sparkles, path: "/club-ai" },
-  { name: "Club Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
-  { name: "Settings", icon: Settings, path: "/settings" },
+// Grouped Partner Navigation
+const partnerNavigationGroups = [
+  {
+    title: "Overview",
+    icon: Layers,
+    items: [
+      { name: "Dashboard", icon: Building2, path: "/partner-dashboard" },
+      { name: "Feed", icon: Rss, path: "/feed" },
+    ],
+  },
+  {
+    title: "Hiring",
+    icon: Briefcase,
+    items: [
+      { name: "Jobs", icon: Briefcase, path: "/jobs" },
+      { name: "Applicants", icon: FileText, path: "/applications" },
+      { name: "Companies", icon: Building, path: "/companies" },
+    ],
+  },
+  {
+    title: "Communication",
+    icon: MessageSquare,
+    items: [
+      { name: "Messages", icon: MessageSquare, path: "/messages" },
+      { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+      { name: "Meeting History", icon: Video, path: "/meeting-history" },
+    ],
+  },
+  {
+    title: "AI & Tools",
+    icon: Zap,
+    items: [
+      { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+      { name: "Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
+    ],
+  },
+  {
+    title: "Settings",
+    icon: Cog,
+    items: [
+      { name: "Settings", icon: Settings, path: "/settings" },
+    ],
+  },
 ];
 
-// Admin Navigation - Based on Quantum Club Sitemap
-const adminNavigationItems = [
-  { name: "Admin Dashboard", icon: Users, path: "/admin" },
-  { name: "Feed", icon: Rss, path: "/feed" },
-  { name: "Companies", icon: Building, path: "/companies" },
-  { name: "Jobs", icon: Briefcase, path: "/jobs" },
-  { name: "Applications", icon: FileText, path: "/applications" },
-  { name: "Messages", icon: MessageSquare, path: "/messages" },
-  { name: "Scheduling", icon: Calendar, path: "/scheduling" },
-  { name: "Club AI", icon: Sparkles, path: "/club-ai" },
-  { name: "Club Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
-  { name: "Settings", icon: Settings, path: "/settings" },
+// Grouped Admin Navigation
+const adminNavigationGroups = [
+  {
+    title: "Overview",
+    icon: Layers,
+    items: [
+      { name: "Admin Panel", icon: Users, path: "/admin" },
+      { name: "Feed", icon: Rss, path: "/feed" },
+    ],
+  },
+  {
+    title: "Management",
+    icon: Building,
+    items: [
+      { name: "Companies", icon: Building, path: "/companies" },
+      { name: "Jobs", icon: Briefcase, path: "/jobs" },
+      { name: "Applications", icon: FileText, path: "/applications" },
+    ],
+  },
+  {
+    title: "Communication",
+    icon: MessageSquare,
+    items: [
+      { name: "Messages", icon: MessageSquare, path: "/messages" },
+      { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+    ],
+  },
+  {
+    title: "AI & Tools",
+    icon: Zap,
+    items: [
+      { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+      { name: "Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
+    ],
+  },
+  {
+    title: "Settings",
+    icon: Cog,
+    items: [
+      { name: "Settings", icon: Settings, path: "/settings" },
+    ],
+  },
 ];
 
 interface AppLayoutProps {
@@ -122,11 +217,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   }, [user]);
   
   // Determine navigation based on role priority: Admin > Partner > Candidate
-  const navigationItems = isAdmin 
-    ? adminNavigationItems 
+  const navigationGroups = isAdmin 
+    ? adminNavigationGroups 
     : isPartner 
-    ? partnerNavigationItems 
-    : candidateNavigationItems;
+    ? partnerNavigationGroups 
+    : candidateNavigationGroups;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -170,42 +265,16 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
 
         <nav className="flex-1 overflow-y-auto py-6 px-3">
-          <div className="space-y-1">
-            {isAdmin && (
-              <Link
-                to="/admin"
-                onClick={() => setSidebarOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors",
-                  location.pathname === "/admin"
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-              >
-                <Users className="h-5 w-5" />
-                <span>Admin Panel</span>
-              </Link>
-            )}
-            
-            {navigationItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+          <div className="space-y-3">
+            {navigationGroups.map((group) => (
+              <NavigationGroup
+                key={group.title}
+                title={group.title}
+                icon={group.icon}
+                items={group.items}
+                defaultOpen={true}
+              />
+            ))}
           </div>
         </nav>
 
@@ -264,23 +333,31 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <div className="min-h-screen mt-16 lg:mt-0">{children}</div>
       </main>
 
+      {/* Global Utility Bar - Always Accessible */}
+      <CommandPalette />
+      <GlobalUtilityBar />
+
+      {/* Mobile Bottom Navigation - Show Top 5 Most Used */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-card border-t border-border z-50 flex items-center justify-around">
-        {navigationItems.slice(0, 5).map((item) => {
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.name}
-              to={item.path}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 flex-1 h-full",
-                isActive ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              <span className="text-xs">{item.name}</span>
-            </Link>
-          );
-        })}
+        {navigationGroups
+          .flatMap(group => group.items)
+          .slice(0, 5)
+          .map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.name}
+                to={item.path}
+                className={cn(
+                  "flex flex-col items-center justify-center gap-1 flex-1 h-full",
+                  isActive ? "text-primary" : "text-muted-foreground"
+                )}
+              >
+                <item.icon className="h-5 w-5" />
+                <span className="text-xs">{item.name}</span>
+              </Link>
+            );
+          })}
       </div>
     </div>
   );
