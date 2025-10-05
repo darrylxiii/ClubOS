@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { Breadcrumb } from "@/components/Breadcrumb";
+import { QuickActions } from "@/components/QuickActions";
 import { PipelineStage } from "@/components/PipelineStage";
 import { JobCard } from "@/components/JobCard";
 import { StagePreparation } from "@/components/StagePreparation";
@@ -122,6 +124,8 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-8 lg:py-12">
+        <Breadcrumb />
+        
         {/* Header */}
         <div className="space-y-4 mb-12">
           <p className="text-caps text-muted-foreground">Welcome back{firstName ? `, ${firstName}` : ''}</p>
@@ -131,6 +135,11 @@ const Dashboard = () => {
           <p className="text-lg text-muted-foreground max-w-2xl">
             "Success is a luxury reserved for those who turn ambition into action"
           </p>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-12">
+          <QuickActions />
         </div>
 
           {/* Profile Completion, Feedback Tasks and Stats */}
