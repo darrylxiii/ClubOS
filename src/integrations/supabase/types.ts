@@ -1051,6 +1051,42 @@ export type Database = {
           },
         ]
       }
+      email_verifications: {
+        Row: {
+          code: string
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          user_agent: string | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          email: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          user_agent?: string | null
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: []
+      }
       interviews: {
         Row: {
           application_id: string
@@ -1981,6 +2017,42 @@ export type Database = {
           title?: string
           type?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      phone_verifications: {
+        Row: {
+          code: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          ip_address: unknown | null
+          phone: string
+          user_agent: string | null
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          phone: string
+          user_agent?: string | null
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          ip_address?: unknown | null
+          phone?: string
+          user_agent?: string | null
+          user_id?: string
+          verified_at?: string | null
         }
         Relationships: []
       }
@@ -3545,6 +3617,48 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_attempts: {
+        Row: {
+          action: string
+          created_at: string | null
+          email: string | null
+          error_message: string | null
+          id: string
+          ip_address: unknown | null
+          phone: string | null
+          success: boolean
+          user_agent: string | null
+          user_id: string | null
+          verification_type: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          email?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          phone?: string | null
+          success: boolean
+          user_agent?: string | null
+          user_id?: string | null
+          verification_type: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          email?: string | null
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown | null
+          phone?: string | null
+          success?: boolean
+          user_agent?: string | null
+          user_id?: string | null
+          verification_type?: string
+        }
+        Relationships: []
+      }
       waitlist: {
         Row: {
           applicant_type: string | null
@@ -3845,6 +3959,14 @@ export type Database = {
       }
     }
     Functions: {
+      check_verification_rate_limit: {
+        Args: { _action: string; _user_id: string; _verification_type: string }
+        Returns: Json
+      }
+      cleanup_expired_verifications: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       generate_invite_code: {
         Args: Record<PropertyKey, never>
         Returns: string
