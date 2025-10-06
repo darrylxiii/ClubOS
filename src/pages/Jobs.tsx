@@ -17,11 +17,14 @@ import { ReferralDialog } from "@/components/ReferralDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyConversion";
+import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
+import { useUserRole } from "@/hooks/useUserRole";
 
 type SortOption = "match" | "newest" | "salary";
 
 const Jobs = () => {
   const { user } = useAuth();
+  const { role, companyId: userCompanyId } = useUserRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("match");
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
@@ -169,6 +172,18 @@ const Jobs = () => {
 
   const savedJobs = sortedJobs.filter((job) => savedJobIds.includes(job.id));
 
+  // If user is Partner, show Partner-specific view
+  if (role === 'partner' && userCompanyId) {
+    return (
+      <AppLayout>
+        <div className="container mx-auto px-4 py-8">
+          <PartnerJobsHome companyId={userCompanyId} />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Candidate view (default)
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-8 space-y-6">
