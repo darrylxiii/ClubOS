@@ -4,40 +4,29 @@ import { Shield } from "lucide-react";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
 import { UnifiedUserManagement } from "@/components/admin/UnifiedUserManagement";
 import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
-import { useUserRole } from "@/hooks/useUserRole";
+import { RoleAssignmentFix } from "@/components/admin/RoleAssignmentFix";
+import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 const Admin = () => {
-  const { role, loading } = useUserRole();
-
-  useEffect(() => {
-    console.log('[Admin] Role/Loading changed - role:', role, 'loading:', loading);
-  }, [role, loading]);
-
-  console.log('[Admin] Render - role:', role, 'loading:', loading);
+  const { currentRole, loading } = useRole();
 
   // Wait for role to be loaded before making any decisions
-  if (loading || role === null) {
-    console.log('[Admin] Showing loading state');
+  if (loading) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="animate-pulse space-y-4">
-            <div className="h-8 bg-muted rounded w-1/4"></div>
-            <div className="h-64 bg-muted rounded"></div>
-          </div>
+        <div className="container mx-auto px-4 py-8 flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
       </AppLayout>
     );
   }
 
-  if (role !== 'admin') {
-    console.log('[Admin] Redirecting - role is not admin:', role);
-    return <Navigate to="/dashboard" replace />;
+  // Redirect non-admins
+  if (currentRole !== 'admin') {
+    return <Navigate to="/home" replace />;
   }
-
-  console.log('[Admin] Rendering admin panel');
 
   return (
     <AppLayout>
@@ -60,9 +49,10 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-xl">
+          <TabsList className="grid w-full grid-cols-3 max-w-2xl">
             <TabsTrigger value="companies">Companies</TabsTrigger>
             <TabsTrigger value="users">Users & Roles</TabsTrigger>
+            <TabsTrigger value="system">System Health</TabsTrigger>
           </TabsList>
 
           <TabsContent value="companies" className="space-y-4">
@@ -71,6 +61,10 @@ const Admin = () => {
 
           <TabsContent value="users" className="space-y-4">
             <UnifiedUserManagement />
+          </TabsContent>
+
+          <TabsContent value="system" className="space-y-4">
+            <RoleAssignmentFix />
           </TabsContent>
         </Tabs>
       </div>

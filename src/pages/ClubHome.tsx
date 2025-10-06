@@ -19,6 +19,13 @@ const ClubHome = () => {
     }
   }, [loading, role, navigate]);
 
+  // Debugging: log current role
+  useEffect(() => {
+    if (!loading) {
+      console.log('[ClubHome] Current role:', role);
+    }
+  }, [role, loading]);
+
   if (loading) {
     return (
       <AppLayout>
