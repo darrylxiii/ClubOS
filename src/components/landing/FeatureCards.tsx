@@ -70,11 +70,14 @@ export const FeatureCards = () => {
           {features.map((feature, index) => (
             <Card
               key={feature.title}
-              className="border-2 border-foreground/10 hover:border-foreground transition-all duration-300 group animate-fade-in"
+              className="relative border-2 border-foreground/10 hover:border-foreground/30 transition-all duration-300 group animate-fade-in hover-lift overflow-hidden"
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <CardContent className="p-6">
-                <feature.icon className="h-8 w-8 mb-4 group-hover:scale-110 transition-transform" />
+              <div className="absolute inset-0 bg-gradient-to-br from-foreground/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="relative p-6">
+                <div className="p-3 rounded-lg bg-foreground/5 w-fit mb-4 group-hover:bg-foreground/10 transition-colors duration-300">
+                  <feature.icon className="h-6 w-6 group-hover:scale-110 transition-transform duration-300" />
+                </div>
                 <h3 className="text-lg font-black uppercase tracking-tight mb-2">
                   {feature.title}
                 </h3>

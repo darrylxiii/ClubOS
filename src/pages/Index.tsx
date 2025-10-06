@@ -5,7 +5,7 @@ import { InviteGate } from "@/components/landing/InviteGate";
 import { FeatureCards } from "@/components/landing/FeatureCards";
 import { SocialProof } from "@/components/landing/SocialProof";
 import { LandingFooter } from "@/components/landing/LandingFooter";
-import { LivePulse } from "@/components/LivePulse";
+import { LiveActivityPulse } from "@/components/LiveActivityPulse";
 import { Sparkles } from "lucide-react";
 
 const Index = () => {
@@ -28,9 +28,7 @@ const Index = () => {
             <Sparkles className="h-5 w-5" />
             <span className="text-lg font-black uppercase tracking-tight">The Quantum Club</span>
           </div>
-          <div className="flex items-center gap-4">
-            <LivePulse />
-          </div>
+          <LiveActivityPulse />
         </div>
       </header>
 
@@ -47,17 +45,20 @@ const Index = () => {
         {/* Content */}
         <div className="relative z-10 max-w-4xl mx-auto text-center space-y-12">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-foreground/10 bg-background/50 backdrop-blur-sm">
-            <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-foreground/10 bg-background/50 backdrop-blur-sm animate-fade-in">
+            <div className="relative">
+              <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+              <div className="absolute inset-0 w-2 h-2 bg-success rounded-full animate-ping"></div>
+            </div>
             <span className="text-xs font-bold uppercase tracking-wider">Invite Only • Elite Members</span>
           </div>
 
           {/* Main Heading */}
-          <div className="space-y-6">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-none">
+          <div className="space-y-6 animate-fade-in">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-none glow-text">
               YOUR CAREER
               <br />
-              <span className="italic bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+              <span className="italic bg-gradient-to-r from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent animate-pulse">
                 QUANTUM LEAP
               </span>
               <br />
@@ -79,10 +80,11 @@ const Index = () => {
             {["Top 1% Talent", "Elite Partners", "92% Success Rate"].map((text, index) => (
               <div
                 key={text}
-                className="p-6 rounded-lg border-2 border-foreground/10 bg-card/50 backdrop-blur-sm animate-fade-in"
+                className="group p-6 rounded-lg border-2 border-foreground/10 bg-card/50 backdrop-blur-sm hover-lift animate-fade-in relative overflow-hidden"
                 style={{ animationDelay: `${index * 100}ms` }}
               >
-                <div className="text-sm font-black uppercase tracking-wider">{text}</div>
+                <div className="absolute inset-0 bg-gradient-to-br from-foreground/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="relative text-sm font-black uppercase tracking-wider">{text}</div>
               </div>
             ))}
           </div>
@@ -96,17 +98,24 @@ const Index = () => {
       <SocialProof />
 
       {/* CTA Section */}
-      <section className="px-6 py-20 md:py-32 text-center">
-        <div className="max-w-3xl mx-auto space-y-8">
-          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight">
+      <section className="px-6 py-20 md:py-32 text-center relative overflow-hidden">
+        {/* Subtle background glow */}
+        <div className="absolute inset-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-foreground/5 rounded-full blur-3xl animate-pulse"></div>
+        </div>
+        
+        <div className="relative z-10 max-w-3xl mx-auto space-y-8">
+          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight leading-tight glow-text">
             READY TO JOIN
             <br />
             THE ELITE?
           </h2>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Request your invite today and take the first step toward your career quantum leap.
           </p>
-          <InviteGate />
+          <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
+            <InviteGate />
+          </div>
         </div>
       </section>
 

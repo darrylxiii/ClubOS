@@ -12,6 +12,7 @@ export const InviteGate = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showWaitlist, setShowWaitlist] = useState(false);
   const [waitlistData, setWaitlistData] = useState({ name: "", email: "", linkedin: "" });
+  const [isSuccess, setIsSuccess] = useState(false);
   const navigate = useNavigate();
 
   const handleCodeSubmit = async (e: React.FormEvent) => {
@@ -49,11 +50,17 @@ export const InviteGate = () => {
 
       if (error) throw error;
 
-      toast.success("You're on the list! We'll be in touch soon.", {
-        icon: <CheckCircle2 className="h-4 w-4" />,
-      });
-      setShowWaitlist(false);
-      setWaitlistData({ name: "", email: "", linkedin: "" });
+      setIsSuccess(true);
+      
+      // Show success state for 1.5s then close with toast
+      setTimeout(() => {
+        toast.success("🎉 You're on the list! We'll be in touch soon.", {
+          icon: <CheckCircle2 className="h-4 w-4" />,
+        });
+        setShowWaitlist(false);
+        setWaitlistData({ name: "", email: "", linkedin: "" });
+        setIsSuccess(false);
+      }, 1500);
     } catch (error) {
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -63,23 +70,24 @@ export const InviteGate = () => {
 
   return (
     <>
-      <div className="relative">
+      <div className="relative animate-fade-in">
         <form onSubmit={handleCodeSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-          <div className="relative flex-1">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <div className="relative flex-1 group">
+            <div className="absolute inset-0 bg-gradient-to-r from-foreground/10 to-foreground/5 blur-xl group-hover:blur-2xl transition-all duration-300 rounded-lg"></div>
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
             <Input
               type="text"
               placeholder="ENTER ACCESS CODE"
               value={code}
               onChange={(e) => setCode(e.target.value.toUpperCase())}
-              className="pl-10 h-12 text-sm font-bold uppercase tracking-wider border-2 border-foreground/20 focus:border-foreground"
+              className="relative pl-10 h-12 text-sm font-bold uppercase tracking-wider border-2 border-foreground/20 focus:border-foreground/40 bg-background/50 backdrop-blur-sm transition-all duration-300"
             />
           </div>
           <Button
             type="submit"
             size="lg"
             disabled={isLoading || !code}
-            className="h-12 px-8 text-sm font-black uppercase tracking-wider"
+            className="h-12 px-8 text-sm font-black uppercase tracking-wider hover-lift"
           >
             {isLoading ? "VERIFYING..." : "UNLOCK"}
           </Button>
@@ -88,58 +96,72 @@ export const InviteGate = () => {
         <div className="mt-6 text-center">
           <button
             onClick={() => setShowWaitlist(true)}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors underline decoration-dotted underline-offset-4"
+            className="group relative text-sm text-muted-foreground hover:text-foreground transition-all duration-300 underline decoration-dotted underline-offset-4"
           >
-            Don't have an invite? Join the waitlist
+            <span className="relative z-10">Don't have an invite? Join the waitlist</span>
+            <div className="absolute inset-0 bg-foreground/5 scale-0 group-hover:scale-100 transition-transform duration-300 rounded -mx-3 -my-2"></div>
           </button>
         </div>
       </div>
 
       <Dialog open={showWaitlist} onOpenChange={setShowWaitlist}>
-        <DialogContent className="sm:max-w-md border-2 border-foreground">
+        <DialogContent className="sm:max-w-md border-2 border-foreground glass-strong">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black uppercase tracking-tight">Join Waitlist</DialogTitle>
+            <DialogTitle className="text-2xl font-black uppercase tracking-tight">
+              {isSuccess ? "🎉 Success!" : "Join Waitlist"}
+            </DialogTitle>
             <DialogDescription>
-              Submit your details and we'll reach out if you're a fit for The Quantum Club.
+              {isSuccess 
+                ? "Your request has been submitted. We'll review and be in touch soon!" 
+                : "Submit your details and we'll reach out if you're a fit for The Quantum Club."}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleWaitlistSubmit} className="space-y-4 mt-4">
-            <div>
-              <Input
-                placeholder="Full Name"
-                value={waitlistData.name}
-                onChange={(e) => setWaitlistData({ ...waitlistData, name: e.target.value })}
-                required
-                className="border-2 border-foreground/20 focus:border-foreground"
-              />
+          {!isSuccess ? (
+            <form onSubmit={handleWaitlistSubmit} className="space-y-4 mt-4">
+              <div>
+                <Input
+                  placeholder="Full Name"
+                  value={waitlistData.name}
+                  onChange={(e) => setWaitlistData({ ...waitlistData, name: e.target.value })}
+                  required
+                  className="border-2 border-foreground/20 focus:border-foreground transition-all duration-300"
+                />
+              </div>
+              <div>
+                <Input
+                  type="email"
+                  placeholder="Email Address"
+                  value={waitlistData.email}
+                  onChange={(e) => setWaitlistData({ ...waitlistData, email: e.target.value })}
+                  required
+                  className="border-2 border-foreground/20 focus:border-foreground transition-all duration-300"
+                />
+              </div>
+              <div>
+                <Input
+                  type="url"
+                  placeholder="LinkedIn Profile (Optional)"
+                  value={waitlistData.linkedin}
+                  onChange={(e) => setWaitlistData({ ...waitlistData, linkedin: e.target.value })}
+                  className="border-2 border-foreground/20 focus:border-foreground transition-all duration-300"
+                />
+              </div>
+              <Button
+                type="submit"
+                className="w-full h-12 text-sm font-black uppercase tracking-wider hover-lift"
+                disabled={isLoading}
+              >
+                {isLoading ? "SUBMITTING..." : "REQUEST ACCESS"}
+              </Button>
+            </form>
+          ) : (
+            <div className="text-center py-8 space-y-4 animate-fade-in">
+              <div className="text-6xl">🎉</div>
+              <p className="text-sm text-muted-foreground">
+                Check your email for next steps
+              </p>
             </div>
-            <div>
-              <Input
-                type="email"
-                placeholder="Email Address"
-                value={waitlistData.email}
-                onChange={(e) => setWaitlistData({ ...waitlistData, email: e.target.value })}
-                required
-                className="border-2 border-foreground/20 focus:border-foreground"
-              />
-            </div>
-            <div>
-              <Input
-                type="url"
-                placeholder="LinkedIn Profile (Optional)"
-                value={waitlistData.linkedin}
-                onChange={(e) => setWaitlistData({ ...waitlistData, linkedin: e.target.value })}
-                className="border-2 border-foreground/20 focus:border-foreground"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full h-12 text-sm font-black uppercase tracking-wider"
-              disabled={isLoading}
-            >
-              {isLoading ? "SUBMITTING..." : "REQUEST ACCESS"}
-            </Button>
-          </form>
+          )}
         </DialogContent>
       </Dialog>
     </>
