@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Eye, UserCheck, UserX, MessageSquare } from "lucide-react";
+import { Eye, UserCheck, UserX, MessageSquare, AlertCircle } from "lucide-react";
 import { CandidateDetailDialog } from "./CandidateDetailDialog";
 import { CandidateActionDialog } from "./CandidateActionDialog";
 
@@ -12,9 +12,10 @@ interface JobDashboardCandidatesProps {
   jobId: string;
   stages: any[];
   onUpdate: () => void;
+  needsClubCheck: number;
 }
 
-export const JobDashboardCandidates = ({ jobId, stages, onUpdate }: JobDashboardCandidatesProps) => {
+export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck }: JobDashboardCandidatesProps) => {
   const [applications, setApplications] = useState<any[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -144,6 +145,34 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate }: JobDashboard
 
   return (
     <>
+      {needsClubCheck > 0 && (
+        <Card className="border-2 border-amber-500/40 bg-gradient-to-br from-amber-500/10 to-amber-500/5 backdrop-blur-xl animate-pulse">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-amber-500/20">
+                  <AlertCircle className="w-6 h-6 text-amber-500" />
+                </div>
+                <div>
+                  <h3 className="font-black text-lg">
+                    {needsClubCheck} Candidate{needsClubCheck !== 1 ? 's' : ''} Need Club Check
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Review and advance premium candidates faster with our exclusive vetting
+                  </p>
+                </div>
+              </div>
+              <Button 
+                size="lg"
+                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold shadow-lg"
+              >
+                Club Check Now
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="space-y-4">
         {stages.sort((a, b) => a.order - b.order).map((stage) => {
           const stageApplications = getApplicationsByStage(stage.order);
