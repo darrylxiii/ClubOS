@@ -38,7 +38,7 @@ export const EmailVerification = ({
   };
 
   const handleVerifyOTP = async () => {
-    const success = await verifyOTP(otpCode, () => {
+    const success = await verifyOTP(email, otpCode, () => {
       onVerificationComplete?.();
       setOtpCode('');
     });

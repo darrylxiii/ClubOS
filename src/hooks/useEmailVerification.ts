@@ -7,11 +7,6 @@ export const useEmailVerification = () => {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [storedCode, setStoredCode] = useState('');
-
-  const generateCode = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
-  };
 
   const sendOTP = useCallback(async (email: string) => {
     if (!email) {
@@ -21,14 +16,21 @@ export const useEmailVerification = () => {
 
     setIsSendingOtp(true);
     try {
-      const code = generateCode();
-      setStoredCode(code);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please log in first');
+        return false;
+      }
 
-      const { error } = await supabase.functions.invoke('send-verification-code', {
-        body: { email, code }
+      const { data, error } = await supabase.functions.invoke('send-email-verification', {
+        body: { email },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       setOtpSent(true);
       toast.success('Verification code sent to your email');
@@ -56,6 +58,7 @@ export const useEmailVerification = () => {
   }, []);
 
   const verifyOTP = useCallback(async (
+    email: string,
     token: string,
     onSuccess?: () => void
   ) => {
@@ -64,33 +67,42 @@ export const useEmailVerification = () => {
       return false;
     }
 
-    if (token !== storedCode) {
-      toast.error('Invalid verification code');
-      return false;
-    }
-
     setIsVerifying(true);
     try {
-      toast.success('Email verified successfully!');
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please log in first');
+        return false;
+      }
+
+      const { data, error } = await supabase.functions.invoke('verify-email-code', {
+        body: { email, code: token },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success('Email verified successfully! 🎉');
       setOtpSent(false);
-      setStoredCode('');
       onSuccess?.();
       return true;
     } catch (error: any) {
-      console.error('Error verifying email OTP:', error);
-      toast.error('Verification failed');
+      console.error('Error verifying email:', error);
+      toast.error(error.message || 'Invalid or expired verification code');
       return false;
     } finally {
       setIsVerifying(false);
     }
-  }, [storedCode]);
+  }, []);
 
   const resetVerification = useCallback(() => {
     setOtpSent(false);
     setIsVerifying(false);
     setIsSendingOtp(false);
     setResendCooldown(0);
-    setStoredCode('');
   }, []);
 
   return {

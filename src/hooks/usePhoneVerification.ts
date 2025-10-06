@@ -16,11 +16,21 @@ export const usePhoneVerification = () => {
 
     setIsSendingOtp(true);
     try {
-      const { error } = await supabase.auth.signInWithOtp({
-        phone: phoneNumber,
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please log in first');
+        return false;
+      }
+
+      const { data, error } = await supabase.functions.invoke('send-sms-verification', {
+        body: { phone: phoneNumber },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       setOtpSent(true);
       toast.success('Verification code sent to your phone');
@@ -59,35 +69,29 @@ export const usePhoneVerification = () => {
 
     setIsVerifying(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
-        phone: phoneNumber,
-        token: token,
-        type: 'sms',
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Please log in first');
+        return false;
+      }
+
+      const { data, error } = await supabase.functions.invoke('verify-sms-code', {
+        body: { phone: phoneNumber, code: token },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`
+        }
       });
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
-      // Update phone_verified in profiles table
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({ 
-            phone: phoneNumber,
-            phone_verified: true 
-          })
-          .eq('id', user.id);
-
-        if (updateError) throw updateError;
-      }
-
-      toast.success('Phone number verified successfully!');
+      toast.success('Phone number verified successfully! 🎉');
       setOtpSent(false);
       onSuccess?.();
       return true;
     } catch (error: any) {
-      console.error('Error verifying OTP:', error);
-      toast.error(error.message || 'Invalid verification code');
+      console.error('Error verifying phone:', error);
+      toast.error(error.message || 'Invalid or expired verification code');
       return false;
     } finally {
       setIsVerifying(false);
