@@ -3547,33 +3547,218 @@ export type Database = {
       }
       waitlist: {
         Row: {
+          applicant_type: string | null
+          approved_at: string | null
+          company: string | null
           created_at: string | null
+          elevator_pitch: string | null
           email: string
+          engagement_score: number | null
+          expertise: string | null
+          goals: string | null
           id: string
+          industry: string | null
+          job_title: string | null
           linkedin_url: string | null
+          location: string | null
+          metadata: Json | null
           name: string
+          phone: string | null
+          priority_score: number | null
+          referral_code: string | null
+          referred_by_code: string | null
+          rejected_at: string | null
+          rejection_feedback: string | null
+          rejection_reason: string | null
+          reviewed_by: string | null
+          seniority: string | null
+          status: string | null
+          updated_at: string | null
+          video_intro_url: string | null
+        }
+        Insert: {
+          applicant_type?: string | null
+          approved_at?: string | null
+          company?: string | null
+          created_at?: string | null
+          elevator_pitch?: string | null
+          email: string
+          engagement_score?: number | null
+          expertise?: string | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          job_title?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          metadata?: Json | null
+          name: string
+          phone?: string | null
+          priority_score?: number | null
+          referral_code?: string | null
+          referred_by_code?: string | null
+          rejected_at?: string | null
+          rejection_feedback?: string | null
+          rejection_reason?: string | null
+          reviewed_by?: string | null
+          seniority?: string | null
+          status?: string | null
+          updated_at?: string | null
+          video_intro_url?: string | null
+        }
+        Update: {
+          applicant_type?: string | null
+          approved_at?: string | null
+          company?: string | null
+          created_at?: string | null
+          elevator_pitch?: string | null
+          email?: string
+          engagement_score?: number | null
+          expertise?: string | null
+          goals?: string | null
+          id?: string
+          industry?: string | null
+          job_title?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          metadata?: Json | null
+          name?: string
+          phone?: string | null
+          priority_score?: number | null
+          referral_code?: string | null
+          referred_by_code?: string | null
+          rejected_at?: string | null
+          rejection_feedback?: string | null
+          rejection_reason?: string | null
+          reviewed_by?: string | null
+          seniority?: string | null
+          status?: string | null
+          updated_at?: string | null
+          video_intro_url?: string | null
+        }
+        Relationships: []
+      }
+      waitlist_analytics: {
+        Row: {
+          approval_rate: number | null
+          avg_priority_score: number | null
+          by_industry: Json | null
+          by_location: Json | null
+          by_source: Json | null
+          by_type: Json | null
+          created_at: string | null
+          date: string
+          id: string
+          total_referrals: number | null
+          total_submissions: number | null
+        }
+        Insert: {
+          approval_rate?: number | null
+          avg_priority_score?: number | null
+          by_industry?: Json | null
+          by_location?: Json | null
+          by_source?: Json | null
+          by_type?: Json | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          total_referrals?: number | null
+          total_submissions?: number | null
+        }
+        Update: {
+          approval_rate?: number | null
+          avg_priority_score?: number | null
+          by_industry?: Json | null
+          by_location?: Json | null
+          by_source?: Json | null
+          by_type?: Json | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          total_referrals?: number | null
+          total_submissions?: number | null
+        }
+        Relationships: []
+      }
+      waitlist_engagement: {
+        Row: {
+          created_at: string | null
+          event_data: Json | null
+          event_type: string
+          id: string
+          waitlist_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          waitlist_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          waitlist_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_engagement_waitlist_id_fkey"
+            columns: ["waitlist_id"]
+            isOneToOne: false
+            referencedRelation: "waitlist"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waitlist_referrals: {
+        Row: {
+          created_at: string | null
+          id: string
+          referred_email: string
+          referred_joined_id: string | null
+          referrer_id: string | null
+          reward_points: number | null
           status: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          email: string
           id?: string
-          linkedin_url?: string | null
-          name: string
+          referred_email: string
+          referred_joined_id?: string | null
+          referrer_id?: string | null
+          reward_points?: number | null
           status?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          email?: string
           id?: string
-          linkedin_url?: string | null
-          name?: string
+          referred_email?: string
+          referred_joined_id?: string | null
+          referrer_id?: string | null
+          reward_points?: number | null
           status?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "waitlist_referrals_referred_joined_id_fkey"
+            columns: ["referred_joined_id"]
+            isOneToOne: false
+            referencedRelation: "waitlist"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waitlist_referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "waitlist"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -3661,6 +3846,10 @@ export type Database = {
     }
     Functions: {
       generate_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_referral_code: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

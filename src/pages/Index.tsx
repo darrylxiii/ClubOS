@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { InviteGate } from "@/components/landing/InviteGate";
+import { EnhancedInviteGate } from "@/components/landing/EnhancedInviteGate";
 import { FeatureCards } from "@/components/landing/FeatureCards";
 import { SocialProof } from "@/components/landing/SocialProof";
 import { LandingFooter } from "@/components/landing/LandingFooter";
@@ -72,7 +72,7 @@ const Index = () => {
 
           {/* Invite Gate */}
           <div className="pt-8">
-            <InviteGate />
+            <EnhancedInviteGate />
           </div>
 
           {/* Value Props */}
@@ -114,7 +114,7 @@ const Index = () => {
             Request your invite today and take the first step toward your career quantum leap.
           </p>
           <div className="animate-fade-in" style={{ animationDelay: "200ms" }}>
-            <InviteGate />
+            <EnhancedInviteGate />
           </div>
         </div>
       </section>
