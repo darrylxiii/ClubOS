@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Shield, User, Building2, Users } from "lucide-react";
+import { Shield, User, Building2, Users, Sparkles } from "lucide-react";
 import { useRole } from "@/contexts/RoleContext";
 import { UserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
@@ -70,9 +70,12 @@ export function RoleSwitcher() {
 
   if (loading) {
     return (
-      <Card>
+      <Card className="glass-card border-white/10 shadow-glass-lg">
         <CardHeader>
-          <CardTitle>Role Switcher</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            Active Role
+          </CardTitle>
           <CardDescription>Loading your roles...</CardDescription>
         </CardHeader>
       </Card>
@@ -89,30 +92,52 @@ export function RoleSwitcher() {
   }));
 
   return (
-    <Card>
+    <Card className="glass-card border-white/10 shadow-glass-lg hover-lift">
       <CardHeader>
-        <CardTitle>Active Role</CardTitle>
-        <CardDescription>
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" />
+          Active Role
+        </CardTitle>
+        <CardDescription className="text-foreground/70">
           You have multiple roles. Select which role you want to use.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <RadioGroup value={currentRole || 'user'} onValueChange={handleRoleChange}>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {roleOptionsList.map((role) => {
               const Icon = role.icon;
+              const isActive = currentRole === role.value;
               return (
-                <div key={role.value} className="flex items-start space-x-3 space-y-0">
-                  <RadioGroupItem value={role.value} id={role.value} />
+                <div 
+                  key={role.value} 
+                  className={`
+                    flex items-start space-x-3 space-y-0 p-4 rounded-2xl
+                    transition-all duration-300 cursor-pointer
+                    ${isActive 
+                      ? 'glass-strong border border-primary/30 shadow-glass-md shadow-primary/10' 
+                      : 'glass-subtle border border-white/5 hover:border-white/20 hover:shadow-glass-sm'
+                    }
+                  `}
+                  onClick={() => handleRoleChange(role.value)}
+                >
+                  <RadioGroupItem value={role.value} id={role.value} className="mt-1" />
                   <Label
                     htmlFor={role.value}
                     className="font-normal cursor-pointer flex-1"
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <Icon className="w-4 h-4" />
-                      <span className="font-medium">{role.label}</span>
+                      <div className={`
+                        p-1.5 rounded-lg transition-colors duration-300
+                        ${isActive ? 'bg-primary/20 text-primary' : 'bg-white/5 text-foreground/70'}
+                      `}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className={`font-semibold transition-colors duration-300 ${isActive ? 'text-primary' : 'text-foreground'}`}>
+                        {role.label}
+                      </span>
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-foreground/60 ml-8">
                       {role.description}
                     </p>
                   </Label>
