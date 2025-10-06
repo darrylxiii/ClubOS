@@ -152,25 +152,38 @@ export function UnifiedUserManagement() {
         return;
       }
 
+      const targetUserId = editingUser.id;
       const oldRoles = editingUser.roles;
 
-      // Delete existing roles
+      console.log('[UnifiedUserManagement] Updating roles for user:', targetUserId, 'New roles:', selectedRoles);
+
+      // Delete existing roles for the TARGET user
       const { error: deleteError } = await supabase
         .from('user_roles')
         .delete()
-        .eq('user_id', editingUser.id);
+        .eq('user_id', targetUserId);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('[UnifiedUserManagement] Delete error:', deleteError);
+        throw deleteError;
+      }
 
-      // Insert new roles
+      console.log('[UnifiedUserManagement] Deleted old roles, inserting new ones...');
+
+      // Insert new roles for the TARGET user
       const { error: insertError } = await supabase
         .from('user_roles')
         .insert(selectedRoles.map(role => ({
-          user_id: editingUser.id,
+          user_id: targetUserId,
           role: role as 'admin' | 'strategist' | 'partner' | 'user'
         })));
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error('[UnifiedUserManagement] Insert error:', insertError);
+        throw insertError;
+      }
+
+      console.log('[UnifiedUserManagement] Roles updated successfully');
 
       // Update company assignment if changed
       if (selectedCompany !== (editingUser.company_id || "none")) {
@@ -217,7 +230,7 @@ export function UnifiedUserManagement() {
 
       // Log role change in audit table
       await supabase.from('role_change_audit').insert({
-        user_id: editingUser.id,
+        user_id: targetUserId,
         changed_by: user.id,
         old_roles: oldRoles,
         new_roles: selectedRoles,
@@ -225,16 +238,21 @@ export function UnifiedUserManagement() {
         metadata: {
           timestamp: new Date().toISOString(),
           admin_email: user.email,
+          target_user_email: editingUser.email,
           company_changed: selectedCompany !== (editingUser.company_id || "none")
         }
       });
 
-      toast.success("User updated successfully");
+      console.log('[UnifiedUserManagement] Audit log created');
+
+      toast.success(`Roles updated successfully for ${editingUser.full_name || editingUser.email}`);
       setDialogOpen(false);
       setEditingUser(null);
       setSelectedRoles([]);
       setSelectedCompany("none");
-      fetchData();
+      
+      // Refresh the user list to show updated roles
+      await fetchData();
     } catch (error: any) {
       console.error('Error updating user:', error);
       toast.error("Failed to update user", {
