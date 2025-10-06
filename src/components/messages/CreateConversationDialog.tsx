@@ -64,7 +64,7 @@ export const CreateConversationDialog = ({
     }
   };
 
-  const createConversation = async (recipientId: string) => {
+  const createConversation = async (recipientId: string, recipientName?: string) => {
     if (!user) return;
 
     setCreating(true);
@@ -96,12 +96,17 @@ export const CreateConversationDialog = ({
         }
       }
 
-      // Get recipient name
-      const { data: recipient } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', recipientId)
-        .single();
+      // Get recipient name from public_profiles if not provided
+      let conversationTitle = recipientName || 'New Conversation';
+      if (!recipientName) {
+        const { data: recipient } = await supabase
+          .from('public_profiles')
+          .select('full_name')
+          .eq('id', recipientId)
+          .single();
+        
+        conversationTitle = recipient?.full_name || 'New Conversation';
+      }
 
       // Check if user has any application to link (optional)
       const { data: userApplications } = await supabase
@@ -112,7 +117,7 @@ export const CreateConversationDialog = ({
 
       // Create new conversation - use first application if exists, otherwise create without
       let conversationData: any = {
-        title: recipient?.full_name || 'New Conversation',
+        title: conversationTitle,
         status: 'active',
       };
 
@@ -204,7 +209,7 @@ export const CreateConversationDialog = ({
                   </div>
                   <Button
                     size="sm"
-                    onClick={() => createConversation(result.id)}
+                    onClick={() => createConversation(result.id, result.full_name || undefined)}
                     disabled={creating}
                   >
                     <MessageCircle className="h-4 w-4 mr-2" />
