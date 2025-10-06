@@ -26,6 +26,13 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Briefcase,
+  Target,
+  Calendar,
+  Award,
+  BookOpen,
+  Bell,
+  FileText,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
 
@@ -47,9 +54,26 @@ interface JobWithMetrics {
   conversion_rate: number | null;
 }
 
+interface CompanyMetrics {
+  activeSearches: number;
+  totalCandidates: number;
+  avgTimeToHire: number | null;
+  conversionRate: number | null;
+  clubSyncActive: number;
+  pendingActions: number;
+}
+
 export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<JobWithMetrics[]>([]);
+  const [companyMetrics, setCompanyMetrics] = useState<CompanyMetrics>({
+    activeSearches: 0,
+    totalCandidates: 0,
+    avgTimeToHire: null,
+    conversionRate: null,
+    clubSyncActive: 0,
+    pendingActions: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -139,6 +163,37 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       });
 
       setJobs(jobsWithMetrics);
+
+      // Calculate company-wide metrics
+      const activeJobs = jobsWithMetrics.filter(j => j.status === 'published').length;
+      const totalCandidates = jobsWithMetrics.reduce((sum, j) => sum + j.candidate_count, 0);
+      const clubSyncCount = jobsWithMetrics.filter(j => j.club_sync_status === 'accepted').length;
+      
+      const allTimeToHire = jobsWithMetrics
+        .map(j => j.avg_time_to_hire_days)
+        .filter(t => t !== null) as number[];
+      const avgCompanyTimeToHire = allTimeToHire.length > 0
+        ? Math.round(allTimeToHire.reduce((sum, t) => sum + t, 0) / allTimeToHire.length)
+        : null;
+
+      const allConversions = jobsWithMetrics
+        .map(j => j.conversion_rate)
+        .filter(c => c !== null) as number[];
+      const avgCompanyConversion = allConversions.length > 0
+        ? Math.round(allConversions.reduce((sum, c) => sum + c, 0) / allConversions.length)
+        : null;
+
+      // Calculate pending actions (simplified)
+      const pendingActions = jobsWithMetrics.reduce((sum, j) => sum + j.active_stage_count, 0);
+
+      setCompanyMetrics({
+        activeSearches: activeJobs,
+        totalCandidates,
+        avgTimeToHire: avgCompanyTimeToHire,
+        conversionRate: avgCompanyConversion,
+        clubSyncActive: clubSyncCount,
+        pendingActions,
+      });
     } catch (error) {
       console.error('Error fetching jobs:', error);
       toast.error("Failed to load jobs");
@@ -210,7 +265,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   return (
     <>
       {/* Header */}
-      <div className="space-y-4 mb-8">
+      <div className="space-y-6 mb-8">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-caps text-muted-foreground mb-2">Your Hiring HQ</p>
@@ -218,12 +273,161 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
               Active Searches
             </h1>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
-            <Plus className="w-5 h-5" />
-            New Job
-          </Button>
+          <div className="flex gap-3">
+            <Button variant="outline" size="lg" className="gap-2">
+              <Users className="w-4 h-4" />
+              Invite Team
+            </Button>
+            <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
+              <Plus className="w-5 h-5" />
+              New Job
+            </Button>
+          </div>
         </div>
-        <p className="text-lg text-muted-foreground max-w-3xl">
+
+        {/* Bento KPI Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Active Searches */}
+          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-primary/5 via-background to-background hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Briefcase className="w-5 h-5 text-primary" />
+                </div>
+                <Badge variant="outline" className="text-xs">Live</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black">{companyMetrics.activeSearches}</p>
+                <p className="text-sm text-muted-foreground">Active Searches</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Total Candidates */}
+          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-accent/5 via-background to-background hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 rounded-lg bg-accent/10">
+                  <Users className="w-5 h-5 text-accent" />
+                </div>
+                <Badge variant="outline" className="text-xs">Pipeline</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black">{companyMetrics.totalCandidates}</p>
+                <p className="text-sm text-muted-foreground">Candidates in Pipeline</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Avg Time to Hire */}
+          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-background via-background to-primary/5 hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Clock className="w-5 h-5 text-primary" />
+                </div>
+                <Badge variant="outline" className="text-xs">Speed</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black">
+                  {companyMetrics.avgTimeToHire !== null ? `${companyMetrics.avgTimeToHire}d` : '—'}
+                </p>
+                <p className="text-sm text-muted-foreground">Avg. Time-to-Hire</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Conversion Rate */}
+          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-accent/5 via-background to-background hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 rounded-lg bg-accent/10">
+                  <TrendingUp className="w-5 h-5 text-accent" />
+                </div>
+                <Badge variant="outline" className="text-xs">Success</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black">
+                  {companyMetrics.conversionRate !== null ? `${companyMetrics.conversionRate}%` : '—'}
+                </p>
+                <p className="text-sm text-muted-foreground">Conversion Rate</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Club Sync Status */}
+          <Card className="border-2 border-accent/30 bg-gradient-to-br from-accent/10 via-background to-background hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 rounded-lg bg-accent/20">
+                  <Zap className="w-5 h-5 text-accent" />
+                </div>
+                <Badge className="text-xs bg-accent text-primary-foreground">Premium</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black">{companyMetrics.clubSyncActive}</p>
+                <p className="text-sm text-muted-foreground">Club Sync Active</p>
+              </div>
+              {companyMetrics.clubSyncActive < companyMetrics.activeSearches && (
+                <Button size="sm" variant="outline" className="w-full mt-3 text-xs">
+                  Enable More Jobs
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Pending Actions */}
+          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-primary/5 via-background to-background hover:shadow-xl transition-all">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Bell className="w-5 h-5 text-primary" />
+                </div>
+                <Badge variant="outline" className="text-xs">Action</Badge>
+              </div>
+              <div className="space-y-1">
+                <p className="text-3xl font-black">{companyMetrics.pendingActions}</p>
+                <p className="text-sm text-muted-foreground">Pending Actions</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions Bar */}
+        <Card className="border-2 border-foreground/10 bg-gradient-card">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <Award className="w-5 h-5 text-accent" />
+                <span className="font-semibold">Quick Actions</span>
+              </div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Interviews
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Export Report
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <HeadphonesIcon className="w-4 h-4" />
+                  Request Support
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Target className="w-4 h-4" />
+                  Vetted Talent
+                </Button>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <BookOpen className="w-4 h-4" />
+                  Resources
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <p className="text-muted-foreground">
           Manage your hiring pipeline, track candidate progress, and leverage Club Sync for premium vetting
         </p>
       </div>
