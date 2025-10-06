@@ -59,30 +59,32 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
   const fetchJobsWithMetrics = async () => {
     try {
-      // Fetch jobs with application counts
+      // Fetch jobs
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
-        .select(`
-          id,
-          title,
-          status,
-          location,
-          created_at,
-          applications (
-            id,
-            current_stage_index,
-            stages,
-            updated_at
-          )
-        `)
+        .select('id, title, status, location, created_at')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
 
+      // Fetch all applications for these jobs
+      const jobIds = (jobsData || []).map(j => j.id.toString());
+      const { data: applicationsData } = await supabase
+        .from('applications')
+        .select('id, job_id, current_stage_index, stages, updated_at')
+        .in('job_id', jobIds);
+
+      // Group applications by job_id
+      const applicationsByJob = (applicationsData || []).reduce((acc: any, app: any) => {
+        if (!acc[app.job_id]) acc[app.job_id] = [];
+        acc[app.job_id].push(app);
+        return acc;
+      }, {});
+
       // Transform data with metrics
       const jobsWithMetrics: JobWithMetrics[] = (jobsData || []).map((job: any) => {
-        const applications = job.applications || [];
+        const applications = applicationsByJob[job.id.toString()] || [];
         const candidateCount = applications.length;
         
         // Count active candidates (not rejected/withdrawn)
