@@ -1,165 +1,118 @@
-import { Layout } from "@/components/Layout";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Briefcase, TrendingUp, ArrowRight } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { InviteGate } from "@/components/landing/InviteGate";
+import { FeatureCards } from "@/components/landing/FeatureCards";
+import { SocialProof } from "@/components/landing/SocialProof";
+import { LandingFooter } from "@/components/landing/LandingFooter";
+import { LivePulse } from "@/components/LivePulse";
+import { Sparkles } from "lucide-react";
 
 const Index = () => {
   const { user } = useAuth();
-  const clients = [
-    { name: "TYSON 2.0" },
-    { name: "No Art Music" },
-    { name: "SWED" },
-    { name: "ABB" },
-    { name: "Meroda" },
-    { name: "Hears" },
-    { name: "Dore & Rose" },
-    { name: "Tech Fund" },
-  ];
+  const navigate = useNavigate();
+
+  // Redirect authenticated users to club home
+  useEffect(() => {
+    if (user) {
+      navigate("/home");
+    }
+  }, [user, navigate]);
 
   return (
-    <Layout>
-      <div className="min-h-screen bg-background">
-        {/* Hero Section - Bold Typography */}
-        <section className="px-6 pt-12 pb-12 md:pt-24 md:pb-20">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-16 md:gap-20 items-start">
-              <div className="space-y-8 md:space-y-10">
-                <div className="space-y-4">
-                  <p className="text-caps text-muted-foreground">THE QUANTUM CLUB OS</p>
-                  <h1 className="text-[3.5rem] leading-[0.85] md:text-[5rem] lg:text-[7rem] font-black uppercase tracking-tighter">
-                    YOUR
-                    <br />
-                    ELITE
-                    <br />
-                    CAREER
-                    <br />
-                    <span className="italic">COMMAND</span>
-                  </h1>
-                </div>
-                
-                <div className="space-y-6 max-w-lg">
-                  <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-                    An invite-only operating system for visionary talent. Track elite opportunities, 
-                    prepare for high-stakes interviews, and access undisclosed roles.
-                  </p>
-                  
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    {user ? (
-                      <>
-                        <Link to="/home" className="w-full sm:w-auto">
-                          <Button size="lg" className="w-full sm:w-auto text-sm font-black uppercase tracking-wider">
-                            ENTER CLUB HOME
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                          </Button>
-                        </Link>
-                        <Link to="/jobs" className="w-full sm:w-auto">
-                          <Button size="lg" variant="outline" className="w-full sm:w-auto text-sm font-black uppercase tracking-wider">
-                            BROWSE ROLES
-                          </Button>
-                        </Link>
-                      </>
-                    ) : (
-                      <Link to="/auth" className="w-full sm:w-auto">
-                        <Button size="lg" className="w-full text-sm font-black uppercase tracking-wider">
-                          SIGN IN TO ACCESS
-                          <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
-                    )}
-                  </div>
-                </div>
+    <div className="min-h-screen bg-background">
+      {/* Minimal Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-foreground/10">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5" />
+            <span className="text-lg font-black uppercase tracking-tight">The Quantum Club</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <LivePulse />
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section with Cosmic Background */}
+      <section className="relative min-h-screen flex items-center justify-center px-6 pt-24 pb-12">
+        {/* Animated Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-background via-muted/20 to-background"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_hsl(var(--foreground)/0.03)_0%,_transparent_50%)] animate-pulse"></div>
+          <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-foreground/5 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 left-1/4 w-96 h-96 bg-foreground/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 max-w-4xl mx-auto text-center space-y-12">
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border-2 border-foreground/10 bg-background/50 backdrop-blur-sm">
+            <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
+            <span className="text-xs font-bold uppercase tracking-wider">Invite Only • Elite Members</span>
+          </div>
+
+          {/* Main Heading */}
+          <div className="space-y-6">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter leading-none">
+              YOUR CAREER
+              <br />
+              <span className="italic bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+                QUANTUM LEAP
+              </span>
+              <br />
+              STARTS HERE
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              An invite-only operating system for visionary talent. Track elite opportunities,
+              prepare for high-stakes interviews, and access undisclosed roles.
+            </p>
+          </div>
+
+          {/* Invite Gate */}
+          <div className="pt-8">
+            <InviteGate />
+          </div>
+
+          {/* Value Props */}
+          <div className="grid md:grid-cols-3 gap-6 pt-12">
+            {["Top 1% Talent", "Elite Partners", "92% Success Rate"].map((text, index) => (
+              <div
+                key={text}
+                className="p-6 rounded-lg border-2 border-foreground/10 bg-card/50 backdrop-blur-sm animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className="text-sm font-black uppercase tracking-wider">{text}</div>
               </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-4">
-                <Card className="border-2 border-foreground bg-background hover:bg-foreground hover:text-background transition-all duration-300 group">
-                  <CardContent className="p-6 md:p-8">
-                    <div className="text-4xl md:text-5xl font-black mb-2">3</div>
-                    <div className="text-xs md:text-sm font-black uppercase tracking-wider">ACTIVE PIPELINE</div>
-                  </CardContent>
-                </Card>
-                <Card className="border-2 border-foreground bg-background hover:bg-foreground hover:text-background transition-all duration-300 group">
-                  <CardContent className="p-6 md:p-8">
-                    <div className="text-4xl md:text-5xl font-black mb-2">12</div>
-                    <div className="text-xs md:text-sm font-black uppercase tracking-wider">NEW MATCHES</div>
-                  </CardContent>
-                </Card>
-                <Card className="border-2 border-foreground bg-foreground text-background">
-                  <CardContent className="p-6 md:p-8">
-                    <div className="text-4xl md:text-5xl font-black mb-2">92%</div>
-                    <div className="text-xs md:text-sm font-black uppercase tracking-wider">SUCCESS RATE</div>
-                  </CardContent>
-                </Card>
-                <Card className="border-2 border-foreground bg-background hover:bg-foreground hover:text-background transition-all duration-300 group">
-                  <CardContent className="p-6 md:p-8">
-                    <div className="text-4xl md:text-5xl font-black mb-2">48h</div>
-                    <div className="text-xs md:text-sm font-black uppercase tracking-wider">AVG RESPONSE</div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Quick Access */}
-        <section className="px-6 py-12 md:py-16 border-y-2 border-foreground">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid md:grid-cols-2 gap-6">
-              <Link to="/home">
-                <Card className="border-2 border-foreground hover:bg-foreground hover:text-background transition-all duration-300 group cursor-pointer">
-                  <CardContent className="p-8 md:p-12">
-                    <Briefcase className="h-10 w-10 md:h-12 md:w-12 mb-6 group-hover:scale-110 transition-transform" />
-                    <h3 className="text-2xl md:text-3xl font-black mb-3 uppercase tracking-tight">MY CLUB HOME</h3>
-                    <p className="text-sm md:text-base">Access your personalized dashboard with insights, actions, and opportunities</p>
-                  </CardContent>
-                </Card>
-              </Link>
+      {/* Feature Cards */}
+      <FeatureCards />
 
-              <Link to="/jobs">
-                <Card className="border-2 border-foreground hover:bg-foreground hover:text-background transition-all duration-300 group cursor-pointer">
-                  <CardContent className="p-8 md:p-12">
-                    <TrendingUp className="h-10 w-10 md:h-12 md:w-12 mb-6 group-hover:scale-110 transition-transform" />
-                    <h3 className="text-2xl md:text-3xl font-black mb-3 uppercase tracking-tight">BROWSE ROLES</h3>
-                    <p className="text-sm md:text-base">Discover exclusive positions with 90%+ match scores and auto-apply eligibility</p>
-                  </CardContent>
-                </Card>
-              </Link>
-            </div>
-          </div>
-        </section>
+      {/* Social Proof */}
+      <SocialProof />
 
-        {/* Network */}
-        <section className="px-6 py-16 md:py-20">
-          <div className="max-w-7xl mx-auto">
-            <div className="mb-12 md:mb-16 text-center">
-              <p className="text-caps text-muted-foreground mb-4">OUR ELITE NETWORK</p>
-              <h2 className="text-4xl md:text-6xl lg:text-7xl font-black uppercase tracking-tight leading-tight">
-                WORLD-CLASS
-                <br />
-                ORGANIZATIONS
-              </h2>
-            </div>
+      {/* CTA Section */}
+      <section className="px-6 py-20 md:py-32 text-center">
+        <div className="max-w-3xl mx-auto space-y-8">
+          <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tight">
+            READY TO JOIN
+            <br />
+            THE ELITE?
+          </h2>
+          <p className="text-lg text-muted-foreground">
+            Request your invite today and take the first step toward your career quantum leap.
+          </p>
+          <InviteGate />
+        </div>
+      </section>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {clients.map((client) => (
-                <Card 
-                  key={client.name}
-                  className="border-2 border-foreground hover:bg-foreground hover:text-background transition-all duration-300 group"
-                >
-                  <CardContent className="p-6 md:p-8 text-center">
-                    <div className="text-lg md:text-xl font-black uppercase tracking-tight">
-                      {client.name}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
-      </div>
-    </Layout>
+      {/* Footer */}
+      <LandingFooter />
+    </div>
   );
 };
 
