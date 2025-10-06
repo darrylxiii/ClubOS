@@ -25,6 +25,10 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     }
 
     fetchRoles();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user || availableRoles.length === 0) return;
     
     // Subscribe to role preference changes
     const channel = supabase
@@ -41,6 +45,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
           console.log('[RoleContext] Preference updated:', payload);
           const newRole = payload.new.preferred_role_view as UserRole;
           if (newRole && availableRoles.includes(newRole)) {
+            console.log('[RoleContext] Updating currentRole to:', newRole);
             setCurrentRole(newRole);
           }
         }
@@ -50,7 +55,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, availableRoles]);
 
   const fetchRoles = async () => {
     if (!user) return;
