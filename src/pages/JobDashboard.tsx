@@ -7,11 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Users, Settings, TrendingUp, Clock, CheckCircle2, AlertCircle, Calendar, Download, Sparkles } from "lucide-react";
+import { ArrowLeft, Users, Settings, TrendingUp, Clock, CheckCircle2, AlertCircle, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { JobDashboardCandidates } from "@/components/partner/JobDashboardCandidates";
 import { PipelineCustomizer } from "@/components/partner/PipelineCustomizer";
 import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
+import { StageDetailCard } from "@/components/partner/StageDetailCard";
+import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "@/components/partner/PipelineDisplaySettings";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -33,6 +35,21 @@ export default function JobDashboard() {
   const [customizerOpen, setCustomizerOpen] = useState(false);
   const [metrics, setMetrics] = useState<JobMetrics | null>(null);
   const [applications, setApplications] = useState<any[]>([]);
+  const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(defaultSettings);
+
+  // Load display settings from localStorage
+  useEffect(() => {
+    if (jobId) {
+      const saved = localStorage.getItem(`pipeline-breakdown-display-${jobId}`);
+      if (saved) {
+        try {
+          setDisplaySettings(JSON.parse(saved));
+        } catch (e) {
+          console.error('Failed to parse display settings:', e);
+        }
+      }
+    }
+  }, [jobId]);
 
   const isAuthorized = role === 'admin' || role === 'partner';
 
@@ -327,67 +344,88 @@ export default function JobDashboard() {
             </Card>
           </div>
 
-          {/* Pipeline Funnel Visualization */}
+          {/* Enhanced Pipeline Breakdown */}
           <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="font-black uppercase">Pipeline Breakdown</CardTitle>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Schedule Interview
-                  </Button>
-                  <Button variant="outline" size="sm" className="gap-2">
-                    <Download className="w-4 h-4" />
-                    Export
-                  </Button>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="font-black uppercase">Pipeline Breakdown</CardTitle>
+                  <div className="flex gap-2">
+                    <PipelineDisplaySettings
+                      jobId={job.id}
+                      settings={displaySettings}
+                      onSettingsChange={setDisplaySettings}
+                    />
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Schedule Interview
+                    </Button>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Download className="w-4 h-4" />
+                      Export
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Icon Legend */}
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-background/40 backdrop-blur-sm rounded-lg p-3 border border-accent/10">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <span>Your Company</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span>Quantum Club Elite</span>
+                  </div>
+                  <div className="h-4 w-px bg-border" />
+                  <div className="flex items-center gap-2">
+                    <Video className="w-4 h-4 text-green-500" />
+                    <span>Online</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-blue-500" />
+                    <span>In-Person</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-amber-500" />
+                    <span>Hybrid</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <ClipboardList className="w-4 h-4 text-purple-500" />
+                    <span>Assessment</span>
+                  </div>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {stages.sort((a, b) => a.order - b.order).map((stage, idx) => {
+                {stages.sort((a, b) => a.order - b.order).map((stage) => {
                   const count = metrics?.stageBreakdown[stage.order] || 0;
                   const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
                   const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
-                  const maxCount = Math.max(...Object.values(metrics?.stageBreakdown || {}), 1);
-                  const percentage = (count / maxCount) * 100;
                   
                   return (
-                    <div key={stage.order} className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Badge 
-                            variant="secondary" 
-                            className="w-24 justify-center font-bold"
-                          >
-                            {stage.name}
-                          </Badge>
-                          <span className="text-2xl font-black">{count}</span>
-                          <span className="text-sm text-muted-foreground">candidates</span>
-                        </div>
-                        <div className="flex items-center gap-6 text-sm">
-                          <div className="flex items-center gap-2">
-                            <Clock className="w-4 h-4 text-muted-foreground" />
-                            <span className="font-bold">{avgDays}d</span>
-                            <span className="text-muted-foreground">avg time</span>
-                          </div>
-                          {nextConversion !== undefined && (
-                            <div className="flex items-center gap-2">
-                              <CheckCircle2 className="w-4 h-4 text-green-500" />
-                              <span className="font-bold text-green-500">{nextConversion}%</span>
-                              <span className="text-muted-foreground">conversion</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="relative h-3 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-accent to-primary rounded-full transition-all duration-500"
-                          style={{ width: `${percentage}%` }}
-                        />
-                      </div>
-                    </div>
+                    <StageDetailCard
+                      key={stage.order}
+                      stage={stage}
+                      candidateCount={count}
+                      avgDays={avgDays}
+                      conversionRate={nextConversion}
+                      displaySettings={displaySettings}
+                      onEdit={() => {
+                        setCustomizerOpen(true);
+                        toast.info("Edit mode coming soon");
+                      }}
+                      onDuplicate={() => {
+                        toast.info("Duplicate stage coming soon");
+                      }}
+                      onDelete={() => {
+                        toast.info("Delete stage coming soon");
+                      }}
+                      onViewAnalytics={() => {
+                        toast.info("Stage analytics coming soon");
+                      }}
+                    />
                   );
                 })}
               </div>
