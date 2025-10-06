@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -9,6 +9,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import {
@@ -33,8 +48,14 @@ import {
   BookOpen,
   Bell,
   FileText,
+  Info,
+  Sparkles,
+  Timer,
+  Flag,
+  PlayCircle,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
+import confetti from "canvas-confetti";
 
 interface PartnerJobsHomeProps {
   companyId: string;
@@ -76,6 +97,19 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   });
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
+  const [clubSyncInfoOpen, setClubSyncInfoOpen] = useState(false);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
+
+  useEffect(() => {
+    // Check if first visit
+    const hasVisited = localStorage.getItem('partner_hq_visited');
+    if (!hasVisited) {
+      setIsFirstVisit(true);
+      setWelcomeModalOpen(true);
+      localStorage.setItem('partner_hq_visited', 'true');
+    }
+  }, []);
 
   useEffect(() => {
     fetchJobsWithMetrics();
@@ -253,30 +287,175 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     return `${daysAgo} days ago`;
   };
 
+  const celebrateAction = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  };
+
   if (loading) {
     return (
-      <div className="animate-pulse space-y-4">
-        <div className="h-48 bg-muted/50 rounded-lg"></div>
-        <div className="h-48 bg-muted/50 rounded-lg"></div>
+      <div className="space-y-6">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-32" />
+            <Skeleton className="h-10 w-64" />
+          </div>
+          <div className="flex gap-3">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+
+        {/* KPI Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="border-2">
+              <CardContent className="p-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-10 w-10 rounded-lg" />
+                  <Skeleton className="h-5 w-16" />
+                </div>
+                <Skeleton className="h-8 w-20" />
+                <Skeleton className="h-4 w-32" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Jobs Grid Skeleton */}
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-48" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i} className="border-2">
+                <CardContent className="p-6 space-y-4">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-4 w-full" />
+                  <div className="flex gap-2">
+                    <Skeleton className="h-8 w-24" />
+                    <Skeleton className="h-8 w-24" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <>
+    <TooltipProvider>
+      {/* Welcome Modal */}
+      <Dialog open={welcomeModalOpen} onOpenChange={setWelcomeModalOpen}>
+        <DialogContent className="sm:max-w-lg glass-card">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 rounded-full bg-gradient-accent">
+                <Sparkles className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <DialogTitle className="text-2xl">Welcome to Your Hiring HQ</DialogTitle>
+            </div>
+            <DialogDescription className="text-base space-y-4 pt-4">
+              <p>Your exclusive command center for world-class hiring. Here's what you can do:</p>
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                  <span><strong>Track live metrics</strong> across all your searches</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                  <span><strong>Activate Club Sync</strong> for vetted, premium candidates 3x faster</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                  <span><strong>Manage your pipeline</strong> with advanced analytics and insights</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                  <span><strong>Get white-glove support</strong> from the Quantum Club team</span>
+                </li>
+              </ul>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-3 mt-4">
+            <Button onClick={() => setWelcomeModalOpen(false)} variant="outline" className="flex-1">
+              Explore on My Own
+            </Button>
+            <Button 
+              onClick={() => {
+                setWelcomeModalOpen(false);
+                setCreateDialogOpen(true);
+              }} 
+              className="flex-1 gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Create First Job
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Club Sync Info Modal */}
+      <Dialog open={clubSyncInfoOpen} onOpenChange={setClubSyncInfoOpen}>
+        <DialogContent className="sm:max-w-md glass-card">
+          <DialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-3 rounded-full bg-accent/20">
+                <Zap className="w-6 h-6 text-accent" />
+              </div>
+              <DialogTitle className="text-xl">What's Club Sync?</DialogTitle>
+            </div>
+            <DialogDescription className="text-base space-y-4 pt-4">
+              <p className="font-semibold text-foreground">Your premium hiring accelerator.</p>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border border-accent/20">
+                  <TrendingUp className="w-5 h-5 text-accent mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">3x Faster Hiring</p>
+                    <p className="text-sm text-muted-foreground">Get vetted candidates in days, not weeks</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border border-accent/20">
+                  <Award className="w-5 h-5 text-accent mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">Pre-Vetted Talent</p>
+                    <p className="text-sm text-muted-foreground">Every candidate is Club-verified for quality</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border border-accent/20">
+                  <HeadphonesIcon className="w-5 h-5 text-accent mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-sm">Dedicated Support</p>
+                    <p className="text-sm text-muted-foreground">Personal recruiter assistance included</p>
+                  </div>
+                </div>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setClubSyncInfoOpen(false)} className="w-full">
+            Got It
+          </Button>
+        </DialogContent>
+      </Dialog>
+
       {/* Header */}
       <div className="space-y-6 mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <p className="text-caps text-muted-foreground mb-2">Your Hiring HQ</p>
-            <h1 className="text-4xl font-black uppercase tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
               Active Searches
             </h1>
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="lg" className="gap-2">
               <Users className="w-4 h-4" />
-              Invite Team
+              <span className="hidden sm:inline">Invite Team</span>
             </Button>
             <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
               <Plus className="w-5 h-5" />
@@ -286,19 +465,19 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         </div>
 
         {/* Bento KPI Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Active Searches */}
-          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-primary/5 via-background to-background hover:shadow-xl transition-all">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {/* Active Searches - Larger emphasis */}
+          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-accent/10 via-background to-background hover:shadow-xl transition-all sm:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Briefcase className="w-5 h-5 text-primary" />
+                <div className="p-3 rounded-xl bg-gradient-accent">
+                  <Briefcase className="w-6 h-6 text-primary-foreground" />
                 </div>
-                <Badge variant="outline" className="text-xs">Live</Badge>
+                <Badge className="text-xs bg-success text-success-foreground">Live</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black">{companyMetrics.activeSearches}</p>
-                <p className="text-sm text-muted-foreground">Active Searches</p>
+                <p className="text-4xl font-black">{companyMetrics.activeSearches}</p>
+                <p className="text-sm font-medium text-muted-foreground">Active Searches</p>
               </div>
             </CardContent>
           </Card>
@@ -355,22 +534,45 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
             </CardContent>
           </Card>
 
-          {/* Club Sync Status */}
-          <Card className="border-2 border-accent/30 bg-gradient-to-br from-accent/10 via-background to-background hover:shadow-xl transition-all">
+          {/* Club Sync Status - Larger emphasis */}
+          <Card className="border-2 border-accent/30 bg-gradient-to-br from-accent/10 via-background to-background hover:shadow-xl transition-all sm:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-accent/20">
-                  <Zap className="w-5 h-5 text-accent" />
+                <div className="flex items-center gap-2">
+                  <div className="p-3 rounded-xl bg-accent/20">
+                    <Zap className="w-6 h-6 text-accent" />
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-6 w-6 p-0"
+                        onClick={() => setClubSyncInfoOpen(true)}
+                      >
+                        <Info className="w-4 h-4 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                      <p className="text-sm">Get top-vetted candidates 3x faster with Club Sync</p>
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
                 <Badge className="text-xs bg-accent text-primary-foreground">Premium</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black">{companyMetrics.clubSyncActive}</p>
-                <p className="text-sm text-muted-foreground">Club Sync Active</p>
+                <p className="text-4xl font-black text-accent">{companyMetrics.clubSyncActive}</p>
+                <p className="text-sm font-medium text-muted-foreground">Club Sync Active</p>
               </div>
               {companyMetrics.clubSyncActive < companyMetrics.activeSearches && (
-                <Button size="sm" variant="outline" className="w-full mt-3 text-xs">
-                  Enable More Jobs
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="w-full mt-3 text-xs gap-2 hover:bg-accent/10 hover:border-accent"
+                  onClick={() => toast.info("Contact your Quantum Club rep to activate Club Sync")}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Enable {companyMetrics.activeSearches - companyMetrics.clubSyncActive} More
                 </Button>
               )}
             </CardContent>
@@ -393,34 +595,42 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </Card>
         </div>
 
-        {/* Quick Actions Bar */}
+        {/* Quick Actions Bar with Notifications */}
         <Card className="border-2 border-foreground/10 bg-gradient-card">
           <CardContent className="p-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-accent" />
                 <span className="font-semibold">Quick Actions</span>
               </div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <Button variant="outline" size="sm" className="gap-2">
+              <div className="flex items-center gap-2 flex-wrap overflow-x-auto pb-2 sm:pb-0">
+                <Button variant="outline" size="sm" className="gap-2 relative">
                   <Calendar className="w-4 h-4" />
-                  Interviews
+                  <span className="hidden sm:inline">Interviews</span>
+                  {companyMetrics.pendingActions > 0 && (
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-destructive text-destructive-foreground text-xs">
+                      {companyMetrics.pendingActions}
+                    </Badge>
+                  )}
                 </Button>
                 <Button variant="outline" size="sm" className="gap-2">
                   <Download className="w-4 h-4" />
-                  Export Report
+                  <span className="hidden sm:inline">Export</span>
                 </Button>
                 <Button variant="outline" size="sm" className="gap-2">
                   <HeadphonesIcon className="w-4 h-4" />
-                  Request Support
+                  <span className="hidden sm:inline">Support</span>
                 </Button>
-                <Button variant="outline" size="sm" className="gap-2">
+                <Button variant="outline" size="sm" className="gap-2 relative">
                   <Target className="w-4 h-4" />
-                  Vetted Talent
+                  <span className="hidden sm:inline">Vetted Talent</span>
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-accent text-accent-foreground text-xs">
+                    12
+                  </Badge>
                 </Button>
                 <Button variant="outline" size="sm" className="gap-2">
                   <BookOpen className="w-4 h-4" />
-                  Resources
+                  <span className="hidden sm:inline">Resources</span>
                 </Button>
               </div>
             </div>
@@ -434,17 +644,25 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
       {/* Jobs Grid */}
       {jobs.length === 0 ? (
-        <Card className="border-2 border-dashed border-border bg-gradient-card">
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <Zap className="w-16 h-16 text-muted-foreground mb-4" />
-            <h3 className="text-2xl font-bold mb-2">Start Your First Search</h3>
+        <Card className="border-2 border-dashed border-border bg-gradient-card hover:border-accent/50 transition-colors">
+          <CardContent className="flex flex-col items-center justify-center py-16 px-6">
+            <div className="p-4 rounded-full bg-accent/10 mb-4">
+              <Briefcase className="w-12 h-12 text-accent" />
+            </div>
+            <h3 className="text-2xl font-bold mb-2">Welcome to Your Hiring HQ</h3>
             <p className="text-muted-foreground mb-6 text-center max-w-md">
-              Create a job posting to access Club Sync, premium candidate matching, and advanced analytics
+              Create your first job to unlock Club Sync, premium candidate matching, and world-class analytics
             </p>
-            <Button onClick={() => setCreateDialogOpen(true)} size="lg">
-              <Plus className="w-5 h-5 mr-2" />
-              Create First Job
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <Button onClick={() => setWelcomeModalOpen(true)} variant="outline" size="lg" className="gap-2">
+                <PlayCircle className="w-5 h-5" />
+                Quick Tour
+              </Button>
+              <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
+                <Plus className="w-5 h-5" />
+                Create First Job
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -599,6 +817,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         companyId={companyId}
         onJobCreated={fetchJobsWithMetrics}
       />
-    </>
+    </TooltipProvider>
   );
 };
