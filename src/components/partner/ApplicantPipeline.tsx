@@ -116,6 +116,7 @@ export const ApplicantPipeline = ({ companyId }: ApplicantPipelineProps) => {
               {selectedJobData && (
                 <PipelineCustomizer
                   jobId={selectedJobData.id}
+                  companyId={selectedJobData.company_id}
                   currentStages={selectedJobData.pipeline_stages}
                   onUpdate={() => {
                     fetchJobsAndApplications();

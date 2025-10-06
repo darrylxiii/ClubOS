@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,10 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Building2, Video, FileText, Users, Calendar, Settings, BookTemplate, ChevronRight, MapPin, Link as LinkIcon, ClipboardList, CheckCircle2, AlertCircle, HelpCircle } from "lucide-react";
+import { Building2, Video, FileText, Users, Calendar, Settings, BookTemplate, ChevronRight, MapPin, Link as LinkIcon, ClipboardList, CheckCircle2, AlertCircle, HelpCircle, Plus } from "lucide-react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Stage {
   name: string;
@@ -33,10 +35,15 @@ interface AddStageDialogProps {
   onOpenChange: (open: boolean) => void;
   onSave: (stage: Stage) => Promise<{ success: boolean }>;
   currentStagesCount: number;
+  jobId: string;
+  companyId: string;
 }
 
-export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount }: AddStageDialogProps) {
+export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount, jobId, companyId }: AddStageDialogProps) {
   const [currentStep, setCurrentStep] = useState("essentials");
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+  const [bookingLinks, setBookingLinks] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [stage, setStage] = useState<Stage>({
     name: "",
     order: currentStagesCount,
@@ -54,23 +61,117 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
     template_name: ""
   });
 
+  // Refs for smart navigation
+  const stageNameRef = useRef<HTMLInputElement>(null);
+  const locationRef = useRef<HTMLInputElement>(null);
+  const meetingLinkRef = useRef<HTMLInputElement>(null);
+  const templateNameRef = useRef<HTMLInputElement>(null);
+
+  // Fetch booking links and team members
+  useEffect(() => {
+    if (open) {
+      fetchBookingLinks();
+      fetchTeamMembers();
+    }
+  }, [open, companyId]);
+
+  const fetchBookingLinks = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('booking_links')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      if (error) throw error;
+      setBookingLinks(data || []);
+    } catch (error) {
+      console.error('Error fetching booking links:', error);
+    }
+  };
+
+  const fetchTeamMembers = async () => {
+    try {
+      // Fetch company members
+      const { data: companyData, error: companyError } = await supabase
+        .from('company_members')
+        .select(`
+          user_id,
+          role,
+          profiles!inner (
+            id,
+            full_name,
+            email,
+            avatar_url
+          )
+        `)
+        .eq('company_id', companyId)
+        .eq('is_active', true);
+
+      if (companyError) throw companyError;
+
+      // Fetch talent strategists (admin and strategist roles)
+      const { data: strategistData, error: strategistError } = await supabase
+        .from('user_roles')
+        .select(`
+          user_id,
+          role,
+          profiles!inner (
+            id,
+            full_name,
+            email,
+            avatar_url
+          )
+        `)
+        .in('role', ['admin', 'strategist']);
+
+      if (strategistError) throw strategistError;
+
+      const members = [
+        ...(companyData || []).map(m => {
+          const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
+          return { ...profile, role: m.role, type: 'company' };
+        }),
+        ...(strategistData || []).map(s => {
+          const profile = Array.isArray(s.profiles) ? s.profiles[0] : s.profiles;
+          return { ...profile, role: s.role, type: 'strategist' };
+        })
+      ];
+
+      setTeamMembers(members);
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+    }
+  };
+
   const updateStage = (updates: Partial<Stage>) => {
     setStage(prev => ({ ...prev, ...updates }));
   };
 
-  const validateStep = (stepId: string): { valid: boolean; message?: string } => {
+  const validateStep = (stepId: string): { valid: boolean; message?: string; field?: string } => {
     switch (stepId) {
       case "essentials":
         if (!stage.name.trim()) {
-          return { valid: false, message: "Stage name is required" };
+          return { valid: false, message: "Stage name is required", field: "stage-name" };
+        }
+        if (!stage.owner) {
+          return { valid: false, message: "Stage ownership is required", field: "stage-owner" };
         }
         return { valid: true };
       case "type":
         if (stage.format === "in_person" && !stage.location?.trim()) {
-          return { valid: false, message: "Location is required for in-person stages" };
+          return { valid: false, message: "Location is required for in-person stages", field: "location" };
         }
         if (stage.format === "online" && !stage.meeting_link?.trim()) {
-          return { valid: false, message: "Meeting link is required for online stages" };
+          return { valid: false, message: "Meeting link is required for online stages", field: "meeting-link" };
+        }
+        return { valid: true };
+      case "template":
+        if (stage.save_as_template && !stage.template_name?.trim()) {
+          return { valid: false, message: "Template name is required when saving as template", field: "template-name" };
         }
         return { valid: true };
       default:
@@ -83,20 +184,58 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
   };
 
   const handleSave = async () => {
-    if (!stage.name.trim()) {
-      toast.error("Stage name is required");
+    // Validate all required steps
+    const essentialsValidation = validateStep("essentials");
+    if (!essentialsValidation.valid) {
+      toast.error(essentialsValidation.message);
+      setCurrentStep("essentials");
+      setTimeout(() => {
+        const field = document.getElementById(essentialsValidation.field!);
+        field?.focus();
+        field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+      return;
+    }
+
+    const typeValidation = validateStep("type");
+    if (!typeValidation.valid) {
+      toast.error(typeValidation.message);
+      setCurrentStep("type");
+      setTimeout(() => {
+        const field = document.getElementById(typeValidation.field!);
+        field?.focus();
+        field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+      return;
+    }
+
+    const templateValidation = validateStep("template");
+    if (!templateValidation.valid) {
+      toast.error(templateValidation.message);
+      setCurrentStep("template");
+      setTimeout(() => {
+        templateNameRef.current?.focus();
+        templateNameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
       return;
     }
 
     const result = await onSave(stage);
     if (result.success) {
+      // Confetti celebration
       confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 },
+        colors: ['#6366f1', '#8b5cf6', '#ec4899']
       });
-      toast.success("Stage added successfully!");
+      
+      toast.success("✨ Pipeline stage added successfully!", {
+        description: "Stage configuration saved and audit logged"
+      });
+      
       onOpenChange(false);
+      
       // Reset form
       setStage({
         name: "",
@@ -104,9 +243,18 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
         owner: 'company',
         format: 'online',
         resources: [],
-        description: ""
+        description: "",
+        duration_minutes: 60,
+        interviewers: [],
+        location: "",
+        meeting_link: "",
+        materials_required: [],
+        evaluation_criteria: "",
+        save_as_template: false,
+        template_name: ""
       });
       setCurrentStep("essentials");
+      setCompletedSteps(new Set());
     }
   };
 
@@ -124,11 +272,33 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
     const validation = validateStep(currentStep);
     if (!validation.valid) {
       toast.error(validation.message);
+      // Smart navigation to incomplete field
+      setTimeout(() => {
+        if (validation.field) {
+          const field = document.getElementById(validation.field);
+          field?.focus();
+          field?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 100);
       return;
     }
+    
+    // Mark step as completed
+    setCompletedSteps(prev => new Set([...prev, currentStep]));
+    
     const currentIndex = steps.findIndex(s => s.id === currentStep);
     if (currentIndex < steps.length - 1) {
       setCurrentStep(steps[currentIndex + 1].id);
+    }
+  };
+
+  const goToStep = (stepId: string) => {
+    const stepIndex = steps.findIndex(s => s.id === stepId);
+    const currentIndex = steps.findIndex(s => s.id === currentStep);
+    
+    // Allow navigation to completed steps or next step
+    if (completedSteps.has(stepId) || stepIndex <= currentIndex + 1) {
+      setCurrentStep(stepId);
     }
   };
 
@@ -171,17 +341,17 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
-                            onClick={() => isAccessible && setCurrentStep(step.id)}
-                            disabled={!isAccessible}
-                            className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all flex-1 min-w-[100px] ${
+                            onClick={() => goToStep(step.id)}
+                            disabled={!isAccessible && !completedSteps.has(step.id)}
+                            className={`flex flex-col items-center gap-2 p-2 md:p-3 rounded-xl transition-all flex-1 min-w-[80px] md:min-w-[100px] ${
                               isActive 
                                 ? "bg-primary/10 border-2 border-primary shadow-lg scale-105" 
-                                : isCompleted 
-                                  ? "bg-primary/5 border border-primary/30 hover:bg-primary/10" 
+                                 : isCompleted || completedSteps.has(step.id)
+                                  ? "bg-primary/5 border border-primary/30 hover:bg-primary/10 cursor-pointer" 
                                   : "bg-muted/50 border border-muted hover:bg-muted"
-                            } ${!isAccessible ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+                            } ${!isAccessible && !completedSteps.has(step.id) ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                           >
-                            <div className={`relative w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all ${
+                            <div className={`relative w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center border-2 transition-all ${
                               isActive 
                                 ? "border-primary bg-primary text-primary-foreground shadow-lg" 
                                 : isCompleted && stepComplete
@@ -190,19 +360,19 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                                     ? "border-primary bg-primary/20 text-primary"
                                     : "border-muted-foreground/30 bg-background"
                             }`}>
-                              {isCompleted && stepComplete ? (
-                                <CheckCircle2 className="w-6 h-6" />
+                              {completedSteps.has(step.id) && stepComplete ? (
+                                <CheckCircle2 className="w-5 h-5 md:w-6 md:h-6" />
                               ) : isCompleted && !stepComplete ? (
-                                <AlertCircle className="w-6 h-6" />
+                                <AlertCircle className="w-5 h-5 md:w-6 md:h-6" />
                               ) : (
-                                <Icon className="w-6 h-6" />
+                                <Icon className="w-5 h-5 md:w-6 md:h-6" />
                               )}
                               {step.required && !isCompleted && (
                                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full" />
                               )}
                             </div>
-                            <span className={`text-xs font-medium whitespace-nowrap text-center ${
-                              isActive ? "text-primary" : isCompleted ? "text-primary" : "text-muted-foreground"
+                            <span className={`text-[10px] md:text-xs font-medium whitespace-nowrap text-center ${
+                              isActive ? "text-primary" : isCompleted || completedSteps.has(step.id) ? "text-primary" : "text-muted-foreground"
                             }`}>
                               {step.label}
                             </span>
@@ -238,7 +408,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="stage-name" className="flex items-center gap-2">
-                        Stage Name *
+                        Stage Name <span className="text-destructive">*</span>
                         <Tooltip>
                           <TooltipTrigger>
                             <HelpCircle className="w-4 h-4 text-muted-foreground" />
@@ -249,11 +419,13 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                         </Tooltip>
                       </Label>
                       <Input
+                        ref={stageNameRef}
                         id="stage-name"
                         value={stage.name}
                         onChange={(e) => updateStage({ name: e.target.value })}
                         placeholder="e.g., Technical Interview, Culture Fit"
                         className="h-12"
+                        required
                       />
                     </div>
 
@@ -279,8 +451,8 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                   </h3>
                   
                   <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      Who manages this stage?
+                    <Label className="flex items-center gap-2" htmlFor="stage-owner">
+                      Who manages this stage? <span className="text-destructive">*</span>
                       <Tooltip>
                         <TooltipTrigger>
                           <HelpCircle className="w-4 h-4 text-muted-foreground" />
@@ -290,8 +462,8 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                         </TooltipContent>
                       </Tooltip>
                     </Label>
-                    <Select value={stage.owner} onValueChange={(value: 'company' | 'quantum_club') => updateStage({ owner: value })}>
-                      <SelectTrigger className="h-12">
+                    <Select value={stage.owner} onValueChange={(value: 'company' | 'quantum_club') => updateStage({ owner: value })} required>
+                      <SelectTrigger id="stage-owner" className="h-12">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -364,13 +536,15 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                     </h4>
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="location">Office Address or Venue *</Label>
+                        <Label htmlFor="location">Office Address or Venue <span className="text-destructive">*</span></Label>
                         <Input
+                          ref={locationRef}
                           id="location"
                           placeholder="123 Business St, City, Country"
                           value={stage.location || ""}
                           onChange={(e) => updateStage({ location: e.target.value })}
                           className="h-12"
+                          required
                         />
                       </div>
                       <div className="space-y-2">
@@ -407,17 +581,40 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="meeting-link">Meeting Link *</Label>
-                        <div className="relative">
-                          <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                          <Input
-                            id="meeting-link"
-                            placeholder="https://zoom.us/j/... or https://teams.microsoft.com/..."
-                            value={stage.meeting_link || ""}
-                            onChange={(e) => updateStage({ meeting_link: e.target.value })}
-                            className="h-12 pl-10"
-                          />
-                        </div>
+                        <Label htmlFor="meeting-link">Meeting Link <span className="text-destructive">*</span></Label>
+                        {bookingLinks.length > 0 ? (
+                          <Select value={stage.meeting_link || ""} onValueChange={(value) => updateStage({ meeting_link: value })}>
+                            <SelectTrigger id="meeting-link" className="h-12">
+                              <SelectValue placeholder="Select existing link or create new" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {bookingLinks.map((link) => (
+                                <SelectItem key={link.id} value={link.slug}>
+                                  {link.title} ({link.duration_minutes}min)
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="__create_new__">
+                                <div className="flex items-center gap-2">
+                                  <Plus className="w-4 h-4" />
+                                  Create New Meeting Link
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <div className="relative">
+                            <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              ref={meetingLinkRef}
+                              id="meeting-link"
+                              placeholder="https://zoom.us/j/... or https://teams.microsoft.com/..."
+                              value={stage.meeting_link || ""}
+                              onChange={(e) => updateStage({ meeting_link: e.target.value })}
+                              className="h-12 pl-10"
+                              required
+                            />
+                          </div>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="prep-instructions">Preparation Instructions</Label>
@@ -569,10 +766,34 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                     <Users className="w-5 h-5 text-primary" />
                     Assign Interviewers/Evaluators
                   </h4>
-                  <p className="text-sm text-muted-foreground">Select team members for this stage</p>
-                  <Input placeholder="Search team members..." className="h-12" />
+                  <p className="text-sm text-muted-foreground">Select from your company team and Quantum Club strategists</p>
+                  <Select>
+                    <SelectTrigger className="h-12">
+                      <SelectValue placeholder="Select team members..." />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                      {teamMembers.length > 0 ? (
+                        teamMembers.map((member) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            <div className="flex items-center gap-2">
+                              <span>{member.full_name || member.email}</span>
+                              <Badge variant={member.type === 'strategist' ? 'default' : 'secondary'} className="text-xs">
+                                {member.type === 'strategist' ? '✦ Strategist' : member.role}
+                              </Badge>
+                            </div>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-members" disabled>
+                          No team members available
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                   <div className="space-y-2 mt-4 p-4 rounded-lg bg-muted/30 border border-dashed">
-                    <p className="text-sm text-muted-foreground text-center py-4">No interviewers assigned yet</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      {stage.interviewers?.length ? `${stage.interviewers.length} assigned` : 'No interviewers assigned yet'}
+                    </p>
                   </div>
                 </div>
 
@@ -709,13 +930,18 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
                   </div>
 
                   {stage.save_as_template && (
-                    <div className="space-y-4 mt-4 pl-6">
+                    <div className="space-y-4 mt-4 pl-6 animate-fade-in">
                       <div className="space-y-2">
-                        <Label>Template Name</Label>
+                        <Label htmlFor="template-name">
+                          Template Name <span className="text-destructive">*</span>
+                        </Label>
                         <Input
+                          ref={templateNameRef}
+                          id="template-name"
                           value={stage.template_name}
                           onChange={(e) => updateStage({ template_name: e.target.value })}
                           placeholder="e.g., Standard Technical Interview"
+                          required={stage.save_as_template}
                         />
                       </div>
                       <div className="space-y-2">
@@ -754,7 +980,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
         </div>
 
         {/* Navigation Footer */}
-        <div className="flex items-center justify-between pt-6 border-t mt-8 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-6 border-t mt-8 sticky bottom-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
           <Button
             variant="outline"
             onClick={() => {
@@ -765,15 +991,16 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
             }}
             disabled={currentStep === "essentials"}
             size="lg"
+            className="w-full sm:w-auto"
           >
             Previous
           </Button>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             {currentStep !== "template" ? (
               <Button
                 onClick={goToNextStep}
-                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 flex-1 sm:flex-initial"
                 size="lg"
               >
                 Next Step
@@ -782,7 +1009,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount 
             ) : (
               <Button 
                 onClick={handleSave} 
-                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90"
+                className="bg-gradient-to-r from-primary to-secondary hover:opacity-90 flex-1 sm:flex-initial"
                 size="lg"
               >
                 <CheckCircle2 className="w-4 h-4 mr-2" />

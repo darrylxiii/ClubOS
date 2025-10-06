@@ -240,6 +240,7 @@ export default function JobDashboard() {
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
                   <PipelineCustomizer
                     jobId={job.id}
+                    companyId={job.company_id}
                     currentStages={stages}
                     onUpdate={() => {
                       fetchJobDetails();

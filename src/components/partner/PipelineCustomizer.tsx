@@ -22,11 +22,12 @@ interface Stage {
 
 interface PipelineCustomizerProps {
   jobId: string;
+  companyId: string;
   currentStages: Stage[];
   onUpdate: () => void;
 }
 
-export const PipelineCustomizer = ({ jobId, currentStages, onUpdate }: PipelineCustomizerProps) => {
+export const PipelineCustomizer = ({ jobId, companyId, currentStages, onUpdate }: PipelineCustomizerProps) => {
   const [stages, setStages] = useState<Stage[]>(currentStages);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -294,6 +295,8 @@ export const PipelineCustomizer = ({ jobId, currentStages, onUpdate }: PipelineC
         onOpenChange={setAddStageOpen}
         onSave={handleAddStage}
         currentStagesCount={stages.length}
+        jobId={jobId}
+        companyId={companyId}
       />
     </Card>
   );
