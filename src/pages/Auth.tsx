@@ -185,25 +185,31 @@ const Auth = () => {
 
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
-      <Card className="w-full max-w-md border-2 border-foreground">
-        <CardHeader className="space-y-1 border-b-2 border-foreground pb-6">
-          <div className="flex items-center justify-center mb-4">
-            <div className="w-12 h-12 bg-foreground text-background flex items-center justify-center font-black text-xl">
+    <div className="min-h-screen bg-glass-mesh flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Animated mesh gradient background */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+      </div>
+
+      <Card className="w-full max-w-md relative z-10 glass-strong animate-bounce-in">
+        <CardHeader className="space-y-3 pb-6">
+          <div className="flex items-center justify-center mb-2">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center font-black text-2xl text-white shadow-glow">
               QC
             </div>
           </div>
-          <CardTitle className="text-2xl font-black uppercase text-center tracking-tight">
-            {isLogin ? "SIGN IN" : "CREATE ACCOUNT"}
+          <CardTitle className="text-3xl font-bold text-center">
+            {isLogin ? "Welcome Back" : "Join The Club"}
           </CardTitle>
-          <p className="text-sm text-muted-foreground text-center">
+          <p className="text-sm text-muted-foreground text-center font-medium">
             {isLogin
-              ? "Welcome back to The Quantum Club"
-              : "Join The Quantum Club"}
+              ? "Sign in to continue your journey"
+              : "Create your account to get started"}
           </p>
         </CardHeader>
 
-        <CardContent className="pt-6">
+        <CardContent className="pt-2">
           <div className="space-y-4">
             {/* Email Auth Form */}
             <form onSubmit={handleEmailAuth} className="space-y-4">
@@ -211,11 +217,11 @@ const Auth = () => {
                 <div className="space-y-2">
                   <Input
                     type="text"
-                    placeholder="FULL NAME"
+                    placeholder="Full Name"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
-                    className="border-2 border-foreground uppercase font-bold text-xs tracking-wider placeholder:text-muted-foreground"
+                    className="glass-subtle border-border/50 h-12 rounded-xl font-medium placeholder:text-muted-foreground/70"
                   />
                 </div>
               )}
@@ -223,39 +229,39 @@ const Auth = () => {
               <div className="space-y-2">
                 <Input
                   type="email"
-                  placeholder="EMAIL"
+                  placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="border-2 border-foreground uppercase font-bold text-xs tracking-wider placeholder:text-muted-foreground"
+                  className="glass-subtle border-border/50 h-12 rounded-xl font-medium placeholder:text-muted-foreground/70"
                 />
               </div>
 
               <div className="space-y-2">
                 <Input
                   type="password"
-                  placeholder="PASSWORD"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="border-2 border-foreground uppercase font-bold text-xs tracking-wider placeholder:text-muted-foreground"
+                  className="glass-subtle border-border/50 h-12 rounded-xl font-medium placeholder:text-muted-foreground/70"
                 />
                 {!isLogin && password && (
-                  <div className="text-xs space-y-1 mt-2">
-                    <p className={password.length >= 12 ? "text-green-600" : "text-muted-foreground"}>
-                      ✓ At least 12 characters
+                  <div className="text-xs space-y-1.5 mt-3 p-3 rounded-lg glass-subtle">
+                    <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground"}>
+                      {password.length >= 12 ? "✓" : "○"} At least 12 characters
                     </p>
-                    <p className={/[A-Z]/.test(password) ? "text-green-600" : "text-muted-foreground"}>
-                      ✓ One uppercase letter
+                    <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                      {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
                     </p>
-                    <p className={/[a-z]/.test(password) ? "text-green-600" : "text-muted-foreground"}>
-                      ✓ One lowercase letter
+                    <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                      {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
                     </p>
-                    <p className={/[0-9]/.test(password) ? "text-green-600" : "text-muted-foreground"}>
-                      ✓ One number
+                    <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                      {/[0-9]/.test(password) ? "✓" : "○"} One number
                     </p>
-                    <p className={/[^A-Za-z0-9]/.test(password) ? "text-green-600" : "text-muted-foreground"}>
-                      ✓ One special character
+                    <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                      {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
                     </p>
                   </div>
                 )}
@@ -265,26 +271,28 @@ const Auth = () => {
                 <div className="space-y-2">
                   <Input
                     type="password"
-                    placeholder="CONFIRM PASSWORD"
+                    placeholder="Confirm Password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    className="border-2 border-foreground uppercase font-bold text-xs tracking-wider placeholder:text-muted-foreground"
+                    className="glass-subtle border-border/50 h-12 rounded-xl font-medium placeholder:text-muted-foreground/70"
                   />
                 </div>
               )}
 
               <Button
                 type="submit"
-                className="w-full bg-foreground text-background hover:bg-foreground/90 font-black uppercase text-xs tracking-wider"
+                variant="gradient"
+                size="lg"
+                className="w-full font-bold"
                 disabled={isLoading || (inviteCode && !isLogin && inviteValid === false)}
               >
-                {isLoading ? "LOADING..." : isLogin ? "SIGN IN" : "SIGN UP"}
+                {isLoading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
               </Button>
             </form>
 
             {!inviteCode && (
-              <div className="text-center text-sm">
+              <div className="text-center text-sm pt-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -292,7 +300,7 @@ const Auth = () => {
                     setPassword("");
                     setConfirmPassword("");
                   }}
-                  className="text-foreground hover:underline font-bold uppercase text-xs tracking-wider"
+                  className="text-foreground hover:text-primary font-semibold transition-colors duration-200"
                 >
                   {isLogin
                     ? "Need an account? Sign up"

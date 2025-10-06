@@ -45,9 +45,11 @@ const ClubHome = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="container mx-auto py-8 space-y-8 animate-fade-in">
         <ClubHomeHeader role={role} />
-        {renderRoleView()}
+        <div className="glass-card">
+          {renderRoleView()}
+        </div>
       </div>
     </AppLayout>
   );

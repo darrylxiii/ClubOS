@@ -13,100 +13,117 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   :root {
-    /* Core Colors - Minimal palette */
-    --background: 40 20% 97%;
-    --foreground: 0 0% 8%;
+    /* iOS-inspired Glassmorphic Colors */
+    --background: 220 25% 98%;
+    --foreground: 220 10% 10%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 8%;
+    --card: 220 20% 100%;
+    --card-foreground: 220 10% 10%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 8%;
+    --popover: 220 20% 100%;
+    --popover-foreground: 220 10% 10%;
 
-    --primary: 0 0% 8%;
-    --primary-foreground: 40 20% 97%;
+    --primary: 220 100% 55%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 10% 90%;
-    --secondary-foreground: 0 0% 8%;
+    --secondary: 220 15% 92%;
+    --secondary-foreground: 220 10% 10%;
 
-    --muted: 40 10% 90%;
-    --muted-foreground: 0 0% 40%;
+    --muted: 220 15% 94%;
+    --muted-foreground: 220 10% 45%;
 
-    --accent: 0 0% 8%;
-    --accent-foreground: 40 20% 97%;
+    --accent: 280 80% 60%;
+    --accent-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
+    --success: 142 76% 48%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 8%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 220 10% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 0 0% 8%;
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 220 100% 55%;
 
-    --radius: 0.25rem;
+    --radius: 1rem;
 
-    /* Minimal gradients */
-    --gradient-hero: linear-gradient(180deg, hsl(40 20% 97%) 0%, hsl(40 15% 95%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(0 0% 8%) 0%, hsl(0 0% 20%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(40 15% 98%) 100%);
+    /* iOS-style vibrant gradients */
+    --gradient-hero: linear-gradient(135deg, hsl(220 100% 70%) 0%, hsl(280 80% 65%) 50%, hsl(340 75% 65%) 100%);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(220 100% 70%) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(280 80% 65%) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(340 75% 65%) 0px, transparent 50%);
+    --gradient-card: linear-gradient(135deg, hsl(220 20% 100% / 0.8) 0%, hsl(220 15% 98% / 0.8) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(220 100% 60%) 0%, hsl(280 80% 65%) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(220 20% 100% / 0.7) 0%, hsl(220 15% 98% / 0.5) 100%);
     
-    /* Sharp, minimal shadows */
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.05);
-    --shadow-md: 0 2px 4px 0 hsl(0 0% 0% / 0.08);
-    --shadow-lg: 0 4px 8px 0 hsl(0 0% 0% / 0.1);
-    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.06);
-    --shadow-glow: 0 0 0 1px hsl(0 0% 8% / 0.1);
+    /* Glassmorphic shadows with depth */
+    --shadow-glass-sm: 0 2px 8px hsl(220 10% 10% / 0.06), 0 1px 2px hsl(220 10% 10% / 0.04);
+    --shadow-glass-md: 0 4px 16px hsl(220 10% 10% / 0.08), 0 2px 4px hsl(220 10% 10% / 0.06);
+    --shadow-glass-lg: 0 8px 32px hsl(220 10% 10% / 0.12), 0 4px 8px hsl(220 10% 10% / 0.08);
+    --shadow-glass-xl: 0 16px 48px hsl(220 10% 10% / 0.16), 0 8px 16px hsl(220 10% 10% / 0.1);
+    --shadow-float: 0 20px 60px hsl(220 10% 10% / 0.2), 0 10px 20px hsl(220 10% 10% / 0.12);
+    --shadow-inner: inset 0 1px 2px hsl(220 10% 10% / 0.05);
+    --shadow-glow: 0 0 20px hsl(220 100% 55% / 0.3), 0 0 40px hsl(220 100% 55% / 0.15);
+    
+    /* Blur intensities */
+    --blur-glass: 24px;
+    --blur-glass-strong: 40px;
+    --blur-glass-subtle: 12px;
   }
 
   .dark {
-    --background: 0 0% 8%;
-    --foreground: 40 20% 97%;
+    --background: 220 20% 8%;
+    --foreground: 220 15% 95%;
 
-    --card: 0 0% 10%;
-    --card-foreground: 40 20% 97%;
+    --card: 220 18% 12%;
+    --card-foreground: 220 15% 95%;
 
-    --popover: 0 0% 10%;
-    --popover-foreground: 40 20% 97%;
+    --popover: 220 18% 12%;
+    --popover-foreground: 220 15% 95%;
 
-    --primary: 40 20% 97%;
-    --primary-foreground: 0 0% 8%;
+    --primary: 220 100% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 40 20% 97%;
+    --secondary: 220 15% 18%;
+    --secondary-foreground: 220 15% 95%;
 
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 220 15% 16%;
+    --muted-foreground: 220 10% 55%;
 
-    --accent: 40 20% 97%;
-    --accent-foreground: 0 0% 8%;
+    --accent: 280 80% 65%;
+    --accent-foreground: 0 0% 100%;
 
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 8%;
+    --success: 142 76% 52%;
+    --success-foreground: 220 20% 8%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 8%;
+    --warning: 38 92% 60%;
+    --warning-foreground: 220 20% 8%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 8%;
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 220 20% 8%;
 
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 40 20% 97%;
+    --border: 220 15% 22%;
+    --input: 220 15% 22%;
+    --ring: 220 100% 60%;
 
-    --gradient-hero: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 10%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(40 20% 97%) 0%, hsl(40 25% 95%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 10%) 0%, hsl(0 0% 12%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(220 100% 50%) 0%, hsl(280 80% 55%) 50%, hsl(340 75% 55%) 100%);
+    --gradient-mesh: radial-gradient(at 40% 20%, hsl(220 100% 50%) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(280 80% 55%) 0px, transparent 50%),
+                     radial-gradient(at 0% 50%, hsl(340 75% 55%) 0px, transparent 50%);
+    --gradient-card: linear-gradient(135deg, hsl(220 18% 14% / 0.8) 0%, hsl(220 15% 12% / 0.8) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(220 100% 55%) 0%, hsl(280 80% 60%) 100%);
+    --gradient-glass: linear-gradient(135deg, hsl(220 18% 16% / 0.7) 0%, hsl(220 15% 12% / 0.5) 100%);
     
-    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.5);
-    --shadow-md: 0 2px 4px 0 hsl(0 0% 0% / 0.5);
-    --shadow-lg: 0 4px 8px 0 hsl(0 0% 0% / 0.5);
-    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.3);
-    --shadow-glow: 0 0 0 1px hsl(40 20% 97% / 0.1);
+    --shadow-glass-sm: 0 2px 8px hsl(0 0% 0% / 0.3), 0 1px 2px hsl(0 0% 0% / 0.2);
+    --shadow-glass-md: 0 4px 16px hsl(0 0% 0% / 0.4), 0 2px 4px hsl(0 0% 0% / 0.3);
+    --shadow-glass-lg: 0 8px 32px hsl(0 0% 0% / 0.5), 0 4px 8px hsl(0 0% 0% / 0.4);
+    --shadow-glass-xl: 0 16px 48px hsl(0 0% 0% / 0.6), 0 8px 16px hsl(0 0% 0% / 0.5);
+    --shadow-float: 0 20px 60px hsl(0 0% 0% / 0.7), 0 10px 20px hsl(0 0% 0% / 0.6);
+    --shadow-inner: inset 0 1px 2px hsl(0 0% 0% / 0.3);
+    --shadow-glow: 0 0 20px hsl(220 100% 60% / 0.4), 0 0 40px hsl(220 100% 60% / 0.2);
   }
 }
 
@@ -138,35 +155,77 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 }
 
 @layer utilities {
-  /* Bold display text utilities */
+  /* iOS-style display text utilities */
   .text-display {
-    @apply text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-none;
+    @apply text-6xl md:text-8xl lg:text-9xl font-black tracking-tight leading-none;
   }
 
   .text-hero {
-    @apply text-5xl md:text-7xl lg:text-8xl font-black tracking-tight leading-none;
+    @apply text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-tight;
   }
 
-  /* Uppercase tracking */
+  /* iOS system text */
   .text-caps {
-    @apply uppercase tracking-wider text-xs font-bold;
+    @apply uppercase tracking-wide text-xs font-semibold;
   }
 
   /* Glassmorphism effects */
   .glass {
-    @apply bg-background/50 backdrop-blur-md border border-foreground/10;
+    @apply bg-card/70 backdrop-blur-[var(--blur-glass)] border border-border/50;
+    box-shadow: var(--shadow-glass-md), var(--shadow-inner);
   }
 
   .glass-strong {
-    @apply bg-background/80 backdrop-blur-xl border border-foreground/20;
+    @apply bg-card/90 backdrop-blur-[var(--blur-glass-strong)] border border-border/60;
+    box-shadow: var(--shadow-glass-lg), var(--shadow-inner);
   }
 
-  /* Cosmic glow effects */
+  .glass-subtle {
+    @apply bg-card/50 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30;
+    box-shadow: var(--shadow-glass-sm);
+  }
+
+  .glass-card {
+    @apply glass rounded-2xl p-6;
+    background: var(--gradient-glass);
+  }
+
+  /* Floating effect */
+  .float {
+    box-shadow: var(--shadow-float);
+    @apply rounded-2xl;
+  }
+
+  /* iOS-style glow effects */
   .glow-text {
-    text-shadow: 0 0 20px hsl(var(--foreground) / 0.3);
+    text-shadow: 0 0 20px hsl(var(--primary) / 0.5);
   }
 
+  .glow-primary {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* Smooth iOS animations */
   .hover-lift {
-    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+    @apply transition-all duration-300 ease-out hover:-translate-y-1;
+    will-change: transform;
+  }
+
+  .hover-lift:hover {
+    box-shadow: var(--shadow-float);
+  }
+
+  .spring-bounce {
+    @apply transition-all duration-500;
+    transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  /* iOS blur backgrounds */
+  .bg-glass-mesh {
+    background: var(--gradient-mesh), hsl(var(--background));
+  }
+
+  .bg-glass-hero {
+    background: var(--gradient-hero);
   }
 }

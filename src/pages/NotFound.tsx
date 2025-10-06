@@ -1,5 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 
 const NotFound = () => {
   const location = useLocation();
@@ -9,12 +10,35 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
-        <p className="mb-4 text-xl text-gray-600">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 underline hover:text-blue-700">
-          Return to Home
+    <div className="flex min-h-screen items-center justify-center bg-glass-mesh px-6 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }}></div>
+      </div>
+
+      <div className="text-center relative z-10 space-y-8 max-w-2xl mx-auto animate-bounce-in">
+        {/* Large 404 with glass effect */}
+        <div className="relative inline-block">
+          <h1 className="text-9xl md:text-[12rem] font-black tracking-tighter bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+            404
+          </h1>
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 blur-3xl -z-10"></div>
+        </div>
+
+        {/* Message card */}
+        <div className="glass-card space-y-4 max-w-md mx-auto">
+          <p className="text-2xl md:text-3xl font-bold">Page Not Found</p>
+          <p className="text-muted-foreground text-lg">
+            The page you're looking for doesn't exist or has been moved.
+          </p>
+        </div>
+
+        {/* CTA Button */}
+        <a href="/">
+          <Button variant="gradient" size="lg" className="font-bold hover-lift">
+            Return Home
+          </Button>
         </a>
       </div>
     </div>
