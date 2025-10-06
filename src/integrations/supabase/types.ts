@@ -3021,6 +3021,39 @@ export type Database = {
           },
         ]
       }
+      role_change_audit: {
+        Row: {
+          change_type: string
+          changed_by: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          new_roles: Json | null
+          old_roles: Json | null
+          user_id: string
+        }
+        Insert: {
+          change_type: string
+          changed_by: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_roles?: Json | null
+          old_roles?: Json | null
+          user_id: string
+        }
+        Update: {
+          change_type?: string
+          changed_by?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_roles?: Json | null
+          old_roles?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       scheduled_messages: {
         Row: {
           content: string

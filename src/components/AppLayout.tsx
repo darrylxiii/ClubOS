@@ -41,6 +41,8 @@ import { NotificationBell } from "@/components/NotificationBell";
 import { NavigationGroup } from "@/components/NavigationGroup";
 import { CommandPalette } from "@/components/CommandPalette";
 import { GlobalUtilityBar } from "@/components/GlobalUtilityBar";
+import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
+import { useRole } from "@/contexts/RoleContext";
 
 // Grouped Candidate Navigation
 const candidateNavigationGroups = [
@@ -190,40 +192,13 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
-  const [isPartner, setIsPartner] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { currentRole } = useRole();
 
-  useEffect(() => {
-    const checkUserStatus = async () => {
-      if (!user) return;
-      
-      const { data: memberData } = await supabase
-        .from('company_members')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .maybeSingle();
-      
-      setIsPartner(!!memberData);
-
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-      
-      setIsAdmin(!!roleData);
-    };
-
-    checkUserStatus();
-  }, [user]);
-  
-  // Determine navigation based on role priority: Admin > Partner > Candidate
-  const navigationGroups = isAdmin 
-    ? adminNavigationGroups 
-    : isPartner 
-    ? partnerNavigationGroups 
+  // Determine navigation based on current role from context
+  const navigationGroups = currentRole === 'admin'
+    ? adminNavigationGroups
+    : currentRole === 'partner'
+    ? partnerNavigationGroups
     : candidateNavigationGroups;
 
   const handleSignOut = async () => {
@@ -242,7 +217,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4 gap-2">
         <Button
           variant="ghost"
           size="icon"
@@ -251,7 +226,10 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
         <img src={quantumClubLogo} alt="Quantum Club" className="h-8 w-auto" />
-        <NotificationBell />
+        <div className="flex items-center gap-2">
+          <GlobalRoleSwitcher />
+          <NotificationBell />
+        </div>
       </div>
 
       <aside
@@ -262,7 +240,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       >
         <div className="h-16 flex items-center justify-between border-b border-border px-4">
           <img src={quantumClubLogo} alt="Quantum Club" className="h-10 w-auto" />
-          <div className="lg:block hidden">
+          <div className="lg:flex hidden items-center gap-2">
+            <GlobalRoleSwitcher />
             <NotificationBell />
           </div>
         </div>

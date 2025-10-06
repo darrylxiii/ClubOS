@@ -101,6 +101,23 @@ export function UserRoleManagement() {
     if (!editingUser) return;
 
     try {
+      // Get current user for audit logging
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Authentication required");
+        return;
+      }
+
+      const oldRoles = editingUser.roles;
+
+      // Validate: user must have at least one role
+      if (selectedRoles.length === 0) {
+        toast.error("User must have at least one role", {
+          description: "Please select at least one role before saving"
+        });
+        return;
+      }
+
       // Delete existing roles
       const { error: deleteError } = await supabase
         .from('user_roles')
@@ -110,7 +127,6 @@ export function UserRoleManagement() {
       if (deleteError) throw deleteError;
 
       // Insert new roles
-      if (selectedRoles.length > 0) {
       const { error: insertError } = await supabase
         .from('user_roles')
         .insert(selectedRoles.map(role => ({
@@ -118,17 +134,40 @@ export function UserRoleManagement() {
           role: role as 'admin' | 'strategist' | 'partner' | 'user'
         })));
 
-        if (insertError) throw insertError;
+      if (insertError) {
+        console.error('Error inserting roles:', insertError);
+        toast.error("Failed to update roles", {
+          description: insertError.message
+        });
+        return;
       }
 
-      toast.success("User roles updated successfully");
+      // Log role change in audit table
+      await supabase.from('role_change_audit').insert({
+        user_id: editingUser.id,
+        changed_by: user.id,
+        old_roles: oldRoles,
+        new_roles: selectedRoles,
+        change_type: 'bulk_update',
+        metadata: {
+          timestamp: new Date().toISOString(),
+          admin_email: user.email
+        }
+      });
+
+      toast.success("User roles updated successfully", {
+        description: `Updated roles for ${editingUser.email}`
+      });
+      
       setDialogOpen(false);
       setEditingUser(null);
       setSelectedRoles([]);
       fetchUsers();
     } catch (error: any) {
       console.error('Error updating roles:', error);
-      toast.error("Failed to update user roles");
+      toast.error("Failed to update user roles", {
+        description: error.message || "An unexpected error occurred"
+      });
     }
   };
 

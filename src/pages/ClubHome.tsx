@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { Loader2 } from "lucide-react";
 import { CandidateHome } from "@/components/clubhome/CandidateHome";
 import { PartnerHome } from "@/components/clubhome/PartnerHome";
@@ -9,7 +9,7 @@ import { AdminHome } from "@/components/clubhome/AdminHome";
 import { ClubHomeHeader } from "@/components/clubhome/ClubHomeHeader";
 
 const ClubHome = () => {
-  const { role, loading } = useUserRole();
+  const { currentRole: role, loading } = useRole();
   const navigate = useNavigate();
 
   useEffect(() => {
