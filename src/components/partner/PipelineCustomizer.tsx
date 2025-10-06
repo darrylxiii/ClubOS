@@ -9,6 +9,7 @@ import { Plus, GripVertical, Trash2, Edit2, Save, Sparkles, Building2, Users } f
 import { toast } from "sonner";
 import { usePipelineManagement } from "@/hooks/usePipelineManagement";
 import { cn } from "@/lib/utils";
+import { AddStageDialog } from "./AddStageDialog";
 
 interface Stage {
   name: string;
@@ -29,31 +30,16 @@ export const PipelineCustomizer = ({ jobId, currentStages, onUpdate }: PipelineC
   const [stages, setStages] = useState<Stage[]>(currentStages);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [newStageName, setNewStageName] = useState("");
+  const [addStageOpen, setAddStageOpen] = useState(false);
   const { saving, savePipeline, addStage, removeStage } = usePipelineManagement(jobId);
 
-  const handleAddStage = async () => {
-    if (!newStageName.trim()) return;
-    
-    const newStage: Stage = {
-      name: newStageName,
-      order: stages.length,
-      owner: 'company',
-      format: 'online',
-      resources: [],
-      description: ''
-    };
-
+  const handleAddStage = async (newStage: Stage) => {
     const result = await addStage(stages, newStage);
     if (result.success) {
       setStages([...stages, newStage]);
-      setNewStageName("");
-      toast.success("Stage added", { 
-        description: "Pipeline updated with confetti sparkle ✨",
-        duration: 3000 
-      });
       onUpdate();
     }
+    return result;
   };
 
   const handleRemoveStage = async (index: number) => {
@@ -273,20 +259,13 @@ export const PipelineCustomizer = ({ jobId, currentStages, onUpdate }: PipelineC
         </div>
 
         {/* Add New Stage */}
-        <div className="flex gap-2 pt-2">
-          <Input
-            placeholder="New stage name..."
-            value={newStageName}
-            onChange={(e) => setNewStageName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleAddStage()}
-            className="border-accent/50 focus:border-accent"
-          />
+        <div className="pt-2">
           <Button 
-            onClick={handleAddStage}
-            className="bg-gradient-to-r from-accent to-primary hover:opacity-90 transition-opacity"
+            onClick={() => setAddStageOpen(true)}
+            className="w-full bg-gradient-to-r from-accent to-primary hover:opacity-90 transition-opacity"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Add Stage
+            Add Premium Stage
           </Button>
         </div>
 
@@ -309,6 +288,13 @@ export const PipelineCustomizer = ({ jobId, currentStages, onUpdate }: PipelineC
           )}
         </Button>
       </CardContent>
+
+      <AddStageDialog
+        open={addStageOpen}
+        onOpenChange={setAddStageOpen}
+        onSave={handleAddStage}
+        currentStagesCount={stages.length}
+      />
     </Card>
   );
 };
