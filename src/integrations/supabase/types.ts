@@ -2056,6 +2056,44 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          job_id: string
+          metadata: Json | null
+          stage_data: Json
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          job_id: string
+          metadata?: Json | null
+          stage_data?: Json
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          job_id?: string
+          metadata?: Json | null
+          stage_data?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pipeline_audit_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_events: {
         Row: {
           application_id: string
