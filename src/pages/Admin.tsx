@@ -2,11 +2,9 @@ import { AppLayout } from "@/components/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield } from "lucide-react";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
-import { UserCompanyAssignment } from "@/components/admin/UserCompanyAssignment";
-import { UserRoleManagement } from "@/components/admin/UserRoleManagement";
+import { UnifiedUserManagement } from "@/components/admin/UnifiedUserManagement";
 import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navigate } from "react-router-dom";
 import { useEffect } from "react";
 
@@ -62,10 +60,9 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-2 max-w-xl">
             <TabsTrigger value="companies">Companies</TabsTrigger>
-            <TabsTrigger value="users">User Assignment</TabsTrigger>
-            <TabsTrigger value="user-management">Users & Roles</TabsTrigger>
+            <TabsTrigger value="users">Users & Roles</TabsTrigger>
           </TabsList>
 
           <TabsContent value="companies" className="space-y-4">
@@ -73,11 +70,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-4">
-            <UserCompanyAssignment />
-          </TabsContent>
-
-          <TabsContent value="user-management" className="space-y-4">
-            <UserRoleManagement />
+            <UnifiedUserManagement />
           </TabsContent>
         </Tabs>
       </div>
