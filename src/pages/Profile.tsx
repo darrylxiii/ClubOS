@@ -704,7 +704,15 @@ const Profile = () => {
     loadCities();
   }, [user]);
 
-  const handleConnectCalendar = async (provider: 'google' | 'microsoft') => {
+  const handleConnectCalendar = async (provider: 'google' | 'microsoft' | 'apple') => {
+    // Apple Calendar support coming soon
+    if (provider === 'apple') {
+      toast.info('Apple Calendar integration coming soon', {
+        description: 'We\'re working on adding Apple Calendar support. Use Google or Microsoft Calendar for now.'
+      });
+      return;
+    }
+    
     const label = prompt(
       `Name this calendar connection (e.g., "Personal", "Work", "Company Name"):`
     );
@@ -1831,7 +1839,7 @@ const Profile = () => {
                 <h4 className="font-medium text-sm mb-3">
                   {connectedCalendars.length > 0 ? 'Add Another Calendar' : 'Connect a Calendar'}
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <Button
                     type="button"
                     onClick={() => handleConnectCalendar('google')}
@@ -1851,6 +1859,16 @@ const Profile = () => {
                   >
                     <Calendar className="w-4 h-4 mr-2" />
                     {calendarLoading ? 'Connecting...' : 'Add Microsoft Calendar'}
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => handleConnectCalendar('apple')}
+                    disabled={calendarLoading}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Calendar className="w-4 h-4 mr-2" />
+                    {calendarLoading ? 'Connecting...' : 'Add Apple Calendar'}
                   </Button>
                 </div>
               </div>

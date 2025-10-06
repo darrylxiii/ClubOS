@@ -1,26 +1,22 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { toast } from "sonner";
 import { Shield, User, Building2, Users } from "lucide-react";
+import { useRole } from "@/contexts/RoleContext";
+import { UserRole } from "@/hooks/useUserRole";
+import { toast } from "sonner";
 
 interface UserRoleOption {
-  value: string;
+  value: UserRole;
   label: string;
   icon: any;
   description: string;
 }
 
 export function RoleSwitcher() {
-  const { user } = useAuth();
-  const [availableRoles, setAvailableRoles] = useState<UserRoleOption[]>([]);
-  const [currentRole, setCurrentRole] = useState<string>('user');
-  const [loading, setLoading] = useState(true);
+  const { currentRole, availableRoles, switchRole, loading } = useRole();
 
-  const roleOptions: Record<string, UserRoleOption> = {
+  const roleOptions: Record<UserRole, UserRoleOption> = {
     admin: {
       value: 'admin',
       label: 'Admin',
@@ -44,106 +40,31 @@ export function RoleSwitcher() {
       label: 'Candidate',
       icon: User,
       description: 'Standard candidate dashboard'
-    }
-  };
-
-  useEffect(() => {
-    fetchAvailableRoles();
-  }, [user]);
-
-  const fetchAvailableRoles = async () => {
-    if (!user) return;
-
-    try {
-      // Get all roles from database (single source of truth)
-      const { data: rolesData, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      // Get preferred role from database (secure, server-side)
-      const { data: prefsData } = await supabase
-        .from('user_preferences')
-        .select('preferred_role_view')
-        .eq('user_id', user.id)
-        .maybeSingle();
-      
-      const roles: UserRoleOption[] = [];
-      
-      if (rolesData && rolesData.length > 0) {
-        rolesData.forEach(r => {
-          if (roleOptions[r.role]) {
-            roles.push(roleOptions[r.role]);
-          }
-        });
-      }
-
-      // Always include user role as fallback
-      if (!roles.find(r => r.value === 'user')) {
-        roles.push(roleOptions.user);
-      }
-
-      setAvailableRoles(roles);
-      
-      // Set current role from database preference (not localStorage!)
-      const savedRole = prefsData?.preferred_role_view;
-      if (savedRole && roles.find(r => r.value === savedRole)) {
-        setCurrentRole(savedRole);
-      } else if (rolesData && rolesData.length > 0) {
-        // Default to admin if available
-        const hasAdmin = rolesData.find(r => r.role === 'admin');
-        setCurrentRole(hasAdmin ? 'admin' : rolesData[0].role);
-      } else {
-        setCurrentRole('user');
-      }
-    } catch (error) {
-      console.error('Error fetching roles:', error);
-      toast.error("Failed to load roles");
-    } finally {
-      setLoading(false);
+    },
+    company_admin: {
+      value: 'company_admin',
+      label: 'Company Admin',
+      icon: Building2,
+      description: 'Company administration access'
+    },
+    recruiter: {
+      value: 'recruiter',
+      label: 'Recruiter',
+      icon: Users,
+      description: 'Recruitment management access'
     }
   };
 
   const handleRoleChange = async (newRole: string) => {
-    if (!user) return;
-    
     try {
-      console.log('[RoleSwitcher] Attempting to switch role to:', newRole);
-      
-      // Save preference to database (secure, server-side)
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({ 
-          user_id: user.id, 
-          preferred_role_view: newRole 
-        }, {
-          onConflict: 'user_id'
-        });
-      
-      if (error) {
-        console.error('[RoleSwitcher] Error saving role preference:', error);
-        toast.error("Failed to switch roles. Please try again.");
-        return;
-      }
-      
-      console.log('[RoleSwitcher] Successfully saved preference, reloading...');
-      
-      // Update local state only after successful DB update
-      setCurrentRole(newRole);
-      
-      toast.success(`Switching to ${roleOptions[newRole]?.label || newRole} view...`, {
-        description: "Reloading dashboard"
+      await switchRole(newRole as UserRole);
+      toast.success(`Switched to ${roleOptions[newRole as UserRole]?.label || newRole} view`, {
+        description: "Your dashboard has been updated"
       });
-      
-      // Force hard reload to ensure fresh state
-      setTimeout(() => {
-        window.location.href = window.location.origin + '/club-home';
-      }, 500);
     } catch (error) {
-      console.error('[RoleSwitcher] Error saving role preference:', error);
-      toast.error("Failed to switch roles. Please try again.");
+      toast.error("Failed to switch roles", {
+        description: "Please try again"
+      });
     }
   };
 
@@ -162,6 +83,11 @@ export function RoleSwitcher() {
     return null; // Don't show if user only has one role
   }
 
+  const roleOptionsList = availableRoles.map(role => ({
+    ...roleOptions[role],
+    value: role
+  }));
+
   return (
     <Card>
       <CardHeader>
@@ -171,9 +97,9 @@ export function RoleSwitcher() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <RadioGroup value={currentRole} onValueChange={handleRoleChange}>
+        <RadioGroup value={currentRole || 'user'} onValueChange={handleRoleChange}>
           <div className="space-y-3">
-            {availableRoles.map((role) => {
+            {roleOptionsList.map((role) => {
               const Icon = role.icon;
               return (
                 <div key={role.value} className="flex items-start space-x-3 space-y-0">

@@ -73,11 +73,16 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
       // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ avatar_url: publicUrl })
+        .update({ 
+          avatar_url: publicUrl,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', userId);
 
       if (updateError) throw updateError;
 
+      // Update local preview with the actual URL
+      setPreviewUrl(publicUrl);
       onAvatarChange(publicUrl);
       toast.success('Profile picture uploaded successfully');
     } catch (error: any) {
