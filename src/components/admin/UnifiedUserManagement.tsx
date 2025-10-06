@@ -173,11 +173,11 @@ export function UnifiedUserManagement() {
       if (insertError) throw insertError;
 
       // Update company assignment if changed
-      if (selectedCompany !== (editingUser.company_id || "")) {
+      if (selectedCompany !== (editingUser.company_id || "none")) {
         // Update profile
         const { error: profileError } = await supabase
           .from('profiles')
-          .update({ company_id: selectedCompany || null })
+          .update({ company_id: selectedCompany === "none" ? null : selectedCompany })
           .eq('id', editingUser.id);
 
         if (profileError) throw profileError;
@@ -192,7 +192,7 @@ export function UnifiedUserManagement() {
         }
 
         // Add new company membership
-        if (selectedCompany) {
+        if (selectedCompany && selectedCompany !== "none") {
           const { error: memberError } = await supabase
             .from('company_members')
             .insert({
@@ -206,7 +206,7 @@ export function UnifiedUserManagement() {
             throw memberError;
           }
         }
-      } else if (selectedCompany && selectedCompanyRole !== editingUser.company_role) {
+      } else if (selectedCompany && selectedCompany !== "none" && selectedCompanyRole !== editingUser.company_role) {
         // Update company role if company is same but role changed
         await supabase
           .from('company_members')
@@ -225,7 +225,7 @@ export function UnifiedUserManagement() {
         metadata: {
           timestamp: new Date().toISOString(),
           admin_email: user.email,
-          company_changed: selectedCompany !== (editingUser.company_id || "")
+          company_changed: selectedCompany !== (editingUser.company_id || "none")
         }
       });
 
@@ -233,7 +233,7 @@ export function UnifiedUserManagement() {
       setDialogOpen(false);
       setEditingUser(null);
       setSelectedRoles([]);
-      setSelectedCompany("");
+      setSelectedCompany("none");
       fetchData();
     } catch (error: any) {
       console.error('Error updating user:', error);
@@ -246,7 +246,7 @@ export function UnifiedUserManagement() {
   const openEditDialog = (user: UserWithRoles) => {
     setEditingUser(user);
     setSelectedRoles(user.roles);
-    setSelectedCompany(user.company_id || "");
+    setSelectedCompany(user.company_id || "none");
     setSelectedCompanyRole(user.company_role || "recruiter");
     setDialogOpen(true);
   };
@@ -448,7 +448,7 @@ export function UnifiedUserManagement() {
           if (!open) {
             setEditingUser(null);
             setSelectedRoles([]);
-            setSelectedCompany("");
+            setSelectedCompany("none");
           }
         }}>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -497,7 +497,7 @@ export function UnifiedUserManagement() {
                       <SelectValue placeholder="No company" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No company</SelectItem>
+                      <SelectItem value="none">No company</SelectItem>
                       {companies.map((company) => (
                         <SelectItem key={company.id} value={company.id}>
                           {company.name}
@@ -506,7 +506,7 @@ export function UnifiedUserManagement() {
                     </SelectContent>
                   </Select>
                 </div>
-                {selectedCompany && (
+                {selectedCompany && selectedCompany !== "none" && (
                   <div className="space-y-2">
                     <Label htmlFor="companyRole">Company Role</Label>
                     <Select
