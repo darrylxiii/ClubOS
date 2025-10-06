@@ -151,4 +151,22 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   .text-caps {
     @apply uppercase tracking-wider text-xs font-bold;
   }
+
+  /* Glassmorphism effects */
+  .glass {
+    @apply bg-background/50 backdrop-blur-md border border-foreground/10;
+  }
+
+  .glass-strong {
+    @apply bg-background/80 backdrop-blur-xl border border-foreground/20;
+  }
+
+  /* Cosmic glow effects */
+  .glow-text {
+    text-shadow: 0 0 20px hsl(var(--foreground) / 0.3);
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-lg;
+  }
 }
