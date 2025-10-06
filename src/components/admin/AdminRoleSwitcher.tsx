@@ -1,144 +1,151 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Shield, User, Building2, Users, Sparkles } from "lucide-react";
+import { useRole } from "@/contexts/RoleContext";
+import { UserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
-import { Shield, Users, Building2, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+
+interface UserRoleOption {
+  value: UserRole;
+  label: string;
+  icon: any;
+  description: string;
+}
 
 export const AdminRoleSwitcher = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [roles, setRoles] = useState<string[]>([]);
-  const [currentView, setCurrentView] = useState<string>('admin');
+  const { currentRole, availableRoles, switchRole, loading } = useRole();
 
-  useEffect(() => {
-    fetchUserRoles();
-    fetchUserPreferences();
-  }, [user]);
-
-  const fetchUserRoles = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id);
-
-    setRoles(data?.map(r => r.role) || []);
-  };
-
-  const fetchUserPreferences = async () => {
-    if (!user) return;
-
-    const { data } = await supabase
-      .from('user_preferences')
-      .select('preferred_role_view')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (data?.preferred_role_view) {
-      setCurrentView(data.preferred_role_view);
+  const roleOptions: Record<UserRole, UserRoleOption> = {
+    admin: {
+      value: 'admin',
+      label: 'Admin',
+      icon: Shield,
+      description: 'Full system access, manage companies and users'
+    },
+    strategist: {
+      value: 'strategist',
+      label: 'Talent Strategist',
+      icon: Users,
+      description: 'Manage candidates and job placements'
+    },
+    partner: {
+      value: 'partner',
+      label: 'Partner',
+      icon: Building2,
+      description: 'Company partner access'
+    },
+    user: {
+      value: 'user',
+      label: 'Candidate',
+      icon: User,
+      description: 'Standard candidate dashboard'
+    },
+    company_admin: {
+      value: 'company_admin',
+      label: 'Company Admin',
+      icon: Building2,
+      description: 'Company administration access'
+    },
+    recruiter: {
+      value: 'recruiter',
+      label: 'Recruiter',
+      icon: Users,
+      description: 'Recruitment management access'
     }
   };
 
-  const handleSwitchView = async (role: string) => {
-    if (!user) return;
-
-    // Save to database instead of localStorage (secure, server-side)
-    const { error } = await supabase
-      .from('user_preferences')
-      .upsert({
-        user_id: user.id,
-        preferred_role_view: role,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'user_id'
+  const handleRoleChange = async (newRole: string) => {
+    try {
+      await switchRole(newRole as UserRole);
+      toast.success(`Switched to ${roleOptions[newRole as UserRole]?.label || newRole} view`, {
+        description: "Your dashboard has been updated"
       });
-
-    if (error) {
-      console.error('Error saving preference:', error);
-      toast.error("Failed to save view preference");
-      return;
-    }
-
-    setCurrentView(role);
-    toast.success(`Switched to ${role} view`);
-
-    // Navigate to appropriate dashboard
-    switch (role) {
-      case 'admin':
-        navigate('/admin');
-        break;
-      case 'partner':
-        navigate('/partner-dashboard');
-        break;
-      case 'strategist':
-        navigate('/dashboard');
-        break;
-      case 'user':
-        navigate('/dashboard');
-        break;
+    } catch (error) {
+      toast.error("Failed to switch roles", {
+        description: "Please try again"
+      });
     }
   };
 
-  const getRoleInfo = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return { icon: Shield, label: 'Admin', description: 'Full system access', color: 'default' as const };
-      case 'partner':
-        return { icon: Building2, label: 'Partner', description: 'Company hiring pipeline', color: 'secondary' as const };
-      case 'strategist':
-        return { icon: Users, label: 'Strategist', description: 'Talent management', color: 'secondary' as const };
-      case 'user':
-        return { icon: User, label: 'Candidate', description: 'Job applications', color: 'outline' as const };
-      default:
-        return { icon: User, label: role, description: '', color: 'outline' as const };
-    }
-  };
+  if (loading) {
+    return (
+      <Card className="glass-card border-white/10 shadow-glass-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            Active Role
+          </CardTitle>
+          <CardDescription>Loading your roles...</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
-  if (roles.length <= 1) return null;
+  if (availableRoles.length <= 1) {
+    return null; // Don't show if user only has one role
+  }
+
+  const roleOptionsList = availableRoles.map(role => ({
+    ...roleOptions[role],
+    value: role
+  }));
 
   return (
-    <Card className="border-2">
+    <Card className="glass-card border-white/10 shadow-glass-lg hover-lift">
       <CardHeader>
-        <CardTitle className="text-lg font-black uppercase">Role Switcher</CardTitle>
-        <CardDescription>
-          Switch between different role views based on your permissions
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" />
+          Active Role
+        </CardTitle>
+        <CardDescription className="text-foreground/70">
+          You have multiple roles. Select which role you want to use.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {roles.map((role) => {
-            const info = getRoleInfo(role);
-            const Icon = info.icon;
-            const isActive = currentView === role;
-
-            return (
-              <Button
-                key={role}
-                variant={isActive ? "default" : "outline"}
-                className="h-auto p-4 flex flex-col items-start gap-2"
-                onClick={() => handleSwitchView(role)}
-              >
-                <div className="flex items-center gap-2 w-full">
-                  <Icon className="w-5 h-5" />
-                  <span className="font-bold text-lg">{info.label}</span>
-                  {isActive && <Badge className="ml-auto">Active</Badge>}
+      <CardContent>
+        <RadioGroup value={currentRole || 'user'} onValueChange={handleRoleChange}>
+          <div className="space-y-2">
+            {roleOptionsList.map((role) => {
+              const Icon = role.icon;
+              const isActive = currentRole === role.value;
+              return (
+                <div 
+                  key={role.value} 
+                  className={`
+                    flex items-start space-x-3 space-y-0 p-4 rounded-2xl
+                    transition-all duration-300 cursor-pointer
+                    ${isActive 
+                      ? 'glass-strong border border-primary/30 shadow-glass-md shadow-primary/10' 
+                      : 'glass-subtle border border-white/5 hover:border-white/20 hover:shadow-glass-sm'
+                    }
+                  `}
+                  onClick={() => handleRoleChange(role.value)}
+                >
+                  <RadioGroupItem value={role.value} id={role.value} className="mt-1" />
+                  <Label
+                    htmlFor={role.value}
+                    className="font-normal cursor-pointer flex-1"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className={`
+                        p-1.5 rounded-lg transition-colors duration-300
+                        ${isActive ? 'bg-primary/20 text-primary' : 'bg-white/5 text-foreground/70'}
+                      `}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <span className={`font-semibold transition-colors duration-300 ${isActive ? 'text-primary' : 'text-foreground'}`}>
+                        {role.label}
+                      </span>
+                    </div>
+                    <p className="text-sm text-foreground/60 ml-8">
+                      {role.description}
+                    </p>
+                  </Label>
                 </div>
-                <p className="text-xs text-left opacity-80">{info.description}</p>
-              </Button>
-            );
-          })}
-        </div>
-
-        <div className="pt-4 border-t">
-          <p className="text-xs text-muted-foreground">
-            Current view: <strong>{getRoleInfo(currentView).label}</strong>
-          </p>
-        </div>
+              );
+            })}
+          </div>
+        </RadioGroup>
       </CardContent>
     </Card>
   );
