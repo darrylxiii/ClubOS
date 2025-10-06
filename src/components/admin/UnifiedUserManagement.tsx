@@ -155,7 +155,13 @@ export function UnifiedUserManagement() {
       const targetUserId = editingUser.id;
       const oldRoles = editingUser.roles;
 
-      console.log('[UnifiedUserManagement] Updating roles for user:', targetUserId, 'New roles:', selectedRoles);
+      // Ensure partner role is included if admin is selected
+      let finalRoles = [...selectedRoles];
+      if (finalRoles.includes('admin') && !finalRoles.includes('partner')) {
+        finalRoles.push('partner');
+      }
+
+      console.log('[UnifiedUserManagement] Updating roles for user:', targetUserId, 'New roles:', finalRoles);
 
       // Delete existing roles for the TARGET user
       const { error: deleteError } = await supabase
@@ -173,7 +179,7 @@ export function UnifiedUserManagement() {
       // Insert new roles for the TARGET user
       const { error: insertError } = await supabase
         .from('user_roles')
-        .insert(selectedRoles.map(role => ({
+        .insert(finalRoles.map(role => ({
           user_id: targetUserId,
           role: role as 'admin' | 'strategist' | 'partner' | 'user'
         })));
@@ -270,11 +276,20 @@ export function UnifiedUserManagement() {
   };
 
   const toggleRole = (role: string) => {
-    setSelectedRoles(prev => 
-      prev.includes(role) 
-        ? prev.filter(r => r !== role)
-        : [...prev, role]
-    );
+    setSelectedRoles(prev => {
+      if (prev.includes(role)) {
+        // Removing a role
+        return prev.filter(r => r !== role);
+      } else {
+        // Adding a role
+        const newRoles = [...prev, role];
+        // If adding admin, automatically add partner too
+        if (role === 'admin' && !newRoles.includes('partner')) {
+          newRoles.push('partner');
+        }
+        return newRoles;
+      }
+    });
   };
 
   const generateInviteLink = async () => {
