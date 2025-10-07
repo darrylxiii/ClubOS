@@ -5,12 +5,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart } from "lucide-react";
+import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building } from "lucide-react";
 import { CreatePoll } from "./PollPost";
 import { toast } from "@/hooks/use-toast";
 import { MediaEditor } from "./MediaEditor";
 import { VideoEditor } from "./VideoEditor";
 import { AudienceSelection } from "@/components/audience/AudiencePickerButton";
+import { AudiencePickerModal } from "@/components/audience/AudiencePickerModal";
+import { Heart, MoreHorizontal } from "lucide-react";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -31,6 +33,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [audienceSelection, setAudienceSelection] = useState<AudienceSelection>({
     type: 'best_friends',
   });
+  const [showAudienceModal, setShowAudienceModal] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -333,60 +336,25 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               </div>
             </div>
             
-            <div className="group/audience flex items-center gap-2">
-              <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity overflow-x-auto max-w-0 group-hover/audience:max-w-full scrollbar-hide">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setAudienceSelection({ ...audienceSelection, type: 'public' })}
-                  className={`gap-2 whitespace-nowrap ${audienceSelection.type === 'public' ? 'bg-accent' : ''}`}
-                >
-                  <Globe className="w-4 h-4" />
-                  Public
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setAudienceSelection({ ...audienceSelection, type: 'connections' })}
-                  className={`gap-2 whitespace-nowrap ${audienceSelection.type === 'connections' ? 'bg-accent' : ''}`}
-                >
-                  <UserCircle className="w-4 h-4" />
-                  Connections
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setAudienceSelection({ ...audienceSelection, type: 'company_internal' })}
-                  className={`gap-2 whitespace-nowrap ${audienceSelection.type === 'company_internal' ? 'bg-accent' : ''}`}
-                >
-                  <Building className="w-4 h-4" />
-                  Company
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setAudienceSelection({ ...audienceSelection, type: 'best_friends' })}
-                  className={`gap-2 whitespace-nowrap ${audienceSelection.type === 'best_friends' ? 'bg-accent' : ''}`}
-                >
-                  <Heart className="w-4 h-4" />
-                  Best Friends
-                </Button>
-              </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setAudienceSelection({ type: 'best_friends' })}
+                className={`gap-2 ${audienceSelection.type === 'best_friends' ? 'bg-accent' : ''}`}
+              >
+                <Heart className="w-4 h-4" />
+                Best Friends
+              </Button>
               
               <Button 
                 variant="ghost" 
                 size="sm"
-                className="h-9 gap-2 px-2 hover:bg-white/5"
-                title={
-                  audienceSelection.type === 'public' ? 'Public' :
-                  audienceSelection.type === 'connections' ? 'Connections' :
-                  audienceSelection.type === 'company_internal' ? 'Company' :
-                  audienceSelection.type === 'best_friends' ? 'Best Friends' :
-                  'Custom Lists'
-                }
+                onClick={() => setShowAudienceModal(true)}
+                className="gap-2"
               >
-                <Users className="w-4 h-4 text-muted-foreground group-hover/audience:text-foreground transition-colors" />
-                <span className="text-sm">Audience</span>
+                <MoreHorizontal className="w-4 h-4" />
+                More
               </Button>
               
               <Button 
@@ -423,6 +391,13 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           onSave={handleEditorSave}
         />
       )}
+
+      <AudiencePickerModal
+        isOpen={showAudienceModal}
+        onClose={() => setShowAudienceModal(false)}
+        value={audienceSelection}
+        onChange={setAudienceSelection}
+      />
     </Card>
   );
 }
