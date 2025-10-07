@@ -1704,7 +1704,7 @@ const Profile = () => {
 
               <Separator />
 
-              <div>
+              <div className="space-y-3">
                 <Label htmlFor="noticePeriod">Notice Period</Label>
                 <Select value={profileData.noticePeriod} onValueChange={handleNoticePeriodChange}>
                   <SelectTrigger className="bg-background/50">
@@ -1718,6 +1718,42 @@ const Profile = () => {
                     <SelectItem value="3_months">3 Months</SelectItem>
                   </SelectContent>
                 </Select>
+                
+                {profileData.noticePeriod !== 'immediate' && (
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                    <Calendar className="w-4 h-4 text-primary" />
+                    <div className="text-sm">
+                      <span className="text-muted-foreground">Current contract ends: </span>
+                      <span className="font-medium text-foreground">
+                        {(() => {
+                          const today = new Date();
+                          let endDate = new Date(today);
+                          
+                          switch (profileData.noticePeriod) {
+                            case '2_weeks':
+                              endDate.setDate(today.getDate() + 14);
+                              break;
+                            case '1_month':
+                              endDate.setMonth(today.getMonth() + 1);
+                              break;
+                            case '2_months':
+                              endDate.setMonth(today.getMonth() + 2);
+                              break;
+                            case '3_months':
+                              endDate.setMonth(today.getMonth() + 3);
+                              break;
+                          }
+                          
+                          return endDate.toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          });
+                        })()}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
