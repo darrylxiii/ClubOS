@@ -10,6 +10,7 @@ import { CreatePoll } from "./PollPost";
 import { toast } from "@/hooks/use-toast";
 import { MediaEditor } from "./MediaEditor";
 import { VideoEditor } from "./VideoEditor";
+import { AudiencePickerButton, AudienceSelection } from "@/components/audience/AudiencePickerButton";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -27,6 +28,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [editingFileType, setEditingFileType] = useState<'image' | 'video' | null>(null);
   const [showPollCreator, setShowPollCreator] = useState(false);
   const [pollData, setPollData] = useState<any>(null);
+  const [audienceSelection, setAudienceSelection] = useState<AudienceSelection>({
+    type: 'connections',
+  });
 
   useEffect(() => {
     if (user) {
@@ -140,11 +144,27 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         postData.poll_options = pollData.options;
       }
 
-      const { error } = await supabase
+      const { data: newPost, error } = await supabase
         .from('posts')
-        .insert(postData);
+        .insert(postData)
+        .select('id')
+        .single();
 
       if (error) throw error;
+
+      // Save audience settings
+      if (newPost) {
+        await (supabase as any).from('post_audience_settings').insert({
+          post_id: newPost.id,
+          post_type: 'user_post',
+          audience_type: audienceSelection.type,
+          custom_list_ids: audienceSelection.customListIds || [],
+          allow_company_internal: audienceSelection.multiSelect?.company || false,
+          allow_connections: audienceSelection.multiSelect?.connections || false,
+          allow_best_friends: audienceSelection.multiSelect?.bestFriends || false,
+          allow_public: audienceSelection.type === 'public',
+        });
+      }
 
       setContent("");
       setUploadedFiles([]);
@@ -258,7 +278,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           )}
           
           <div className="flex items-center justify-between mt-3 pt-3 border-t">
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
+              <AudiencePickerButton
+                value={audienceSelection}
+                onChange={setAudienceSelection}
+              />
               <Button 
                 variant="ghost" 
                 size="sm"

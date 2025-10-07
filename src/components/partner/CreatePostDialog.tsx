@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { AudiencePickerButton, AudienceSelection } from "@/components/audience/AudiencePickerButton";
 
 interface CreatePostDialogProps {
   open: boolean;
@@ -29,6 +30,9 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
     is_featured: false,
     publish_now: true,
   });
+  const [audienceSelection, setAudienceSelection] = useState<AudienceSelection>({
+    type: 'company_internal',
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,7 +48,7 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0);
 
-      const { error } = await supabase
+      const { data: newPost, error } = await supabase
         .from('company_posts')
         .insert({
           company_id: companyId,
@@ -56,9 +60,25 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
           is_public: formData.is_public,
           is_featured: formData.is_featured,
           published_at: formData.publish_now ? new Date().toISOString() : null,
-        });
+        })
+        .select('id')
+        .single();
 
       if (error) throw error;
+
+      // Save audience settings
+      if (newPost) {
+        await (supabase as any).from('post_audience_settings').insert({
+          post_id: newPost.id,
+          post_type: 'company_post',
+          audience_type: audienceSelection.type,
+          custom_list_ids: audienceSelection.customListIds || [],
+          allow_company_internal: audienceSelection.multiSelect?.company || false,
+          allow_connections: audienceSelection.multiSelect?.connections || false,
+          allow_best_friends: audienceSelection.multiSelect?.bestFriends || false,
+          allow_public: audienceSelection.type === 'public',
+        });
+      }
 
       toast.success("Post created successfully");
       setFormData({
@@ -143,6 +163,15 @@ export const CreatePostDialog = ({ open, onOpenChange, companyId, onPostCreated 
           </div>
 
           <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Audience</Label>
+              <AudiencePickerButton
+                value={audienceSelection}
+                onChange={setAudienceSelection}
+                className="w-full justify-start"
+              />
+            </div>
+
             <div className="flex items-center justify-between">
               <Label htmlFor="is_public">Public Post</Label>
               <Switch
