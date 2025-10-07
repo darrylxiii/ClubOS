@@ -38,6 +38,9 @@ const Profile = () => {
     preferences: "",
   });
 
+  const [contractEndDate, setContractEndDate] = useState<Date | null>(null);
+  const [hasIndefiniteContract, setHasIndefiniteContract] = useState(false);
+
   const [currentSalaryRange, setCurrentSalaryRange] = useState<[number, number]>([150000, 180000]);
   const [desiredSalaryRange, setDesiredSalaryRange] = useState<[number, number]>([200000, 250000]);
   const [blockedCompanies, setBlockedCompanies] = useState<string[]>([]);
@@ -135,6 +138,8 @@ const Profile = () => {
           current_title: profileData.currentTitle,
           linkedin_url: profileData.linkedin,
           notice_period: profileData.noticePeriod,
+          contract_end_date: contractEndDate?.toISOString(),
+          has_indefinite_contract: hasIndefiniteContract,
           career_preferences: profileData.preferences,
           current_salary_min: currentSalaryRange[0],
           current_salary_max: currentSalaryRange[1],
@@ -154,7 +159,7 @@ const Profile = () => {
           stealth_mode_enabled: stealthModeEnabled,
           stealth_mode_level: stealthModeLevel,
           allow_stealth_cold_outreach: allowStealthColdOutreach,
-        })
+        } as any)
         .eq('id', user.id);
 
       if (error) throw error;
@@ -457,6 +462,9 @@ const Profile = () => {
           noticePeriod: data.notice_period || '2_weeks',
           preferences: data.career_preferences || '',
         });
+
+        setContractEndDate((data as any).contract_end_date ? new Date((data as any).contract_end_date) : null);
+        setHasIndefiniteContract((data as any).has_indefinite_contract || false);
 
         setCurrentSalaryRange([
           data.current_salary_min || 150000,
@@ -1718,40 +1726,64 @@ const Profile = () => {
                     <SelectItem value="3_months">3 Months</SelectItem>
                   </SelectContent>
                 </Select>
-                
-                {profileData.noticePeriod !== 'immediate' && (
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Current Contract End Date</Label>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="indefinite-contract"
+                      checked={hasIndefiniteContract}
+                      onCheckedChange={(checked) => {
+                        setHasIndefiniteContract(checked);
+                        if (checked) setContractEndDate(null);
+                        debouncedSave();
+                      }}
+                    />
+                    <Label htmlFor="indefinite-contract" className="text-sm font-normal cursor-pointer">
+                      Indefinite Contract
+                    </Label>
+                  </div>
+                </div>
+
+                {hasIndefiniteContract ? (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
                     <Calendar className="w-4 h-4 text-primary" />
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">Current contract ends: </span>
-                      <span className="font-medium text-foreground">
-                        {(() => {
-                          const today = new Date();
-                          let endDate = new Date(today);
-                          
-                          switch (profileData.noticePeriod) {
-                            case '2_weeks':
-                              endDate.setDate(today.getDate() + 14);
-                              break;
-                            case '1_month':
-                              endDate.setMonth(today.getMonth() + 1);
-                              break;
-                            case '2_months':
-                              endDate.setMonth(today.getMonth() + 2);
-                              break;
-                            case '3_months':
-                              endDate.setMonth(today.getMonth() + 3);
-                              break;
-                          }
-                          
-                          return endDate.toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          });
-                        })()}
-                      </span>
-                    </div>
+                    <span className="text-sm font-medium text-foreground">
+                      Indefinite Contract - No fixed end date
+                    </span>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Input
+                      type="date"
+                      value={contractEndDate ? contractEndDate.toISOString().split('T')[0] : ''}
+                      onChange={(e) => {
+                        const date = e.target.value ? new Date(e.target.value) : null;
+                        setContractEndDate(date);
+                        debouncedSave();
+                      }}
+                      className="bg-background/50"
+                      placeholder="Select contract end date"
+                    />
+                    {contractEndDate && (
+                      <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/10">
+                        <Calendar className="w-4 h-4 text-primary" />
+                        <div className="text-sm">
+                          <span className="text-muted-foreground">Contract ends: </span>
+                          <span className="font-medium text-foreground">
+                            {contractEndDate.toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

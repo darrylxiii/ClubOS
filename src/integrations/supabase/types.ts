@@ -3665,6 +3665,7 @@ export type Database = {
           blocked_companies: Json | null
           career_preferences: string | null
           company_id: string | null
+          contract_end_date: string | null
           created_at: string | null
           current_salary_max: number | null
           current_salary_min: number | null
@@ -3684,6 +3685,7 @@ export type Database = {
           github_connected: boolean | null
           github_profile_data: Json | null
           github_username: string | null
+          has_indefinite_contract: boolean | null
           id: string
           instagram_connected: boolean | null
           instagram_username: string | null
@@ -3712,6 +3714,7 @@ export type Database = {
           blocked_companies?: Json | null
           career_preferences?: string | null
           company_id?: string | null
+          contract_end_date?: string | null
           created_at?: string | null
           current_salary_max?: number | null
           current_salary_min?: number | null
@@ -3731,6 +3734,7 @@ export type Database = {
           github_connected?: boolean | null
           github_profile_data?: Json | null
           github_username?: string | null
+          has_indefinite_contract?: boolean | null
           id: string
           instagram_connected?: boolean | null
           instagram_username?: string | null
@@ -3759,6 +3763,7 @@ export type Database = {
           blocked_companies?: Json | null
           career_preferences?: string | null
           company_id?: string | null
+          contract_end_date?: string | null
           created_at?: string | null
           current_salary_max?: number | null
           current_salary_min?: number | null
@@ -3778,6 +3783,7 @@ export type Database = {
           github_connected?: boolean | null
           github_profile_data?: Json | null
           github_username?: string | null
+          has_indefinite_contract?: boolean | null
           id?: string
           instagram_connected?: boolean | null
           instagram_username?: string | null
