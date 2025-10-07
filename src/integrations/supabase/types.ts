@@ -142,6 +142,42 @@ export type Database = {
         }
         Relationships: []
       }
+      analytics_insights: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          id: string
+          insight_content: string
+          insight_title: string
+          insight_type: string
+          is_read: boolean | null
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          insight_content: string
+          insight_title: string
+          insight_type: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          insight_content?: string
+          insight_title?: string
+          insight_type?: string
+          is_read?: boolean | null
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       applications: {
         Row: {
           applied_at: string
@@ -2486,6 +2522,41 @@ export type Database = {
           },
         ]
       }
+      post_interactions: {
+        Row: {
+          created_at: string
+          id: string
+          interaction_metadata: Json | null
+          interaction_type: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interaction_metadata?: Json | null
+          interaction_type: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interaction_metadata?: Json | null
+          interaction_type?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_interactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_likes: {
         Row: {
           created_at: string
@@ -2540,6 +2611,94 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_shares: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          share_tree_path: string[] | null
+          shared_by: string
+          shared_to: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          share_tree_path?: string[] | null
+          shared_by: string
+          shared_to?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          share_tree_path?: string[] | null
+          shared_by?: string
+          shared_to?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_shares_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_views: {
+        Row: {
+          city: string | null
+          country: string | null
+          created_at: string
+          device_type: string | null
+          id: string
+          is_unique_view: boolean | null
+          os_type: string | null
+          post_id: string
+          referrer_source: string | null
+          user_id: string | null
+          view_duration_seconds: number | null
+          viewed_at: string
+        }
+        Insert: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          is_unique_view?: boolean | null
+          os_type?: string | null
+          post_id: string
+          referrer_source?: string | null
+          user_id?: string | null
+          view_duration_seconds?: number | null
+          viewed_at?: string
+        }
+        Update: {
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          is_unique_view?: boolean | null
+          os_type?: string | null
+          post_id?: string
+          referrer_source?: string | null
+          user_id?: string | null
+          view_duration_seconds?: number | null
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_views_post_id_fkey"
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "unified_posts"
@@ -2671,6 +2830,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      profile_analytics: {
+        Row: {
+          created_at: string
+          date: string
+          engagement_rate: number | null
+          followers_count: number | null
+          id: string
+          metrics: Json | null
+          post_count: number | null
+          profile_views: number | null
+          top_post_id: string | null
+          total_engagement: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          engagement_rate?: number | null
+          followers_count?: number | null
+          id?: string
+          metrics?: Json | null
+          post_count?: number | null
+          profile_views?: number | null
+          top_post_id?: string | null
+          total_engagement?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          engagement_rate?: number | null
+          followers_count?: number | null
+          id?: string
+          metrics?: Json | null
+          post_count?: number | null
+          profile_views?: number | null
+          top_post_id?: string | null
+          total_engagement?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_analytics_top_post_id_fkey"
+            columns: ["top_post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profile_custom_fields: {
         Row: {
@@ -4192,6 +4401,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trending_topics: {
+        Row: {
+          created_at: string
+          engagement_score: number | null
+          id: string
+          mention_count: number | null
+          metadata: Json | null
+          period_end: string
+          period_start: string
+          topic: string
+          topic_type: string
+          trending_period: string
+        }
+        Insert: {
+          created_at?: string
+          engagement_score?: number | null
+          id?: string
+          mention_count?: number | null
+          metadata?: Json | null
+          period_end: string
+          period_start: string
+          topic: string
+          topic_type: string
+          trending_period: string
+        }
+        Update: {
+          created_at?: string
+          engagement_score?: number | null
+          id?: string
+          mention_count?: number | null
+          metadata?: Json | null
+          period_end?: string
+          period_start?: string
+          topic?: string
+          topic_type?: string
+          trending_period?: string
+        }
+        Relationships: []
+      }
       unified_posts: {
         Row: {
           comments_count: number | null
@@ -4317,6 +4565,39 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_description: string | null
+          achievement_name: string
+          achievement_type: string
+          id: string
+          is_showcased: boolean | null
+          metadata: Json | null
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_description?: string | null
+          achievement_name: string
+          achievement_type: string
+          id?: string
+          is_showcased?: boolean | null
+          metadata?: Json | null
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_description?: string | null
+          achievement_name?: string
+          achievement_type?: string
+          id?: string
+          is_showcased?: boolean | null
+          metadata?: Json | null
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_engagement: {
         Row: {
           achievements: Json | null
@@ -4364,6 +4645,36 @@ export type Database = {
           total_likes_given?: number | null
           total_posts?: number | null
           updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_network: {
+        Row: {
+          connected_user_id: string
+          connection_type: string
+          created_at: string
+          id: string
+          interaction_count: number | null
+          last_interaction: string | null
+          user_id: string
+        }
+        Insert: {
+          connected_user_id: string
+          connection_type: string
+          created_at?: string
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
+          user_id: string
+        }
+        Update: {
+          connected_user_id?: string
+          connection_type?: string
+          created_at?: string
+          id?: string
+          interaction_count?: number | null
+          last_interaction?: string | null
           user_id?: string
         }
         Relationships: []

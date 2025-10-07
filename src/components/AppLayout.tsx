@@ -29,6 +29,7 @@ import {
   Cog,
   Share2,
   BarChart3,
+  TrendingUp,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -127,7 +128,7 @@ const partnerNavigationGroups = [
     icon: Share2,
     items: [
       { name: "Social Feed", icon: Share2, path: "/social-feed" },
-      { name: "Management", icon: BarChart3, path: "/social-management" },
+      { name: "Analytics", icon: BarChart3, path: "/analytics" },
     ],
   },
   {
@@ -182,6 +183,7 @@ const adminNavigationGroups = [
     items: [
       { name: "Social Feed", icon: Share2, path: "/social-feed" },
       { name: "Management", icon: BarChart3, path: "/social-management" },
+      { name: "Analytics", icon: TrendingUp, path: "/analytics" },
     ],
   },
   {

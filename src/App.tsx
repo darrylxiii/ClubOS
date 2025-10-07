@@ -33,6 +33,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import SocialFeed from "./pages/SocialFeed";
 import SocialManagement from "./pages/SocialManagement";
+import Analytics from "./pages/Analytics";
 
 const queryClient = new QueryClient();
 
@@ -236,6 +237,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <SocialManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/analytics"
+              element={
+                <ProtectedRoute>
+                  <Analytics />
                 </ProtectedRoute>
               }
             />
