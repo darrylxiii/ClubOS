@@ -110,21 +110,35 @@ export const AvatarEditor = ({ image, open, onClose, onSave }: AvatarEditorProps
   const [previewUrl, setPreviewUrl] = useState<string>("");
 
   useEffect(() => {
+    let isMounted = true;
+    let objectUrl: string | null = null;
+
     const generatePreview = async () => {
       if (!croppedAreaPixels) return;
       
       try {
         const blob = await getCroppedImg(image, croppedAreaPixels, rotation, filters);
         const url = URL.createObjectURL(blob);
-        setPreviewUrl(url);
         
-        return () => URL.revokeObjectURL(url);
+        if (isMounted) {
+          objectUrl = url;
+          setPreviewUrl(url);
+        } else {
+          URL.revokeObjectURL(url);
+        }
       } catch (error) {
         console.error("Error generating preview:", error);
       }
     };
     
     generatePreview();
+    
+    return () => {
+      isMounted = false;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
   }, [croppedAreaPixels, rotation, filters, image]);
 
   const onCropComplete = useCallback((_: any, croppedAreaPixels: CropArea) => {
