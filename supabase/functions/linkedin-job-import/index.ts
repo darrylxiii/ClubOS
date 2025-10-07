@@ -12,12 +12,64 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseClient = createClient(
+    // Get authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Missing authorization header' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Create auth client to verify user
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Verify user is authenticated
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized - Invalid token' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
+      );
+    }
+
+    // Create service role client for privileged operations
+    const supabaseService = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const { action, companyId, code } = await req.json();
+
+    // Validate companyId format
+    if (companyId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(companyId)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid company ID format' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      );
+    }
+
+    // For actions requiring company access, verify membership
+    if (action === 'callback' || action === 'status') {
+      const { data: memberCheck } = await supabaseAuth
+        .from('company_members')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('company_id', companyId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (!memberCheck || !['owner', 'admin', 'recruiter'].includes(memberCheck.role)) {
+        return new Response(
+          JSON.stringify({ error: 'Forbidden - Insufficient company permissions' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        );
+      }
+    }
 
     if (action === 'initiate') {
       // Generate LinkedIn OAuth URL
@@ -67,12 +119,12 @@ serve(async (req) => {
 
       const jobsData = await jobsResponse.json();
       
-      // Log import
-      const { data: importLog } = await supabaseClient
+      // Log import (use service client for write)
+      const { data: importLog } = await supabaseService
         .from('linkedin_job_imports')
         .insert({
           company_id: companyId,
-          imported_by: req.headers.get('Authorization')?.split(' ')[1] || '',
+          imported_by: user.id,
           status: 'processing',
         })
         .select()
@@ -84,14 +136,14 @@ serve(async (req) => {
       // Import each job
       for (const job of jobsData.elements || []) {
         try {
-          await supabaseClient.from('jobs').insert({
+          await supabaseService.from('jobs').insert({
             company_id: companyId,
             title: job.title,
             description: job.description?.text || '',
             location: job.location || '',
             employment_type: job.employmentStatus?.toLowerCase() || 'fulltime',
             status: 'draft',
-            created_by: req.headers.get('Authorization')?.split(' ')[1] || '',
+            created_by: user.id,
           });
           imported++;
         } catch (error) {
@@ -101,7 +153,7 @@ serve(async (req) => {
       }
 
       // Update import log
-      await supabaseClient
+      await supabaseService
         .from('linkedin_job_imports')
         .update({
           jobs_imported: imported,
@@ -118,13 +170,13 @@ serve(async (req) => {
     }
 
     if (action === 'status') {
-      const { data: latestImport } = await supabaseClient
+      const { data: latestImport } = await supabaseAuth
         .from('linkedin_job_imports')
         .select('*')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       return new Response(
         JSON.stringify(latestImport),

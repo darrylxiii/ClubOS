@@ -3447,6 +3447,7 @@ export type Database = {
           preferred_currency: string
           preferred_work_locations: Json | null
           privacy_settings: Json | null
+          public_fields: Json | null
           remote_work_preference: boolean | null
           resume_url: string | null
           stealth_mode_enabled: boolean | null
@@ -3493,6 +3494,7 @@ export type Database = {
           preferred_currency?: string
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
+          public_fields?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
           stealth_mode_enabled?: boolean | null
@@ -3539,6 +3541,7 @@ export type Database = {
           preferred_currency?: string
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
+          public_fields?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
           stealth_mode_enabled?: boolean | null
@@ -5022,45 +5025,24 @@ export type Database = {
       public_profiles: {
         Row: {
           avatar_url: string | null
-          created_at: string | null
           current_title: string | null
-          employment_type_preference: string | null
           full_name: string | null
-          github_username: string | null
           id: string | null
-          instagram_username: string | null
-          linkedin_url: string | null
           location: string | null
-          remote_work_preference: boolean | null
-          twitter_username: string | null
         }
         Insert: {
           avatar_url?: string | null
-          created_at?: string | null
-          current_title?: string | null
-          employment_type_preference?: string | null
+          current_title?: never
           full_name?: string | null
-          github_username?: string | null
           id?: string | null
-          instagram_username?: string | null
-          linkedin_url?: string | null
-          location?: string | null
-          remote_work_preference?: boolean | null
-          twitter_username?: string | null
+          location?: never
         }
         Update: {
           avatar_url?: string | null
-          created_at?: string | null
-          current_title?: string | null
-          employment_type_preference?: string | null
+          current_title?: never
           full_name?: string | null
-          github_username?: string | null
           id?: string | null
-          instagram_username?: string | null
-          linkedin_url?: string | null
-          location?: string | null
-          remote_work_preference?: boolean | null
-          twitter_username?: string | null
+          location?: never
         }
         Relationships: []
       }
