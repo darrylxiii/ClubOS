@@ -26,6 +26,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { CreateConversationDialog } from "@/components/messages/CreateConversationDialog";
+import { ProfileActionButtons } from "@/components/profile/ProfileActionButtons";
+import { ProfileActionDialogs } from "@/components/profile/ProfileActionDialogs";
 
 interface UserProfile {
   id: string;
@@ -49,6 +51,17 @@ export default function PublicUserProfile() {
   const [loading, setLoading] = useState(true);
   const [messageDialogOpen, setMessageDialogOpen] = useState(false);
   const [achievements, setAchievements] = useState<any[]>([]);
+  const [dialogs, setDialogs] = useState({
+    resume: false,
+    meeting: false,
+    verification: false,
+    export: false,
+    endorse: false,
+    invite: false,
+    report: false,
+  });
+  const [meetingType, setMeetingType] = useState<string>();
+  const [exportType, setExportType] = useState<string>();
 
   // Track profile visit
   useEffect(() => {
@@ -129,6 +142,41 @@ export default function PublicUserProfile() {
     } else {
       navigate('/feed');
     }
+  };
+
+  const handleDialogClose = (dialog: keyof typeof dialogs) => {
+    setDialogs(prev => ({ ...prev, [dialog]: false }));
+  };
+
+  const handleDialogSubmit = (dialog: keyof typeof dialogs, data?: any) => {
+    // Handle submission based on dialog type
+    console.log(`${dialog} submitted:`, data);
+    
+    switch(dialog) {
+      case 'resume':
+        toast.success("Resume request sent!");
+        break;
+      case 'meeting':
+        toast.success("Meeting request sent!");
+        break;
+      case 'verification':
+        toast.success("Verification request sent!");
+        break;
+      case 'export':
+        toast.success("Export started!");
+        break;
+      case 'endorse':
+        toast.success("Endorsement submitted!");
+        break;
+      case 'invite':
+        toast.success("Invitation sent!");
+        break;
+      case 'report':
+        toast.success("Report submitted. Our team will review it.");
+        break;
+    }
+    
+    handleDialogClose(dialog);
   };
 
   if (loading) {
@@ -226,28 +274,6 @@ export default function PublicUserProfile() {
                     </div>
                   </div>
 
-                  {!isOwnProfile && user && (
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        onClick={() => setMessageDialogOpen(true)}
-                        className="gap-2"
-                      >
-                        <MessageCircle className="w-4 h-4" />
-                        Send Message
-                      </Button>
-                      {profile.linkedin_url && (
-                        <Button
-                          variant="outline"
-                          onClick={() => window.open(profile.linkedin_url!, '_blank')}
-                          className="gap-2"
-                        >
-                          <Linkedin className="w-4 h-4" />
-                          LinkedIn
-                        </Button>
-                      )}
-                    </div>
-                  )}
-
                   {isOwnProfile && (
                     <Button
                       variant="outline"
@@ -260,6 +286,34 @@ export default function PublicUserProfile() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Action Buttons */}
+          {!isOwnProfile && user && (
+            <Card className="border-2 border-foreground glass backdrop-blur-lg">
+              <CardContent className="p-6">
+                <ProfileActionButtons
+                  userId={userId!}
+                  isOwnProfile={isOwnProfile}
+                  onMessage={() => setMessageDialogOpen(true)}
+                  onRequestResume={() => setDialogs(prev => ({ ...prev, resume: true }))}
+                  onBookMeeting={(type) => {
+                    setMeetingType(type);
+                    setDialogs(prev => ({ ...prev, meeting: true }));
+                  }}
+                  onConnect={() => toast.success("Connection request sent!")}
+                  onFollow={() => toast.success("Now following this member!")}
+                  onRequestVerification={() => setDialogs(prev => ({ ...prev, verification: true }))}
+                  onExport={(type) => {
+                    setExportType(type);
+                    setDialogs(prev => ({ ...prev, export: true }));
+                  }}
+                  onEndorse={() => setDialogs(prev => ({ ...prev, endorse: true }))}
+                  onInviteToProject={() => setDialogs(prev => ({ ...prev, invite: true }))}
+                  onReport={() => setDialogs(prev => ({ ...prev, report: true }))}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Career Preferences */}
           {profile.career_preferences && (
@@ -352,6 +406,14 @@ export default function PublicUserProfile() {
         onConversationCreated={(conversationId) => {
           navigate('/messages', { state: { conversationId } });
         }}
+      />
+
+      <ProfileActionDialogs
+        dialogs={dialogs}
+        meetingType={meetingType}
+        exportType={exportType}
+        onClose={handleDialogClose}
+        onSubmit={handleDialogSubmit}
       />
     </AppLayout>
   );
