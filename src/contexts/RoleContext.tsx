@@ -8,6 +8,7 @@ interface RoleContextType {
   availableRoles: UserRole[];
   switchRole: (newRole: UserRole) => Promise<void>;
   loading: boolean;
+  companyId: string | null;
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined);
@@ -17,6 +18,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const [currentRole, setCurrentRole] = useState<UserRole>(null);
   const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [companyId, setCompanyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
@@ -101,6 +103,17 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         const defaultRole = priority.find(r => roles.includes(r)) || 'user';
         setCurrentRole(defaultRole);
       }
+
+      // Fetch company ID
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('company_id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileData?.company_id) {
+        setCompanyId(profileData.company_id);
+      }
     } catch (error) {
       console.error('[RoleContext] Error fetching roles:', error);
       setCurrentRole('user');
@@ -157,7 +170,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <RoleContext.Provider value={{ currentRole, availableRoles, switchRole, loading }}>
+    <RoleContext.Provider value={{ currentRole, availableRoles, switchRole, loading, companyId }}>
       {children}
     </RoleContext.Provider>
   );

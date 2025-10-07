@@ -89,12 +89,16 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   };
 
   const recordView = async () => {
-    const supabaseAny = supabase as any;
-    await supabaseAny.from('story_views').insert({
-      story_id: currentStory.id,
-      viewer_id: user?.id,
-      viewed_at: new Date().toISOString()
-    });
+    try {
+      const supabaseAny = supabase as any;
+      await supabaseAny.from('story_views').insert({
+        story_id: currentStory.id,
+        viewer_id: user?.id,
+        viewed_at: new Date().toISOString()
+      });
+    } catch (error) {
+      // Silent fail - duplicate views are expected
+    }
   };
 
   const recordViewDuration = async () => {
@@ -112,41 +116,51 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   };
 
   const fetchStoryStats = async () => {
-    const supabaseAny = supabase as any;
-    const [views, reactions, shares, saves] = await Promise.all([
-      supabaseAny.from('story_views').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
-      supabaseAny.from('story_reactions').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
-      supabaseAny.from('story_shares').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
-      supabaseAny.from('story_saves').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
-    ]);
+    try {
+      const supabaseAny = supabase as any;
+      const [views, reactions, shares, saves] = await Promise.all([
+        supabaseAny.from('story_views').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
+        supabaseAny.from('story_reactions').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
+        supabaseAny.from('story_shares').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
+        supabaseAny.from('story_saves').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
+      ]);
 
-    setStats({
-      views: views.count || 0,
-      reactions: reactions.count || 0,
-      shares: shares.count || 0,
-      saves: saves.count || 0,
-    });
+      setStats({
+        views: views.count || 0,
+        reactions: reactions.count || 0,
+        shares: shares.count || 0,
+        saves: saves.count || 0,
+      });
+    } catch (error) {
+      console.error('[StoryViewer] Error fetching stats:', error);
+      // Silent fail - don't break the viewer
+    }
   };
 
   const checkUserInteractions = async () => {
     if (!user) return;
 
-    const supabaseAny = supabase as any;
-    const [reaction, save] = await Promise.all([
-      supabaseAny.from('story_reactions')
-        .select('reaction_type')
-        .eq('story_id', currentStory.id)
-        .eq('user_id', user.id)
-        .maybeSingle(),
-      supabaseAny.from('story_saves')
-        .select('id')
-        .eq('story_id', currentStory.id)
-        .eq('user_id', user.id)
-        .maybeSingle(),
-    ]);
+    try {
+      const supabaseAny = supabase as any;
+      const [reaction, save] = await Promise.all([
+        supabaseAny.from('story_reactions')
+          .select('reaction_type')
+          .eq('story_id', currentStory.id)
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        supabaseAny.from('story_saves')
+          .select('id')
+          .eq('story_id', currentStory.id)
+          .eq('user_id', user.id)
+          .maybeSingle(),
+      ]);
 
-    setUserReaction(reaction?.data?.reaction_type || null);
-    setIsSaved(!!save.data);
+      setUserReaction(reaction?.data?.reaction_type || null);
+      setIsSaved(!!save.data);
+    } catch (error) {
+      console.error('[StoryViewer] Error checking interactions:', error);
+      // Silent fail
+    }
   };
 
   const handleReaction = async (reactionType: string) => {
