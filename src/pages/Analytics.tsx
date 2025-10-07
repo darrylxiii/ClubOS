@@ -11,14 +11,18 @@ import {
   Heart, 
   Share2, 
   Users, 
-  Calendar,
   Award,
   Zap,
   Download,
-  Sparkles
+  Sparkles,
+  Activity
 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { RealTimeStats } from "@/components/analytics/RealTimeStats";
+import { ViralMapVisualization } from "@/components/analytics/ViralMapVisualization";
+import { AudienceInsights } from "@/components/analytics/AudienceInsights";
+import { MilestonesGamification } from "@/components/analytics/MilestonesGamification";
 
 const Analytics = () => {
   const { user } = useAuth();
@@ -196,25 +200,33 @@ const Analytics = () => {
           </Card>
         </div>
 
-        <Tabs defaultValue="insights" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+        <Tabs defaultValue="realtime" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="realtime" className="gap-2">
+              <Activity className="h-4 w-4" />
+              Live Stats
+            </TabsTrigger>
             <TabsTrigger value="insights" className="gap-2">
-              <Zap className="h-4 w-4" />
+              <Sparkles className="h-4 w-4" />
               AI Insights
             </TabsTrigger>
-            <TabsTrigger value="performance" className="gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Performance
+            <TabsTrigger value="viral" className="gap-2">
+              <Share2 className="h-4 w-4" />
+              Viral Map
+            </TabsTrigger>
+            <TabsTrigger value="audience" className="gap-2">
+              <Users className="h-4 w-4" />
+              Audience
             </TabsTrigger>
             <TabsTrigger value="achievements" className="gap-2">
               <Award className="h-4 w-4" />
-              Achievements
-            </TabsTrigger>
-            <TabsTrigger value="network" className="gap-2">
-              <Users className="h-4 w-4" />
-              Network
+              Milestones
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="realtime" className="space-y-4">
+            <RealTimeStats />
+          </TabsContent>
 
           <TabsContent value="insights" className="space-y-4">
             <Card>
@@ -261,28 +273,22 @@ const Analytics = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="performance" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Content Performance</CardTitle>
-                <CardDescription>
-                  Track your best performing content and engagement patterns
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Performance metrics coming soon...
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="viral" className="space-y-4">
+            <ViralMapVisualization />
+          </TabsContent>
+
+          <TabsContent value="audience" className="space-y-4">
+            <AudienceInsights />
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-4">
+            <MilestonesGamification />
+            
             <Card>
               <CardHeader>
-                <CardTitle>Your Achievements</CardTitle>
+                <CardTitle>Recent Achievements</CardTitle>
                 <CardDescription>
-                  Milestones you've unlocked on your journey
+                  Badges you've earned recently
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -311,22 +317,6 @@ const Analytics = () => {
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="network" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Network Influence</CardTitle>
-                <CardDescription>
-                  Your connections and engagement patterns
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Network analytics coming soon...
-                </p>
               </CardContent>
             </Card>
           </TabsContent>
