@@ -95,10 +95,19 @@ export default function PublicUserProfile() {
     }
   };
 
+  // Redirect to enhanced profile if viewing own profile
   useEffect(() => {
+    if (user && userId === user.id) {
+      navigate('/profile', { replace: true });
+      return;
+    }
+  }, [userId, user, navigate]);
+
+  useEffect(() => {
+    if (user && userId === user.id) return; // Don't load if redirecting
     loadProfile();
     loadAchievements();
-  }, [userId]);
+  }, [userId, user]);
 
   const loadProfile = async () => {
     if (!userId) return;
