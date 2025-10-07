@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Lock, Sparkles, Shield, CheckCircle2, Apple } from "lucide-react";
 import { FaGoogle, FaLinkedin } from "react-icons/fa";
 import authBackground from "@/assets/auth-background.gif";
+import quantumLogo from "@/assets/quantum-logo.svg";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -200,21 +201,23 @@ const Auth = () => {
           {/* Logo with glow */}
           <div className="flex items-center justify-center mb-2">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-accent blur-2xl opacity-40 rounded-full"></div>
-              <div className="relative w-24 h-24 rounded-[28px] bg-gradient-accent flex items-center justify-center font-black text-4xl text-white shadow-2xl animate-scale-in">
-                QC
-              </div>
+              <div className="absolute inset-0 bg-gradient-accent blur-2xl opacity-30 rounded-full"></div>
+              <img 
+                src={quantumLogo} 
+                alt="The Quantum Club" 
+                className="relative w-32 h-32 drop-shadow-2xl animate-scale-in"
+              />
             </div>
           </div>
 
           {/* Title */}
           <div className="space-y-3">
-            <h1 className="text-4xl font-black tracking-tight text-foreground">
+            <h1 className="text-4xl font-semibold tracking-tight text-white">
               {isLogin ? "Welcome Back" : "Join The Quantum Club"}
             </h1>
             <div className="flex items-center justify-center gap-2">
-              <Lock className="w-4 h-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground font-semibold tracking-wide">
+              <Lock className="w-4 h-4 text-white/90" />
+              <p className="text-sm text-white/90 font-semibold tracking-wide">
                 INVITE ONLY • GEBRUIK JE PERSOONLIJKE CODE
               </p>
             </div>
@@ -227,7 +230,7 @@ const Auth = () => {
                 <CheckCircle2 className="w-5 h-5 text-success" />
                 <p className="text-sm font-bold text-success">Valid Invitation</p>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-white/80">
                 Invited by {inviteInfo.profiles?.full_name || "a member"}
               </p>
             </div>
@@ -252,7 +255,7 @@ const Auth = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="h-14 bg-background/50 border-white/20 rounded-2xl font-medium text-base placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
+                  className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
                 />
               </div>
             )}
@@ -264,7 +267,7 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-14 bg-background/50 border-white/20 rounded-2xl font-medium text-base placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
+                className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
               />
             </div>
 
@@ -275,23 +278,23 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-14 bg-background/50 border-white/20 rounded-2xl font-medium text-base placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
+                className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
               />
               {!isLogin && password && (
                 <div className="text-xs space-y-2 mt-4 p-4 rounded-2xl bg-background/30 border border-white/10 backdrop-blur-sm">
-                  <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground/80"}>
+                  <p className={password.length >= 12 ? "text-success font-semibold" : "text-white/70"}>
                     {password.length >= 12 ? "✓" : "○"} At least 12 characters
                   </p>
-                  <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground/80"}>
+                  <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
                     {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
                   </p>
-                  <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground/80"}>
+                  <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
                     {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
                   </p>
-                  <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground/80"}>
+                  <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
                     {/[0-9]/.test(password) ? "✓" : "○"} One number
                   </p>
-                  <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground/80"}>
+                  <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
                     {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
                   </p>
                 </div>
@@ -306,7 +309,7 @@ const Auth = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="h-14 bg-background/50 border-white/20 rounded-2xl font-medium text-base placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
+                  className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
                 />
               </div>
             )}
@@ -338,7 +341,7 @@ const Auth = () => {
                 <div className="w-full border-t border-white/10"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background/50 backdrop-blur-sm px-4 py-1 rounded-full text-muted-foreground/70 font-bold tracking-wider">
+                <span className="bg-background/50 backdrop-blur-sm px-4 py-1 rounded-full text-white/70 font-semibold tracking-wider">
                   Coming Soon
                 </span>
               </div>
@@ -381,7 +384,7 @@ const Auth = () => {
                   setPassword("");
                   setConfirmPassword("");
                 }}
-                className="text-muted-foreground hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline"
+                className="text-white/80 hover:text-white font-semibold transition-colors duration-300 underline-offset-4 hover:underline"
               >
                 {isLogin
                   ? "Need an account? Request invite"
