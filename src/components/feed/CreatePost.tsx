@@ -5,14 +5,15 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building } from "lucide-react";
+import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal } from "lucide-react";
 import { CreatePoll } from "./PollPost";
 import { toast } from "@/hooks/use-toast";
 import { MediaEditor } from "./MediaEditor";
 import { VideoEditor } from "./VideoEditor";
 import { AudienceSelection } from "@/components/audience/AudiencePickerButton";
 import { AudiencePickerModal } from "@/components/audience/AudiencePickerModal";
-import { Heart, MoreHorizontal } from "lucide-react";
+import { ContentOptionsDialog } from "./ContentOptionsDialog";
+import { RichTextEditor } from "./RichTextEditor";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -36,6 +37,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [showAudienceModal, setShowAudienceModal] = useState(false);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [lastUsedAudience, setLastUsedAudience] = useState<string | null>(null);
+  const [showContentModal, setShowContentModal] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -232,11 +234,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         </Avatar>
         
         <div className="flex-1 max-w-full">
-          <Textarea
-            placeholder="What do you want to talk about?"
+          <RichTextEditor
             value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="min-h-[80px] border-none focus-visible:ring-0 resize-none w-full"
+            onChange={setContent}
+            placeholder="What do you want to talk about?"
+            className="border-none"
           />
 
           {previews.length > 0 && (
@@ -311,151 +313,51 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           )}
           
           <div className="flex items-center justify-between mt-3 pt-3 border-t flex-wrap gap-2">
-            <div className="group/content flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              {/* Show first option on larger screens */}
               <Button 
                 variant="ghost" 
                 size="sm"
-                className="h-9 w-9 p-0 hover:bg-white/5 flex-shrink-0"
-                title="Add content"
+                onClick={() => handleFileSelect('image/*')}
+                disabled={loading}
+                className="gap-2 hidden sm:flex"
               >
-                <Plus className="w-4 h-4 text-muted-foreground group-hover/content:text-foreground transition-colors" />
+                <Image className="w-4 h-4" />
+                Photo
               </Button>
               
-              {/* Horizontal options that appear on hover */}
-              <div className="flex items-center gap-1 opacity-0 group-hover/content:opacity-100 transition-opacity overflow-x-auto scrollbar-hide">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleFileSelect('image/*')}
-                  disabled={loading}
-                  className="gap-2 whitespace-nowrap"
-                >
-                  <Image className="w-4 h-4" />
-                  Photo
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleFileSelect('video/*')}
-                  disabled={loading}
-                  className="gap-2 whitespace-nowrap"
-                >
-                  <Video className="w-4 h-4" />
-                  Video
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => handleFileSelect('.pdf,.doc,.docx,.txt')}
-                  disabled={loading}
-                  className="gap-2 whitespace-nowrap"
-                >
-                  <FileText className="w-4 h-4" />
-                  Document
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => setShowPollCreator(!showPollCreator)}
-                  disabled={loading}
-                  className="gap-2 whitespace-nowrap"
-                >
-                  <BarChart2 className="w-4 h-4" />
-                  Poll
-                </Button>
-              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowContentModal(true)}
+                className="gap-2"
+              >
+                <MoreHorizontal className="w-4 h-4" />
+                More
+              </Button>
             </div>
             
             <div className="flex items-center gap-2">
-              <div className="group/audience flex items-center gap-1">
-                {/* Audience buttons - shown on hover, ordered with More on farthest left */}
-                <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity">
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => setShowAudienceModal(true)}
-                    className="gap-2 whitespace-nowrap"
-                  >
-                    <MoreHorizontal className="w-4 h-4" />
-                    More
-                  </Button>
-                  
-                  {/* Dynamically ordered buttons based on lastUsedAudience - second position */}
-                  {lastUsedAudience === 'best_friends' ? (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Heart className="w-4 h-4" />
-                      Best Friends
-                    </Button>
-                  ) : lastUsedAudience === 'company_internal' ? (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('company_internal')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Building className="w-4 h-4" />
-                      {companyName || 'Company'}
-                    </Button>
-                  ) : lastUsedAudience === 'connections' ? (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('connections')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <UserCircle className="w-4 h-4" />
-                      Connections
-                    </Button>
-                  ) : lastUsedAudience === 'public' ? (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('public')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Globe className="w-4 h-4" />
-                      Public
-                    </Button>
-                  ) : (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Heart className="w-4 h-4" />
-                      Best Friends
-                    </Button>
-                  )}
-                  
-                  {/* Third position - show the other option if last used was best_friends */}
-                  {lastUsedAudience === 'best_friends' && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('company_internal')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Building className="w-4 h-4" />
-                      {companyName || 'Company'}
-                    </Button>
-                  )}
-                </div>
-                
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="h-9 w-9 p-0 hover:bg-white/5 flex-shrink-0"
-                  title="Audience Settings"
-                >
-                  <Users className="w-4 h-4 text-muted-foreground group-hover/audience:text-foreground transition-colors" />
-                </Button>
-              </div>
+              {/* Show first audience option on larger screens */}
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => handleAudienceSelect('best_friends')}
+                className="gap-2 hidden sm:flex"
+              >
+                <Heart className="w-4 h-4" />
+                Best Friends
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowAudienceModal(true)}
+                className="gap-2"
+              >
+                <Users className="w-4 h-4" />
+                More
+              </Button>
               
               <Button 
                 onClick={handlePost}
@@ -498,6 +400,16 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           localStorage.setItem('lastUsedAudience', selection.type);
           setLastUsedAudience(selection.type);
         }}
+      />
+
+      <ContentOptionsDialog
+        open={showContentModal}
+        onOpenChange={setShowContentModal}
+        onPhotoSelect={() => handleFileSelect('image/*')}
+        onVideoSelect={() => handleFileSelect('video/*')}
+        onDocumentSelect={() => handleFileSelect('.pdf,.doc,.docx,.txt')}
+        onPollSelect={() => setShowPollCreator(true)}
+        disabled={loading}
       />
     </Card>
   );
