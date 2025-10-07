@@ -163,6 +163,21 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     setAudienceMenuOpen(true); // Keep menu open to show selection
   };
 
+  const getAudienceLabel = () => {
+    switch (audienceSelection.type) {
+      case 'best_friends':
+        return { icon: Heart, label: 'Best Friends' };
+      case 'company_internal':
+        return { icon: Building, label: companyName || 'Company' };
+      case 'connections':
+        return { icon: UserCircle, label: 'Connections' };
+      case 'public':
+        return { icon: Globe, label: 'Public' };
+      default:
+        return { icon: Heart, label: 'Best Friends' };
+    }
+  };
+
   const handlePost = async () => {
     if (!content.trim() || !user) return;
 
@@ -387,13 +402,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               <div 
                 className="flex items-center gap-1"
                 onMouseEnter={() => setAudienceMenuOpen(true)}
-                onMouseLeave={() => {
-                  if (audienceSelection.type === 'best_friends' && !lastUsedAudience) {
-                    setAudienceMenuOpen(false);
-                  }
-                }}
+                onMouseLeave={() => setAudienceMenuOpen(false)}
               >
-                {/* Inline expandable options - More button FIRST, then Best Friends */}
+                {/* Inline expandable options - More button FIRST, then current selection */}
                 {audienceMenuOpen && (
                   <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
                     <Button 
@@ -409,15 +420,20 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       More
                     </Button>
                     
-                    <Button 
-                      variant={audienceSelection.type === 'best_friends' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap h-9 flex-shrink-0"
-                    >
-                      <Heart className="w-4 h-4" />
-                      Best Friends
-                    </Button>
+                    {(() => {
+                      const { icon: Icon, label } = getAudienceLabel();
+                      return (
+                        <Button 
+                          variant="default"
+                          size="sm"
+                          onClick={() => handleAudienceSelect(audienceSelection.type)}
+                          className="gap-2 whitespace-nowrap h-9 flex-shrink-0"
+                        >
+                          <Icon className="w-4 h-4" />
+                          {label}
+                        </Button>
+                      );
+                    })()}
                   </div>
                 )}
                 

@@ -140,15 +140,15 @@ export function Stories() {
     <>
       <div 
         ref={scrollRef}
-        className="flex gap-3 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] cursor-grab active:cursor-grabbing select-none"
+        className="flex gap-3 pb-4 relative"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Create Story Card */}
+        {/* Create Story Card - Sticky */}
         <Card 
-          className="flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group"
+          className="sticky left-0 z-10 flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group bg-background/95 backdrop-blur"
           onClick={handleCreateStory}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-primary/40" />
@@ -160,39 +160,42 @@ export function Stories() {
           </div>
         </Card>
 
-        {/* Stories */}
-        {stories.map((story) => (
-          <Card 
-            key={story.id}
-            className="flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden"
-            onClick={() => handleStoryClick(story)}
-          >
-            {story.media_type === 'image' ? (
-              <img 
-                src={story.media_url} 
-                alt="Story"
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <video 
-                src={story.media_url}
-                className="w-full h-full object-cover"
-              />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
-            <div className="absolute bottom-2 left-2 right-2">
-              <div className="flex items-center gap-2">
+        {/* Fade overlay for stories scrolling under Create Story */}
+        <div className="absolute left-24 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-[9] pointer-events-none" />
+
+        {/* Stories - scrollable */}
+        <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {stories.map((story) => (
+            <Card 
+              key={story.id}
+              className="flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden"
+              onClick={() => handleStoryClick(story)}
+            >
+              {story.media_type === 'image' ? (
+                <img 
+                  src={story.media_url} 
+                  alt="Story"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <video 
+                  src={story.media_url}
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
+              <div className="absolute bottom-2 left-2 right-2">
                 <Avatar className="w-6 h-6 border-2 border-white">
                   <AvatarImage src={story.profiles?.avatar_url} />
                   <AvatarFallback>{story.profiles?.full_name?.[0]}</AvatarFallback>
                 </Avatar>
-                <span className="text-xs text-white font-medium truncate">
+                <span className="text-xs text-white font-medium truncate ml-1">
                   {story.profiles?.full_name}
                 </span>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          ))}
+        </div>
       </div>
 
       {/* Enhanced Story Viewer */}
