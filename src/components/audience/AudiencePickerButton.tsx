@@ -43,13 +43,16 @@ export const AudiencePickerButton = ({ value, onChange, className }: AudiencePic
     <>
       <Button
         type="button"
-        variant="outline"
+        variant="ghost"
+        size="sm"
         onClick={() => setIsOpen(true)}
-        className={`gap-2 bg-background/50 backdrop-blur-sm border-white/10 hover:bg-background/70 ${className}`}
+        className={`group relative h-9 w-9 p-0 hover:bg-white/5 ${className}`}
+        title={getLabel()}
       >
-        <Users className="w-4 h-4" />
-        <span>{getLabel()}</span>
-        <ChevronDown className="w-4 h-4 opacity-50" />
+        <Users className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+        <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+          {getLabel()}
+        </span>
       </Button>
 
       <AudiencePickerModal
