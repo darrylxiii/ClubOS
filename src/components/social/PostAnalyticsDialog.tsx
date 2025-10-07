@@ -39,7 +39,7 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
     if (!postId) return;
 
     const { data } = await supabase
-      .from("unified_posts")
+      .from("posts")
       .select("*")
       .eq("id", postId)
       .single();

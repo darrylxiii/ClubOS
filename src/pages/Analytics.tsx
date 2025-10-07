@@ -1,5 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { useState, useEffect } from "react";
+import { useRole } from "@/contexts/RoleContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import { useAnalyticsData } from "@/hooks/useAnalyticsData";
 
 const Analytics = () => {
   const { user } = useAuth();
+  const { currentRole } = useRole();
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState<any[]>([]);
   const [achievements, setAchievements] = useState<any[]>([]);
@@ -118,10 +120,10 @@ const Analytics = () => {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-black uppercase tracking-tight">
-              Analytics Hub
+              Performance Dashboard
             </h1>
             <p className="text-muted-foreground mt-2">
-              Deep insights into your content performance and growth
+              Track your content performance and engagement on The Quantum Club
             </p>
           </div>
           <div className="flex gap-2">

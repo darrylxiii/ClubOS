@@ -463,6 +463,10 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 <MessageCircle className="w-4 h-4 mr-2" />
                 {post.post_comments?.length > 0 && <span className="text-sm">{post.post_comments.length}</span>}
               </Button>
+
+              {user?.id === post.user_id && (
+                <PostAnalyticsButton postId={post.id} variant="ghost" size="sm" showLabel={false} />
+              )}
               
               {!isOwnPost && user && (
                 <Button
