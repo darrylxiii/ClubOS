@@ -315,8 +315,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             </div>
           )}
           
-          <div className="flex items-center justify-between mt-3 pt-3 border-t flex-wrap gap-2">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mt-3 pt-3 border-t gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-shrink">
               {/* Content add button with hover/click to expand */}
               <div 
                 className="flex items-center gap-1"
@@ -382,7 +382,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {/* Audience selector with hover/click to expand */}
               <div 
                 className="flex items-center gap-1"
@@ -393,31 +393,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   }
                 }}
               >
-                {/* Inline expandable options */}
+                {/* Inline expandable options - More button FIRST */}
                 {audienceMenuOpen && (
                   <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
-                    <Button 
-                      variant={audienceSelection.type === 'best_friends' ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap h-9"
-                    >
-                      <Heart className="w-4 h-4" />
-                      Best Friends
-                    </Button>
-                    
-                    {companyName && (
-                      <Button 
-                        variant={audienceSelection.type === 'company_internal' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => handleAudienceSelect('company_internal')}
-                        className="gap-2 whitespace-nowrap h-9"
-                      >
-                        <Building className="w-4 h-4" />
-                        {companyName}
-                      </Button>
-                    )}
-                    
                     <Button 
                       variant="ghost" 
                       size="sm"
@@ -425,18 +403,31 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                         setShowAudienceModal(true);
                         setAudienceMenuOpen(false);
                       }}
-                      className="gap-2 whitespace-nowrap h-9"
+                      className="gap-2 whitespace-nowrap h-9 flex-shrink-0"
                     >
                       <MoreHorizontal className="w-4 h-4" />
                       More
                     </Button>
+                    
+                    {/* Only show Best Friends if selected or on hover - CONDITIONAL */}
+                    {audienceSelection.type === 'best_friends' && (
+                      <Button 
+                        variant="default"
+                        size="sm"
+                        onClick={() => handleAudienceSelect('best_friends')}
+                        className="gap-2 whitespace-nowrap h-9 flex-shrink-0 hidden lg:flex"
+                      >
+                        <Heart className="w-4 h-4" />
+                        Best Friends
+                      </Button>
+                    )}
                   </div>
                 )}
                 
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  className="h-9 w-9 p-0 hover:bg-white/5 transition-all"
+                  className="h-9 w-9 p-0 hover:bg-white/5 transition-all flex-shrink-0"
                   onClick={() => setAudienceMenuOpen(!audienceMenuOpen)}
                   title="Audience"
                 >
@@ -447,7 +438,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               <Button 
                 onClick={handlePost}
                 disabled={!content.trim() || loading}
-                className="h-9 w-9 p-0 transition-all hover:w-auto hover:px-4 overflow-hidden group/post"
+                className="h-9 w-9 p-0 transition-all hover:w-auto hover:px-4 overflow-hidden group/post flex-shrink-0"
                 title="Post"
               >
                 <Send className="w-4 h-4 flex-shrink-0" />
