@@ -14,6 +14,132 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_analytics: {
+        Row: {
+          achievement_id: string
+          avg_time_to_unlock_hours: number | null
+          category_rank: number | null
+          created_at: string
+          date: string
+          fastest_unlock_time_hours: number | null
+          id: string
+          total_attempts: number | null
+          unlock_count: number | null
+          updated_at: string
+        }
+        Insert: {
+          achievement_id: string
+          avg_time_to_unlock_hours?: number | null
+          category_rank?: number | null
+          created_at?: string
+          date?: string
+          fastest_unlock_time_hours?: number | null
+          id?: string
+          total_attempts?: number | null
+          unlock_count?: number | null
+          updated_at?: string
+        }
+        Update: {
+          achievement_id?: string
+          avg_time_to_unlock_hours?: number | null
+          category_rank?: number | null
+          created_at?: string
+          date?: string
+          fastest_unlock_time_hours?: number | null
+          id?: string
+          total_attempts?: number | null
+          unlock_count?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_analytics_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "quantum_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      achievement_events: {
+        Row: {
+          achievement_id: string | null
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          processed: boolean | null
+          progress_value: number | null
+          user_id: string
+        }
+        Insert: {
+          achievement_id?: string | null
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          processed?: boolean | null
+          progress_value?: number | null
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string | null
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          processed?: boolean | null
+          progress_value?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_events_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "quantum_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      achievement_progress: {
+        Row: {
+          achievement_id: string
+          id: string
+          last_updated: string
+          metadata: Json | null
+          progress_value: number | null
+          target_value: number
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          last_updated?: string
+          metadata?: Json | null
+          progress_value?: number | null
+          target_value: number
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          last_updated?: string
+          metadata?: Json | null
+          progress_value?: number | null
+          target_value?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_progress_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "quantum_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       achievement_reactions: {
         Row: {
           created_at: string
@@ -3601,10 +3727,13 @@ export type Database = {
           icon_emoji: string
           id: string
           is_active: boolean | null
+          is_deprecated: boolean | null
           name: string
           points: number
           rarity: Database["public"]["Enums"]["achievement_rarity"]
+          unlock_condition_json: Json | null
           unlock_criteria: Json
+          version: number | null
         }
         Insert: {
           animation_effect?: string | null
@@ -3614,10 +3743,13 @@ export type Database = {
           icon_emoji: string
           id?: string
           is_active?: boolean | null
+          is_deprecated?: boolean | null
           name: string
           points?: number
           rarity?: Database["public"]["Enums"]["achievement_rarity"]
+          unlock_condition_json?: Json | null
           unlock_criteria?: Json
+          version?: number | null
         }
         Update: {
           animation_effect?: string | null
@@ -3627,10 +3759,13 @@ export type Database = {
           icon_emoji?: string
           id?: string
           is_active?: boolean | null
+          is_deprecated?: boolean | null
           name?: string
           points?: number
           rarity?: Database["public"]["Enums"]["achievement_rarity"]
+          unlock_condition_json?: Json | null
           unlock_criteria?: Json
+          version?: number | null
         }
         Relationships: []
       }
@@ -4826,6 +4961,7 @@ export type Database = {
           story_text: string | null
           unlocked_at: string
           user_id: string
+          visibility: string | null
         }
         Insert: {
           achievement_id: string
@@ -4836,6 +4972,7 @@ export type Database = {
           story_text?: string | null
           unlocked_at?: string
           user_id: string
+          visibility?: string | null
         }
         Update: {
           achievement_id?: string
@@ -4846,6 +4983,7 @@ export type Database = {
           story_text?: string | null
           unlocked_at?: string
           user_id?: string
+          visibility?: string | null
         }
         Relationships: [
           {
@@ -5207,6 +5345,16 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      evaluate_user_achievements: {
+        Args: { _user_id: string }
+        Returns: {
+          achievement_id: string
+          achievement_name: string
+          progress: number
+          target: number
+          unlocked: boolean
+        }[]
+      }
       generate_invite_code: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -5229,6 +5377,10 @@ export type Database = {
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
+      }
+      log_achievement_event: {
+        Args: { _event_data?: Json; _event_type: string; _user_id: string }
+        Returns: string
       }
       use_invite_code: {
         Args: { _code: string; _user_id: string }
