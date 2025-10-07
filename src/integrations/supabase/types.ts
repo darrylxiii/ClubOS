@@ -2425,6 +2425,30 @@ export type Database = {
         }
         Relationships: []
       }
+      poll_votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          option_id: string
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          option_id: string
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          option_id?: string
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       post_analytics: {
         Row: {
           clicks: number | null
@@ -2713,6 +2737,8 @@ export type Database = {
           created_at: string
           id: string
           media_urls: Json | null
+          poll_options: Json | null
+          poll_question: string | null
           updated_at: string
           user_id: string | null
         }
@@ -2722,6 +2748,8 @@ export type Database = {
           created_at?: string
           id?: string
           media_urls?: Json | null
+          poll_options?: Json | null
+          poll_question?: string | null
           updated_at?: string
           user_id?: string | null
         }
@@ -2731,6 +2759,8 @@ export type Database = {
           created_at?: string
           id?: string
           media_urls?: Json | null
+          poll_options?: Json | null
+          poll_question?: string | null
           updated_at?: string
           user_id?: string | null
         }

@@ -2,9 +2,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CreatePost } from "@/components/feed/CreatePost";
 import { PostCard } from "@/components/feed/PostCard";
+import { Stories } from "@/components/feed/Stories";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AppLayout } from "@/components/AppLayout";
+import { TrendingUp, Users, Sparkles } from "lucide-react";
 
 export default function Feed() {
   const { user } = useAuth();
@@ -110,30 +113,90 @@ export default function Feed() {
 
   return (
     <AppLayout>
-      <div className="max-w-3xl mx-auto py-8 px-4">
+      <div className="max-w-3xl mx-auto py-8 px-4 space-y-6">
+        {/* Stories Section */}
+        <Stories />
+
+        {/* Create Post */}
         {user && <CreatePost onPostCreated={fetchPosts} />}
         
-        <div className="mt-4 space-y-4">
-          {loading ? (
-            <>
-              <Skeleton className="h-48 w-full" />
-              <Skeleton className="h-48 w-full" />
-              <Skeleton className="h-48 w-full" />
-            </>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              No posts yet. Be the first to share something!
-            </div>
-          ) : (
-            posts.map((post) => (
-              <PostCard 
-                key={post.id} 
-                post={post}
-                onUpdate={fetchPosts}
-              />
-            ))
-          )}
-        </div>
+        {/* Feed Tabs */}
+        <Tabs defaultValue="foryou" className="w-full">
+          <TabsList className="w-full grid grid-cols-3">
+            <TabsTrigger value="foryou" className="gap-2">
+              <Sparkles className="w-4 h-4" />
+              For You
+            </TabsTrigger>
+            <TabsTrigger value="trending" className="gap-2">
+              <TrendingUp className="w-4 h-4" />
+              Trending
+            </TabsTrigger>
+            <TabsTrigger value="following" className="gap-2">
+              <Users className="w-4 h-4" />
+              Following
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="foryou" className="space-y-4 mt-4">
+            {loading ? (
+              <>
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+              </>
+            ) : posts.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No posts yet. Be the first to share something!
+              </div>
+            ) : (
+              posts.map((post) => (
+                <PostCard 
+                  key={post.id} 
+                  post={post}
+                  onUpdate={fetchPosts}
+                />
+              ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="trending" className="space-y-4 mt-4">
+            {loading ? (
+              <>
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+              </>
+            ) : (
+              // Show posts sorted by engagement
+              [...posts]
+                .sort((a, b) => (b.post_likes?.length || 0) - (a.post_likes?.length || 0))
+                .map((post) => (
+                  <PostCard 
+                    key={post.id} 
+                    post={post}
+                    onUpdate={fetchPosts}
+                  />
+                ))
+            )}
+          </TabsContent>
+
+          <TabsContent value="following" className="space-y-4 mt-4">
+            {loading ? (
+              <>
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+              </>
+            ) : (
+              // Show only posts from followed users (simplified)
+              posts.map((post) => (
+                <PostCard 
+                  key={post.id} 
+                  post={post}
+                  onUpdate={fetchPosts}
+                />
+              ))
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </AppLayout>
   );

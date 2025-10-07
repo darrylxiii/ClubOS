@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image, Video, FileText, Send, X } from "lucide-react";
+import { Image, Video, FileText, Send, X, BarChart2 } from "lucide-react";
+import { CreatePoll } from "./PollPost";
 import { toast } from "@/hooks/use-toast";
 import { MediaEditor } from "./MediaEditor";
 import { VideoEditor } from "./VideoEditor";
@@ -24,6 +25,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editingFile, setEditingFile] = useState<File | null>(null);
   const [editingFileType, setEditingFileType] = useState<'image' | 'video' | null>(null);
+  const [showPollCreator, setShowPollCreator] = useState(false);
+  const [pollData, setPollData] = useState<any>(null);
 
   useEffect(() => {
     if (user) {
@@ -125,19 +128,29 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     try {
       const mediaUrls = await uploadFiles();
 
+      const postData: any = {
+        user_id: user.id,
+        content: content.trim(),
+        media_urls: mediaUrls
+      };
+
+      // Add poll data if exists
+      if (pollData) {
+        postData.poll_question = pollData.question;
+        postData.poll_options = pollData.options;
+      }
+
       const { error } = await supabase
         .from('posts')
-        .insert({
-          user_id: user.id,
-          content: content.trim(),
-          media_urls: mediaUrls
-        });
+        .insert(postData);
 
       if (error) throw error;
 
       setContent("");
       setUploadedFiles([]);
       setPreviews([]);
+      setPollData(null);
+      setShowPollCreator(false);
       toast({
         title: "Posted successfully",
         description: "Your post is now live on the feed."
@@ -208,6 +221,41 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               ))}
             </div>
           )}
+
+          {showPollCreator && (
+            <div className="mt-3">
+              <CreatePoll 
+                onPollCreated={(data) => {
+                  setPollData(data);
+                  setShowPollCreator(false);
+                  toast({ title: "Poll added to post" });
+                }}
+              />
+            </div>
+          )}
+
+          {pollData && !showPollCreator && (
+            <div className="mt-3 p-3 bg-muted rounded-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium text-sm">{pollData.question}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {pollData.options.length} options
+                  </p>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setPollData(null);
+                    setShowPollCreator(false);
+                  }}
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
           
           <div className="flex items-center justify-between mt-3 pt-3 border-t">
             <div className="flex gap-2">
@@ -237,6 +285,15 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               >
                 <FileText className="w-4 h-4 mr-2" />
                 Document
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowPollCreator(!showPollCreator)}
+                disabled={loading}
+              >
+                <BarChart2 className="w-4 h-4 mr-2" />
+                Poll
               </Button>
             </div>
             
