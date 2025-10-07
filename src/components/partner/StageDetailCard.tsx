@@ -18,11 +18,19 @@ import {
   Calendar,
   Link as LinkIcon,
   Clock,
-  Target
+  Target,
+  GripVertical,
+  Edit,
+  Eye,
+  Copy,
+  Trash,
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import type { DisplaySettings } from "./PipelineDisplaySettings";
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface EnhancedStage {
   name: string;
@@ -68,6 +76,21 @@ export function StageDetailCard({
   onViewAnalytics,
 }: StageDetailCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `stage-${stage.order}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
 
   const getFormatIcon = () => {
     switch (stage.format) {
@@ -121,6 +144,8 @@ export function StageDetailCard({
 
   return (
     <Card 
+      ref={setNodeRef}
+      style={style}
       className={cn(
         "group relative overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-primary/10",
         "bg-gradient-to-br backdrop-blur-xl border-2",
@@ -129,15 +154,25 @@ export function StageDetailCard({
     >
       <CardContent className="p-4 space-y-3">
         {/* Primary Row */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            {/* Stage Badge */}
-            <Badge 
-              variant="secondary" 
-              className="px-3 py-1.5 font-bold text-sm whitespace-nowrap bg-background/80 backdrop-blur-sm"
-            >
-              {stage.name}
-            </Badge>
+        <div className="flex items-center gap-4">
+          {/* Drag Handle */}
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing touch-none opacity-50 hover:opacity-100 transition-opacity"
+          >
+            <GripVertical className="h-5 w-5 text-muted-foreground" />
+          </div>
+
+          <div className="flex items-center justify-between gap-3 flex-1" onClick={() => setIsExpanded(!isExpanded)}>
+            <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
+              {/* Stage Badge */}
+              <Badge 
+                variant="secondary" 
+                className="px-3 py-1.5 font-bold text-sm whitespace-nowrap bg-background/80 backdrop-blur-sm"
+              >
+                {stage.name}
+              </Badge>
 
             {/* Owner Icon */}
             {displaySettings.showOwnership && (
@@ -231,7 +266,9 @@ export function StageDetailCard({
             )}
           </div>
 
-          {/* Quick Actions */}
+          </div>
+
+          {/* Quick Actions Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -241,26 +278,31 @@ export function StageDetailCard({
             <DropdownMenuContent align="end" className="w-48">
               {onEdit && (
                 <DropdownMenuItem onClick={onEdit}>
+                  <Edit className="h-4 w-4 mr-2" />
                   Edit Configuration
                 </DropdownMenuItem>
               )}
               {hasDetails && (
                 <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                  <Eye className="h-4 w-4 mr-2" />
                   {isExpanded ? 'Hide' : 'View'} Full Details
                 </DropdownMenuItem>
               )}
               {onDuplicate && (
                 <DropdownMenuItem onClick={onDuplicate}>
+                  <Copy className="h-4 w-4 mr-2" />
                   Duplicate Stage
                 </DropdownMenuItem>
               )}
               {onViewAnalytics && (
                 <DropdownMenuItem onClick={onViewAnalytics}>
+                  <BarChart3 className="h-4 w-4 mr-2" />
                   View Analytics
                 </DropdownMenuItem>
               )}
               {onDelete && (
                 <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                  <Trash className="h-4 w-4 mr-2" />
                   Delete Stage
                 </DropdownMenuItem>
               )}

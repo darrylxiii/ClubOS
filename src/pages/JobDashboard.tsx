@@ -7,15 +7,28 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Users, Settings, TrendingUp, Clock, CheckCircle2, AlertCircle, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList } from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { JobDashboardCandidates } from "@/components/partner/JobDashboardCandidates";
-import { PipelineCustomizer } from "@/components/partner/PipelineCustomizer";
 import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
 import { StageDetailCard } from "@/components/partner/StageDetailCard";
 import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "@/components/partner/PipelineDisplaySettings";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { AddStageDialog } from "@/components/partner/AddStageDialog";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 interface JobMetrics {
   totalApplicants: number;
@@ -32,10 +45,20 @@ export default function JobDashboard() {
   const { role, loading: roleLoading } = useUserRole();
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [customizerOpen, setCustomizerOpen] = useState(false);
+  const [showAddStage, setShowAddStage] = useState(false);
+  const [editingStage, setEditingStage] = useState<any>(null);
+  const [editingStageIndex, setEditingStageIndex] = useState<number | null>(null);
   const [metrics, setMetrics] = useState<JobMetrics | null>(null);
   const [applications, setApplications] = useState<any[]>([]);
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(defaultSettings);
+
+  // Drag and drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Load display settings from localStorage
   useEffect(() => {
@@ -50,6 +73,37 @@ export default function JobDashboard() {
       }
     }
   }, [jobId]);
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = parseInt(active.id.toString().replace('stage-', ''));
+      const newIndex = parseInt(over.id.toString().replace('stage-', ''));
+
+      const updatedStages = [...stages];
+      const [movedStage] = updatedStages.splice(oldIndex, 1);
+      updatedStages.splice(newIndex, 0, movedStage);
+
+      // Update order values
+      const reorderedStages = updatedStages.map((stage, index) => ({
+        ...stage,
+        order: index
+      }));
+
+      const { error } = await supabase
+        .from('jobs')
+        .update({ pipeline_stages: reorderedStages })
+        .eq('id', jobId);
+
+      if (!error) {
+        await fetchJobDetails();
+        toast.success("Pipeline reordered successfully");
+      } else {
+        toast.error("Failed to reorder pipeline");
+      }
+    }
+  };
 
   const isAuthorized = role === 'admin' || role === 'partner';
 
@@ -237,40 +291,12 @@ export default function JobDashboard() {
                 </div>
               </div>
             </div>
-            <div className="flex gap-3">
-              <Badge 
-                variant={job.status === 'published' ? 'default' : 'secondary'}
-                className="h-8 px-4 text-sm font-bold animate-pulse"
-              >
-                {job.status}
-              </Badge>
-              <Dialog open={customizerOpen} onOpenChange={setCustomizerOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="outline"
-                    className="bg-gradient-to-r from-accent/10 to-primary/10 border-accent/30 hover:border-accent hover:shadow-lg hover:shadow-accent/20 transition-all duration-300"
-                  >
-                    <Settings className="w-4 h-4 mr-2" />
-                    Customize Pipeline
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                  <PipelineCustomizer
-                    jobId={job.id}
-                    companyId={job.company_id}
-                    currentStages={stages}
-                    onUpdate={() => {
-                      fetchJobDetails();
-                      setCustomizerOpen(false);
-                      toast.success("Pipeline updated successfully", {
-                        description: "Your exclusive hiring flow is now live",
-                        duration: 4000
-                      });
-                    }}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
+            <Badge 
+              variant={job.status === 'published' ? 'default' : 'secondary'}
+              className="h-8 px-4 text-sm font-bold animate-pulse"
+            >
+              {job.status}
+            </Badge>
           </div>
         </div>
 
@@ -351,19 +377,31 @@ export default function JobDashboard() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="font-black uppercase">Pipeline Breakdown</CardTitle>
                   <div className="flex gap-2">
-                    <PipelineDisplaySettings
-                      jobId={job.id}
-                      settings={displaySettings}
-                      onSettingsChange={setDisplaySettings}
-                    />
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Calendar className="w-4 h-4" />
-                      Schedule Interview
-                    </Button>
-                    <Button variant="outline" size="sm" className="gap-2">
-                      <Download className="w-4 h-4" />
-                      Export
-                    </Button>
+                  <PipelineDisplaySettings
+                    jobId={job.id}
+                    settings={displaySettings}
+                    onSettingsChange={setDisplaySettings}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowAddStage(true)}
+                    className="gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Stage
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      toast.success("Pipeline template saved");
+                    }}
+                    className="gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save as Template
+                  </Button>
                   </div>
                 </div>
 
@@ -398,37 +436,80 @@ export default function JobDashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                {stages.sort((a, b) => a.order - b.order).map((stage) => {
-                  const count = metrics?.stageBreakdown[stage.order] || 0;
-                  const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
-                  const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
-                  
-                  return (
-                    <StageDetailCard
-                      key={stage.order}
-                      stage={stage}
-                      candidateCount={count}
-                      avgDays={avgDays}
-                      conversionRate={nextConversion}
-                      displaySettings={displaySettings}
-                      onEdit={() => {
-                        setCustomizerOpen(true);
-                        toast.info("Edit mode coming soon");
-                      }}
-                      onDuplicate={() => {
-                        toast.info("Duplicate stage coming soon");
-                      }}
-                      onDelete={() => {
-                        toast.info("Delete stage coming soon");
-                      }}
-                      onViewAnalytics={() => {
-                        toast.info("Stage analytics coming soon");
-                      }}
-                    />
-                  );
-                })}
-              </div>
+              <DndContext
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+                sensors={sensors}
+              >
+                <SortableContext
+                  items={stages.map((_, i) => `stage-${i}`)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  <div className="space-y-4">
+                    {stages.sort((a, b) => a.order - b.order).map((stage, index) => {
+                      const count = metrics?.stageBreakdown[stage.order] || 0;
+                      const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
+                      const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
+                      
+                      return (
+                        <StageDetailCard
+                          key={`stage-${index}`}
+                          stage={stage}
+                          candidateCount={count}
+                          avgDays={avgDays}
+                          conversionRate={nextConversion}
+                          displaySettings={displaySettings}
+                          onEdit={() => {
+                            setEditingStage(stage);
+                            setEditingStageIndex(index);
+                            setShowAddStage(true);
+                          }}
+                          onDuplicate={async () => {
+                            const duplicatedStage = {
+                              ...stage,
+                              name: `${stage.name} (Copy)`,
+                              order: stages.length
+                            };
+                            const updatedStages = [...stages, duplicatedStage];
+                            
+                            const { error } = await supabase
+                              .from('jobs')
+                              .update({ pipeline_stages: updatedStages })
+                              .eq('id', jobId);
+
+                            if (!error) {
+                              await fetchJobDetails();
+                              toast.success("Stage duplicated successfully");
+                            } else {
+                              toast.error("Failed to duplicate stage");
+                            }
+                          }}
+                          onDelete={async () => {
+                            const updatedStages = stages
+                              .filter((_, i) => i !== index)
+                              .map((s, i) => ({ ...s, order: i }));
+                            
+                            const { error } = await supabase
+                              .from('jobs')
+                              .update({ pipeline_stages: updatedStages })
+                              .eq('id', jobId);
+
+                            if (!error) {
+                              await fetchJobDetails();
+                              toast.success("Stage deleted successfully");
+                            } else {
+                              toast.error("Failed to delete stage");
+                            }
+                          }}
+                          onViewAnalytics={() => {
+                            toast.info("Stage analytics coming soon");
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </SortableContext>
+              </DndContext>
             </CardContent>
           </Card>
 
@@ -548,6 +629,40 @@ export default function JobDashboard() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Add Stage Dialog */}
+      <AddStageDialog
+        open={showAddStage}
+        onOpenChange={(open) => {
+          setShowAddStage(open);
+          if (!open) {
+            setEditingStage(null);
+            setEditingStageIndex(null);
+          }
+        }}
+        onSave={async (newStage) => {
+          let updatedStages;
+          if (editingStageIndex !== null) {
+            updatedStages = stages.map((s, i) => i === editingStageIndex ? newStage : s);
+          } else {
+            updatedStages = [...stages, newStage];
+          }
+          
+          const { error } = await supabase
+            .from('jobs')
+            .update({ pipeline_stages: updatedStages })
+            .eq('id', jobId);
+          
+          if (!error) {
+            await fetchJobDetails();
+            return { success: true };
+          }
+          return { success: false };
+        }}
+        currentStagesCount={stages.length}
+        jobId={jobId || ''}
+        companyId={job?.company_id || ''}
+      />
     </AppLayout>
   );
 }
