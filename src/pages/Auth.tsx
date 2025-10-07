@@ -3,12 +3,10 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
-
+import { Lock, Sparkles, Shield, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -25,7 +23,7 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
   
-  const [isLogin, setIsLogin] = useState(!inviteCode); // Start with signup if invite code present
+  const [isLogin, setIsLogin] = useState(!inviteCode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -35,14 +33,12 @@ const Auth = () => {
   const [inviteInfo, setInviteInfo] = useState<any>(null);
   const navigate = useNavigate();
 
-  // Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
       navigate("/dashboard");
     }
   }, [user, loading, navigate]);
 
-  // Validate invite code if present
   useEffect(() => {
     if (inviteCode) {
       validateInviteCode(inviteCode);
@@ -80,11 +76,9 @@ const Auth = () => {
     setIsLoading(true);
 
     try {
-      // Validate inputs
       emailSchema.parse(email);
       
       if (!isLogin) {
-        // Additional validation for sign up
         passwordSchema.parse(password);
         
         if (password !== confirmPassword) {
@@ -109,7 +103,6 @@ const Auth = () => {
         }
 
         toast.success("Welcome back!");
-        // Let AuthContext handle navigation to avoid session conflicts
       } else {
         if (!fullName.trim()) {
           toast.error("Please enter your full name");
@@ -138,7 +131,6 @@ const Auth = () => {
           return;
         }
 
-        // Process invite code if present
         if (inviteCode && inviteValid && authData.user) {
           try {
             const { data: result, error: inviteError } = await supabase.rpc(
@@ -178,137 +170,178 @@ const Auth = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-2xl font-black uppercase tracking-tight">LOADING...</div>
+        <div className="text-2xl font-black uppercase tracking-tight animate-pulse">Loading...</div>
       </div>
     );
   }
 
-
   return (
-    <div className="min-h-screen bg-glass-mesh flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Animated mesh gradient background */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+    <div className="min-h-screen bg-gradient-mesh flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Floating orbs background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
+        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-primary/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "3s" }} />
       </div>
 
-      <Card className="w-full max-w-md relative z-10 glass-strong animate-bounce-in">
-        <CardHeader className="space-y-3 pb-6">
-          <div className="flex items-center justify-center mb-2">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center font-black text-2xl text-white shadow-glow">
-              QC
+      <Card className="w-full max-w-md relative z-10 glass-strong border-0 shadow-glass-xl animate-fade-in">
+        <CardHeader className="space-y-4 pb-6 text-center">
+          {/* Logo */}
+          <div className="flex items-center justify-center mb-4">
+            <div className="relative">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-accent flex items-center justify-center font-black text-3xl text-white shadow-glow animate-scale-in">
+                QC
+              </div>
+              <div className="absolute -top-1 -right-1 w-8 h-8 bg-success rounded-full flex items-center justify-center shadow-glass-md">
+                <Shield className="w-4 h-4 text-white" />
+              </div>
             </div>
           </div>
-          <CardTitle className="text-3xl font-bold text-center">
-            {isLogin ? "Welcome Back" : "Join The Club"}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground text-center font-medium">
-            {isLogin
-              ? "Sign in to continue your journey"
-              : "Create your account to get started"}
-          </p>
+
+          <div className="space-y-2">
+            <h1 className="text-3xl font-black tracking-tight text-foreground">
+              {isLogin ? "Welcome Back" : "Join The Quantum Club"}
+            </h1>
+            <p className="text-sm text-muted-foreground font-medium">
+              {isLogin
+                ? "Sign in to your exclusive account"
+                : "Create your invite-only account"}
+            </p>
+          </div>
+
+          {/* Invite-only badge */}
+          {!isLogin && !inviteCode && (
+            <Alert className="glass-subtle border-primary/30">
+              <Lock className="h-4 w-4 text-primary" />
+              <AlertDescription className="text-sm font-medium">
+                <span className="text-primary font-semibold">Invite Only:</span> The Quantum Club is an exclusive platform. Please request an invitation from an existing member.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Valid invite indicator */}
+          {inviteValid && inviteInfo && (
+            <div className="p-4 rounded-xl glass-subtle space-y-2 text-left">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-success" />
+                <p className="text-sm font-semibold text-foreground">Valid Invitation</p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Invited by {inviteInfo.profiles?.full_name || "a member"}
+              </p>
+            </div>
+          )}
         </CardHeader>
 
         <CardContent className="pt-2">
-          <div className="space-y-4">
-            {/* Email Auth Form */}
-            <form onSubmit={handleEmailAuth} className="space-y-4">
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Input
-                    type="text"
-                    placeholder="Full Name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                    className="glass-subtle border-border/50 h-12 rounded-xl font-medium placeholder:text-muted-foreground/70"
-                  />
-                </div>
-              )}
-
+          <form onSubmit={handleEmailAuth} className="space-y-4">
+            {!isLogin && (
               <div className="space-y-2">
                 <Input
-                  type="email"
-                  placeholder="Email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  placeholder="Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="glass-subtle border-border/50 h-12 rounded-xl font-medium placeholder:text-muted-foreground/70"
+                  className="glass-subtle border-border/30 h-12 rounded-xl font-medium"
                 />
               </div>
+            )}
 
+            <div className="space-y-2">
+              <Input
+                type="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="glass-subtle border-border/30 h-12 rounded-xl font-medium"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="glass-subtle border-border/30 h-12 rounded-xl font-medium"
+              />
+              {!isLogin && password && (
+                <div className="text-xs space-y-1.5 mt-3 p-4 rounded-xl glass-subtle">
+                  <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground"}>
+                    {password.length >= 12 ? "✓" : "○"} At least 12 characters
+                  </p>
+                  <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                    {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
+                  </p>
+                  <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                    {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
+                  </p>
+                  <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                    {/[0-9]/.test(password) ? "✓" : "○"} One number
+                  </p>
+                  <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                    {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {!isLogin && (
               <div className="space-y-2">
                 <Input
                   type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="glass-subtle border-border/50 h-12 rounded-xl font-medium placeholder:text-muted-foreground/70"
+                  className="glass-subtle border-border/30 h-12 rounded-xl font-medium"
                 />
-                {!isLogin && password && (
-                  <div className="text-xs space-y-1.5 mt-3 p-3 rounded-lg glass-subtle">
-                    <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground"}>
-                      {password.length >= 12 ? "✓" : "○"} At least 12 characters
-                    </p>
-                    <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
-                      {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
-                    </p>
-                    <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
-                      {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
-                    </p>
-                    <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
-                      {/[0-9]/.test(password) ? "✓" : "○"} One number
-                    </p>
-                    <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
-                      {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {!isLogin && (
-                <div className="space-y-2">
-                  <Input
-                    type="password"
-                    placeholder="Confirm Password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    required
-                    className="glass-subtle border-border/50 h-12 rounded-xl font-medium placeholder:text-muted-foreground/70"
-                  />
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                variant="gradient"
-                size="lg"
-                className="w-full font-bold"
-                disabled={isLoading || (inviteCode && !isLogin && inviteValid === false)}
-              >
-                {isLoading ? "Loading..." : isLogin ? "Sign In" : "Create Account"}
-              </Button>
-            </form>
-
-            {!inviteCode && (
-              <div className="text-center text-sm pt-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsLogin(!isLogin);
-                    setPassword("");
-                    setConfirmPassword("");
-                  }}
-                  className="text-foreground hover:text-primary font-semibold transition-colors duration-200"
-                >
-                  {isLogin
-                    ? "Need an account? Sign up"
-                    : "Already have an account? Sign in"}
-                </button>
               </div>
             )}
-          </div>
+
+            <Button
+              type="submit"
+              variant="gradient"
+              size="lg"
+              className="w-full font-bold mt-6"
+              disabled={isLoading || (inviteCode && !isLogin && inviteValid === false)}
+            >
+              {isLoading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Loading...
+                </span>
+              ) : isLogin ? (
+                "Sign In"
+              ) : (
+                <>
+                  Create Account
+                  <Sparkles className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          </form>
+
+          {!inviteCode && (
+            <div className="text-center text-sm pt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  setPassword("");
+                  setConfirmPassword("");
+                }}
+                className="text-foreground hover:text-primary font-semibold transition-colors duration-200"
+              >
+                {isLogin
+                  ? "Need an account? Request invite"
+                  : "Already have an account? Sign in"}
+              </button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
