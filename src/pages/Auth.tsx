@@ -91,7 +91,7 @@ const Auth = () => {
       }
 
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -99,13 +99,18 @@ const Auth = () => {
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
             toast.error("Invalid email or password");
+          } else if (error.message.includes("Email not confirmed")) {
+            toast.error("Please verify your email address");
           } else {
             toast.error(error.message);
           }
           return;
         }
 
-        toast.success("Welcome back!");
+        if (data?.session) {
+          toast.success("Welcome back!");
+          navigate("/home");
+        }
       } else {
         if (!fullName.trim()) {
           toast.error("Please enter your full name");
