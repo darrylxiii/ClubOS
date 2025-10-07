@@ -5,12 +5,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image, Video, FileText, Send, X, BarChart2 } from "lucide-react";
+import { Image, Video, FileText, Send, X, BarChart2, Plus } from "lucide-react";
 import { CreatePoll } from "./PollPost";
 import { toast } from "@/hooks/use-toast";
 import { MediaEditor } from "./MediaEditor";
 import { VideoEditor } from "./VideoEditor";
-import { AudiencePickerButton, AudienceSelection } from "@/components/audience/AudiencePickerButton";
+import { AudienceSelection } from "@/components/audience/AudiencePickerButton";
+import { AudiencePickerCollapsible } from "@/components/audience/AudiencePickerCollapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -31,6 +33,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [audienceSelection, setAudienceSelection] = useState<AudienceSelection>({
     type: 'connections',
   });
+  const [contentMenuOpen, setContentMenuOpen] = useState(false);
+  const [audienceMenuOpen, setAudienceMenuOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -278,57 +282,96 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           )}
           
           <div className="flex items-center justify-between mt-3 pt-3 border-t">
-            <div className="flex flex-wrap gap-2">
-              <AudiencePickerButton
-                value={audienceSelection}
-                onChange={setAudienceSelection}
-              />
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => handleFileSelect('image/*')}
-                disabled={loading}
-              >
-                <Image className="w-4 h-4 mr-2" />
-                Photo
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => handleFileSelect('video/*')}
-                disabled={loading}
-              >
-                <Video className="w-4 h-4 mr-2" />
-                Video
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => handleFileSelect('.pdf,.doc,.docx,.txt')}
-                disabled={loading}
-              >
-                <FileText className="w-4 h-4 mr-2" />
-                Document
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowPollCreator(!showPollCreator)}
-                disabled={loading}
-              >
-                <BarChart2 className="w-4 h-4 mr-2" />
-                Poll
-              </Button>
+            <div className="flex items-center gap-2">
+              <Collapsible open={contentMenuOpen} onOpenChange={setContentMenuOpen}>
+                <CollapsibleTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="group relative h-9 w-9 p-0 hover:bg-white/5"
+                    title="Add content"
+                  >
+                    <Plus className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
+                      Add content
+                    </span>
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="absolute mt-2 z-50">
+                  <div className="flex flex-col gap-1 bg-popover border border-border rounded-lg p-1 shadow-lg min-w-[160px]">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        handleFileSelect('image/*');
+                        setContentMenuOpen(false);
+                      }}
+                      disabled={loading}
+                      className="justify-start gap-2"
+                    >
+                      <Image className="w-4 h-4" />
+                      Photo
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        handleFileSelect('video/*');
+                        setContentMenuOpen(false);
+                      }}
+                      disabled={loading}
+                      className="justify-start gap-2"
+                    >
+                      <Video className="w-4 h-4" />
+                      Video
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        handleFileSelect('.pdf,.doc,.docx,.txt');
+                        setContentMenuOpen(false);
+                      }}
+                      disabled={loading}
+                      className="justify-start gap-2"
+                    >
+                      <FileText className="w-4 h-4" />
+                      Document
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setShowPollCreator(!showPollCreator);
+                        setContentMenuOpen(false);
+                      }}
+                      disabled={loading}
+                      className="justify-start gap-2"
+                    >
+                      <BarChart2 className="w-4 h-4" />
+                      Poll
+                    </Button>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </div>
             
-            <Button 
-              onClick={handlePost}
-              disabled={!content.trim() || loading}
-              size="sm"
-            >
-              <Send className="w-4 h-4 mr-2" />
-              Post
-            </Button>
+            <div className="flex items-center gap-2 relative">
+              <AudiencePickerCollapsible
+                value={audienceSelection}
+                onChange={setAudienceSelection}
+                open={audienceMenuOpen}
+                onOpenChange={setAudienceMenuOpen}
+              />
+              <Button 
+                onClick={handlePost}
+                disabled={!content.trim() || loading}
+                size="sm"
+              >
+                <Send className="w-4 h-4 mr-2" />
+                Post
+              </Button>
+            </div>
           </div>
         </div>
       </div>
