@@ -222,8 +222,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   };
 
   return (
-    <Card className="p-4">
-      <div className="flex gap-3">
+    <Card className="p-4 w-full overflow-hidden">
+      <div className="flex gap-3 w-full">
         <Avatar>
           <AvatarImage src={profile?.avatar_url} />
           <AvatarFallback>
@@ -231,12 +231,12 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           </AvatarFallback>
         </Avatar>
         
-        <div className="flex-1">
+        <div className="flex-1 max-w-full">
           <Textarea
             placeholder="What do you want to talk about?"
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="min-h-[80px] border-none focus-visible:ring-0 resize-none"
+            className="min-h-[80px] border-none focus-visible:ring-0 resize-none w-full"
           />
 
           {previews.length > 0 && (
@@ -310,19 +310,19 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             </div>
           )}
           
-          <div className="flex items-center justify-between mt-3 pt-3 border-t">
+          <div className="flex items-center justify-between mt-3 pt-3 border-t flex-wrap gap-2">
             <div className="group/content flex items-center gap-2">
               <Button 
                 variant="ghost" 
                 size="sm"
-                className="h-9 w-9 p-0 hover:bg-white/5"
+                className="h-9 w-9 p-0 hover:bg-white/5 flex-shrink-0"
                 title="Add content"
               >
                 <Plus className="w-4 h-4 text-muted-foreground group-hover/content:text-foreground transition-colors" />
               </Button>
               
               {/* Horizontal options that appear on hover */}
-              <div className="flex items-center gap-1 opacity-0 group-hover/content:opacity-100 transition-opacity overflow-x-auto max-w-0 group-hover/content:max-w-full scrollbar-hide">
+              <div className="flex items-center gap-1 opacity-0 group-hover/content:opacity-100 transition-opacity overflow-x-auto scrollbar-hide">
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -366,104 +366,105 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               </div>
             </div>
             
-            <div className="group/audience flex items-center gap-2">
-              {/* Audience buttons - shown on hover, ordered with More on farthest left */}
-              <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity">
+            <div className="flex items-center gap-2">
+              <div className="group/audience flex items-center gap-1">
+                {/* Audience buttons - shown on hover, ordered with More on farthest left */}
+                <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity">
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setShowAudienceModal(true)}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <MoreHorizontal className="w-4 h-4" />
+                    More
+                  </Button>
+                  
+                  {/* Dynamically ordered buttons based on lastUsedAudience - second position */}
+                  {lastUsedAudience === 'best_friends' ? (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('best_friends')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Best Friends
+                    </Button>
+                  ) : lastUsedAudience === 'company_internal' ? (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('company_internal')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Building className="w-4 h-4" />
+                      {companyName || 'Company'}
+                    </Button>
+                  ) : lastUsedAudience === 'connections' ? (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('connections')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <UserCircle className="w-4 h-4" />
+                      Connections
+                    </Button>
+                  ) : lastUsedAudience === 'public' ? (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('public')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Globe className="w-4 h-4" />
+                      Public
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('best_friends')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Best Friends
+                    </Button>
+                  )}
+                  
+                  {/* Third position - show the other option if last used was best_friends */}
+                  {lastUsedAudience === 'best_friends' && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('company_internal')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Building className="w-4 h-4" />
+                      {companyName || 'Company'}
+                    </Button>
+                  )}
+                </div>
+                
                 <Button 
                   variant="ghost" 
                   size="sm"
-                  onClick={() => setShowAudienceModal(true)}
-                  className="gap-2 whitespace-nowrap"
+                  className="h-9 w-9 p-0 hover:bg-white/5 flex-shrink-0"
+                  title="Audience Settings"
                 >
-                  <MoreHorizontal className="w-4 h-4" />
-                  More
+                  <Users className="w-4 h-4 text-muted-foreground group-hover/audience:text-foreground transition-colors" />
                 </Button>
-                
-                {/* Dynamically ordered buttons based on lastUsedAudience - second position */}
-                {lastUsedAudience === 'best_friends' ? (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleAudienceSelect('best_friends')}
-                    className="gap-2 whitespace-nowrap"
-                  >
-                    <Heart className="w-4 h-4" />
-                    Best Friends
-                  </Button>
-                ) : lastUsedAudience === 'company_internal' ? (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleAudienceSelect('company_internal')}
-                    className="gap-2 whitespace-nowrap"
-                  >
-                    <Building className="w-4 h-4" />
-                    {companyName || 'Company'}
-                  </Button>
-                ) : lastUsedAudience === 'connections' ? (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleAudienceSelect('connections')}
-                    className="gap-2 whitespace-nowrap"
-                  >
-                    <UserCircle className="w-4 h-4" />
-                    Connections
-                  </Button>
-                ) : lastUsedAudience === 'public' ? (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleAudienceSelect('public')}
-                    className="gap-2 whitespace-nowrap"
-                  >
-                    <Globe className="w-4 h-4" />
-                    Public
-                  </Button>
-                ) : (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleAudienceSelect('best_friends')}
-                    className="gap-2 whitespace-nowrap"
-                  >
-                    <Heart className="w-4 h-4" />
-                    Best Friends
-                  </Button>
-                )}
-                
-                {/* Third position - show the other option if last used was best_friends */}
-                {lastUsedAudience === 'best_friends' && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    onClick={() => handleAudienceSelect('company_internal')}
-                    className="gap-2 whitespace-nowrap"
-                  >
-                    <Building className="w-4 h-4" />
-                    {companyName || 'Company'}
-                  </Button>
-                )}
               </div>
-              
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="h-9 w-9 p-0 hover:bg-white/5"
-                title="Audience Settings"
-              >
-                <Users className="w-4 h-4 text-muted-foreground group-hover/audience:text-foreground transition-colors" />
-              </Button>
               
               <Button 
                 onClick={handlePost}
                 disabled={!content.trim() || loading}
-                className="group/post h-9 overflow-hidden transition-all duration-300 w-9 hover:w-auto hover:px-4"
+                size="sm"
+                className="gap-2 flex-shrink-0"
               >
-                <Send className="w-4 h-4 flex-shrink-0" />
-                <span className="max-w-0 overflow-hidden group-hover/post:max-w-xs group-hover/post:ml-2 transition-all duration-300 whitespace-nowrap">
-                  Post
-                </span>
+                <Send className="w-4 h-4" />
+                Post
               </Button>
             </div>
           </div>
