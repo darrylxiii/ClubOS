@@ -319,7 +319,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             <div className="flex items-center gap-2">
               {/* Content add button with hover/click to expand */}
               <div 
-                className="group/content relative"
+                className="flex items-center gap-1"
                 onMouseEnter={() => setContentMenuOpen(true)}
                 onMouseLeave={() => {
                   if (!uploadedFiles.length) setContentMenuOpen(false);
@@ -332,14 +332,14 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   onClick={() => setContentMenuOpen(!contentMenuOpen)}
                   title="Add content"
                 >
-                  <Plus className="w-4 h-4 text-muted-foreground group-hover/content:text-foreground transition-colors" />
+                  <Plus className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
                 </Button>
                 
-                {/* Expandable options */}
+                {/* Inline expandable options */}
                 {(contentMenuOpen || uploadedFiles.length > 0) && (
-                  <div className="absolute left-0 top-full mt-1 flex items-center gap-1 bg-background border rounded-lg p-1 shadow-lg z-10 animate-in fade-in slide-in-from-top-2">
+                  <div className="flex items-center gap-1 animate-in fade-in slide-in-from-left-2">
                     {uploadedFiles.length > 0 && (
-                      <div className="flex items-center gap-1 px-2 py-1 bg-accent rounded">
+                      <div className="flex items-center gap-1 px-2 py-1 bg-accent rounded h-9">
                         {uploadedFiles[0].type.startsWith('image/') && <Image className="w-4 h-4" />}
                         {uploadedFiles[0].type.startsWith('video/') && <Video className="w-4 h-4" />}
                         <span className="text-xs">{uploadedFiles.length}</span>
@@ -351,7 +351,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       size="sm"
                       onClick={() => handleFileSelect('image/*')}
                       disabled={loading}
-                      className="gap-2 whitespace-nowrap h-8"
+                      className="gap-2 whitespace-nowrap h-9"
                     >
                       <Image className="w-4 h-4" />
                       Photo
@@ -362,7 +362,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       size="sm"
                       onClick={() => handleFileSelect('video/*')}
                       disabled={loading}
-                      className="gap-2 whitespace-nowrap h-8"
+                      className="gap-2 whitespace-nowrap h-9"
                     >
                       <Video className="w-4 h-4" />
                       Video
@@ -372,7 +372,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       variant="ghost" 
                       size="sm"
                       onClick={() => setShowContentModal(true)}
-                      className="gap-2 whitespace-nowrap h-8"
+                      className="gap-2 whitespace-nowrap h-9"
                     >
                       <MoreHorizontal className="w-4 h-4" />
                       More
@@ -385,7 +385,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             <div className="flex items-center gap-2">
               {/* Audience selector with hover/click to expand */}
               <div 
-                className="group/audience relative"
+                className="flex items-center gap-1"
                 onMouseEnter={() => setAudienceMenuOpen(true)}
                 onMouseLeave={() => {
                   if (audienceSelection.type === 'best_friends' && !lastUsedAudience) {
@@ -393,24 +393,14 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   }
                 }}
               >
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  className="h-9 w-9 p-0 hover:bg-white/5 transition-all"
-                  onClick={() => setAudienceMenuOpen(!audienceMenuOpen)}
-                  title="Audience"
-                >
-                  <Users className="w-4 h-4 text-muted-foreground group-hover/audience:text-foreground transition-colors" />
-                </Button>
-                
-                {/* Expandable options */}
+                {/* Inline expandable options */}
                 {audienceMenuOpen && (
-                  <div className="absolute right-0 top-full mt-1 flex items-center gap-1 bg-background border rounded-lg p-1 shadow-lg z-10 animate-in fade-in slide-in-from-top-2">
+                  <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
                     <Button 
                       variant={audienceSelection.type === 'best_friends' ? 'default' : 'ghost'}
                       size="sm"
                       onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap h-8"
+                      className="gap-2 whitespace-nowrap h-9"
                     >
                       <Heart className="w-4 h-4" />
                       Best Friends
@@ -421,7 +411,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                         variant={audienceSelection.type === 'company_internal' ? 'default' : 'ghost'}
                         size="sm"
                         onClick={() => handleAudienceSelect('company_internal')}
-                        className="gap-2 whitespace-nowrap h-8"
+                        className="gap-2 whitespace-nowrap h-9"
                       >
                         <Building className="w-4 h-4" />
                         {companyName}
@@ -435,13 +425,23 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                         setShowAudienceModal(true);
                         setAudienceMenuOpen(false);
                       }}
-                      className="gap-2 whitespace-nowrap h-8"
+                      className="gap-2 whitespace-nowrap h-9"
                     >
                       <MoreHorizontal className="w-4 h-4" />
                       More
                     </Button>
                   </div>
                 )}
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="h-9 w-9 p-0 hover:bg-white/5 transition-all"
+                  onClick={() => setAudienceMenuOpen(!audienceMenuOpen)}
+                  title="Audience"
+                >
+                  <Users className="w-4 h-4 text-muted-foreground hover:text-foreground transition-colors" />
+                </Button>
               </div>
               
               <Button 
