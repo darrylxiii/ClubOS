@@ -39,6 +39,7 @@ const Auth = () => {
   useEffect(() => {
     if (!loading && user) {
       console.log("[Auth Page] User detected, redirecting to home");
+      // Use replace to prevent back button issues
       navigate("/home", { replace: true });
     }
   }, [user, loading, navigate]);

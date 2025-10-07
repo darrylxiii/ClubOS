@@ -13,9 +13,15 @@ const ClubHome = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Redirect to auth if no role after loading
+    // Give extra time for role to load before redirecting
+    // This prevents redirect loops when network is slow
     if (!loading && !role) {
-      navigate("/auth");
+      const timeout = setTimeout(() => {
+        console.log('[ClubHome] No role detected after loading, redirecting to auth');
+        navigate("/auth", { replace: true });
+      }, 1000);
+      
+      return () => clearTimeout(timeout);
     }
   }, [loading, role, navigate]);
 

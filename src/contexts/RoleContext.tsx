@@ -65,57 +65,84 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   }, [user, availableRoles]); // FIXED: Removed currentRole from dependencies to prevent re-subscriptions
 
   const fetchRoles = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     try {
-      // Get all user roles
-      const { data: rolesData, error } = await supabase
+      console.log('[RoleContext] Fetching roles for user:', user.id);
+      
+      // Get all user roles with timeout
+      const rolesPromise = supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id);
 
-      if (error) throw error;
+      const { data: rolesData, error } = await Promise.race([
+        rolesPromise,
+        new Promise<{ data: null; error: Error }>((_, reject) => 
+          setTimeout(() => reject(new Error('Timeout')), 5000)
+        )
+      ]).catch((err) => {
+        console.error('[RoleContext] Roles fetch failed:', err);
+        return { data: null, error: err };
+      });
 
-      const roles: UserRole[] = rolesData?.map(r => r.role as UserRole) || ['user'];
+      let roles: UserRole[] = ['user']; // Always default to user
       
-      // Always include 'user' as a fallback
-      if (!roles.includes('user')) {
-        roles.push('user');
+      if (!error && rolesData && rolesData.length > 0) {
+        const fetchedRoles = rolesData.map(r => r.role as UserRole);
+        roles = [...new Set([...fetchedRoles, 'user'])]; // Ensure 'user' is included
       }
 
+      console.log('[RoleContext] Available roles:', roles);
       setAvailableRoles(roles);
 
-      // Get preferred role
-      const { data: prefsData } = await supabase
-        .from('user_preferences')
-        .select('preferred_role_view')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      // Get preferred role (non-blocking)
+      let prefsData = null;
+      try {
+        const result = await supabase
+          .from('user_preferences')
+          .select('preferred_role_view')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        prefsData = result.data;
+      } catch (err) {
+        console.error('[RoleContext] Error fetching preferences:', err);
+      }
 
       const preferredRole = prefsData?.preferred_role_view as UserRole;
       
-      // Set current role
+      // Set current role with priority
+      let selectedRole: UserRole = 'user';
+      
       if (preferredRole && roles.includes(preferredRole)) {
-        setCurrentRole(preferredRole);
+        selectedRole = preferredRole;
       } else {
         // Priority: admin > strategist > partner > user
         const priority: UserRole[] = ['admin', 'strategist', 'partner', 'user'];
-        const defaultRole = priority.find(r => roles.includes(r)) || 'user';
-        setCurrentRole(defaultRole);
+        selectedRole = priority.find(r => roles.includes(r)) || 'user';
       }
+      
+      console.log('[RoleContext] Setting role to:', selectedRole);
+      setCurrentRole(selectedRole);
 
-      // Fetch company ID
-      const { data: profileData } = await supabase
+      // Fetch company ID (non-blocking, don't let it fail the whole process)
+      supabase
         .from('profiles')
         .select('company_id')
         .eq('id', user.id)
-        .maybeSingle();
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data?.company_id) {
+            setCompanyId(data.company_id);
+          }
+        });
 
-      if (profileData?.company_id) {
-        setCompanyId(profileData.company_id);
-      }
     } catch (error) {
-      console.error('[RoleContext] Error fetching roles:', error);
+      console.error('[RoleContext] Critical error in fetchRoles:', error);
+      // Always set a default role to prevent redirect loops
       setCurrentRole('user');
       setAvailableRoles(['user']);
     } finally {
