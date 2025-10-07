@@ -872,6 +872,62 @@ export type Database = {
         }
         Relationships: []
       }
+      content_calendar: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          platforms: string[]
+          post_id: string | null
+          scheduled_date: string
+          scheduled_time: string | null
+          status: string | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          platforms: string[]
+          post_id?: string | null
+          scheduled_date: string
+          scheduled_time?: string | null
+          status?: string | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          platforms?: string[]
+          post_id?: string | null
+          scheduled_date?: string
+          scheduled_time?: string | null
+          status?: string | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_calendar_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_analytics: {
         Row: {
           avg_response_time_seconds: number | null
@@ -1084,6 +1140,42 @@ export type Database = {
           user_agent?: string | null
           user_id?: string
           verified_at?: string | null
+        }
+        Relationships: []
+      }
+      hashtags: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          last_used_at: string | null
+          metadata: Json | null
+          platform: string
+          tag: string
+          trending_score: number | null
+          usage_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          metadata?: Json | null
+          platform: string
+          tag: string
+          trending_score?: number | null
+          usage_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          last_used_at?: string | null
+          metadata?: Json | null
+          platform?: string
+          tag?: string
+          trending_score?: number | null
+          usage_count?: number | null
         }
         Relationships: []
       }
@@ -2199,6 +2291,68 @@ export type Database = {
         }
         Relationships: []
       }
+      post_analytics: {
+        Row: {
+          clicks: number | null
+          comments: number | null
+          created_at: string
+          date: string
+          engagement_rate: number | null
+          id: string
+          impressions: number | null
+          likes: number | null
+          metadata: Json | null
+          post_id: string
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          video_completion_rate: number | null
+          video_views: number | null
+        }
+        Insert: {
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string
+          date?: string
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          metadata?: Json | null
+          post_id: string
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          video_completion_rate?: number | null
+          video_views?: number | null
+        }
+        Update: {
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string
+          date?: string
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          metadata?: Json | null
+          post_id?: string
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          video_completion_rate?: number | null
+          video_views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_analytics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_comments: {
         Row: {
           content: string
@@ -3249,6 +3403,204 @@ export type Database = {
           },
         ]
       }
+      social_campaigns: {
+        Row: {
+          budget: number | null
+          company_id: string | null
+          created_at: string
+          description: string | null
+          end_date: string | null
+          goals: Json | null
+          id: string
+          metadata: Json | null
+          name: string
+          platforms: string[]
+          start_date: string
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          budget?: number | null
+          company_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          goals?: Json | null
+          id?: string
+          metadata?: Json | null
+          name: string
+          platforms: string[]
+          start_date: string
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          budget?: number | null
+          company_id?: string | null
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          goals?: Json | null
+          id?: string
+          metadata?: Json | null
+          name?: string
+          platforms?: string[]
+          start_date?: string
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_campaigns_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_comments: {
+        Row: {
+          assigned_to: string | null
+          author_avatar_url: string | null
+          author_display_name: string | null
+          author_username: string
+          content: string
+          created_at: string
+          id: string
+          is_replied: boolean | null
+          is_spam: boolean | null
+          metadata: Json | null
+          parent_comment_id: string | null
+          platform: string
+          platform_comment_id: string | null
+          post_id: string | null
+          sentiment: string | null
+          social_account_id: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          author_avatar_url?: string | null
+          author_display_name?: string | null
+          author_username: string
+          content: string
+          created_at?: string
+          id?: string
+          is_replied?: boolean | null
+          is_spam?: boolean | null
+          metadata?: Json | null
+          parent_comment_id?: string | null
+          platform: string
+          platform_comment_id?: string | null
+          post_id?: string | null
+          sentiment?: string | null
+          social_account_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          author_avatar_url?: string | null
+          author_display_name?: string | null
+          author_username?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_replied?: boolean | null
+          is_spam?: boolean | null
+          metadata?: Json | null
+          parent_comment_id?: string | null
+          platform?: string
+          platform_comment_id?: string | null
+          post_id?: string | null
+          sentiment?: string | null
+          social_account_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "social_comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_comments_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_media_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_media_accounts: {
+        Row: {
+          access_token: string | null
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          permissions: Json | null
+          platform: string
+          platform_user_id: string
+          profile_url: string | null
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string
+          user_id: string
+          username: string
+        }
+        Insert: {
+          access_token?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          permissions?: Json | null
+          platform: string
+          platform_user_id: string
+          profile_url?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id: string
+          username: string
+        }
+        Update: {
+          access_token?: string | null
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          permissions?: Json | null
+          platform?: string
+          platform_user_id?: string
+          profile_url?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
       talent_strategists: {
         Row: {
           availability: string | null
@@ -3609,6 +3961,95 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      unified_posts: {
+        Row: {
+          comments_count: number | null
+          content: string
+          created_at: string
+          engagement_count: number | null
+          hashtags: string[] | null
+          id: string
+          is_scheduled: boolean | null
+          likes_count: number | null
+          media_urls: string[] | null
+          mentions: string[] | null
+          metadata: Json | null
+          platform: string
+          platform_post_id: string | null
+          post_type: string
+          published_at: string | null
+          scheduled_for: string | null
+          shares_count: number | null
+          social_account_id: string | null
+          status: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          views_count: number | null
+          visibility: string | null
+        }
+        Insert: {
+          comments_count?: number | null
+          content: string
+          created_at?: string
+          engagement_count?: number | null
+          hashtags?: string[] | null
+          id?: string
+          is_scheduled?: boolean | null
+          likes_count?: number | null
+          media_urls?: string[] | null
+          mentions?: string[] | null
+          metadata?: Json | null
+          platform: string
+          platform_post_id?: string | null
+          post_type: string
+          published_at?: string | null
+          scheduled_for?: string | null
+          shares_count?: number | null
+          social_account_id?: string | null
+          status?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+          views_count?: number | null
+          visibility?: string | null
+        }
+        Update: {
+          comments_count?: number | null
+          content?: string
+          created_at?: string
+          engagement_count?: number | null
+          hashtags?: string[] | null
+          id?: string
+          is_scheduled?: boolean | null
+          likes_count?: number | null
+          media_urls?: string[] | null
+          mentions?: string[] | null
+          metadata?: Json | null
+          platform?: string
+          platform_post_id?: string | null
+          post_type?: string
+          published_at?: string | null
+          scheduled_for?: string | null
+          shares_count?: number | null
+          social_account_id?: string | null
+          status?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+          views_count?: number | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_posts_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_media_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_preferences: {
         Row: {

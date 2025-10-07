@@ -31,6 +31,8 @@ import Admin from "./pages/Admin";
 import Feed from "./pages/Feed";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import SocialFeed from "./pages/SocialFeed";
+import SocialManagement from "./pages/SocialManagement";
 
 const queryClient = new QueryClient();
 
@@ -218,6 +220,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Settings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/social-feed"
+              element={
+                <ProtectedRoute>
+                  <SocialFeed />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/social-management"
+              element={
+                <ProtectedRoute>
+                  <SocialManagement />
                 </ProtectedRoute>
               }
             />

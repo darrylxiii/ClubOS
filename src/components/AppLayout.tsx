@@ -27,6 +27,8 @@ import {
   Layers,
   Zap,
   Cog,
+  Share2,
+  BarChart3,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,6 +66,14 @@ const candidateNavigationGroups = [
       { name: "Applications", icon: FileText, path: "/applications" },
       { name: "Companies", icon: Building2, path: "/companies" },
       { name: "Referrals", icon: Gift, path: "/referrals" },
+    ],
+  },
+  {
+    title: "Social Media",
+    icon: Share2,
+    items: [
+      { name: "Social Feed", icon: Share2, path: "/social-feed" },
+      { name: "Management", icon: BarChart3, path: "/social-management" },
     ],
   },
   {
