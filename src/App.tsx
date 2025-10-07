@@ -16,6 +16,7 @@ import Onboarding from "./pages/Onboarding";
 import PartnerOnboarding from "./pages/PartnerOnboarding";
 import Profile from "./pages/Profile";
 import EnhancedProfile from "./pages/EnhancedProfile";
+import PublicUserProfile from "./pages/PublicUserProfile";
 import Referrals from "./pages/Referrals";
 import InterviewPrep from "./pages/InterviewPrep";
 import MeetingHistory from "./pages/MeetingHistory";
@@ -134,6 +135,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <EnhancedProfile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/:userId"
+              element={
+                <ProtectedRoute>
+                  <PublicUserProfile />
                 </ProtectedRoute>
               }
             />

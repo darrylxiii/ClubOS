@@ -6,9 +6,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { UserProfilePreview } from "@/components/UserProfilePreview";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Check, CheckCheck, MoreVertical, Reply } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface MessageBubbleProps {
   message: {
@@ -43,6 +46,7 @@ export const MessageBubble = ({
   onEdit,
   onDelete,
 }: MessageBubbleProps) => {
+  const navigate = useNavigate();
   const senderName = message.sender?.full_name || "Unknown User";
   const initials = senderName
     .split(" ")
@@ -54,6 +58,10 @@ export const MessageBubble = ({
   const readCount = message.read_receipts?.length || 0;
   const allRead = readCount > 0;
 
+  const handleSenderClick = () => {
+    navigate(`/profile/${message.sender_id}`, { state: { from: 'messages' } });
+  };
+
   return (
     <div
       className={cn(
@@ -62,19 +70,39 @@ export const MessageBubble = ({
       )}
     >
       {!isCurrentUser && (
-        <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-background shadow-glass-sm">
-          <AvatarImage src={message.sender?.avatar_url || undefined} />
-          <AvatarFallback className="text-xs bg-gradient-accent text-white">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+        <HoverCard openDelay={200}>
+          <HoverCardTrigger asChild>
+            <Avatar 
+              className="h-8 w-8 flex-shrink-0 ring-2 ring-background shadow-glass-sm cursor-pointer hover:ring-accent transition-all"
+              onClick={handleSenderClick}
+            >
+              <AvatarImage src={message.sender?.avatar_url || undefined} />
+              <AvatarFallback className="text-xs bg-gradient-accent text-white">
+                {initials}
+              </AvatarFallback>
+            </Avatar>
+          </HoverCardTrigger>
+          <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
+            <UserProfilePreview userId={message.sender_id} />
+          </HoverCardContent>
+        </HoverCard>
       )}
 
       <div className={cn("flex flex-col gap-1 max-w-[70%]", isCurrentUser && "items-end")}>
         {(!isCurrentUser || isGroup) && (
-          <span className="text-xs text-muted-foreground font-medium px-1">
-            {senderName}
-          </span>
+          <HoverCard openDelay={200}>
+            <HoverCardTrigger asChild>
+              <span 
+                className="text-xs text-muted-foreground font-medium px-1 cursor-pointer hover:text-accent transition-colors"
+                onClick={handleSenderClick}
+              >
+                {senderName}
+              </span>
+            </HoverCardTrigger>
+            <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
+              <UserProfilePreview userId={message.sender_id} />
+            </HoverCardContent>
+          </HoverCard>
         )}
 
         <div className="relative">

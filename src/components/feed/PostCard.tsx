@@ -12,6 +12,9 @@ import { InteractiveReactions } from "./InteractiveReactions";
 import { PollPost } from "./PollPost";
 import { PostAnalyticsButton } from "@/components/analytics/PostAnalyticsButton";
 import { useNavigate } from 'react-router-dom';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { UserProfilePreview } from "@/components/UserProfilePreview";
+import { CompanyProfilePreview } from "@/components/CompanyProfilePreview";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -118,23 +121,69 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
     });
   };
 
+  const handleAuthorClick = () => {
+    if (post.profiles) {
+      navigate(`/profile/${post.user_id}`, { state: { from: 'feed' } });
+    } else if (post.companies) {
+      navigate(`/companies/${post.companies.slug}`);
+    }
+  };
+
   return (
     <Card className="p-4">
       <div className="flex items-start gap-3">
-        <Avatar className="w-12 h-12">
-          <AvatarImage src={authorImage} />
-          <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
-        </Avatar>
+        {/* Clickable Avatar with Hover Preview */}
+        <HoverCard openDelay={200}>
+          <HoverCardTrigger asChild>
+            <Avatar 
+              className="w-12 h-12 cursor-pointer ring-2 ring-transparent hover:ring-accent transition-all"
+              onClick={handleAuthorClick}
+            >
+              <AvatarImage src={authorImage} />
+              <AvatarFallback>{authorName.charAt(0)}</AvatarFallback>
+            </Avatar>
+          </HoverCardTrigger>
+          <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
+            {post.profiles ? (
+              <UserProfilePreview 
+                userId={post.user_id} 
+                onMessageClick={() => setMessageDialogOpen(true)}
+              />
+            ) : post.companies ? (
+              <CompanyProfilePreview companyId={post.company_id} />
+            ) : null}
+          </HoverCardContent>
+        </HoverCard>
         
         <div className="flex-1">
           <div className="flex items-start justify-between">
-            <div>
-              <h3 className="font-semibold">{authorName}</h3>
-              <p className="text-sm text-muted-foreground">{authorTitle}</p>
-              <p className="text-xs text-muted-foreground">
-                {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-              </p>
-            </div>
+            {/* Clickable Name with Hover Preview */}
+            <HoverCard openDelay={200}>
+              <HoverCardTrigger asChild>
+                <div 
+                  className="cursor-pointer group"
+                  onClick={handleAuthorClick}
+                >
+                  <h3 className="font-semibold group-hover:text-accent transition-colors">
+                    {authorName}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">{authorTitle}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                  </p>
+                </div>
+              </HoverCardTrigger>
+              <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
+                {post.profiles ? (
+                  <UserProfilePreview 
+                    userId={post.user_id} 
+                    onMessageClick={() => setMessageDialogOpen(true)}
+                  />
+                ) : post.companies ? (
+                  <CompanyProfilePreview companyId={post.company_id} />
+                ) : null}
+              </HoverCardContent>
+            </HoverCard>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
