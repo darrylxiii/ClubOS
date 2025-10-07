@@ -367,116 +367,20 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             </div>
             
             <div className="group/audience flex items-center gap-2">
-              {/* Audience buttons - shown on hover, ordered by last used */}
+              {/* Post button that expands on hover */}
+              <Button 
+                onClick={handlePost}
+                disabled={!content.trim() || loading}
+                className="group/post h-9 overflow-hidden transition-all duration-300 w-9 hover:w-auto hover:px-4"
+              >
+                <Send className="w-4 h-4 flex-shrink-0" />
+                <span className="max-w-0 overflow-hidden group-hover/post:max-w-xs group-hover/post:ml-2 transition-all duration-300">
+                  Post
+                </span>
+              </Button>
+              
+              {/* Audience buttons - shown on hover, ordered with More on farthest left */}
               <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity">
-                {/* Dynamically ordered buttons based on lastUsedAudience */}
-                {lastUsedAudience === 'best_friends' ? (
-                  <>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Heart className="w-4 h-4" />
-                      Best Friends
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('company_internal')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Building className="w-4 h-4" />
-                      {companyName || 'Company'}
-                    </Button>
-                  </>
-                ) : lastUsedAudience === 'company_internal' ? (
-                  <>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('company_internal')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Building className="w-4 h-4" />
-                      {companyName || 'Company'}
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Heart className="w-4 h-4" />
-                      Best Friends
-                    </Button>
-                  </>
-                ) : lastUsedAudience === 'connections' ? (
-                  <>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('connections')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <UserCircle className="w-4 h-4" />
-                      Connections
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Heart className="w-4 h-4" />
-                      Best Friends
-                    </Button>
-                  </>
-                ) : lastUsedAudience === 'public' ? (
-                  <>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('public')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Globe className="w-4 h-4" />
-                      Public
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Heart className="w-4 h-4" />
-                      Best Friends
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('best_friends')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Heart className="w-4 h-4" />
-                      Best Friends
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => handleAudienceSelect('company_internal')}
-                      className="gap-2 whitespace-nowrap"
-                    >
-                      <Building className="w-4 h-4" />
-                      {companyName || 'Company'}
-                    </Button>
-                  </>
-                )}
-                
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -486,6 +390,72 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   <MoreHorizontal className="w-4 h-4" />
                   More
                 </Button>
+                
+                {/* Dynamically ordered buttons based on lastUsedAudience - second position */}
+                {lastUsedAudience === 'best_friends' ? (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleAudienceSelect('best_friends')}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <Heart className="w-4 h-4" />
+                    Best Friends
+                  </Button>
+                ) : lastUsedAudience === 'company_internal' ? (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleAudienceSelect('company_internal')}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <Building className="w-4 h-4" />
+                    {companyName || 'Company'}
+                  </Button>
+                ) : lastUsedAudience === 'connections' ? (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleAudienceSelect('connections')}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <UserCircle className="w-4 h-4" />
+                    Connections
+                  </Button>
+                ) : lastUsedAudience === 'public' ? (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleAudienceSelect('public')}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <Globe className="w-4 h-4" />
+                    Public
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleAudienceSelect('best_friends')}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <Heart className="w-4 h-4" />
+                    Best Friends
+                  </Button>
+                )}
+                
+                {/* Third position - show the other option if last used was best_friends */}
+                {lastUsedAudience === 'best_friends' && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => handleAudienceSelect('company_internal')}
+                    className="gap-2 whitespace-nowrap"
+                  >
+                    <Building className="w-4 h-4" />
+                    {companyName || 'Company'}
+                  </Button>
+                )}
               </div>
               
               <Button 
