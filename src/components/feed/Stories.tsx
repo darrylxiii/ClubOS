@@ -138,14 +138,7 @@ export function Stories() {
 
   return (
     <>
-      <div 
-        ref={scrollRef}
-        className="flex gap-3 pb-4 relative"
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-      >
+      <div className="relative flex gap-3 pb-4">
         {/* Create Story Card - Sticky */}
         <Card 
           className="sticky left-0 z-10 flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group bg-background/95 backdrop-blur"
@@ -161,10 +154,17 @@ export function Stories() {
         </Card>
 
         {/* Fade overlay for stories scrolling under Create Story */}
-        <div className="absolute left-24 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-[9] pointer-events-none" />
+        <div className="absolute left-24 top-0 bottom-4 w-8 bg-gradient-to-r from-background to-transparent z-[9] pointer-events-none" />
 
-        {/* Stories - scrollable */}
-        <div className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {/* Stories - scrollable with drag */}
+        <div 
+          ref={scrollRef}
+          className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] cursor-grab active:cursor-grabbing"
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+        >
           {stories.map((story) => (
             <Card 
               key={story.id}

@@ -250,7 +250,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black">
+    <div className="fixed inset-0 z-50 bg-black flex flex-col">
       {/* Progress bars */}
       <div className="absolute top-4 left-4 right-4 flex gap-1 z-50">
         {stories.map((_, idx) => (
@@ -289,13 +289,13 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         </div>
       </div>
 
-      {/* Story content */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Story content - with proper spacing */}
+      <div className="flex-1 flex items-center justify-center px-4 py-24">
         {currentStory.media_type === 'video' ? (
           <video
             ref={videoRef}
             src={currentStory.media_url}
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full object-contain rounded-lg"
             autoPlay
             onEnded={handleNext}
           />
@@ -303,7 +303,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
           <img
             src={currentStory.media_url}
             alt="Story"
-            className="max-w-full max-h-full object-contain"
+            className="w-full h-full object-contain rounded-lg"
           />
         )}
 
