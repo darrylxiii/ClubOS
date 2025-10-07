@@ -177,113 +177,116 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-mesh flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Floating orbs background */}
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Video background placeholder - add your video here */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-background/90">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072')] bg-cover bg-center opacity-20" />
+        <div className="absolute inset-0 backdrop-blur-[2px]" />
+      </div>
+
+      {/* Floating ambient orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
-        <div className="absolute top-1/2 right-1/3 w-64 h-64 bg-primary/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "3s" }} />
       </div>
 
-      <Card className="w-full max-w-md relative z-10 glass-strong border-0 shadow-glass-xl animate-fade-in">
-        <CardHeader className="space-y-4 pb-6 text-center">
-          {/* Logo */}
-          <div className="flex items-center justify-center mb-4">
+      <Card className="w-full max-w-lg relative z-10 bg-background/40 backdrop-blur-3xl border border-white/10 shadow-2xl rounded-[32px] animate-fade-in overflow-hidden">
+        <CardHeader className="space-y-6 pb-8 text-center pt-12">
+          {/* Logo with glow */}
+          <div className="flex items-center justify-center mb-2">
             <div className="relative">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-accent flex items-center justify-center font-black text-3xl text-white shadow-glow animate-scale-in">
+              <div className="absolute inset-0 bg-gradient-accent blur-2xl opacity-40 rounded-full"></div>
+              <div className="relative w-24 h-24 rounded-[28px] bg-gradient-accent flex items-center justify-center font-black text-4xl text-white shadow-2xl animate-scale-in">
                 QC
-              </div>
-              <div className="absolute -top-1 -right-1 w-8 h-8 bg-success rounded-full flex items-center justify-center shadow-glass-md">
-                <Shield className="w-4 h-4 text-white" />
               </div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl font-black tracking-tight text-foreground">
+          {/* Title */}
+          <div className="space-y-3">
+            <h1 className="text-4xl font-black tracking-tight text-foreground">
               {isLogin ? "Welcome Back" : "Join The Quantum Club"}
             </h1>
-            <p className="text-sm text-muted-foreground font-medium">
-              {isLogin
-                ? "Sign in to your exclusive account"
-                : "Create your invite-only account"}
-            </p>
+            <div className="flex items-center justify-center gap-2">
+              <Lock className="w-4 h-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground font-semibold tracking-wide">
+                INVITE ONLY • GEBRUIK JE PERSOONLIJKE CODE
+              </p>
+            </div>
           </div>
-
-          {/* Invite-only badge */}
-          {!isLogin && !inviteCode && (
-            <Alert className="glass-subtle border-primary/30">
-              <Lock className="h-4 w-4 text-primary" />
-              <AlertDescription className="text-sm font-medium">
-                <span className="text-primary font-semibold">Invite Only:</span> The Quantum Club is an exclusive platform. Please request an invitation from an existing member.
-              </AlertDescription>
-            </Alert>
-          )}
 
           {/* Valid invite indicator */}
           {inviteValid && inviteInfo && (
-            <div className="p-4 rounded-xl glass-subtle space-y-2 text-left">
-              <div className="flex items-center gap-2">
+            <div className="p-4 rounded-2xl bg-success/10 border border-success/20 backdrop-blur-sm space-y-2">
+              <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
-                <p className="text-sm font-semibold text-foreground">Valid Invitation</p>
+                <p className="text-sm font-bold text-success">Valid Invitation</p>
               </div>
               <p className="text-xs text-muted-foreground">
                 Invited by {inviteInfo.profiles?.full_name || "a member"}
               </p>
             </div>
           )}
+
+          {inviteValid === false && (
+            <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
+              <AlertDescription className="text-sm font-medium text-destructive text-center">
+                Invalid or expired invite code
+              </AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
 
-        <CardContent className="pt-2">
-          <form onSubmit={handleEmailAuth} className="space-y-4">
+        <CardContent className="pt-2 px-8 pb-10">
+          <form onSubmit={handleEmailAuth} className="space-y-5">
             {!isLogin && (
-              <div className="space-y-2">
+              <div>
                 <Input
                   type="text"
                   placeholder="Full Name"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="glass-subtle border-border/30 h-12 rounded-xl font-medium"
+                  className="h-14 bg-background/60 border-white/10 rounded-2xl font-medium text-base placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
             )}
 
-            <div className="space-y-2">
+            <div>
               <Input
                 type="email"
                 placeholder="Email Address"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="glass-subtle border-border/30 h-12 rounded-xl font-medium"
+                className="h-14 bg-background/60 border-white/10 rounded-2xl font-medium text-base placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <Input
                 type="password"
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="glass-subtle border-border/30 h-12 rounded-xl font-medium"
+                className="h-14 bg-background/60 border-white/10 rounded-2xl font-medium text-base placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
               />
               {!isLogin && password && (
-                <div className="text-xs space-y-1.5 mt-3 p-4 rounded-xl glass-subtle">
-                  <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground"}>
+                <div className="text-xs space-y-2 mt-4 p-4 rounded-2xl bg-background/40 border border-white/5">
+                  <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground/80"}>
                     {password.length >= 12 ? "✓" : "○"} At least 12 characters
                   </p>
-                  <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                  <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground/80"}>
                     {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
                   </p>
-                  <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                  <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground/80"}>
                     {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
                   </p>
-                  <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                  <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground/80"}>
                     {/[0-9]/.test(password) ? "✓" : "○"} One number
                   </p>
-                  <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                  <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground/80"}>
                     {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
                   </p>
                 </div>
@@ -291,88 +294,81 @@ const Auth = () => {
             </div>
 
             {!isLogin && (
-              <div className="space-y-2">
+              <div>
                 <Input
                   type="password"
                   placeholder="Confirm Password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="glass-subtle border-border/30 h-12 rounded-xl font-medium"
+                  className="h-14 bg-background/60 border-white/10 rounded-2xl font-medium text-base placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
             )}
 
+            {/* Main CTA Button */}
             <Button
               type="submit"
-              variant="gradient"
-              size="lg"
-              className="w-full font-bold mt-6"
+              className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary/90 to-accent/90 hover:from-primary hover:to-accent text-white font-bold text-lg shadow-2xl shadow-primary/20 mt-8 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               disabled={isLoading || (inviteCode && !isLogin && inviteValid === false)}
             >
               {isLoading ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <span className="flex items-center gap-3">
+                  <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
                   Loading...
                 </span>
               ) : isLogin ? (
                 "Sign In"
               ) : (
-                <>
-                  Create Account
-                  <Sparkles className="w-4 h-4" />
-                </>
+                <span className="flex items-center gap-2">
+                  Get Started
+                  <Sparkles className="w-5 h-5" />
+                </span>
               )}
             </Button>
 
             {/* Social Login Section */}
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/30"></div>
+                <div className="w-full border-t border-white/10"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-card px-3 text-muted-foreground font-semibold">Coming Soon</span>
+                <span className="bg-background/60 backdrop-blur-sm px-4 py-1 rounded-full text-muted-foreground/60 font-bold tracking-wider">
+                  Coming Soon
+                </span>
               </div>
             </div>
 
-            <div className="space-y-3">
-              <Button
+            {/* Circular Social Buttons */}
+            <div className="flex items-center justify-center gap-4">
+              <button
                 type="button"
-                variant="glass"
-                size="lg"
-                className="w-full font-semibold opacity-50 cursor-not-allowed"
+                className="w-14 h-14 rounded-full bg-background/60 border border-white/10 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/80"
                 disabled
               >
-                <FaGoogle className="w-5 h-5" />
-                Continue with Google
-              </Button>
+                <FaGoogle className="w-5 h-5 text-foreground" />
+              </button>
 
-              <Button
+              <button
                 type="button"
-                variant="glass"
-                size="lg"
-                className="w-full font-semibold opacity-50 cursor-not-allowed"
+                className="w-14 h-14 rounded-full bg-background/60 border border-white/10 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/80"
                 disabled
               >
-                <Apple className="w-5 h-5" />
-                Continue with Apple
-              </Button>
+                <Apple className="w-6 h-6 text-foreground" />
+              </button>
 
-              <Button
+              <button
                 type="button"
-                variant="glass"
-                size="lg"
-                className="w-full font-semibold opacity-50 cursor-not-allowed"
+                className="w-14 h-14 rounded-full bg-background/60 border border-white/10 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/80"
                 disabled
               >
-                <FaLinkedin className="w-5 h-5" />
-                Continue with LinkedIn
-              </Button>
+                <FaLinkedin className="w-5 h-5 text-foreground" />
+              </button>
             </div>
           </form>
 
           {!inviteCode && (
-            <div className="text-center text-sm pt-6">
+            <div className="text-center text-sm pt-8 pb-4">
               <button
                 type="button"
                 onClick={() => {
@@ -380,7 +376,7 @@ const Auth = () => {
                   setPassword("");
                   setConfirmPassword("");
                 }}
-                className="text-foreground hover:text-primary font-semibold transition-colors duration-200"
+                className="text-muted-foreground hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline"
               >
                 {isLogin
                   ? "Need an account? Request invite"
