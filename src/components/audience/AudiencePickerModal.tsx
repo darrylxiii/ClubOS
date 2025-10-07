@@ -19,7 +19,15 @@ interface AudiencePickerModalProps {
 }
 
 export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: AudiencePickerModalProps) => {
-  const [selectedType, setSelectedType] = useState<AudienceType>(value.type);
+  const [showMore, setShowMore] = useState(false);
+  
+  // Load last used preference from localStorage, default to best_friends
+  const getInitialType = (): AudienceType => {
+    const lastUsed = localStorage.getItem('lastAudienceType');
+    return (lastUsed as AudienceType) || value.type || 'best_friends';
+  };
+  
+  const [selectedType, setSelectedType] = useState<AudienceType>(getInitialType());
   const [selectedListIds, setSelectedListIds] = useState<string[]>(value.customListIds || []);
   const [multiSelect, setMultiSelect] = useState({
     company: value.multiSelect?.company || false,
@@ -81,6 +89,9 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
   };
 
   const handleSave = () => {
+    // Save last used preference to localStorage
+    localStorage.setItem('lastAudienceType', selectedType);
+    
     onChange({
       type: selectedType,
       customListIds: selectedType === 'custom' ? selectedListIds : undefined,
@@ -93,36 +104,45 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
 
   const audienceOptions = [
     {
+      value: 'best_friends' as AudienceType,
+      label: 'Best Friends',
+      description: 'Your most trusted contacts',
+      icon: Heart,
+      primary: true,
+    },
+    {
       value: 'connections' as AudienceType,
-      label: 'Connections Only',
+      label: 'Audience',
       description: 'Your Quantum Club connections',
       icon: Users,
+      primary: false,
     },
     {
       value: 'company_internal' as AudienceType,
       label: 'Internal (Company)',
       description: 'Only visible to your company members',
       icon: Building2,
-    },
-    {
-      value: 'best_friends' as AudienceType,
-      label: 'Best Friends',
-      description: 'Your most trusted contacts',
-      icon: Heart,
+      primary: false,
     },
     {
       value: 'custom' as AudienceType,
       label: 'Custom Lists',
       description: 'Select from your saved lists',
       icon: List,
+      primary: false,
     },
     {
       value: 'public' as AudienceType,
       label: 'Public',
       description: 'All club members',
       icon: Globe,
+      primary: false,
     },
   ];
+
+  const primaryOptions = audienceOptions.filter(opt => opt.primary);
+  const additionalOptions = audienceOptions.filter(opt => !opt.primary);
+  const visibleOptions = showMore ? audienceOptions : primaryOptions;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -137,7 +157,7 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
         <div className="space-y-6 py-4">
           <RadioGroup value={selectedType} onValueChange={(v) => setSelectedType(v as AudienceType)}>
             <div className="space-y-3">
-              {audienceOptions.map((option) => {
+              {visibleOptions.map((option) => {
                 const Icon = option.icon;
                 return (
                   <div
@@ -159,6 +179,17 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
                   </div>
                 );
               })}
+              
+              {!showMore && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setShowMore(true)}
+                  className="w-full text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Show More Options
+                </Button>
+              )}
             </div>
           </RadioGroup>
 

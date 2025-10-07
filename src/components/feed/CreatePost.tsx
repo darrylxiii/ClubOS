@@ -29,7 +29,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [showPollCreator, setShowPollCreator] = useState(false);
   const [pollData, setPollData] = useState<any>(null);
   const [audienceSelection, setAudienceSelection] = useState<AudienceSelection>({
-    type: 'connections',
+    type: 'best_friends',
   });
 
   useEffect(() => {
