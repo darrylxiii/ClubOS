@@ -20,7 +20,8 @@ import {
   TrendingUp,
   Users,
   CheckCircle2,
-  Shield
+  Shield,
+  Edit2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -28,6 +29,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { CreateConversationDialog } from "@/components/messages/CreateConversationDialog";
 import { ProfileActionButtons } from "@/components/profile/ProfileActionButtons";
 import { ProfileActionDialogs } from "@/components/profile/ProfileActionDialogs";
+import { InlineEdit } from "@/components/profile/InlineEdit";
+import { ProfileAuditTrail } from "@/components/profile/ProfileAuditTrail";
+import { ProfilePreview } from "@/components/profile/ProfilePreview";
 
 interface UserProfile {
   id: string;
@@ -62,6 +66,8 @@ export default function PublicUserProfile() {
   });
   const [meetingType, setMeetingType] = useState<string>();
   const [exportType, setExportType] = useState<string>();
+  const [editHistory, setEditHistory] = useState<any[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Track profile visit
   useEffect(() => {
@@ -179,6 +185,48 @@ export default function PublicUserProfile() {
     handleDialogClose(dialog);
   };
 
+  const handleProfileUpdate = async (field: string, value: string, visibility?: string) => {
+    try {
+      const updates: any = { [field]: value };
+      
+      const { error } = await supabase
+        .from("profiles")
+        .update(updates)
+        .eq("id", userId);
+
+      if (error) throw error;
+
+      // Log edit to history
+      setEditHistory(prev => [{
+        id: Date.now().toString(),
+        timestamp: new Date(),
+        user: user?.email || "You",
+        field,
+        oldValue: (profile as any)?.[field] || "",
+        newValue: value,
+        visibility,
+      }, ...prev]);
+
+      // Reload profile
+      await loadProfile();
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  };
+
+  const handleRestoreEdit = async (editId: string) => {
+    const edit = editHistory.find(e => e.id === editId);
+    if (!edit) return;
+
+    try {
+      await handleProfileUpdate(edit.field, edit.oldValue);
+      toast.success("Restored previous version");
+    } catch (error) {
+      toast.error("Failed to restore");
+    }
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -216,18 +264,34 @@ export default function PublicUserProfile() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-gradient-subtle">
-        {/* Back Navigation */}
+        {/* Back Navigation & Edit Mode Toggle */}
         <div className="max-w-5xl mx-auto px-4 pt-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="mb-4 group"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            {location.state?.from === 'messages' ? 'Back to Conversation' : 
-             location.state?.from === 'feed' ? 'Back to Feed' : 'Back'}
-          </Button>
+          <div className="flex items-center justify-between mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              className="group"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+              {location.state?.from === 'messages' ? 'Back to Conversation' : 
+               location.state?.from === 'feed' ? 'Back to Feed' : 'Back'}
+            </Button>
+
+            {isOwnProfile && (
+              <div className="flex items-center gap-2">
+                <ProfilePreview profile={profile!} achievements={achievements} />
+                <Button
+                  variant={isEditMode ? "default" : "outline"}
+                  onClick={() => setIsEditMode(!isEditMode)}
+                  className="gap-2"
+                >
+                  <Edit2 className="w-4 h-4" />
+                  {isEditMode ? "Done Editing" : "Edit Profile"}
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
@@ -245,7 +309,17 @@ export default function PublicUserProfile() {
                 <div className="flex-1 space-y-4">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      <h1 className="text-4xl font-black uppercase">{profile.full_name}</h1>
+                      {isOwnProfile && isEditMode ? (
+                        <InlineEdit
+                          value={profile.full_name}
+                          onSave={(value) => handleProfileUpdate("full_name", value)}
+                          placeholder="Your name"
+                          className="text-4xl font-black uppercase"
+                          label="Full Name"
+                        />
+                      ) : (
+                        <h1 className="text-4xl font-black uppercase">{profile.full_name}</h1>
+                      )}
                       {profile.email_verified && (
                         <Badge variant="secondary" className="gap-1">
                           <CheckCircle2 className="w-3 h-3" />
@@ -253,21 +327,38 @@ export default function PublicUserProfile() {
                         </Badge>
                       )}
                     </div>
-                    {profile.current_title && (
+                    {isOwnProfile && isEditMode ? (
+                      <InlineEdit
+                        value={profile.current_title || ""}
+                        onSave={(value) => handleProfileUpdate("current_title", value)}
+                        placeholder="Your professional title"
+                        className="text-lg text-muted-foreground"
+                        label="Professional Title"
+                        showPrivacy
+                        currentVisibility="public"
+                      />
+                    ) : profile.current_title ? (
                       <p className="text-lg text-muted-foreground flex items-center gap-2">
                         <Briefcase className="w-4 h-4" />
                         {profile.current_title}
                       </p>
-                    )}
+                    ) : null}
                   </div>
 
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    {profile.location && (
+                    {isOwnProfile && isEditMode ? (
+                      <InlineEdit
+                        value={profile.location || ""}
+                        onSave={(value) => handleProfileUpdate("location", value)}
+                        placeholder="Your location"
+                        label="Location"
+                      />
+                    ) : profile.location ? (
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
                         {profile.location}
                       </div>
-                    )}
+                    ) : null}
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
                       Member since {new Date(profile.created_at).getFullYear()}
@@ -316,7 +407,7 @@ export default function PublicUserProfile() {
           )}
 
           {/* Career Preferences */}
-          {profile.career_preferences && (
+          {(profile.career_preferences || (isOwnProfile && isEditMode)) && (
             <Card className="border-2 border-foreground">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -325,11 +416,32 @@ export default function PublicUserProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                  {profile.career_preferences}
-                </p>
+                {isOwnProfile && isEditMode ? (
+                  <InlineEdit
+                    value={profile.career_preferences || ""}
+                    onSave={(value) => handleProfileUpdate("career_preferences", value)}
+                    placeholder="Describe your career interests, goals, and what you're looking for..."
+                    type="textarea"
+                    label="Career Preferences"
+                    showPrivacy
+                    currentVisibility="public"
+                    aiSuggestion="I'm passionate about building innovative products that solve real problems. Looking for opportunities in tech leadership where I can mentor teams and drive strategic growth."
+                  />
+                ) : (
+                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                    {profile.career_preferences}
+                  </p>
+                )}
               </CardContent>
             </Card>
+          )}
+
+          {/* Edit History - Only for own profile */}
+          {isOwnProfile && editHistory.length > 0 && (
+            <ProfileAuditTrail
+              edits={editHistory}
+              onRestore={handleRestoreEdit}
+            />
           )}
 
           {/* Achievements */}
