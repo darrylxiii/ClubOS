@@ -2890,35 +2890,44 @@ export type Database = {
       }
       posts: {
         Row: {
+          ai_summary: string | null
           company_id: string | null
           content: string
           created_at: string
           id: string
+          is_public: boolean | null
           media_urls: Json | null
           poll_options: Json | null
           poll_question: string | null
+          summary_generated_at: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          ai_summary?: string | null
           company_id?: string | null
           content: string
           created_at?: string
           id?: string
+          is_public?: boolean | null
           media_urls?: Json | null
           poll_options?: Json | null
           poll_question?: string | null
+          summary_generated_at?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          ai_summary?: string | null
           company_id?: string | null
           content?: string
           created_at?: string
           id?: string
+          is_public?: boolean | null
           media_urls?: Json | null
           poll_options?: Json | null
           poll_question?: string | null
+          summary_generated_at?: string | null
           updated_at?: string
           user_id?: string | null
         }

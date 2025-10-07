@@ -205,18 +205,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
 
       if (error) throw error;
 
-      // Save audience settings
-      if (newPost) {
-        await (supabase as any).from('post_audience_settings').insert({
-          post_id: newPost.id,
-          post_type: 'user_post',
-          audience_type: audienceSelection.type,
-          custom_list_ids: audienceSelection.customListIds || [],
-          allow_company_internal: audienceSelection.multiSelect?.company || false,
-          allow_connections: audienceSelection.multiSelect?.connections || false,
-          allow_best_friends: audienceSelection.multiSelect?.bestFriends || false,
-          allow_public: audienceSelection.type === 'public',
-        });
+      // Generate AI summary in background (don't wait for it)
+      if (content.trim().length > 50 && newPost) {
+        supabase.functions.invoke('generate-post-summary', {
+          body: { postId: newPost.id, content: content.trim() }
+        }).catch(err => console.error('Error generating summary:', err));
       }
 
       setContent("");

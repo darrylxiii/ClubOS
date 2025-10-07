@@ -4,7 +4,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { MessageCircle, Share2, MoreHorizontal, FileText, Bookmark, Trash2, Edit, Copy, Flag, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { MessageCircle, Share2, MoreHorizontal, FileText, Bookmark, Trash2, Edit, Copy, Flag, Mail, ChevronLeft, ChevronRight, Sparkles, ChevronDown, Twitter, Linkedin, Send, Flame } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { PostComments } from "./PostComments";
 import { CreateConversationDialog } from "@/components/messages/CreateConversationDialog";
@@ -15,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { UserProfilePreview } from "@/components/UserProfilePreview";
 import { CompanyProfilePreview } from "@/components/CompanyProfilePreview";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { LazyMedia } from "./LazyMedia";
 import { toast } from "@/hooks/use-toast";
 
 interface PostCardProps {
@@ -37,6 +40,9 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const [pollTotalVotes, setPollTotalVotes] = useState(0);
+  const [showSummary, setShowSummary] = useState(false);
+  const [userStreak, setUserStreak] = useState<number | null>(null);
+  const [shareMenuOpen, setShareMenuOpen] = useState(false);
 
   const author = post.profiles || post.companies;
   const authorName = author?.full_name || author?.name || "Unknown";
@@ -51,7 +57,34 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
     if (hasPoll) {
       fetchPollVotes();
     }
-  }, [post.id]);
+    if (user) {
+      checkIfSaved();
+      fetchUserStreak();
+    }
+  }, [post.id, user]);
+
+  const checkIfSaved = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('saved_posts')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('post_id', post.id)
+      .single();
+    setIsSaved(!!data);
+  };
+
+  const fetchUserStreak = async () => {
+    if (!post.user_id) return;
+    const { data } = await supabase
+      .from('user_engagement')
+      .select('current_streak')
+      .eq('user_id', post.user_id)
+      .single();
+    if (data) {
+      setUserStreak(data.current_streak);
+    }
+  };
 
   const fetchPollVotes = async () => {
     const { data } = await supabase
@@ -90,27 +123,77 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
     }
   };
 
-  const handleSave = () => {
-    setIsSaved(!isSaved);
-    toast({
-      title: isSaved ? "Removed from saved" : "Saved",
-      description: isSaved ? "Post removed from your saved items" : "Post saved to your collection"
-    });
+  const handleSave = async () => {
+    if (!user) {
+      toast({ title: "Please sign in to save posts", variant: "destructive" });
+      return;
+    }
+
+    try {
+      if (isSaved) {
+        await supabase
+          .from('saved_posts')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('post_id', post.id);
+        setIsSaved(false);
+        toast({ title: "Removed from saved" });
+      } else {
+        await supabase
+          .from('saved_posts')
+          .insert({ user_id: user.id, post_id: post.id });
+        setIsSaved(true);
+        toast({ title: "Post saved" });
+      }
+    } catch (error) {
+      toast({ title: "Error saving post", variant: "destructive" });
+    }
   };
 
-  const handleShare = async () => {
+  const getShareUrl = () => {
+    const baseUrl = window.location.origin;
+    return `${baseUrl}/post/${post.id}`;
+  };
+
+  const handleShare = async (platform?: 'twitter' | 'linkedin' | 'whatsapp') => {
+    const shareUrl = getShareUrl();
+    const shareText = post.content.substring(0, 100) + (post.content.length > 100 ? '...' : '');
+
+    if (platform === 'twitter') {
+      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+      trackShare('twitter');
+    } else if (platform === 'linkedin') {
+      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
+      trackShare('linkedin');
+    } else if (platform === 'whatsapp') {
+      window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`, '_blank');
+      trackShare('whatsapp');
+    } else {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Link copied",
+          description: "Share this post with others"
+        });
+        trackShare('copy');
+      } catch (error) {
+        toast({
+          title: "Failed to copy",
+          variant: "destructive"
+        });
+      }
+    }
+  };
+
+  const trackShare = async (platform: string) => {
     try {
-      await navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copied",
-        description: "Post link copied to clipboard"
+      await supabase.from('post_shares').insert({
+        post_id: post.id,
+        shared_by: user?.id || null,
+        share_platform: platform
       });
     } catch (error) {
-      toast({
-        title: "Failed to copy",
-        description: "Please try again.",
-        variant: "destructive"
-      });
+      console.error('Error tracking share:', error);
     }
   };
 
@@ -196,7 +279,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   <Bookmark className="w-4 h-4 mr-2" />
                   {isSaved ? "Remove from saved" : "Save post"}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleShare}>
+                <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare(); }}>
                   <Copy className="w-4 h-4 mr-2" />
                   Copy link
                 </DropdownMenuItem>
@@ -226,7 +309,36 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             </DropdownMenu>
           </div>
           
+          <div className="flex items-center gap-2 mb-2">
+            {userStreak && userStreak >= 3 && (
+              <Badge variant="secondary" className="gap-1">
+                <Flame className="w-3 h-3" />
+                {userStreak} day streak
+              </Badge>
+            )}
+          </div>
+
           <p className="mt-3 whitespace-pre-wrap">{post.content}</p>
+
+          {/* AI Summary */}
+          {post.ai_summary && (
+            <Collapsible open={showSummary} onOpenChange={setShowSummary} className="mt-3">
+              <div className="flex items-center gap-2">
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    AI Summary
+                    <ChevronDown className={`w-4 h-4 transition-transform ${showSummary ? 'rotate-180' : ''}`} />
+                  </Button>
+                </CollapsibleTrigger>
+              </div>
+              <CollapsibleContent className="mt-2">
+                <div className="p-3 bg-muted/50 rounded-lg border border-border/50">
+                  <p className="text-sm text-muted-foreground italic">{post.ai_summary}</p>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          )}
           
           {/* Media Carousel */}
           {mediaUrls.length > 0 && (
@@ -260,18 +372,20 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 return (
                   <div key={index} className="relative">
                     {media.type === 'image' ? (
-                      <img 
-                        src={media.url} 
+                      <LazyMedia
+                        src={media.url}
                         alt={media.name || `Media ${index + 1}`}
-                        className="w-full max-h-[500px] object-contain rounded-lg bg-muted"
+                        type="image"
+                        className="w-full max-h-[500px] rounded-lg bg-muted"
                       />
                     ) : media.type === 'video' ? (
-                      <video 
+                      <LazyMedia
                         src={media.url}
-                        controls
+                        type="video"
                         autoPlay
                         muted
                         loop
+                        controls
                         className="w-full max-h-[500px] rounded-lg"
                       />
                     ) : (
@@ -351,10 +465,33 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 </Button>
               )}
               
-              <Button variant="ghost" size="sm" onClick={handleShare}>
-                <Share2 className="w-4 h-4 mr-2" />
-                <span className="text-sm">Share</span>
-              </Button>
+              <DropdownMenu open={shareMenuOpen} onOpenChange={setShareMenuOpen}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    <span className="text-sm">Share</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare('twitter'); }}>
+                    <Twitter className="w-4 h-4 mr-2" />
+                    Share on Twitter
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare('linkedin'); }}>
+                    <Linkedin className="w-4 h-4 mr-2" />
+                    Share on LinkedIn
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare('whatsapp'); }}>
+                    <Send className="w-4 h-4 mr-2" />
+                    Share on WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare(); }}>
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy link
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
             
             <div className="flex items-center gap-1">

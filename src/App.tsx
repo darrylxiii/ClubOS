@@ -30,6 +30,7 @@ import JobDashboard from "./pages/JobDashboard";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import Feed from "./pages/Feed";
+import Post from "./pages/Post";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import SocialFeed from "./pages/SocialFeed";
@@ -226,6 +227,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/post/:id" element={<Post />} />
             <Route
               path="/settings"
               element={
