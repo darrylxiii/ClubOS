@@ -34,15 +34,39 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     type: 'best_friends',
   });
   const [showAudienceModal, setShowAudienceModal] = useState(false);
+  const [companyName, setCompanyName] = useState<string | null>(null);
+  const [lastUsedAudience, setLastUsedAudience] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
+      // Fetch profile and company info
       supabase
         .from('profiles')
-        .select('full_name, avatar_url')
+        .select('full_name, avatar_url, company_id')
         .eq('id', user.id)
         .single()
-        .then(({ data }) => setProfile(data));
+        .then(async ({ data: profileData }) => {
+          setProfile(profileData);
+          
+          // Fetch company name if company_id exists
+          if (profileData?.company_id) {
+            const { data: companyData } = await supabase
+              .from('companies')
+              .select('name')
+              .eq('id', profileData.company_id)
+              .single();
+            
+            if (companyData) {
+              setCompanyName(companyData.name);
+            }
+          }
+        });
+      
+      // Load last used audience from localStorage
+      const saved = localStorage.getItem('lastUsedAudience');
+      if (saved) {
+        setLastUsedAudience(saved);
+      }
     }
   }, [user]);
 
@@ -126,6 +150,12 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     });
 
     return await Promise.all(uploadPromises);
+  };
+
+  const handleAudienceSelect = (type: AudienceSelection['type']) => {
+    setAudienceSelection({ type });
+    localStorage.setItem('lastUsedAudience', type);
+    setLastUsedAudience(type);
   };
 
   const handlePost = async () => {
@@ -337,25 +367,126 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             </div>
             
             <div className="group/audience flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setAudienceSelection({ type: 'best_friends' })}
-                className="gap-2"
-              >
-                <Heart className="w-4 h-4" />
-                Best Friends
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowAudienceModal(true)}
-                className="gap-2 opacity-0 group-hover/audience:opacity-100 transition-opacity"
-              >
-                <MoreHorizontal className="w-4 h-4" />
-                More
-              </Button>
+              {/* Audience buttons - shown on hover, ordered by last used */}
+              <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity">
+                {/* Dynamically ordered buttons based on lastUsedAudience */}
+                {lastUsedAudience === 'best_friends' ? (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('best_friends')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Best Friends
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('company_internal')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Building className="w-4 h-4" />
+                      {companyName || 'Company'}
+                    </Button>
+                  </>
+                ) : lastUsedAudience === 'company_internal' ? (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('company_internal')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Building className="w-4 h-4" />
+                      {companyName || 'Company'}
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('best_friends')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Best Friends
+                    </Button>
+                  </>
+                ) : lastUsedAudience === 'connections' ? (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('connections')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <UserCircle className="w-4 h-4" />
+                      Connections
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('best_friends')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Best Friends
+                    </Button>
+                  </>
+                ) : lastUsedAudience === 'public' ? (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('public')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Globe className="w-4 h-4" />
+                      Public
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('best_friends')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Best Friends
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('best_friends')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Best Friends
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleAudienceSelect('company_internal')}
+                      className="gap-2 whitespace-nowrap"
+                    >
+                      <Building className="w-4 h-4" />
+                      {companyName || 'Company'}
+                    </Button>
+                  </>
+                )}
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowAudienceModal(true)}
+                  className="gap-2 whitespace-nowrap"
+                >
+                  <MoreHorizontal className="w-4 h-4" />
+                  More
+                </Button>
+              </div>
               
               <Button 
                 variant="ghost" 
@@ -405,7 +536,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         isOpen={showAudienceModal}
         onClose={() => setShowAudienceModal(false)}
         value={audienceSelection}
-        onChange={setAudienceSelection}
+        onChange={(selection) => {
+          setAudienceSelection(selection);
+          localStorage.setItem('lastUsedAudience', selection.type);
+          setLastUsedAudience(selection.type);
+        }}
       />
     </Card>
   );
