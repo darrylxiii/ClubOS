@@ -1,5 +1,8 @@
 import { AppLayout } from "@/components/AppLayout";
+import { RoleGate } from "@/components/RoleGate";
 import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -16,6 +19,19 @@ const SocialManagement = () => {
 
   return (
     <AppLayout>
+      <RoleGate 
+        allowedRoles={['partner', 'admin']} 
+        fallback={
+          <div className="container mx-auto px-4 py-8">
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                You don't have permission to access Social Media Management. This feature is available for Partners and Admins only.
+              </AlertDescription>
+            </Alert>
+          </div>
+        }
+      >
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
           {/* Header */}
@@ -129,8 +145,9 @@ const SocialManagement = () => {
         </div>
       </div>
 
-      {/* Create Post Dialog */}
-      <CreatePostDialog open={showCreatePost} onOpenChange={setShowCreatePost} />
+        {/* Create Post Dialog */}
+        <CreatePostDialog open={showCreatePost} onOpenChange={setShowCreatePost} />
+      </RoleGate>
     </AppLayout>
   );
 };

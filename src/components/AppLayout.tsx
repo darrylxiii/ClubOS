@@ -73,7 +73,6 @@ const candidateNavigationGroups = [
     icon: Share2,
     items: [
       { name: "Social Feed", icon: Share2, path: "/social-feed" },
-      { name: "Management", icon: BarChart3, path: "/social-management" },
     ],
   },
   {
@@ -124,6 +123,14 @@ const partnerNavigationGroups = [
     ],
   },
   {
+    title: "Social Media",
+    icon: Share2,
+    items: [
+      { name: "Social Feed", icon: Share2, path: "/social-feed" },
+      { name: "Management", icon: BarChart3, path: "/social-management" },
+    ],
+  },
+  {
     title: "Communication",
     icon: MessageSquare,
     items: [
@@ -167,6 +174,14 @@ const adminNavigationGroups = [
       { name: "Companies", icon: Building, path: "/companies" },
       { name: "Jobs", icon: Briefcase, path: "/jobs" },
       { name: "Applications", icon: FileText, path: "/applications" },
+    ],
+  },
+  {
+    title: "Social Media",
+    icon: Share2,
+    items: [
+      { name: "Social Feed", icon: Share2, path: "/social-feed" },
+      { name: "Management", icon: BarChart3, path: "/social-management" },
     ],
   },
   {
