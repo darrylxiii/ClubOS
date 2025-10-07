@@ -57,14 +57,14 @@ export const MessageBubble = ({
   return (
     <div
       className={cn(
-        "flex gap-3 mb-4 group",
+        "flex gap-3 mb-4 group animate-fade-in",
         isCurrentUser ? "flex-row-reverse" : "flex-row"
       )}
     >
       {!isCurrentUser && (
-        <Avatar className="h-8 w-8 flex-shrink-0">
+        <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-background shadow-glass-sm">
           <AvatarImage src={message.sender?.avatar_url || undefined} />
-          <AvatarFallback className="text-xs bg-primary/10 text-primary">
+          <AvatarFallback className="text-xs bg-gradient-accent text-white">
             {initials}
           </AvatarFallback>
         </Avatar>
@@ -80,10 +80,10 @@ export const MessageBubble = ({
         <div className="relative">
           <div
             className={cn(
-              "rounded-2xl px-4 py-2 shadow-sm backdrop-blur-sm",
+              "rounded-2xl px-4 py-3 shadow-glass-md backdrop-blur-sm transition-all hover:shadow-glass-lg",
               isCurrentUser
-                ? "bg-primary text-primary-foreground"
-                : "bg-accent text-accent-foreground border border-border/50"
+                ? "bg-gradient-accent text-white"
+                : "glass border border-border/50"
             )}
           >
             {message.media_url && (

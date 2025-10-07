@@ -8,12 +8,11 @@ import {
   Search,
   Plus,
   MessageCircle,
-  Sparkles,
   Phone,
   Video,
-  Pin,
-  Archive,
+  Info,
   Users,
+  ArrowLeft,
 } from 'lucide-react';
 import { useMessages } from '@/hooks/useMessages';
 import { CreateConversationDialog } from '@/components/messages/CreateConversationDialog';
@@ -21,16 +20,22 @@ import { ConversationListItem } from '@/components/messages/ConversationListItem
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { MessageComposer } from '@/components/messages/MessageComposer';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
+import { GroupInfoPanel } from '@/components/messages/GroupInfoPanel';
 import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useNavigate } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 
 export default function Messages() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -69,16 +74,16 @@ export default function Messages() {
 
   if (!loading && conversations.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <Card className="max-w-md w-full p-8 text-center space-y-6">
-          <div className="mx-auto w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-            <MessageCircle className="h-10 w-10 text-primary" />
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-accent/5">
+        <Card className="max-w-md w-full p-8 text-center space-y-6 glass-card animate-scale-in">
+          <div className="mx-auto w-20 h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
+            <MessageCircle className="h-10 w-10 text-white" />
           </div>
           <div>
             <h2 className="text-2xl font-bold mb-2">Welcome to Messages</h2>
             <p className="text-muted-foreground">Start conversations with your network</p>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="w-full">
+          <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="w-full shadow-glass-md hover:shadow-glass-lg transition-shadow">
             <Plus className="h-5 w-5 mr-2" />
             Start Your First Conversation
           </Button>
@@ -93,21 +98,37 @@ export default function Messages() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background">
-      <div className="w-80 border-r flex flex-col bg-card/50">
-        <div className="p-4 border-b">
+    <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background to-accent/5">
+      {/* Conversation List Panel */}
+      <div 
+        className={cn(
+          "w-80 border-r border-border/50 flex flex-col glass-strong transition-transform duration-300",
+          "lg:translate-x-0",
+          showMobileSidebar ? "translate-x-0" : "-translate-x-full absolute lg:relative z-20 h-full"
+        )}
+      >
+        <div className="p-4 border-b border-border/50 bg-card/30 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <MessageCircle className="h-5 w-5 text-primary" />
               Messages
             </h2>
-            <Button size="icon" onClick={() => setCreateDialogOpen(true)} className="rounded-full">
+            <Button 
+              size="icon" 
+              onClick={() => setCreateDialogOpen(true)} 
+              className="rounded-full shadow-glass-md hover:shadow-glow transition-all bg-gradient-accent"
+            >
               <Plus className="h-5 w-5" />
             </Button>
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
+            <Input 
+              placeholder="Search conversations..." 
+              value={searchQuery} 
+              onChange={(e) => setSearchQuery(e.target.value)} 
+              className="pl-9 glass-subtle border-border/50"
+            />
           </div>
         </div>
         <ScrollArea className="flex-1">
@@ -117,52 +138,143 @@ export default function Messages() {
                 key={conv.id}
                 conversation={conv as any}
                 isSelected={conv.id === selectedConversationId}
-                onClick={() => setSelectedConversationId(conv.id)}
+                onClick={() => {
+                  setSelectedConversationId(conv.id);
+                  setShowMobileSidebar(false);
+                }}
               />
             ))}
           </div>
         </ScrollArea>
       </div>
 
-      <div className="flex-1 flex flex-col">
+      {/* Main Chat Panel */}
+      <div className="flex-1 flex flex-col min-w-0">
         {selectedConversationId && selectedConversation ? (
           <>
-            <div className="h-16 border-b bg-card/50 px-6 flex items-center justify-between">
+            {/* Chat Header */}
+            <div className="h-16 border-b border-border/50 glass px-6 flex items-center justify-between shadow-glass-sm">
               <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={isGroup ? selectedConversation.metadata?.group_avatar : selectedConversation.participants?.[0]?.profile?.avatar_url || undefined} />
-                  <AvatarFallback>{isGroup ? <Users className="h-5 w-5" /> : selectedConversation.title.slice(0, 2).toUpperCase()}</AvatarFallback>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="lg:hidden"
+                  onClick={() => setShowMobileSidebar(true)}
+                >
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+                <Avatar className="h-10 w-10 ring-2 ring-background shadow-glass-sm">
+                  <AvatarImage 
+                    src={
+                      isGroup 
+                        ? selectedConversation.metadata?.group_avatar 
+                        : selectedConversation.participants?.[0]?.profile?.avatar_url || undefined
+                    } 
+                  />
+                  <AvatarFallback className="bg-gradient-accent text-white">
+                    {isGroup ? <Users className="h-5 w-5" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div>
                   <h3 className="font-semibold">{selectedConversation.title}</h3>
-                  {isGroup && <p className="text-xs text-muted-foreground">{selectedConversation.metadata?.participant_count || 0} members</p>}
+                  {isGroup && (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedConversation.metadata?.participant_count || 0} members
+                    </p>
+                  )}
                 </div>
               </div>
               <div className="flex gap-2">
-                <Button variant="ghost" size="icon"><Phone className="h-5 w-5" /></Button>
-                <Button variant="ghost" size="icon"><Video className="h-5 w-5" /></Button>
-                <Button variant="ghost" size="icon"><Pin className="h-5 w-5" /></Button>
+                <Button variant="ghost" size="icon" className="hover:bg-accent/50">
+                  <Phone className="h-5 w-5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="hover:bg-accent/50">
+                  <Video className="h-5 w-5" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => setShowGroupInfo(!showGroupInfo)}
+                  className={cn(
+                    "hover:bg-accent/50 transition-colors",
+                    showGroupInfo && "bg-accent text-accent-foreground"
+                  )}
+                >
+                  <Info className="h-5 w-5" />
+                </Button>
               </div>
             </div>
-            <ScrollArea className="flex-1 p-6">
-              {messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} isCurrentUser={msg.sender_id === user?.id} isGroup={isGroup} />
-              ))}
-              {typingUsers.length > 0 && <TypingIndicator typingUsers={typingUsers} />}
-              <div ref={messagesEndRef} />
+
+            {/* Messages Area */}
+            <ScrollArea className="flex-1 p-6 bg-gradient-to-b from-background/50 to-accent/5">
+              <div className="space-y-4">
+                {messages.map((msg) => (
+                  <MessageBubble 
+                    key={msg.id} 
+                    message={msg} 
+                    isCurrentUser={msg.sender_id === user?.id} 
+                    isGroup={isGroup} 
+                  />
+                ))}
+                {typingUsers.length > 0 && <TypingIndicator typingUsers={typingUsers} />}
+                <div ref={messagesEndRef} />
+              </div>
             </ScrollArea>
-            <MessageComposer conversationId={selectedConversationId} onSend={handleSendMessage} onTyping={broadcastTyping} disabled={sending} />
+
+            {/* Message Composer */}
+            <MessageComposer 
+              conversationId={selectedConversationId} 
+              onSend={handleSendMessage} 
+              onTyping={broadcastTyping} 
+              disabled={sending} 
+            />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-center">
-              <MessageCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-bold">Select a conversation</h3>
+            <div className="text-center space-y-4 animate-fade-in">
+              <div className="mx-auto w-20 h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
+                <MessageCircle className="h-10 w-10 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold mb-2">Select a conversation</h3>
+                <p className="text-muted-foreground">Choose from your existing conversations or start a new one</p>
+              </div>
             </div>
           </div>
         )}
       </div>
-      <CreateConversationDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} onConversationCreated={(id) => { setSelectedConversationId(id); loadConversations(); confetti({ particleCount: 100, spread: 70 }); }} />
+
+      {/* Group Info Panel - Desktop */}
+      {selectedConversationId && selectedConversation && showGroupInfo && (
+        <div className="hidden lg:block">
+          <GroupInfoPanel 
+            conversation={selectedConversation} 
+            onClose={() => setShowGroupInfo(false)}
+          />
+        </div>
+      )}
+
+      {/* Mobile Group Info Overlay */}
+      {selectedConversationId && selectedConversation && showGroupInfo && (
+        <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={() => setShowGroupInfo(false)}>
+          <div className="absolute right-0 top-0 bottom-0 w-80 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <GroupInfoPanel 
+              conversation={selectedConversation} 
+              onClose={() => setShowGroupInfo(false)}
+            />
+          </div>
+        </div>
+      )}
+
+      <CreateConversationDialog 
+        open={createDialogOpen} 
+        onOpenChange={setCreateDialogOpen} 
+        onConversationCreated={(id) => { 
+          setSelectedConversationId(id); 
+          loadConversations(); 
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); 
+        }} 
+      />
     </div>
   );
 }

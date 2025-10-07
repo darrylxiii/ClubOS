@@ -63,22 +63,23 @@ export const ConversationListItem = ({
     <div
       onClick={onClick}
       className={cn(
-        "flex items-start gap-3 p-4 rounded-lg cursor-pointer transition-all hover:bg-accent/50",
-        "border border-transparent hover:border-primary/20",
-        isSelected && "bg-accent border-primary/30 shadow-sm"
+        "flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all",
+        "hover:bg-gradient-to-r hover:from-accent/50 hover:to-accent/30",
+        "border border-transparent hover:border-primary/20 hover:shadow-glass-sm",
+        isSelected && "bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30 shadow-glass-md"
       )}
     >
       <div className="relative flex-shrink-0">
-        <Avatar className="h-12 w-12 ring-2 ring-background">
+        <Avatar className="h-12 w-12 ring-2 ring-background shadow-glass-sm">
           <AvatarImage src={avatarUrl || undefined} alt={displayName} />
-          <AvatarFallback className="bg-primary/10 text-primary font-medium">
+          <AvatarFallback className="bg-gradient-accent text-white font-medium">
             {isGroup ? <Users className="h-5 w-5" /> : initials}
           </AvatarFallback>
         </Avatar>
         {!!conversation.unread_count && (
           <Badge 
             variant="destructive" 
-            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs shadow-glow animate-bounce-in"
           >
             {conversation.unread_count > 9 ? "9+" : conversation.unread_count}
           </Badge>

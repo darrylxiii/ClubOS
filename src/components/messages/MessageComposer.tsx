@@ -84,7 +84,7 @@ export const MessageComposer = ({
   };
 
   return (
-    <div className="border-t border-border/50 bg-background/95 backdrop-blur-sm p-4">
+    <div className="border-t border-border/50 glass-strong p-4 shadow-glass-lg">
       {attachment && (
         <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
           <Paperclip className="h-4 w-4" />
@@ -155,7 +155,7 @@ export const MessageComposer = ({
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
           disabled={disabled || sending}
-          className="min-h-[44px] max-h-32 resize-none"
+          className="min-h-[44px] max-h-32 resize-none glass-subtle border-border/50 focus:shadow-glass-md transition-shadow"
           rows={1}
         />
 
@@ -163,7 +163,7 @@ export const MessageComposer = ({
           onClick={handleSend}
           disabled={disabled || sending || (!message.trim() && !attachment)}
           size="icon"
-          className="flex-shrink-0"
+          className="flex-shrink-0 bg-gradient-accent shadow-glass-md hover:shadow-glow transition-all"
         >
           {sending ? (
             <Loader2 className="h-5 w-5 animate-spin" />
