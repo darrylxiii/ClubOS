@@ -38,6 +38,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [lastUsedAudience, setLastUsedAudience] = useState<string | null>(null);
   const [showContentModal, setShowContentModal] = useState(false);
+  const [contentMenuOpen, setContentMenuOpen] = useState(false);
+  const [audienceMenuOpen, setAudienceMenuOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -158,6 +160,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     setAudienceSelection({ type });
     localStorage.setItem('lastUsedAudience', type);
     setLastUsedAudience(type);
+    setAudienceMenuOpen(true); // Keep menu open to show selection
   };
 
   const handlePost = async () => {
@@ -314,59 +317,143 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           
           <div className="flex items-center justify-between mt-3 pt-3 border-t flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              {/* Show first option on larger screens */}
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => handleFileSelect('image/*')}
-                disabled={loading}
-                className="gap-2 hidden sm:flex"
+              {/* Content add button with hover/click to expand */}
+              <div 
+                className="group/content relative"
+                onMouseEnter={() => setContentMenuOpen(true)}
+                onMouseLeave={() => {
+                  if (!uploadedFiles.length) setContentMenuOpen(false);
+                }}
               >
-                <Image className="w-4 h-4" />
-                Photo
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowContentModal(true)}
-                className="gap-2"
-              >
-                <MoreHorizontal className="w-4 h-4" />
-                More
-              </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="h-9 w-9 p-0 hover:bg-white/5 transition-all"
+                  onClick={() => setContentMenuOpen(!contentMenuOpen)}
+                  title="Add content"
+                >
+                  <Plus className="w-4 h-4 text-muted-foreground group-hover/content:text-foreground transition-colors" />
+                </Button>
+                
+                {/* Expandable options */}
+                {(contentMenuOpen || uploadedFiles.length > 0) && (
+                  <div className="absolute left-0 top-full mt-1 flex items-center gap-1 bg-background border rounded-lg p-1 shadow-lg z-10 animate-in fade-in slide-in-from-top-2">
+                    {uploadedFiles.length > 0 && (
+                      <div className="flex items-center gap-1 px-2 py-1 bg-accent rounded">
+                        {uploadedFiles[0].type.startsWith('image/') && <Image className="w-4 h-4" />}
+                        {uploadedFiles[0].type.startsWith('video/') && <Video className="w-4 h-4" />}
+                        <span className="text-xs">{uploadedFiles.length}</span>
+                      </div>
+                    )}
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleFileSelect('image/*')}
+                      disabled={loading}
+                      className="gap-2 whitespace-nowrap h-8"
+                    >
+                      <Image className="w-4 h-4" />
+                      Photo
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleFileSelect('video/*')}
+                      disabled={loading}
+                      className="gap-2 whitespace-nowrap h-8"
+                    >
+                      <Video className="w-4 h-4" />
+                      Video
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setShowContentModal(true)}
+                      className="gap-2 whitespace-nowrap h-8"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                      More
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="flex items-center gap-2">
-              {/* Show first audience option on larger screens */}
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => handleAudienceSelect('best_friends')}
-                className="gap-2 hidden sm:flex"
+              {/* Audience selector with hover/click to expand */}
+              <div 
+                className="group/audience relative"
+                onMouseEnter={() => setAudienceMenuOpen(true)}
+                onMouseLeave={() => {
+                  if (audienceSelection.type === 'best_friends' && !lastUsedAudience) {
+                    setAudienceMenuOpen(false);
+                  }
+                }}
               >
-                <Heart className="w-4 h-4" />
-                Best Friends
-              </Button>
-              
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowAudienceModal(true)}
-                className="gap-2"
-              >
-                <Users className="w-4 h-4" />
-                More
-              </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="h-9 w-9 p-0 hover:bg-white/5 transition-all"
+                  onClick={() => setAudienceMenuOpen(!audienceMenuOpen)}
+                  title="Audience"
+                >
+                  <Users className="w-4 h-4 text-muted-foreground group-hover/audience:text-foreground transition-colors" />
+                </Button>
+                
+                {/* Expandable options */}
+                {audienceMenuOpen && (
+                  <div className="absolute right-0 top-full mt-1 flex items-center gap-1 bg-background border rounded-lg p-1 shadow-lg z-10 animate-in fade-in slide-in-from-top-2">
+                    <Button 
+                      variant={audienceSelection.type === 'best_friends' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => handleAudienceSelect('best_friends')}
+                      className="gap-2 whitespace-nowrap h-8"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Best Friends
+                    </Button>
+                    
+                    {companyName && (
+                      <Button 
+                        variant={audienceSelection.type === 'company_internal' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => handleAudienceSelect('company_internal')}
+                        className="gap-2 whitespace-nowrap h-8"
+                      >
+                        <Building className="w-4 h-4" />
+                        {companyName}
+                      </Button>
+                    )}
+                    
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setShowAudienceModal(true);
+                        setAudienceMenuOpen(false);
+                      }}
+                      className="gap-2 whitespace-nowrap h-8"
+                    >
+                      <MoreHorizontal className="w-4 h-4" />
+                      More
+                    </Button>
+                  </div>
+                )}
+              </div>
               
               <Button 
                 onClick={handlePost}
                 disabled={!content.trim() || loading}
-                size="sm"
-                className="gap-2 flex-shrink-0"
+                className="h-9 w-9 p-0 transition-all hover:w-auto hover:px-4 overflow-hidden group/post"
+                title="Post"
               >
-                <Send className="w-4 h-4" />
-                Post
+                <Send className="w-4 h-4 flex-shrink-0" />
+                <span className="max-w-0 overflow-hidden group-hover/post:max-w-xs group-hover/post:ml-2 transition-all duration-300 whitespace-nowrap">
+                  Post
+                </span>
               </Button>
             </div>
           </div>
