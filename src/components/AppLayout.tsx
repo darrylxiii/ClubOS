@@ -247,7 +247,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   // Load user profile to get ID for profile link
   useEffect(() => {
     const loadUserProfile = async () => {
-      if (!user) return;
+      if (!user?.id || userProfile?.id === user.id) return;
       
       const { data } = await supabase
         .from('profiles')
@@ -261,7 +261,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     };
     
     loadUserProfile();
-  }, [user]);
+  }, [user?.id]);
 
   const profilePath = userProfile ? `/profile/${userProfile.id}` : '/user-settings';
 
