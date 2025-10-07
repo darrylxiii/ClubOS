@@ -30,7 +30,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     if (!user || availableRoles.length === 0) return;
     
-    // Subscribe to role preference changes
+    // Subscribe to role preference changes from OTHER sessions/devices only
     const channel = supabase
       .channel('role-preference-changes')
       .on(
@@ -42,10 +42,10 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('[RoleContext] Preference updated:', payload);
           const newRole = payload.new.preferred_role_view as UserRole;
-          if (newRole && availableRoles.includes(newRole)) {
-            console.log('[RoleContext] Updating currentRole to:', newRole);
+          // CRITICAL FIX: Only update if the role is actually different to prevent infinite loops
+          if (newRole && availableRoles.includes(newRole) && newRole !== currentRole) {
+            console.log('[RoleContext] External preference change detected, updating to:', newRole);
             setCurrentRole(newRole);
           }
         }
@@ -55,7 +55,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, availableRoles]);
+  }, [user, availableRoles, currentRole]);
 
   const fetchRoles = async () => {
     if (!user) return;
@@ -106,13 +106,23 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const switchRole = async (newRole: UserRole) => {
+    // Prevent switching to the same role
+    if (newRole === currentRole) {
+      console.log('[RoleContext] Already on role:', newRole);
+      return;
+    }
+
     if (!user || !availableRoles.includes(newRole)) {
       console.error('[RoleContext] Cannot switch to unavailable role:', newRole);
       return;
     }
 
     try {
-      // Save preference to database
+      // Update local state FIRST to prevent feedback loop
+      setCurrentRole(newRole);
+      console.log('[RoleContext] Role switched successfully to:', newRole);
+
+      // Then save preference to database
       const { error } = await supabase
         .from('user_preferences')
         .upsert({
@@ -125,8 +135,8 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
 
-      // Log role switch in audit table
-      await supabase.from('role_change_audit').insert({
+      // Log role switch in audit table (non-blocking, fire-and-forget)
+      supabase.from('role_change_audit').insert({
         user_id: user.id,
         changed_by: user.id,
         old_roles: [currentRole],
@@ -135,10 +145,6 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         metadata: { timestamp: new Date().toISOString() }
       });
 
-      // Update local state - this triggers re-renders
-      setCurrentRole(newRole);
-      
-      console.log('[RoleContext] Role switched successfully to:', newRole);
     } catch (error) {
       console.error('[RoleContext] Error switching role:', error);
       throw error;
