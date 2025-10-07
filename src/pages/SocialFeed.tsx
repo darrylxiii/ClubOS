@@ -14,6 +14,7 @@ import { StoryViewer } from "@/components/social/StoryViewer";
 import { PollPost } from "@/components/social/PollPost";
 import { EventPost } from "@/components/social/EventPost";
 import { GamificationDisplay } from "@/components/social/GamificationDisplay";
+import { PostAnalyticsButton } from "@/components/analytics/PostAnalyticsButton";
 
 interface UnifiedPost {
   id: string;
@@ -469,6 +470,7 @@ const SocialFeed = () => {
                         <Bookmark className="h-4 w-4" />
                         Save
                       </Button>
+                      <PostAnalyticsButton postId={post.id} variant="ghost" size="sm" showLabel={false} />
                     </div>
                   </div>
                 </Card>

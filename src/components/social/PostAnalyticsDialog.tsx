@@ -3,10 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Eye, Heart, MessageCircle, Share2, TrendingUp, Users, MapPin, Clock, Download } from "lucide-react";
+import { Eye, Heart, MessageCircle, Share2, TrendingUp, Users, MapPin, Clock, Download, Bookmark } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { TimeRangeSelector, TimeRange } from "@/components/analytics/TimeRangeSelector";
+import { useAnalyticsData } from "@/hooks/useAnalyticsData";
+import { Progress } from "@/components/ui/progress";
 
 interface PostAnalyticsDialogProps {
   postId: string | null;
@@ -15,81 +18,33 @@ interface PostAnalyticsDialogProps {
 }
 
 export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalyticsDialogProps) => {
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [interactions, setInteractions] = useState<any[]>([]);
-  const [views, setViews] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [timeRange, setTimeRange] = useState<TimeRange>("7d");
+  const [customRange, setCustomRange] = useState<{ from: Date; to: Date }>();
+  const [post, setPost] = useState<any>(null);
+
+  const analytics = useAnalyticsData(
+    post?.user_id,
+    timeRange,
+    customRange,
+    postId || undefined
+  );
 
   useEffect(() => {
     if (postId && open) {
-      fetchPostAnalytics();
+      fetchPost();
     }
   }, [postId, open]);
 
-  const fetchPostAnalytics = async () => {
+  const fetchPost = async () => {
     if (!postId) return;
 
-    setLoading(true);
-    try {
-      // Fetch post analytics
-      const { data: postData } = await supabase
-        .from("unified_posts")
-        .select("*")
-        .eq("id", postId)
-        .single();
+    const { data } = await supabase
+      .from("unified_posts")
+      .select("*")
+      .eq("id", postId)
+      .single();
 
-      // Fetch interactions
-      const { data: interactionsData } = await supabase
-        .from("post_interactions")
-        .select("*, profiles(*)")
-        .eq("post_id", postId)
-        .order("created_at", { ascending: false });
-
-      // Fetch views
-      const { data: viewsData } = await supabase
-        .from("post_views")
-        .select("*")
-        .eq("post_id", postId);
-
-      // Aggregate view data
-      const uniqueViews = viewsData?.filter((v) => v.is_unique_view).length || 0;
-      const totalViews = viewsData?.length || 0;
-      const avgDuration = viewsData?.reduce((sum, v) => sum + (v.view_duration_seconds || 0), 0) / (viewsData?.length || 1);
-
-      // Location breakdown
-      const locationCounts = viewsData?.reduce((acc: any, v) => {
-        const loc = v.country || "Unknown";
-        acc[loc] = (acc[loc] || 0) + 1;
-        return acc;
-      }, {});
-
-      // Device breakdown
-      const deviceCounts = viewsData?.reduce((acc: any, v) => {
-        const device = v.device_type || "Unknown";
-        acc[device] = (acc[device] || 0) + 1;
-        return acc;
-      }, {});
-
-      setAnalytics({
-        post: postData,
-        uniqueViews,
-        totalViews,
-        avgDuration: Math.round(avgDuration),
-        likes: interactionsData?.filter((i) => i.interaction_type === "like").length || 0,
-        comments: interactionsData?.filter((i) => i.interaction_type === "comment").length || 0,
-        shares: interactionsData?.filter((i) => i.interaction_type === "share").length || 0,
-        locations: locationCounts,
-        devices: deviceCounts,
-      });
-
-      setInteractions(interactionsData || []);
-      setViews(viewsData || []);
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-      toast.error("Failed to load analytics");
-    } finally {
-      setLoading(false);
-    }
+    setPost(data);
   };
 
   const exportData = () => {
@@ -97,10 +52,11 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
       ["Metric", "Value"],
       ["Total Views", analytics.totalViews],
       ["Unique Views", analytics.uniqueViews],
-      ["Avg Duration (s)", analytics.avgDuration],
       ["Likes", analytics.likes],
       ["Comments", analytics.comments],
       ["Shares", analytics.shares],
+      ["Bookmarks", analytics.bookmarks],
+      ["Engagement Rate", `${analytics.avgEngagementRate}%`],
     ]
       .map((row) => row.join(","))
       .join("\n");
@@ -121,12 +77,22 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
           <DialogTitle className="text-2xl">Post Analytics</DialogTitle>
         </DialogHeader>
 
-        {loading ? (
+        {/* Time Range Selector */}
+        <TimeRangeSelector
+          value={timeRange}
+          customRange={customRange}
+          onChange={(range, custom) => {
+            setTimeRange(range);
+            if (custom) setCustomRange(custom);
+          }}
+        />
+
+        {analytics.loading ? (
           <div className="text-center py-8">Loading analytics...</div>
-        ) : analytics ? (
+        ) : (
           <div className="space-y-6">
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
@@ -174,6 +140,18 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                   </div>
                 </CardContent>
               </Card>
+
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex items-center gap-3">
+                    <Bookmark className="h-5 w-5 text-purple-500" />
+                    <div>
+                      <p className="text-2xl font-bold">{analytics.bookmarks}</p>
+                      <p className="text-xs text-muted-foreground">Bookmarks</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             <Tabs defaultValue="overview" className="space-y-4">
@@ -195,15 +173,13 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                       <span className="font-semibold">{analytics.totalViews}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Avg. View Duration</span>
-                      <span className="font-semibold">{analytics.avgDuration}s</span>
+                      <span className="text-sm text-muted-foreground">Engagement Rate</span>
+                      <span className="font-semibold">{analytics.avgEngagementRate}%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Engagement Rate</span>
+                      <span className="text-sm text-muted-foreground">Total Interactions</span>
                       <span className="font-semibold">
-                        {analytics.totalViews > 0
-                          ? ((analytics.likes + analytics.comments + analytics.shares) / analytics.totalViews * 100).toFixed(1)
-                          : 0}%
+                        {analytics.likes + analytics.comments + analytics.shares + analytics.bookmarks}
                       </span>
                     </div>
                     <Button onClick={exportData} variant="outline" className="w-full gap-2">
@@ -226,15 +202,17 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                         <MapPin className="h-4 w-4" />
                         Top Locations
                       </h4>
-                      {Object.entries(analytics.locations || {})
-                        .sort(([, a]: any, [, b]: any) => b - a)
-                        .slice(0, 5)
-                        .map(([location, count]: any) => (
-                          <div key={location} className="flex justify-between items-center py-2">
-                            <span className="text-sm">{location}</span>
-                            <Badge variant="secondary">{count} views</Badge>
+                      {analytics.locationBreakdown.slice(0, 5).map((location: any) => (
+                        <div key={location.location} className="mb-3">
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>{location.location}</span>
+                            <span className="text-muted-foreground">
+                              {location.count} ({((location.count / analytics.totalViews) * 100).toFixed(1)}%)
+                            </span>
                           </div>
-                        ))}
+                          <Progress value={(location.count / analytics.totalViews) * 100} className="h-2" />
+                        </div>
+                      ))}
                     </div>
 
                     <div>
@@ -242,10 +220,12 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                         <Users className="h-4 w-4" />
                         Device Breakdown
                       </h4>
-                      {Object.entries(analytics.devices || {}).map(([device, count]: any) => (
-                        <div key={device} className="flex justify-between items-center py-2">
-                          <span className="text-sm capitalize">{device}</span>
-                          <Badge variant="secondary">{count} views</Badge>
+                      {analytics.deviceBreakdown.map((device: any) => (
+                        <div key={device.device} className="flex justify-between items-center py-2">
+                          <span className="text-sm capitalize">{device.device}</span>
+                          <Badge variant="secondary">
+                            {device.count} ({((device.count / analytics.totalViews) * 100).toFixed(1)}%)
+                          </Badge>
                         </div>
                       ))}
                     </div>
@@ -256,36 +236,19 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
               <TabsContent value="interactions" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle>Recent Interactions</CardTitle>
-                    <CardDescription>Who's engaging with your post</CardDescription>
+                    <CardTitle>Engagement Timeline</CardTitle>
+                    <CardDescription>Activity over the selected period</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {interactions.slice(0, 10).map((interaction) => (
-                        <div key={interaction.id} className="flex items-center justify-between py-2 border-b">
-                          <div className="flex items-center gap-3">
-                            <Badge variant="outline">{interaction.interaction_type}</Badge>
-                            <span className="text-sm">
-                              {interaction.profiles?.full_name || "Anonymous"}
-                            </span>
-                          </div>
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(interaction.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      ))}
-                      {interactions.length === 0 && (
-                        <p className="text-center text-muted-foreground py-8">
-                          No interactions yet
-                        </p>
-                      )}
-                    </div>
+                    <p className="text-muted-foreground text-center py-8">
+                      Detailed interaction timeline coming soon
+                    </p>
                   </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>
           </div>
-        ) : null}
+        )}
       </DialogContent>
     </Dialog>
   );

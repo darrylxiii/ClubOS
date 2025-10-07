@@ -23,44 +23,28 @@ import { RealTimeStats } from "@/components/analytics/RealTimeStats";
 import { ViralMapVisualization } from "@/components/analytics/ViralMapVisualization";
 import { AudienceInsights } from "@/components/analytics/AudienceInsights";
 import { MilestonesGamification } from "@/components/analytics/MilestonesGamification";
+import { TimeRangeSelector, TimeRange } from "@/components/analytics/TimeRangeSelector";
+import { useAnalyticsData } from "@/hooks/useAnalyticsData";
 
 const Analytics = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState<any[]>([]);
-  const [profileStats, setProfileStats] = useState<any>(null);
   const [achievements, setAchievements] = useState<any[]>([]);
+  const [timeRange, setTimeRange] = useState<TimeRange>("7d");
+  const [customRange, setCustomRange] = useState<{ from: Date; to: Date }>();
+
+  const profileStats = useAnalyticsData(user?.id, timeRange, customRange);
 
   useEffect(() => {
     if (user) {
-      fetchAnalytics();
+      fetchAchievements();
+      fetchInsights();
     }
   }, [user]);
 
-  const fetchAnalytics = async () => {
+  const fetchAchievements = async () => {
     try {
-      // Fetch profile analytics
-      const { data: profileData } = await supabase
-        .from("profile_analytics")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("date", { ascending: false })
-        .limit(1)
-        .single();
-
-      setProfileStats(profileData);
-
-      // Fetch insights
-      const { data: insightsData } = await supabase
-        .from("analytics_insights")
-        .select("*")
-        .eq("user_id", user?.id)
-        .order("created_at", { ascending: false })
-        .limit(10);
-
-      setInsights(insightsData || []);
-
-      // Fetch achievements
       const { data: achievementsData } = await supabase
         .from("user_achievements")
         .select("*")
@@ -69,7 +53,22 @@ const Analytics = () => {
 
       setAchievements(achievementsData || []);
     } catch (error) {
-      console.error("Error fetching analytics:", error);
+      console.error("Error fetching achievements:", error);
+    }
+  };
+
+  const fetchInsights = async () => {
+    try {
+      const { data: insightsData } = await supabase
+        .from("analytics_insights")
+        .select("*")
+        .eq("user_id", user?.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      setInsights(insightsData || []);
+    } catch (error) {
+      console.error("Error fetching insights:", error);
     }
   };
 
@@ -83,7 +82,7 @@ const Analytics = () => {
       if (error) throw error;
 
       toast.success("AI insights generated successfully!");
-      fetchAnalytics();
+      fetchInsights();
     } catch (error: any) {
       toast.error(error.message || "Failed to generate insights");
     } finally {
@@ -137,6 +136,24 @@ const Analytics = () => {
           </div>
         </div>
 
+        {/* Time Range Selector */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Time Period</CardTitle>
+            <CardDescription>Select the time range for analytics</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <TimeRangeSelector
+              value={timeRange}
+              customRange={customRange}
+              onChange={(range, custom) => {
+                setTimeRange(range);
+                if (custom) setCustomRange(custom);
+              }}
+            />
+          </CardContent>
+        </Card>
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Card>
@@ -146,7 +163,7 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {profileStats?.profile_views?.toLocaleString() || 0}
+                {profileStats.uniqueViews?.toLocaleString() || 0}
               </div>
               <p className="text-xs text-muted-foreground">
                 +12% from last week
@@ -161,10 +178,10 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {profileStats?.total_engagement?.toLocaleString() || 0}
+                {(profileStats.likes + profileStats.comments + profileStats.shares + profileStats.bookmarks)?.toLocaleString() || 0}
               </div>
               <p className="text-xs text-muted-foreground">
-                {profileStats?.engagement_rate}% rate
+                {profileStats.avgEngagementRate}% rate
               </p>
             </CardContent>
           </Card>
@@ -176,7 +193,7 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {profileStats?.followers_count?.toLocaleString() || 0}
+                {profileStats.totalViews?.toLocaleString() || 0}
               </div>
               <p className="text-xs text-muted-foreground">
                 +8% growth this month
@@ -191,7 +208,7 @@ const Analytics = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {profileStats?.post_count?.toLocaleString() || 0}
+                {profileStats.topPosts?.length || 0}
               </div>
               <p className="text-xs text-muted-foreground">
                 Active creator
