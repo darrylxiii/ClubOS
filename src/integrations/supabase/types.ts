@@ -14,6 +14,38 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_reactions: {
+        Row: {
+          created_at: string
+          id: string
+          reaction_type: string
+          reactor_id: string
+          user_achievement_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          reaction_type: string
+          reactor_id: string
+          user_achievement_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          reaction_type?: string
+          reactor_id?: string
+          user_achievement_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_reactions_user_achievement_id_fkey"
+            columns: ["user_achievement_id"]
+            isOneToOne: false
+            referencedRelation: "user_quantum_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_feed: {
         Row: {
           company_id: string | null
@@ -3560,6 +3592,48 @@ export type Database = {
           },
         ]
       }
+      quantum_achievements: {
+        Row: {
+          animation_effect: string | null
+          category: Database["public"]["Enums"]["achievement_category"]
+          created_at: string
+          description: string
+          icon_emoji: string
+          id: string
+          is_active: boolean | null
+          name: string
+          points: number
+          rarity: Database["public"]["Enums"]["achievement_rarity"]
+          unlock_criteria: Json
+        }
+        Insert: {
+          animation_effect?: string | null
+          category: Database["public"]["Enums"]["achievement_category"]
+          created_at?: string
+          description: string
+          icon_emoji: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          points?: number
+          rarity?: Database["public"]["Enums"]["achievement_rarity"]
+          unlock_criteria?: Json
+        }
+        Update: {
+          animation_effect?: string | null
+          category?: Database["public"]["Enums"]["achievement_category"]
+          created_at?: string
+          description?: string
+          icon_emoji?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          points?: number
+          rarity?: Database["public"]["Enums"]["achievement_rarity"]
+          unlock_criteria?: Json
+        }
+        Relationships: []
+      }
       referral_metadata: {
         Row: {
           company_name: string
@@ -4742,6 +4816,47 @@ export type Database = {
         }
         Relationships: []
       }
+      user_quantum_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          is_showcased: boolean | null
+          progress: Json | null
+          showcase_position: number | null
+          story_text: string | null
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          is_showcased?: boolean | null
+          progress?: Json | null
+          showcase_position?: number | null
+          story_text?: string | null
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          is_showcased?: boolean | null
+          progress?: Json | null
+          showcase_position?: number | null
+          story_text?: string | null
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_quantum_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "quantum_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -5121,6 +5236,15 @@ export type Database = {
       }
     }
     Enums: {
+      achievement_category:
+        | "influence"
+        | "innovation"
+        | "social"
+        | "learning"
+        | "prestige"
+        | "event"
+        | "pioneer"
+      achievement_rarity: "common" | "rare" | "epic" | "legendary" | "quantum"
       app_role:
         | "admin"
         | "moderator"
@@ -5257,6 +5381,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      achievement_category: [
+        "influence",
+        "innovation",
+        "social",
+        "learning",
+        "prestige",
+        "event",
+        "pioneer",
+      ],
+      achievement_rarity: ["common", "rare", "epic", "legendary", "quantum"],
       app_role: [
         "admin",
         "moderator",

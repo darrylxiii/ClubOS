@@ -30,6 +30,7 @@ import {
   Share2,
   BarChart3,
   TrendingUp,
+  Trophy,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,6 +57,7 @@ const candidateNavigationGroups = [
       { name: "Club Home", icon: Home, path: "/home" },
       { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
       { name: "Feed", icon: Rss, path: "/feed" },
+      { name: "Achievements", icon: Trophy, path: "/achievements" },
     ],
   },
   {

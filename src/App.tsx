@@ -34,6 +34,7 @@ import NotFound from "./pages/NotFound";
 import SocialFeed from "./pages/SocialFeed";
 import SocialManagement from "./pages/SocialManagement";
 import Analytics from "./pages/Analytics";
+import Achievements from "./pages/Achievements";
 
 const queryClient = new QueryClient();
 
@@ -245,6 +246,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Analytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/achievements"
+              element={
+                <ProtectedRoute>
+                  <Achievements />
                 </ProtectedRoute>
               }
             />

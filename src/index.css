@@ -228,4 +228,36 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   .bg-glass-hero {
     background: var(--gradient-hero);
   }
+
+  /* Quantum Effects */
+  .quantum-ripple {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .quantum-ripple::before {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    background: conic-gradient(from 0deg, transparent, hsl(var(--primary)), transparent);
+    animation: quantum-spin 4s linear infinite;
+    opacity: 0.3;
+  }
+
+  @keyframes quantum-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
 }
