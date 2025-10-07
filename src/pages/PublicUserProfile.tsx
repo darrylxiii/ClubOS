@@ -197,7 +197,7 @@ export default function PublicUserProfile() {
       if (error) throw error;
 
       // Log edit to history
-      setEditHistory(prev => [{
+      const newEdit = {
         id: Date.now().toString(),
         timestamp: new Date(),
         user: user?.email || "You",
@@ -205,10 +205,12 @@ export default function PublicUserProfile() {
         oldValue: (profile as any)?.[field] || "",
         newValue: value,
         visibility,
-      }, ...prev]);
+      };
+      
+      setEditHistory(prev => [newEdit, ...prev]);
 
-      // Reload profile
-      await loadProfile();
+      // Update local profile state directly instead of reloading
+      setProfile(prev => prev ? { ...prev, [field]: value } : null);
     } catch (error) {
       console.error("Error updating profile:", error);
       throw error;
