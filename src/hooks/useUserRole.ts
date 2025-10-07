@@ -12,9 +12,11 @@ export const useUserRole = () => {
 
   useEffect(() => {
     const fetchUserRole = async () => {
-      if (!user) {
+      if (!user?.id) {
         console.log('[useUserRole] No user found, stopping loading');
         setLoading(false);
+        setRole(null);
+        setCompanyId(null);
         return;
       }
 
@@ -101,7 +103,7 @@ export const useUserRole = () => {
     };
 
     fetchUserRole();
-  }, [user]);
+  }, [user?.id]);
 
   return { role, companyId, loading };
 };
