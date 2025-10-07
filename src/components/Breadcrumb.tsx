@@ -12,7 +12,6 @@ const routeLabels: Record<string, string> = {
   "partner-dashboard": "Partner Dashboard",
   admin: "Admin Panel",
   profile: "Profile",
-  "profile-enhanced": "Enhanced Profile",
   settings: "Settings",
   jobs: "Jobs",
   applications: "Applications",

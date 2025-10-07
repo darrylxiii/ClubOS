@@ -132,7 +132,7 @@ const App = () => (
               }
             />
             <Route
-              path="/profile-enhanced"
+              path="/profile"
               element={
                 <ProtectedRoute>
                   <EnhancedProfile />
