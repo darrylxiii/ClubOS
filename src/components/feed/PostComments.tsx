@@ -9,10 +9,11 @@ import { toast } from "@/hooks/use-toast";
 
 interface PostCommentsProps {
   postId: string;
+  postAuthorId: string;
   onCommentAdded: () => void;
 }
 
-export function PostComments({ postId, onCommentAdded }: PostCommentsProps) {
+export function PostComments({ postId, postAuthorId, onCommentAdded }: PostCommentsProps) {
   const { user } = useAuth();
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -64,6 +65,21 @@ export function PostComments({ postId, onCommentAdded }: PostCommentsProps) {
         });
 
       if (error) throw error;
+
+      // Track comment engagement
+      if (user.id !== postAuthorId) {
+        await (supabase as any).from('post_engagement_signals').upsert({
+          user_id: user.id,
+          post_id: postId,
+          commented: true,
+          commented_at: new Date().toISOString(),
+        }, { onConflict: 'user_id,post_id' });
+
+        await (supabase as any).rpc('update_relationship_score', {
+          p_user_id: user.id,
+          p_related_user_id: postAuthorId,
+        });
+      }
 
       setNewComment("");
       fetchComments();

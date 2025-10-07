@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LazyMedia } from "./LazyMedia";
 import { toast } from "@/hooks/use-toast";
+import { useEngagementTracking } from "@/hooks/useEngagementTracking";
 
 interface PostCardProps {
   post: any;
@@ -43,6 +44,12 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [showSummary, setShowSummary] = useState(false);
   const [userStreak, setUserStreak] = useState<number | null>(null);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  
+  // Engagement tracking
+  const { trackLike, trackComment, trackShare, trackSave: trackSaveEngagement } = useEngagementTracking({
+    postId: post.id,
+    postAuthorId: post.user_id,
+  });
 
   const author = post.profiles || post.companies;
   const authorName = author?.full_name || author?.name || "Unknown";
@@ -137,12 +144,14 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           .eq('user_id', user.id)
           .eq('post_id', post.id);
         setIsSaved(false);
+        trackSaveEngagement(false);
         toast({ title: "Removed from saved" });
       } else {
         await supabase
           .from('saved_posts')
           .insert({ user_id: user.id, post_id: post.id });
         setIsSaved(true);
+        trackSaveEngagement(true);
         toast({ title: "Post saved" });
       }
     } catch (error) {
@@ -161,13 +170,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
 
     if (platform === 'twitter') {
       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-      trackShare('twitter');
+      trackSharePlatform('twitter');
     } else if (platform === 'linkedin') {
       window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
-      trackShare('linkedin');
+      trackSharePlatform('linkedin');
     } else if (platform === 'whatsapp') {
       window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`, '_blank');
-      trackShare('whatsapp');
+      trackSharePlatform('whatsapp');
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
@@ -175,7 +184,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           title: "Link copied",
           description: "Share this post with others"
         });
-        trackShare('copy');
+        trackSharePlatform('copy');
       } catch (error) {
         toast({
           title: "Failed to copy",
@@ -185,13 +194,14 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
     }
   };
 
-  const trackShare = async (platform: string) => {
+  const trackSharePlatform = async (platform: string) => {
     try {
       await supabase.from('post_shares').insert({
         post_id: post.id,
         shared_by: user?.id || null,
         share_platform: platform
       });
+      trackShare(); // Also track in engagement signals
     } catch (error) {
       console.error('Error tracking share:', error);
     }
@@ -443,7 +453,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           <div className="flex items-center justify-between mt-4 pt-3 border-t">
             <div className="flex items-center gap-2">
               {/* Interactive Reactions */}
-              <InteractiveReactions postId={post.id} />
+              <InteractiveReactions postId={post.id} postAuthorId={post.user_id} />
               
               <Button
                 variant="ghost"
@@ -512,6 +522,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           {showComments && (
             <PostComments 
               postId={post.id}
+              postAuthorId={post.user_id}
               onCommentAdded={onUpdate}
             />
           )}

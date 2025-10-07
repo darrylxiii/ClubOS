@@ -16,10 +16,11 @@ const REACTIONS = [
 
 interface InteractiveReactionsProps {
   postId: string;
+  postAuthorId: string;
   initialReactions?: Record<string, number>;
 }
 
-export function InteractiveReactions({ postId, initialReactions = {} }: InteractiveReactionsProps) {
+export function InteractiveReactions({ postId, postAuthorId, initialReactions = {} }: InteractiveReactionsProps) {
   const { user } = useAuth();
   const [reactions, setReactions] = useState<Record<string, number>>(initialReactions);
   const [userReaction, setUserReaction] = useState<string | null>(null);
@@ -105,6 +106,21 @@ export function InteractiveReactions({ postId, initialReactions = {} }: Interact
           [reactionType]: (prev[reactionType] || 0) + 1
         }));
         setUserReaction(reactionType);
+
+        // Track like engagement
+        if (user.id !== postAuthorId) {
+          await (supabase as any).from('post_engagement_signals').upsert({
+            user_id: user.id,
+            post_id: postId,
+            liked: true,
+            liked_at: new Date().toISOString(),
+          }, { onConflict: 'user_id,post_id' });
+
+          await (supabase as any).rpc('update_relationship_score', {
+            p_user_id: user.id,
+            p_related_user_id: postAuthorId,
+          });
+        }
       }
       setShowPicker(false);
     } catch (error) {

@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.generate-analytics-insights]
 verify_jwt = true
+
+[functions.generate-post-summary]
+verify_jwt = false
