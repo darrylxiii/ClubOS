@@ -2,11 +2,14 @@
 
 ## Phase 1: Critical Data Exposure Fixes ✅
 
-### Step 1: Talent Strategist PII Exposure - FIXED
-**Status**: Already applied in previous security review
-- Created `public_talent_strategists` view with security_invoker mode
-- Restricted full table access to admins only
-- All PII fields (email, phone, social media) now protected
+### Step 1: Talent Strategist PII Exposure ✅ COMPLETED
+**Status**: FIXED on 2025-10-07
+- Dropped dangerous "Public can view basic strategist info" RLS policy from `talent_strategists` table
+- The `public_talent_strategists` view already existed and provides safe public access
+- Restricted full table access to admins only via existing "Only admins can view talent strategists" policy
+- All PII fields (email, phone, twitter_url, instagram_url) now protected
+- Dashboard.tsx already uses the safe view - no code changes needed
+- Frontend gracefully handles missing contact info (buttons don't render if data unavailable)
 
 ### Step 2: Bookings Data Theft - REQUIRES MIGRATION
 **Issue**: Guests could view other users' bookings by creating accounts with their email
@@ -70,10 +73,11 @@ DROP POLICY IF EXISTS "System can manage conversation stats" ON public.conversat
 
 ## Summary of Changes
 
-### ✅ Completed (Code Changes)
+### ✅ Completed (Code & Database Changes)
 - Removed localStorage privilege escalation vulnerability
 - Added authentication to OAuth edge functions (Google & Microsoft Calendar)
 - Protected against OAuth token theft
+- **Fixed talent strategist PII exposure** (dropped public RLS policy on talent_strategists table)
 
 ### ⚠️ Requires Migration (Database)
 The following database changes require user approval:
@@ -88,15 +92,18 @@ Once migration is approved:
 4. Run comprehensive security testing
 
 ## Testing Checklist
-- [ ] Verify admin access requires database role (not localStorage)
-- [ ] Test OAuth functions reject unauthenticated requests
+- [x] Verify admin access requires database role (not localStorage)
+- [x] Test OAuth functions reject unauthenticated requests
+- [x] Verify talent strategist PII is protected (email, phone, social media hidden from public)
+- [x] Confirm Dashboard displays strategists using safe public view
 - [ ] Verify bookings are isolated by user_id (after migration)
 - [ ] Confirm conversation stats hidden from regular users (after migration)
 - [ ] Test edge function input validation (after implementation)
 
 ## Security Impact
-- **Critical**: Privilege escalation via localStorage - FIXED
-- **Critical**: OAuth token theft - FIXED  
+- **Critical**: Privilege escalation via localStorage - ✅ FIXED
+- **Critical**: OAuth token theft - ✅ FIXED  
+- **Critical**: Talent strategist PII exposure - ✅ FIXED
 - **High**: Bookings data exposure - PENDING MIGRATION
 - **Medium**: Conversation stats exposure - PENDING MIGRATION
 - **Medium**: Missing input validation - PENDING
