@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -8,8 +9,11 @@ import { ContentScheduler } from "@/components/social/ContentScheduler";
 import { SocialAnalytics } from "@/components/social/SocialAnalytics";
 import { UnifiedInbox } from "@/components/social/UnifiedInbox";
 import { HashtagManager } from "@/components/social/HashtagManager";
+import { CreatePostDialog } from "@/components/social/CreatePostDialog";
 
 const SocialManagement = () => {
+  const [showCreatePost, setShowCreatePost] = useState(false);
+
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-8">
@@ -24,7 +28,7 @@ const SocialManagement = () => {
                 Manage all your social media accounts, schedule posts, and track analytics
               </p>
             </div>
-            <Button className="gap-2">
+            <Button onClick={() => setShowCreatePost(true)} className="gap-2">
               <Plus className="h-4 w-4" />
               Create Post
             </Button>
@@ -124,6 +128,9 @@ const SocialManagement = () => {
           </Tabs>
         </div>
       </div>
+
+      {/* Create Post Dialog */}
+      <CreatePostDialog open={showCreatePost} onOpenChange={setShowCreatePost} />
     </AppLayout>
   );
 };

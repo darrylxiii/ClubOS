@@ -52,6 +52,36 @@ export type Database = {
           },
         ]
       }
+      ai_content_suggestions: {
+        Row: {
+          applied: boolean | null
+          content: Json
+          context: Json | null
+          created_at: string | null
+          id: string
+          suggestion_type: string
+          user_id: string
+        }
+        Insert: {
+          applied?: boolean | null
+          content: Json
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          suggestion_type: string
+          user_id: string
+        }
+        Update: {
+          applied?: boolean | null
+          content?: Json
+          context?: Json | null
+          created_at?: string | null
+          id?: string
+          suggestion_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_conversations: {
         Row: {
           context: Json | null
@@ -434,6 +464,62 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      collaborative_posts: {
+        Row: {
+          approved_by: string[] | null
+          approvers: string[] | null
+          collaborators: string[] | null
+          content: string
+          created_at: string | null
+          creator_id: string
+          id: string
+          notes: Json | null
+          platforms: string[]
+          post_id: string | null
+          scheduled_for: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          approved_by?: string[] | null
+          approvers?: string[] | null
+          collaborators?: string[] | null
+          content: string
+          created_at?: string | null
+          creator_id: string
+          id?: string
+          notes?: Json | null
+          platforms: string[]
+          post_id?: string | null
+          scheduled_for?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          approved_by?: string[] | null
+          approvers?: string[] | null
+          collaborators?: string[] | null
+          content?: string
+          created_at?: string | null
+          creator_id?: string
+          id?: string
+          notes?: Json | null
+          platforms?: string[]
+          post_id?: string | null
+          scheduled_for?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collaborative_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       companies: {
         Row: {
@@ -874,8 +960,12 @@ export type Database = {
       }
       content_calendar: {
         Row: {
+          ai_confidence_score: number | null
+          ai_reasoning: string | null
+          ai_suggested_time: string | null
           assigned_to: string | null
           created_at: string
+          custom_captions: Json | null
           description: string | null
           id: string
           metadata: Json | null
@@ -889,8 +979,12 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_confidence_score?: number | null
+          ai_reasoning?: string | null
+          ai_suggested_time?: string | null
           assigned_to?: string | null
           created_at?: string
+          custom_captions?: Json | null
           description?: string | null
           id?: string
           metadata?: Json | null
@@ -904,8 +998,12 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_confidence_score?: number | null
+          ai_reasoning?: string | null
+          ai_suggested_time?: string | null
           assigned_to?: string | null
           created_at?: string
+          custom_captions?: Json | null
           description?: string | null
           id?: string
           metadata?: Json | null
@@ -2417,6 +2515,38 @@ export type Database = {
           },
         ]
       }
+      post_reactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          post_id: string
+          reaction_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          post_id?: string
+          reaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reactions_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           company_id: string | null
@@ -3318,6 +3448,41 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_posts: {
+        Row: {
+          collection_name: string | null
+          id: string
+          notes: string | null
+          post_id: string
+          saved_at: string | null
+          user_id: string
+        }
+        Insert: {
+          collection_name?: string | null
+          id?: string
+          notes?: string | null
+          post_id: string
+          saved_at?: string | null
+          user_id: string
+        }
+        Update: {
+          collection_name?: string | null
+          id?: string
+          notes?: string | null
+          post_id?: string
+          saved_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "unified_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scheduled_messages: {
         Row: {
           content: string
@@ -3600,6 +3765,71 @@ export type Database = {
           username?: string
         }
         Relationships: []
+      }
+      stories: {
+        Row: {
+          caption: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          media_type: string
+          media_url: string
+          user_id: string
+          views_count: number | null
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          media_type: string
+          media_url: string
+          user_id: string
+          views_count?: number | null
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          media_type?: string
+          media_url?: string
+          user_id?: string
+          views_count?: number | null
+        }
+        Relationships: []
+      }
+      story_views: {
+        Row: {
+          id: string
+          story_id: string
+          viewed_at: string | null
+          viewer_id: string
+        }
+        Insert: {
+          id?: string
+          story_id: string
+          viewed_at?: string | null
+          viewer_id: string
+        }
+        Update: {
+          id?: string
+          story_id?: string
+          viewed_at?: string | null
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_views_story_id_fkey"
+            columns: ["story_id"]
+            isOneToOne: false
+            referencedRelation: "stories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       talent_strategists: {
         Row: {
@@ -3968,8 +4198,14 @@ export type Database = {
           content: string
           created_at: string
           engagement_count: number | null
+          event_date: string | null
+          event_link: string | null
+          event_location: string | null
           hashtags: string[] | null
           id: string
+          impressions_count: number | null
+          is_featured: boolean | null
+          is_pinned: boolean | null
           is_scheduled: boolean | null
           likes_count: number | null
           media_urls: string[] | null
@@ -3977,8 +4213,14 @@ export type Database = {
           metadata: Json | null
           platform: string
           platform_post_id: string | null
+          poll_ends_at: string | null
+          poll_options: Json | null
+          poll_votes: Json | null
+          post_subtype: string | null
           post_type: string
           published_at: string | null
+          reach_count: number | null
+          saves_count: number | null
           scheduled_for: string | null
           shares_count: number | null
           social_account_id: string | null
@@ -3994,8 +4236,14 @@ export type Database = {
           content: string
           created_at?: string
           engagement_count?: number | null
+          event_date?: string | null
+          event_link?: string | null
+          event_location?: string | null
           hashtags?: string[] | null
           id?: string
+          impressions_count?: number | null
+          is_featured?: boolean | null
+          is_pinned?: boolean | null
           is_scheduled?: boolean | null
           likes_count?: number | null
           media_urls?: string[] | null
@@ -4003,8 +4251,14 @@ export type Database = {
           metadata?: Json | null
           platform: string
           platform_post_id?: string | null
+          poll_ends_at?: string | null
+          poll_options?: Json | null
+          poll_votes?: Json | null
+          post_subtype?: string | null
           post_type: string
           published_at?: string | null
+          reach_count?: number | null
+          saves_count?: number | null
           scheduled_for?: string | null
           shares_count?: number | null
           social_account_id?: string | null
@@ -4020,8 +4274,14 @@ export type Database = {
           content?: string
           created_at?: string
           engagement_count?: number | null
+          event_date?: string | null
+          event_link?: string | null
+          event_location?: string | null
           hashtags?: string[] | null
           id?: string
+          impressions_count?: number | null
+          is_featured?: boolean | null
+          is_pinned?: boolean | null
           is_scheduled?: boolean | null
           likes_count?: number | null
           media_urls?: string[] | null
@@ -4029,8 +4289,14 @@ export type Database = {
           metadata?: Json | null
           platform?: string
           platform_post_id?: string | null
+          poll_ends_at?: string | null
+          poll_options?: Json | null
+          poll_votes?: Json | null
+          post_subtype?: string | null
           post_type?: string
           published_at?: string | null
+          reach_count?: number | null
+          saves_count?: number | null
           scheduled_for?: string | null
           shares_count?: number | null
           social_account_id?: string | null
@@ -4050,6 +4316,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_engagement: {
+        Row: {
+          achievements: Json | null
+          badges: Json | null
+          created_at: string | null
+          current_streak: number | null
+          experience_points: number | null
+          id: string
+          last_activity_date: string | null
+          level: number | null
+          longest_streak: number | null
+          total_comments: number | null
+          total_likes_given: number | null
+          total_posts: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievements?: Json | null
+          badges?: Json | null
+          created_at?: string | null
+          current_streak?: number | null
+          experience_points?: number | null
+          id?: string
+          last_activity_date?: string | null
+          level?: number | null
+          longest_streak?: number | null
+          total_comments?: number | null
+          total_likes_given?: number | null
+          total_posts?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievements?: Json | null
+          badges?: Json | null
+          created_at?: string | null
+          current_streak?: number | null
+          experience_points?: number | null
+          id?: string
+          last_activity_date?: string | null
+          level?: number | null
+          longest_streak?: number | null
+          total_comments?: number | null
+          total_likes_given?: number | null
+          total_posts?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_preferences: {
         Row: {

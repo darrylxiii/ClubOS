@@ -4,17 +4,23 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Share2, Bookmark, Play, TrendingUp, Filter } from "lucide-react";
+import { Heart, MessageCircle, Share2, Bookmark, Play, Plus, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
+import { CreatePostDialog } from "@/components/social/CreatePostDialog";
+import { StoryViewer } from "@/components/social/StoryViewer";
+import { PollPost } from "@/components/social/PollPost";
+import { EventPost } from "@/components/social/EventPost";
+import { GamificationDisplay } from "@/components/social/GamificationDisplay";
 
 interface UnifiedPost {
   id: string;
   user_id: string;
   platform: string;
   post_type: string;
+  post_subtype?: string;
   content: string;
   media_urls: string[];
   thumbnail_url: string | null;
@@ -24,6 +30,11 @@ interface UnifiedPost {
   shares_count: number;
   views_count: number;
   published_at: string;
+  poll_options?: any[];
+  poll_ends_at?: string;
+  event_date?: string;
+  event_location?: string;
+  event_link?: string;
   profile?: {
     full_name: string;
     avatar_url: string;
@@ -39,9 +50,15 @@ const SocialFeed = () => {
   const [posts, setPosts] = useState<UnifiedPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [selectedStories, setSelectedStories] = useState<any[]>([]);
+  const [storyIndex, setStoryIndex] = useState(0);
+  const [showStories, setShowStories] = useState(false);
+  const [stories, setStories] = useState<any[]>([]);
 
   useEffect(() => {
     fetchPosts();
+    fetchStories();
 
     // Subscribe to real-time updates
     const channel = supabase
@@ -63,6 +80,39 @@ const SocialFeed = () => {
       supabase.removeChannel(channel);
     };
   }, [filter]);
+
+  const fetchStories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("stories")
+        .select("*")
+        .eq("is_active", true)
+        .gt("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Enrich with profile data
+      const storiesWithProfiles = await Promise.all(
+        (data || []).map(async (story: any) => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name, avatar_url")
+            .eq("id", story.user_id)
+            .single();
+
+          return {
+            ...story,
+            profile: profile || { full_name: "Unknown", avatar_url: "" },
+          };
+        })
+      );
+
+      setStories(storiesWithProfiles);
+    } catch (error) {
+      console.error("Error fetching stories:", error);
+    }
+  };
 
   const fetchPosts = async () => {
     try {
@@ -157,20 +207,53 @@ const SocialFeed = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-black uppercase tracking-tight">Social Feed</h1>
-              <p className="text-muted-foreground mt-2">
-                Unified posts from all connected platforms
-              </p>
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Feed */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-4xl font-black uppercase tracking-tight">Social Feed</h1>
+                <p className="text-muted-foreground mt-2">
+                  Unified posts from all connected platforms
+                </p>
+              </div>
+              <Button onClick={() => setShowCreatePost(true)} className="gap-2">
+                <Plus className="h-4 w-4" />
+                Create
+              </Button>
             </div>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
-          </div>
+
+            {/* Stories Row */}
+            {stories.length > 0 && (
+              <div className="flex gap-4 overflow-x-auto pb-4">
+                {stories.map((story, idx) => (
+                  <button
+                    key={story.id}
+                    onClick={() => {
+                      setSelectedStories(stories);
+                      setStoryIndex(idx);
+                      setShowStories(true);
+                    }}
+                    className="flex flex-col items-center gap-2 flex-shrink-0"
+                  >
+                    <div className="relative">
+                      <Avatar className="h-20 w-20 border-4 border-primary">
+                        <AvatarImage src={story.profile?.avatar_url} />
+                        <AvatarFallback>{story.profile?.full_name?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1">
+                        <Sparkles className="h-3 w-3 text-primary-foreground" />
+                      </div>
+                    </div>
+                    <span className="text-xs text-center max-w-[80px] truncate">
+                      {story.profile?.full_name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
           {/* Platform Filter Tabs */}
           <Tabs defaultValue="all" value={filter} onValueChange={setFilter}>
@@ -185,26 +268,83 @@ const SocialFeed = () => {
             </TabsList>
           </Tabs>
 
-          {/* Posts Feed */}
-          <div className="space-y-4">
-            {loading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
-                <p className="text-muted-foreground mt-4">Loading posts...</p>
-              </div>
-            ) : posts.length === 0 ? (
-              <Card className="p-12 text-center bg-card/50 backdrop-blur-sm">
-                <div className="text-6xl mb-4">📱</div>
-                <h3 className="text-xl font-semibold mb-2">No Posts Yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Connect your social media accounts to see posts here
-                </p>
-                <Button onClick={() => window.location.href = "/social-management"}>
-                  Connect Accounts
-                </Button>
-              </Card>
-            ) : (
-              posts.map((post) => (
+            {/* Posts Feed */}
+            <div className="space-y-4">
+              {loading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full mx-auto" />
+                  <p className="text-muted-foreground mt-4">Loading posts...</p>
+                </div>
+              ) : posts.length === 0 ? (
+                <Card className="p-12 text-center bg-card/50 backdrop-blur-sm">
+                  <div className="text-6xl mb-4">📱</div>
+                  <h3 className="text-xl font-semibold mb-2">No Posts Yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Start creating content or connect your social media accounts
+                  </p>
+                  <Button onClick={() => setShowCreatePost(true)}>
+                    Create Your First Post
+                  </Button>
+                </Card>
+              ) : (
+                posts.map((post) => {
+                  // Render different post types
+                  if (post.post_subtype === "poll") {
+                    return (
+                      <Card key={post.id} className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={post.profile?.avatar_url} />
+                            <AvatarFallback>{post.profile?.full_name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold">{post.profile?.full_name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {formatDistanceToNow(new Date(post.published_at), { addSuffix: true })}
+                            </p>
+                          </div>
+                        </div>
+                        <PollPost
+                          postId={post.id}
+                          question={post.content}
+                          options={post.poll_options as any}
+                          totalVotes={0}
+                          endsAt={post.poll_ends_at || ""}
+                          onVote={() => fetchPosts()}
+                        />
+                      </Card>
+                    );
+                  }
+
+                  if (post.post_subtype === "event") {
+                    return (
+                      <Card key={post.id} className="p-6">
+                        <div className="flex items-center gap-3 mb-4">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={post.profile?.avatar_url} />
+                            <AvatarFallback>{post.profile?.full_name?.[0]}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-semibold">{post.profile?.full_name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {formatDistanceToNow(new Date(post.published_at), { addSuffix: true })}
+                            </p>
+                          </div>
+                        </div>
+                        <EventPost
+                          title={post.content.split("\n")[0]}
+                          description={post.content}
+                          eventDate={post.event_date || ""}
+                          location={post.event_location || undefined}
+                          eventLink={post.event_link || undefined}
+                          imageUrl={post.media_urls?.[0]}
+                        />
+                      </Card>
+                    );
+                  }
+
+                  // Standard post rendering
+                  return (
                 <Card key={post.id} className="overflow-hidden bg-card/80 backdrop-blur-sm border-border/50 hover:bg-card/90 transition-all">
                   {/* Post Header */}
                   <div className="p-4 flex items-center justify-between">
@@ -332,11 +472,28 @@ const SocialFeed = () => {
                     </div>
                   </div>
                 </Card>
-              ))
-            )}
+                );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            <GamificationDisplay />
           </div>
         </div>
       </div>
+
+      {/* Dialogs */}
+      <CreatePostDialog open={showCreatePost} onOpenChange={setShowCreatePost} />
+      {showStories && (
+        <StoryViewer
+          stories={selectedStories}
+          initialIndex={storyIndex}
+          onClose={() => setShowStories(false)}
+        />
+      )}
     </AppLayout>
   );
 };
