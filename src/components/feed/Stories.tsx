@@ -4,9 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, X } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { EnhancedStoryViewer } from "@/components/social/EnhancedStoryViewer";
 
 interface Story {
   id: string;
@@ -150,50 +150,13 @@ export function Stories() {
         ))}
       </div>
 
-      {/* Story Viewer */}
+      {/* Enhanced Story Viewer */}
       {viewingStory && (
-        <Dialog open={!!viewingStory} onOpenChange={() => setViewingStory(null)}>
-          <DialogContent className="max-w-md p-0 bg-black border-none">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
-              onClick={() => setViewingStory(null)}
-            >
-              <X className="w-6 h-6" />
-            </Button>
-            
-            <div className="relative aspect-[9/16]">
-              {viewingStory.media_type === 'image' ? (
-                <img 
-                  src={viewingStory.media_url} 
-                  alt="Story"
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <video 
-                  src={viewingStory.media_url}
-                  className="w-full h-full object-contain"
-                  autoPlay
-                  controls
-                />
-              )}
-              
-              <div className="absolute top-4 left-4 flex items-center gap-2">
-                <Avatar className="w-10 h-10 border-2 border-white">
-                  <AvatarImage src={viewingStory.profiles?.avatar_url} />
-                  <AvatarFallback>{viewingStory.profiles?.full_name?.[0]}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-white font-medium">{viewingStory.profiles?.full_name}</p>
-                  <p className="text-white/70 text-xs">
-                    {new Date(viewingStory.created_at).toLocaleTimeString()}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <EnhancedStoryViewer
+          stories={stories}
+          initialIndex={stories.findIndex(s => s.id === viewingStory.id)}
+          onClose={() => setViewingStory(null)}
+        />
       )}
     </>
   );
