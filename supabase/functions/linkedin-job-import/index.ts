@@ -1,10 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schemas
+const initiateSchema = z.object({
+  action: z.literal('initiate'),
+  companyId: z.string().uuid('Invalid company ID format'),
+});
+
+const callbackSchema = z.object({
+  action: z.literal('callback'),
+  companyId: z.string().uuid('Invalid company ID format'),
+  code: z.string().min(1, 'Authorization code is required'),
+});
+
+const statusSchema = z.object({
+  action: z.literal('status'),
+  companyId: z.string().uuid('Invalid company ID format'),
+});
+
+const requestSchema = z.discriminatedUnion('action', [
+  initiateSchema,
+  callbackSchema,
+  statusSchema,
+]);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -43,15 +67,22 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { action, companyId, code } = await req.json();
-
-    // Validate companyId format
-    if (companyId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(companyId)) {
+    // Parse and validate request body
+    const rawBody = await req.json();
+    const validationResult = requestSchema.safeParse(rawBody);
+    
+    if (!validationResult.success) {
       return new Response(
-        JSON.stringify({ error: 'Invalid company ID format' }),
+        JSON.stringify({ 
+          error: 'Invalid request parameters',
+          details: validationResult.error.issues 
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+
+    const body = validationResult.data;
+    const { action, companyId } = body;
 
     // For actions requiring company access, verify membership
     if (action === 'callback' || action === 'status') {
@@ -85,7 +116,9 @@ serve(async (req) => {
       );
     }
 
-    if (action === 'callback' && code) {
+    if (action === 'callback') {
+      const { code } = body;
+      
       // Exchange code for access token
       const clientId = Deno.env.get('LINKEDIN_CLIENT_ID');
       const clientSecret = Deno.env.get('LINKEDIN_CLIENT_SECRET');
@@ -106,7 +139,6 @@ serve(async (req) => {
       const { access_token } = await tokenResponse.json();
 
       // Fetch jobs from LinkedIn API
-      // Note: LinkedIn's Job Posting API requires specific permissions
       const jobsResponse = await fetch(
         'https://api.linkedin.com/v2/jobs?q=criteria&jobStatus=OPEN',
         {

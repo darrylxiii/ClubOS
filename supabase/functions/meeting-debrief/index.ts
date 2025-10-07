@@ -1,41 +1,17 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Process base64 in chunks to prevent memory issues
-function processBase64Chunks(base64String: string, chunkSize = 32768) {
-  const chunks: Uint8Array[] = [];
-  let position = 0;
-  
-  while (position < base64String.length) {
-    const chunk = base64String.slice(position, position + chunkSize);
-    const binaryChunk = atob(chunk);
-    const bytes = new Uint8Array(binaryChunk.length);
-    
-    for (let i = 0; i < binaryChunk.length; i++) {
-      bytes[i] = binaryChunk.charCodeAt(i);
-    }
-    
-    chunks.push(bytes);
-    position += chunkSize;
-  }
-
-  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-  const result = new Uint8Array(totalLength);
-  let offset = 0;
-
-  for (const chunk of chunks) {
-    result.set(chunk, offset);
-    offset += chunk.length;
-  }
-
-  return result;
-}
+// Input validation schema
+const requestSchema = z.object({
+  recordingId: z.string().uuid('Invalid recording ID format'),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -43,11 +19,24 @@ serve(async (req) => {
   }
 
   try {
-    const { recordingId } = await req.json();
+    // Parse and validate request body
+    const rawBody = await req.json();
+    const validationResult = requestSchema.safeParse(rawBody);
     
-    if (!recordingId) {
-      throw new Error('No recording ID provided');
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid request parameters',
+          details: validationResult.error.issues 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
     }
+
+    const { recordingId } = validationResult.data;
 
     console.log('Processing recording:', recordingId);
 
@@ -275,8 +264,10 @@ Focus on:
     
     // Update status to failed if we have recordingId
     try {
-      const { recordingId } = await req.clone().json();
-      if (recordingId) {
+      const rawBody = await req.clone().json();
+      const validationResult = requestSchema.safeParse(rawBody);
+      if (validationResult.success) {
+        const { recordingId } = validationResult.data;
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
         const supabase = createClient(supabaseUrl, supabaseKey);

@@ -1,9 +1,19 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  jobId: z.string().uuid('Invalid job ID format'),
+  userId: z.string().uuid('Invalid user ID format'),
+  jobTitle: z.string().min(1, 'Job title is required').max(500),
+  company: z.string().min(1, 'Company is required').max(500),
+  tags: z.array(z.string()).optional().default([]),
+});
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,7 +21,24 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { jobId, jobTitle, company, tags, userId } = await req.json();
+    // Parse and validate request body
+    const rawBody = await req.json();
+    const validationResult = requestSchema.safeParse(rawBody);
+    
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid request parameters',
+          details: validationResult.error.issues 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 400 
+        }
+      );
+    }
+
+    const { jobId, jobTitle, company, tags, userId } = validationResult.data;
     console.log('Calculating match score for:', { jobId, jobTitle, company, userId });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

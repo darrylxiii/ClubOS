@@ -91,28 +91,35 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const recordView = async () => {
     try {
       const supabaseAny = supabase as any;
-      await supabaseAny.from('story_views').insert({
+      await supabaseAny.from('story_views').upsert({
         story_id: currentStory.id,
         viewer_id: user?.id,
         viewed_at: new Date().toISOString()
+      }, {
+        onConflict: 'story_id,viewer_id'
       });
     } catch (error) {
-      // Silent fail - duplicate views are expected
+      console.error('[StoryViewer] Error recording view:', error);
     }
   };
 
   const recordViewDuration = async () => {
-    const duration = Math.floor((Date.now() - viewStartTime) / 1000);
-    const supabaseAny = supabase as any;
-    await supabaseAny.from('story_views')
-      .update({ 
-        watch_duration_seconds: duration,
-        completed: progress >= 95
-      })
-      .eq('story_id', currentStory.id)
-      .eq('viewer_id', user?.id)
-      .order('viewed_at', { ascending: false })
-      .limit(1);
+    try {
+      const duration = Math.floor((Date.now() - viewStartTime) / 1000);
+      const supabaseAny = supabase as any;
+      await supabaseAny.from('story_views')
+        .upsert({
+          story_id: currentStory.id,
+          viewer_id: user?.id,
+          watch_duration_seconds: duration,
+          completed: progress >= 95,
+          viewed_at: new Date().toISOString()
+        }, {
+          onConflict: 'story_id,viewer_id'
+        });
+    } catch (error) {
+      console.error('[StoryViewer] Error recording view duration:', error);
+    }
   };
 
   const fetchStoryStats = async () => {
