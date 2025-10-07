@@ -138,10 +138,10 @@ export function Stories() {
 
   return (
     <>
-      <div className="relative flex gap-3 pb-4">
+      <div className="relative flex pb-4">
         {/* Create Story Card - Sticky */}
         <Card 
-          className="sticky left-0 z-10 flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group bg-background/95 backdrop-blur"
+          className="sticky left-0 z-10 flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group bg-background/95 backdrop-blur select-none"
           onClick={handleCreateStory}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-primary/40" />
@@ -159,7 +159,7 @@ export function Stories() {
         {/* Stories - scrollable with drag */}
         <div 
           ref={scrollRef}
-          className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] cursor-grab active:cursor-grabbing"
+          className="flex gap-3 overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] cursor-grab active:cursor-grabbing select-none pl-3"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -168,23 +168,24 @@ export function Stories() {
           {stories.map((story) => (
             <Card 
               key={story.id}
-              className="flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden"
+              className="flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden select-none"
               onClick={() => handleStoryClick(story)}
             >
               {story.media_type === 'image' ? (
                 <img 
                   src={story.media_url} 
                   alt="Story"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover pointer-events-none"
+                  draggable="false"
                 />
               ) : (
                 <video 
                   src={story.media_url}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover pointer-events-none"
                 />
               )}
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
-              <div className="absolute bottom-2 left-2 right-2">
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 pointer-events-none" />
+              <div className="absolute bottom-2 left-2 right-2 pointer-events-none">
                 <Avatar className="w-6 h-6 border-2 border-white">
                   <AvatarImage src={story.profiles?.avatar_url} />
                   <AvatarFallback>{story.profiles?.full_name?.[0]}</AvatarFallback>
