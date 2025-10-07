@@ -13,6 +13,7 @@ import {
   ChevronDown,
   ChevronUp,
   X,
+  Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -44,14 +45,15 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
   const isGroup = conversation.metadata?.is_group;
 
   return (
-    <div className="w-80 border-l border-border/50 flex flex-col glass-strong animate-fade-in">
+    <div className="w-80 border-l border-border/50 flex flex-col glass-strong animate-fade-in bg-card z-40">
       {/* Header */}
-      <div className="h-16 border-b border-border/50 px-6 flex items-center justify-between bg-card/50">
-        <h3 className="font-semibold">
+      <div className="h-16 border-b border-border/50 px-6 flex items-center justify-between bg-card shadow-glass-sm">
+        <h3 className="font-semibold flex items-center gap-2">
+          <Info className="h-4 w-4 text-primary" />
           {isGroup ? 'Group Info' : 'Chat Info'}
         </h3>
         {onClose && (
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-destructive/10">
             <X className="h-5 w-5" />
           </Button>
         )}

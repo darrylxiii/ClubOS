@@ -98,15 +98,48 @@ export default function Messages() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background to-accent/5">
-      {/* Conversation List Panel */}
-      <div 
-        className={cn(
-          "w-80 border-r border-border/50 flex flex-col glass-strong transition-transform duration-300",
-          "lg:translate-x-0",
-          showMobileSidebar ? "translate-x-0" : "-translate-x-full absolute lg:relative z-20 h-full"
-        )}
-      >
+    <div className="flex flex-col h-screen bg-gradient-to-br from-background via-background to-accent/5">
+      {/* Top Navigation Bar */}
+      <div className="h-16 border-b border-border/50 glass-strong px-6 flex items-center justify-between shadow-glass-md z-50">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/home')}
+            className="hover:bg-accent/50"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-lg font-bold">Messages</h1>
+            <p className="text-xs text-muted-foreground">
+              {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate('/home')}
+            className="hover:bg-accent/50"
+            title="Back to Home"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Conversation List Panel */}
+        <div 
+          className={cn(
+            "w-80 border-r border-border/50 flex flex-col glass-strong transition-transform duration-300",
+            "lg:translate-x-0",
+            showMobileSidebar ? "translate-x-0" : "-translate-x-full absolute lg:relative z-20 h-full"
+          )}
+        >
         <div className="p-4 border-b border-border/50 bg-card/30 backdrop-blur-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -192,13 +225,14 @@ export default function Messages() {
                   <Video className="h-5 w-5" />
                 </Button>
                 <Button 
-                  variant="ghost" 
+                  variant={showGroupInfo ? "default" : "ghost"}
                   size="icon" 
                   onClick={() => setShowGroupInfo(!showGroupInfo)}
                   className={cn(
-                    "hover:bg-accent/50 transition-colors",
-                    showGroupInfo && "bg-accent text-accent-foreground"
+                    "transition-all",
+                    showGroupInfo && "bg-gradient-accent text-white shadow-glow"
                   )}
+                  title={showGroupInfo ? "Hide Info" : "Show Info"}
                 >
                   <Info className="h-5 w-5" />
                 </Button>
@@ -244,27 +278,29 @@ export default function Messages() {
         )}
       </div>
 
-      {/* Group Info Panel - Desktop */}
-      {selectedConversationId && selectedConversation && showGroupInfo && (
-        <div className="hidden lg:block">
-          <GroupInfoPanel 
-            conversation={selectedConversation} 
-            onClose={() => setShowGroupInfo(false)}
-          />
-        </div>
-      )}
-
-      {/* Mobile Group Info Overlay */}
-      {selectedConversationId && selectedConversation && showGroupInfo && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={() => setShowGroupInfo(false)}>
-          <div className="absolute right-0 top-0 bottom-0 w-80 animate-slide-up" onClick={(e) => e.stopPropagation()}>
-            <GroupInfoPanel 
-              conversation={selectedConversation} 
-              onClose={() => setShowGroupInfo(false)}
-            />
-          </div>
-        </div>
-      )}
+        {/* Group Info Panel - Always visible when toggled */}
+        {selectedConversationId && selectedConversation && showGroupInfo && (
+          <>
+            {/* Desktop */}
+            <div className="hidden lg:block">
+              <GroupInfoPanel 
+                conversation={selectedConversation} 
+                onClose={() => setShowGroupInfo(false)}
+              />
+            </div>
+            
+            {/* Mobile Overlay */}
+            <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={() => setShowGroupInfo(false)}>
+              <div className="absolute right-0 top-0 bottom-0 w-80 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+                <GroupInfoPanel 
+                  conversation={selectedConversation} 
+                  onClose={() => setShowGroupInfo(false)}
+                />
+              </div>
+            </div>
+          </>
+        )}
+      </div>
 
       <CreateConversationDialog 
         open={createDialogOpen} 
