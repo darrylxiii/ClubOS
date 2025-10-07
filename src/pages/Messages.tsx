@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { AppLayout } from '@/components/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -25,12 +26,10 @@ import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 export default function Messages() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -74,64 +73,34 @@ export default function Messages() {
 
   if (!loading && conversations.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-accent/5">
-        <Card className="max-w-md w-full p-8 text-center space-y-6 glass-card animate-scale-in">
-          <div className="mx-auto w-20 h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
-            <MessageCircle className="h-10 w-10 text-white" />
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold mb-2">Welcome to Messages</h2>
-            <p className="text-muted-foreground">Start conversations with your network</p>
-          </div>
-          <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="w-full shadow-glass-md hover:shadow-glass-lg transition-shadow">
-            <Plus className="h-5 w-5 mr-2" />
-            Start Your First Conversation
-          </Button>
-        </Card>
-        <CreateConversationDialog
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-          onConversationCreated={(id) => { setSelectedConversationId(id); loadConversations(); }}
-        />
-      </div>
+      <AppLayout>
+        <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background to-accent/5">
+          <Card className="max-w-md w-full p-8 text-center space-y-6 glass-card animate-scale-in">
+            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
+              <MessageCircle className="h-10 w-10 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold mb-2">Welcome to Messages</h2>
+              <p className="text-muted-foreground">Start conversations with your network</p>
+            </div>
+            <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="w-full shadow-glass-md hover:shadow-glass-lg transition-shadow">
+              <Plus className="h-5 w-5 mr-2" />
+              Start Your First Conversation
+            </Button>
+          </Card>
+          <CreateConversationDialog
+            open={createDialogOpen}
+            onOpenChange={setCreateDialogOpen}
+            onConversationCreated={(id) => { setSelectedConversationId(id); loadConversations(); }}
+          />
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-background via-background to-accent/5">
-      {/* Top Navigation Bar */}
-      <div className="h-16 border-b border-border/50 glass-strong px-6 flex items-center justify-between shadow-glass-md z-50">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/home')}
-            className="hover:bg-accent/50"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div>
-            <h1 className="text-lg font-bold">Messages</h1>
-            <p className="text-xs text-muted-foreground">
-              {conversations.length} conversation{conversations.length !== 1 ? 's' : ''}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/home')}
-            className="hover:bg-accent/50"
-            title="Back to Home"
-          >
-            <MessageCircle className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
+    <AppLayout>
+      <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background to-accent/5">
         {/* Conversation List Panel */}
         <div 
           className={cn(
@@ -311,6 +280,6 @@ export default function Messages() {
           confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); 
         }} 
       />
-    </div>
+    </AppLayout>
   );
 }
