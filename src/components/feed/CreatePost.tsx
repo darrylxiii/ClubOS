@@ -367,18 +367,6 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             </div>
             
             <div className="group/audience flex items-center gap-2">
-              {/* Post button that expands on hover */}
-              <Button 
-                onClick={handlePost}
-                disabled={!content.trim() || loading}
-                className="group/post h-9 overflow-hidden transition-all duration-300 w-9 hover:w-auto hover:px-4"
-              >
-                <Send className="w-4 h-4 flex-shrink-0" />
-                <span className="max-w-0 overflow-hidden group-hover/post:max-w-xs group-hover/post:ml-2 transition-all duration-300">
-                  Post
-                </span>
-              </Button>
-              
               {/* Audience buttons - shown on hover, ordered with More on farthest left */}
               <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity">
                 <Button 
@@ -470,12 +458,10 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               <Button 
                 onClick={handlePost}
                 disabled={!content.trim() || loading}
-                size="sm"
-                className="group/post relative h-9 w-9 p-0"
-                title="Post"
+                className="group/post h-9 overflow-hidden transition-all duration-300 w-9 hover:w-auto hover:px-4"
               >
-                <Send className="w-4 h-4" />
-                <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded opacity-0 group-hover/post:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                <Send className="w-4 h-4 flex-shrink-0" />
+                <span className="max-w-0 overflow-hidden group-hover/post:max-w-xs group-hover/post:ml-2 transition-all duration-300 whitespace-nowrap">
                   Post
                 </span>
               </Button>
