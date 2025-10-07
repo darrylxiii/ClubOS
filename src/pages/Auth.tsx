@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Lock, Sparkles, Shield, CheckCircle2, Apple } from "lucide-react";
 import { FaGoogle, FaLinkedin } from "react-icons/fa";
+import authBackground from "@/assets/auth-background.gif";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -178,19 +179,23 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Video background placeholder - add your video here */}
-      <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-background/90">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072')] bg-cover bg-center opacity-20" />
-        <div className="absolute inset-0 backdrop-blur-[2px]" />
+      {/* GIF Background - Full screen, no black edges */}
+      <div className="absolute inset-0">
+        <img 
+          src={authBackground} 
+          alt="" 
+          className="absolute inset-0 w-full h-full object-cover object-center scale-110"
+        />
+        <div className="absolute inset-0 bg-background/20" />
       </div>
 
       {/* Floating ambient orbs */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
       </div>
 
-      <Card className="w-full max-w-lg relative z-10 bg-background/40 backdrop-blur-3xl border border-white/10 shadow-2xl rounded-[32px] animate-fade-in overflow-hidden">
+      <Card className="w-full max-w-lg relative z-10 bg-background/30 backdrop-blur-xl border border-white/10 shadow-2xl rounded-[32px] animate-fade-in overflow-hidden">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           {/* Logo with glow */}
           <div className="flex items-center justify-center mb-2">
@@ -247,7 +252,7 @@ const Auth = () => {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
-                  className="h-14 bg-background/60 border-white/10 rounded-2xl font-medium text-base placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="h-14 bg-background/50 border-white/20 rounded-2xl font-medium text-base placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
                 />
               </div>
             )}
@@ -259,7 +264,7 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-14 bg-background/60 border-white/10 rounded-2xl font-medium text-base placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-14 bg-background/50 border-white/20 rounded-2xl font-medium text-base placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
               />
             </div>
 
@@ -270,10 +275,10 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-14 bg-background/60 border-white/10 rounded-2xl font-medium text-base placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-14 bg-background/50 border-white/20 rounded-2xl font-medium text-base placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
               />
               {!isLogin && password && (
-                <div className="text-xs space-y-2 mt-4 p-4 rounded-2xl bg-background/40 border border-white/5">
+                <div className="text-xs space-y-2 mt-4 p-4 rounded-2xl bg-background/30 border border-white/10 backdrop-blur-sm">
                   <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground/80"}>
                     {password.length >= 12 ? "✓" : "○"} At least 12 characters
                   </p>
@@ -301,7 +306,7 @@ const Auth = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="h-14 bg-background/60 border-white/10 rounded-2xl font-medium text-base placeholder:text-muted-foreground/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="h-14 bg-background/50 border-white/20 rounded-2xl font-medium text-base placeholder:text-muted-foreground/70 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
                 />
               </div>
             )}
@@ -333,7 +338,7 @@ const Auth = () => {
                 <div className="w-full border-t border-white/10"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background/60 backdrop-blur-sm px-4 py-1 rounded-full text-muted-foreground/60 font-bold tracking-wider">
+                <span className="bg-background/50 backdrop-blur-sm px-4 py-1 rounded-full text-muted-foreground/70 font-bold tracking-wider">
                   Coming Soon
                 </span>
               </div>
@@ -343,7 +348,7 @@ const Auth = () => {
             <div className="flex items-center justify-center gap-4">
               <button
                 type="button"
-                className="w-14 h-14 rounded-full bg-background/60 border border-white/10 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/80"
+                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/70 backdrop-blur-sm"
                 disabled
               >
                 <FaGoogle className="w-5 h-5 text-foreground" />
@@ -351,7 +356,7 @@ const Auth = () => {
 
               <button
                 type="button"
-                className="w-14 h-14 rounded-full bg-background/60 border border-white/10 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/80"
+                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/70 backdrop-blur-sm"
                 disabled
               >
                 <Apple className="w-6 h-6 text-foreground" />
@@ -359,7 +364,7 @@ const Auth = () => {
 
               <button
                 type="button"
-                className="w-14 h-14 rounded-full bg-background/60 border border-white/10 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/80"
+                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/70 backdrop-blur-sm"
                 disabled
               >
                 <FaLinkedin className="w-5 h-5 text-foreground" />
