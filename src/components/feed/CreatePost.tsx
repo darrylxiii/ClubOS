@@ -336,12 +336,12 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="group/audience flex items-center gap-2">
               <Button 
                 variant="ghost" 
                 size="sm"
                 onClick={() => setAudienceSelection({ type: 'best_friends' })}
-                className={`gap-2 ${audienceSelection.type === 'best_friends' ? 'bg-accent' : ''}`}
+                className="gap-2"
               >
                 <Heart className="w-4 h-4" />
                 Best Friends
@@ -351,10 +351,19 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 variant="ghost" 
                 size="sm"
                 onClick={() => setShowAudienceModal(true)}
-                className="gap-2"
+                className="gap-2 opacity-0 group-hover/audience:opacity-100 transition-opacity"
               >
                 <MoreHorizontal className="w-4 h-4" />
                 More
+              </Button>
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="h-9 w-9 p-0 hover:bg-white/5"
+                title="Audience Settings"
+              >
+                <Users className="w-4 h-4 text-muted-foreground group-hover/audience:text-foreground transition-colors" />
               </Button>
               
               <Button 

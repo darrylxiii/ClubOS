@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,6 +25,11 @@ export function Stories() {
   const [stories, setStories] = useState<Story[]>([]);
   const [viewingStory, setViewingStory] = useState<Story | null>(null);
   const [loading, setLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasMoved, setHasMoved] = useState(false);
 
   useEffect(() => {
     fetchStories();
@@ -53,6 +58,39 @@ export function Stories() {
       }));
 
       setStories(enrichedStories);
+    }
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!scrollRef.current) return;
+    setIsDragging(true);
+    setHasMoved(false);
+    setStartX(e.pageX - scrollRef.current.offsetLeft);
+    setScrollLeft(scrollRef.current.scrollLeft);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || !scrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - scrollRef.current.offsetLeft;
+    const walk = (x - startX) * 2;
+    if (Math.abs(walk) > 5) {
+      setHasMoved(true);
+    }
+    scrollRef.current.scrollLeft = scrollLeft - walk;
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleStoryClick = (story: Story) => {
+    if (!hasMoved) {
+      setViewingStory(story);
     }
   };
 
@@ -100,7 +138,14 @@ export function Stories() {
 
   return (
     <>
-      <div className="flex gap-3 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div 
+        ref={scrollRef}
+        className="flex gap-3 overflow-x-auto pb-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] cursor-grab active:cursor-grabbing select-none"
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+      >
         {/* Create Story Card */}
         <Card 
           className="flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group"
@@ -120,7 +165,7 @@ export function Stories() {
           <Card 
             key={story.id}
             className="flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden"
-            onClick={() => setViewingStory(story)}
+            onClick={() => handleStoryClick(story)}
           >
             {story.media_type === 'image' ? (
               <img 
