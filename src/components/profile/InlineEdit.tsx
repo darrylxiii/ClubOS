@@ -44,14 +44,19 @@ export function InlineEdit({
   const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-  // Sync local state with prop changes (important for after save/reload)
+  // Only sync when value changes and we're not editing
   useEffect(() => {
-    setEditValue(value);
-  }, [value]);
+    if (!isEditing && editValue !== value) {
+      setEditValue(value);
+    }
+  }, [value, isEditing, editValue]);
 
+  // Only sync visibility when it actually changes
   useEffect(() => {
-    setVisibility(currentVisibility);
-  }, [currentVisibility]);
+    if (visibility !== currentVisibility) {
+      setVisibility(currentVisibility);
+    }
+  }, [currentVisibility, visibility]);
 
   useEffect(() => {
     if (isEditing && inputRef.current) {

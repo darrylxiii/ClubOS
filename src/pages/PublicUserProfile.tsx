@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -185,7 +185,7 @@ export default function PublicUserProfile() {
     handleDialogClose(dialog);
   };
 
-  const handleProfileUpdate = async (field: string, value: string, visibility?: string) => {
+  const handleProfileUpdate = useCallback(async (field: string, value: string, visibility?: string) => {
     try {
       const updates: any = { [field]: value };
       
@@ -215,9 +215,9 @@ export default function PublicUserProfile() {
       console.error("Error updating profile:", error);
       throw error;
     }
-  };
+  }, [userId, user?.email, profile]);
 
-  const handleRestoreEdit = async (editId: string) => {
+  const handleRestoreEdit = useCallback(async (editId: string) => {
     const edit = editHistory.find(e => e.id === editId);
     if (!edit) return;
 
@@ -227,7 +227,7 @@ export default function PublicUserProfile() {
     } catch (error) {
       toast.error("Failed to restore");
     }
-  };
+  }, [editHistory, handleProfileUpdate]);
 
   if (loading) {
     return (
