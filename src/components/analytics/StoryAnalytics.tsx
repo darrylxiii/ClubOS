@@ -4,13 +4,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Eye, Heart, Share2, Bookmark, TrendingUp, Clock, Users } from "lucide-react";
-import { TimeRangeSelector } from "./TimeRangeSelector";
+import { TimeRangeSelector, TimeRange } from "./TimeRangeSelector";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
 
 export function StoryAnalytics() {
   const { user } = useAuth();
-  const [timeRange, setTimeRange] = useState("7d");
-  const [customRange, setCustomRange] = useState<{ start: Date; end: Date } | null>(null);
+  const [timeRange, setTimeRange] = useState<TimeRange>("7d");
+  const [customRange, setCustomRange] = useState<{ from: Date; to: Date } | undefined>(undefined);
   const [stats, setStats] = useState({
     totalViews: 0,
     totalReactions: 0,
@@ -57,11 +57,12 @@ export function StoryAnalytics() {
     const storyIds = stories.map(s => s.id);
 
     // Fetch analytics for all stories
+    const supabaseAny = supabase as any;
     const [views, reactions, shares, saves] = await Promise.all([
-      supabase.from('story_views').select('*').in('story_id', storyIds),
-      supabase.from('story_reactions').select('*').in('story_id', storyIds),
-      supabase.from('story_shares').select('*').in('story_id', storyIds),
-      supabase.from('story_saves').select('*').in('story_id', storyIds),
+      supabaseAny.from('story_views').select('*').in('story_id', storyIds),
+      supabaseAny.from('story_reactions').select('*').in('story_id', storyIds),
+      supabaseAny.from('story_shares').select('*').in('story_id', storyIds),
+      supabaseAny.from('story_saves').select('*').in('story_id', storyIds),
     ]);
 
     // Calculate overall stats
@@ -134,7 +135,7 @@ export function StoryAnalytics() {
 
   const getDateRange = () => {
     if (customRange) {
-      return { start: customRange.start, end: customRange.end };
+      return { start: customRange.from, end: customRange.to };
     }
 
     const end = new Date();
@@ -168,9 +169,11 @@ export function StoryAnalytics() {
         <h2 className="text-2xl font-bold">Story Analytics</h2>
         <TimeRangeSelector
           value={timeRange}
-          onChange={setTimeRange}
           customRange={customRange}
-          onCustomRangeChange={setCustomRange}
+          onChange={(range, custom) => {
+            setTimeRange(range);
+            setCustomRange(custom);
+          }}
         />
       </div>
 

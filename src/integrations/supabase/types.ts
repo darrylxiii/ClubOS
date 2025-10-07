@@ -4043,22 +4043,28 @@ export type Database = {
       }
       story_views: {
         Row: {
+          completed: boolean | null
           id: string
           story_id: string
           viewed_at: string | null
           viewer_id: string
+          watch_duration_seconds: number | null
         }
         Insert: {
+          completed?: boolean | null
           id?: string
           story_id: string
           viewed_at?: string | null
           viewer_id: string
+          watch_duration_seconds?: number | null
         }
         Update: {
+          completed?: boolean | null
           id?: string
           story_id?: string
           viewed_at?: string | null
           viewer_id?: string
+          watch_duration_seconds?: number | null
         }
         Relationships: [
           {

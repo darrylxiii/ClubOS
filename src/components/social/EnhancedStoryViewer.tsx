@@ -89,32 +89,35 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   };
 
   const recordView = async () => {
-    await supabase.from('story_views').insert({
+    const supabaseAny = supabase as any;
+    await supabaseAny.from('story_views').insert({
       story_id: currentStory.id,
-      user_id: user?.id,
+      viewer_id: user?.id,
       viewed_at: new Date().toISOString()
     });
   };
 
   const recordViewDuration = async () => {
     const duration = Math.floor((Date.now() - viewStartTime) / 1000);
-    await supabase.from('story_views')
+    const supabaseAny = supabase as any;
+    await supabaseAny.from('story_views')
       .update({ 
         watch_duration_seconds: duration,
         completed: progress >= 95
       })
       .eq('story_id', currentStory.id)
-      .eq('user_id', user?.id)
+      .eq('viewer_id', user?.id)
       .order('viewed_at', { ascending: false })
       .limit(1);
   };
 
   const fetchStoryStats = async () => {
+    const supabaseAny = supabase as any;
     const [views, reactions, shares, saves] = await Promise.all([
-      supabase.from('story_views').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
-      supabase.from('story_reactions').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
-      supabase.from('story_shares').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
-      supabase.from('story_saves').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
+      supabaseAny.from('story_views').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
+      supabaseAny.from('story_reactions').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
+      supabaseAny.from('story_shares').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
+      supabaseAny.from('story_saves').select('id', { count: 'exact', head: true }).eq('story_id', currentStory.id),
     ]);
 
     setStats({
@@ -128,13 +131,14 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const checkUserInteractions = async () => {
     if (!user) return;
 
+    const supabaseAny = supabase as any;
     const [reaction, save] = await Promise.all([
-      supabase.from('story_reactions')
+      supabaseAny.from('story_reactions')
         .select('reaction_type')
         .eq('story_id', currentStory.id)
         .eq('user_id', user.id)
         .maybeSingle(),
-      supabase.from('story_saves')
+      supabaseAny.from('story_saves')
         .select('id')
         .eq('story_id', currentStory.id)
         .eq('user_id', user.id)
@@ -148,14 +152,15 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const handleReaction = async (reactionType: string) => {
     if (!user) return;
 
+    const supabaseAny = supabase as any;
     if (userReaction === reactionType) {
-      await supabase.from('story_reactions')
+      await supabaseAny.from('story_reactions')
         .delete()
         .eq('story_id', currentStory.id)
         .eq('user_id', user.id);
       setUserReaction(null);
     } else {
-      await supabase.from('story_reactions')
+      await supabaseAny.from('story_reactions')
         .upsert({
           story_id: currentStory.id,
           user_id: user.id,
@@ -176,15 +181,16 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const handleSave = async () => {
     if (!user) return;
 
+    const supabaseAny = supabase as any;
     if (isSaved) {
-      await supabase.from('story_saves')
+      await supabaseAny.from('story_saves')
         .delete()
         .eq('story_id', currentStory.id)
         .eq('user_id', user.id);
       setIsSaved(false);
       toast({ title: "Story removed from saves" });
     } else {
-      await supabase.from('story_saves').insert({
+      await supabaseAny.from('story_saves').insert({
         story_id: currentStory.id,
         user_id: user.id,
       });
@@ -197,7 +203,8 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const handleShare = async (shareType: 'repost' | 'dm' | 'external') => {
     if (!user) return;
 
-    await supabase.from('story_shares').insert({
+    const supabaseAny = supabase as any;
+    await supabaseAny.from('story_shares').insert({
       story_id: currentStory.id,
       user_id: user.id,
       share_type: shareType,
