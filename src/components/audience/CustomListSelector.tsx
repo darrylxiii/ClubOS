@@ -39,12 +39,9 @@ export const CustomListSelector = ({ selectedIds, onSelectionChange }: CustomLis
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('audience_lists')
-        .select(`
-          *,
-          audience_list_members(count)
-        `)
+        .select('*')
         .eq('user_id', user.user.id)
         .eq('list_type', 'custom')
         .eq('is_active', true)
@@ -52,12 +49,22 @@ export const CustomListSelector = ({ selectedIds, onSelectionChange }: CustomLis
 
       if (error) throw error;
 
-      const listsWithCount = data.map(list => ({
-        ...list,
-        member_count: list.audience_list_members?.[0]?.count || 0
-      }));
+      // Get member counts separately
+      const listsWithCount = await Promise.all(
+        (data || []).map(async (list: any) => {
+          const { count } = await (supabase as any)
+            .from('audience_list_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('list_id', list.id);
+          
+          return {
+            ...list,
+            member_count: count || 0
+          };
+        })
+      );
 
-      setLists(listsWithCount);
+      setLists(listsWithCount as CustomList[]);
     } catch (error) {
       console.error('Error loading lists:', error);
       toast.error('Failed to load custom lists');
@@ -76,7 +83,7 @@ export const CustomListSelector = ({ selectedIds, onSelectionChange }: CustomLis
 
   const handleDelete = async (listId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('audience_lists')
         .delete()
         .eq('id', listId);

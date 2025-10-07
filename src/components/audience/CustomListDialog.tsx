@@ -68,7 +68,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
 
       if (list) {
         // Update existing list
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('audience_lists')
           .update(listData)
           .eq('id', list.id);
@@ -77,7 +77,7 @@ export const CustomListDialog = ({ isOpen, onClose, onSave, list }: CustomListDi
         toast.success('List updated');
       } else {
         // Create new list
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('audience_lists')
           .insert(listData);
 

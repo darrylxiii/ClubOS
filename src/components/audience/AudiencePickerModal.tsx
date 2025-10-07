@@ -64,13 +64,13 @@ export const AudiencePickerModal = ({ isOpen, onClose, value, onChange }: Audien
         count = companyMembers || 0;
       }
     } else if (selectedType === 'best_friends') {
-      const { count: friendsCount } = await supabase
+      const { count: friendsCount } = await (supabase as any)
         .from('best_friends')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
       count = friendsCount || 0;
     } else if (selectedType === 'custom' && selectedListIds.length > 0) {
-      const { count: membersCount } = await supabase
+      const { count: membersCount } = await (supabase as any)
         .from('audience_list_members')
         .select('*', { count: 'exact', head: true })
         .in('list_id', selectedListIds);

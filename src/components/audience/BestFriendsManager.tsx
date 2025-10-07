@@ -50,11 +50,11 @@ export const BestFriendsManager = ({ isOpen, onClose }: BestFriendsManagerProps)
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return;
 
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('best_friends')
         .select(`
           friend_user_id,
-          profiles!best_friends_friend_user_id_fkey(
+          profiles:friend_user_id(
             id,
             full_name,
             avatar_url,
@@ -65,7 +65,7 @@ export const BestFriendsManager = ({ isOpen, onClose }: BestFriendsManagerProps)
 
       if (error) throw error;
 
-      const friends = data.map(item => item.profiles).filter(Boolean) as User[];
+      const friends = (data || []).map((item: any) => item.profiles).filter(Boolean) as User[];
       setBestFriends(friends);
     } catch (error) {
       console.error('Error loading best friends:', error);
@@ -106,7 +106,7 @@ export const BestFriendsManager = ({ isOpen, onClose }: BestFriendsManagerProps)
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return;
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('best_friends')
         .insert({
           user_id: user.user.id,
@@ -130,7 +130,7 @@ export const BestFriendsManager = ({ isOpen, onClose }: BestFriendsManagerProps)
       const { data: user } = await supabase.auth.getUser();
       if (!user.user) return;
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('best_friends')
         .delete()
         .eq('user_id', user.user.id)
