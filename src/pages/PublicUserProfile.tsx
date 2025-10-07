@@ -21,7 +21,8 @@ import {
   Users,
   CheckCircle2,
   Shield,
-  Edit2
+  Edit2,
+  Settings
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -68,6 +69,8 @@ export default function PublicUserProfile() {
   const [exportType, setExportType] = useState<string>();
   const [editHistory, setEditHistory] = useState<any[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
+  
+  const isOwnProfile = user?.id === userId;
 
   // Track profile visit
   useEffect(() => {
@@ -261,8 +264,6 @@ export default function PublicUserProfile() {
     );
   }
 
-  const isOwnProfile = user?.id === userId;
-
   return (
     <AppLayout>
       <div className="min-h-screen bg-gradient-subtle">
@@ -289,7 +290,15 @@ export default function PublicUserProfile() {
                   className="gap-2"
                 >
                   <Edit2 className="w-4 h-4" />
-                  {isEditMode ? "Done Editing" : "Edit Profile"}
+                  {isEditMode ? "Preview Mode" : "Edit Mode"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/user-settings')}
+                  className="gap-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  Account Settings
                 </Button>
               </div>
             )}
@@ -367,14 +376,6 @@ export default function PublicUserProfile() {
                     </div>
                   </div>
 
-                  {isOwnProfile && (
-                    <Button
-                      variant="outline"
-                      onClick={() => navigate('/settings#account')}
-                    >
-                      Edit Profile
-                    </Button>
-                  )}
                 </div>
               </div>
             </CardContent>

@@ -14,7 +14,7 @@ import TasksPilot from "./pages/TasksPilot";
 import ClubAI from "./pages/ClubAI";
 import Onboarding from "./pages/Onboarding";
 import PartnerOnboarding from "./pages/PartnerOnboarding";
-import Profile from "./pages/Profile";
+import UserSettings from "./pages/UserSettings";
 import EnhancedProfile from "./pages/EnhancedProfile";
 import PublicUserProfile from "./pages/PublicUserProfile";
 import Referrals from "./pages/Referrals";
@@ -123,10 +123,10 @@ const App = () => (
               }
             />
             <Route
-              path="/profile"
+              path="/user-settings"
               element={
                 <ProtectedRoute>
-                  <Profile />
+                  <UserSettings />
                 </ProtectedRoute>
               }
             />

@@ -64,7 +64,6 @@ const candidateNavigationGroups = [
     title: "Career",
     icon: Briefcase,
     items: [
-      { name: "Profile", icon: User, path: "/profile" },
       { name: "Jobs", icon: Briefcase, path: "/jobs" },
       { name: "Applications", icon: FileText, path: "/applications" },
       { name: "Companies", icon: Building2, path: "/companies" },
@@ -222,6 +221,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const { user } = useAuth();
   const location = useLocation();
   const { currentRole } = useRole();
+  const [userProfile, setUserProfile] = useState<{ id: string } | null>(null);
 
   // Determine navigation based on current role from context
   const navigationGroups = currentRole === 'admin'
@@ -243,6 +243,27 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   };
 
   const firstName = getFirstName();
+
+  // Load user profile to get ID for profile link
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single();
+      
+      if (data) {
+        setUserProfile(data);
+      }
+    };
+    
+    loadUserProfile();
+  }, [user]);
+
+  const profilePath = userProfile ? `/profile/${userProfile.id}` : '/user-settings';
 
   return (
     <div className="min-h-screen flex w-full bg-background">
@@ -310,9 +331,15 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-card">
               <DropdownMenuItem asChild>
-                <Link to="/profile" className="cursor-pointer">
+                <Link to={profilePath} className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                  <span>My Profile</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/user-settings" className="cursor-pointer">
+                  <Cog className="mr-2 h-4 w-4" />
+                  <span>Account Settings</span>
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

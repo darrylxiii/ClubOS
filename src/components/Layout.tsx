@@ -95,11 +95,11 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <DropdownMenuContent className="bg-background border-2 border-foreground z-50" align="end">
               <DropdownMenuItem asChild>
                 <Link
-                  to="/profile"
+                  to="/user-settings"
                   className="flex items-center gap-2 cursor-pointer font-bold uppercase text-xs tracking-wider"
                 >
                   <User className="w-4 h-4" />
-                  PROFILE
+                  SETTINGS
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem
