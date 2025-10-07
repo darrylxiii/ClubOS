@@ -12,6 +12,7 @@ import { CreateConversationDialog } from "@/components/messages/CreateConversati
 import { InteractiveReactions } from "./InteractiveReactions";
 import { PollPost } from "./PollPost";
 import { PostAnalyticsButton } from "@/components/analytics/PostAnalyticsButton";
+import { LiveViewerCounter } from "@/components/analytics/LiveViewerCounter";
 import { useNavigate } from 'react-router-dom';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { UserProfilePreview } from "@/components/UserProfilePreview";
@@ -278,12 +279,16 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               </HoverCardContent>
             </HoverCard>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon">
-                  <MoreHorizontal className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
+            <div className="flex items-center gap-2">
+              {user?.id === post.user_id && (
+                <LiveViewerCounter postId={post.id} />
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={handleSave}>
                   <Bookmark className="w-4 h-4 mr-2" />
@@ -314,9 +319,10 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                       Report post
                     </DropdownMenuItem>
                   </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
           
           <div className="flex items-center gap-2 mb-2">

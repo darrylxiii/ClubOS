@@ -2704,6 +2704,89 @@ export type Database = {
           },
         ]
       }
+      post_engagement_signals: {
+        Row: {
+          city: string | null
+          commented: boolean | null
+          commented_at: string | null
+          country: string | null
+          created_at: string | null
+          device_type: string | null
+          id: string
+          last_viewed_at: string | null
+          liked: boolean | null
+          liked_at: string | null
+          post_id: string
+          referrer: string | null
+          saved: boolean | null
+          saved_at: string | null
+          shared: boolean | null
+          shared_at: string | null
+          updated_at: string | null
+          user_agent: string | null
+          user_id: string
+          view_count: number | null
+          view_duration_seconds: number | null
+          viewed_at: string | null
+        }
+        Insert: {
+          city?: string | null
+          commented?: boolean | null
+          commented_at?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          liked?: boolean | null
+          liked_at?: string | null
+          post_id: string
+          referrer?: string | null
+          saved?: boolean | null
+          saved_at?: string | null
+          shared?: boolean | null
+          shared_at?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id: string
+          view_count?: number | null
+          view_duration_seconds?: number | null
+          viewed_at?: string | null
+        }
+        Update: {
+          city?: string | null
+          commented?: boolean | null
+          commented_at?: string | null
+          country?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          last_viewed_at?: string | null
+          liked?: boolean | null
+          liked_at?: string | null
+          post_id?: string
+          referrer?: string | null
+          saved?: boolean | null
+          saved_at?: string | null
+          shared?: boolean | null
+          shared_at?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+          view_count?: number | null
+          view_duration_seconds?: number | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_engagement_signals_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_interactions: {
         Row: {
           created_at: string
@@ -5097,6 +5180,36 @@ export type Database = {
           },
         ]
       }
+      user_relationships: {
+        Row: {
+          created_at: string | null
+          id: string
+          last_interaction_at: string | null
+          related_user_id: string
+          relationship_score: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          last_interaction_at?: string | null
+          related_user_id: string
+          relationship_score?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          last_interaction_at?: string | null
+          related_user_id?: string
+          relationship_score?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -5439,6 +5552,18 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_post_score: {
+        Args: {
+          p_comments_count: number
+          p_likes_count: number
+          p_post_author_id: string
+          p_post_created_at: string
+          p_post_id: string
+          p_shares_count: number
+          p_user_id: string
+        }
+        Returns: number
+      }
       check_verification_rate_limit: {
         Args: { _action: string; _user_id: string; _verification_type: string }
         Returns: Json
@@ -5483,6 +5608,10 @@ export type Database = {
       log_achievement_event: {
         Args: { _event_data?: Json; _event_type: string; _user_id: string }
         Returns: string
+      }
+      update_relationship_score: {
+        Args: { p_related_user_id: string; p_user_id: string }
+        Returns: undefined
       }
       use_invite_code: {
         Args: { _code: string; _user_id: string }

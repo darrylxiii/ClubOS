@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { TimeRangeSelector, TimeRange } from "@/components/analytics/TimeRangeSelector";
 import { useAnalyticsData } from "@/hooks/useAnalyticsData";
 import { Progress } from "@/components/ui/progress";
+import { PostViewers } from "@/components/analytics/PostViewers";
 
 interface PostAnalyticsDialogProps {
   postId: string | null;
@@ -155,8 +156,9 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
             </div>
 
             <Tabs defaultValue="overview" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="viewers">Viewers</TabsTrigger>
                 <TabsTrigger value="audience">Audience</TabsTrigger>
                 <TabsTrigger value="interactions">Interactions</TabsTrigger>
               </TabsList>
@@ -188,6 +190,10 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
                     </Button>
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="viewers" className="space-y-4">
+                <PostViewers postId={postId || ""} />
               </TabsContent>
 
               <TabsContent value="audience" className="space-y-4">
@@ -234,17 +240,7 @@ export const PostAnalyticsDialog = ({ postId, open, onOpenChange }: PostAnalytic
               </TabsContent>
 
               <TabsContent value="interactions" className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Engagement Timeline</CardTitle>
-                    <CardDescription>Activity over the selected period</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground text-center py-8">
-                      Detailed interaction timeline coming soon
-                    </p>
-                  </CardContent>
-                </Card>
+                <PostViewers postId={postId || ""} />
               </TabsContent>
             </Tabs>
           </div>
