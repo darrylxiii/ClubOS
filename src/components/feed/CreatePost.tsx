@@ -289,7 +289,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               </Button>
               
               {/* Horizontal options that appear on hover */}
-              <div className="flex items-center gap-1 opacity-0 group-hover/content:opacity-100 transition-opacity max-w-0 group-hover/content:max-w-md overflow-hidden">
+              <div className="flex items-center gap-1 opacity-0 group-hover/content:opacity-100 transition-opacity overflow-x-auto max-w-0 group-hover/content:max-w-full scrollbar-hide">
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -334,7 +334,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             </div>
             
             <div className="group/audience flex items-center gap-2">
-              <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity max-w-0 group-hover/audience:max-w-md overflow-hidden">
+              <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity overflow-x-auto max-w-0 group-hover/audience:max-w-full scrollbar-hide">
                 <Button 
                   variant="ghost" 
                   size="sm"
@@ -376,7 +376,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               <Button 
                 variant="ghost" 
                 size="sm"
-                className="h-9 w-9 p-0 hover:bg-white/5"
+                className="h-9 gap-2 px-2 hover:bg-white/5"
                 title={
                   audienceSelection.type === 'public' ? 'Public' :
                   audienceSelection.type === 'connections' ? 'Connections' :
@@ -386,15 +386,20 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                 }
               >
                 <Users className="w-4 h-4 text-muted-foreground group-hover/audience:text-foreground transition-colors" />
+                <span className="text-sm">Audience</span>
               </Button>
               
               <Button 
                 onClick={handlePost}
                 disabled={!content.trim() || loading}
                 size="sm"
+                className="group/post relative h-9 w-9 p-0"
+                title="Post"
               >
-                <Send className="w-4 h-4 mr-2" />
-                Post
+                <Send className="w-4 h-4" />
+                <span className="absolute left-full ml-2 px-2 py-1 bg-popover text-popover-foreground text-sm rounded opacity-0 group-hover/post:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                  Post
+                </span>
               </Button>
             </div>
           </div>
