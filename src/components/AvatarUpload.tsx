@@ -72,16 +72,19 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
+      // Get public URL with cache busting
       const { data: { publicUrl } } = supabase.storage
         .from('avatars')
         .getPublicUrl(filePath);
+
+      // Add cache busting parameter
+      const cacheBustedUrl = `${publicUrl}?t=${Date.now()}`;
 
       // Update profile
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ 
-          avatar_url: publicUrl,
+          avatar_url: cacheBustedUrl,
           updated_at: new Date().toISOString()
         })
         .eq('id', userId);

@@ -133,7 +133,7 @@ export default function EnhancedProfile() {
               Export My Data (GDPR)
             </Button>
             <Button variant="outline" asChild>
-              <a href="/profile">
+              <a href="/settings#privacy">
                 <Settings className="w-4 h-4 mr-2" />
                 Privacy Settings
               </a>
@@ -191,7 +191,7 @@ export default function EnhancedProfile() {
               <CardContent>
                 <div className="space-y-4">
                   <Button variant="outline" className="w-full" asChild>
-                    <a href="/profile">
+                    <a href="/settings#account">
                       <Settings className="w-4 h-4 mr-2" />
                       Go to Full Settings
                     </a>

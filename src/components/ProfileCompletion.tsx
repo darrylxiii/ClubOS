@@ -23,14 +23,14 @@ export const ProfileCompletion = () => {
       if (!user) return;
 
       const items: CompletionItem[] = [
-        { id: "avatar", label: "Upload profile picture", completed: false, link: "/profile#personal" },
-        { id: "profile", label: "Complete personal information", completed: false, link: "/profile#personal" },
-        { id: "salary", label: "Set salary expectations", completed: false, link: "/profile#salary" },
-        { id: "resume", label: "Upload resume/CV", completed: false, link: "/profile#resume" },
-        { id: "tqc_resume", label: "Create TQC resume", completed: false, link: "/profile#tqc-resume" },
-        { id: "google_calendar", label: "Connect Google Calendar", completed: false, link: "/profile#calendar" },
-        { id: "microsoft_calendar", label: "Connect Microsoft Calendar", completed: false, link: "/profile#calendar" },
-        { id: "preferences", label: "Set career preferences", completed: false, link: "/profile#preferences" },
+        { id: "avatar", label: "Upload profile picture", completed: false, link: "/settings#account" },
+        { id: "profile", label: "Complete personal information", completed: false, link: "/settings#account" },
+        { id: "salary", label: "Set salary expectations", completed: false, link: "/settings#preferences" },
+        { id: "resume", label: "Upload resume/CV", completed: false, link: "/enhanced-profile#resume" },
+        { id: "tqc_resume", label: "Create TQC resume", completed: false, link: "/enhanced-profile#portfolio" },
+        { id: "google_calendar", label: "Connect Google Calendar", completed: false, link: "/scheduling" },
+        { id: "microsoft_calendar", label: "Connect Microsoft Calendar", completed: false, link: "/scheduling" },
+        { id: "preferences", label: "Set career preferences", completed: false, link: "/settings#preferences" },
       ];
 
       const { data: profile } = await supabase
@@ -139,7 +139,7 @@ export const ProfileCompletion = () => {
             </p>
           </div>
         ) : (
-          <Link to="/profile" className="block">
+          <Link to="/settings#account" className="block">
             <button className="w-full h-11 px-6 rounded-xl font-semibold bg-gradient-accent text-white shadow-glass-md hover:shadow-glass-lg transition-all hover:scale-105 active:scale-95">
               Complete Profile
               <ArrowRight className="inline-block w-4 h-4 ml-2" />
