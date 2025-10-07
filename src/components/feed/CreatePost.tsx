@@ -393,7 +393,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   }
                 }}
               >
-                {/* Inline expandable options - More button FIRST */}
+                {/* Inline expandable options - More button FIRST, then Best Friends */}
                 {audienceMenuOpen && (
                   <div className="flex items-center gap-1 animate-in fade-in slide-in-from-right-2">
                     <Button 
@@ -409,18 +409,15 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       More
                     </Button>
                     
-                    {/* Only show Best Friends if selected or on hover - CONDITIONAL */}
-                    {audienceSelection.type === 'best_friends' && (
-                      <Button 
-                        variant="default"
-                        size="sm"
-                        onClick={() => handleAudienceSelect('best_friends')}
-                        className="gap-2 whitespace-nowrap h-9 flex-shrink-0 hidden lg:flex"
-                      >
-                        <Heart className="w-4 h-4" />
-                        Best Friends
-                      </Button>
-                    )}
+                    <Button 
+                      variant={audienceSelection.type === 'best_friends' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => handleAudienceSelect('best_friends')}
+                      className="gap-2 whitespace-nowrap h-9 flex-shrink-0"
+                    >
+                      <Heart className="w-4 h-4" />
+                      Best Friends
+                    </Button>
                   </div>
                 )}
                 
