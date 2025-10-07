@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, Sparkles, Shield, CheckCircle2 } from "lucide-react";
+import { Lock, Sparkles, Shield, CheckCircle2, Apple } from "lucide-react";
+import { FaGoogle, FaLinkedin } from "react-icons/fa";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -35,7 +36,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate("/dashboard");
+      navigate("/home");
     }
   }, [user, loading, navigate]);
 
@@ -323,6 +324,51 @@ const Auth = () => {
                 </>
               )}
             </Button>
+
+            {/* Social Login Section */}
+            <div className="relative my-8">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-border/30"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-3 text-muted-foreground font-semibold">Coming Soon</span>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="glass"
+                size="lg"
+                className="w-full font-semibold opacity-50 cursor-not-allowed"
+                disabled
+              >
+                <FaGoogle className="w-5 h-5" />
+                Continue with Google
+              </Button>
+
+              <Button
+                type="button"
+                variant="glass"
+                size="lg"
+                className="w-full font-semibold opacity-50 cursor-not-allowed"
+                disabled
+              >
+                <Apple className="w-5 h-5" />
+                Continue with Apple
+              </Button>
+
+              <Button
+                type="button"
+                variant="glass"
+                size="lg"
+                className="w-full font-semibold opacity-50 cursor-not-allowed"
+                disabled
+              >
+                <FaLinkedin className="w-5 h-5" />
+                Continue with LinkedIn
+              </Button>
+            </div>
           </form>
 
           {!inviteCode && (

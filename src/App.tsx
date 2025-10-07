@@ -48,7 +48,7 @@ const App = () => (
           <RoleProvider>
             <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route
               path="/home"
               element={
