@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Upload, User, Loader2, X, Image as ImageIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,12 @@ export const AvatarUpload = ({ avatarUrl, onAvatarChange, userId, required = fal
   const [editorOpen, setEditorOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync previewUrl with avatarUrl prop changes
+  useEffect(() => {
+    console.log('[AvatarUpload] Avatar URL changed:', avatarUrl);
+    setPreviewUrl(avatarUrl);
+  }, [avatarUrl]);
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
