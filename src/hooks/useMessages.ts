@@ -82,6 +82,11 @@ export const useMessages = (conversationId?: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<Array<{
+    user_id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  }>>([]);
 
   // Load conversations for inbox
   const loadConversations = useCallback(async () => {
@@ -355,13 +360,22 @@ export const useMessages = (conversationId?: string) => {
     }
   }, [conversationId, loadMessages, loadConversations]);
 
+  const broadcastTyping = useCallback(async () => {
+    if (!conversationId) return;
+    const channel = supabase.channel(`presence-${conversationId}`);
+    await channel.track({ user_id: user?.id, typing: true });
+    setTimeout(() => channel.track({ typing: false }), 3000);
+  }, [conversationId, user]);
+
   return {
     conversations,
     messages,
     loading,
     sending,
+    typingUsers,
     sendMessage,
     loadConversations,
     loadMessages,
+    broadcastTyping,
   };
 };

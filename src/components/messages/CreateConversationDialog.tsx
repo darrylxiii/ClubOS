@@ -6,7 +6,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { Search, MessageCircle } from 'lucide-react';
+import { Search, MessageCircle, Users, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface CreateConversationDialogProps {
   open: boolean;
@@ -31,13 +35,16 @@ export const CreateConversationDialog = ({
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserResult[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<UserResult[]>([]);
+  const [isGroupChat, setIsGroupChat] = useState(false);
+  const [groupName, setGroupName] = useState('');
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
   // Auto-create conversation if preselected user
   useEffect(() => {
     if (open && preselectedUserId && user) {
-      createConversation(preselectedUserId);
+      createConversation([preselectedUserId]);
     }
   }, [open, preselectedUserId]);
 
@@ -46,7 +53,6 @@ export const CreateConversationDialog = ({
 
     setLoading(true);
     try {
-      // Use public view to avoid exposing email/phone/salary
       const { data, error } = await supabase
         .from('public_profiles')
         .select('id, full_name, avatar_url, current_title')
@@ -64,97 +70,95 @@ export const CreateConversationDialog = ({
     }
   };
 
-  const createConversation = async (recipientId: string, recipientName?: string) => {
-    if (!user) return;
+  const toggleUserSelection = (userResult: UserResult) => {
+    setSelectedUsers((prev) => {
+      const exists = prev.find((u) => u.id === userResult.id);
+      if (exists) {
+        return prev.filter((u) => u.id !== userResult.id);
+      } else {
+        return [...prev, userResult];
+      }
+    });
+  };
+
+  const createConversation = async (participantIds: string[]) => {
+    if (!user || participantIds.length === 0) return;
 
     setCreating(true);
     try {
-      // Check if conversation already exists
-      const { data: existingParticipants, error: participantsError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', user.id);
-
-      if (participantsError) throw participantsError;
-
-      // Find if there's a 1:1 conversation with this user
-      for (const participation of existingParticipants || []) {
-        const { data: otherParticipants, error: otherError } = await supabase
+      // Check if 1:1 conversation already exists (only for non-group)
+      if (!isGroupChat && participantIds.length === 1) {
+        const { data: existingParticipants } = await supabase
           .from('conversation_participants')
-          .select('user_id')
-          .eq('conversation_id', participation.conversation_id);
+          .select('conversation_id')
+          .eq('user_id', user.id);
 
-        if (otherError) throw otherError;
+        for (const participation of existingParticipants || []) {
+          const { data: otherParticipants } = await supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', participation.conversation_id);
 
-        if (
-          otherParticipants?.length === 2 &&
-          otherParticipants.some((p) => p.user_id === recipientId)
-        ) {
-          onConversationCreated?.(participation.conversation_id);
-          onOpenChange(false);
-          return;
+          if (
+            otherParticipants?.length === 2 &&
+            otherParticipants.some((p) => p.user_id === participantIds[0])
+          ) {
+            onConversationCreated?.(participation.conversation_id);
+            onOpenChange(false);
+            return;
+          }
         }
       }
 
-      // Get recipient name from public_profiles if not provided
-      let conversationTitle = recipientName || 'New Conversation';
-      if (!recipientName) {
-        const { data: recipient } = await supabase
-          .from('public_profiles')
-          .select('full_name')
-          .eq('id', recipientId)
-          .single();
-        
-        conversationTitle = recipient?.full_name || 'New Conversation';
-      }
+      // Get participant names for title
+      const { data: participants } = await supabase
+        .from('public_profiles')
+        .select('full_name')
+        .in('id', participantIds);
 
-      // Check if user has any application to link (optional)
-      const { data: userApplications } = await supabase
-        .from('applications')
-        .select('id')
-        .eq('user_id', user.id)
-        .limit(1);
+      const conversationTitle = isGroupChat && groupName
+        ? groupName
+        : participants?.map((p) => p.full_name || 'Unknown').join(', ') || 'New Conversation';
 
-      // Create new conversation - use first application if exists, otherwise create without
-      let conversationData: any = {
-        title: conversationTitle,
-        status: 'active',
-      };
-
-      // Only add application_id if user has applications
-      if (userApplications && userApplications.length > 0) {
-        conversationData.application_id = userApplications[0].id;
-      }
-
+      // Create conversation
       const { data: conversation, error: convError } = await supabase
         .from('conversations')
-        .insert(conversationData)
+        .insert({
+          title: conversationTitle,
+          status: 'active',
+          metadata: isGroupChat ? {
+            is_group: true,
+            participant_count: participantIds.length + 1,
+          } : {},
+        })
         .select()
         .single();
 
       if (convError) throw convError;
 
-      // Add participants
+      // Add all participants including current user
+      const allParticipants = [user.id, ...participantIds];
       const { error: participantError } = await supabase
         .from('conversation_participants')
-        .insert([
-          {
+        .insert(
+          allParticipants.map((userId) => ({
             conversation_id: conversation.id,
-            user_id: user.id,
-            role: 'candidate',
-          },
-          {
-            conversation_id: conversation.id,
-            user_id: recipientId,
-            role: 'candidate',
-          },
-        ]);
+            user_id: userId,
+            role: userId === user.id ? 'owner' : 'member',
+          }))
+        );
 
       if (participantError) throw participantError;
 
-      toast.success('Conversation created');
+      toast.success(isGroupChat ? 'Group chat created' : 'Conversation started');
       onConversationCreated?.(conversation.id);
       onOpenChange(false);
+      
+      // Reset state
+      setSelectedUsers([]);
+      setGroupName('');
+      setIsGroupChat(false);
+      setSearchQuery('');
     } catch (error) {
       console.error('Error creating conversation:', error);
       toast.error('Failed to create conversation');
@@ -163,18 +167,65 @@ export const CreateConversationDialog = ({
     }
   };
 
+  const handleCreateClick = () => {
+    const participantIds = selectedUsers.map((u) => u.id);
+    if (participantIds.length > 0) {
+      createConversation(participantIds);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>New Conversation</DialogTitle>
+          <DialogTitle>Start New Conversation</DialogTitle>
         </DialogHeader>
-        
-        <div className="space-y-4">
+
+        <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="group-chat"
+              checked={isGroupChat}
+              onCheckedChange={(checked) => {
+                setIsGroupChat(checked);
+                if (!checked) {
+                  setGroupName('');
+                  setSelectedUsers([]);
+                }
+              }}
+            />
+            <Label htmlFor="group-chat" className="flex items-center gap-2 cursor-pointer">
+              <Users className="h-4 w-4" />
+              Group Chat
+            </Label>
+          </div>
+
+          {isGroupChat && (
+            <Input
+              placeholder="Group name (optional)..."
+              value={groupName}
+              onChange={(e) => setGroupName(e.target.value)}
+            />
+          )}
+
+          {selectedUsers.length > 0 && (
+            <div className="flex flex-wrap gap-2 p-2 bg-accent/30 rounded-lg border border-border/50">
+              {selectedUsers.map((user) => (
+                <Badge key={user.id} variant="secondary" className="gap-2">
+                  {user.full_name || 'Unknown'}
+                  <X
+                    className="h-3 w-3 cursor-pointer hover:text-destructive"
+                    onClick={() => toggleUserSelection(user)}
+                  />
+                </Badge>
+              ))}
+            </div>
+          )}
+
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or email..."
+              placeholder="Search by name..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
@@ -184,41 +235,65 @@ export const CreateConversationDialog = ({
             />
           </div>
 
-          <div className="space-y-2 max-h-[300px] overflow-y-auto">
+          <div className="flex-1 overflow-y-auto border rounded-lg">
             {loading ? (
-              <p className="text-sm text-muted-foreground text-center py-4">Searching...</p>
+              <p className="text-sm text-muted-foreground text-center py-8">Searching...</p>
             ) : searchResults.length === 0 && searchQuery ? (
-              <p className="text-sm text-muted-foreground text-center py-4">No users found</p>
+              <p className="text-sm text-muted-foreground text-center py-8">No users found</p>
             ) : (
-              searchResults.map((result) => (
-                <div
-                  key={result.id}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors"
-                >
-                  <div className="flex items-center gap-3">
+              searchResults.map((result) => {
+                const isSelected = selectedUsers.some((u) => u.id === result.id);
+                const initials = (result.full_name || '?')
+                  .split(' ')
+                  .map((n) => n[0])
+                  .join('')
+                  .toUpperCase()
+                  .slice(0, 2);
+
+                return (
+                  <div
+                    key={result.id}
+                    className="flex items-center gap-3 p-3 hover:bg-accent transition-colors border-b last:border-b-0 cursor-pointer"
+                    onClick={() => {
+                      if (isGroupChat) {
+                        toggleUserSelection(result);
+                      } else {
+                        setSelectedUsers([result]);
+                      }
+                    }}
+                  >
+                    {isGroupChat && (
+                      <Checkbox checked={isSelected} />
+                    )}
                     <Avatar>
                       <AvatarImage src={result.avatar_url || ''} />
-                      <AvatarFallback>
-                        {result.full_name?.charAt(0)?.toUpperCase() || '?'}
+                      <AvatarFallback className="bg-primary/10 text-primary">
+                        {initials}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium">{result.full_name || 'No name'}</p>
-                      <p className="text-sm text-muted-foreground">{result.current_title || 'Member'}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{result.full_name || 'Unknown'}</p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {result.current_title || 'Member'}
+                      </p>
                     </div>
                   </div>
-                  <Button
-                    size="sm"
-                    onClick={() => createConversation(result.id, result.full_name || undefined)}
-                    disabled={creating}
-                  >
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Message
-                  </Button>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
+
+          {selectedUsers.length > 0 && (
+            <Button onClick={handleCreateClick} disabled={creating} className="w-full">
+              {creating ? (
+                'Creating...'
+              ) : isGroupChat ? (
+                `Create Group with ${selectedUsers.length} ${selectedUsers.length === 1 ? 'member' : 'members'}`
+              ) : (
+                'Start Conversation'
+              )}
+            </Button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
