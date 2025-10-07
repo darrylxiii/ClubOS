@@ -5,14 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image, Video, FileText, Send, X, BarChart2, Plus } from "lucide-react";
+import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart } from "lucide-react";
 import { CreatePoll } from "./PollPost";
 import { toast } from "@/hooks/use-toast";
 import { MediaEditor } from "./MediaEditor";
 import { VideoEditor } from "./VideoEditor";
 import { AudienceSelection } from "@/components/audience/AudiencePickerButton";
-import { AudiencePickerCollapsible } from "@/components/audience/AudiencePickerCollapsible";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -33,8 +31,6 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [audienceSelection, setAudienceSelection] = useState<AudienceSelection>({
     type: 'connections',
   });
-  const [contentMenuOpen, setContentMenuOpen] = useState(false);
-  const [audienceMenuOpen, setAudienceMenuOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -282,87 +278,116 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
           )}
           
           <div className="flex items-center justify-between mt-3 pt-3 border-t">
-            <div className="flex items-center gap-2">
-              <Collapsible open={contentMenuOpen} onOpenChange={setContentMenuOpen}>
-                <CollapsibleTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="group relative h-9 w-9 p-0 hover:bg-white/5"
-                    title="Add content"
-                  >
-                    <Plus className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                    <span className="absolute left-1/2 -translate-x-1/2 top-full mt-2 px-2 py-1 bg-popover text-popover-foreground text-xs rounded opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">
-                      Add content
-                    </span>
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="absolute mt-2 z-50">
-                  <div className="flex flex-col gap-1 bg-popover border border-border rounded-lg p-1 shadow-lg min-w-[160px]">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        handleFileSelect('image/*');
-                        setContentMenuOpen(false);
-                      }}
-                      disabled={loading}
-                      className="justify-start gap-2"
-                    >
-                      <Image className="w-4 h-4" />
-                      Photo
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        handleFileSelect('video/*');
-                        setContentMenuOpen(false);
-                      }}
-                      disabled={loading}
-                      className="justify-start gap-2"
-                    >
-                      <Video className="w-4 h-4" />
-                      Video
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        handleFileSelect('.pdf,.doc,.docx,.txt');
-                        setContentMenuOpen(false);
-                      }}
-                      disabled={loading}
-                      className="justify-start gap-2"
-                    >
-                      <FileText className="w-4 h-4" />
-                      Document
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        setShowPollCreator(!showPollCreator);
-                        setContentMenuOpen(false);
-                      }}
-                      disabled={loading}
-                      className="justify-start gap-2"
-                    >
-                      <BarChart2 className="w-4 h-4" />
-                      Poll
-                    </Button>
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+            <div className="group/content flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="h-9 w-9 p-0 hover:bg-white/5"
+                title="Add content"
+              >
+                <Plus className="w-4 h-4 text-muted-foreground group-hover/content:text-foreground transition-colors" />
+              </Button>
+              
+              {/* Horizontal options that appear on hover */}
+              <div className="flex items-center gap-1 opacity-0 group-hover/content:opacity-100 transition-opacity max-w-0 group-hover/content:max-w-md overflow-hidden">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleFileSelect('image/*')}
+                  disabled={loading}
+                  className="gap-2 whitespace-nowrap"
+                >
+                  <Image className="w-4 h-4" />
+                  Photo
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleFileSelect('video/*')}
+                  disabled={loading}
+                  className="gap-2 whitespace-nowrap"
+                >
+                  <Video className="w-4 h-4" />
+                  Video
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => handleFileSelect('.pdf,.doc,.docx,.txt')}
+                  disabled={loading}
+                  className="gap-2 whitespace-nowrap"
+                >
+                  <FileText className="w-4 h-4" />
+                  Document
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setShowPollCreator(!showPollCreator)}
+                  disabled={loading}
+                  className="gap-2 whitespace-nowrap"
+                >
+                  <BarChart2 className="w-4 h-4" />
+                  Poll
+                </Button>
+              </div>
             </div>
             
-            <div className="flex items-center gap-2 relative">
-              <AudiencePickerCollapsible
-                value={audienceSelection}
-                onChange={setAudienceSelection}
-                open={audienceMenuOpen}
-                onOpenChange={setAudienceMenuOpen}
-              />
+            <div className="group/audience flex items-center gap-2">
+              <div className="flex items-center gap-1 opacity-0 group-hover/audience:opacity-100 transition-opacity max-w-0 group-hover/audience:max-w-md overflow-hidden">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setAudienceSelection({ ...audienceSelection, type: 'public' })}
+                  className={`gap-2 whitespace-nowrap ${audienceSelection.type === 'public' ? 'bg-accent' : ''}`}
+                >
+                  <Globe className="w-4 h-4" />
+                  Public
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setAudienceSelection({ ...audienceSelection, type: 'connections' })}
+                  className={`gap-2 whitespace-nowrap ${audienceSelection.type === 'connections' ? 'bg-accent' : ''}`}
+                >
+                  <UserCircle className="w-4 h-4" />
+                  Connections
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setAudienceSelection({ ...audienceSelection, type: 'company_internal' })}
+                  className={`gap-2 whitespace-nowrap ${audienceSelection.type === 'company_internal' ? 'bg-accent' : ''}`}
+                >
+                  <Building className="w-4 h-4" />
+                  Company
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setAudienceSelection({ ...audienceSelection, type: 'best_friends' })}
+                  className={`gap-2 whitespace-nowrap ${audienceSelection.type === 'best_friends' ? 'bg-accent' : ''}`}
+                >
+                  <Heart className="w-4 h-4" />
+                  Best Friends
+                </Button>
+              </div>
+              
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="h-9 w-9 p-0 hover:bg-white/5"
+                title={
+                  audienceSelection.type === 'public' ? 'Public' :
+                  audienceSelection.type === 'connections' ? 'Connections' :
+                  audienceSelection.type === 'company_internal' ? 'Company' :
+                  audienceSelection.type === 'best_friends' ? 'Best Friends' :
+                  'Custom Lists'
+                }
+              >
+                <Users className="w-4 h-4 text-muted-foreground group-hover/audience:text-foreground transition-colors" />
+              </Button>
+              
               <Button 
                 onClick={handlePost}
                 disabled={!content.trim() || loading}
