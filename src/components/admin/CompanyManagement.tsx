@@ -2,10 +2,6 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Plus, Pencil, Trash2, Building2, TrendingUp, Users, Eye, ChevronDown, ExternalLink, Briefcase } from "lucide-react";
 import { toast } from "sonner";
@@ -52,19 +48,7 @@ export function CompanyManagement() {
   const [companyStats, setCompanyStats] = useState<Record<string, CompanyStats>>({});
   const [overallStats, setOverallStats] = useState<OverallStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingCompany, setEditingCompany] = useState<Company | null>(null);
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    tagline: "",
-    website_url: "",
-    industry: "",
-    company_size: "",
-    headquarters_location: "",
-    slug: "",
-  });
 
   useEffect(() => {
     fetchCompanies();
@@ -182,75 +166,6 @@ export function CompanyManagement() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      const slug = formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-      
-      if (editingCompany) {
-        const { error } = await supabase
-          .from('companies')
-          .update({
-            name: formData.name,
-            tagline: formData.tagline || null,
-            description: formData.description || null,
-            website_url: formData.website_url || null,
-            industry: formData.industry || null,
-            company_size: formData.company_size || null,
-            headquarters_location: formData.headquarters_location || null,
-            slug,
-          })
-          .eq('id', editingCompany.id);
-
-        if (error) throw error;
-        toast.success("Company updated successfully");
-      } else {
-        const { error } = await supabase
-          .from('companies')
-          .insert({
-            name: formData.name,
-            tagline: formData.tagline || null,
-            description: formData.description || null,
-            website_url: formData.website_url || null,
-            industry: formData.industry || null,
-            company_size: formData.company_size || null,
-            headquarters_location: formData.headquarters_location || null,
-            slug,
-          });
-
-        if (error) throw error;
-        toast.success("Company created successfully");
-      }
-
-      setDialogOpen(false);
-      resetForm();
-      fetchCompanies();
-      fetchOverallStats();
-    } catch (error) {
-      console.error('Error saving company:', error);
-      toast.error("Failed to save company");
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this company? This will also delete all associated jobs, applications, and posts.")) return;
-
-    try {
-      const { error } = await supabase
-        .from('companies')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      toast.success("Company deleted successfully");
-      fetchCompanies();
-      fetchOverallStats();
-    } catch (error) {
-      console.error('Error deleting company:', error);
-      toast.error("Failed to delete company");
-    }
-  };
 
   const toggleCompanyExpanded = (companyId: string) => {
     setExpandedCompanies(prev => {
@@ -264,34 +179,6 @@ export function CompanyManagement() {
     });
   };
 
-  const openEditDialog = (company: Company) => {
-    setEditingCompany(company);
-    setFormData({
-      name: company.name,
-      tagline: company.tagline || "",
-      description: company.description || "",
-      website_url: company.website_url || "",
-      industry: company.industry || "",
-      company_size: company.company_size || "",
-      headquarters_location: company.headquarters_location || "",
-      slug: company.slug,
-    });
-    setDialogOpen(true);
-  };
-
-  const resetForm = () => {
-    setEditingCompany(null);
-    setFormData({
-      name: "",
-      tagline: "",
-      description: "",
-      website_url: "",
-      industry: "",
-      company_size: "",
-      headquarters_location: "",
-      slug: "",
-    });
-  };
 
   if (loading) {
     return (
@@ -364,116 +251,28 @@ export function CompanyManagement() {
         </div>
       )}
 
-      {/* Company Management */}
+      {/* Company Management - Readonly View */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Partner Companies</CardTitle>
-              <CardDescription>Manage your portfolio of member companies</CardDescription>
+              <CardDescription>View company stats and manage from the Companies dashboard</CardDescription>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={(open) => {
-              setDialogOpen(open);
-              if (!open) resetForm();
-            }}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Company
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>{editingCompany ? 'Edit' : 'Create'} Company</DialogTitle>
-                  <DialogDescription>
-                    {editingCompany ? 'Update' : 'Add'} company information and details
-                  </DialogDescription>
-                </DialogHeader>
-                <form onSubmit={handleSubmit}>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Company Name *</Label>
-                      <Input
-                        id="name"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="tagline">Tagline</Label>
-                      <Input
-                        id="tagline"
-                        placeholder="One-line description"
-                        value={formData.tagline}
-                        onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="description">Full Description</Label>
-                      <Textarea
-                        id="description"
-                        rows={4}
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="industry">Industry</Label>
-                        <Input
-                          id="industry"
-                          placeholder="e.g., Technology"
-                          value={formData.industry}
-                          onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="company_size">Company Size</Label>
-                        <Input
-                          id="company_size"
-                          placeholder="e.g., 50-200"
-                          value={formData.company_size}
-                          onChange={(e) => setFormData({ ...formData, company_size: e.target.value })}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="headquarters_location">Headquarters</Label>
-                      <Input
-                        id="headquarters_location"
-                        placeholder="e.g., Amsterdam, Netherlands"
-                        value={formData.headquarters_location}
-                        onChange={(e) => setFormData({ ...formData, headquarters_location: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="website_url">Website URL</Label>
-                      <Input
-                        id="website_url"
-                        type="url"
-                        placeholder="https://..."
-                        value={formData.website_url}
-                        onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit">{editingCompany ? 'Update' : 'Create'} Company</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <Button onClick={() => navigate('/companies')}>
+              <ExternalLink className="w-4 h-4 mr-2" />
+              Go to Companies Dashboard
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="space-y-3">
           {companies.length === 0 ? (
             <div className="text-center py-12">
               <Building2 className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">No companies yet. Create your first partner company!</p>
-              <Button onClick={() => setDialogOpen(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add First Company
+              <p className="text-muted-foreground mb-4">No companies yet. Use the Companies dashboard to add your first partner company!</p>
+              <Button onClick={() => navigate('/companies')}>
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Go to Companies Dashboard
               </Button>
             </div>
           ) : (
@@ -627,22 +426,11 @@ export function CompanyManagement() {
                               variant="outline"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                openEditDialog(company);
+                                navigate(`/companies`);
                               }}
                             >
-                              <Pencil className="w-4 h-4 mr-2" />
-                              Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(company.id);
-                              }}
-                            >
-                              <Trash2 className="w-4 h-4 mr-2" />
-                              Delete
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Manage in Dashboard
                             </Button>
                           </div>
                         </div>
