@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Users } from "lucide-react";
 
 interface CompanyMember {
   id: string;
+  role?: string;
   profiles: {
     full_name: string;
     avatar_url: string | null;
@@ -14,9 +18,10 @@ interface CompanyMember {
 interface CompanyMembersStackProps {
   companyId: string;
   maxVisible?: number;
+  showFull?: boolean;
 }
 
-export function CompanyMembersStack({ companyId, maxVisible = 3 }: CompanyMembersStackProps) {
+export function CompanyMembersStack({ companyId, maxVisible = 3, showFull = false }: CompanyMembersStackProps) {
   const [members, setMembers] = useState<CompanyMember[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,12 +32,18 @@ export function CompanyMembersStack({ companyId, maxVisible = 3 }: CompanyMember
   const loadMembers = async () => {
     try {
       // First get company members
-      const { data: membersData, error: membersError } = await supabase
+      // Get all members if showFull, otherwise limit
+      const query = supabase
         .from('company_members')
-        .select('id, user_id')
+        .select('id, user_id, role')
         .eq('company_id', companyId)
-        .eq('is_active', true)
-        .limit(maxVisible + 1);
+        .eq('is_active', true);
+      
+      if (!showFull) {
+        query.limit(maxVisible + 1);
+      }
+      
+      const { data: membersData, error: membersError } = await query;
 
       if (membersError) throw membersError;
 
@@ -55,6 +66,7 @@ export function CompanyMembersStack({ companyId, maxVisible = 3 }: CompanyMember
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
       const combinedData = membersData.map(member => ({
         id: member.id,
+        role: member.role,
         profiles: profilesMap.get(member.user_id) || {
           full_name: 'Unknown User',
           avatar_url: null,
@@ -69,10 +81,52 @@ export function CompanyMembersStack({ companyId, maxVisible = 3 }: CompanyMember
     }
   };
 
-  if (loading || members.length === 0) {
-    return null;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
   }
 
+  if (members.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        <Users className="w-12 h-12 mx-auto mb-2 opacity-50" />
+        <p className="text-sm">No team members yet</p>
+      </div>
+    );
+  }
+
+  // Full grid view for team tab
+  if (showFull) {
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {members.map((member: any) => (
+          <Card key={member.id} className="glass backdrop-blur-lg hover-scale">
+            <CardContent className="p-4 text-center">
+              <Avatar className="w-20 h-20 mx-auto mb-3 border-2 border-accent">
+                <AvatarImage src={member.profiles?.avatar_url || undefined} />
+                <AvatarFallback className="text-lg bg-gradient-accent text-white font-bold">
+                  {member.profiles?.full_name 
+                    ? member.profiles.full_name.substring(0, 2).toUpperCase() 
+                    : "?"}
+                </AvatarFallback>
+              </Avatar>
+              <h4 className="font-bold truncate">{member.profiles?.full_name || "Unknown"}</h4>
+              {member.role && (
+                <Badge variant="secondary" className="mt-2 text-xs">
+                  {member.role}
+                </Badge>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  // Stacked avatar view for cards
   const visibleMembers = members.slice(0, maxVisible);
   const remainingCount = members.length - maxVisible;
 
