@@ -17,9 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText } from "lucide-react";
+import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap } from "lucide-react";
 
 interface AddCandidateDialogProps {
   open: boolean;
@@ -37,6 +38,9 @@ export const AddCandidateDialog = ({
   onCandidateAdded,
 }: AddCandidateDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [scrapingLinkedIn, setScrapingLinkedIn] = useState(false);
+  const [addMode, setAddMode] = useState<"manual" | "linkedin">("manual");
+  const [linkedinUrlForScrape, setLinkedinUrlForScrape] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -48,6 +52,45 @@ export const AddCandidateDialog = ({
     startStageIndex: "0",
   });
 
+  const handleLinkedInScrape = async () => {
+    if (!linkedinUrlForScrape) {
+      toast.error("Please enter a LinkedIn URL");
+      return;
+    }
+
+    setScrapingLinkedIn(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('linkedin-scraper', {
+        body: { linkedinUrl: linkedinUrlForScrape }
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        // Auto-fill form with scraped data
+        setFormData({
+          fullName: data.data.full_name || "",
+          email: data.data.email || "",
+          phone: "",
+          linkedinUrl: data.data.linkedin_url || linkedinUrlForScrape,
+          currentCompany: data.data.current_company || "",
+          currentTitle: data.data.current_title || "",
+          notes: `LinkedIn import: ${data.data.ai_summary || ""}\n\nSkills: ${(data.data.skills || []).join(", ")}`,
+          startStageIndex: "0",
+        });
+        setAddMode("manual");
+        toast.success("LinkedIn profile imported successfully!", {
+          description: "Review and submit the candidate details"
+        });
+      }
+    } catch (error) {
+      console.error("Error scraping LinkedIn:", error);
+      toast.error("Failed to import LinkedIn profile");
+    } finally {
+      setScrapingLinkedIn(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -57,26 +100,41 @@ export const AddCandidateDialog = ({
       const { data: { user: adminUser } } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
 
-      // Search for existing profile by full_name or other fields
-      // Since we can't query auth.users directly, we'll look for existing profiles
+      // Create or update candidate profile in new candidate_profiles table
+      const { data: candidateProfile, error: profileError } = await supabase
+        .from("candidate_profiles")
+        .upsert({
+          full_name: formData.fullName,
+          email: formData.email,
+          phone: formData.phone,
+          linkedin_url: formData.linkedinUrl,
+          current_company: formData.currentCompany,
+          current_title: formData.currentTitle,
+          source_channel: 'manual',
+          created_by: adminUser.id,
+          tags: ['manually_added']
+        }, {
+          onConflict: 'email',
+          ignoreDuplicates: false
+        })
+        .select()
+        .single();
+
+      if (profileError) {
+        console.error('Profile error:', profileError);
+        throw profileError;
+      }
+
+      const candidateId = candidateProfile.id;
+
+      // Try to find matching user profile
       const { data: existingProfile } = await supabase
         .from("profiles")
         .select("id")
-        .ilike("full_name", formData.fullName)
+        .ilike("email", formData.email)
         .maybeSingle();
 
-      let userId: string;
-
-      if (existingProfile) {
-        userId = existingProfile.id;
-        toast.info("Found existing user profile");
-      } else {
-        // For non-registered candidates, create a placeholder application
-        // that references a synthetic user ID (admin will need to update later)
-        // In production, you'd send an invite or use a different table
-        toast.info("Creating candidate entry (not a full user account)");
-        userId = adminUser.id; // Temporary: use admin ID as placeholder
-      }
+      const userId = existingProfile?.id || adminUser.id;
 
       // Create application with metadata containing candidate info
       const { error: appError } = await supabase.from("applications").insert({
@@ -109,10 +167,14 @@ export const AddCandidateDialog = ({
         .maybeSingle();
 
       if (application) {
-        await supabase.from("candidate_comments").insert({
+        // Log candidate addition as interaction
+        await supabase.from("candidate_interactions").insert({
+          candidate_id: candidateId,
           application_id: application.id,
-          user_id: adminUser.id,
-          comment: `🎯 **Admin-Added Candidate**
+          interaction_type: 'status_change',
+          interaction_direction: 'internal',
+          title: 'Candidate Added to Pipeline',
+          content: `🎯 **Admin-Added Candidate**
 
 **Name:** ${formData.fullName}
 **Email:** ${formData.email}
@@ -121,6 +183,21 @@ export const AddCandidateDialog = ({
 **Current Position:** ${formData.currentTitle || "N/A"} at ${formData.currentCompany || "N/A"}
 
 **Notes:** ${formData.notes || "No additional notes"}`,
+          metadata: {
+            job_id: jobId,
+            job_title: jobTitle,
+            starting_stage: formData.startStageIndex
+          },
+          created_by: adminUser.id,
+          is_internal: true,
+          visible_to_candidate: false
+        });
+
+        // Also add to legacy candidate_comments for backward compatibility
+        await supabase.from("candidate_comments").insert({
+          application_id: application.id,
+          user_id: adminUser.id,
+          comment: `🎯 **Admin-Added Candidate** - See interaction log for details`,
           is_internal: true,
         });
       }
@@ -168,6 +245,69 @@ export const AddCandidateDialog = ({
           </div>
         </DialogHeader>
 
+        <Tabs value={addMode} onValueChange={(v) => setAddMode(v as "manual" | "linkedin")} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="manual">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Manual Entry
+            </TabsTrigger>
+            <TabsTrigger value="linkedin">
+              <Zap className="w-4 h-4 mr-2" />
+              LinkedIn Quick Add
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="linkedin" className="space-y-4 mt-4">
+            <div className="p-6 bg-gradient-to-br from-accent/5 to-purple-500/5 rounded-lg border border-accent/20">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 rounded-full bg-accent/10">
+                  <Linkedin className="w-5 h-5 text-accent" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-1">LinkedIn Profile Importer</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Paste a LinkedIn profile URL and we'll automatically extract all relevant candidate information.
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label htmlFor="linkedinImport">LinkedIn Profile URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="linkedinImport"
+                    placeholder="https://www.linkedin.com/in/username"
+                    value={linkedinUrlForScrape}
+                    onChange={(e) => setLinkedinUrlForScrape(e.target.value)}
+                    disabled={scrapingLinkedIn}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleLinkedInScrape}
+                    disabled={scrapingLinkedIn || !linkedinUrlForScrape}
+                    className="gap-2 bg-gradient-to-r from-accent to-purple-500"
+                  >
+                    {scrapingLinkedIn ? (
+                      <>
+                        <Sparkles className="w-4 h-4 animate-spin" />
+                        Importing...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4" />
+                        Import Profile
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  AI will automatically fill in candidate details from their LinkedIn profile
+                </p>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="manual">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -322,6 +462,8 @@ export const AddCandidateDialog = ({
             </Button>
           </div>
         </form>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

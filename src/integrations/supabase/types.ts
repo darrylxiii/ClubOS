@@ -819,6 +819,288 @@ export type Database = {
         }
         Relationships: []
       }
+      candidate_interactions: {
+        Row: {
+          ai_action_items: Json | null
+          ai_key_points: Json | null
+          ai_sentiment: string | null
+          application_id: string | null
+          candidate_id: string
+          completed_at: string | null
+          content: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          interaction_direction: string | null
+          interaction_type: string
+          is_internal: boolean | null
+          metadata: Json | null
+          participants: Json | null
+          scheduled_at: string | null
+          summary: string | null
+          tags: Json | null
+          title: string | null
+          updated_at: string
+          visible_to_candidate: boolean | null
+        }
+        Insert: {
+          ai_action_items?: Json | null
+          ai_key_points?: Json | null
+          ai_sentiment?: string | null
+          application_id?: string | null
+          candidate_id: string
+          completed_at?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          interaction_direction?: string | null
+          interaction_type: string
+          is_internal?: boolean | null
+          metadata?: Json | null
+          participants?: Json | null
+          scheduled_at?: string | null
+          summary?: string | null
+          tags?: Json | null
+          title?: string | null
+          updated_at?: string
+          visible_to_candidate?: boolean | null
+        }
+        Update: {
+          ai_action_items?: Json | null
+          ai_key_points?: Json | null
+          ai_sentiment?: string | null
+          application_id?: string | null
+          candidate_id?: string
+          completed_at?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          interaction_direction?: string | null
+          interaction_type?: string
+          is_internal?: boolean | null
+          metadata?: Json | null
+          participants?: Json | null
+          scheduled_at?: string | null
+          summary?: string | null
+          tags?: Json | null
+          title?: string | null
+          updated_at?: string
+          visible_to_candidate?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_interactions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interactions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_profile_views: {
+        Row: {
+          candidate_id: string
+          duration_seconds: number | null
+          id: string
+          job_id: string | null
+          sections_viewed: Json | null
+          session_id: string | null
+          view_context: string | null
+          view_source: string | null
+          viewed_at: string
+          viewer_id: string
+        }
+        Insert: {
+          candidate_id: string
+          duration_seconds?: number | null
+          id?: string
+          job_id?: string | null
+          sections_viewed?: Json | null
+          session_id?: string | null
+          view_context?: string | null
+          view_source?: string | null
+          viewed_at?: string
+          viewer_id: string
+        }
+        Update: {
+          candidate_id?: string
+          duration_seconds?: number | null
+          id?: string
+          job_id?: string | null
+          sections_viewed?: Json | null
+          session_id?: string | null
+          view_context?: string | null
+          view_source?: string | null
+          viewed_at?: string
+          viewer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_profile_views_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_profile_views_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_profiles: {
+        Row: {
+          ai_concerns: Json | null
+          ai_strengths: Json | null
+          ai_summary: string | null
+          avatar_url: string | null
+          blocked_companies: Json | null
+          certifications: Json | null
+          created_at: string
+          created_by: string | null
+          current_company: string | null
+          current_title: string | null
+          data_retention_date: string | null
+          desired_locations: Json | null
+          desired_salary_max: number | null
+          desired_salary_min: number | null
+          education: Json | null
+          email: string
+          engagement_score: number | null
+          enrichment_data: Json | null
+          fit_score: number | null
+          full_name: string
+          gdpr_consent: boolean | null
+          gdpr_consent_date: string | null
+          github_url: string | null
+          id: string
+          internal_rating: number | null
+          languages: Json | null
+          last_activity_at: string | null
+          linkedin_profile_data: Json | null
+          linkedin_url: string | null
+          notice_period: string | null
+          personality_insights: Json | null
+          phone: string | null
+          portfolio_url: string | null
+          preferred_currency: string | null
+          remote_preference: string | null
+          skills: Json | null
+          source_channel: string | null
+          source_metadata: Json | null
+          tags: Json | null
+          updated_at: string
+          user_id: string | null
+          work_authorization: Json | null
+          work_history: Json | null
+          years_of_experience: number | null
+        }
+        Insert: {
+          ai_concerns?: Json | null
+          ai_strengths?: Json | null
+          ai_summary?: string | null
+          avatar_url?: string | null
+          blocked_companies?: Json | null
+          certifications?: Json | null
+          created_at?: string
+          created_by?: string | null
+          current_company?: string | null
+          current_title?: string | null
+          data_retention_date?: string | null
+          desired_locations?: Json | null
+          desired_salary_max?: number | null
+          desired_salary_min?: number | null
+          education?: Json | null
+          email: string
+          engagement_score?: number | null
+          enrichment_data?: Json | null
+          fit_score?: number | null
+          full_name: string
+          gdpr_consent?: boolean | null
+          gdpr_consent_date?: string | null
+          github_url?: string | null
+          id?: string
+          internal_rating?: number | null
+          languages?: Json | null
+          last_activity_at?: string | null
+          linkedin_profile_data?: Json | null
+          linkedin_url?: string | null
+          notice_period?: string | null
+          personality_insights?: Json | null
+          phone?: string | null
+          portfolio_url?: string | null
+          preferred_currency?: string | null
+          remote_preference?: string | null
+          skills?: Json | null
+          source_channel?: string | null
+          source_metadata?: Json | null
+          tags?: Json | null
+          updated_at?: string
+          user_id?: string | null
+          work_authorization?: Json | null
+          work_history?: Json | null
+          years_of_experience?: number | null
+        }
+        Update: {
+          ai_concerns?: Json | null
+          ai_strengths?: Json | null
+          ai_summary?: string | null
+          avatar_url?: string | null
+          blocked_companies?: Json | null
+          certifications?: Json | null
+          created_at?: string
+          created_by?: string | null
+          current_company?: string | null
+          current_title?: string | null
+          data_retention_date?: string | null
+          desired_locations?: Json | null
+          desired_salary_max?: number | null
+          desired_salary_min?: number | null
+          education?: Json | null
+          email?: string
+          engagement_score?: number | null
+          enrichment_data?: Json | null
+          fit_score?: number | null
+          full_name?: string
+          gdpr_consent?: boolean | null
+          gdpr_consent_date?: string | null
+          github_url?: string | null
+          id?: string
+          internal_rating?: number | null
+          languages?: Json | null
+          last_activity_at?: string | null
+          linkedin_profile_data?: Json | null
+          linkedin_url?: string | null
+          notice_period?: string | null
+          personality_insights?: Json | null
+          phone?: string | null
+          portfolio_url?: string | null
+          preferred_currency?: string | null
+          remote_preference?: string | null
+          skills?: Json | null
+          source_channel?: string | null
+          source_metadata?: Json | null
+          tags?: Json | null
+          updated_at?: string
+          user_id?: string | null
+          work_authorization?: Json | null
+          work_history?: Json | null
+          years_of_experience?: number | null
+        }
+        Relationships: []
+      }
       candidate_scorecards: {
         Row: {
           application_id: string

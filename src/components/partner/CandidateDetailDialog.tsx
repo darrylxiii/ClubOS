@@ -10,7 +10,8 @@ import { Slider } from "@/components/ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Star, MessageSquare, Calendar, FileText, TrendingUp } from "lucide-react";
+import { Star, MessageSquare, Calendar, FileText, TrendingUp, History } from "lucide-react";
+import { CandidateInteractionLog } from "./CandidateInteractionLog";
 
 interface CandidateDetailDialogProps {
   open: boolean;
@@ -39,8 +40,34 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
     if (open && application) {
       fetchComments();
       fetchScorecards();
+      trackProfileView();
     }
   }, [open, application]);
+
+  const trackProfileView = async () => {
+    if (!application?.profiles?.email) return;
+
+    try {
+      // Find candidate profile
+      const { data: candidateProfile } = await supabase
+        .from("candidate_profiles")
+        .select("id")
+        .eq("email", application.profiles.email)
+        .maybeSingle();
+
+      if (candidateProfile && user) {
+        await supabase.from("candidate_profile_views").insert({
+          candidate_id: candidateProfile.id,
+          viewer_id: user.id,
+          view_context: "job_pipeline",
+          view_source: "candidate_detail_dialog",
+          job_id: application.job_id,
+        });
+      }
+    } catch (error) {
+      console.error("Error tracking profile view:", error);
+    }
+  };
 
   const fetchComments = async () => {
     const { data } = await supabase
@@ -140,17 +167,22 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase">
+          <DialogTitle className="flex items-center gap-2 text-2xl font-black uppercase">
+            <History className="w-6 h-6 text-accent" />
             {application?.profiles?.full_name}
           </DialogTitle>
           <DialogDescription>
-            Applied {new Date(application?.applied_at).toLocaleDateString()}
+            Applied {new Date(application?.applied_at).toLocaleDateString()} • Complete interaction history
           </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="interactions">
+              <History className="w-4 h-4 mr-2" />
+              Timeline
+            </TabsTrigger>
             <TabsTrigger value="scorecard">Scorecard</TabsTrigger>
             <TabsTrigger value="comments">Comments</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
@@ -190,6 +222,13 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
                 <p><strong>Company:</strong> {application?.company_name}</p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="interactions" className="mt-4">
+            <CandidateInteractionLog
+              candidateEmail={application?.profiles?.email || ""}
+              applicationId={application?.id}
+            />
           </TabsContent>
 
           <TabsContent value="scorecard" className="space-y-4">
