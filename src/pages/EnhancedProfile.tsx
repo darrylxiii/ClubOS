@@ -77,7 +77,7 @@ export default function EnhancedProfile() {
     <AppLayout>
       <div className="container mx-auto p-6 space-y-6">
         {/* Profile Header */}
-        <Card className="overflow-hidden">
+        <Card className="relative overflow-visible">
           {/* Header Media (Image or Video Wallpaper) */}
           <div className="relative w-full h-64 overflow-hidden bg-muted">
             {profile?.header_media_url ? (
@@ -101,14 +101,6 @@ export default function EnhancedProfile() {
                 <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
               </>
             ) : null}
-            
-            {/* Avatar positioned to overlap header and content */}
-            <Avatar className="absolute bottom-0 left-6 transform translate-y-1/2 w-32 h-32 border-4 border-background">
-              <AvatarImage src={profile?.avatar_url} />
-              <AvatarFallback>
-                {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-              </AvatarFallback>
-            </Avatar>
 
             {/* Upload button in bottom right */}
             <div className="absolute bottom-4 right-4">
@@ -119,6 +111,14 @@ export default function EnhancedProfile() {
               />
             </div>
           </div>
+
+          {/* Avatar positioned to overlap header and content */}
+          <Avatar className="absolute top-64 left-6 transform -translate-y-1/2 w-32 h-32 border-4 border-background z-10">
+            <AvatarImage src={profile?.avatar_url} />
+            <AvatarFallback>
+              {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+            </AvatarFallback>
+          </Avatar>
 
           <CardContent className="pt-20">
             <div className="space-y-4">
