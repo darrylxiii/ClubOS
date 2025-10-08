@@ -8,10 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Building2, MapPin, Users, Search, ChevronDown, TrendingUp, Briefcase, Eye, ExternalLink, Heart, Filter, BarChart3, Globe, Linkedin, Calendar } from "lucide-react";
+import { Building2, MapPin, Users, Search, ChevronDown, TrendingUp, Briefcase, Eye, ExternalLink, Heart, Filter, BarChart3, Globe, Linkedin, Calendar, UserCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialog";
+import { AddCompanyDialog } from "@/components/companies/AddCompanyDialog";
+import { useRole } from "@/contexts/RoleContext";
 
 interface Company {
   id: string;
@@ -54,8 +57,10 @@ interface OverallMetrics {
 
 export default function Companies() {
   const navigate = useNavigate();
+  const { currentRole } = useRole();
   const [companies, setCompanies] = useState<Company[]>([]);
   const [companyMetrics, setCompanyMetrics] = useState<Record<string, CompanyMetrics>>({});
+  const [companyMembers, setCompanyMembers] = useState<Record<string, number>>({});
   const [overallMetrics, setOverallMetrics] = useState<OverallMetrics | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [industryFilter, setIndustryFilter] = useState<string>("all");
@@ -63,6 +68,9 @@ export default function Companies() {
   const [sortBy, setSortBy] = useState<string>("name");
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  
+  const isAdmin = currentRole === 'admin';
+  const isPartner = currentRole === 'partner';
 
   useEffect(() => {
     loadCompanies();
@@ -82,12 +90,34 @@ export default function Companies() {
       
       if (data) {
         await loadCompanyMetrics(data.map(c => c.id));
+        await loadCompanyMembers(data.map(c => c.id));
       }
     } catch (error) {
       console.error("Error loading companies:", error);
       toast.error("Failed to load companies");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadCompanyMembers = async (companyIds: string[]) => {
+    try {
+      const { data, error } = await supabase
+        .from('company_members')
+        .select('company_id')
+        .in('company_id', companyIds)
+        .eq('is_active', true);
+
+      if (error) throw error;
+
+      const memberCounts: Record<string, number> = {};
+      companyIds.forEach(id => {
+        memberCounts[id] = data?.filter(m => m.company_id === id).length || 0;
+      });
+
+      setCompanyMembers(memberCounts);
+    } catch (error) {
+      console.error('Error loading company members:', error);
     }
   };
 
@@ -234,13 +264,22 @@ export default function Companies() {
     <AppLayout>
       <div className="container mx-auto px-4 py-8 space-y-8 animate-fade-in">
         {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-5xl font-black uppercase tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Partner Companies
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            Elite talent partners shaping the future of work
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <h1 className="text-5xl font-black uppercase tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+              Partner Companies
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Elite talent partners shaping the future of work
+            </p>
+          </div>
+          
+          {(isAdmin || isPartner) && (
+            <AddCompanyDialog onSuccess={() => {
+              loadCompanies();
+              loadOverallMetrics();
+            }} />
+          )}
         </div>
 
         {/* Overall Metrics Dashboard */}
@@ -452,11 +491,18 @@ export default function Companies() {
                                   <span className="font-bold">{metrics.total_applications}</span>
                                   <span className="text-xs text-muted-foreground">applications</span>
                                 </div>
-                                <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2">
                                   <Heart className="w-4 h-4 text-red-500" />
                                   <span className="font-bold">{metrics.total_followers}</span>
                                   <span className="text-xs text-muted-foreground">followers</span>
                                 </div>
+                                {(isAdmin || isPartner) && (
+                                  <div className="flex items-center gap-2">
+                                    <UserCircle className="w-4 h-4 text-primary" />
+                                    <span className="font-bold">{companyMembers[company.id] || 0}</span>
+                                    <span className="text-xs text-muted-foreground">team members</span>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -516,18 +562,25 @@ export default function Companies() {
                           </div>
                         )}
 
-                        {/* Action Buttons */}
-                        <div className="flex flex-wrap items-center gap-3 pt-2">
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/companies/${company.slug}`);
-                            }}
-                            className="gap-2"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                            View Company Page
-                          </Button>
+                          {/* Action Buttons */}
+                          <div className="flex flex-wrap items-center gap-3 pt-2">
+                            {(isAdmin || isPartner) && (
+                              <CompanyMembersDialog 
+                                companyId={company.id} 
+                                companyName={company.name}
+                              />
+                            )}
+                            
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/companies/${company.slug}`);
+                              }}
+                              className="gap-2"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              View Company Page
+                            </Button>
                           
                           {company.website_url && (
                             <Button
