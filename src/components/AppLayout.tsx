@@ -99,7 +99,7 @@ const candidateNavigationGroups = [
     title: "Settings",
     icon: Cog,
     items: [
-      { name: "My Profile", icon: User, path: "" }, // Path set dynamically in component
+      { name: "My Profile", icon: User, path: "/user-settings" },
       { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },
@@ -154,7 +154,7 @@ const partnerNavigationGroups = [
     title: "Settings",
     icon: Cog,
     items: [
-      { name: "My Profile", icon: User, path: "" }, // Path set dynamically in component
+      { name: "My Profile", icon: User, path: "/user-settings" },
       { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },
@@ -209,7 +209,7 @@ const adminNavigationGroups = [
     title: "Settings",
     icon: Cog,
     items: [
-      { name: "My Profile", icon: User, path: "" }, // Path set dynamically in component
+      { name: "My Profile", icon: User, path: "/user-settings" },
       { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },
@@ -234,9 +234,6 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         return;
       }
       
-      // Only fetch if we don't have the profile or it's for a different user
-      if (userProfile?.id === user.id) return;
-      
       const { data } = await supabase
         .from('profiles')
         .select('id')
@@ -249,22 +246,32 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     };
     
     loadUserProfile();
-  }, [user?.id, userProfile?.id]);
+  }, [user?.id]);
 
-  // Build navigation groups with dynamic profile path
+  // Build navigation with dynamic profile path
+  const myProfilePath = userProfile ? `/profile/${userProfile.id}` : '/profile';
+  
   const candidateNav = candidateNavigationGroups.map(group => 
     group.title === "Settings" 
-      ? { ...group, items: group.items.map(item => item.name === "My Profile" ? { ...item, path: userProfile ? `/profile/${userProfile.id}` : '/user-settings' } : item) }
+      ? { ...group, items: group.items.map(item => 
+          item.name === "My Profile" ? { ...item, path: myProfilePath } : item
+        )}
       : group
   );
+  
   const partnerNav = partnerNavigationGroups.map(group => 
     group.title === "Settings" 
-      ? { ...group, items: group.items.map(item => item.name === "My Profile" ? { ...item, path: userProfile ? `/profile/${userProfile.id}` : '/user-settings' } : item) }
+      ? { ...group, items: group.items.map(item => 
+          item.name === "My Profile" ? { ...item, path: myProfilePath } : item
+        )}
       : group
   );
+  
   const adminNav = adminNavigationGroups.map(group => 
     group.title === "Settings" 
-      ? { ...group, items: group.items.map(item => item.name === "My Profile" ? { ...item, path: userProfile ? `/profile/${userProfile.id}` : '/user-settings' } : item) }
+      ? { ...group, items: group.items.map(item => 
+          item.name === "My Profile" ? { ...item, path: myProfilePath } : item
+        )}
       : group
   );
 
@@ -288,7 +295,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   };
 
   const firstName = getFirstName();
-  const profilePath = userProfile ? `/profile/${userProfile.id}` : '/user-settings';
+  const profilePath = myProfilePath;
 
   return (
     <div className="min-h-screen flex w-full bg-background">
