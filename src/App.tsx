@@ -37,6 +37,7 @@ import SocialFeed from "./pages/SocialFeed";
 import SocialManagement from "./pages/SocialManagement";
 import Analytics from "./pages/Analytics";
 import Achievements from "./pages/Achievements";
+import BookingPage from "./pages/BookingPage";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ const App = () => (
             <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Navigate to="/auth" replace />} />
+            <Route path="/book/:slug" element={<BookingPage />} />
             <Route
               path="/home"
               element={
