@@ -12,6 +12,7 @@ import { PortfolioSection } from "@/components/profile/PortfolioSection";
 import { LinkedInImport } from "@/components/profile/LinkedInImport";
 import { MusicSection } from "@/components/profile/MusicSection";
 import { ProfileHeaderUpload } from "@/components/profile/ProfileHeaderUpload";
+import { SocialActivityFeed } from "@/components/profile/SocialActivityFeed";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -253,6 +254,9 @@ export default function EnhancedProfile() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Social Activity Feed */}
+        <SocialActivityFeed />
 
         {/* Profile Completion Stats */}
         <Card>
