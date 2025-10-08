@@ -39,7 +39,7 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUser, setSelectedUser] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<string>("member");
+  const [selectedRole, setSelectedRole] = useState<string>("viewer");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -116,7 +116,8 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
       
       toast.success("Team member added successfully");
       setSelectedUser("");
-      setSelectedRole("member");
+      setSelectedRole("viewer");
+      setSearchQuery("");
       loadMembers();
       loadAvailableUsers();
     } catch (error) {
@@ -177,6 +178,8 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
         return 'bg-primary';
       case 'recruiter':
         return 'bg-accent';
+      case 'viewer':
+        return 'bg-muted';
       default:
         return 'bg-muted';
     }
@@ -226,12 +229,21 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
                   <SelectTrigger>
                     <SelectValue placeholder="Choose user..." />
                   </SelectTrigger>
-                  <SelectContent>
-                    {filteredUsers.map(user => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.full_name || user.email}
-                      </SelectItem>
-                    ))}
+                  <SelectContent className="max-h-[300px]">
+                    {filteredUsers.length === 0 ? (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        {searchQuery ? "No users found" : "No available users"}
+                      </div>
+                    ) : (
+                      filteredUsers.map(user => (
+                        <SelectItem key={user.id} value={user.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{user.full_name || user.email}</span>
+                            <span className="text-xs text-muted-foreground">({user.email})</span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>
@@ -246,7 +258,7 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
                     <SelectItem value="owner">Owner</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                     <SelectItem value="recruiter">Recruiter</SelectItem>
-                    <SelectItem value="member">Member</SelectItem>
+                    <SelectItem value="viewer">Viewer</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -302,7 +314,7 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
                           <SelectItem value="owner">Owner</SelectItem>
                           <SelectItem value="admin">Admin</SelectItem>
                           <SelectItem value="recruiter">Recruiter</SelectItem>
-                          <SelectItem value="member">Member</SelectItem>
+                          <SelectItem value="viewer">Viewer</SelectItem>
                         </SelectContent>
                       </Select>
 

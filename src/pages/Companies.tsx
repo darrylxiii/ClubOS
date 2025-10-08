@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialog";
+import { CompanyMembersStack } from "@/components/companies/CompanyMembersStack";
 import { AddCompanyDialog } from "@/components/companies/AddCompanyDialog";
 import { useRole } from "@/contexts/RoleContext";
 
@@ -491,16 +492,17 @@ export default function Companies() {
                                   <span className="font-bold">{metrics.total_applications}</span>
                                   <span className="text-xs text-muted-foreground">applications</span>
                                 </div>
-                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2">
                                   <Heart className="w-4 h-4 text-red-500" />
                                   <span className="font-bold">{metrics.total_followers}</span>
                                   <span className="text-xs text-muted-foreground">followers</span>
                                 </div>
-                                {(isAdmin || isPartner) && (
+                                {(isAdmin || isPartner) && companyMembers[company.id] > 0 && (
                                   <div className="flex items-center gap-2">
-                                    <UserCircle className="w-4 h-4 text-primary" />
-                                    <span className="font-bold">{companyMembers[company.id] || 0}</span>
-                                    <span className="text-xs text-muted-foreground">team members</span>
+                                    <CompanyMembersStack companyId={company.id} maxVisible={3} />
+                                    <span className="text-xs text-muted-foreground">
+                                      {companyMembers[company.id]} team {companyMembers[company.id] === 1 ? 'member' : 'members'}
+                                    </span>
                                   </div>
                                 )}
                               </div>
