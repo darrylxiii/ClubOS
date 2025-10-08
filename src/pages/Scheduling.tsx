@@ -11,9 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2 } from "lucide-react";
+import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2, Video, Users, Shield, Repeat } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface BookingLink {
   id: string;
@@ -28,6 +29,14 @@ interface BookingLink {
   is_active: boolean;
   color: string;
   created_at: string;
+  scheduling_type: string;
+  video_conferencing_provider: string | null;
+  auto_generate_meeting_link: boolean;
+  allow_waitlist: boolean;
+  single_use: boolean;
+  max_uses: number | null;
+  requires_approval: boolean;
+  max_bookings_per_day: number | null;
 }
 
 interface Booking {
@@ -57,6 +66,14 @@ export default function Scheduling() {
     advance_booking_days: 60,
     min_notice_hours: 2,
     color: "#6366f1",
+    scheduling_type: "individual",
+    video_conferencing_provider: null as string | null,
+    auto_generate_meeting_link: false,
+    allow_waitlist: true,
+    single_use: false,
+    max_uses: null as number | null,
+    requires_approval: false,
+    max_bookings_per_day: null as number | null,
   });
 
   useEffect(() => {
@@ -140,6 +157,14 @@ export default function Scheduling() {
         advance_booking_days: 60,
         min_notice_hours: 2,
         color: "#6366f1",
+        scheduling_type: "individual",
+        video_conferencing_provider: null,
+        auto_generate_meeting_link: false,
+        allow_waitlist: true,
+        single_use: false,
+        max_uses: null,
+        requires_approval: false,
+        max_bookings_per_day: null,
       });
     } catch (error: any) {
       if (error.code === "23505") {
@@ -347,6 +372,109 @@ export default function Scheduling() {
                   />
                 </div>
 
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Advanced Options
+                  </h3>
+
+                  <div>
+                    <Label htmlFor="scheduling_type">Scheduling Type</Label>
+                    <Select
+                      value={newLink.scheduling_type}
+                      onValueChange={(value) => setNewLink({ ...newLink, scheduling_type: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="individual">Individual (1-on-1)</SelectItem>
+                        <SelectItem value="round_robin">Round Robin (Team)</SelectItem>
+                        <SelectItem value="collective">Collective (Group)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="video_provider">Video Conferencing</Label>
+                    <Select
+                      value={newLink.video_conferencing_provider || "none"}
+                      onValueChange={(value) => setNewLink({ 
+                        ...newLink, 
+                        video_conferencing_provider: value === "none" ? null : value,
+                        auto_generate_meeting_link: value !== "none"
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="google_meet">Google Meet</SelectItem>
+                        <SelectItem value="zoom">Zoom</SelectItem>
+                        <SelectItem value="microsoft_teams">Microsoft Teams</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="waitlist">Enable Waitlist</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Let people join waitlist when fully booked
+                      </p>
+                    </div>
+                    <Switch
+                      id="waitlist"
+                      checked={newLink.allow_waitlist}
+                      onCheckedChange={(checked) => setNewLink({ ...newLink, allow_waitlist: checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="single_use">Single-Use Link</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Link expires after first booking
+                      </p>
+                    </div>
+                    <Switch
+                      id="single_use"
+                      checked={newLink.single_use}
+                      onCheckedChange={(checked) => setNewLink({ ...newLink, single_use: checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="requires_approval">Require Approval</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Manually approve bookings before confirming
+                      </p>
+                    </div>
+                    <Switch
+                      id="requires_approval"
+                      checked={newLink.requires_approval}
+                      onCheckedChange={(checked) => setNewLink({ ...newLink, requires_approval: checked })}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="max_bookings">Max Bookings Per Day (optional)</Label>
+                    <Input
+                      id="max_bookings"
+                      type="number"
+                      min="1"
+                      placeholder="Unlimited"
+                      value={newLink.max_bookings_per_day || ""}
+                      onChange={(e) => setNewLink({ 
+                        ...newLink, 
+                        max_bookings_per_day: e.target.value ? parseInt(e.target.value) : null 
+                      })}
+                    />
+                  </div>
+                </div>
+
                 <Button
                   onClick={createBookingLink}
                   disabled={isCreatingLink}
@@ -400,11 +528,36 @@ export default function Scheduling() {
                           {link.description && (
                             <CardDescription className="mt-2">{link.description}</CardDescription>
                           )}
-                          <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
+                          <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-muted-foreground">
                             <span className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
                               {link.duration_minutes} min
                             </span>
+                            {link.scheduling_type !== "individual" && (
+                              <span className="flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                {link.scheduling_type === "round_robin" ? "Round Robin" : "Group"}
+                              </span>
+                            )}
+                            {link.video_conferencing_provider && (
+                              <span className="flex items-center gap-1">
+                                <Video className="h-4 w-4" />
+                                {link.video_conferencing_provider === "google_meet" ? "Google Meet" : 
+                                 link.video_conferencing_provider === "zoom" ? "Zoom" : "Teams"}
+                              </span>
+                            )}
+                            {link.requires_approval && (
+                              <span className="flex items-center gap-1">
+                                <Shield className="h-4 w-4" />
+                                Approval Required
+                              </span>
+                            )}
+                            {link.single_use && (
+                              <span className="flex items-center gap-1">
+                                <Repeat className="h-4 w-4" />
+                                Single Use
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className="flex gap-2">
