@@ -244,15 +244,22 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           .from('avatars')
           .upload(fileName, logoFile, { upsert: true });
 
-        if (!uploadError) {
+        if (uploadError) {
+          console.error('Logo upload error:', uploadError);
+          toast.error(`Failed to upload logo: ${uploadError.message}`);
+        } else {
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')
             .getPublicUrl(fileName);
 
-          await supabase
+          const { error: updateError } = await supabase
             .from('companies')
             .update({ logo_url: publicUrl })
             .eq('id', company.id);
+          
+          if (updateError) {
+            console.error('Logo URL update error:', updateError);
+          }
         }
       }
 
@@ -265,15 +272,22 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           .from('profile-headers')
           .upload(fileName, coverFile, { upsert: true });
 
-        if (!uploadError) {
+        if (uploadError) {
+          console.error('Cover upload error:', uploadError);
+          toast.error(`Failed to upload cover image: ${uploadError.message}`);
+        } else {
           const { data: { publicUrl } } = supabase.storage
             .from('profile-headers')
             .getPublicUrl(fileName);
 
-          await supabase
+          const { error: updateError } = await supabase
             .from('companies')
             .update({ cover_image_url: publicUrl })
             .eq('id', company.id);
+          
+          if (updateError) {
+            console.error('Cover URL update error:', updateError);
+          }
         }
       }
 

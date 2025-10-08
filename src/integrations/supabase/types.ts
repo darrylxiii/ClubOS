@@ -1296,6 +1296,7 @@ export type Database = {
           headquarters_location: string | null
           id: string
           industry: string | null
+          instagram_url: string | null
           is_active: boolean
           linkedin_url: string | null
           logo_url: string | null
@@ -1327,6 +1328,7 @@ export type Database = {
           headquarters_location?: string | null
           id?: string
           industry?: string | null
+          instagram_url?: string | null
           is_active?: boolean
           linkedin_url?: string | null
           logo_url?: string | null
@@ -1358,6 +1360,7 @@ export type Database = {
           headquarters_location?: string | null
           id?: string
           industry?: string | null
+          instagram_url?: string | null
           is_active?: boolean
           linkedin_url?: string | null
           logo_url?: string | null
