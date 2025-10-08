@@ -1,42 +1,24 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
-  Building2, 
-  MapPin, 
-  Users, 
-  Calendar, 
-  Globe, 
-  Linkedin, 
-  Twitter,
-  Instagram,
-  Mail,
-  ArrowLeft,
-  Target,
-  Eye,
-  Heart,
-  Code,
-  Briefcase,
-  Sparkles,
-  TrendingUp,
-  MessageCircle,
-  Star,
-  Share2
+  ArrowLeft, Globe, Linkedin, Twitter, Instagram, 
+  Settings, Eye, Share2, Image as ImageIcon, Building2, 
+  MapPin, Users, Calendar, Briefcase, Heart, Star, Mail, Sparkles, Target
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
+import { CompanySocialActivity } from "@/components/companies/CompanySocialActivity";
 import { CompanyPosts } from "@/components/partner/CompanyPosts";
 import { CompanyMembersStack } from "@/components/companies/CompanyMembersStack";
 import { EditCompanyDialog } from "@/components/companies/EditCompanyDialog";
-import { useRole } from "@/contexts/RoleContext";
-import { CompanyLatestActivity } from "@/components/companies/CompanyLatestActivity";
 
 interface Company {
   id: string;
@@ -48,26 +30,30 @@ interface Company {
   description: string | null;
   founded_year: number | null;
   company_size: string | null;
-  industry: string | null;
   headquarters_location: string | null;
+  industry: string | null;
   website_url: string | null;
   linkedin_url: string | null;
   twitter_url: string | null;
   instagram_url: string | null;
-  mission: string | null;
-  vision: string | null;
+  careers_email: string | null;
+  careers_page_url: string | null;
+  membership_tier: string | null;
   values: string[];
   culture_highlights: string[];
   benefits: string[];
   tech_stack: string[];
-  careers_email: string | null;
-  careers_page_url: string | null;
+  vision: string | null;
+  mission: string | null;
+  meta_title: string | null;
+  meta_description: string | null;
+  is_active: boolean;
+  created_at: string;
   member_since: string | null;
-  membership_tier: string | null;
 }
 
 export default function CompanyPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { currentRole } = useRole();
@@ -79,16 +65,27 @@ export default function CompanyPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [isCompanyMember, setIsCompanyMember] = useState(false);
 
+  const isAdmin = currentRole === 'admin';
+  const isPartner = currentRole === 'partner';
+
   useEffect(() => {
     loadCompany();
-    loadFollowStatus();
-    loadStats();
-    checkCompanyMembership();
-  }, [slug, user]);
+  }, [slug]);
+
+  useEffect(() => {
+    if (company && user) {
+      loadFollowStatus();
+      loadStats();
+      checkCompanyMembership();
+    }
+  }, [company, user]);
 
   const checkCompanyMembership = async () => {
-    if (!user || !company) return;
-    
+    if (!company || !user || (!isAdmin && !isPartner)) {
+      setIsCompanyMember(false);
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from("company_members")
@@ -201,20 +198,63 @@ export default function CompanyPage() {
   };
 
   const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/companies');
+    navigate("/companies");
+  };
+
+  const handleShare = () => {
+    if (navigator.share && company) {
+      navigator.share({
+        title: company.name,
+        text: company.tagline || `Check out ${company.name} on The Quantum Club`,
+        url: window.location.href,
+      }).catch(() => {
+        // Fallback to clipboard
+        navigator.clipboard.writeText(window.location.href);
+        toast.success("Link copied to clipboard!");
+      });
+    } else if (company) {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Link copied to clipboard!");
+    }
+  };
+
+  const uploadCoverImage = async (file: File) => {
+    if (!company) return;
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${company.id}-cover.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('profile-headers')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('profile-headers')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('companies')
+        .update({ cover_image_url: publicUrl })
+        .eq('id', company.id);
+
+      if (updateError) throw updateError;
+
+      toast.success("Cover image updated!");
+      loadCompany();
+    } catch (error: any) {
+      console.error("Error uploading cover:", error);
+      toast.error(error.message || "Failed to upload cover image");
     }
   };
 
   if (loading) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
+        <div className="flex items-center justify-center h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
         </div>
       </AppLayout>
     );
@@ -244,414 +284,316 @@ export default function CompanyPage() {
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-subtle">
-        {/* Back Navigation */}
-        <div className="max-w-5xl mx-auto px-4 pt-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleBack}
-            className="group"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-            Back to Companies
-          </Button>
-        </div>
+      <div className="container mx-auto p-6 space-y-6 max-w-6xl">
+        {/* Back Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleBack}
+          className="group"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+          Back to Companies
+        </Button>
 
-        <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-          {/* Company Header */}
-          <Card className="border-2 border-foreground glass backdrop-blur-lg overflow-hidden">
-            {/* Header Media (Cover Image or Video) */}
-            {company.cover_image_url && (
-              <div className="relative w-full h-64 overflow-hidden">
+        {/* Profile Header */}
+        <Card className="relative overflow-visible">
+          {/* Header Media (Cover Image) */}
+          <div className="relative w-full h-64 overflow-hidden bg-muted rounded-t-lg">
+            {company.cover_image_url ? (
+              <>
                 <img
                   src={company.cover_image_url}
                   alt="Company header"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
+              </>
+            ) : null}
+
+            {/* Change Header button in top right (only for admins/members) */}
+            {(isAdmin || isCompanyMember) && (
+              <div className="absolute top-4 right-4">
+                <label htmlFor="cover-upload" className="cursor-pointer">
+                  <Button size="sm" variant="secondary" className="gap-2 shadow-lg" asChild>
+                    <span>
+                      <ImageIcon className="w-4 h-4" />
+                      Change Header
+                    </span>
+                  </Button>
+                  <input
+                    id="cover-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) uploadCoverImage(file);
+                    }}
+                  />
+                </label>
               </div>
             )}
+          </div>
 
-            <CardContent className="p-8">
-              <div className="flex flex-col md:flex-row gap-6 items-start">
-                <Avatar className="w-32 h-32 border-4 border-accent shadow-glass-lg ring-4 ring-accent/20">
-                  <AvatarImage 
-                    src={company.logo_url || undefined} 
-                    alt={company.name}
-                    className="object-contain w-full h-full"
-                  />
-                  <AvatarFallback className="text-4xl font-black bg-gradient-accent text-white">
-                    {company.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+          {/* Avatar positioned to overlap header and content */}
+          <div className="absolute top-64 left-6 transform -translate-y-1/2 z-10">
+            <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
+              <AvatarImage 
+                src={company.logo_url || undefined}
+                className="object-contain w-full h-full"
+                alt={company.name}
+              />
+              <AvatarFallback className="text-4xl font-black bg-gradient-to-br from-primary to-accent text-white">
+                {company.name.substring(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            {(isAdmin || isCompanyMember) && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="absolute bottom-0 right-0 rounded-full h-10 w-10 p-0 shadow-lg"
+                onClick={() => setEditDialogOpen(true)}
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
 
-                <div className="flex-1 space-y-4">
-                  <div>
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <h1 className="text-4xl font-black uppercase">{company.name}</h1>
-                      {company.membership_tier === 'premium' && (
-                        <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white gap-1">
-                          <Star className="w-3 h-3" />
-                          Premium Partner
-                        </Badge>
-                      )}
-                    </div>
-                    {company.tagline && (
-                      <p className="text-lg text-muted-foreground">{company.tagline}</p>
+          <CardContent className="pt-20">
+            <div className="space-y-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h1 className="text-3xl font-bold">{company.name}</h1>
+                    {company.membership_tier === 'premium' && (
+                      <Badge className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white gap-1">
+                        <Star className="w-3 h-3" />
+                        Premium Partner
+                      </Badge>
                     )}
                   </div>
-
-                  <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    {company.industry && (
-                      <div className="flex items-center gap-1">
-                        <Briefcase className="w-4 h-4" />
-                        {company.industry}
-                      </div>
-                    )}
-                    {company.headquarters_location && (
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {company.headquarters_location}
-                      </div>
-                    )}
-                    {company.company_size && (
-                      <div className="flex items-center gap-1">
-                        <Users className="w-4 h-4" />
-                        {company.company_size} employees
-                      </div>
-                    )}
-                    {company.founded_year && (
-                      <div className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        Founded {company.founded_year}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Social Links */}
-                  <div className="flex flex-wrap gap-2">
-                    {company.website_url && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(company.website_url!, '_blank')}
-                      >
-                        <Globe className="w-4 h-4 mr-2" />
-                        Website
-                      </Button>
-                    )}
-                    {company.linkedin_url && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(company.linkedin_url!, '_blank')}
-                      >
-                        <Linkedin className="w-4 h-4 mr-2" />
-                        LinkedIn
-                      </Button>
-                    )}
-                    {company.twitter_url && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(company.twitter_url!, '_blank')}
-                      >
-                        <Twitter className="w-4 h-4 mr-2" />
-                        Twitter
-                      </Button>
-                    )}
-                    {company.instagram_url && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(company.instagram_url!, '_blank')}
-                      >
-                        <Instagram className="w-4 h-4 mr-2" />
-                        Instagram
-                      </Button>
-                    )}
-                  </div>
+                  <p className="text-muted-foreground">{company.tagline || 'Building the future'}</p>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Action Bar */}
-          <Card className="border-2 border-foreground glass backdrop-blur-lg">
-            <CardContent className="p-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex items-center gap-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-black">{followerCount}</div>
-                    <div className="text-xs text-muted-foreground">Followers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-2xl font-black">{jobCount}</div>
-                    <div className="text-xs text-muted-foreground">Open Roles</div>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  {user && (currentRole === 'admin' || isCompanyMember) && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setEditDialogOpen(true)}
-                      className="gap-2"
-                    >
-                      <Users className="w-4 h-4" />
-                      Edit Company
-                    </Button>
-                  )}
-                  
-                  <Button
-                    variant={isFollowing ? "outline" : "default"}
-                    onClick={handleFollow}
-                    className="gap-2"
-                  >
-                    <Heart className={`w-4 h-4 ${isFollowing ? 'fill-current' : ''}`} />
-                    {isFollowing ? "Following" : "Follow"}
+                <div className="flex flex-col gap-2">
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <Eye className="w-4 h-4" />
+                    Preview
                   </Button>
-                  <Button variant="outline" onClick={() => toast.info("Share feature coming soon!")}>
-                    <Share2 className="w-4 h-4 mr-2" />
+                  <Button variant="outline" size="sm" className="gap-2" onClick={handleShare}>
+                    <Share2 className="w-4 h-4" />
                     Share
                   </Button>
-                  {company.careers_page_url && (
-                    <Button onClick={() => window.open(company.careers_page_url!, '_blank')}>
-                      <Briefcase className="w-4 h-4 mr-2" />
-                      View Careers
-                    </Button>
-                  )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Main Content Tabs */}
-          <Tabs defaultValue="about" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-4 glass backdrop-blur-lg">
-              <TabsTrigger value="about" className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                <span className="hidden sm:inline">About</span>
-              </TabsTrigger>
-              <TabsTrigger value="culture" className="flex items-center gap-2">
-                <Heart className="w-4 h-4" />
-                <span className="hidden sm:inline">Culture</span>
-              </TabsTrigger>
-              <TabsTrigger value="team" className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                <span className="hidden sm:inline">Team</span>
-              </TabsTrigger>
-              <TabsTrigger value="updates" className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4" />
-                <span className="hidden sm:inline">Updates</span>
-              </TabsTrigger>
-            </TabsList>
-
-            {/* About Tab */}
-            <TabsContent value="about" className="space-y-6">
-              {/* Company Description */}
+              {/* Description */}
               {company.description && (
-                <Card className="border-2 border-foreground">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Building2 className="w-5 h-5" />
-                      About {company.name}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {company.description}
-                    </p>
-                  </CardContent>
-                </Card>
+                <p className="text-muted-foreground">
+                  {company.description}
+                </p>
               )}
 
-              {/* Mission & Vision */}
-              {(company.mission || company.vision) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Quick Info */}
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                {company.industry && (
+                  <div className="flex items-center gap-1">
+                    <Briefcase className="w-4 h-4" />
+                    {company.industry}
+                  </div>
+                )}
+                {company.headquarters_location && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {company.headquarters_location}
+                  </div>
+                )}
+                {company.company_size && (
+                  <div className="flex items-center gap-1">
+                    <Users className="w-4 h-4" />
+                    {company.company_size} employees
+                  </div>
+                )}
+                {company.founded_year && (
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    Founded {company.founded_year}
+                  </div>
+                )}
+              </div>
+
+              {/* Social Links & Actions */}
+              <div className="flex flex-wrap gap-2">
+                {company.website_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(company.website_url!, '_blank')}
+                  >
+                    <Globe className="w-4 h-4 mr-2" />
+                    Website
+                  </Button>
+                )}
+                {company.linkedin_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(company.linkedin_url!, '_blank')}
+                  >
+                    <Linkedin className="w-4 h-4 mr-2" />
+                    LinkedIn
+                  </Button>
+                )}
+                {company.twitter_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(company.twitter_url!, '_blank')}
+                  >
+                    <Twitter className="w-4 h-4 mr-2" />
+                    Twitter
+                  </Button>
+                )}
+                {company.instagram_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(company.instagram_url!, '_blank')}
+                  >
+                    <Instagram className="w-4 h-4 mr-2" />
+                    Instagram
+                  </Button>
+                )}
+                <Button
+                  variant={isFollowing ? "secondary" : "default"}
+                  size="sm"
+                  onClick={handleFollow}
+                >
+                  <Heart className={`w-4 h-4 mr-2 ${isFollowing ? 'fill-current' : ''}`} />
+                  {isFollowing ? 'Following' : 'Follow'}
+                </Button>
+              </div>
+
+              {/* Stats Bar */}
+              <div className="flex items-center gap-6 pt-4 border-t">
+                <div>
+                  <p className="text-2xl font-bold">{followerCount}</p>
+                  <p className="text-xs text-muted-foreground">Followers</p>
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{jobCount}</p>
+                  <p className="text-xs text-muted-foreground">Open Roles</p>
+                </div>
+                <div className="ml-auto">
+                  <CompanyMembersStack companyId={company.id} maxVisible={5} />
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Social Activity Section */}
+        <CompanySocialActivity companyId={company.id} isCompanyMember={isCompanyMember} />
+
+        {/* Additional Tabs */}
+        <Tabs defaultValue="about" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="about">About</TabsTrigger>
+            <TabsTrigger value="jobs">Jobs ({jobCount})</TabsTrigger>
+            <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="culture">Culture</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="about" className="space-y-6 mt-6">
+            {/* Mission & Vision */}
+            {(company.mission || company.vision) && (
+              <Card>
+                <CardContent className="p-6 space-y-4">
                   {company.mission && (
-                    <Card className="border-2 border-foreground glass backdrop-blur-lg">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Target className="w-5 h-5" />
-                          Mission
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {company.mission}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <div>
+                      <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                        <Target className="w-5 h-5 text-primary" />
+                        Our Mission
+                      </h3>
+                      <p className="text-muted-foreground">{company.mission}</p>
+                    </div>
                   )}
                   {company.vision && (
-                    <Card className="border-2 border-foreground glass backdrop-blur-lg">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                          <Eye className="w-5 h-5" />
-                          Vision
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground leading-relaxed">
-                          {company.vision}
-                        </p>
-                      </CardContent>
-                    </Card>
+                    <div>
+                      <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-accent" />
+                        Our Vision
+                      </h3>
+                      <p className="text-muted-foreground">{company.vision}</p>
+                    </div>
                   )}
-                </div>
-              )}
-
-              {/* Tech Stack */}
-              {company.tech_stack.length > 0 && (
-                <Card className="border-2 border-foreground glass backdrop-blur-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Code className="w-5 h-5" />
-                      Tech Stack
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-wrap gap-2">
-                      {company.tech_stack.map((tech, index) => (
-                        <Badge key={index} variant="secondary" className="text-sm">
-                          {tech}
-                        </Badge>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-
-            {/* Culture Tab */}
-            <TabsContent value="culture" className="space-y-6">
-              {/* Values */}
-              {company.values.length > 0 && (
-                <Card className="border-2 border-foreground glass backdrop-blur-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Heart className="w-5 h-5" />
-                      Our Values
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {company.values.map((value, index) => (
-                        <div key={index} className="p-4 bg-accent/10 rounded-lg border border-accent/20">
-                          <p className="font-bold text-center">{value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Culture & Benefits */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {company.culture_highlights.length > 0 && (
-                  <Card className="border-2 border-foreground glass backdrop-blur-lg">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Sparkles className="w-5 h-5" />
-                        Culture Highlights
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-3">
-                        {company.culture_highlights.map((highlight, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="text-accent mt-1">•</span>
-                            <span className="text-muted-foreground">{highlight}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-
-                {company.benefits.length > 0 && (
-                  <Card className="border-2 border-foreground glass backdrop-blur-lg">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Star className="w-5 h-5" />
-                        Benefits & Perks
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <ul className="space-y-3">
-                        {company.benefits.map((benefit, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="text-accent mt-1">•</span>
-                            <span className="text-muted-foreground">{benefit}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </CardContent>
-                  </Card>
-                )}
-              </div>
-            </TabsContent>
-
-            {/* Team Tab */}
-            <TabsContent value="team" className="space-y-6">
-              <Card className="border-2 border-foreground glass backdrop-blur-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="w-5 h-5" />
-                    Team Members
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CompanyMembersStack companyId={company.id} showFull />
                 </CardContent>
               </Card>
-            </TabsContent>
+            )}
 
-            {/* Updates Tab - Latest Activity */}
-            <TabsContent value="updates" className="space-y-6">
-              <CompanyLatestActivity companyId={company.id} isCompanyMember={isCompanyMember} />
-              
-              {/* Company Posts */}
-              <CompanyPosts companyId={company.id} />
-            </TabsContent>
-          </Tabs>
+            {/* Values */}
+            {company.values.length > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-bold mb-4">Our Values</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {company.values.map((value, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Star className="w-4 h-4 text-accent flex-shrink-0" />
+                        <span className="text-sm">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
 
-          {/* Contact CTA */}
-          {(company.careers_email || company.careers_page_url) && (
-            <Card className="border-2 border-accent bg-accent/5 glass backdrop-blur-lg">
-              <CardContent className="py-8 text-center">
-                <Sparkles className="w-12 h-12 mx-auto mb-4 text-accent" />
-                <h3 className="text-2xl font-black mb-2">Interested in Joining?</h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  Discover opportunities to join our team and help us build the future
+          <TabsContent value="jobs" className="space-y-6 mt-6">
+            <Card>
+              <CardContent className="p-6">
+                <p className="text-muted-foreground text-center py-12">
+                  View all open positions on our careers page
                 </p>
-                <div className="flex flex-wrap gap-3 justify-center">
-                  {company.careers_page_url && (
-                    <Button
-                      size="lg"
-                      onClick={() => window.open(company.careers_page_url!, '_blank')}
-                    >
+                {company.careers_page_url && (
+                  <div className="text-center">
+                    <Button onClick={() => window.open(company.careers_page_url!, '_blank')}>
                       <Briefcase className="w-4 h-4 mr-2" />
                       View Open Roles
                     </Button>
-                  )}
-                  {company.careers_email && (
-                    <Button
-                      size="lg"
-                      variant="outline"
-                      onClick={() => window.location.href = `mailto:${company.careers_email}`}
-                    >
-                      <Mail className="w-4 h-4 mr-2" />
-                      Contact Us
-                    </Button>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          )}
-        </div>
+          </TabsContent>
+
+          <TabsContent value="team" className="space-y-6 mt-6">
+            <Card>
+              <CardContent className="p-6">
+                <CompanyMembersStack companyId={company.id} showFull />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="culture" className="space-y-6 mt-6">
+            {/* Benefits */}
+            {company.benefits.length > 0 && (
+              <Card>
+                <CardContent className="p-6">
+                  <h3 className="text-lg font-bold mb-4">Benefits & Perks</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {company.benefits.map((benefit, index) => (
+                      <div key={index} className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-primary flex-shrink-0" />
+                        <span className="text-sm">{benefit}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Edit Company Dialog */}
@@ -662,7 +604,7 @@ export default function CompanyPage() {
           onClose={() => setEditDialogOpen(false)}
           onSuccess={() => {
             loadCompany();
-            toast.success("Company updated successfully");
+            setEditDialogOpen(false);
           }}
         />
       )}
