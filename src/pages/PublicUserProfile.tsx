@@ -34,6 +34,7 @@ import { InlineEdit } from "@/components/profile/InlineEdit";
 import { ProfileAuditTrail } from "@/components/profile/ProfileAuditTrail";
 import { ProfilePreview } from "@/components/profile/ProfilePreview";
 import { MusicSection } from "@/components/profile/MusicSection";
+import { ProfileHeaderUpload } from "@/components/profile/ProfileHeaderUpload";
 
 interface UserProfile {
   id: string;
@@ -46,6 +47,8 @@ interface UserProfile {
   created_at: string;
   email_verified: boolean;
   phone_verified: boolean;
+  header_media_url: string | null;
+  header_media_type: string | null;
 }
 
 export default function PublicUserProfile() {
@@ -286,6 +289,11 @@ export default function PublicUserProfile() {
 
             {isOwnProfile && (
               <div className="flex items-center gap-2">
+                <ProfileHeaderUpload 
+                  currentMediaUrl={profile?.header_media_url}
+                  currentMediaType={profile?.header_media_type}
+                  onUploadComplete={loadProfile}
+                />
                 <ProfilePreview profile={profile!} achievements={achievements} />
                 <Button
                   variant={isEditMode ? "default" : "outline"}
@@ -310,7 +318,29 @@ export default function PublicUserProfile() {
 
         <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
           {/* Profile Header */}
-          <Card className="border-2 border-foreground glass backdrop-blur-lg">
+          <Card className="border-2 border-foreground glass backdrop-blur-lg overflow-hidden">
+            {/* Header Media (Image or Video Wallpaper) */}
+            {profile.header_media_url && (
+              <div className="relative w-full h-64 overflow-hidden">
+                {profile.header_media_type === 'video' ? (
+                  <video
+                    src={profile.header_media_url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={profile.header_media_url}
+                    alt="Profile header"
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
+              </div>
+            )}
             <CardContent className="p-8">
               <div className="flex flex-col md:flex-row gap-6 items-start">
                 <Avatar className="w-32 h-32 border-4 border-accent shadow-glass-lg ring-4 ring-accent/20">

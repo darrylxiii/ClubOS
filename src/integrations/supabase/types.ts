@@ -4303,6 +4303,8 @@ export type Database = {
           github_profile_data: Json | null
           github_username: string | null
           has_indefinite_contract: boolean | null
+          header_media_type: string | null
+          header_media_url: string | null
           id: string
           instagram_connected: boolean | null
           instagram_username: string | null
@@ -4358,6 +4360,8 @@ export type Database = {
           github_profile_data?: Json | null
           github_username?: string | null
           has_indefinite_contract?: boolean | null
+          header_media_type?: string | null
+          header_media_url?: string | null
           id: string
           instagram_connected?: boolean | null
           instagram_username?: string | null
@@ -4413,6 +4417,8 @@ export type Database = {
           github_profile_data?: Json | null
           github_username?: string | null
           has_indefinite_contract?: boolean | null
+          header_media_type?: string | null
+          header_media_url?: string | null
           id?: string
           instagram_connected?: boolean | null
           instagram_username?: string | null

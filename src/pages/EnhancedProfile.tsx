@@ -11,6 +11,7 @@ import { SkillsSection } from "@/components/profile/SkillsSection";
 import { PortfolioSection } from "@/components/profile/PortfolioSection";
 import { LinkedInImport } from "@/components/profile/LinkedInImport";
 import { MusicSection } from "@/components/profile/MusicSection";
+import { ProfileHeaderUpload } from "@/components/profile/ProfileHeaderUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -76,7 +77,29 @@ export default function EnhancedProfile() {
     <AppLayout>
       <div className="container mx-auto p-6 space-y-6">
         {/* Profile Header */}
-        <Card>
+        <Card className="overflow-hidden">
+          {/* Header Media (Image or Video Wallpaper) */}
+          {profile?.header_media_url && (
+            <div className="relative w-full h-64 overflow-hidden">
+              {profile.header_media_type === 'video' ? (
+                <video
+                  src={profile.header_media_url}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <img
+                  src={profile.header_media_url}
+                  alt="Profile header"
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
+            </div>
+          )}
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <Avatar className="w-24 h-24">
@@ -93,6 +116,11 @@ export default function EnhancedProfile() {
                     <p className="text-muted-foreground">{profile?.current_title || 'Your Title'}</p>
                   </div>
                   <div className="flex gap-2">
+                    <ProfileHeaderUpload 
+                      currentMediaUrl={profile?.header_media_url}
+                      currentMediaType={profile?.header_media_type}
+                      onUploadComplete={loadProfile}
+                    />
                     <Button variant="outline" size="sm">
                       <Eye className="w-4 h-4 mr-2" />
                       Preview
