@@ -79,7 +79,7 @@ export default function EnhancedProfile() {
         {/* Profile Header */}
         <Card className="relative overflow-visible">
           {/* Header Media (Image or Video Wallpaper) */}
-          <div className="relative w-full h-64 overflow-hidden bg-muted">
+          <div className="relative w-full h-64 overflow-hidden bg-muted rounded-t-lg">
             {profile?.header_media_url ? (
               <>
                 {profile.header_media_type === 'video' ? (
@@ -102,13 +102,21 @@ export default function EnhancedProfile() {
               </>
             ) : null}
 
-            {/* Upload button in bottom right */}
-            <div className="absolute bottom-4 right-4">
+            {/* Upload button and action buttons in bottom right */}
+            <div className="absolute bottom-4 right-4 flex flex-col gap-2">
               <ProfileHeaderUpload 
                 currentMediaUrl={profile?.header_media_url}
                 currentMediaType={profile?.header_media_type}
                 onUploadComplete={loadProfile}
               />
+              <Button variant="outline" size="sm">
+                <Eye className="w-4 h-4 mr-2" />
+                Preview
+              </Button>
+              <Button variant="outline" size="sm">
+                <Share2 className="w-4 h-4 mr-2" />
+                Share
+              </Button>
             </div>
           </div>
 
@@ -122,21 +130,9 @@ export default function EnhancedProfile() {
 
           <CardContent className="pt-20">
             <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold">{profile?.full_name || 'Your Name'}</h1>
-                  <p className="text-muted-foreground">{profile?.current_title || 'Your Title'}</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Preview
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
-                </div>
+              <div className="space-y-2">
+                <h1 className="text-3xl font-bold">{profile?.full_name || 'Your Name'}</h1>
+                <p className="text-muted-foreground">{profile?.current_title || 'Your Title'}</p>
               </div>
                 
               <div className="flex flex-wrap gap-2">
