@@ -61,18 +61,42 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
         .from('applications')
         .select(`
           *,
-          profiles:user_id (
+          jobs!applications_job_id_fkey (
             id,
-            full_name,
-            email,
-            avatar_url
+            title,
+            company_id,
+            companies!jobs_company_id_fkey (
+              id,
+              name,
+              logo_url
+            )
           )
         `)
         .eq('job_id', jobId)
         .order('applied_at', { ascending: false });
 
       if (error) throw error;
-      setApplications(data || []);
+
+      // Enrich with profiles data
+      const enrichedData = await Promise.all((data || []).map(async (app) => {
+        // Get profile data
+        let profileData = null;
+        if (app.user_id) {
+          const { data: userProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", app.user_id)
+            .maybeSingle();
+          profileData = userProfile;
+        }
+        
+        return {
+          ...app,
+          profiles: profileData
+        };
+      }));
+
+      setApplications(enrichedData || []);
       
       // Update stats
       updateStats(data || []);

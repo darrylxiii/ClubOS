@@ -106,11 +106,11 @@ export default function CompanyApplications() {
         .from("applications")
         .select(`
           *,
-          jobs:job_id (
+          jobs!applications_job_id_fkey (
             id,
             title,
             company_id,
-            companies:company_id (
+            companies!jobs_company_id_fkey (
               id,
               name,
               logo_url
@@ -122,26 +122,41 @@ export default function CompanyApplications() {
 
       if (appsError) throw appsError;
 
-      // Now get candidate profiles for these applications
+      // Now get candidate profiles and profiles for these applications
       const candidateProfilePromises = (appsData || []).map(async (app) => {
-        // Get candidate profile by user_id from the application
-        const { data: profile } = await supabase
+        // First try to get profile data from profiles table (if user exists)
+        let profileData = null;
+        if (app.user_id) {
+          const { data: userProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", app.user_id)
+            .maybeSingle();
+          profileData = userProfile;
+        }
+
+        // Get or find candidate profile (may exist independently or linked to user)
+        const { data: candidateProfile } = await supabase
           .from("candidate_profiles")
           .select("*")
-          .eq("user_id", app.user_id)
+          .or(`user_id.eq.${app.user_id},email.eq.${profileData?.email || ''}`)
           .maybeSingle();
 
         // Get recent interactions
         const { data: interactions } = await supabase
           .from("candidate_interactions")
           .select("id, interaction_type, created_at")
-          .eq("candidate_id", profile?.id || "")
+          .eq("candidate_id", candidateProfile?.id || "")
           .order("created_at", { ascending: false })
           .limit(5);
 
         return {
           ...app,
-          candidate_profiles: profile,
+          candidate_profiles: candidateProfile || {
+            full_name: profileData?.full_name || 'Unknown',
+            email: profileData?.email || '',
+            avatar_url: profileData?.avatar_url,
+          },
           candidate_interactions: interactions || []
         };
       });
