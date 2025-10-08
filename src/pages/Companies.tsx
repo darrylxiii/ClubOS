@@ -231,16 +231,8 @@ export default function Companies() {
   const industries = Array.from(new Set(companies.map(c => c.industry).filter(Boolean)));
   const sizes = Array.from(new Set(companies.map(c => c.company_size).filter(Boolean)));
 
-  // Internal/test companies to exclude from public view
-  const excludedSlugs = ['merrachi', 'the-quantum-club', 'the-quantum-club-|-amsterdam'];
-  
   const filteredCompanies = companies
     .filter(company => {
-      // Exclude internal/test companies
-      if (excludedSlugs.includes(company.slug)) {
-        return false;
-      }
-      
       const matchesSearch = 
         company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         company.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
