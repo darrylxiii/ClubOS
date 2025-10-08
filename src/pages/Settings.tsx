@@ -192,29 +192,29 @@ const Settings = () => {
     <AppLayout>
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="flex items-center gap-3 mb-8">
-          <SettingsIcon className="w-8 h-8 text-white" />
+          <SettingsIcon className="w-8 h-8 text-foreground" />
           <div>
-            <h1 className="text-4xl font-semibold uppercase tracking-tight text-white">Settings</h1>
-            <p className="text-white/70">Your club profile is your calling card – only visible to invite-only members</p>
+            <h1 className="text-4xl font-semibold uppercase tracking-tight text-foreground">Settings</h1>
+            <p className="text-muted-foreground">Your club profile is your calling card – only visible to invite-only members</p>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 bg-white/10 backdrop-blur-sm">
-            <TabsTrigger value="account" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">Account</TabsTrigger>
-            <TabsTrigger value="notifications" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">Notifications</TabsTrigger>
-            <TabsTrigger value="privacy" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">Privacy</TabsTrigger>
-            <TabsTrigger value="preferences" className="text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">Preferences</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="account">Account</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="privacy">Privacy</TabsTrigger>
+            <TabsTrigger value="preferences">Preferences</TabsTrigger>
           </TabsList>
 
           <TabsContent value="account" className="space-y-4">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white font-semibold">
+                <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />
                   Profile Picture
                 </CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription>
                   Add a professional photo to complete your profile
                 </CardDescription>
               </CardHeader>
@@ -230,86 +230,81 @@ const Settings = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white font-semibold">
+                <CardTitle className="flex items-center gap-2">
                   <User className="w-5 h-5" />
                   Personal Information
                 </CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription>
                   Complete your profile to get the best matches
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="fullname" className="text-white font-semibold">Full Name *</Label>
+                  <Label htmlFor="fullname">Full Name *</Label>
                   <Input 
                     id="fullname" 
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Your full name"
-                    className="bg-white/90 text-gray-900 placeholder:text-gray-500"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="title" className="text-white font-semibold">Current Title</Label>
+                  <Label htmlFor="title">Current Title</Label>
                   <Input 
                     id="title" 
                     value={currentTitle}
                     onChange={(e) => setCurrentTitle(e.target.value)}
                     placeholder="e.g., Senior Software Engineer"
-                    className="bg-white/90 text-gray-900 placeholder:text-gray-500"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="bio" className="text-white font-semibold">Professional Bio</Label>
+                  <Label htmlFor="bio">Professional Bio</Label>
                   <Textarea 
                     id="bio"
                     value={bio}
                     onChange={(e) => setBio(e.target.value)}
                     placeholder="Tell us about your experience and what you're looking for..."
-                    className="bg-white/90 text-gray-900 placeholder:text-gray-500 min-h-[100px]"
+                    className="min-h-[100px]"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="location" className="text-white font-semibold">Location</Label>
+                    <Label htmlFor="location">Location</Label>
                     <Input 
                       id="location" 
                       value={locationCity}
                       onChange={(e) => setLocationCity(e.target.value)}
                       placeholder="City, Country"
-                      className="bg-white/90 text-gray-900 placeholder:text-gray-500"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-white font-semibold">Phone Number</Label>
+                    <Label htmlFor="phone">Phone Number</Label>
                     <Input 
                       id="phone" 
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="+31 6 12345678"
-                      className="bg-white/90 text-gray-900 placeholder:text-gray-500"
                     />
                   </div>
                 </div>
 
-                <Separator className="bg-white/20" />
+                <Separator />
 
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white font-semibold">Email Address</Label>
+                  <Label htmlFor="email">Email Address</Label>
                   <Input 
                     id="email" 
                     type="email" 
                     value={user?.email || ""} 
                     disabled
-                    className="bg-white/50 text-gray-900"
                   />
-                  <p className="text-xs text-white/60">
+                  <p className="text-xs text-muted-foreground">
                     Contact support to change your email address
                   </p>
                 </div>
@@ -317,42 +312,42 @@ const Settings = () => {
                 <Button 
                   onClick={handleSaveAccount}
                   disabled={saving}
-                  className="w-full bg-white text-gray-900 hover:bg-white/90 font-semibold"
+                  className="w-full"
                 >
                   {saving ? 'Saving...' : 'Save Changes'}
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white font-semibold">
+                <CardTitle className="flex items-center gap-2">
                   <Lock className="w-5 h-5" />
                   Security
                 </CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription>
                   Manage your security settings
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-white font-semibold">Two-Factor Authentication</Label>
-                    <p className="text-sm text-white/70">
+                    <Label>Two-Factor Authentication</Label>
+                    <p className="text-sm text-muted-foreground">
                       Add an extra layer of security to your account
                     </p>
                   </div>
-                  <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">Enable</Button>
+                  <Button variant="outline">Enable</Button>
                 </div>
 
-                <Separator className="bg-white/20" />
+                <Separator />
 
                 <div className="space-y-2">
-                  <Label className="text-white font-semibold">Change Password</Label>
-                  <p className="text-sm text-white/70">
+                  <Label>Change Password</Label>
+                  <p className="text-sm text-muted-foreground">
                     Update your password regularly to keep your account secure
                   </p>
-                  <Button variant="outline" className="border-white/20 text-white hover:bg-white/10">
+                  <Button variant="outline">
                     Change Password
                   </Button>
                 </div>
@@ -361,66 +356,33 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-4">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white font-semibold">
+                <CardTitle className="flex items-center gap-2">
                   <Bell className="w-5 h-5" />
                   Notification Preferences
                 </CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription>
                   Choose what notifications you want to receive
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-white font-semibold">Email Notifications</Label>
-                    <p className="text-sm text-white/70">
+                    <Label>Email Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
                       Receive notifications via email
                     </p>
                   </div>
-                  <Switch 
-                    checked={emailNotifications}
-                    onCheckedChange={setEmailNotifications}
-                  />
+...
                 </div>
 
-                <Separator className="bg-white/20" />
+                <Separator />
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-white font-semibold">Push Notifications</Label>
-                    <p className="text-sm text-white/70">
-                      Receive push notifications in your browser
-                    </p>
-                  </div>
-                  <Switch 
-                    checked={pushNotifications}
-                    onCheckedChange={setPushNotifications}
-                  />
-                </div>
-
-                <Separator className="bg-white/20" />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-white font-semibold">Job Alerts</Label>
-                    <p className="text-sm text-white/70">
-                      Get notified about new job matches
-                    </p>
-                  </div>
-                  <Switch 
-                    checked={jobAlerts}
-                    onCheckedChange={setJobAlerts}
-                  />
-                </div>
-
-                <Separator className="bg-white/20" />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label className="text-white font-semibold">Message Notifications</Label>
-                    <p className="text-sm text-white/70">
+                    <Label>Message Notifications</Label>
+                    <p className="text-sm text-muted-foreground">
                       Get notified about new messages
                     </p>
                   </div>
@@ -432,7 +394,7 @@ const Settings = () => {
 
                 <Button 
                   onClick={handleSaveNotifications}
-                  className="w-full bg-white text-gray-900 hover:bg-white/90 font-semibold"
+                  className="w-full"
                 >
                   Save Preferences
                 </Button>
@@ -441,21 +403,21 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="privacy" className="space-y-4">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white font-semibold">
+                <CardTitle className="flex items-center gap-2">
                   <Lock className="w-5 h-5" />
                   Privacy Settings
                 </CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription>
                   Control who can see your information – settings are private to members only
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-white font-semibold">Profile Visibility</Label>
-                    <p className="text-sm text-white/70">
+                    <Label>Profile Visibility</Label>
+                    <p className="text-sm text-muted-foreground">
                       Make your profile visible to companies
                     </p>
                   </div>
@@ -465,12 +427,12 @@ const Settings = () => {
                   />
                 </div>
 
-                <Separator className="bg-white/20" />
+                <Separator />
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-white font-semibold">Current Employer Shield</Label>
-                    <p className="text-sm text-white/70">
+                    <Label>Current Employer Shield</Label>
+                    <p className="text-sm text-muted-foreground">
                       Hide your profile from your current employer
                     </p>
                   </div>
@@ -480,12 +442,12 @@ const Settings = () => {
                   />
                 </div>
 
-                <Separator className="bg-white/20" />
+                <Separator />
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label className="text-white font-semibold">Show Contact Information</Label>
-                    <p className="text-sm text-white/70">
+                    <Label>Show Contact Information</Label>
+                    <p className="text-sm text-muted-foreground">
                       Allow companies to see your contact details
                     </p>
                   </div>
@@ -498,32 +460,31 @@ const Settings = () => {
                 <Button 
                   onClick={handleSavePrivacy}
                   disabled={saving}
-                  className="w-full bg-white text-gray-900 hover:bg-white/90 font-semibold"
+                  className="w-full"
                 >
                   {saving ? 'Saving...' : 'Save Privacy Settings'}
                 </Button>
 
-                <Separator className="bg-white/20" />
+                <Separator />
 
                 <div className="space-y-2">
-                  <Label className="text-white font-semibold">Data Export (GDPR)</Label>
-                  <p className="text-sm text-white/70">
+                  <Label>Data Export (GDPR)</Label>
+                  <p className="text-sm text-muted-foreground">
                     Download all your data in a portable format
                   </p>
                   <Button 
                     variant="outline" 
                     onClick={handleExportData}
-                    className="border-white/20 text-white hover:bg-white/10"
                   >
                     Request Data Export
                   </Button>
                 </div>
 
-                <Separator className="bg-white/20" />
+                <Separator />
 
                 <div className="space-y-2">
-                  <Label className="text-destructive font-semibold">Delete Account</Label>
-                  <p className="text-sm text-white/70">
+                  <Label className="text-destructive">Delete Account</Label>
+                  <p className="text-sm text-muted-foreground">
                     Permanently delete your account and all data
                   </p>
                   <Button variant="destructive" size="sm">
@@ -535,97 +496,95 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="preferences" className="space-y-4">
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white font-semibold">
+                <CardTitle className="flex items-center gap-2">
                   <Globe className="w-5 h-5" />
                   Display Preferences
                 </CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription>
                   Customize how the platform looks for you
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label className="text-white font-semibold">Language</Label>
-                  <select className="w-full p-2 border border-white/20 rounded-md bg-white/10 text-white">
-                    <option className="bg-gray-900">English</option>
-                    <option className="bg-gray-900">Nederlands</option>
+                  <Label>Language</Label>
+                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
+                    <option>English</option>
+                    <option>Nederlands</option>
                   </select>
                 </div>
 
-                <Separator className="bg-white/20" />
+                <Separator />
 
                 <div className="space-y-2">
-                  <Label className="text-white font-semibold">Timezone</Label>
-                  <select className="w-full p-2 border border-white/20 rounded-md bg-white/10 text-white">
-                    <option className="bg-gray-900">Europe/Amsterdam</option>
-                    <option className="bg-gray-900">America/New_York</option>
-                    <option className="bg-gray-900">Asia/Tokyo</option>
+                  <Label>Timezone</Label>
+                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
+                    <option>Europe/Amsterdam</option>
+                    <option>America/New_York</option>
+                    <option>Asia/Tokyo</option>
                   </select>
                 </div>
 
-                <Separator className="bg-white/20" />
+                <Separator />
 
                 <div className="space-y-2">
-                  <Label className="text-white font-semibold">Currency</Label>
-                  <select className="w-full p-2 border border-white/20 rounded-md bg-white/10 text-white">
-                    <option className="bg-gray-900">EUR (€)</option>
-                    <option className="bg-gray-900">USD ($)</option>
-                    <option className="bg-gray-900">GBP (£)</option>
+                  <Label>Currency</Label>
+                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
+                    <option>EUR (€)</option>
+                    <option>USD ($)</option>
+                    <option>GBP (£)</option>
                   </select>
                 </div>
 
                 <Button 
                   onClick={() => toast.success("Preferences saved")}
-                  className="w-full bg-white text-gray-900 hover:bg-white/90 font-semibold"
+                  className="w-full"
                 >
                   Save Preferences
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/10 backdrop-blur-md border-white/20">
+            <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-white font-semibold">
+                <CardTitle className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5" />
                   Career Preferences
                 </CardTitle>
-                <CardDescription className="text-white/70">
+                <CardDescription>
                   Set your salary expectations and career goals
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label className="text-white font-semibold">Expected Salary Range</Label>
+                  <Label>Expected Salary Range</Label>
                   <div className="grid grid-cols-2 gap-4">
                     <Input 
                       placeholder="Min (€)"
-                      className="bg-white/90 text-gray-900 placeholder:text-gray-500"
                     />
                     <Input 
                       placeholder="Max (€)"
-                      className="bg-white/90 text-gray-900 placeholder:text-gray-500"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white font-semibold">Preferred Job Type</Label>
-                  <select className="w-full p-2 border border-white/20 rounded-md bg-white/10 text-white">
-                    <option className="bg-gray-900">Full-time</option>
-                    <option className="bg-gray-900">Part-time</option>
-                    <option className="bg-gray-900">Contract</option>
-                    <option className="bg-gray-900">Freelance</option>
+                  <Label>Preferred Job Type</Label>
+                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
+                    <option>Full-time</option>
+                    <option>Part-time</option>
+                    <option>Contract</option>
+                    <option>Freelance</option>
                   </select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-white font-semibold">Work Location Preference</Label>
-                  <select className="w-full p-2 border border-white/20 rounded-md bg-white/10 text-white">
-                    <option className="bg-gray-900">Remote</option>
-                    <option className="bg-gray-900">Hybrid</option>
-                    <option className="bg-gray-900">On-site</option>
+                  <Label>Work Location Preference</Label>
+                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
+                    <option>Remote</option>
+                    <option>Hybrid</option>
+                    <option>On-site</option>
                   </select>
                 </div>
 
@@ -635,7 +594,7 @@ const Settings = () => {
                     localStorage.setItem('preferences_set', 'true');
                     toast.success("Career preferences saved");
                   }}
-                  className="w-full bg-white text-gray-900 hover:bg-white/90 font-semibold"
+                  className="w-full"
                 >
                   Save Career Preferences
                 </Button>
