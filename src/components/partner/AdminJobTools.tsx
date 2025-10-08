@@ -78,12 +78,13 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl border-2 border-accent/30 bg-gradient-to-r from-accent/10 via-purple-500/10 to-accent/10 backdrop-blur-sm">
+      <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl border-2 border-purple-500/30 bg-gradient-to-r from-purple-500/10 via-accent/10 to-purple-500/10 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-accent" />
-          <Badge variant="outline" className="border-accent text-accent font-bold">
-            ADMIN VIEW
+          <Shield className="w-5 h-5 text-purple-500" />
+          <Badge variant="outline" className="border-purple-500 text-purple-500 font-bold">
+            ADMIN JOB TOOLS
           </Badge>
+          <span className="text-xs text-muted-foreground">Job-level operations</span>
         </div>
         
         <div className="flex-1" />

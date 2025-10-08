@@ -55,6 +55,8 @@ import {
   PlayCircle,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
+import { AdminBoardTools } from "./AdminBoardTools";
+import { useUserRole } from "@/hooks/useUserRole";
 import confetti from "canvas-confetti";
 
 interface PartnerJobsHomeProps {
@@ -86,6 +88,7 @@ interface CompanyMetrics {
 
 export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const navigate = useNavigate();
+  const { role } = useUserRole();
   const [jobs, setJobs] = useState<JobWithMetrics[]>([]);
   const [companyMetrics, setCompanyMetrics] = useState<CompanyMetrics>({
     activeSearches: 0,
@@ -100,6 +103,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [clubSyncInfoOpen, setClubSyncInfoOpen] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const isAdmin = role === 'admin';
 
   useEffect(() => {
     // Check if first visit
@@ -443,19 +447,34 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         </DialogContent>
       </Dialog>
 
+      {/* Admin Board Tools - Only for Admins */}
+      {isAdmin && (
+        <AdminBoardTools 
+          companyId={companyId} 
+          onRefresh={fetchJobsWithMetrics}
+        />
+      )}
+
       {/* Header */}
       <div className="space-y-6 mb-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <p className="text-caps text-muted-foreground mb-2">Your Hiring HQ</p>
+            <p className="text-caps text-muted-foreground mb-2">
+              {isAdmin ? "Platform Overview" : "Your Hiring HQ"}
+            </p>
             <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tight">
-              Active Searches
+              {isAdmin ? "All Active Searches" : "Active Searches"}
             </h1>
+            {isAdmin && (
+              <p className="text-sm text-muted-foreground mt-2">
+                {companyId ? "Viewing specific company" : "Cross-company view"}
+              </p>
+            )}
           </div>
           <div className="flex gap-3">
             <Button variant="outline" size="lg" className="gap-2">
               <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Invite Team</span>
+              <span className="hidden sm:inline">{isAdmin ? "Manage Companies" : "Invite Team"}</span>
             </Button>
             <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
               <Plus className="w-5 h-5" />
