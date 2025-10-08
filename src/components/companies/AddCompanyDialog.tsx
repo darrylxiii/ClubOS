@@ -40,9 +40,9 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
     company_size: "",
     headquarters_location: "",
     website_url: "",
-    linkedin_url: "",
-    twitter_url: "",
-    instagram_url: "",
+    linkedin_username: "",
+    twitter_username: "",
+    instagram_username: "",
   });
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
@@ -54,6 +54,10 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchingUsers, setSearchingUsers] = useState(false);
+  
+  const [companySearchQuery, setCompanySearchQuery] = useState("");
+  const [companySearchResults, setCompanySearchResults] = useState<any[]>([]);
+  const [searchingCompanies, setSearchingCompanies] = useState(false);
 
   const steps = [
     { id: 0, title: "Company Details", icon: Building2 },
@@ -64,38 +68,60 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
 
   const progress = ((currentStep + 1) / steps.length) * 100;
 
-  // Auto-fetch company data
-  const handleAutoFetch = useCallback(async () => {
-    if (!formData.website_url && !formData.name) return;
+  // Search companies database
+  const searchCompanies = useCallback(async (query: string) => {
+    if (query.trim().length < 2) {
+      setCompanySearchResults([]);
+      return;
+    }
     
-    setAutoFetching(true);
+    setSearchingCompanies(true);
     try {
       const { data, error } = await supabase.functions.invoke('search-companies', {
-        body: { query: formData.name || formData.website_url }
+        body: { query }
       });
 
       if (error) throw error;
       
-      if (data && data.length > 0) {
-        const company = data[0];
-        setFormData(prev => ({
-          ...prev,
-          name: company.name || prev.name,
-          website_url: company.domain ? `https://${company.domain}` : prev.website_url,
-        }));
-        
-        if (company.logo) {
-          setLogoPreview(company.logo);
-        }
-        
-        toast.success("Company data fetched automatically!");
+      if (data?.companies) {
+        setCompanySearchResults(data.companies);
       }
     } catch (error) {
-      console.error('Auto-fetch error:', error);
+      console.error('Company search error:', error);
+      setCompanySearchResults([]);
     } finally {
-      setAutoFetching(false);
+      setSearchingCompanies(false);
     }
-  }, [formData.website_url, formData.name]);
+  }, []);
+
+  // Debounced company search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (companySearchQuery) {
+        searchCompanies(companySearchQuery);
+      } else {
+        setCompanySearchResults([]);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [companySearchQuery, searchCompanies]);
+
+  // Select company from autocomplete
+  const selectCompany = (company: any) => {
+    setFormData(prev => ({
+      ...prev,
+      name: company.name,
+      website_url: company.domain ? `https://${company.domain}` : prev.website_url,
+    }));
+    
+    if (company.logo) {
+      setLogoPreview(company.logo);
+    }
+    
+    setCompanySearchQuery("");
+    setCompanySearchResults([]);
+    toast.success("Company data loaded!");
+  };
 
   // Search users for team assignment
   useEffect(() => {
@@ -176,6 +202,17 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
     try {
       const slug = formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       
+      // Build full URLs from usernames
+      const linkedinUrl = formData.linkedin_username 
+        ? `https://linkedin.com/company/${formData.linkedin_username}` 
+        : null;
+      const twitterUrl = formData.twitter_username 
+        ? `https://twitter.com/${formData.twitter_username}` 
+        : null;
+      const instagramUrl = formData.instagram_username 
+        ? `https://instagram.com/${formData.instagram_username}` 
+        : null;
+
       // Create company
       const { data: company, error: companyError } = await supabase
         .from('companies')
@@ -188,8 +225,9 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           company_size: formData.company_size || null,
           headquarters_location: formData.headquarters_location || null,
           website_url: formData.website_url || null,
-          linkedin_url: formData.linkedin_url || null,
-          twitter_url: formData.twitter_url || null,
+          linkedin_url: linkedinUrl,
+          twitter_url: twitterUrl,
+          instagram_url: instagramUrl,
           is_active: true,
         })
         .select()
@@ -276,9 +314,9 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       company_size: "",
       headquarters_location: "",
       website_url: "",
-      linkedin_url: "",
-      twitter_url: "",
-      instagram_url: "",
+      linkedin_username: "",
+      twitter_username: "",
+      instagram_username: "",
     });
     setLogoFile(null);
     setLogoPreview("");
@@ -286,6 +324,8 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
     setCoverPreview("");
     setTeamMembers([]);
     setCurrentStep(0);
+    setCompanySearchQuery("");
+    setCompanySearchResults([]);
   };
 
   const canProceed = () => {
@@ -348,44 +388,66 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           {/* Step 0: Company Details */}
           {currentStep === 0 && (
             <div className="space-y-4 animate-fade-in">
-              <div className="space-y-2">
+              <div className="space-y-2 relative">
                 <Label htmlFor="name" className="flex items-center gap-2">
                   Company Name *
-                  {autoFetching && <Loader2 className="w-3 h-3 animate-spin" />}
                 </Label>
-                <Input
-                  id="name"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  onBlur={handleAutoFetch}
-                  placeholder="Acme Corporation"
-                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                />
+                <div className="relative">
+                  <Input
+                    id="name"
+                    value={companySearchQuery || formData.name}
+                    onChange={(e) => {
+                      setCompanySearchQuery(e.target.value);
+                      setFormData({ ...formData, name: e.target.value });
+                    }}
+                    placeholder="Start typing company name..."
+                  />
+                  {searchingCompanies && (
+                    <Loader2 className="absolute right-3 top-3 w-4 h-4 animate-spin text-muted-foreground" />
+                  )}
+                </div>
+                
+                {companySearchResults.length > 0 && (
+                  <Card className="absolute z-50 w-full mt-1">
+                    <CardContent className="p-2">
+                      <ScrollArea className="max-h-64">
+                        {companySearchResults.map((company, idx) => (
+                          <div
+                            key={idx}
+                            onClick={() => selectCompany(company)}
+                            className="flex items-center gap-3 p-3 hover:bg-accent rounded-lg cursor-pointer transition-colors"
+                          >
+                            {company.logo && (
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={company.logo} />
+                                <AvatarFallback>{company.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+                              </Avatar>
+                            )}
+                            <div className="flex-1">
+                              <p className="font-medium">{company.name}</p>
+                              {company.domain && (
+                                <p className="text-xs text-muted-foreground">{company.domain}</p>
+                              )}
+                            </div>
+                            <Sparkles className="w-4 h-4 text-primary" />
+                          </div>
+                        ))}
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="website">Website URL</Label>
-                <div className="flex gap-2">
-                  <Input
-                    id="website"
-                    type="url"
-                    value={formData.website_url}
-                    onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-                    onBlur={handleAutoFetch}
-                    placeholder="https://example.com"
-                    className="transition-all duration-200"
-                  />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="icon"
-                    onClick={handleAutoFetch}
-                    disabled={autoFetching}
-                  >
-                    {autoFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                  </Button>
-                </div>
+                <Input
+                  id="website"
+                  type="url"
+                  value={formData.website_url}
+                  onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                  placeholder="https://example.com"
+                  className="transition-all duration-200"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -636,43 +698,52 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                 <div className="space-y-2">
                   <Label htmlFor="linkedin" className="flex items-center gap-2 text-sm">
                     <Linkedin className="w-4 h-4" />
-                    LinkedIn
+                    LinkedIn Username
                   </Label>
-                  <Input
-                    id="linkedin"
-                    type="url"
-                    value={formData.linkedin_url}
-                    onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-                    placeholder="https://linkedin.com/company/..."
-                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">linkedin.com/company/</span>
+                    <Input
+                      id="linkedin"
+                      value={formData.linkedin_username}
+                      onChange={(e) => setFormData({ ...formData, linkedin_username: e.target.value })}
+                      placeholder="company-name"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="twitter" className="flex items-center gap-2 text-sm">
                     <Twitter className="w-4 h-4" />
-                    Twitter / X
+                    Twitter Username
                   </Label>
-                  <Input
-                    id="twitter"
-                    type="url"
-                    value={formData.twitter_url}
-                    onChange={(e) => setFormData({ ...formData, twitter_url: e.target.value })}
-                    placeholder="https://twitter.com/..."
-                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">twitter.com/</span>
+                    <Input
+                      id="twitter"
+                      value={formData.twitter_username}
+                      onChange={(e) => setFormData({ ...formData, twitter_username: e.target.value })}
+                      placeholder="companyhandle"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="instagram" className="flex items-center gap-2 text-sm">
                     <Instagram className="w-4 h-4" />
-                    Instagram
+                    Instagram Username
                   </Label>
-                  <Input
-                    id="instagram"
-                    type="url"
-                    value={formData.instagram_url}
-                    onChange={(e) => setFormData({ ...formData, instagram_url: e.target.value })}
-                    placeholder="https://instagram.com/..."
-                  />
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground whitespace-nowrap">instagram.com/</span>
+                    <Input
+                      id="instagram"
+                      value={formData.instagram_username}
+                      onChange={(e) => setFormData({ ...formData, instagram_username: e.target.value })}
+                      placeholder="companyname"
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -738,7 +809,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                       </div>
                     )}
 
-                    {(formData.website_url || formData.linkedin_url || formData.twitter_url || formData.instagram_url) && (
+                    {(formData.website_url || formData.linkedin_username || formData.twitter_username || formData.instagram_username) && (
                       <div>
                         <Label className="text-xs text-muted-foreground mb-2 block">Links</Label>
                         <div className="flex flex-wrap gap-2">
@@ -748,19 +819,19 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                               Website
                             </Badge>
                           )}
-                          {formData.linkedin_url && (
+                          {formData.linkedin_username && (
                             <Badge variant="outline" className="gap-1">
                               <Linkedin className="w-3 h-3" />
                               LinkedIn
                             </Badge>
                           )}
-                          {formData.twitter_url && (
+                          {formData.twitter_username && (
                             <Badge variant="outline" className="gap-1">
                               <Twitter className="w-3 h-3" />
                               Twitter
                             </Badge>
                           )}
-                          {formData.instagram_url && (
+                          {formData.instagram_username && (
                             <Badge variant="outline" className="gap-1">
                               <Instagram className="w-3 h-3" />
                               Instagram

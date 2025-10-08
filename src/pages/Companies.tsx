@@ -425,8 +425,22 @@ export default function Companies() {
                   open={isExpanded}
                   onOpenChange={() => toggleExpanded(company.id)}
                 >
-                  <Card className="border-2 hover:border-primary transition-all hover-scale">
-                    <CollapsibleTrigger className="w-full">
+                  <Card className="border-2 hover:border-primary transition-all hover-scale relative overflow-hidden">
+                    {/* Blurred Cover Background */}
+                    {company.cover_image_url && (
+                      <div 
+                        className="absolute inset-0 opacity-10"
+                        style={{
+                          backgroundImage: `url(${company.cover_image_url})`,
+                          backgroundSize: 'cover',
+                          backgroundPosition: 'center',
+                          filter: 'blur(20px)',
+                          transform: 'scale(1.1)',
+                        }}
+                      />
+                    )}
+                    
+                    <CollapsibleTrigger className="w-full relative z-10">
                       <CardHeader>
                         <div className="flex items-start gap-6">
                           {/* Logo */}
