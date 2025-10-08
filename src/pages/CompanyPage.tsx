@@ -36,6 +36,7 @@ import { CompanyPosts } from "@/components/partner/CompanyPosts";
 import { CompanyMembersStack } from "@/components/companies/CompanyMembersStack";
 import { EditCompanyDialog } from "@/components/companies/EditCompanyDialog";
 import { useRole } from "@/contexts/RoleContext";
+import { CompanyLatestActivity } from "@/components/companies/CompanyLatestActivity";
 
 interface Company {
   id: string;
@@ -604,8 +605,11 @@ export default function CompanyPage() {
               </Card>
             </TabsContent>
 
-            {/* Updates Tab */}
+            {/* Updates Tab - Latest Activity */}
             <TabsContent value="updates" className="space-y-6">
+              <CompanyLatestActivity companyId={company.id} isCompanyMember={isCompanyMember} />
+              
+              {/* Company Posts */}
               <CompanyPosts companyId={company.id} />
             </TabsContent>
           </Tabs>
@@ -643,12 +647,8 @@ export default function CompanyPage() {
               </CardContent>
             </Card>
           )}
-            {/* Updates Tab - Latest Activity */}
-            <TabsContent value="updates">
-              <CompanyLatestActivity companyId={company.id} isCompanyMember={isCompanyMember} />
-            </TabsContent>
-          </Tabs>
         </div>
+      </div>
 
       {/* Edit Company Dialog */}
       {company && (
