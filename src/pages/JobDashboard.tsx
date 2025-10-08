@@ -15,6 +15,7 @@ import { StageDetailCard } from "@/components/partner/StageDetailCard";
 import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "@/components/partner/PipelineDisplaySettings";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AddStageDialog } from "@/components/partner/AddStageDialog";
+import { AdminJobTools } from "@/components/partner/AdminJobTools";
 import {
   DndContext,
   closestCenter,
@@ -257,6 +258,15 @@ export default function JobDashboard() {
   return (
     <AppLayout>
       <div className="space-y-6 animate-fade-in">
+        {/* Admin Tools Bar - Only visible to admins */}
+        {role === 'admin' && (
+          <AdminJobTools
+            jobId={jobId!}
+            jobTitle={job.title}
+            onRefresh={fetchJobDetails}
+          />
+        )}
+
         {/* Premium Header with Glass Morphism */}
         <div className="relative overflow-hidden rounded-2xl border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl p-8 shadow-xl">
           <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-transparent to-primary/10" />
