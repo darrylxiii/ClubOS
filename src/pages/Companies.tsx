@@ -426,34 +426,31 @@ export default function Companies() {
                   onOpenChange={() => toggleExpanded(company.id)}
                 >
                   <Card className="border-2 hover:border-primary transition-all hover-scale relative overflow-hidden group">
-                    {/* Cover Image Background - Full size, blurred */}
+                    {/* Cover Image Background - Subtle effect */}
                     {company.cover_image_url && (
                       <div 
-                        className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity"
+                        className="absolute inset-0 opacity-10 group-hover:opacity-15 transition-opacity"
                         style={{
                           backgroundImage: `url(${company.cover_image_url})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
-                          filter: 'blur(40px) saturate(1.2)',
-                          transform: 'scale(1.2)',
+                          filter: 'blur(30px)',
+                          transform: 'scale(1.1)',
                         }}
                       />
                     )}
                     
-                    {/* Gradient overlay for better text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/90 to-background/80 backdrop-blur-sm z-0" />
-                    
                     <CollapsibleTrigger className="w-full relative z-10">
                       <CardHeader>
                         <div className="flex items-start gap-6">
-                          {/* Logo - Full size display */}
-                          <Avatar className="w-24 h-24 border-2 border-primary shadow-xl ring-4 ring-background/50 flex-shrink-0">
+                          {/* Logo - Original size */}
+                          <Avatar className="w-20 h-20 border-2 border-primary shadow-lg flex-shrink-0">
                             <AvatarImage 
                               src={company.logo_url || undefined} 
                               alt={company.name}
                               className="object-cover"
                             />
-                            <AvatarFallback className="text-3xl font-black bg-gradient-to-br from-primary to-accent text-white">
+                            <AvatarFallback className="text-2xl font-black bg-gradient-to-br from-primary to-accent text-white">
                               {company.name.substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
