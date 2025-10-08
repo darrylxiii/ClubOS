@@ -472,6 +472,15 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
             )}
           </div>
           <div className="flex gap-3">
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="gap-2"
+              onClick={() => navigate('/company-applications')}
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              <span className="hidden sm:inline">Applications Hub</span>
+            </Button>
             <Button variant="outline" size="lg" className="gap-2">
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">{isAdmin ? "Manage Companies" : "Invite Team"}</span>

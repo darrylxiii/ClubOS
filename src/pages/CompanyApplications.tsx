@@ -21,14 +21,17 @@ import { ApplicationsFilters } from "@/components/partner/ApplicationsFilters";
 import { ApplicationsAnalytics } from "@/components/partner/ApplicationsAnalytics";
 import { AddCandidateDialog } from "@/components/partner/AddCandidateDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function CompanyApplications() {
   const [applications, setApplications] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStage, setSelectedStage] = useState<string>("all");
   const [selectedJob, setSelectedJob] = useState<string>("all");
+  const [selectedCompany, setSelectedCompany] = useState<string>("all");
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
   const [addCandidateOpen, setAddCandidateOpen] = useState(false);
@@ -42,25 +45,63 @@ export default function CompanyApplications() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get all jobs for the company
-      const { data: jobsData, error: jobsError } = await supabase
+      // Check user roles
+      const { data: rolesData } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+
+      const isAdmin = rolesData?.some(r => r.role === 'admin');
+      const isPartner = rolesData?.some(r => r.role === 'partner');
+
+      // Get company memberships for partners
+      let companyIds: string[] = [];
+      if (isPartner && !isAdmin) {
+        const { data: memberships } = await supabase
+          .from("company_members")
+          .select("company_id")
+          .eq("user_id", user.id)
+          .eq("is_active", true);
+        
+        companyIds = memberships?.map(m => m.company_id) || [];
+      }
+
+      // Build jobs query based on role
+      let jobsQuery = supabase
         .from("jobs")
         .select(`
           id,
           title,
           company_id,
+          status,
+          created_at,
           companies:company_id (
             id,
             name,
             logo_url
           )
-        `)
-        .order("created_at", { ascending: false });
+        `);
+
+      // Filter jobs by company for partners
+      if (isPartner && !isAdmin && companyIds.length > 0) {
+        jobsQuery = jobsQuery.in("company_id", companyIds);
+      }
+
+      const { data: jobsData, error: jobsError } = await jobsQuery.order("created_at", { ascending: false });
 
       if (jobsError) throw jobsError;
       setJobs(jobsData || []);
 
-      // Get all applications across all jobs
+      // Get job IDs for filtering applications
+      const jobIds = jobsData?.map(j => j.id) || [];
+
+      if (jobIds.length === 0) {
+        setApplications([]);
+        setLoading(false);
+        return;
+      }
+
+      // Build applications query
       const { data: appsData, error: appsError } = await supabase
         .from("applications")
         .select(`
@@ -74,29 +115,50 @@ export default function CompanyApplications() {
               name,
               logo_url
             )
-          ),
-          candidate_profiles!inner (
-            id,
-            full_name,
-            email,
-            phone,
-            avatar_url,
-            current_title,
-            current_company,
-            linkedin_url,
-            source_channel,
-            last_activity_at
-          ),
-          candidate_interactions (
-            id,
-            interaction_type,
-            created_at
           )
         `)
+        .in("job_id", jobIds)
         .order("applied_at", { ascending: false });
 
       if (appsError) throw appsError;
-      setApplications(appsData || []);
+
+      // Now get candidate profiles for these applications
+      const candidateProfilePromises = (appsData || []).map(async (app) => {
+        // Get candidate profile by user_id from the application
+        const { data: profile } = await supabase
+          .from("candidate_profiles")
+          .select("*")
+          .eq("user_id", app.user_id)
+          .maybeSingle();
+
+        // Get recent interactions
+        const { data: interactions } = await supabase
+          .from("candidate_interactions")
+          .select("id, interaction_type, created_at")
+          .eq("candidate_id", profile?.id || "")
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        return {
+          ...app,
+          candidate_profiles: profile,
+          candidate_interactions: interactions || []
+        };
+      });
+
+      const enrichedApps = await Promise.all(candidateProfilePromises);
+      setApplications(enrichedApps);
+
+      // Extract unique companies
+      const uniqueCompanies = Array.from(
+        new Map(
+          jobsData
+            ?.filter(j => j.companies)
+            .map(j => [j.companies.id, j.companies]) || []
+        ).values()
+      );
+      setCompanies(uniqueCompanies);
+
     } catch (error) {
       console.error("Error loading data:", error);
       toast.error("Failed to load applications");
@@ -114,9 +176,27 @@ export default function CompanyApplications() {
     
     const matchesStage = selectedStage === "all" || app.status === selectedStage;
     const matchesJob = selectedJob === "all" || app.job_id === selectedJob;
+    const matchesCompany = selectedCompany === "all" || app.jobs?.company_id === selectedCompany;
     const matchesSource = selectedSource === "all" || app.candidate_profiles?.source_channel === selectedSource;
 
-    return matchesSearch && matchesStage && matchesJob && matchesSource;
+    // Urgency filter
+    let matchesUrgency = true;
+    if (urgencyFilter !== "all") {
+      const lastActivity = app.candidate_profiles?.last_activity_at;
+      const daysSince = lastActivity 
+        ? Math.floor((Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24))
+        : 999;
+      
+      if (urgencyFilter === "urgent") {
+        matchesUrgency = daysSince > 14;
+      } else if (urgencyFilter === "needs-followup") {
+        matchesUrgency = daysSince > 7 && daysSince <= 14;
+      } else if (urgencyFilter === "recent") {
+        matchesUrgency = daysSince <= 7;
+      }
+    }
+
+    return matchesSearch && matchesStage && matchesJob && matchesCompany && matchesSource && matchesUrgency;
   });
 
   // Calculate stats
@@ -276,11 +356,14 @@ export default function CompanyApplications() {
               setSelectedStage={setSelectedStage}
               selectedJob={selectedJob}
               setSelectedJob={setSelectedJob}
+              selectedCompany={selectedCompany}
+              setSelectedCompany={setSelectedCompany}
               selectedSource={selectedSource}
               setSelectedSource={setSelectedSource}
               urgencyFilter={urgencyFilter}
               setUrgencyFilter={setUrgencyFilter}
               jobs={jobs}
+              companies={companies}
             />
           </CardContent>
         </Card>
