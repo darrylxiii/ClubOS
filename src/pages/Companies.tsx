@@ -231,8 +231,16 @@ export default function Companies() {
   const industries = Array.from(new Set(companies.map(c => c.industry).filter(Boolean)));
   const sizes = Array.from(new Set(companies.map(c => c.company_size).filter(Boolean)));
 
+  // Internal/test companies to exclude from public view
+  const excludedSlugs = ['merrachi', 'the-quantum-club', 'the-quantum-club-|-amsterdam'];
+  
   const filteredCompanies = companies
     .filter(company => {
+      // Exclude internal/test companies
+      if (excludedSlugs.includes(company.slug)) {
+        return false;
+      }
+      
       const matchesSearch = 
         company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         company.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -425,28 +433,35 @@ export default function Companies() {
                   open={isExpanded}
                   onOpenChange={() => toggleExpanded(company.id)}
                 >
-                  <Card className="border-2 hover:border-primary transition-all hover-scale relative overflow-hidden">
-                    {/* Blurred Cover Background */}
+                  <Card className="border-2 hover:border-primary transition-all hover-scale relative overflow-hidden group">
+                    {/* Cover Image Background - Full size, blurred */}
                     {company.cover_image_url && (
                       <div 
-                        className="absolute inset-0 opacity-10"
+                        className="absolute inset-0 opacity-20 group-hover:opacity-30 transition-opacity"
                         style={{
                           backgroundImage: `url(${company.cover_image_url})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
-                          filter: 'blur(20px)',
-                          transform: 'scale(1.1)',
+                          filter: 'blur(40px) saturate(1.2)',
+                          transform: 'scale(1.2)',
                         }}
                       />
                     )}
                     
+                    {/* Gradient overlay for better text readability */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-background/95 via-background/90 to-background/80 backdrop-blur-sm z-0" />
+                    
                     <CollapsibleTrigger className="w-full relative z-10">
                       <CardHeader>
                         <div className="flex items-start gap-6">
-                          {/* Logo */}
-                          <Avatar className="w-20 h-20 border-2 border-primary shadow-lg">
-                            <AvatarImage src={company.logo_url || undefined} alt={company.name} />
-                            <AvatarFallback className="text-2xl font-black bg-gradient-to-br from-primary to-accent text-primary-foreground">
+                          {/* Logo - Full size display */}
+                          <Avatar className="w-24 h-24 border-2 border-primary shadow-xl ring-4 ring-background/50 flex-shrink-0">
+                            <AvatarImage 
+                              src={company.logo_url || undefined} 
+                              alt={company.name}
+                              className="object-cover"
+                            />
+                            <AvatarFallback className="text-3xl font-black bg-gradient-to-br from-primary to-accent text-white">
                               {company.name.substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
