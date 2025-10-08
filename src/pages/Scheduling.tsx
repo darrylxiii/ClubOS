@@ -85,15 +85,21 @@ export default function Scheduling() {
 
   const loadBookingLinks = async () => {
     try {
+      console.log("[Scheduling] Loading booking links for user:", user?.id);
       const { data, error } = await supabase
         .from("booking_links")
         .select("*")
         .eq("user_id", user?.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Scheduling] Error loading booking links:", error);
+        throw error;
+      }
+      console.log("[Scheduling] Loaded booking links:", data);
       setBookingLinks(data || []);
     } catch (error: any) {
+      console.error("[Scheduling] Failed to load booking links:", error);
       toast.error("Failed to load booking links");
     } finally {
       setLoading(false);
@@ -134,6 +140,7 @@ export default function Scheduling() {
 
     setIsCreatingLink(true);
     try {
+      console.log("[Scheduling] Creating booking link with data:", newLink);
       const { data, error } = await supabase
         .from("booking_links")
         .insert({
@@ -143,8 +150,12 @@ export default function Scheduling() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("[Scheduling] Error creating booking link:", error);
+        throw error;
+      }
 
+      console.log("[Scheduling] Created booking link:", data);
       toast.success("Booking link created!");
       setBookingLinks([data, ...bookingLinks]);
       setNewLink({
