@@ -12,6 +12,9 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { JobDashboardCandidates } from "@/components/partner/JobDashboardCandidates";
 import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
 import { StageDetailCard } from "@/components/partner/StageDetailCard";
+import { StageCandidatesList } from "@/components/partner/StageCandidatesList";
+import { CandidateActionDialog } from "@/components/partner/CandidateActionDialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "@/components/partner/PipelineDisplaySettings";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AddStageDialog } from "@/components/partner/AddStageDialog";
@@ -52,6 +55,8 @@ export default function JobDashboard() {
   const [metrics, setMetrics] = useState<JobMetrics | null>(null);
   const [applications, setApplications] = useState<any[]>([]);
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(defaultSettings);
+  const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<any>(null);
+  const [selectedCandidateForAction, setSelectedCandidateForAction] = useState<any>(null);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -469,10 +474,23 @@ export default function JobDashboard() {
                           avgDays={avgDays}
                           conversionRate={nextConversion}
                           displaySettings={displaySettings}
-                          onEdit={() => {
-                            setEditingStage(stage);
-                            setEditingStageIndex(index);
-                            setShowAddStage(true);
+                          onEdit={(updatedStage) => {
+                            // Save inline edits
+                            const updatedStages = [...stages];
+                            updatedStages[index] = { ...updatedStage, order: index };
+                            
+                            supabase
+                              .from('jobs')
+                              .update({ pipeline_stages: updatedStages })
+                              .eq('id', jobId)
+                              .then(({ error }) => {
+                                if (!error) {
+                                  fetchJobDetails();
+                                  toast.success("Stage updated successfully");
+                                } else {
+                                  toast.error("Failed to update stage");
+                                }
+                              });
                           }}
                           onDuplicate={async () => {
                             const duplicatedStage = {
@@ -514,6 +532,7 @@ export default function JobDashboard() {
                           onViewAnalytics={() => {
                             toast.info("Stage analytics coming soon");
                           }}
+                          onViewCandidates={() => setSelectedStageForCandidates(stage)}
                         />
                       );
                     })}
@@ -673,6 +692,61 @@ export default function JobDashboard() {
         jobId={jobId || ''}
         companyId={job?.company_id || ''}
       />
+
+      {/* Stage Candidates Dialog */}
+      {selectedStageForCandidates && (
+        <Dialog open={!!selectedStageForCandidates} onOpenChange={() => setSelectedStageForCandidates(null)}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Badge variant="outline" className="mr-2">
+                  {selectedStageForCandidates.name}
+                </Badge>
+                Candidates in Stage
+              </DialogTitle>
+            </DialogHeader>
+            <StageCandidatesList
+              candidates={applications.filter(app => {
+                const stageIndex = job?.pipeline_stages?.findIndex(
+                  (s: any) => s.name === selectedStageForCandidates.name
+                );
+                return app.current_stage_index === stageIndex;
+              })}
+              stageIndex={job?.pipeline_stages?.findIndex(
+                (s: any) => s.name === selectedStageForCandidates.name
+              ) || 0}
+              stageName={selectedStageForCandidates.name}
+              totalStages={job?.pipeline_stages?.length || 0}
+              onAdvance={(candidate) => {
+                setSelectedCandidateForAction(candidate);
+                setSelectedStageForCandidates(null);
+              }}
+              onReject={(candidate) => {
+                setSelectedCandidateForAction(candidate);
+                setSelectedStageForCandidates(null);
+              }}
+              onViewDetails={(candidate) => {
+                setSelectedCandidateForAction(candidate);
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Candidate Action Dialog */}
+      {selectedCandidateForAction && (
+        <CandidateActionDialog
+          open={!!selectedCandidateForAction}
+          onOpenChange={(open) => !open && setSelectedCandidateForAction(null)}
+          application={selectedCandidateForAction}
+          action="advance"
+          stages={job?.pipeline_stages || []}
+          onComplete={() => {
+            setSelectedCandidateForAction(null);
+            fetchApplicationsForMetrics(job?.pipeline_stages || []);
+          }}
+        />
+      )}
     </AppLayout>
   );
 }

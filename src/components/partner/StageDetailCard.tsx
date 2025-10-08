@@ -24,7 +24,8 @@ import {
   Eye,
   Copy,
   Trash,
-  BarChart3
+  BarChart3,
+  Save
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -58,10 +59,11 @@ interface StageDetailCardProps {
   avgDays: number;
   conversionRate?: number;
   displaySettings: DisplaySettings;
-  onEdit?: () => void;
+  onEdit?: (stage: EnhancedStage) => void;
   onDuplicate?: () => void;
   onDelete?: () => void;
   onViewAnalytics?: () => void;
+  onViewCandidates?: () => void;
 }
 
 export function StageDetailCard({
@@ -74,8 +76,11 @@ export function StageDetailCard({
   onDuplicate,
   onDelete,
   onViewAnalytics,
+  onViewCandidates,
 }: StageDetailCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditingInline, setIsEditingInline] = useState(false);
+  const [editedStage, setEditedStage] = useState(stage);
   
   const {
     attributes,
@@ -141,6 +146,16 @@ export function StageDetailCard({
   const hasDetails = displaySettings.showLocationMeeting || displaySettings.showMaterials || 
                      displaySettings.showEvaluation || displaySettings.showScheduling || 
                      displaySettings.showMetadata;
+
+  const handleSaveInline = () => {
+    onEdit?.(editedStage);
+    setIsEditingInline(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditedStage(stage);
+    setIsEditingInline(false);
+  };
 
   return (
     <Card 
@@ -277,10 +292,16 @@ export function StageDetailCard({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               {onEdit && (
-                <DropdownMenuItem onClick={onEdit}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit Configuration
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => setIsEditingInline(true)}>
+                    <Edit className="h-4 w-4 mr-2" />
+                    Edit Inline
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit(stage)}>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Edit in Dialog
+                  </DropdownMenuItem>
+                </>
               )}
               {hasDetails && (
                 <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
@@ -352,8 +373,88 @@ export function StageDetailCard({
           </div>
         )}
 
+        {/* Inline Edit Form */}
+        {isEditingInline && (
+          <div className="border-t border-accent/20 pt-4 space-y-4 bg-accent/5 p-4 rounded-lg animate-fade-in">
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Stage Name</label>
+                <input
+                  type="text"
+                  value={editedStage.name}
+                  onChange={(e) => setEditedStage({ ...editedStage, name: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Description</label>
+                <textarea
+                  value={editedStage.description || ''}
+                  onChange={(e) => setEditedStage({ ...editedStage, description: e.target.value })}
+                  className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm min-h-[80px]"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Format</label>
+                  <select
+                    value={editedStage.format}
+                    onChange={(e) => setEditedStage({ ...editedStage, format: e.target.value as any })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                  >
+                    <option value="online">Online</option>
+                    <option value="in_person">In Person</option>
+                    <option value="hybrid">Hybrid</option>
+                    <option value="assessment">Assessment</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Duration (min)</label>
+                  <input
+                    type="number"
+                    value={editedStage.duration_minutes || 60}
+                    onChange={(e) => setEditedStage({ ...editedStage, duration_minutes: parseInt(e.target.value) })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                  />
+                </div>
+              </div>
+              {editedStage.format === 'online' && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Meeting Link</label>
+                  <input
+                    type="text"
+                    value={editedStage.meeting_link || ''}
+                    onChange={(e) => setEditedStage({ ...editedStage, meeting_link: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                  />
+                </div>
+              )}
+              {editedStage.format === 'in_person' && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Location</label>
+                  <input
+                    type="text"
+                    value={editedStage.location || ''}
+                    onChange={(e) => setEditedStage({ ...editedStage, location: e.target.value })}
+                    className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="flex gap-2 justify-end pt-2">
+              <Button variant="ghost" size="sm" onClick={handleCancelEdit}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSaveInline}>
+                <Save className="w-3 h-3 mr-1" />
+                Save Changes
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Expandable Details */}
-        {isExpanded && hasDetails && (
+        {isExpanded && !isEditingInline && hasDetails && (
           <div className="space-y-4 pt-4 border-t animate-fade-in">
             {/* Stage Type Details */}
             {displaySettings.showLocationMeeting && (
@@ -479,6 +580,21 @@ export function StageDetailCard({
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Candidates View Button */}
+        {isExpanded && !isEditingInline && onViewCandidates && (
+          <div className="border-t border-border/50 pt-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onViewCandidates}
+              className="w-full"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              View {candidateCount} Candidates in Stage
+            </Button>
           </div>
         )}
       </CardContent>
