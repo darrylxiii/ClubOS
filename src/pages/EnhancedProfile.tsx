@@ -13,6 +13,7 @@ import { LinkedInImport } from "@/components/profile/LinkedInImport";
 import { MusicSection } from "@/components/profile/MusicSection";
 import { ProfileHeaderUpload } from "@/components/profile/ProfileHeaderUpload";
 import { SocialActivityFeed } from "@/components/profile/SocialActivityFeed";
+import { ChangeAvatarDialog } from "@/components/profile/ChangeAvatarDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -22,6 +23,7 @@ export default function EnhancedProfile() {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -114,12 +116,22 @@ export default function EnhancedProfile() {
           </div>
 
           {/* Avatar positioned to overlap header and content */}
-          <Avatar className="absolute top-64 left-6 transform -translate-y-1/2 w-32 h-32 border-4 border-background z-10">
-            <AvatarImage src={profile?.avatar_url} />
-            <AvatarFallback>
-              {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-            </AvatarFallback>
-          </Avatar>
+          <div className="absolute top-64 left-6 transform -translate-y-1/2 z-10">
+            <Avatar className="w-32 h-32 border-4 border-background">
+              <AvatarImage src={profile?.avatar_url} />
+              <AvatarFallback>
+                {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <Button
+              size="sm"
+              variant="secondary"
+              className="absolute bottom-0 right-0 rounded-full h-10 w-10 p-0 shadow-lg"
+              onClick={() => setAvatarDialogOpen(true)}
+            >
+              <Settings className="w-4 h-4" />
+            </Button>
+          </div>
 
           <CardContent className="pt-20">
             <div className="space-y-4">
@@ -279,6 +291,17 @@ export default function EnhancedProfile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Change Avatar Dialog */}
+      {user && (
+        <ChangeAvatarDialog
+          open={avatarDialogOpen}
+          onClose={() => setAvatarDialogOpen(false)}
+          currentAvatarUrl={profile?.avatar_url}
+          userId={user.id}
+          onSuccess={loadProfile}
+        />
+      )}
     </AppLayout>
   );
 }

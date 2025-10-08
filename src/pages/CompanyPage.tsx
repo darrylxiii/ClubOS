@@ -34,6 +34,8 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { CompanyPosts } from "@/components/partner/CompanyPosts";
 import { CompanyMembersStack } from "@/components/companies/CompanyMembersStack";
+import { EditCompanyDialog } from "@/components/companies/EditCompanyDialog";
+import { useRole } from "@/contexts/RoleContext";
 
 interface Company {
   id: string;
@@ -67,17 +69,41 @@ export default function CompanyPage() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { currentRole } = useRole();
   const [company, setCompany] = useState<Company | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [jobCount, setJobCount] = useState(0);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isCompanyMember, setIsCompanyMember] = useState(false);
 
   useEffect(() => {
     loadCompany();
     loadFollowStatus();
     loadStats();
-  }, [slug]);
+    checkCompanyMembership();
+  }, [slug, user]);
+
+  const checkCompanyMembership = async () => {
+    if (!user || !company) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("company_members")
+        .select("id")
+        .eq("company_id", company.id)
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      if (!error) {
+        setIsCompanyMember(!!data);
+      }
+    } catch (error) {
+      console.error("Error checking membership:", error);
+    }
+  };
 
   const loadCompany = async () => {
     try {
@@ -362,6 +388,17 @@ export default function CompanyPage() {
                 </div>
 
                 <div className="flex gap-2">
+                  {user && (currentRole === 'admin' || isCompanyMember) && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setEditDialogOpen(true)}
+                      className="gap-2"
+                    >
+                      <Users className="w-4 h-4" />
+                      Edit Company
+                    </Button>
+                  )}
+                  
                   <Button
                     variant={isFollowing ? "outline" : "default"}
                     onClick={handleFollow}
@@ -608,6 +645,19 @@ export default function CompanyPage() {
           )}
         </div>
       </div>
+
+      {/* Edit Company Dialog */}
+      {company && (
+        <EditCompanyDialog
+          companyId={company.id}
+          open={editDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          onSuccess={() => {
+            loadCompany();
+            toast.success("Company updated successfully");
+          }}
+        />
+      )}
     </AppLayout>
   );
 }
