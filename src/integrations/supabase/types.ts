@@ -3039,6 +3039,7 @@ export type Database = {
           created_at: string
           deleted_at: string | null
           edited_at: string | null
+          gif_url: string | null
           id: string
           is_read: boolean | null
           is_urgent: boolean | null
@@ -3048,10 +3049,13 @@ export type Database = {
           message_type: string
           metadata: Json | null
           parent_message_id: string | null
+          pinned_at: string | null
+          pinned_by: string | null
           priority: string | null
           reply_count: number | null
           sender_id: string
           sentiment_score: number | null
+          sticker_url: string | null
           updated_at: string
         }
         Insert: {
@@ -3060,6 +3064,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           edited_at?: string | null
+          gif_url?: string | null
           id?: string
           is_read?: boolean | null
           is_urgent?: boolean | null
@@ -3069,10 +3074,13 @@ export type Database = {
           message_type?: string
           metadata?: Json | null
           parent_message_id?: string | null
+          pinned_at?: string | null
+          pinned_by?: string | null
           priority?: string | null
           reply_count?: number | null
           sender_id: string
           sentiment_score?: number | null
+          sticker_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -3081,6 +3089,7 @@ export type Database = {
           created_at?: string
           deleted_at?: string | null
           edited_at?: string | null
+          gif_url?: string | null
           id?: string
           is_read?: boolean | null
           is_urgent?: boolean | null
@@ -3090,10 +3099,13 @@ export type Database = {
           message_type?: string
           metadata?: Json | null
           parent_message_id?: string | null
+          pinned_at?: string | null
+          pinned_by?: string | null
           priority?: string | null
           reply_count?: number | null
           sender_id?: string
           sentiment_score?: number | null
+          sticker_url?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -5910,6 +5922,30 @@ export type Database = {
           id?: string
           preferred_role_view?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_presence: {
+        Row: {
+          custom_status: string | null
+          last_seen: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          custom_status?: string | null
+          last_seen?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          custom_status?: string | null
+          last_seen?: string | null
+          status?: string
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: []

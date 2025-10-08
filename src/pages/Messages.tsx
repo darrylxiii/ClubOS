@@ -59,10 +59,10 @@ export default function Messages() {
     !searchQuery || conv.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSendMessage = async (content: string, attachment?: File) => {
+  const handleSendMessage = async (content: string, attachment?: File, metadata?: any) => {
     if (!selectedConversationId) return;
     try {
-      await sendMessage(content, attachment ? [attachment] : []);
+      await sendMessage(content, attachment ? [attachment] : [], metadata);
       if (messages.length === 0) {
         confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
       }

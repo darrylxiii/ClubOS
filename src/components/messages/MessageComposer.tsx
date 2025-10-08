@@ -3,26 +3,21 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   Paperclip,
   Send,
-  Smile,
   Loader2,
 } from "lucide-react";
 import { useState, useRef, KeyboardEvent } from "react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
+import { GifPicker } from "./GifPicker";
+import { VoiceRecorder } from "./VoiceRecorder";
 
 interface MessageComposerProps {
   conversationId: string;
-  onSend: (content: string, attachment?: File) => Promise<void>;
+  onSend: (content: string, attachment?: File, metadata?: any) => Promise<void>;
   onTyping?: () => void;
   disabled?: boolean;
 }
-
-const EMOJI_LIST = ["😀", "😂", "❤️", "👍", "👎", "🎉", "🔥", "💯", "👏", "🙌"];
 
 export const MessageComposer = ({
   conversationId,
@@ -83,6 +78,19 @@ export const MessageComposer = ({
     setMessage((prev) => prev + emoji);
   };
 
+  const handleGifSelect = async (gifUrl: string) => {
+    await onSend("", undefined, { gif_url: gifUrl });
+    toast({ title: "GIF sent" });
+  };
+
+  const handleVoiceSend = async (audioUrl: string, duration: number) => {
+    await onSend("", undefined, { 
+      media_type: 'audio', 
+      media_url: audioUrl, 
+      media_duration: duration 
+    });
+  };
+
   return (
     <div className="border-t border-border/50 glass-strong p-4 shadow-glass-lg">
       {attachment && (
@@ -113,38 +121,17 @@ export const MessageComposer = ({
           size="icon"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || sending}
-          className="flex-shrink-0"
+          className="flex-shrink-0 hover:bg-accent/50"
+          title="Attach file"
         >
           <Paperclip className="h-5 w-5" />
         </Button>
 
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={disabled || sending}
-              className="flex-shrink-0"
-            >
-              <Smile className="h-5 w-5" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-64">
-            <div className="grid grid-cols-5 gap-2">
-              {EMOJI_LIST.map((emoji) => (
-                <Button
-                  key={emoji}
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleEmojiSelect(emoji)}
-                  className="text-2xl h-10"
-                >
-                  {emoji}
-                </Button>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <EnhancedEmojiPicker onSelect={handleEmojiSelect} />
+        
+        <GifPicker onSelect={handleGifSelect} />
+
+        <VoiceRecorder onSend={handleVoiceSend} />
 
         <Textarea
           value={message}

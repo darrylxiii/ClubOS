@@ -23,6 +23,10 @@ export interface Message {
   media_type?: string;
   media_url?: string;
   media_duration?: number;
+  gif_url?: string;
+  sticker_url?: string;
+  pinned_at?: string | null;
+  pinned_by?: string | null;
   sender?: {
     full_name: string | null;
     avatar_url: string | null;
@@ -266,6 +270,8 @@ export const useMessages = (conversationId?: string) => {
             media_type: metadata?.media_type || 'text',
             media_url: metadata?.media_url,
             media_duration: metadata?.media_duration,
+            gif_url: metadata?.gif_url,
+            sticker_url: metadata?.sticker_url,
             priority: metadata?.priority || 'normal',
             is_urgent: metadata?.is_urgent || false,
           })

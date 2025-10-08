@@ -1,36 +1,18 @@
+import { Message } from "@/hooks/useMessages";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { format } from "date-fns";
+import { Check, CheckCheck, Volume2, Pin } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { UserProfilePreview } from "@/components/UserProfilePreview";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { Check, CheckCheck, MoreVertical, Reply } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { MessageActions } from "./MessageActions";
+import { MessageReactionsDisplay } from "./MessageReactionsDisplay";
+import { OnlineStatusIndicator } from "./OnlineStatusIndicator";
+import { supabase } from "@/integrations/supabase/client";
 
 interface MessageBubbleProps {
-  message: {
-    id: string;
-    content: string;
-    created_at: string;
-    sender_id: string;
-    is_read?: boolean;
-    media_url?: string;
-    media_type?: string;
-    sender?: {
-      full_name: string | null;
-      avatar_url: string | null;
-    };
-    read_receipts?: Array<{
-      user_id: string;
-      read_at: string;
-    }>;
-  };
+  message: Message;
   isCurrentUser: boolean;
   isGroup?: boolean;
   onReply?: () => void;
@@ -55,131 +37,161 @@ export const MessageBubble = ({
     .toUpperCase()
     .slice(0, 2);
 
-  const readCount = message.read_receipts?.length || 0;
-  const allRead = readCount > 0;
+  const renderContent = () => {
+    if (message.gif_url) {
+      return (
+        <img
+          src={message.gif_url}
+          alt="GIF"
+          className="max-w-xs rounded-lg"
+        />
+      );
+    }
 
-  const handleSenderClick = () => {
-    navigate(`/profile/${message.sender_id}`, { state: { from: 'messages' } });
+    if (message.media_type === 'audio' && message.media_url) {
+      return (
+        <div className="flex items-center gap-2">
+          <Volume2 className="h-4 w-4" />
+          <audio controls src={message.media_url} className="max-w-xs" />
+          <span className="text-xs opacity-70">
+            {message.media_duration ? `${Math.floor(message.media_duration / 60)}:${(message.media_duration % 60).toString().padStart(2, '0')}` : ''}
+          </span>
+        </div>
+      );
+    }
+
+    return <p className="break-words">{message.content}</p>;
   };
 
   return (
-    <div
+    <div 
       className={cn(
-        "flex gap-3 mb-4 group animate-fade-in",
-        isCurrentUser ? "flex-row-reverse" : "flex-row"
+        "flex gap-3 group animate-fade-in relative",
+        isCurrentUser && "flex-row-reverse"
       )}
     >
-      {!isCurrentUser && (
-        <HoverCard openDelay={200}>
-          <HoverCardTrigger asChild>
+      {message.pinned_at && (
+        <div className="absolute -top-4 left-0 flex items-center gap-1 text-xs text-muted-foreground">
+          <Pin className="h-3 w-3" />
+          <span>Pinned</span>
+        </div>
+      )}
+
+      {/* Avatar with online status */}
+      <HoverCard openDelay={200}>
+        <HoverCardTrigger asChild>
+          <div className="relative">
             <Avatar 
-              className="h-8 w-8 flex-shrink-0 ring-2 ring-background shadow-glass-sm cursor-pointer hover:ring-accent transition-all"
-              onClick={handleSenderClick}
+              className="h-10 w-10 cursor-pointer shadow-glass-sm ring-2 ring-background hover:ring-primary/50 transition-all"
+              onClick={() => navigate(`/profile/${message.sender_id}`)}
             >
               <AvatarImage src={message.sender?.avatar_url || undefined} />
-              <AvatarFallback className="text-xs bg-gradient-accent text-white">
+              <AvatarFallback className="bg-gradient-accent text-white">
                 {initials}
               </AvatarFallback>
             </Avatar>
-          </HoverCardTrigger>
-          <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
-            <UserProfilePreview userId={message.sender_id} />
-          </HoverCardContent>
-        </HoverCard>
-      )}
+            {!isCurrentUser && (
+              <OnlineStatusIndicator 
+                userId={message.sender_id} 
+                className="absolute bottom-0 right-0"
+              />
+            )}
+          </div>
+        </HoverCardTrigger>
+        <HoverCardContent side="left" className="w-80 glass-card p-0">
+          <UserProfilePreview userId={message.sender_id} />
+        </HoverCardContent>
+      </HoverCard>
 
-      <div className={cn("flex flex-col gap-1 max-w-[70%]", isCurrentUser && "items-end")}>
-        {(!isCurrentUser || isGroup) && (
-          <HoverCard openDelay={200}>
-            <HoverCardTrigger asChild>
-              <span 
-                className="text-xs text-muted-foreground font-medium px-1 cursor-pointer hover:text-accent transition-colors"
-                onClick={handleSenderClick}
-              >
-                {senderName}
-              </span>
-            </HoverCardTrigger>
-            <HoverCardContent side="left" className="w-auto p-0 border-0 bg-transparent shadow-none">
-              <UserProfilePreview userId={message.sender_id} />
-            </HoverCardContent>
-          </HoverCard>
+      {/* Message Content & Actions */}
+      <div className="flex flex-col max-w-lg">
+        {!isCurrentUser && isGroup && (
+          <span className="text-xs font-medium mb-1 px-2 text-muted-foreground hover:text-accent transition-colors cursor-pointer"
+            onClick={() => navigate(`/profile/${message.sender_id}`)}>
+            {senderName}
+          </span>
         )}
 
-        <div className="relative">
+        <div className="flex flex-col gap-1">
           <div
             className={cn(
-              "rounded-2xl px-4 py-3 shadow-glass-md backdrop-blur-sm transition-all hover:shadow-glass-lg",
+              "rounded-2xl px-4 py-2 max-w-md glass-card shadow-glass-sm",
               isCurrentUser
                 ? "bg-gradient-accent text-white"
-                : "glass border border-border/50"
+                : "glass-subtle"
             )}
           >
-            {message.media_url && (
-              <div className="mb-2">
-                {message.media_type?.startsWith("image") ? (
-                  <img
-                    src={message.media_url}
-                    alt="Attachment"
-                    className="rounded-lg max-w-sm"
-                  />
+            {renderContent()}
+
+            {/* Read receipt for current user */}
+            {isCurrentUser && (
+              <div className="flex items-center justify-end gap-1 mt-1">
+                {message.is_read ? (
+                  <CheckCheck className="h-3 w-3 text-primary" />
                 ) : (
-                  <a
-                    href={message.media_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm underline"
-                  >
-                    View attachment
-                  </a>
+                  <Check className="h-3 w-3 text-muted-foreground" />
                 )}
               </div>
             )}
-            <p className="text-sm whitespace-pre-wrap break-words">{message.content}</p>
+
+            {/* Image/Video attachments */}
+            {message.attachments && message.attachments.length > 0 && (
+              <div className="mt-2 space-y-2">
+                {message.attachments.map((attachment) => {
+                  if (attachment.file_type.startsWith('image/')) {
+                    return (
+                      <a
+                        key={attachment.id}
+                        href={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block"
+                      >
+                        <img
+                          src={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
+                          alt={attachment.file_name}
+                          className="max-w-xs rounded-lg"
+                        />
+                      </a>
+                    );
+                  }
+                  return (
+                    <a
+                      key={attachment.id}
+                      href={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm underline hover:no-underline"
+                    >
+                      {attachment.file_name}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          <div className={cn(
-            "opacity-0 group-hover:opacity-100 transition-opacity absolute top-0",
-            isCurrentUser ? "-left-8" : "-right-8"
-          )}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align={isCurrentUser ? "end" : "start"}>
-                {onReply && (
-                  <DropdownMenuItem onClick={onReply}>
-                    <Reply className="h-4 w-4 mr-2" />
-                    Reply
-                  </DropdownMenuItem>
-                )}
-                {isCurrentUser && onEdit && (
-                  <DropdownMenuItem onClick={onEdit}>Edit</DropdownMenuItem>
-                )}
-                {isCurrentUser && onDelete && (
-                  <DropdownMenuItem onClick={onDelete} className="text-destructive">
-                    Delete
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {/* Reactions */}
+          <MessageReactionsDisplay messageId={message.id} />
         </div>
 
-        <div className={cn("flex items-center gap-1 px-1", isCurrentUser && "flex-row-reverse")}>
+        {/* Actions & Timestamp */}
+        <div className={cn(
+          "flex items-center gap-2 mt-1 px-2",
+          isCurrentUser && "flex-row-reverse"
+        )}>
           <span className="text-xs text-muted-foreground">
             {format(new Date(message.created_at), "HH:mm")}
           </span>
-          {isCurrentUser && (
-            <span className="text-xs text-muted-foreground">
-              {allRead ? (
-                <CheckCheck className="h-3 w-3 text-primary" />
-              ) : (
-                <Check className="h-3 w-3" />
-              )}
-            </span>
-          )}
+          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+            <MessageActions 
+              message={message as any}
+              isOwnMessage={isCurrentUser}
+              onEdit={onEdit}
+              onReply={onReply}
+              onDelete={onDelete}
+            />
+          </div>
         </div>
       </div>
     </div>
