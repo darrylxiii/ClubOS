@@ -33,6 +33,7 @@ import { ProfileActionDialogs } from "@/components/profile/ProfileActionDialogs"
 import { InlineEdit } from "@/components/profile/InlineEdit";
 import { ProfileAuditTrail } from "@/components/profile/ProfileAuditTrail";
 import { ProfilePreview } from "@/components/profile/ProfilePreview";
+import { MusicSection } from "@/components/profile/MusicSection";
 
 interface UserProfile {
   id: string;
@@ -493,6 +494,14 @@ export default function PublicUserProfile() {
               </CardContent>
             </Card>
           )}
+
+          {/* Music & Podcasts */}
+          <MusicSection
+            spotifyConnected={(profile as any)?.spotify_connected}
+            appleMusicConnected={(profile as any)?.apple_music_connected}
+            spotifyPlaylists={(profile as any)?.spotify_playlists || []}
+            appleMusicPlaylists={(profile as any)?.apple_music_playlists || []}
+          />
 
           {/* Club Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -4,12 +4,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye } from "lucide-react";
+import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2 } from "lucide-react";
 import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { EducationSection } from "@/components/profile/EducationSection";
 import { SkillsSection } from "@/components/profile/SkillsSection";
 import { PortfolioSection } from "@/components/profile/PortfolioSection";
 import { LinkedInImport } from "@/components/profile/LinkedInImport";
+import { MusicSection } from "@/components/profile/MusicSection";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -143,7 +144,7 @@ export default function EnhancedProfile() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="experience" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="experience" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               <span className="hidden sm:inline">Experience</span>
@@ -159,6 +160,10 @@ export default function EnhancedProfile() {
             <TabsTrigger value="portfolio" className="flex items-center gap-2">
               <Folder className="w-4 h-4" />
               <span className="hidden sm:inline">Portfolio</span>
+            </TabsTrigger>
+            <TabsTrigger value="music" className="flex items-center gap-2">
+              <Music2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Music</span>
             </TabsTrigger>
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="w-4 h-4" />
@@ -180,6 +185,15 @@ export default function EnhancedProfile() {
 
           <TabsContent value="portfolio" className="space-y-6">
             <PortfolioSection />
+          </TabsContent>
+
+          <TabsContent value="music" className="space-y-6">
+            <MusicSection
+              spotifyConnected={(profile as any)?.spotify_connected}
+              appleMusicConnected={(profile as any)?.apple_music_connected}
+              spotifyPlaylists={(profile as any)?.spotify_playlists || []}
+              appleMusicPlaylists={(profile as any)?.apple_music_playlists || []}
+            />
           </TabsContent>
 
           <TabsContent value="settings" className="space-y-6">

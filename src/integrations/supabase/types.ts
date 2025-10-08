@@ -3661,6 +3661,9 @@ export type Database = {
       profiles: {
         Row: {
           allow_stealth_cold_outreach: boolean | null
+          apple_music_connected: boolean | null
+          apple_music_playlists: Json | null
+          apple_music_user_id: string | null
           avatar_url: string | null
           blocked_companies: Json | null
           career_preferences: string | null
@@ -3702,6 +3705,9 @@ export type Database = {
           public_fields: Json | null
           remote_work_preference: boolean | null
           resume_url: string | null
+          spotify_connected: boolean | null
+          spotify_playlists: Json | null
+          spotify_user_id: string | null
           stealth_mode_enabled: boolean | null
           stealth_mode_level: number | null
           twitter_connected: boolean | null
@@ -3710,6 +3716,9 @@ export type Database = {
         }
         Insert: {
           allow_stealth_cold_outreach?: boolean | null
+          apple_music_connected?: boolean | null
+          apple_music_playlists?: Json | null
+          apple_music_user_id?: string | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
@@ -3751,6 +3760,9 @@ export type Database = {
           public_fields?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
+          spotify_connected?: boolean | null
+          spotify_playlists?: Json | null
+          spotify_user_id?: string | null
           stealth_mode_enabled?: boolean | null
           stealth_mode_level?: number | null
           twitter_connected?: boolean | null
@@ -3759,6 +3771,9 @@ export type Database = {
         }
         Update: {
           allow_stealth_cold_outreach?: boolean | null
+          apple_music_connected?: boolean | null
+          apple_music_playlists?: Json | null
+          apple_music_user_id?: string | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
@@ -3800,6 +3815,9 @@ export type Database = {
           public_fields?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
+          spotify_connected?: boolean | null
+          spotify_playlists?: Json | null
+          spotify_user_id?: string | null
           stealth_mode_enabled?: boolean | null
           stealth_mode_level?: number | null
           twitter_connected?: boolean | null

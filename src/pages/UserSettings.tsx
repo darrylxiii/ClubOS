@@ -21,6 +21,7 @@ import { PhoneVerification } from "@/components/PhoneVerification";
 import { EmailVerification } from "@/components/EmailVerification";
 import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
 import { useUserRole } from "@/hooks/useUserRole";
+import { MusicConnections } from "@/components/MusicConnections";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -82,6 +83,14 @@ const Profile = () => {
     instagramUsername: '',
     twitterUsername: '',
     githubUsername: '',
+  });
+
+  // Music connections
+  const [musicConnections, setMusicConnections] = useState({
+    spotifyConnected: false,
+    appleMusicConnected: false,
+    spotifyPlaylists: [] as any[],
+    appleMusicPlaylists: [] as any[],
   });
 
   // Employment and compensation preferences
@@ -646,6 +655,14 @@ const Profile = () => {
               githubUsername: data.github_username 
             }));
           }
+
+          // Load music connections
+          setMusicConnections({
+            spotifyConnected: (data as any).spotify_connected || false,
+            appleMusicConnected: (data as any).apple_music_connected || false,
+            spotifyPlaylists: (data as any).spotify_playlists || [],
+            appleMusicPlaylists: (data as any).apple_music_playlists || [],
+          });
 
           // Load employment preferences
           if (data.employment_type_preference) {
@@ -1429,6 +1446,30 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Music Connections */}
+          <MusicConnections
+            spotifyConnected={musicConnections.spotifyConnected}
+            appleMusicConnected={musicConnections.appleMusicConnected}
+            spotifyPlaylists={musicConnections.spotifyPlaylists}
+            appleMusicPlaylists={musicConnections.appleMusicPlaylists}
+            onUpdate={async () => {
+              const { data } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user?.id)
+                .single();
+              
+              if (data) {
+                setMusicConnections({
+                  spotifyConnected: (data as any).spotify_connected || false,
+                  appleMusicConnected: (data as any).apple_music_connected || false,
+                  spotifyPlaylists: (data as any).spotify_playlists || [],
+                  appleMusicPlaylists: (data as any).apple_music_playlists || [],
+                });
+              }
+            }}
+          />
 
           {/* Resume/CV */}
           <Card id="resume" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
