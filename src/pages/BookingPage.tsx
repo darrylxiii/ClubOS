@@ -12,6 +12,8 @@ import { BookingForm } from "@/components/booking/BookingForm";
 import { BookingConfirmation } from "@/components/booking/BookingConfirmation";
 import { BookingWeekView } from "@/components/booking/BookingWeekView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AIBookingAssistant } from "@/components/booking/AIBookingAssistant";
+import { Sparkles } from "lucide-react";
 
 interface BookingLink {
   id: string;
@@ -49,6 +51,7 @@ export default function BookingPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("day");
+  const [showAIAssistant, setShowAIAssistant] = useState(false);
 
   useEffect(() => {
     loadBookingLink();
@@ -187,11 +190,34 @@ export default function BookingPage() {
 
           <CardContent className="p-6">
             {step === "calendar" && (
-              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-                <TabsList className="grid w-full grid-cols-2 mb-6">
-                  <TabsTrigger value="day">Day View</TabsTrigger>
-                  <TabsTrigger value="week">Week View</TabsTrigger>
-                </TabsList>
+              <>
+                <div className="mb-4 flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowAIAssistant(!showAIAssistant)}
+                    className="flex items-center gap-2"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    {showAIAssistant ? "Show Calendar" : "AI Assistant"}
+                  </Button>
+                </div>
+
+                {showAIAssistant ? (
+                  <AIBookingAssistant
+                    bookingLink={bookingLink}
+                    onBookingScheduled={(date, time) => {
+                      setSelectedDate(date);
+                      setSelectedTime(time);
+                      setStep("details");
+                      setShowAIAssistant(false);
+                    }}
+                  />
+                ) : (
+                  <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                    <TabsList className="grid w-full grid-cols-2 mb-6">
+                      <TabsTrigger value="day">Day View</TabsTrigger>
+                      <TabsTrigger value="week">Week View</TabsTrigger>
+                    </TabsList>
                 <TabsContent value="day">
                   <BookingCalendar
                     bookingLink={bookingLink}
@@ -209,6 +235,8 @@ export default function BookingPage() {
                   />
                 </TabsContent>
               </Tabs>
+                )}
+              </>
             )}
 
             {step === "time" && selectedDate && (

@@ -44,3 +44,12 @@ verify_jwt = true
 
 [functions.generate-post-summary]
 verify_jwt = false
+
+[functions.ai-booking-assistant]
+verify_jwt = false
+
+[functions.submit-poll-votes]
+verify_jwt = false
+
+[functions.promote-waitlist]
+verify_jwt = true

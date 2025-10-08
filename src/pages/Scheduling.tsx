@@ -15,6 +15,8 @@ import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, 
 import { Badge } from "@/components/ui/badge";
 import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BookingAnalyticsDashboard } from "@/components/booking/BookingAnalyticsDashboard";
+import { BarChart3 } from "lucide-react";
 
 interface BookingLink {
   id: string;
@@ -508,6 +510,10 @@ export default function Scheduling() {
               <Calendar className="h-4 w-4 mr-2" />
               Upcoming Bookings
             </TabsTrigger>
+            <TabsTrigger value="analytics">
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Analytics
+            </TabsTrigger>
             <TabsTrigger value="availability">
               <Clock className="h-4 w-4 mr-2" />
               Availability Settings
@@ -678,6 +684,10 @@ export default function Scheduling() {
                 })}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="analytics" className="mt-6">
+            <BookingAnalyticsDashboard userId={user?.id || ""} />
           </TabsContent>
 
           <TabsContent value="availability" className="mt-6">
