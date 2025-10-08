@@ -23,6 +23,7 @@ import InterviewPrep from "./pages/InterviewPrep";
 import MeetingHistory from "./pages/MeetingHistory";
 import Messages from "./pages/Messages";
 import Applications from "./pages/Applications";
+import CompanyApplications from "./pages/CompanyApplications";
 import Companies from "./pages/Companies";
 import CompanyPage from "./pages/CompanyPage";
 import Scheduling from "./pages/Scheduling";
@@ -195,6 +196,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Applications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/company-applications"
+              element={
+                <ProtectedRoute>
+                  <CompanyApplications />
                 </ProtectedRoute>
               }
             />
