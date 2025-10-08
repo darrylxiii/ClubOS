@@ -10,6 +10,8 @@ import { BookingCalendar } from "@/components/booking/BookingCalendar";
 import { BookingTimeSlots } from "@/components/booking/BookingTimeSlots";
 import { BookingForm } from "@/components/booking/BookingForm";
 import { BookingConfirmation } from "@/components/booking/BookingConfirmation";
+import { BookingWeekView } from "@/components/booking/BookingWeekView";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface BookingLink {
   id: string;
@@ -33,6 +35,7 @@ interface Profile {
 }
 
 type BookingStep = "calendar" | "time" | "details" | "confirmation";
+type ViewMode = "day" | "week";
 
 export default function BookingPage() {
   const { slug } = useParams();
@@ -45,6 +48,7 @@ export default function BookingPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<ViewMode>("day");
 
   useEffect(() => {
     loadBookingLink();
@@ -93,7 +97,8 @@ export default function BookingPage() {
     setStep("time");
   };
 
-  const handleTimeSelect = (time: string) => {
+  const handleTimeSelect = (time: string, date?: Date) => {
+    if (date) setSelectedDate(date);
     setSelectedTime(time);
     setStep("details");
   };
@@ -182,10 +187,28 @@ export default function BookingPage() {
 
           <CardContent className="p-6">
             {step === "calendar" && (
-              <BookingCalendar
-                bookingLink={bookingLink}
-                onDateSelect={handleDateSelect}
-              />
+              <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                <TabsList className="grid w-full grid-cols-2 mb-6">
+                  <TabsTrigger value="day">Day View</TabsTrigger>
+                  <TabsTrigger value="week">Week View</TabsTrigger>
+                </TabsList>
+                <TabsContent value="day">
+                  <BookingCalendar
+                    bookingLink={bookingLink}
+                    onDateSelect={handleDateSelect}
+                  />
+                </TabsContent>
+                <TabsContent value="week">
+                  <BookingWeekView
+                    bookingLink={bookingLink}
+                    onTimeSelect={(date, time) => {
+                      setSelectedDate(date);
+                      setSelectedTime(time);
+                      setStep("details");
+                    }}
+                  />
+                </TabsContent>
+              </Tabs>
             )}
 
             {step === "time" && selectedDate && (

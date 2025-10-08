@@ -9,6 +9,7 @@ interface BookingTimeSlotsProps {
   bookingLink: {
     id: string;
     user_id: string;
+    title: string;
     duration_minutes: number;
   };
   selectedDate: Date;
@@ -87,7 +88,7 @@ export function BookingTimeSlots({
         <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">No times available</h3>
         <p className="text-muted-foreground">
-          Please select a different date to see available time slots.
+          All slots are booked for this date. Please select a different date or join the waitlist.
         </p>
       </div>
     );
