@@ -100,19 +100,57 @@ export const AddCandidateDialog = ({
       const { data: { user: adminUser } } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
 
-      // Create or update candidate profile in new candidate_profiles table
+      // Try to find matching user profile by email, phone, or name
+      let matchingUser = null;
+      
+      // First try email (most reliable)
+      if (formData.email) {
+        const { data: emailMatch } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url, email, phone")
+          .ilike("email", formData.email)
+          .maybeSingle();
+        
+        if (emailMatch) matchingUser = emailMatch;
+      }
+      
+      // Then try phone if no email match
+      if (!matchingUser && formData.phone) {
+        const { data: phoneMatch } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url, email, phone")
+          .ilike("phone", formData.phone)
+          .maybeSingle();
+        
+        if (phoneMatch) matchingUser = phoneMatch;
+      }
+      
+      // Finally try name match (least reliable, only if exact match)
+      if (!matchingUser && formData.fullName) {
+        const { data: nameMatch } = await supabase
+          .from("profiles")
+          .select("id, full_name, avatar_url, email, phone")
+          .ilike("full_name", formData.fullName)
+          .maybeSingle();
+        
+        if (nameMatch) matchingUser = nameMatch;
+      }
+
+      // Create or update candidate profile, linking to user if found
       const { data: candidateProfile, error: profileError } = await supabase
         .from("candidate_profiles")
         .upsert({
+          user_id: matchingUser?.id || null, // Link to user if match found
           full_name: formData.fullName,
           email: formData.email,
           phone: formData.phone,
           linkedin_url: formData.linkedinUrl,
           current_company: formData.currentCompany,
           current_title: formData.currentTitle,
+          avatar_url: matchingUser?.avatar_url || null, // Use user's avatar if available
           source_channel: 'manual',
           created_by: adminUser.id,
-          tags: ['manually_added']
+          tags: matchingUser ? ['manually_added', 'linked_to_user'] : ['manually_added']
         }, {
           onConflict: 'email',
           ignoreDuplicates: false
@@ -126,16 +164,7 @@ export const AddCandidateDialog = ({
       }
 
       const candidateId = candidateProfile.id;
-
-      // Try to find matching user profile by email
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .ilike("email", formData.email)
-        .maybeSingle();
-
-      // Only use user_id if we found a matching profile, otherwise null for standalone candidates
-      const userId = existingProfile?.id || null;
+      const userId = matchingUser?.id || null;
 
       // Create application
       const { error: appError } = await supabase.from("applications").insert({
@@ -182,13 +211,14 @@ export const AddCandidateDialog = ({
           interaction_type: 'status_change',
           interaction_direction: 'internal',
           title: 'Candidate Added to Pipeline',
-          content: `🎯 **Admin-Added Candidate**
+          content: `🎯 **Admin-Added Candidate**${matchingUser ? ' 🔗 **Linked to User Account**' : ''}
 
 **Name:** ${formData.fullName}
 **Email:** ${formData.email}
 **Phone:** ${formData.phone || "N/A"}
 **LinkedIn:** ${formData.linkedinUrl || "N/A"}
 **Current Position:** ${formData.currentTitle || "N/A"} at ${formData.currentCompany || "N/A"}
+${matchingUser ? `\n**User Profile:** Linked to existing platform user\n**Profile Match:** ${matchingUser.email === formData.email ? 'Email' : matchingUser.phone === formData.phone ? 'Phone' : 'Name'}` : ''}
 
 **Notes:** ${formData.notes || "No additional notes"}`,
           metadata: {
@@ -210,9 +240,16 @@ export const AddCandidateDialog = ({
         });
       }
 
-      toast.success("Candidate added successfully", {
-        description: `${formData.fullName} has been added to the pipeline`,
-      });
+      toast.success(
+        matchingUser 
+          ? "Candidate linked to user account!" 
+          : "Candidate added successfully", 
+        {
+          description: matchingUser
+            ? `${formData.fullName} has been linked to their existing platform account`
+            : `${formData.fullName} has been added to the pipeline`,
+        }
+      );
 
       onCandidateAdded();
       onOpenChange(false);

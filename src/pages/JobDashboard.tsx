@@ -167,6 +167,7 @@ export default function JobDashboard() {
       // Enrich with candidate profile data through candidate_interactions
       const enrichedApps = await Promise.all((data || []).map(async (app) => {
         let profileData = null;
+        let linkedUserId = app.user_id;
         
         // First try to get candidate_profile through candidate_interactions
         const { data: interaction } = await supabase
@@ -174,6 +175,7 @@ export default function JobDashboard() {
           .select(`
             candidate_id,
             candidate_profiles!candidate_interactions_candidate_id_fkey (
+              user_id,
               full_name,
               email,
               phone,
@@ -188,6 +190,21 @@ export default function JobDashboard() {
         
         if (interaction?.candidate_profiles) {
           profileData = interaction.candidate_profiles;
+          // Use linked user_id from candidate_profile if available
+          if (profileData.user_id) {
+            linkedUserId = profileData.user_id;
+            
+            // If candidate_profile is linked to user, get user's latest avatar
+            const { data: userProfile } = await supabase
+              .from('profiles')
+              .select('avatar_url')
+              .eq('id', profileData.user_id)
+              .maybeSingle();
+            
+            if (userProfile?.avatar_url) {
+              profileData.avatar_url = userProfile.avatar_url;
+            }
+          }
         } else if (app.user_id) {
           // Fallback to user profile if no candidate_profile found
           const { data: userProfile } = await supabase
@@ -207,8 +224,9 @@ export default function JobDashboard() {
           current_title: profileData?.current_title,
           current_company: profileData?.current_company,
           linkedin_url: profileData?.linkedin_url,
-          user_id: app.user_id,
+          user_id: linkedUserId,
           stages: app.stages || [],
+          is_linked_user: !!profileData?.user_id, // Flag to show linked status
         };
       }));
       
