@@ -276,7 +276,11 @@ export default function CompanyPage() {
             <CardContent className="p-8">
               <div className="flex flex-col md:flex-row gap-6 items-start">
                 <Avatar className="w-32 h-32 border-4 border-accent shadow-glass-lg ring-4 ring-accent/20">
-                  <AvatarImage src={company.logo_url || undefined} alt={company.name} />
+                  <AvatarImage 
+                    src={company.logo_url || undefined} 
+                    alt={company.name}
+                    className="object-contain w-full h-full"
+                  />
                   <AvatarFallback className="text-4xl font-black bg-gradient-accent text-white">
                     {company.name.substring(0, 2).toUpperCase()}
                   </AvatarFallback>

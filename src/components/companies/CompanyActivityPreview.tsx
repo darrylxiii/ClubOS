@@ -48,22 +48,27 @@ export function CompanyActivityPreview({ companyId }: CompanyActivityPreviewProp
     }
   };
 
+  // Don't show if no activity
+  if (stats.postsCount === 0 && stats.storiesCount === 0 && stats.totalLikes === 0) {
+    return null;
+  }
+
   return (
-    <div className="absolute top-2 left-2 bg-background/80 backdrop-blur-sm rounded-lg px-3 py-2 text-xs space-y-1 shadow-lg">
+    <div className="absolute top-4 right-4 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2 text-xs space-y-1 shadow-lg border border-primary/20 z-20">
       <div className="flex items-center gap-1.5">
         <MessageCircle className="h-3 w-3 text-primary" />
         <span className="font-medium">{stats.postsCount}</span>
         <span className="text-muted-foreground">posts</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <Eye className="h-3 w-3 text-primary" />
+        <Eye className="h-3 w-3 text-accent" />
         <span className="font-medium">{stats.storiesCount}</span>
-        <span className="text-muted-foreground">stories</span>
+        <span className="text-muted-foreground">active stories</span>
       </div>
       <div className="flex items-center gap-1.5">
-        <Heart className="h-3 w-3 text-primary" />
+        <Heart className="h-3 w-3 text-red-500" />
         <span className="font-medium">{stats.totalLikes}</span>
-        <span className="text-muted-foreground">likes</span>
+        <span className="text-muted-foreground">total likes</span>
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, MapPin, Users, Loader2, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 interface CompanyProfilePreviewProps {
   companyId: string;
@@ -40,6 +41,9 @@ export function CompanyProfilePreview({ companyId }: CompanyProfilePreviewProps)
   const handleViewCompany = () => {
     if (company?.slug) {
       navigate(`/companies/${company.slug}`);
+    } else {
+      console.error('Company slug is missing:', company);
+      toast.error('Unable to navigate to company page');
     }
   };
 
@@ -61,7 +65,10 @@ export function CompanyProfilePreview({ companyId }: CompanyProfilePreviewProps)
         {/* Header */}
         <div className="flex items-start gap-3">
           <Avatar className="w-16 h-16 border-2 border-accent ring-4 ring-accent/20">
-            <AvatarImage src={company.logo_url || undefined} />
+            <AvatarImage 
+              src={company.logo_url || undefined}
+              className="object-contain w-full h-full"
+            />
             <AvatarFallback className="text-lg font-black bg-gradient-accent text-white">
               {company.name?.substring(0, 2).toUpperCase() || "?"}
             </AvatarFallback>

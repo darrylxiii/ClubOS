@@ -430,16 +430,16 @@ export default function Companies() {
                     {/* Activity Preview Widget */}
                     <CompanyActivityPreview companyId={company.id} />
                     
-                    {/* Cover Image Background - Subtle effect */}
+                    {/* Cover Image Header - Full width at top */}
                     {company.cover_image_url && (
                       <div 
-                        className="absolute inset-0 opacity-10 group-hover:opacity-15 transition-opacity"
+                        className="absolute top-0 left-0 right-0 h-32 opacity-20 group-hover:opacity-30 transition-opacity"
                         style={{
                           backgroundImage: `url(${company.cover_image_url})`,
                           backgroundSize: 'cover',
                           backgroundPosition: 'center',
-                          filter: 'blur(30px)',
-                          transform: 'scale(1.1)',
+                          borderTopLeftRadius: '0.5rem',
+                          borderTopRightRadius: '0.5rem',
                         }}
                       />
                     )}
@@ -447,12 +447,12 @@ export default function Companies() {
                     <CollapsibleTrigger className="w-full relative z-10">
                       <CardHeader>
                         <div className="flex items-start gap-6">
-                          {/* Logo - Original size */}
+                          {/* Logo - Fixed aspect ratio */}
                           <Avatar className="w-20 h-20 border-2 border-primary shadow-lg flex-shrink-0">
                             <AvatarImage 
                               src={company.logo_url || undefined} 
                               alt={company.name}
-                              className="object-cover"
+                              className="object-contain w-full h-full"
                             />
                             <AvatarFallback className="text-2xl font-black bg-gradient-to-br from-primary to-accent text-white">
                               {company.name.substring(0, 2).toUpperCase()}
@@ -598,7 +598,12 @@ export default function Companies() {
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/companies/${company.slug}`);
+                                if (company.slug) {
+                                  navigate(`/companies/${company.slug}`);
+                                } else {
+                                  console.error('Company slug missing for:', company.name);
+                                  toast.error('Unable to open company page');
+                                }
                               }}
                               className="gap-2"
                             >
