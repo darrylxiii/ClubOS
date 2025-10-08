@@ -164,8 +164,55 @@ export default function JobDashboard() {
 
       if (error) throw error;
       
-      const apps = data || [];
-      setApplications(apps);
+      // Enrich with candidate profile data through candidate_interactions
+      const enrichedApps = await Promise.all((data || []).map(async (app) => {
+        let profileData = null;
+        
+        // First try to get candidate_profile through candidate_interactions
+        const { data: interaction } = await supabase
+          .from('candidate_interactions')
+          .select(`
+            candidate_id,
+            candidate_profiles!candidate_interactions_candidate_id_fkey (
+              full_name,
+              email,
+              phone,
+              avatar_url,
+              current_title,
+              current_company,
+              linkedin_url
+            )
+          `)
+          .eq('application_id', app.id)
+          .maybeSingle();
+        
+        if (interaction?.candidate_profiles) {
+          profileData = interaction.candidate_profiles;
+        } else if (app.user_id) {
+          // Fallback to user profile if no candidate_profile found
+          const { data: userProfile } = await supabase
+            .from('profiles')
+            .select('full_name, email, phone, avatar_url')
+            .eq('id', app.user_id)
+            .maybeSingle();
+          profileData = userProfile;
+        }
+        
+        return {
+          ...app,
+          full_name: profileData?.full_name || 'Candidate',
+          email: profileData?.email,
+          phone: profileData?.phone,
+          avatar_url: profileData?.avatar_url,
+          current_title: profileData?.current_title,
+          current_company: profileData?.current_company,
+          linkedin_url: profileData?.linkedin_url,
+          user_id: app.user_id,
+          stages: app.stages || [],
+        };
+      }));
+      
+      setApplications(enrichedApps);
       
       // Calculate metrics
       const stageBreakdown: { [key: number]: number } = {};
@@ -176,7 +223,7 @@ export default function JobDashboard() {
         stageDurations[stage.order] = [];
       });
       
-      apps.forEach(app => {
+      enrichedApps.forEach(app => {
         if (app.current_stage_index !== undefined) {
           stageBreakdown[app.current_stage_index]++;
           
@@ -201,12 +248,12 @@ export default function JobDashboard() {
       for (let i = 0; i < stages.length - 1; i++) {
         const current = stageBreakdown[i] || 0;
         const next = stageBreakdown[i + 1] || 0;
-        const totalPassed = apps.filter(app => app.current_stage_index > i).length;
+        const totalPassed = enrichedApps.filter(app => app.current_stage_index > i).length;
         conversionRates[`${i}-${i + 1}`] = current > 0 ? Math.round((totalPassed / (current + totalPassed)) * 100) : 0;
       }
       
       // Find last activity
-      const lastApp = apps.sort((a, b) => 
+      const lastApp = enrichedApps.sort((a, b) => 
         new Date(b.updated_at || b.applied_at).getTime() - new Date(a.updated_at || a.applied_at).getTime()
       )[0];
       
@@ -215,10 +262,10 @@ export default function JobDashboard() {
         : 'No activity yet';
       
       // Mock "needs club check" - in production, filter by club_check_status field
-      const needsClubCheck = Math.min(apps.filter(app => app.current_stage_index === 0).length, 3);
+      const needsClubCheck = Math.min(enrichedApps.filter(app => app.current_stage_index === 0).length, 3);
       
       setMetrics({
-        totalApplicants: apps.length,
+        totalApplicants: enrichedApps.length,
         stageBreakdown,
         avgDaysInStage,
         conversionRates,

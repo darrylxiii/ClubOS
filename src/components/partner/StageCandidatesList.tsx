@@ -1,16 +1,16 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
   ArrowRight, 
   X, 
-  Calendar, 
   Clock,
   Mail,
   Phone,
   Linkedin,
-  ExternalLink 
+  ExternalLink,
+  Users
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
@@ -50,8 +50,12 @@ export function StageCandidatesList({
 }: StageCandidatesListProps) {
   if (candidates.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        <p className="text-sm">No candidates in this stage yet</p>
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+          <Users className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <p className="text-sm font-medium text-muted-foreground">No candidates in this stage</p>
+        <p className="text-xs text-muted-foreground mt-1">Candidates will appear here when they reach this stage</p>
       </div>
     );
   }
@@ -61,115 +65,141 @@ export function StageCandidatesList({
   return (
     <div className="space-y-3">
       {candidates.map((candidate) => {
-        const currentStage = candidate.stages[stageIndex];
+        const currentStage = candidate.stages?.[stageIndex];
         const timeInStage = currentStage?.started_at 
           ? formatDistanceToNow(new Date(currentStage.started_at), { addSuffix: true })
-          : 'Just now';
+          : formatDistanceToNow(new Date(candidate.applied_at), { addSuffix: true });
+
+        const initials = candidate.full_name
+          ?.split(' ')
+          .map(n => n[0])
+          .join('')
+          .toUpperCase()
+          .slice(0, 2) || '?';
 
         return (
           <Card 
             key={candidate.id} 
-            className="p-4 hover:shadow-md transition-shadow cursor-pointer group"
-            onClick={() => onViewDetails(candidate)}
+            className="group relative overflow-hidden border-2 hover:border-primary/50 transition-all duration-300 hover:shadow-lg"
           >
-            <div className="flex items-start gap-4">
-              {/* Avatar */}
-              <Avatar className="h-12 w-12 ring-2 ring-border">
-                <AvatarImage src={candidate.avatar_url} />
-                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                  {candidate.full_name?.split(' ').map(n => n[0]).join('') || 'C'}
-                </AvatarFallback>
-              </Avatar>
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            
+            <CardContent className="p-4 relative">
+              <div className="flex items-start gap-4">
+                {/* Avatar */}
+                <div className="relative">
+                  <Avatar className="h-14 w-14 ring-2 ring-border group-hover:ring-primary transition-all">
+                    <AvatarImage src={candidate.avatar_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 text-primary font-bold text-lg">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-success border-2 border-background" />
+                </div>
 
-              {/* Candidate Info */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="min-w-0 flex-1">
-                    <h4 className="font-semibold text-foreground truncate group-hover:text-primary transition-colors">
-                      {candidate.full_name || 'Unknown Candidate'}
-                    </h4>
-                    {candidate.current_title && (
-                      <p className="text-sm text-muted-foreground truncate">
-                        {candidate.current_title}
-                        {candidate.current_company && ` at ${candidate.current_company}`}
-                      </p>
+                {/* Candidate Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-base text-foreground truncate group-hover:text-primary transition-colors">
+                        {candidate.full_name || 'Candidate'}
+                      </h4>
+                      {candidate.current_title && (
+                        <p className="text-sm text-muted-foreground truncate mt-0.5">
+                          {candidate.current_title}
+                          {candidate.current_company && (
+                            <span className="text-muted-foreground/70"> • {candidate.current_company}</span>
+                          )}
+                        </p>
+                      )}
+                    </div>
+                    <Badge variant="outline" className="shrink-0 text-xs font-medium">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {timeInStage}
+                    </Badge>
+                  </div>
+
+                  {/* Contact Info */}
+                  <div className="flex flex-wrap gap-4 mb-3">
+                    {candidate.email && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Mail className="w-3.5 h-3.5" />
+                        <span className="truncate max-w-[180px]">{candidate.email}</span>
+                      </div>
+                    )}
+                    {candidate.phone && (
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Phone className="w-3.5 h-3.5" />
+                        <span>{candidate.phone}</span>
+                      </div>
+                    )}
+                    {candidate.linkedin_url && (
+                      <a 
+                        href={candidate.linkedin_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Linkedin className="w-3.5 h-3.5" />
+                        <span>LinkedIn</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
                     )}
                   </div>
-                  <Badge variant="outline" className="shrink-0 text-xs">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {timeInStage}
-                  </Badge>
-                </div>
 
-                {/* Contact Info */}
-                <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mb-3">
-                  {candidate.email && (
-                    <div className="flex items-center gap-1">
-                      <Mail className="w-3 h-3" />
-                      <span className="truncate max-w-[150px]">{candidate.email}</span>
+                  {/* Stage Notes */}
+                  {currentStage?.notes && (
+                    <div className="mb-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {currentStage.notes}
+                      </p>
                     </div>
                   )}
-                  {candidate.phone && (
-                    <div className="flex items-center gap-1">
-                      <Phone className="w-3 h-3" />
-                      <span>{candidate.phone}</span>
-                    </div>
-                  )}
-                  {candidate.linkedin_url && (
-                    <a 
-                      href={candidate.linkedin_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1 hover:text-primary transition-colors"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Linkedin className="w-3 h-3" />
-                      <span>LinkedIn</span>
-                      <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
-                  )}
-                </div>
 
-                {/* Stage Notes */}
-                {currentStage?.notes && (
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3 bg-muted/50 p-2 rounded">
-                    {currentStage.notes}
-                  </p>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onViewDetails(candidate)}
-                    className="text-xs"
-                  >
-                    <ExternalLink className="w-3 h-3 mr-1" />
-                    View Details
-                  </Button>
-                  {canAdvance && (
+                  {/* Actions */}
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
-                      onClick={() => onAdvance(candidate)}
-                      className="text-xs bg-success hover:bg-success/90"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onViewDetails(candidate);
+                      }}
+                      className="text-xs font-medium"
                     >
-                      <ArrowRight className="w-3 h-3 mr-1" />
-                      Advance
+                      <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+                      View Profile
                     </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => onReject(candidate)}
-                    className="text-xs"
-                  >
-                    <X className="w-3 h-3 mr-1" />
-                    Reject
-                  </Button>
+                    {canAdvance && (
+                      <Button
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onAdvance(candidate);
+                        }}
+                        className="text-xs font-medium bg-gradient-to-r from-success to-success/90 hover:from-success/90 hover:to-success/80"
+                      >
+                        <ArrowRight className="w-3.5 h-3.5 mr-1.5" />
+                        Advance to Next
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onReject(candidate);
+                      }}
+                      className="text-xs font-medium"
+                    >
+                      <X className="w-3.5 h-3.5 mr-1.5" />
+                      Decline
+                    </Button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </CardContent>
           </Card>
         );
       })}
