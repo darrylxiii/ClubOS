@@ -79,72 +79,78 @@ export default function EnhancedProfile() {
         {/* Profile Header */}
         <Card className="overflow-hidden">
           {/* Header Media (Image or Video Wallpaper) */}
-          {profile?.header_media_url && (
-            <div className="relative w-full h-64 overflow-hidden">
-              {profile.header_media_type === 'video' ? (
-                <video
-                  src={profile.header_media_url}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <img
-                  src={profile.header_media_url}
-                  alt="Profile header"
-                  className="w-full h-full object-cover"
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
-            </div>
-          )}
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              <Avatar className="w-24 h-24">
-                <AvatarImage src={profile?.avatar_url} />
-                <AvatarFallback>
-                  {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-3xl font-bold">{profile?.full_name || 'Your Name'}</h1>
-                    <p className="text-muted-foreground">{profile?.current_title || 'Your Title'}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <ProfileHeaderUpload 
-                      currentMediaUrl={profile?.header_media_url}
-                      currentMediaType={profile?.header_media_type}
-                      onUploadComplete={loadProfile}
-                    />
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4 mr-2" />
-                      Preview
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Share
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="flex flex-wrap gap-2">
-                  {profile?.location && (
-                    <Badge variant="secondary">{profile.location}</Badge>
-                  )}
-                  {profile?.stealth_mode_enabled && (
-                    <Badge variant="outline">Stealth Mode Active</Badge>
-                  )}
-                </div>
+          <div className="relative w-full h-64 overflow-hidden bg-muted">
+            {profile?.header_media_url ? (
+              <>
+                {profile.header_media_type === 'video' ? (
+                  <video
+                    src={profile.header_media_url}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <img
+                    src={profile.header_media_url}
+                    alt="Profile header"
+                    className="w-full h-full object-cover"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-card/90 to-transparent" />
+              </>
+            ) : null}
+            
+            {/* Avatar positioned to overlap header and content */}
+            <Avatar className="absolute bottom-0 left-6 transform translate-y-1/2 w-32 h-32 border-4 border-background">
+              <AvatarImage src={profile?.avatar_url} />
+              <AvatarFallback>
+                {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+              </AvatarFallback>
+            </Avatar>
 
-                <p className="text-sm text-muted-foreground">
-                  {profile?.career_preferences || 'Add your professional summary here...'}
-                </p>
+            {/* Upload button in bottom right */}
+            <div className="absolute bottom-4 right-4">
+              <ProfileHeaderUpload 
+                currentMediaUrl={profile?.header_media_url}
+                currentMediaType={profile?.header_media_type}
+                onUploadComplete={loadProfile}
+              />
+            </div>
+          </div>
+
+          <CardContent className="pt-20">
+            <div className="space-y-4">
+              <div className="flex items-start justify-between">
+                <div className="space-y-2">
+                  <h1 className="text-3xl font-bold">{profile?.full_name || 'Your Name'}</h1>
+                  <p className="text-muted-foreground">{profile?.current_title || 'Your Title'}</p>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Preview
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Share2 className="w-4 h-4 mr-2" />
+                    Share
+                  </Button>
+                </div>
               </div>
+                
+              <div className="flex flex-wrap gap-2">
+                {profile?.location && (
+                  <Badge variant="secondary">{profile.location}</Badge>
+                )}
+                {profile?.stealth_mode_enabled && (
+                  <Badge variant="outline">Stealth Mode Active</Badge>
+                )}
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                {profile?.career_preferences || 'Add your professional summary here...'}
+              </p>
             </div>
           </CardContent>
         </Card>
