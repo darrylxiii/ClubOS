@@ -26,18 +26,42 @@ export function CompanyMembersStack({ companyId, maxVisible = 3 }: CompanyMember
 
   const loadMembers = async () => {
     try {
-      const { data, error } = await supabase
+      // First get company members
+      const { data: membersData, error: membersError } = await supabase
         .from('company_members')
-        .select(`
-          id,
-          profiles!company_members_user_id_fkey (full_name, avatar_url)
-        `)
+        .select('id, user_id')
         .eq('company_id', companyId)
         .eq('is_active', true)
         .limit(maxVisible + 1);
 
-      if (error) throw error;
-      setMembers(data as any || []);
+      if (membersError) throw membersError;
+
+      if (!membersData || membersData.length === 0) {
+        setMembers([]);
+        setLoading(false);
+        return;
+      }
+
+      // Then get profile data
+      const userIds = membersData.map(m => m.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+      const combinedData = membersData.map(member => ({
+        id: member.id,
+        profiles: profilesMap.get(member.user_id) || {
+          full_name: 'Unknown User',
+          avatar_url: null,
+        }
+      }));
+
+      setMembers(combinedData as any);
     } catch (error) {
       console.error('Error loading members:', error);
     } finally {
@@ -63,8 +87,10 @@ export function CompanyMembersStack({ companyId, maxVisible = 3 }: CompanyMember
                 style={{ zIndex: visibleMembers.length - index }}
               >
                 <AvatarImage src={member.profiles?.avatar_url || undefined} />
-                <AvatarFallback className="text-xs">
-                  {member.profiles?.full_name?.substring(0, 2).toUpperCase() || "??"}
+                <AvatarFallback className="text-xs bg-muted text-muted-foreground font-bold">
+                  {member.profiles?.full_name 
+                    ? member.profiles.full_name.substring(0, 2).toUpperCase() 
+                    : "?"}
                 </AvatarFallback>
               </Avatar>
             </TooltipTrigger>

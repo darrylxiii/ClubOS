@@ -51,19 +51,43 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
 
   const loadMembers = async () => {
     try {
-      const { data, error } = await supabase
+      // First get company members
+      const { data: membersData, error: membersError } = await supabase
         .from('company_members')
-        .select(`
-          id,
-          user_id,
-          role,
-          profiles!company_members_user_id_fkey (full_name, email, avatar_url)
-        `)
+        .select('id, user_id, role')
         .eq('company_id', companyId)
         .eq('is_active', true);
 
-      if (error) throw error;
-      setMembers(data as any || []);
+      if (membersError) throw membersError;
+
+      if (!membersData || membersData.length === 0) {
+        setMembers([]);
+        return;
+      }
+
+      // Then get profile data for those users
+      const userIds = membersData.map(m => m.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine the data
+      const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+      const combinedData = membersData.map(member => ({
+        id: member.id,
+        user_id: member.user_id,
+        role: member.role,
+        profiles: profilesMap.get(member.user_id) || {
+          full_name: 'Unknown User',
+          email: '',
+          avatar_url: null,
+        }
+      }));
+
+      setMembers(combinedData as any);
     } catch (error) {
       console.error('Error loading members:', error);
       toast.error("Failed to load team members");
@@ -292,8 +316,10 @@ export function CompanyMembersDialog({ companyId, companyName }: CompanyMembersD
                     <div className="flex items-center gap-3">
                       <Avatar className="w-10 h-10">
                         <AvatarImage src={member.profiles?.avatar_url || undefined} />
-                        <AvatarFallback>
-                          {member.profiles?.full_name?.substring(0, 2).toUpperCase() || "??"}
+                        <AvatarFallback className="bg-muted text-muted-foreground font-bold">
+                          {member.profiles?.full_name 
+                            ? member.profiles.full_name.substring(0, 2).toUpperCase() 
+                            : "?"}
                         </AvatarFallback>
                       </Avatar>
                       <div>
