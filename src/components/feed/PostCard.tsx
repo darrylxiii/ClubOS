@@ -28,6 +28,7 @@ import {
 import { LazyMedia } from "./LazyMedia";
 import { toast } from "@/hooks/use-toast";
 import { useEngagementTracking } from "@/hooks/useEngagementTracking";
+import { cn } from "@/lib/utils";
 
 interface PostCardProps {
   post: any;
@@ -45,6 +46,8 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [showSummary, setShowSummary] = useState(false);
   const [userStreak, setUserStreak] = useState<number | null>(null);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [showFullPost, setShowFullPost] = useState(false);
   
   // Engagement tracking
   const { trackLike, trackComment, trackShare, trackSave: trackSaveEngagement } = useEngagementTracking({
@@ -60,6 +63,10 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const isOwnPost = user?.id === post.user_id;
   const mediaUrls = Array.isArray(post.media_urls) ? post.media_urls : [];
   const hasPoll = post.poll_question && post.poll_options;
+
+  // Check if content is longer than 4 lines (approximately 280 characters)
+  const contentLines = post.content?.split('\n').length || 0;
+  const isLongContent = contentLines > 4 || (post.content?.length || 0) > 280;
 
   useEffect(() => {
     if (hasPoll) {
@@ -334,7 +341,29 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             )}
           </div>
 
-          <p className="mt-3 whitespace-pre-wrap">{post.content}</p>
+          <div className="relative">
+            <div 
+              className={cn(
+                "mt-3 whitespace-pre-wrap prose prose-sm max-w-none",
+                "[&_ul]:list-disc [&_ul]:ml-6",
+                "[&_ol]:list-decimal [&_ol]:ml-6",
+                "[&_a]:text-primary [&_a]:underline",
+                isLongContent && isCollapsed && "line-clamp-4"
+              )}
+              dangerouslySetInnerHTML={{ __html: post.content }}
+            />
+            
+            {isLongContent && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsCollapsed(!isCollapsed)}
+                className="mt-2 text-primary hover:text-primary/80"
+              >
+                {isCollapsed ? "Show full post" : "Show less"}
+              </Button>
+            )}
+          </div>
 
           {/* AI Summary */}
           {post.ai_summary && (

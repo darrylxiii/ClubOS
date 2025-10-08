@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Bold, Italic, List, Link as LinkIcon, Smile } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -71,9 +71,19 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
   const editorRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkText, setLinkText] = useState("");
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Initialize content once
+  useEffect(() => {
+    if (editorRef.current && value && !isInitialized) {
+      editorRef.current.innerHTML = value;
+      setIsInitialized(true);
+    }
+  }, [value, isInitialized]);
 
   const execCommand = (command: string, value?: string) => {
     document.execCommand(command, false, value);
@@ -267,6 +277,19 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
               </Tabs>
             </PopoverContent>
           </Popover>
+
+          {value && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 px-2 ml-auto text-xs"
+              onClick={() => setShowPreview(true)}
+              title="Preview Post"
+            >
+              Preview
+            </Button>
+          )}
         </div>
       )}
       
@@ -276,7 +299,7 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
         onInput={handleInput}
         onFocus={handleFocus}
         onBlur={handleBlur}
-        dangerouslySetInnerHTML={{ __html: value }}
+        dir="ltr"
         className={cn(
           "min-h-[80px] p-3 outline-none",
           "prose prose-sm max-w-none",
@@ -330,6 +353,32 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
             </Button>
             <Button onClick={insertLink} disabled={!linkUrl}>
               Insert Link
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Preview Dialog */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Post Preview</DialogTitle>
+            <DialogDescription>
+              This is how your post will appear
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div 
+              className="prose prose-sm max-w-none p-4 border rounded-lg bg-muted/30
+                [&_ul]:list-disc [&_ul]:ml-6
+                [&_ol]:list-decimal [&_ol]:ml-6
+                [&_a]:text-primary [&_a]:underline"
+              dangerouslySetInnerHTML={{ __html: value }}
+            />
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setShowPreview(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
