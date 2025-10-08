@@ -99,7 +99,7 @@ const candidateNavigationGroups = [
     title: "Settings",
     icon: Cog,
     items: [
-      { name: "My Profile", icon: User, path: "/user-settings" },
+      { name: "My Profile", icon: User, path: "/profile" },
       { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },
@@ -154,7 +154,7 @@ const partnerNavigationGroups = [
     title: "Settings",
     icon: Cog,
     items: [
-      { name: "My Profile", icon: User, path: "/user-settings" },
+      { name: "My Profile", icon: User, path: "/profile" },
       { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },
@@ -209,7 +209,7 @@ const adminNavigationGroups = [
     title: "Settings",
     icon: Cog,
     items: [
-      { name: "My Profile", icon: User, path: "/user-settings" },
+      { name: "My Profile", icon: User, path: "/profile" },
       { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },
@@ -226,61 +226,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const { currentRole } = useRole();
   const [userProfile, setUserProfile] = useState<{ id: string } | null>(null);
 
-  // Load user profile to get ID for profile link
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      if (!user?.id) {
-        setUserProfile(null);
-        return;
-      }
-      
-      const { data } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-      
-      if (data) {
-        setUserProfile(data);
-      }
-    };
-    
-    loadUserProfile();
-  }, [user?.id]);
-
-  // Build navigation with dynamic profile path
-  const myProfilePath = userProfile ? `/profile/${userProfile.id}` : '/profile';
-  
-  const candidateNav = candidateNavigationGroups.map(group => 
-    group.title === "Settings" 
-      ? { ...group, items: group.items.map(item => 
-          item.name === "My Profile" ? { ...item, path: myProfilePath } : item
-        )}
-      : group
-  );
-  
-  const partnerNav = partnerNavigationGroups.map(group => 
-    group.title === "Settings" 
-      ? { ...group, items: group.items.map(item => 
-          item.name === "My Profile" ? { ...item, path: myProfilePath } : item
-        )}
-      : group
-  );
-  
-  const adminNav = adminNavigationGroups.map(group => 
-    group.title === "Settings" 
-      ? { ...group, items: group.items.map(item => 
-          item.name === "My Profile" ? { ...item, path: myProfilePath } : item
-        )}
-      : group
-  );
-
   // Determine navigation based on current role from context
   const navigationGroups = currentRole === 'admin'
-    ? adminNav
+    ? adminNavigationGroups
     : currentRole === 'partner'
-    ? partnerNav
-    : candidateNav;
+    ? partnerNavigationGroups
+    : candidateNavigationGroups;
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -295,7 +246,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   };
 
   const firstName = getFirstName();
-  const profilePath = myProfilePath;
+  const profilePath = '/profile';
 
   return (
     <div className="min-h-screen flex w-full bg-background">
