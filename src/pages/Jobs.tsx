@@ -172,12 +172,12 @@ const Jobs = () => {
 
   const savedJobs = sortedJobs.filter((job) => savedJobIds.includes(job.id));
 
-  // If user is Partner, show Partner-specific view
-  if (role === 'partner' && userCompanyId) {
+  // If user is Partner or Admin, show Partner-specific view
+  if ((role === 'partner' || role === 'admin') && (userCompanyId || role === 'admin')) {
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8">
-          <PartnerJobsHome companyId={userCompanyId} />
+          <PartnerJobsHome companyId={userCompanyId || null} />
         </div>
       </AppLayout>
     );
