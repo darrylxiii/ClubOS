@@ -124,8 +124,11 @@ export default function CompanyApplications() {
 
       // Now get candidate profiles and profiles for these applications
       const candidateProfilePromises = (appsData || []).map(async (app) => {
-        // First try to get profile data from profiles table (if user exists)
+        // Strategy: Try multiple approaches to find candidate data
+        let candidateData = null;
         let profileData = null;
+
+        // 1. Get user profile if user_id exists
         if (app.user_id) {
           const { data: userProfile } = await supabase
             .from("profiles")
@@ -135,29 +138,55 @@ export default function CompanyApplications() {
           profileData = userProfile;
         }
 
-        // Get or find candidate profile (may exist independently or linked to user)
-        const { data: candidateProfile } = await supabase
-          .from("candidate_profiles")
-          .select("*")
-          .or(`user_id.eq.${app.user_id},email.eq.${profileData?.email || ''}`)
-          .maybeSingle();
+        // 2. Try to find candidate_profile by user_id first
+        if (app.user_id) {
+          const { data: candProfile } = await supabase
+            .from("candidate_profiles")
+            .select("*")
+            .eq("user_id", app.user_id)
+            .maybeSingle();
+          if (candProfile) candidateData = candProfile;
+        }
 
-        // Get recent interactions
-        const { data: interactions } = await supabase
-          .from("candidate_interactions")
-          .select("id, interaction_type, created_at")
-          .eq("candidate_id", candidateProfile?.id || "")
-          .order("created_at", { ascending: false })
-          .limit(5);
+        // 3. If not found and we have email, try by email
+        if (!candidateData && profileData?.email) {
+          const { data: candProfile } = await supabase
+            .from("candidate_profiles")
+            .select("*")
+            .eq("email", profileData.email)
+            .maybeSingle();
+          if (candProfile) candidateData = candProfile;
+        }
 
+        // Get recent interactions if we found candidate
+        let interactions = [];
+        if (candidateData?.id) {
+          const { data: interactionsData } = await supabase
+            .from("candidate_interactions")
+            .select("id, interaction_type, created_at")
+            .eq("candidate_id", candidateData.id)
+            .order("created_at", { ascending: false })
+            .limit(5);
+          interactions = interactionsData || [];
+        }
+
+        // Merge candidate and profile data, prioritizing candidate_profiles
         return {
           ...app,
-          candidate_profiles: candidateProfile || {
-            full_name: profileData?.full_name || 'Unknown',
-            email: profileData?.email || '',
-            avatar_url: profileData?.avatar_url,
-          },
-          candidate_interactions: interactions || []
+          candidate_profiles: candidateData ? {
+            ...candidateData,
+            // Fallback to profile data if fields are missing
+            full_name: candidateData.full_name || profileData?.full_name || 'Unknown',
+            email: candidateData.email || profileData?.email || '',
+            avatar_url: candidateData.avatar_url || profileData?.avatar_url,
+          } : (profileData ? {
+            id: null,
+            full_name: profileData.full_name || 'Unknown',
+            email: profileData.email || '',
+            avatar_url: profileData.avatar_url,
+            user_id: app.user_id,
+          } : null),
+          candidate_interactions: interactions
         };
       });
 

@@ -127,18 +127,19 @@ export const AddCandidateDialog = ({
 
       const candidateId = candidateProfile.id;
 
-      // Try to find matching user profile
+      // Try to find matching user profile by email
       const { data: existingProfile } = await supabase
         .from("profiles")
         .select("id")
         .ilike("email", formData.email)
         .maybeSingle();
 
-      const userId = existingProfile?.id || adminUser.id;
+      // Only use user_id if we found a matching profile, otherwise null for standalone candidates
+      const userId = existingProfile?.id || null;
 
-      // Create application with metadata containing candidate info
+      // Create application
       const { error: appError } = await supabase.from("applications").insert({
-        user_id: userId,
+        user_id: userId, // Can be null for standalone candidates
         job_id: jobId,
         position: jobTitle,
         company_name: formData.currentCompany || "External Candidate",
@@ -156,15 +157,22 @@ export const AddCandidateDialog = ({
 
       if (appError) throw appError;
 
-      // Add admin comment with full candidate details
-      const { data: application } = await supabase
+      // Find the application we just created
+      let applicationQuery = supabase
         .from("applications")
         .select("id")
-        .eq("user_id", userId)
         .eq("job_id", jobId)
         .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
+      
+      // Add user_id filter
+      if (userId) {
+        applicationQuery = applicationQuery.eq("user_id", userId);
+      } else {
+        applicationQuery = applicationQuery.is("user_id", null);
+      }
+      
+      const { data: application } = await applicationQuery.maybeSingle();
 
       if (application) {
         // Log candidate addition as interaction
