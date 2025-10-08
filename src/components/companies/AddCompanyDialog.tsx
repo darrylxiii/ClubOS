@@ -1,20 +1,37 @@
-import { useState } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Building2, Image as ImageIcon, Users, CheckCircle2, Loader2, Sparkles, Globe, Linkedin, Twitter, Instagram, Upload, X, Search } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddCompanyDialogProps {
   onSuccess: () => void;
 }
 
+interface TeamMember {
+  user_id: string;
+  role: string;
+  full_name: string;
+  email: string;
+  avatar_url: string | null;
+}
+
 export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [autoFetching, setAutoFetching] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: "",
     tagline: "",
@@ -24,11 +41,132 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
     headquarters_location: "",
     website_url: "",
     linkedin_url: "",
+    twitter_url: "",
+    instagram_url: "",
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>("");
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string>("");
+
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
+
+  const steps = [
+    { id: 0, title: "Company Details", icon: Building2 },
+    { id: 1, title: "Branding & Media", icon: ImageIcon },
+    { id: 2, title: "Team & Socials", icon: Users },
+    { id: 3, title: "Review & Create", icon: CheckCircle2 }
+  ];
+
+  const progress = ((currentStep + 1) / steps.length) * 100;
+
+  // Auto-fetch company data
+  const handleAutoFetch = useCallback(async () => {
+    if (!formData.website_url && !formData.name) return;
     
+    setAutoFetching(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('search-companies', {
+        body: { query: formData.name || formData.website_url }
+      });
+
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        const company = data[0];
+        setFormData(prev => ({
+          ...prev,
+          name: company.name || prev.name,
+          website_url: company.domain ? `https://${company.domain}` : prev.website_url,
+        }));
+        
+        if (company.logo) {
+          setLogoPreview(company.logo);
+        }
+        
+        toast.success("Company data fetched automatically!");
+      }
+    } catch (error) {
+      console.error('Auto-fetch error:', error);
+    } finally {
+      setAutoFetching(false);
+    }
+  }, [formData.website_url, formData.name]);
+
+  // Search users for team assignment
+  useEffect(() => {
+    const searchUsers = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSearchResults([]);
+        return;
+      }
+
+      setSearchingUsers(true);
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, avatar_url')
+          .or(`full_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`)
+          .limit(10);
+
+        if (error) throw error;
+        
+        const filtered = data?.filter(
+          user => !teamMembers.some(member => member.user_id === user.id)
+        ) || [];
+        
+        setSearchResults(filtered);
+      } catch (error) {
+        console.error('Error searching users:', error);
+      } finally {
+        setSearchingUsers(false);
+      }
+    };
+
+    const debounce = setTimeout(searchUsers, 300);
+    return () => clearTimeout(debounce);
+  }, [searchQuery, teamMembers]);
+
+  const handleFileUpload = (file: File, type: 'logo' | 'cover') => {
+    if (!file.type.startsWith('image/')) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (type === 'logo') {
+        setLogoFile(file);
+        setLogoPreview(reader.result as string);
+      } else {
+        setCoverFile(file);
+        setCoverPreview(reader.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const addTeamMember = (user: any, role: string) => {
+    setTeamMembers(prev => [...prev, {
+      user_id: user.id,
+      role,
+      full_name: user.full_name,
+      email: user.email,
+      avatar_url: user.avatar_url
+    }]);
+    setSearchQuery("");
+    setSearchResults([]);
+  };
+
+  const removeTeamMember = (userId: string) => {
+    setTeamMembers(prev => prev.filter(m => m.user_id !== userId));
+  };
+
+  const handleSubmit = async () => {
     if (!formData.name) {
       toast.error("Company name is required");
       return;
@@ -38,7 +176,8 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
     try {
       const slug = formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
       
-      const { error } = await supabase
+      // Create company
+      const { data: company, error: companyError } = await supabase
         .from('companies')
         .insert({
           name: formData.name,
@@ -50,12 +189,73 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           headquarters_location: formData.headquarters_location || null,
           website_url: formData.website_url || null,
           linkedin_url: formData.linkedin_url || null,
+          twitter_url: formData.twitter_url || null,
           is_active: true,
-        });
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
-      
-      toast.success("Company created successfully");
+      if (companyError) throw companyError;
+
+      // Upload logo if exists
+      if (logoFile && company) {
+        const fileExt = logoFile.name.split('.').pop();
+        const fileName = `${company.id}-logo.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(fileName, logoFile, { upsert: true });
+
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('avatars')
+            .getPublicUrl(fileName);
+
+          await supabase
+            .from('companies')
+            .update({ logo_url: publicUrl })
+            .eq('id', company.id);
+        }
+      }
+
+      // Upload cover if exists
+      if (coverFile && company) {
+        const fileExt = coverFile.name.split('.').pop();
+        const fileName = `${company.id}-cover.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('profile-headers')
+          .upload(fileName, coverFile, { upsert: true });
+
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('profile-headers')
+            .getPublicUrl(fileName);
+
+          await supabase
+            .from('companies')
+            .update({ cover_image_url: publicUrl })
+            .eq('id', company.id);
+        }
+      }
+
+      // Add team members
+      if (teamMembers.length > 0 && company) {
+        const membersToInsert = teamMembers.map(member => ({
+          company_id: company.id,
+          user_id: member.user_id,
+          role: member.role,
+          is_active: true,
+        }));
+
+        const { error: membersError } = await supabase
+          .from('company_members')
+          .insert(membersToInsert);
+
+        if (membersError) console.error('Error adding team members:', membersError);
+      }
+
+      toast.success("Company created successfully!");
       setOpen(false);
       resetForm();
       onSuccess();
@@ -77,7 +277,30 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       headquarters_location: "",
       website_url: "",
       linkedin_url: "",
+      twitter_url: "",
+      instagram_url: "",
     });
+    setLogoFile(null);
+    setLogoPreview("");
+    setCoverFile(null);
+    setCoverPreview("");
+    setTeamMembers([]);
+    setCurrentStep(0);
+  };
+
+  const canProceed = () => {
+    switch (currentStep) {
+      case 0:
+        return formData.name.trim().length > 0;
+      case 1:
+        return true;
+      case 2:
+        return true;
+      case 3:
+        return true;
+      default:
+        return false;
+    }
   };
 
   return (
@@ -86,115 +309,537 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       if (!open) resetForm();
     }}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-300 shadow-lg hover:shadow-xl">
           <Plus className="w-4 h-4" />
           Add Company
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden backdrop-blur-xl bg-background/95 border-border/50">
         <DialogHeader>
-          <DialogTitle>Add New Partner Company</DialogTitle>
-          <DialogDescription>
-            Create a new company profile for The Quantum Club ecosystem
-          </DialogDescription>
+          <DialogTitle className="text-2xl font-bold flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+            Add New Partner Company
+          </DialogTitle>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Company Name *</Label>
-            <Input
-              id="name"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="Acme Corporation"
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tagline">Tagline</Label>
-            <Input
-              id="tagline"
-              value={formData.tagline}
-              onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-              placeholder="One-line company description"
-            />
+        {/* Progress Bar */}
+        <div className="space-y-2">
+          <Progress value={progress} className="h-2" />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            {steps.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div 
+                  key={step.id}
+                  className={`flex items-center gap-1 ${
+                    currentStep === step.id ? 'text-primary font-semibold' : ''
+                  } ${currentStep > step.id ? 'text-primary' : ''}`}
+                >
+                  <Icon className="w-3 h-3" />
+                  <span className="hidden sm:inline">{step.title}</span>
+                </div>
+              );
+            })}
           </div>
+        </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              rows={4}
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              placeholder="Full company description..."
-            />
-          </div>
+        <ScrollArea className="max-h-[60vh] pr-4">
+          {/* Step 0: Company Details */}
+          {currentStep === 0 && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="flex items-center gap-2">
+                  Company Name *
+                  {autoFetching && <Loader2 className="w-3 h-3 animate-spin" />}
+                </Label>
+                <Input
+                  id="name"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onBlur={handleAutoFetch}
+                  placeholder="Acme Corporation"
+                  className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="industry">Industry</Label>
-              <Input
-                id="industry"
-                value={formData.industry}
-                onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                placeholder="e.g., Technology, Finance"
-              />
+              <div className="space-y-2">
+                <Label htmlFor="website">Website URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="website"
+                    type="url"
+                    value={formData.website_url}
+                    onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
+                    onBlur={handleAutoFetch}
+                    placeholder="https://example.com"
+                    className="transition-all duration-200"
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="icon"
+                    onClick={handleAutoFetch}
+                    disabled={autoFetching}
+                  >
+                    {autoFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="industry">Industry</Label>
+                  <Input
+                    id="industry"
+                    value={formData.industry}
+                    onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                    placeholder="Technology, Finance, etc."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="company_size">Company Size</Label>
+                  <Select 
+                    value={formData.company_size} 
+                    onValueChange={(value) => setFormData({ ...formData, company_size: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select size" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1-10">1-10</SelectItem>
+                      <SelectItem value="11-50">11-50</SelectItem>
+                      <SelectItem value="51-200">51-200</SelectItem>
+                      <SelectItem value="201-500">201-500</SelectItem>
+                      <SelectItem value="501-1000">501-1000</SelectItem>
+                      <SelectItem value="1000+">1000+</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="headquarters">Headquarters Location</Label>
+                <Input
+                  id="headquarters"
+                  value={formData.headquarters_location}
+                  onChange={(e) => setFormData({ ...formData, headquarters_location: e.target.value })}
+                  placeholder="Amsterdam, Netherlands"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tagline">Tagline</Label>
+                <Input
+                  id="tagline"
+                  value={formData.tagline}
+                  onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                  placeholder="One-line company description"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  rows={4}
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Tell us about the company..."
+                  className="resize-none"
+                />
+              </div>
             </div>
+          )}
 
-            <div className="space-y-2">
-              <Label htmlFor="company_size">Company Size</Label>
-              <Input
-                id="company_size"
-                value={formData.company_size}
-                onChange={(e) => setFormData({ ...formData, company_size: e.target.value })}
-                placeholder="e.g., 50-200, 1000+"
-              />
+          {/* Step 1: Branding & Media */}
+          {currentStep === 1 && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="space-y-4">
+                <Label>Company Logo</Label>
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0">
+                    <Avatar className="w-24 h-24 border-4 border-border">
+                      <AvatarImage src={logoPreview} />
+                      <AvatarFallback className="text-2xl font-bold bg-gradient-to-br from-primary to-primary/50">
+                        {formData.name ? formData.name.substring(0, 2).toUpperCase() : "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <div className="flex-1">
+                    <Label htmlFor="logo-upload" className="cursor-pointer">
+                      <Card className="border-2 border-dashed hover:border-primary transition-colors">
+                        <CardContent className="flex flex-col items-center justify-center p-6 text-center">
+                          <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">
+                            Click to upload logo
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            PNG, JPG up to 5MB
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </Label>
+                    <Input
+                      id="logo-upload"
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'logo')}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <Label>Cover Image</Label>
+                {coverPreview ? (
+                  <div className="relative rounded-lg overflow-hidden border-2 border-border">
+                    <img src={coverPreview} alt="Cover" className="w-full h-48 object-cover" />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2"
+                      onClick={() => {
+                        setCoverFile(null);
+                        setCoverPreview("");
+                      }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <Label htmlFor="cover-upload" className="cursor-pointer">
+                    <Card className="border-2 border-dashed hover:border-primary transition-colors">
+                      <CardContent className="flex flex-col items-center justify-center p-12 text-center">
+                        <ImageIcon className="w-12 h-12 text-muted-foreground mb-3" />
+                        <p className="text-sm text-muted-foreground">
+                          Click to upload cover image
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Recommended: 1200x400px, PNG or JPG
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </Label>
+                )}
+                <Input
+                  id="cover-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0], 'cover')}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="headquarters_location">Headquarters Location</Label>
-            <Input
-              id="headquarters_location"
-              value={formData.headquarters_location}
-              onChange={(e) => setFormData({ ...formData, headquarters_location: e.target.value })}
-              placeholder="e.g., Amsterdam, Netherlands"
-            />
-          </div>
+          {/* Step 2: Team & Socials */}
+          {currentStep === 2 && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="space-y-4">
+                <Label>Assign Team Members</Label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search by name or email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="website_url">Website URL</Label>
-            <Input
-              id="website_url"
-              type="url"
-              value={formData.website_url}
-              onChange={(e) => setFormData({ ...formData, website_url: e.target.value })}
-              placeholder="https://example.com"
-            />
-          </div>
+                {searchingUsers && (
+                  <div className="flex items-center justify-center p-4">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                )}
 
-          <div className="space-y-2">
-            <Label htmlFor="linkedin_url">LinkedIn URL</Label>
-            <Input
-              id="linkedin_url"
-              type="url"
-              value={formData.linkedin_url}
-              onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-              placeholder="https://linkedin.com/company/..."
-            />
-          </div>
+                {searchResults.length > 0 && (
+                  <Card>
+                    <CardContent className="p-2">
+                      <ScrollArea className="max-h-48">
+                        {searchResults.map((user) => (
+                          <div key={user.id} className="flex items-center justify-between p-2 hover:bg-accent rounded-lg transition-colors">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-8 h-8">
+                                <AvatarImage src={user.avatar_url || undefined} />
+                                <AvatarFallback className="text-xs">
+                                  {user.full_name ? user.full_name.substring(0, 2).toUpperCase() : "?"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="text-sm font-medium">{user.full_name}</p>
+                                <p className="text-xs text-muted-foreground">{user.email}</p>
+                              </div>
+                            </div>
+                            <Select onValueChange={(role) => addTeamMember(user, role)}>
+                              <SelectTrigger className="w-32">
+                                <SelectValue placeholder="Role" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="owner">Owner</SelectItem>
+                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="recruiter">Recruiter</SelectItem>
+                                <SelectItem value="viewer">Viewer</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ))}
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                )}
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Company"}
-            </Button>
-          </DialogFooter>
-        </form>
+                {teamMembers.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">Selected Team Members ({teamMembers.length})</Label>
+                    <div className="space-y-2">
+                      {teamMembers.map((member) => (
+                        <Card key={member.user_id}>
+                          <CardContent className="flex items-center justify-between p-3">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-10 h-10">
+                                <AvatarImage src={member.avatar_url || undefined} />
+                                <AvatarFallback className="bg-muted text-muted-foreground font-bold">
+                                  {member.full_name ? member.full_name.substring(0, 2).toUpperCase() : "?"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">{member.full_name}</p>
+                                <p className="text-sm text-muted-foreground">{member.email}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="secondary">{member.role}</Badge>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeTeamMember(member.user_id)}
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4">
+                <Label>Social Media Links</Label>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin" className="flex items-center gap-2 text-sm">
+                    <Linkedin className="w-4 h-4" />
+                    LinkedIn
+                  </Label>
+                  <Input
+                    id="linkedin"
+                    type="url"
+                    value={formData.linkedin_url}
+                    onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
+                    placeholder="https://linkedin.com/company/..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="twitter" className="flex items-center gap-2 text-sm">
+                    <Twitter className="w-4 h-4" />
+                    Twitter / X
+                  </Label>
+                  <Input
+                    id="twitter"
+                    type="url"
+                    value={formData.twitter_url}
+                    onChange={(e) => setFormData({ ...formData, twitter_url: e.target.value })}
+                    placeholder="https://twitter.com/..."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="instagram" className="flex items-center gap-2 text-sm">
+                    <Instagram className="w-4 h-4" />
+                    Instagram
+                  </Label>
+                  <Input
+                    id="instagram"
+                    type="url"
+                    value={formData.instagram_url}
+                    onChange={(e) => setFormData({ ...formData, instagram_url: e.target.value })}
+                    placeholder="https://instagram.com/..."
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Review & Create */}
+          {currentStep === 3 && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-semibold mb-2">Review Company Details</h3>
+                <p className="text-sm text-muted-foreground">Please review before creating</p>
+              </div>
+
+              <Card className="overflow-hidden border-2">
+                {coverPreview && (
+                  <div className="h-32 bg-gradient-to-r from-primary/20 to-primary/10 relative">
+                    <img src={coverPreview} alt="Cover" className="w-full h-full object-cover" />
+                  </div>
+                )}
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4 mb-6">
+                    <Avatar className="w-16 h-16 border-4 border-background -mt-12 relative z-10">
+                      <AvatarImage src={logoPreview} />
+                      <AvatarFallback className="text-xl font-bold bg-gradient-to-br from-primary to-primary/50">
+                        {formData.name ? formData.name.substring(0, 2).toUpperCase() : "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <h4 className="text-xl font-bold">{formData.name}</h4>
+                      {formData.tagline && (
+                        <p className="text-sm text-muted-foreground mt-1">{formData.tagline}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {formData.description && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Description</Label>
+                        <p className="text-sm mt-1">{formData.description}</p>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-4">
+                      {formData.industry && (
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Industry</Label>
+                          <p className="text-sm mt-1">{formData.industry}</p>
+                        </div>
+                      )}
+                      {formData.company_size && (
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Size</Label>
+                          <p className="text-sm mt-1">{formData.company_size}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {formData.headquarters_location && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Location</Label>
+                        <p className="text-sm mt-1">{formData.headquarters_location}</p>
+                      </div>
+                    )}
+
+                    {(formData.website_url || formData.linkedin_url || formData.twitter_url || formData.instagram_url) && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-2 block">Links</Label>
+                        <div className="flex flex-wrap gap-2">
+                          {formData.website_url && (
+                            <Badge variant="outline" className="gap-1">
+                              <Globe className="w-3 h-3" />
+                              Website
+                            </Badge>
+                          )}
+                          {formData.linkedin_url && (
+                            <Badge variant="outline" className="gap-1">
+                              <Linkedin className="w-3 h-3" />
+                              LinkedIn
+                            </Badge>
+                          )}
+                          {formData.twitter_url && (
+                            <Badge variant="outline" className="gap-1">
+                              <Twitter className="w-3 h-3" />
+                              Twitter
+                            </Badge>
+                          )}
+                          {formData.instagram_url && (
+                            <Badge variant="outline" className="gap-1">
+                              <Instagram className="w-3 h-3" />
+                              Instagram
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {teamMembers.length > 0 && (
+                      <div>
+                        <Label className="text-xs text-muted-foreground mb-2 block">
+                          Team Members ({teamMembers.length})
+                        </Label>
+                        <div className="flex -space-x-2">
+                          {teamMembers.slice(0, 5).map((member) => (
+                            <Avatar key={member.user_id} className="w-8 h-8 border-2 border-background">
+                              <AvatarImage src={member.avatar_url || undefined} />
+                              <AvatarFallback className="text-xs">
+                                {member.full_name ? member.full_name.substring(0, 2).toUpperCase() : "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {teamMembers.length > 5 && (
+                            <div className="w-8 h-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-semibold">
+                              +{teamMembers.length - 5}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+        </ScrollArea>
+
+        {/* Navigation Footer */}
+        <div className="flex items-center justify-between pt-4 border-t">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
+            disabled={currentStep === 0 || loading}
+          >
+            Back
+          </Button>
+          
+          <div className="flex gap-2">
+            {currentStep < steps.length - 1 ? (
+              <Button
+                onClick={() => setCurrentStep(currentStep + 1)}
+                disabled={!canProceed()}
+                className="gap-2"
+              >
+                Next
+                <CheckCircle2 className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSubmit}
+                disabled={loading || !canProceed()}
+                className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4" />
+                    Create Company
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
