@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialog";
 import { CompanyMembersStack } from "@/components/companies/CompanyMembersStack";
+import { CompanyActivityPreview } from "@/components/companies/CompanyActivityPreview";
 import { AddCompanyDialog } from "@/components/companies/AddCompanyDialog";
 import { useRole } from "@/contexts/RoleContext";
 
@@ -426,6 +427,9 @@ export default function Companies() {
                   onOpenChange={() => toggleExpanded(company.id)}
                 >
                   <Card className="border-2 hover:border-primary transition-all hover-scale relative overflow-hidden group">
+                    {/* Activity Preview Widget */}
+                    <CompanyActivityPreview companyId={company.id} />
+                    
                     {/* Cover Image Background - Subtle effect */}
                     {company.cover_image_url && (
                       <div 

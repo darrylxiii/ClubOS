@@ -643,8 +643,12 @@ export default function CompanyPage() {
               </CardContent>
             </Card>
           )}
+            {/* Updates Tab - Latest Activity */}
+            <TabsContent value="updates">
+              <CompanyLatestActivity companyId={company.id} isCompanyMember={isCompanyMember} />
+            </TabsContent>
+          </Tabs>
         </div>
-      </div>
 
       {/* Edit Company Dialog */}
       {company && (
