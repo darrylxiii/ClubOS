@@ -92,15 +92,16 @@ export const MessageComposer = ({
   };
 
   return (
-    <div className="border-t border-border/50 glass-strong p-4 shadow-glass-lg">
+    <div className="border-t border-border/30 glass-strong backdrop-blur-2xl p-4 shadow-glass-lg">
       {attachment && (
-        <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-          <Paperclip className="h-4 w-4" />
-          <span className="truncate">{attachment.name}</span>
+        <div className="mb-3 flex items-center gap-2.5 text-sm font-medium glass-subtle p-3 rounded-xl border border-border/30 shadow-glass-sm">
+          <Paperclip className="h-4 w-4 text-primary" />
+          <span className="truncate text-foreground">{attachment.name}</span>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setAttachment(null)}
+            className="ml-auto hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors"
           >
             Remove
           </Button>
@@ -121,7 +122,7 @@ export const MessageComposer = ({
           size="icon"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || sending}
-          className="flex-shrink-0 hover:bg-accent/50"
+          className="flex-shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary hover:scale-110 transition-all duration-200 shadow-glass-sm"
           title="Attach file"
         >
           <Paperclip className="h-5 w-5" />
@@ -142,7 +143,7 @@ export const MessageComposer = ({
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
           disabled={disabled || sending}
-          className="min-h-[44px] max-h-32 resize-none glass-subtle border-border/50 focus:shadow-glass-md transition-shadow"
+          className="min-h-[48px] max-h-32 resize-none glass-strong backdrop-blur-xl border-border/30 rounded-2xl focus:shadow-glass-md focus:border-primary/30 transition-all font-medium text-base px-4 py-3"
           rows={1}
         />
 
@@ -150,7 +151,7 @@ export const MessageComposer = ({
           onClick={handleSend}
           disabled={disabled || sending || (!message.trim() && !attachment)}
           size="icon"
-          className="flex-shrink-0 bg-gradient-accent shadow-glass-md hover:shadow-glow transition-all"
+          className="flex-shrink-0 h-12 w-12 rounded-2xl bg-gradient-accent shadow-glass-md hover:shadow-glow hover:scale-110 transition-all duration-200"
         >
           {sending ? (
             <Loader2 className="h-5 w-5 animate-spin" />
@@ -160,7 +161,7 @@ export const MessageComposer = ({
         </Button>
       </div>
 
-      <p className="text-xs text-muted-foreground mt-2">
+      <p className="text-xs font-medium text-muted-foreground/70 mt-2.5 px-1">
         Press Enter to send, Shift+Enter for new line
       </p>
     </div>

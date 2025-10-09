@@ -71,9 +71,9 @@ export const MessageBubble = ({
       )}
     >
       {message.pinned_at && (
-        <div className="absolute -top-4 left-0 flex items-center gap-1 text-xs text-muted-foreground">
+        <div className="absolute -top-5 left-0 flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20 shadow-glass-sm">
           <Pin className="h-3 w-3" />
-          <span>Pinned</span>
+          <span>Pinned Message</span>
         </div>
       )}
 
@@ -82,23 +82,23 @@ export const MessageBubble = ({
         <HoverCardTrigger asChild>
           <div className="relative">
             <Avatar 
-              className="h-10 w-10 cursor-pointer shadow-glass-sm ring-2 ring-background hover:ring-primary/50 transition-all"
+              className="h-11 w-11 cursor-pointer shadow-glass-md ring-2 ring-background hover:ring-primary/60 hover:scale-105 transition-all duration-200"
               onClick={() => navigate(`/profile/${message.sender_id}`)}
             >
-              <AvatarImage src={message.sender?.avatar_url || undefined} />
-              <AvatarFallback className="bg-gradient-accent text-white">
+              <AvatarImage src={message.sender?.avatar_url || undefined} className="object-cover" />
+              <AvatarFallback className="bg-gradient-accent text-white font-semibold text-base">
                 {initials}
               </AvatarFallback>
             </Avatar>
             {!isCurrentUser && (
               <OnlineStatusIndicator 
                 userId={message.sender_id} 
-                className="absolute bottom-0 right-0"
+                className="absolute bottom-0 right-0 ring-2 ring-background"
               />
             )}
           </div>
         </HoverCardTrigger>
-        <HoverCardContent side="left" className="w-80 glass-card p-0">
+        <HoverCardContent side="left" className="w-80 glass-card p-0 border-primary/20">
           <UserProfilePreview userId={message.sender_id} />
         </HoverCardContent>
       </HoverCard>
@@ -106,37 +106,38 @@ export const MessageBubble = ({
       {/* Message Content & Actions */}
       <div className="flex flex-col max-w-lg">
         {!isCurrentUser && isGroup && (
-          <span className="text-xs font-medium mb-1 px-2 text-muted-foreground hover:text-accent transition-colors cursor-pointer"
+          <span className="text-xs font-semibold mb-1.5 px-3 text-foreground/80 hover:text-primary transition-colors cursor-pointer"
             onClick={() => navigate(`/profile/${message.sender_id}`)}>
             {senderName}
           </span>
         )}
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <div
             className={cn(
-              "rounded-2xl px-4 py-2 max-w-md glass-card shadow-glass-sm",
+              "rounded-2xl px-4 py-3 max-w-md shadow-glass-md backdrop-blur-xl transition-all duration-200",
+              "hover:shadow-glass-lg hover:scale-[1.01]",
               isCurrentUser
-                ? "bg-gradient-accent text-white"
-                : "glass-subtle"
+                ? "bg-gradient-to-br from-primary via-primary to-primary/90 text-white font-medium shadow-glow"
+                : "glass-strong border border-border/50 text-foreground"
             )}
           >
             {renderContent()}
 
             {/* Read receipt for current user */}
             {isCurrentUser && (
-              <div className="flex items-center justify-end gap-1 mt-1">
+              <div className="flex items-center justify-end gap-1 mt-1.5">
                 {message.is_read ? (
-                  <CheckCheck className="h-3 w-3 text-primary" />
+                  <CheckCheck className="h-3.5 w-3.5 text-white/90" />
                 ) : (
-                  <Check className="h-3 w-3 text-muted-foreground" />
+                  <Check className="h-3.5 w-3.5 text-white/60" />
                 )}
               </div>
             )}
 
             {/* Image/Video attachments */}
             {message.attachments && message.attachments.length > 0 && (
-              <div className="mt-2 space-y-2">
+              <div className="mt-3 space-y-2">
                 {message.attachments.map((attachment) => {
                   if (attachment.file_type.startsWith('image/')) {
                     return (
@@ -145,12 +146,12 @@ export const MessageBubble = ({
                         href={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block"
+                        className="block rounded-xl overflow-hidden shadow-glass-md hover:shadow-glass-lg transition-shadow"
                       >
                         <img
                           src={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
                           alt={attachment.file_name}
-                          className="max-w-xs rounded-lg"
+                          className="max-w-xs rounded-xl hover:scale-105 transition-transform duration-300"
                         />
                       </a>
                     );
@@ -161,7 +162,7 @@ export const MessageBubble = ({
                       href={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm underline hover:no-underline"
+                      className="text-sm font-medium underline hover:no-underline text-primary transition-colors"
                     >
                       {attachment.file_name}
                     </a>
@@ -177,13 +178,13 @@ export const MessageBubble = ({
 
         {/* Actions & Timestamp */}
         <div className={cn(
-          "flex items-center gap-2 mt-1 px-2",
+          "flex items-center gap-2 mt-1.5 px-2",
           isCurrentUser && "flex-row-reverse"
         )}>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs font-medium text-muted-foreground/80">
             {format(new Date(message.created_at), "HH:mm")}
           </span>
-          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="opacity-0 group-hover:opacity-100 transition-all duration-200">
             <MessageActions 
               message={message as any}
               isOwnMessage={isCurrentUser}
