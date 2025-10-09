@@ -155,11 +155,8 @@ export function UnifiedUserManagement() {
       const targetUserId = editingUser.id;
       const oldRoles = editingUser.roles;
 
-      // Ensure partner role is included if admin is selected
-      let finalRoles = [...selectedRoles];
-      if (finalRoles.includes('admin') && !finalRoles.includes('partner')) {
-        finalRoles.push('partner');
-      }
+      // Use exactly the roles selected by admin
+      const finalRoles = [...selectedRoles];
 
       console.log('[UnifiedUserManagement] Updating roles for user:', targetUserId, 'New roles:', finalRoles);
 
@@ -239,7 +236,7 @@ export function UnifiedUserManagement() {
         user_id: targetUserId,
         changed_by: user.id,
         old_roles: oldRoles,
-        new_roles: selectedRoles,
+        new_roles: finalRoles, // Use finalRoles instead of selectedRoles
         change_type: 'bulk_update',
         metadata: {
           timestamp: new Date().toISOString(),
@@ -281,13 +278,8 @@ export function UnifiedUserManagement() {
         // Removing a role
         return prev.filter(r => r !== role);
       } else {
-        // Adding a role
-        const newRoles = [...prev, role];
-        // If adding admin, automatically add partner too
-        if (role === 'admin' && !newRoles.includes('partner')) {
-          newRoles.push('partner');
-        }
-        return newRoles;
+        // Adding a role - admin chooses exactly what roles to assign
+        return [...prev, role];
       }
     });
   };
@@ -495,6 +487,9 @@ export function UnifiedUserManagement() {
               {/* Roles Section */}
               <div className="space-y-3">
                 <Label className="text-base font-semibold">System Roles</Label>
+                <p className="text-sm text-muted-foreground">
+                  Select exactly which roles this user should have. Each role must be explicitly chosen - no automatic assignments.
+                </p>
                 {AVAILABLE_ROLES.map((role) => (
                   <div key={role.value} className="flex items-start space-x-3">
                     <Checkbox
