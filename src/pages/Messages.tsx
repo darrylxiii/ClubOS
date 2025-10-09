@@ -151,67 +151,17 @@ export default function Messages() {
       </div>
 
       {/* Main Chat Panel */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {selectedConversationId && selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 border-b border-border/30 glass-strong backdrop-blur-2xl px-6 flex items-center justify-between shadow-glass-md">
-              <div className="flex items-center gap-3.5">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden hover:bg-accent/50 rounded-xl"
-                  onClick={() => setShowMobileSidebar(true)}
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <Avatar className="h-11 w-11 ring-2 ring-background shadow-glass-md hover:ring-primary/60 transition-all">
-                  <AvatarImage 
-                    src={
-                      isGroup 
-                        ? selectedConversation.metadata?.group_avatar 
-                        : selectedConversation.participants?.[0]?.profile?.avatar_url || undefined
-                    }
-                    className="object-cover"
-                  />
-                  <AvatarFallback className="bg-gradient-accent text-white font-semibold">
-                    {isGroup ? <Users className="h-5 w-5" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-bold text-base">{selectedConversation.title}</h3>
-                  {isGroup && (
-                    <p className="text-xs font-medium text-muted-foreground/80">
-                      {selectedConversation.metadata?.participant_count || 0} members
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-1.5">
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary rounded-xl transition-all duration-200 hover:scale-110">
-                  <Phone className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary rounded-xl transition-all duration-200 hover:scale-110">
-                  <Video className="h-5 w-5" />
-                </Button>
-                <Button 
-                  variant={showGroupInfo ? "default" : "ghost"}
-                  size="icon" 
-                  onClick={() => setShowGroupInfo(!showGroupInfo)}
-                  className={cn(
-                    "transition-all duration-200 rounded-xl hover:scale-110",
-                    showGroupInfo ? "bg-gradient-accent text-white shadow-glow" : "hover:bg-primary/10 hover:text-primary"
-                  )}
-                  title={showGroupInfo ? "Hide Info" : "Show Info"}
-                >
-                  <Info className="h-5 w-5" />
-                </Button>
-              </div>
+            <div className="h-16 border-b border-border/30 glass-strong backdrop-blur-2xl px-6 flex items-center justify-between shadow-glass-md flex-shrink-0">
+...
             </div>
 
             {/* Messages Area */}
-            <ScrollArea className="flex-1 p-6 bg-gradient-to-b from-background/80 via-background/70 to-primary/5 backdrop-blur-sm">
-              <div className="space-y-4">
+            <ScrollArea className="flex-1 p-6 bg-gradient-to-b from-background/80 via-background/70 to-primary/5 backdrop-blur-sm overflow-y-auto">
+              <div className="space-y-4 pb-4">
                 {messages.map((msg) => (
                   <MessageBubble 
                     key={msg.id} 
@@ -225,13 +175,15 @@ export default function Messages() {
               </div>
             </ScrollArea>
 
-            {/* Message Composer */}
-            <MessageComposer 
-              conversationId={selectedConversationId} 
-              onSend={handleSendMessage} 
-              onTyping={broadcastTyping} 
-              disabled={sending} 
-            />
+            {/* Message Composer - Sticky at bottom */}
+            <div className="sticky bottom-0 flex-shrink-0 z-10">
+              <MessageComposer 
+                conversationId={selectedConversationId} 
+                onSend={handleSendMessage} 
+                onTyping={broadcastTyping} 
+                disabled={sending} 
+              />
+            </div>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">

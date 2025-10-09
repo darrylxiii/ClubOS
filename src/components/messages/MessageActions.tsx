@@ -18,7 +18,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreVertical, Edit3, Trash2, MessageSquare, Languages } from 'lucide-react';
+import { MoreHorizontal, Edit3, Trash2, MessageSquare, Languages } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MessageActionsProps {
@@ -83,8 +83,8 @@ export function MessageActions({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100">
-            <MoreVertical className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-8 w-8 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-primary/10 transition-all duration-200">
+            <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">

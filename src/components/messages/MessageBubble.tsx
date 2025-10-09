@@ -4,8 +4,6 @@ import { format } from "date-fns";
 import { Check, CheckCheck, Volume2, Pin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
-import { UserProfilePreview } from "@/components/UserProfilePreview";
 import { MessageActions } from "./MessageActions";
 import { MessageReactionsDisplay } from "./MessageReactionsDisplay";
 import { OnlineStatusIndicator } from "./OnlineStatusIndicator";
@@ -78,30 +76,23 @@ export const MessageBubble = ({
       )}
 
       {/* Avatar with online status */}
-      <HoverCard openDelay={200}>
-        <HoverCardTrigger asChild>
-          <div className="relative">
-            <Avatar 
-              className="h-11 w-11 cursor-pointer shadow-glass-md ring-2 ring-background hover:ring-primary/60 hover:scale-105 transition-all duration-200"
-              onClick={() => navigate(`/profile/${message.sender_id}`)}
-            >
-              <AvatarImage src={message.sender?.avatar_url || undefined} className="object-cover" />
-              <AvatarFallback className="bg-gradient-accent text-white font-semibold text-base">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            {!isCurrentUser && (
-              <OnlineStatusIndicator 
-                userId={message.sender_id} 
-                className="absolute bottom-0 right-0 ring-2 ring-background"
-              />
-            )}
-          </div>
-        </HoverCardTrigger>
-        <HoverCardContent side="left" className="w-80 glass-card p-0 border-primary/20">
-          <UserProfilePreview userId={message.sender_id} />
-        </HoverCardContent>
-      </HoverCard>
+      <div className="relative">
+        <Avatar 
+          className="h-11 w-11 cursor-pointer shadow-glass-md ring-2 ring-background hover:ring-primary/60 hover:scale-105 transition-all duration-200"
+          onClick={() => navigate(`/profile/${message.sender_id}`)}
+        >
+          <AvatarImage src={message.sender?.avatar_url || undefined} className="object-cover" />
+          <AvatarFallback className="bg-gradient-accent text-white font-semibold text-base">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        {!isCurrentUser && (
+          <OnlineStatusIndicator 
+            userId={message.sender_id} 
+            className="absolute bottom-0 right-0 ring-2 ring-background"
+          />
+        )}
+      </div>
 
       {/* Message Content & Actions */}
       <div className="flex flex-col max-w-lg">
@@ -112,68 +103,72 @@ export const MessageBubble = ({
           </span>
         )}
 
-        <div className="flex flex-col gap-1.5">
-          <div
-            className={cn(
-              "rounded-2xl px-4 py-3 max-w-md shadow-glass-md backdrop-blur-xl transition-all duration-200",
-              "hover:shadow-glass-lg hover:scale-[1.01]",
-              isCurrentUser
-                ? "bg-gradient-to-br from-primary via-primary to-primary/90 text-white font-medium shadow-glow"
-                : "glass-strong border border-border/50 text-foreground"
-            )}
-          >
-            {renderContent()}
+        <div className="flex flex-col gap-1.5 relative">
+          <div className="flex items-end gap-2">
+            <div
+              className={cn(
+                "rounded-2xl px-4 py-3 max-w-md shadow-glass-md backdrop-blur-xl transition-all duration-200",
+                "hover:shadow-glass-lg hover:scale-[1.01]",
+                isCurrentUser
+                  ? "bg-gradient-to-br from-primary via-primary to-primary/90 text-white font-medium shadow-glow"
+                  : "glass-strong border border-border/50 text-foreground"
+              )}
+            >
+              {renderContent()}
 
-            {/* Read receipt for current user */}
-            {isCurrentUser && (
-              <div className="flex items-center justify-end gap-1 mt-1.5">
-                {message.is_read ? (
-                  <CheckCheck className="h-3.5 w-3.5 text-white/90" />
-                ) : (
-                  <Check className="h-3.5 w-3.5 text-white/60" />
-                )}
-              </div>
-            )}
+              {/* Read receipt for current user */}
+              {isCurrentUser && (
+                <div className="flex items-center justify-end gap-1 mt-1.5">
+                  {message.is_read ? (
+                    <CheckCheck className="h-3.5 w-3.5 text-white/90" />
+                  ) : (
+                    <Check className="h-3.5 w-3.5 text-white/60" />
+                  )}
+                </div>
+              )}
 
-            {/* Image/Video attachments */}
-            {message.attachments && message.attachments.length > 0 && (
-              <div className="mt-3 space-y-2">
-                {message.attachments.map((attachment) => {
-                  if (attachment.file_type.startsWith('image/')) {
+              {/* Image/Video attachments */}
+              {message.attachments && message.attachments.length > 0 && (
+                <div className="mt-3 space-y-2">
+                  {message.attachments.map((attachment) => {
+                    if (attachment.file_type.startsWith('image/')) {
+                      return (
+                        <a
+                          key={attachment.id}
+                          href={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block rounded-xl overflow-hidden shadow-glass-md hover:shadow-glass-lg transition-shadow"
+                        >
+                          <img
+                            src={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
+                            alt={attachment.file_name}
+                            className="max-w-xs rounded-xl hover:scale-105 transition-transform duration-300"
+                          />
+                        </a>
+                      );
+                    }
                     return (
                       <a
                         key={attachment.id}
                         href={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="block rounded-xl overflow-hidden shadow-glass-md hover:shadow-glass-lg transition-shadow"
+                        className="text-sm font-medium underline hover:no-underline text-primary transition-colors"
                       >
-                        <img
-                          src={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
-                          alt={attachment.file_name}
-                          className="max-w-xs rounded-xl hover:scale-105 transition-transform duration-300"
-                        />
+                        {attachment.file_name}
                       </a>
                     );
-                  }
-                  return (
-                    <a
-                      key={attachment.id}
-                      href={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm font-medium underline hover:no-underline text-primary transition-colors"
-                    >
-                      {attachment.file_name}
-                    </a>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+                  })}
+                </div>
+              )}
+            </div>
 
-          {/* Reactions */}
-          <MessageReactionsDisplay messageId={message.id} />
+            {/* Reactions inline with message */}
+            <div className={cn("flex-shrink-0 mb-1", isCurrentUser && "order-first")}>
+              <MessageReactionsDisplay messageId={message.id} />
+            </div>
+          </div>
         </div>
 
         {/* Actions & Timestamp */}

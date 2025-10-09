@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
+import { cn } from "@/lib/utils";
 
 interface Reaction {
   id: string;
@@ -102,17 +103,17 @@ export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayPr
       <EnhancedEmojiPicker onSelect={handleAddReaction}>
         <Button
           variant="ghost"
-          size="sm"
-          className="h-6 px-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+          size="icon"
+          className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-accent/50 shadow-glass-sm"
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="h-4 w-4" />
         </Button>
       </EnhancedEmojiPicker>
     );
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1 mt-1">
+    <div className="flex flex-col items-center gap-1">
       {Object.entries(groupedReactions).map(([emoji, reactionList]) => {
         const hasReacted = reactionList.some((r) => r.user_id === user?.id);
         return (
@@ -122,19 +123,22 @@ export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayPr
                 variant="ghost"
                 size="sm"
                 onClick={() => handleAddReaction(emoji)}
-                className={`h-6 px-2 text-xs gap-1 hover:scale-110 transition-all ${
-                  hasReacted ? 'bg-primary/20 ring-1 ring-primary/50' : 'bg-accent/50'
-                }`}
+                className={cn(
+                  "h-7 w-7 p-0 rounded-full text-sm hover:scale-125 transition-all shadow-glass-sm",
+                  hasReacted ? 'bg-primary/20 ring-2 ring-primary/50 shadow-glow' : 'bg-accent/50 hover:bg-accent/70'
+                )}
               >
-                <span>{emoji}</span>
-                <span className="text-xs">{reactionList.length}</span>
+                <span className="text-base">{emoji}</span>
+                <span className="absolute -top-1 -right-1 text-[10px] font-bold bg-background rounded-full w-4 h-4 flex items-center justify-center border border-border/50">
+                  {reactionList.length}
+                </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-2 glass-card" align="center">
-              <div className="text-xs space-y-1">
+            <PopoverContent className="w-auto p-2 glass-card border-primary/20" align="center" side="left">
+              <div className="text-xs space-y-1 font-medium">
                 {reactionList.map((r) => (
-                  <div key={r.id} className="text-muted-foreground">
-                    {r.user_id === user?.id ? "You" : "Someone"} reacted with {emoji}
+                  <div key={r.id} className="text-foreground/80">
+                    {r.user_id === user?.id ? "You" : "Someone"} reacted {emoji}
                   </div>
                 ))}
               </div>
@@ -145,10 +149,10 @@ export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayPr
       <EnhancedEmojiPicker onSelect={handleAddReaction}>
         <Button
           variant="ghost"
-          size="sm"
-          className="h-6 px-2 text-xs hover:scale-110 transition-all"
+          size="icon"
+          className="h-7 w-7 rounded-full hover:scale-125 transition-all hover:bg-accent/70 shadow-glass-sm"
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="h-3.5 w-3.5" />
         </Button>
       </EnhancedEmojiPicker>
     </div>
