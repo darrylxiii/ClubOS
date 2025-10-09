@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ConversationListItemProps {
   conversation: {
@@ -15,6 +16,7 @@ interface ConversationListItemProps {
       participant_count?: number;
     };
     participants?: Array<{
+      user_id: string;
       profile: {
         full_name: string | null;
         avatar_url: string | null;
@@ -37,16 +39,21 @@ export const ConversationListItem = ({
   isSelected,
   onClick,
 }: ConversationListItemProps) => {
+  const { user } = useAuth();
   const isGroup = conversation.metadata?.is_group;
-  const participant = conversation.participants?.[0];
+  
+  // Filter out current user to show the OTHER person in 1:1 chats
+  const otherParticipant = conversation.participants?.find(
+    p => p.user_id !== user?.id
+  );
   
   const displayName = isGroup 
     ? conversation.title 
-    : participant?.profile?.full_name || "Unknown User";
+    : otherParticipant?.profile?.full_name || "Unknown User";
     
   const avatarUrl = isGroup 
     ? conversation.metadata?.group_avatar 
-    : participant?.profile?.avatar_url;
+    : otherParticipant?.profile?.avatar_url;
 
   const initials = displayName
     .split(" ")
