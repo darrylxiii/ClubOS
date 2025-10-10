@@ -78,10 +78,10 @@ export const ConversationListItem = ({
       )}
     >
       <div className="relative flex-shrink-0">
-        <Avatar className="h-13 w-13 ring-2 ring-background shadow-glass-md hover:ring-primary/60 transition-all">
+        <Avatar className="h-12 w-12 ring-2 ring-background shadow-glass-md hover:ring-primary/60 transition-all">
           <AvatarImage src={avatarUrl || undefined} alt={displayName} className="object-cover" />
-          <AvatarFallback className="bg-gradient-accent text-white font-semibold text-base">
-            {isGroup ? <Users className="h-5 w-5" /> : initials}
+          <AvatarFallback className="bg-gradient-accent text-white font-semibold text-sm">
+            {isGroup ? <Users className="h-4 w-4" /> : initials}
           </AvatarFallback>
         </Avatar>
         {!isGroup && otherParticipant && (

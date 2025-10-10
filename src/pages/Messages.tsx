@@ -167,7 +167,7 @@ export default function Messages() {
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <Avatar className="h-11 w-11 ring-2 ring-background shadow-glass-md hover:ring-primary/60 transition-all">
+                <Avatar className="h-10 w-10 ring-2 ring-background shadow-glass-md hover:ring-primary/60 transition-all">
                   <AvatarImage 
                     src={
                       isGroup 
@@ -176,8 +176,8 @@ export default function Messages() {
                     }
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-gradient-accent text-white font-semibold">
-                    {isGroup ? <Users className="h-5 w-5" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
+                  <AvatarFallback className="bg-gradient-accent text-white font-semibold text-sm">
+                    {isGroup ? <Users className="h-4 w-4" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>

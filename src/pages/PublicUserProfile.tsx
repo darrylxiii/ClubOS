@@ -71,9 +71,6 @@ export default function PublicUserProfile() {
   });
   const [meetingType, setMeetingType] = useState<string>();
   const [exportType, setExportType] = useState<string>();
-  const [editHistory, setEditHistory] = useState<any[]>([]);
-  const [isEditMode, setIsEditMode] = useState(false);
-  
   const isOwnProfile = user?.id === userId;
 
   // Track profile visit
@@ -194,49 +191,6 @@ export default function PublicUserProfile() {
     handleDialogClose(dialog);
   };
 
-  const handleProfileUpdate = useCallback(async (field: string, value: string, visibility?: string) => {
-    try {
-      const updates: any = { [field]: value };
-      
-      const { error } = await supabase
-        .from("profiles")
-        .update(updates)
-        .eq("id", userId);
-
-      if (error) throw error;
-
-      // Log edit to history
-      const newEdit = {
-        id: Date.now().toString(),
-        timestamp: new Date(),
-        user: user?.email || "You",
-        field,
-        oldValue: (profile as any)?.[field] || "",
-        newValue: value,
-        visibility,
-      };
-      
-      setEditHistory(prev => [newEdit, ...prev]);
-
-      // Update local profile state directly instead of reloading
-      setProfile(prev => prev ? { ...prev, [field]: value } : null);
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      throw error;
-    }
-  }, [userId, user?.email, profile]);
-
-  const handleRestoreEdit = useCallback(async (editId: string) => {
-    const edit = editHistory.find(e => e.id === editId);
-    if (!edit) return;
-
-    try {
-      await handleProfileUpdate(edit.field, edit.oldValue);
-      toast.success("Restored previous version");
-    } catch (error) {
-      toast.error("Failed to restore");
-    }
-  }, [editHistory, handleProfileUpdate]);
 
   if (loading) {
     return (
@@ -288,30 +242,14 @@ export default function PublicUserProfile() {
             </Button>
 
             {isOwnProfile && (
-              <div className="flex items-center gap-2">
-                <ProfileHeaderUpload 
-                  currentMediaUrl={profile?.header_media_url}
-                  currentMediaType={profile?.header_media_type}
-                  onUploadComplete={loadProfile}
-                />
-                <ProfilePreview profile={profile!} achievements={achievements} />
-                <Button
-                  variant={isEditMode ? "default" : "outline"}
-                  onClick={() => setIsEditMode(!isEditMode)}
-                  className="gap-2"
-                >
-                  <Edit2 className="w-4 h-4" />
-                  {isEditMode ? "Preview Mode" : "Edit Mode"}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => navigate('/user-settings')}
-                  className="gap-2"
-                >
-                  <Settings className="w-4 h-4" />
-                  Account Settings
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/profile')}
+                className="gap-2"
+              >
+                <Edit2 className="w-4 h-4" />
+                Edit Profile
+              </Button>
             )}
           </div>
         </div>
@@ -353,17 +291,7 @@ export default function PublicUserProfile() {
                 <div className="flex-1 space-y-4">
                   <div>
                     <div className="flex items-center gap-3 mb-2">
-                      {isOwnProfile && isEditMode ? (
-                        <InlineEdit
-                          value={profile.full_name}
-                          onSave={(value) => handleProfileUpdate("full_name", value)}
-                          placeholder="Your name"
-                          className="text-4xl font-black uppercase"
-                          label="Full Name"
-                        />
-                      ) : (
-                        <h1 className="text-4xl font-black uppercase">{profile.full_name}</h1>
-                      )}
+                      <h1 className="text-4xl font-black uppercase">{profile.full_name}</h1>
                       {profile.email_verified && (
                         <Badge variant="secondary" className="gap-1">
                           <CheckCircle2 className="w-3 h-3" />
@@ -371,38 +299,21 @@ export default function PublicUserProfile() {
                         </Badge>
                       )}
                     </div>
-                    {isOwnProfile && isEditMode ? (
-                      <InlineEdit
-                        value={profile.current_title || ""}
-                        onSave={(value) => handleProfileUpdate("current_title", value)}
-                        placeholder="Your professional title"
-                        className="text-lg text-muted-foreground"
-                        label="Professional Title"
-                        showPrivacy
-                        currentVisibility="public"
-                      />
-                    ) : profile.current_title ? (
+                    {profile.current_title && (
                       <p className="text-lg text-muted-foreground flex items-center gap-2">
                         <Briefcase className="w-4 h-4" />
                         {profile.current_title}
                       </p>
-                    ) : null}
+                    )}
                   </div>
 
                   <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                    {isOwnProfile && isEditMode ? (
-                      <InlineEdit
-                        value={profile.location || ""}
-                        onSave={(value) => handleProfileUpdate("location", value)}
-                        placeholder="Your location"
-                        label="Location"
-                      />
-                    ) : profile.location ? (
+                    {profile.location && (
                       <div className="flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
                         {profile.location}
                       </div>
-                    ) : null}
+                    )}
                     <div className="flex items-center gap-1">
                       <Calendar className="w-4 h-4" />
                       Member since {new Date(profile.created_at).getFullYear()}
@@ -443,7 +354,7 @@ export default function PublicUserProfile() {
           )}
 
           {/* Career Preferences */}
-          {(profile.career_preferences || (isOwnProfile && isEditMode)) && (
+          {profile.career_preferences && (
             <Card className="border-2 border-foreground">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -452,32 +363,11 @@ export default function PublicUserProfile() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                {isOwnProfile && isEditMode ? (
-                  <InlineEdit
-                    value={profile.career_preferences || ""}
-                    onSave={(value) => handleProfileUpdate("career_preferences", value)}
-                    placeholder="Describe your career interests, goals, and what you're looking for..."
-                    type="textarea"
-                    label="Career Preferences"
-                    showPrivacy
-                    currentVisibility="public"
-                    aiSuggestion="I'm passionate about building innovative products that solve real problems. Looking for opportunities in tech leadership where I can mentor teams and drive strategic growth."
-                  />
-                ) : (
-                  <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                    {profile.career_preferences}
-                  </p>
-                )}
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                  {profile.career_preferences}
+                </p>
               </CardContent>
             </Card>
-          )}
-
-          {/* Edit History - Only for own profile */}
-          {isOwnProfile && editHistory.length > 0 && (
-            <ProfileAuditTrail
-              edits={editHistory}
-              onRestore={handleRestoreEdit}
-            />
           )}
 
           {/* Achievements */}
