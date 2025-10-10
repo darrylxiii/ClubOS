@@ -16,24 +16,29 @@ import { SocialActivityFeed } from "@/components/profile/SocialActivityFeed";
 import { ChangeAvatarDialog } from "@/components/profile/ChangeAvatarDialog";
 import { ActivityTimeline } from "@/components/profile/ActivityTimeline";
 import { ProfileStats } from "@/components/profile/ProfileStats";
+import { ShareProfileDialog } from "@/components/profile/ShareProfileDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 interface EnhancedProfileProps {
   viewingUserId?: string;
+  isSharedView?: boolean;
 }
 
-export default function EnhancedProfile({ viewingUserId }: EnhancedProfileProps = {}) {
+export default function EnhancedProfile({ viewingUserId, isSharedView = false }: EnhancedProfileProps = {}) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   
   // Determine which user's profile to show
   const profileUserId = viewingUserId || user?.id;
-  const isOwnProfile = user?.id === profileUserId;
+  const isOwnProfile = !isSharedView && user?.id === profileUserId;
 
   useEffect(() => {
     loadProfile();
@@ -156,11 +161,19 @@ export default function EnhancedProfile({ viewingUserId }: EnhancedProfileProps 
                 </div>
                 {isOwnProfile && (
                   <div className="flex flex-col gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/profile/${user?.id}`)}
+                    >
                       <Eye className="w-4 h-4 mr-2" />
                       Preview
                     </Button>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShareDialogOpen(true)}
+                    >
                       <Share2 className="w-4 h-4 mr-2" />
                       Share
                     </Button>
@@ -332,13 +345,20 @@ export default function EnhancedProfile({ viewingUserId }: EnhancedProfileProps 
 
       {/* Change Avatar Dialog - Only for own profile */}
       {isOwnProfile && user && (
-        <ChangeAvatarDialog
-          open={avatarDialogOpen}
-          onClose={() => setAvatarDialogOpen(false)}
-          currentAvatarUrl={profile?.avatar_url}
-          userId={user.id}
-          onSuccess={loadProfile}
-        />
+        <>
+          <ChangeAvatarDialog
+            open={avatarDialogOpen}
+            onClose={() => setAvatarDialogOpen(false)}
+            currentAvatarUrl={profile?.avatar_url}
+            userId={user.id}
+            onSuccess={loadProfile}
+          />
+          <ShareProfileDialog
+            open={shareDialogOpen}
+            onClose={() => setShareDialogOpen(false)}
+            userId={user.id}
+          />
+        </>
       )}
     </AppLayout>
   );

@@ -17,6 +17,7 @@ import PartnerOnboarding from "./pages/PartnerOnboarding";
 import UserSettings from "./pages/UserSettings";
 import EnhancedProfile from "./pages/EnhancedProfile";
 import PublicUserProfile from "./pages/PublicUserProfile";
+import SharedProfile from "./pages/SharedProfile";
 import CandidateProfile from "./pages/CandidateProfile";
 import Referrals from "./pages/Referrals";
 import InterviewPrep from "./pages/InterviewPrep";
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/book/:slug" element={<BookingPage />} />
+            <Route path="/share/:token" element={<SharedProfile />} />
             <Route
               path="/home"
               element={

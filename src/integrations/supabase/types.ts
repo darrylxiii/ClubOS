@@ -4367,6 +4367,36 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_share_links: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          last_viewed_at: string | null
+          token: string
+          user_id: string
+          view_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          last_viewed_at?: string | null
+          token: string
+          user_id: string
+          view_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          last_viewed_at?: string | null
+          token?: string
+          user_id?: string
+          view_count?: number | null
+        }
+        Relationships: []
+      }
       profile_skills: {
         Row: {
           ai_verified: boolean | null
@@ -6475,6 +6505,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      generate_share_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       has_company_role: {
         Args: { _company_id: string; _role: string; _user_id: string }
         Returns: boolean
@@ -6492,6 +6526,10 @@ export type Database = {
       }
       log_achievement_event: {
         Args: { _event_data?: Json; _event_type: string; _user_id: string }
+        Returns: string
+      }
+      track_share_link_view: {
+        Args: { _token: string }
         Returns: string
       }
       update_relationship_score: {
