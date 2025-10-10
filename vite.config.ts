@@ -20,5 +20,15 @@ export default defineConfig(({ mode }) => ({
     modulePreload: {
       polyfill: true,
     },
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            return 'vendor';
+          }
+        },
+      },
+    },
+    cssMinify: true,
   },
 }));
