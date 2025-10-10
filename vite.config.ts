@@ -42,6 +42,20 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           if (id.includes('node_modules')) {
+            // Split large vendor libraries into separate chunks
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'react-vendor';
+            }
+            if (id.includes('@radix-ui')) {
+              return 'radix-vendor';
+            }
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'charts-vendor';
+            }
+            if (id.includes('@tanstack')) {
+              return 'query-vendor';
+            }
+            // Other vendors in separate chunk
             return 'vendor';
           }
         },
