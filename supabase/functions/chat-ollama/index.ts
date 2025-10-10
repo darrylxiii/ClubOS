@@ -1,9 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const chatSchema = z.object({
+  messages: z.array(z.object({
+    role: z.enum(['system', 'user', 'assistant']),
+    content: z.string().max(2000, 'Message content too long (max 2000 characters)')
+  })).min(1, 'At least one message required').max(50, 'Too many messages (max 50)'),
+  model: z.enum(['llama2', 'llama3', 'llama3.1', 'mistral', 'mixtral', 'codellama', 'phi'], {
+    errorMap: () => ({ message: 'Invalid model' })
+  }).optional().default('llama2')
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,7 +24,53 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, model = "llama2" } = await req.json();
+    // Authenticate user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('Authentication error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate input
+    const rawData = await req.json();
+    const validation = chatSchema.safeParse(rawData);
+    
+    if (!validation.success) {
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input',
+          details: validation.error.issues 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { messages, model } = validation.data;
+
+    // Log for audit trail
+    console.log('Chat request from user:', user.id, 'model:', model, 'messages:', messages.length);
     
     const OLLAMA_SERVER_URL = Deno.env.get('OLLAMA_SERVER_URL');
     if (!OLLAMA_SERVER_URL) {
