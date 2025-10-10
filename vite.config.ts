@@ -10,9 +10,14 @@ const deferCSSPlugin = (): Plugin => ({
   enforce: 'post',
   transformIndexHtml(html) {
     // Transform stylesheet links to use preload pattern for async loading
+    // This regex handles any attribute order
     return html.replace(
-      /<link\s+rel="stylesheet"\s+crossorigin\s+href="([^"]+\.css)"/g,
-      '<link rel="preload" as="style" href="$1" onload="this.onload=null;this.rel=\'stylesheet\'" crossorigin><noscript><link rel="stylesheet" crossorigin href="$1"></noscript>'
+      /<link\s+([^>]*?)rel="stylesheet"([^>]*?)href="([^"]+\.css)"([^>]*?)>/g,
+      (match, before, middle, href, after) => {
+        // Extract crossorigin attribute if present
+        const crossorigin = (before + middle + after).includes('crossorigin') ? ' crossorigin' : '';
+        return `<link rel="preload" as="style" href="${href}"${crossorigin} onload="this.onload=null;this.rel='stylesheet'"><noscript><link rel="stylesheet"${crossorigin} href="${href}"></noscript>`;
+      }
     );
   },
 });
