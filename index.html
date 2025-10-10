@@ -19,6 +19,9 @@
     <!-- Preload LCP image for faster rendering -->
     <link rel="preload" as="image" href="/assets/quantum-logo-EFuwv3wg.svg" fetchpriority="high">
     
+    <!-- Preload critical font to prevent layout shift -->
+    <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2" crossorigin>
+    
     <!-- Inline critical CSS hint for better performance -->
     <style>
       /* Critical above-the-fold styles */
