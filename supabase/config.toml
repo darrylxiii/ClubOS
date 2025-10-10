@@ -1,7 +1,7 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
 [functions.chat-ollama]
-verify_jwt = false
+verify_jwt = true
 
 [functions.interview-voice-session]
 verify_jwt = true
@@ -43,16 +43,16 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.generate-post-summary]
-verify_jwt = false
+verify_jwt = true
 
 [functions.ai-booking-assistant]
-verify_jwt = false
+verify_jwt = true
 
 [functions.submit-poll-votes]
-verify_jwt = false
+verify_jwt = true
 
 [functions.promote-waitlist]
 verify_jwt = true
 
 [functions.linkedin-scraper]
-verify_jwt = false
+verify_jwt = true
