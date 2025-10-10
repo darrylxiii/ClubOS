@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { Lock, Sparkles, Shield, CheckCircle2, Apple } from "lucide-react";
 import { FaGoogle, FaLinkedin } from "react-icons/fa";
 import authBackground from "@/assets/auth-background.gif";
-import quantumLogo from "@/assets/quantum-logo.svg";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -210,13 +209,11 @@ const Auth = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-accent blur-2xl opacity-30 rounded-full"></div>
               <img 
-                src={quantumLogo} 
+                src="/quantum-logo.svg" 
                 alt="The Quantum Club" 
                 className="relative w-32 h-32 drop-shadow-2xl"
                 loading="eager"
                 decoding="async"
-                // @ts-ignore - fetchpriority is a valid HTML attribute
-                fetchpriority="high"
               />
             </div>
           </div>
