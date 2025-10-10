@@ -213,7 +213,8 @@ const Auth = () => {
                 src={quantumLogo} 
                 alt="The Quantum Club" 
                 className="relative w-32 h-32 drop-shadow-2xl animate-scale-in"
-                fetchPriority="high"
+                // @ts-ignore - fetchpriority is a valid HTML attribute
+                fetchpriority="high"
               />
             </div>
           </div>
