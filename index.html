@@ -13,7 +13,7 @@
     <link rel="dns-prefetch" href="https://fonts.gstatic.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=block" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=optional" rel="stylesheet">
     
     <!-- Preload LCP image for faster rendering -->
     <link rel="preload" as="image" href="/assets/quantum-logo-EFuwv3wg.svg" fetchpriority="high">
@@ -47,10 +47,15 @@
         contain: layout style paint;
       }
       
-      /* Ensure web font uses swap display */
+      /* Prevent absolute elements from causing layout shifts */
+      .absolute {
+        will-change: auto;
+      }
+      
+      /* Use optional display to eliminate layout shifts from fonts */
       @font-face {
         font-family: 'Inter';
-        font-display: swap;
+        font-display: optional;
       }
     </style>
 

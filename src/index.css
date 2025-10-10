@@ -11,6 +11,12 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   html {
     scroll-behavior: smooth;
   }
+  
+  /* Prevent cumulative layout shift from absolute positioned elements */
+  .absolute {
+    will-change: auto;
+    transform: translateZ(0);
+  }
 
   :root {
     /* QuantumClub Glassmorphic Colors - Warm, Premium Palette */
