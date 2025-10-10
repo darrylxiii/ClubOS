@@ -24,9 +24,22 @@
     
     <!-- Inline critical CSS hint for better performance -->
     <style>
-      /* Critical above-the-fold styles */
-      body { margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif; }
-      #root { min-height: 100vh; }
+      /* Critical above-the-fold styles to prevent CLS */
+      body { 
+        margin: 0; 
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+      }
+      #root { 
+        min-height: 100vh;
+        /* Prevent layout shift by setting explicit dimensions */
+        position: relative;
+        contain: layout style paint;
+      }
+      /* Reserve space for font to prevent text reflow */
+      body {
+        font-size: 16px;
+        line-height: 1.5;
+      }
     </style>
 
     <meta property="og:title" content="The Quantum Club OS - Elite Career Management" />
