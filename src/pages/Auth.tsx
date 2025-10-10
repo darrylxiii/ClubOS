@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Lock, Sparkles, Shield, CheckCircle2, Apple } from "lucide-react";
 import { FaGoogle, FaLinkedin } from "react-icons/fa";
-import authBackground from "@/assets/auth-background.gif";
+
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -186,13 +186,10 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* GIF Background - Full screen, no black edges */}
+      {/* Gradient Background */}
       <div className="absolute inset-0">
-        <img 
-          src={authBackground} 
-          alt="" 
-          className="absolute inset-0 w-full h-full object-cover object-center scale-110"
-        />
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-background/20" />
       </div>
 
