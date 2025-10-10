@@ -21,24 +21,32 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
-export default function EnhancedProfile() {
+interface EnhancedProfileProps {
+  viewingUserId?: string;
+}
+
+export default function EnhancedProfile({ viewingUserId }: EnhancedProfileProps = {}) {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  
+  // Determine which user's profile to show
+  const profileUserId = viewingUserId || user?.id;
+  const isOwnProfile = user?.id === profileUserId;
 
   useEffect(() => {
     loadProfile();
-  }, [user]);
+  }, [profileUserId]);
 
   const loadProfile = async () => {
-    if (!user) return;
+    if (!profileUserId) return;
     
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', user.id)
-      .single();
+      .eq('id', profileUserId)
+      .maybeSingle();
 
     if (error) {
       console.error('Error loading profile:', error);
@@ -49,7 +57,7 @@ export default function EnhancedProfile() {
   };
 
   const handleExportData = async () => {
-    if (!user) return;
+    if (!user || !isOwnProfile) return;
     
     toast.success('Preparing your data export...');
     
@@ -107,14 +115,16 @@ export default function EnhancedProfile() {
               </>
             ) : null}
 
-            {/* Upload button in bottom right */}
-            <div className="absolute bottom-4 right-4">
-              <ProfileHeaderUpload 
-                currentMediaUrl={profile?.header_media_url}
-                currentMediaType={profile?.header_media_type}
-                onUploadComplete={loadProfile}
-              />
-            </div>
+            {/* Upload button in bottom right - only for own profile */}
+            {isOwnProfile && (
+              <div className="absolute bottom-4 right-4">
+                <ProfileHeaderUpload 
+                  currentMediaUrl={profile?.header_media_url}
+                  currentMediaType={profile?.header_media_type}
+                  onUploadComplete={loadProfile}
+                />
+              </div>
+            )}
           </div>
 
           {/* Avatar positioned to overlap header and content */}
@@ -122,17 +132,19 @@ export default function EnhancedProfile() {
             <Avatar className="w-32 h-32 border-4 border-background">
               <AvatarImage src={profile?.avatar_url} />
               <AvatarFallback>
-                {profile?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U'}
+                {profile?.full_name?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
-            <Button
-              size="sm"
-              variant="secondary"
-              className="absolute bottom-0 right-0 rounded-full h-10 w-10 p-0 shadow-lg"
-              onClick={() => setAvatarDialogOpen(true)}
-            >
-              <Settings className="w-4 h-4" />
-            </Button>
+            {isOwnProfile && (
+              <Button
+                size="sm"
+                variant="secondary"
+                className="absolute bottom-0 right-0 rounded-full h-10 w-10 p-0 shadow-lg"
+                onClick={() => setAvatarDialogOpen(true)}
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+            )}
           </div>
 
           <CardContent className="pt-20">
@@ -142,16 +154,18 @@ export default function EnhancedProfile() {
                   <h1 className="text-3xl font-bold">{profile?.full_name || 'Your Name'}</h1>
                   <p className="text-muted-foreground">{profile?.current_title || 'Your Title'}</p>
                 </div>
-                <div className="flex flex-col gap-2">
-                  <Button variant="outline" size="sm">
-                    <Eye className="w-4 h-4 mr-2" />
-                    Preview
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                  </Button>
-                </div>
+                {isOwnProfile && (
+                  <div className="flex flex-col gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Preview
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share
+                    </Button>
+                  </div>
+                )}
               </div>
                 
               <div className="flex flex-wrap gap-2">
@@ -181,30 +195,32 @@ export default function EnhancedProfile() {
           }}
         />
 
-        {/* Quick Actions */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Quick Actions</CardTitle>
-            <CardDescription>Import data and manage your profile</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-3">
-            <LinkedInImport />
-            <Button variant="outline" onClick={handleExportData}>
-              <Download className="w-4 h-4 mr-2" />
-              Export My Data (GDPR)
-            </Button>
-            <Button variant="outline" asChild>
-              <a href="/settings#privacy">
-                <Settings className="w-4 h-4 mr-2" />
-                Privacy Settings
-              </a>
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Quick Actions - Only for own profile */}
+        {isOwnProfile && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+              <CardDescription>Import data and manage your profile</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-wrap gap-3">
+              <LinkedInImport />
+              <Button variant="outline" onClick={handleExportData}>
+                <Download className="w-4 h-4 mr-2" />
+                Export My Data (GDPR)
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/settings#privacy">
+                  <Settings className="w-4 h-4 mr-2" />
+                  Privacy Settings
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Main Tabs */}
         <Tabs defaultValue="experience" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className={`grid w-full ${isOwnProfile ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="experience" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               <span className="hidden sm:inline">Experience</span>
@@ -225,10 +241,12 @@ export default function EnhancedProfile() {
               <Music2 className="w-4 h-4" />
               <span className="hidden sm:inline">Music</span>
             </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Settings</span>
-            </TabsTrigger>
+            {isOwnProfile && (
+              <TabsTrigger value="settings" className="flex items-center gap-2">
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Settings</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="experience" className="space-y-6">
@@ -256,33 +274,35 @@ export default function EnhancedProfile() {
             />
           </TabsContent>
 
-          <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Profile Settings</CardTitle>
-                <CardDescription>Manage your profile visibility and privacy</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <Button variant="outline" className="w-full" asChild>
-                    <a href="/settings#account">
-                      <Settings className="w-4 h-4 mr-2" />
-                      Go to Full Settings
-                    </a>
-                  </Button>
-                  <Button variant="outline" className="w-full" onClick={handleExportData}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download My Data
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          {isOwnProfile && (
+            <TabsContent value="settings" className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Profile Settings</CardTitle>
+                  <CardDescription>Manage your profile visibility and privacy</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Button variant="outline" className="w-full" asChild>
+                      <a href="/settings#account">
+                        <Settings className="w-4 h-4 mr-2" />
+                        Go to Full Settings
+                      </a>
+                    </Button>
+                    <Button variant="outline" className="w-full" onClick={handleExportData}>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download My Data
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Activity Timeline */}
-        {user && (
-          <ActivityTimeline userId={user.id} viewMode="grid" />
+        {profileUserId && (
+          <ActivityTimeline userId={profileUserId} viewMode="grid" />
         )}
 
         {/* Social Activity Feed */}
@@ -310,8 +330,8 @@ export default function EnhancedProfile() {
         </Card>
       </div>
 
-      {/* Change Avatar Dialog */}
-      {user && (
+      {/* Change Avatar Dialog - Only for own profile */}
+      {isOwnProfile && user && (
         <ChangeAvatarDialog
           open={avatarDialogOpen}
           onClose={() => setAvatarDialogOpen(false)}
