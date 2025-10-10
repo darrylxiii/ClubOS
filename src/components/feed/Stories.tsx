@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { EnhancedStoryViewer } from "@/components/social/EnhancedStoryViewer";
+import { validateStoryFile } from "@/lib/fileValidation";
 
 interface Story {
   id: string;
@@ -101,6 +102,17 @@ export function Stories() {
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
+
+      // Validate file before upload
+      const validation = validateStoryFile(file);
+      if (!validation.valid) {
+        toast({
+          title: "Invalid file",
+          description: validation.error,
+          variant: "destructive"
+        });
+        return;
+      }
 
       setLoading(true);
       try {

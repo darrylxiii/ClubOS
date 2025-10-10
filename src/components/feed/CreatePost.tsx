@@ -14,6 +14,7 @@ import { AudienceSelection } from "@/components/audience/AudiencePickerButton";
 import { AudiencePickerModal } from "@/components/audience/AudiencePickerModal";
 import { ContentOptionsDialog } from "./ContentOptionsDialog";
 import { RichTextEditor } from "./RichTextEditor";
+import { validatePostMediaFile } from "@/lib/fileValidation";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -111,6 +112,19 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   };
 
   const handleFiles = (files: File[]) => {
+    // Validate each file
+    for (const file of files) {
+      const validation = validatePostMediaFile(file);
+      if (!validation.valid) {
+        toast({
+          title: "Invalid file",
+          description: validation.error,
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
     const newFiles = [...uploadedFiles, ...files];
     setUploadedFiles(newFiles);
 
