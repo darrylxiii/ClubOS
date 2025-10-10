@@ -1,10 +1,23 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const requestSchema = z.object({
+  pollId: z.string().uuid("Invalid poll ID format"),
+  optionIds: z.array(z.string().uuid("Invalid option ID format"))
+    .min(1, "Must select at least one option")
+    .max(10, "Cannot select more than 10 options"),
+  voterName: z.string()
+    .trim()
+    .min(1, "Voter name required")
+    .max(100, "Voter name too long")
+    .regex(/^[a-zA-Z0-9\s'-]+$/, "Voter name contains invalid characters")
+});
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -12,7 +25,26 @@ serve(async (req) => {
   }
 
   try {
-    const { pollId, optionIds, voterName } = await req.json();
+    const rawData = await req.json();
+    
+    // Validate input
+    const validationResult = requestSchema.safeParse(rawData);
+    
+    if (!validationResult.success) {
+      console.error("Validation failed:", validationResult.error);
+      return new Response(
+        JSON.stringify({ 
+          error: "Invalid request data",
+          details: validationResult.error.issues 
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
+        }
+      );
+    }
+    
+    const { pollId, optionIds, voterName } = validationResult.data;
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
