@@ -3200,6 +3200,38 @@ export type Database = {
         }
         Relationships: []
       }
+      pinned_posts: {
+        Row: {
+          id: string
+          pin_order: number
+          pinned_at: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          pin_order?: number
+          pinned_at?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          pin_order?: number
+          pinned_at?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pinned_posts_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pipeline_audit_logs: {
         Row: {
           action: string
@@ -3643,6 +3675,35 @@ export type Database = {
           },
         ]
       }
+      post_reposts: {
+        Row: {
+          id: string
+          original_post_id: string
+          reposted_at: string
+          reposted_by: string
+        }
+        Insert: {
+          id?: string
+          original_post_id: string
+          reposted_at?: string
+          reposted_by: string
+        }
+        Update: {
+          id?: string
+          original_post_id?: string
+          reposted_at?: string
+          reposted_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reposts_original_post_id_fkey"
+            columns: ["original_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_shares: {
         Row: {
           created_at: string
@@ -3742,6 +3803,7 @@ export type Database = {
           media_urls: Json | null
           poll_options: Json | null
           poll_question: string | null
+          repost_of: string | null
           summary_generated_at: string | null
           updated_at: string
           user_id: string | null
@@ -3756,6 +3818,7 @@ export type Database = {
           media_urls?: Json | null
           poll_options?: Json | null
           poll_question?: string | null
+          repost_of?: string | null
           summary_generated_at?: string | null
           updated_at?: string
           user_id?: string | null
@@ -3770,6 +3833,7 @@ export type Database = {
           media_urls?: Json | null
           poll_options?: Json | null
           poll_question?: string | null
+          repost_of?: string | null
           summary_generated_at?: string | null
           updated_at?: string
           user_id?: string | null
@@ -3780,6 +3844,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_repost_of_fkey"
+            columns: ["repost_of"]
+            isOneToOne: false
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
         ]

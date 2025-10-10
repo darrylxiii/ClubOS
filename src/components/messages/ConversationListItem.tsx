@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { OnlineStatusIndicator } from "./OnlineStatusIndicator";
 
 interface ConversationListItemProps {
   conversation: {
@@ -83,6 +84,11 @@ export const ConversationListItem = ({
             {isGroup ? <Users className="h-5 w-5" /> : initials}
           </AvatarFallback>
         </Avatar>
+        {!isGroup && otherParticipant && (
+          <div className="absolute bottom-0 right-0">
+            <OnlineStatusIndicator userId={otherParticipant.user_id} className="w-4 h-4" />
+          </div>
+        )}
         {!!conversation.unread_count && (
           <Badge 
             variant="destructive" 

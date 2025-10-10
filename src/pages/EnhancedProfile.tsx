@@ -14,6 +14,8 @@ import { MusicSection } from "@/components/profile/MusicSection";
 import { ProfileHeaderUpload } from "@/components/profile/ProfileHeaderUpload";
 import { SocialActivityFeed } from "@/components/profile/SocialActivityFeed";
 import { ChangeAvatarDialog } from "@/components/profile/ChangeAvatarDialog";
+import { ActivityTimeline } from "@/components/profile/ActivityTimeline";
+import { ProfileStats } from "@/components/profile/ProfileStats";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -168,6 +170,17 @@ export default function EnhancedProfile() {
           </CardContent>
         </Card>
 
+        {/* Profile Stats */}
+        <ProfileStats 
+          stats={{
+            profileViews: profile?.profile_views || 0,
+            connections: profile?.connection_count || 0,
+            applicationsActive: profile?.active_applications || 0,
+            achievementsUnlocked: profile?.achievements_count || 0,
+            engagementRate: profile?.engagement_rate || 0
+          }}
+        />
+
         {/* Quick Actions */}
         <Card>
           <CardHeader>
@@ -266,6 +279,11 @@ export default function EnhancedProfile() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Activity Timeline */}
+        {user && (
+          <ActivityTimeline userId={user.id} viewMode="grid" />
+        )}
 
         {/* Social Activity Feed */}
         <SocialActivityFeed />

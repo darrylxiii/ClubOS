@@ -22,6 +22,8 @@ import { MessageBubble } from '@/components/messages/MessageBubble';
 import { MessageComposer } from '@/components/messages/MessageComposer';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { GroupInfoPanel } from '@/components/messages/GroupInfoPanel';
+import { VideoCallLauncher } from '@/components/messages/VideoCallLauncher';
+import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -188,12 +190,13 @@ export default function Messages() {
                 </div>
               </div>
               <div className="flex gap-1.5">
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary rounded-xl transition-all duration-200 hover:scale-110">
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary rounded-xl transition-all duration-200 hover:scale-110" title="Voice call">
                   <Phone className="h-5 w-5" />
                 </Button>
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary rounded-xl transition-all duration-200 hover:scale-110">
-                  <Video className="h-5 w-5" />
-                </Button>
+                <VideoCallLauncher 
+                  conversationId={selectedConversationId}
+                  participantName={selectedConversation.title}
+                />
                 <Button 
                   variant={showGroupInfo ? "default" : "ghost"}
                   size="icon" 

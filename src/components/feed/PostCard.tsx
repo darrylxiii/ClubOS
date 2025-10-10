@@ -29,6 +29,9 @@ import { LazyMedia } from "./LazyMedia";
 import { toast } from "@/hooks/use-toast";
 import { useEngagementTracking } from "@/hooks/useEngagementTracking";
 import { cn } from "@/lib/utils";
+import { AlgorithmTransparency } from "./AlgorithmTransparency";
+import { PostPinning } from "./PostPinning";
+import { RepostButton } from "./RepostButton";
 
 interface PostCardProps {
   post: any;
@@ -48,6 +51,8 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [showFullPost, setShowFullPost] = useState(false);
+  const [isPinned, setIsPinned] = useState(false);
+  const [repostCount, setRepostCount] = useState(0);
   
   // Engagement tracking
   const { trackLike, trackComment, trackShare, trackSave: trackSaveEngagement } = useEngagementTracking({
@@ -75,8 +80,29 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
     if (user) {
       checkIfSaved();
       fetchUserStreak();
+      checkIfPinned();
+      fetchRepostCount();
     }
   }, [post.id, user]);
+
+  const checkIfPinned = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from('pinned_posts')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('post_id', post.id)
+      .single();
+    setIsPinned(!!data);
+  };
+
+  const fetchRepostCount = async () => {
+    const { count } = await supabase
+      .from('post_reposts')
+      .select('*', { count: 'exact', head: true })
+      .eq('original_post_id', post.id);
+    setRepostCount(count || 0);
+  };
 
   const checkIfSaved = async () => {
     if (!user) return;
@@ -306,6 +332,15 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   Copy link
                 </DropdownMenuItem>
                 {isOwnPost && (
+                  <DropdownMenuItem asChild>
+                    <PostPinning 
+                      postId={post.id} 
+                      isPinned={isPinned} 
+                      onToggle={() => setIsPinned(!isPinned)} 
+                    />
+                  </DropdownMenuItem>
+                )}
+                {isOwnPost && (
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem>
@@ -485,6 +520,23 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             </div>
           )}
           
+          {/* Algorithm Transparency */}
+          {post.feed_type === 'algorithmic' && (
+            <div className="mt-3">
+              <AlgorithmTransparency 
+                postId={post.id}
+                reasons={{
+                  engagement: (post.like_count || 0) > 10,
+                  trending: (post.like_count || 0) > 50,
+                  following: !!post.profiles && user?.id !== post.user_id,
+                  recent: new Date(post.created_at) > new Date(Date.now() - 24 * 60 * 60 * 1000),
+                  interests: post.hashtags || [],
+                  similarContent: true
+                }}
+              />
+            </div>
+          )}
+
           <div className="flex items-center justify-between mt-4 pt-3 border-t">
             <div className="flex items-center gap-2">
               {/* Interactive Reactions */}
@@ -498,6 +550,15 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 <MessageCircle className="w-4 h-4 mr-2" />
                 {post.post_comments?.length > 0 && <span className="text-sm">{post.post_comments.length}</span>}
               </Button>
+
+              <RepostButton 
+                postId={post.id}
+                repostCount={repostCount}
+                onUpdate={() => {
+                  fetchRepostCount();
+                  onUpdate();
+                }}
+              />
 
               {user?.id === post.user_id && (
                 <PostAnalyticsButton postId={post.id} variant="ghost" size="sm" showLabel={false} />
