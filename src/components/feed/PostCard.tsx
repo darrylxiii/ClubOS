@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card } from "@/components/ui/card";
@@ -385,7 +386,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 "[&_a]:text-primary [&_a]:underline",
                 isLongContent && isCollapsed && "line-clamp-4"
               )}
-              dangerouslySetInnerHTML={{ __html: post.content }}
+              dangerouslySetInnerHTML={{ 
+                __html: DOMPurify.sanitize(post.content, {
+                  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i'],
+                  ALLOWED_ATTR: ['href', 'target', 'rel'],
+                  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+                })
+              }}
             />
             
             {isLongContent && (

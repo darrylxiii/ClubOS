@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
 import { Bold, Italic, List, Link as LinkIcon, Smile } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -373,7 +374,13 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
                 [&_ul]:list-disc [&_ul]:ml-6
                 [&_ol]:list-decimal [&_ol]:ml-6
                 [&_a]:text-primary [&_a]:underline"
-              dangerouslySetInnerHTML={{ __html: value }}
+              dangerouslySetInnerHTML={{ 
+                __html: DOMPurify.sanitize(value, {
+                  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i'],
+                  ALLOWED_ATTR: ['href', 'target', 'rel'],
+                  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+                })
+              }}
             />
           </div>
           <DialogFooter>
