@@ -4565,6 +4565,7 @@ export type Database = {
           preferred_currency: string
           preferred_work_locations: Json | null
           privacy_settings: Json | null
+          profile_slug: string | null
           public_fields: Json | null
           remote_work_preference: boolean | null
           resume_url: string | null
@@ -4622,6 +4623,7 @@ export type Database = {
           preferred_currency?: string
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
+          profile_slug?: string | null
           public_fields?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
@@ -4679,6 +4681,7 @@ export type Database = {
           preferred_currency?: string
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
+          profile_slug?: string | null
           public_fields?: Json | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
@@ -6499,6 +6502,10 @@ export type Database = {
       }
       generate_invite_code: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_profile_slug: {
+        Args: { name: string }
         Returns: string
       }
       generate_referral_code: {

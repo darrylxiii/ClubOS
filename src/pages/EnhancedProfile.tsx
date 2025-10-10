@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2 } from "lucide-react";
+import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit } from "lucide-react";
 import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { EducationSection } from "@/components/profile/EducationSection";
 import { SkillsSection } from "@/components/profile/SkillsSection";
@@ -17,6 +17,7 @@ import { ChangeAvatarDialog } from "@/components/profile/ChangeAvatarDialog";
 import { ActivityTimeline } from "@/components/profile/ActivityTimeline";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ShareProfileDialog } from "@/components/profile/ShareProfileDialog";
+import EditProfileSlugDialog from "@/components/profile/EditProfileSlugDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
@@ -35,6 +36,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
   const [loading, setLoading] = useState(true);
   const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [slugDialogOpen, setSlugDialogOpen] = useState(false);
   
   // Determine which user's profile to show
   const profileUserId = viewingUserId || user?.id;
@@ -164,7 +166,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => navigate(`/profile/${user?.id}`)}
+                      onClick={() => navigate(`/profile/${profile?.profile_slug || user?.id}`)}
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Preview
@@ -176,6 +178,14 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
                     >
                       <Share2 className="w-4 h-4 mr-2" />
                       Share
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSlugDialogOpen(true)}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit URL
                     </Button>
                   </div>
                 )}
@@ -357,6 +367,16 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
             open={shareDialogOpen}
             onClose={() => setShareDialogOpen(false)}
             userId={user.id}
+          />
+          <EditProfileSlugDialog
+            open={slugDialogOpen}
+            onClose={() => setSlugDialogOpen(false)}
+            currentSlug={profile?.profile_slug || ''}
+            userId={user.id}
+            onSuccess={(newSlug) => {
+              setProfile({ ...profile, profile_slug: newSlug });
+              navigate(`/profile/${newSlug}`);
+            }}
           />
         </>
       )}

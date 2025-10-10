@@ -90,7 +90,7 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
   };
 
   const copyToClipboard = async (token: string) => {
-    const url = `${window.location.origin}/share/${token}`;
+    const url = `https://thequantumclub.app/share/${token}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     toast.success("Link copied to clipboard!");
@@ -165,7 +165,7 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
                   >
                     <div className="flex items-center gap-2">
                       <Input
-                        value={`${window.location.origin}/share/${link.token}`}
+                        value={`https://thequantumclub.app/share/${link.token}`}
                         readOnly
                         className="text-xs"
                       />
@@ -219,3 +219,5 @@ export const ShareProfileDialog = ({ open, onClose, userId }: ShareProfileDialog
     </Dialog>
   );
 };
+
+export default ShareProfileDialog;
