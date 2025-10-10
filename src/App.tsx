@@ -6,41 +6,54 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Index from "./pages/Index";
-import ClubHome from "./pages/ClubHome";
-import Dashboard from "./pages/Dashboard";
-import Jobs from "./pages/Jobs";
-import TasksPilot from "./pages/TasksPilot";
-import ClubAI from "./pages/ClubAI";
-import Onboarding from "./pages/Onboarding";
-import PartnerOnboarding from "./pages/PartnerOnboarding";
-import UserSettings from "./pages/UserSettings";
-import EnhancedProfile from "./pages/EnhancedProfile";
-import PublicUserProfile from "./pages/PublicUserProfile";
-import SharedProfile from "./pages/SharedProfile";
-import CandidateProfile from "./pages/CandidateProfile";
-import Referrals from "./pages/Referrals";
-import InterviewPrep from "./pages/InterviewPrep";
-import MeetingHistory from "./pages/MeetingHistory";
-import Messages from "./pages/Messages";
-import Applications from "./pages/Applications";
-import CompanyApplications from "./pages/CompanyApplications";
-import Companies from "./pages/Companies";
-import CompanyPage from "./pages/CompanyPage";
-import Scheduling from "./pages/Scheduling";
-import PartnerDashboard from "./pages/PartnerDashboard";
-import JobDashboard from "./pages/JobDashboard";
+import { lazy, Suspense } from "react";
+import { Loader2 } from "lucide-react";
+
+// Eager load critical public routes
 import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
-import Feed from "./pages/Feed";
-import Post from "./pages/Post";
-import Settings from "./pages/Settings";
-import NotFound from "./pages/NotFound";
-import SocialFeed from "./pages/SocialFeed";
-import SocialManagement from "./pages/SocialManagement";
-import Analytics from "./pages/Analytics";
-import Achievements from "./pages/Achievements";
+import Index from "./pages/Index";
+import SharedProfile from "./pages/SharedProfile";
 import BookingPage from "./pages/BookingPage";
+import NotFound from "./pages/NotFound";
+
+// Lazy load protected routes to reduce initial bundle size
+const ClubHome = lazy(() => import("./pages/ClubHome"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Jobs = lazy(() => import("./pages/Jobs"));
+const TasksPilot = lazy(() => import("./pages/TasksPilot"));
+const ClubAI = lazy(() => import("./pages/ClubAI"));
+const Onboarding = lazy(() => import("./pages/Onboarding"));
+const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
+const UserSettings = lazy(() => import("./pages/UserSettings"));
+const EnhancedProfile = lazy(() => import("./pages/EnhancedProfile"));
+const PublicUserProfile = lazy(() => import("./pages/PublicUserProfile"));
+const CandidateProfile = lazy(() => import("./pages/CandidateProfile"));
+const Referrals = lazy(() => import("./pages/Referrals"));
+const InterviewPrep = lazy(() => import("./pages/InterviewPrep"));
+const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
+const Messages = lazy(() => import("./pages/Messages"));
+const Applications = lazy(() => import("./pages/Applications"));
+const CompanyApplications = lazy(() => import("./pages/CompanyApplications"));
+const Companies = lazy(() => import("./pages/Companies"));
+const CompanyPage = lazy(() => import("./pages/CompanyPage"));
+const Scheduling = lazy(() => import("./pages/Scheduling"));
+const PartnerDashboard = lazy(() => import("./pages/PartnerDashboard"));
+const JobDashboard = lazy(() => import("./pages/JobDashboard"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Feed = lazy(() => import("./pages/Feed"));
+const Post = lazy(() => import("./pages/Post"));
+const Settings = lazy(() => import("./pages/Settings"));
+const SocialFeed = lazy(() => import("./pages/SocialFeed"));
+const SocialManagement = lazy(() => import("./pages/SocialManagement"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Achievements = lazy(() => import("./pages/Achievements"));
+
+// Loading fallback component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen bg-eclipse">
+    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+  </div>
+);
 
 const queryClient = new QueryClient();
 
@@ -52,7 +65,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <RoleProvider>
-            <Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/book/:slug" element={<BookingPage />} />
@@ -292,7 +306,8 @@ const App = () => (
             />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-            </Routes>
+              </Routes>
+            </Suspense>
           </RoleProvider>
         </AuthProvider>
       </BrowserRouter>
