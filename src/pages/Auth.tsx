@@ -212,7 +212,9 @@ const Auth = () => {
               <img 
                 src={quantumLogo} 
                 alt="The Quantum Club" 
-                className="relative w-32 h-32 drop-shadow-2xl animate-scale-in"
+                className="relative w-32 h-32 drop-shadow-2xl"
+                loading="eager"
+                decoding="async"
                 // @ts-ignore - fetchpriority is a valid HTML attribute
                 fetchpriority="high"
               />
