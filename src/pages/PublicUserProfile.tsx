@@ -96,12 +96,15 @@ export default function PublicUserProfile() {
     }
   };
 
-  // Don't redirect to enhanced profile - allow viewing own public profile
-  // Users can click "Edit Profile" button if they want to edit
+  // Redirect to enhanced profile if viewing own profile
   useEffect(() => {
+    if (user?.id && userId && user.id === userId) {
+      navigate('/profile');
+      return;
+    }
     loadProfile();
     loadAchievements();
-  }, [userId]);
+  }, [userId, user]);
 
   const loadProfile = async () => {
     if (!userId) return;
