@@ -12,6 +12,8 @@ const ClubHome = () => {
   const { currentRole: role, loading } = useRole();
   const navigate = useNavigate();
 
+  console.log('🏠 [ClubHome] Rendering - role:', role, 'loading:', loading);
+
   useEffect(() => {
     // Give extra time for role to load before redirecting
     // This prevents redirect loops when network is slow

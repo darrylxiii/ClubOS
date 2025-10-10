@@ -16,6 +16,8 @@ import {
 import { Link } from "react-router-dom";
 
 export const AdminHome = () => {
+  console.log('👑 [AdminHome] Component mounting');
+  
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalCompanies: 0,
@@ -25,6 +27,7 @@ export const AdminHome = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('👑 [AdminHome] Fetching stats...');
     fetchAdminStats();
   }, []);
 
