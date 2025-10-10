@@ -21,6 +21,9 @@
     <!-- Preload critical font to prevent layout shift -->
     <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2" crossorigin>
     
+    <!-- Module preload hint for critical JS - helps browser discover and download earlier -->
+    <link rel="modulepreload" href="/src/main.tsx">
+    
     <!-- Inline critical CSS hint for better performance -->
     <style>
       /* Critical above-the-fold styles to prevent CLS */
