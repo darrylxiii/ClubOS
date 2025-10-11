@@ -46,6 +46,7 @@ import { NavigationGroup } from "@/components/NavigationGroup";
 import { CommandPalette } from "@/components/CommandPalette";
 import { GlobalUtilityBar } from "@/components/GlobalUtilityBar";
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useRole } from "@/contexts/RoleContext";
 
 // Grouped Candidate Navigation
@@ -260,6 +261,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         </Button>
         <img src={quantumClubLogo} alt="Quantum Club" className="h-8 w-auto" />
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <GlobalRoleSwitcher />
           <NotificationBell />
         </div>
@@ -274,6 +276,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <div className="h-16 flex items-center justify-between border-b border-border px-4">
           <img src={quantumClubLogo} alt="Quantum Club" className="h-10 w-auto" />
           <div className="lg:flex hidden items-center gap-2">
+            <ThemeToggle />
             <GlobalRoleSwitcher />
             <NotificationBell />
           </div>
