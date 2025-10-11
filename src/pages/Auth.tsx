@@ -533,9 +533,6 @@ const Auth = () => {
                   try {
                     const { error } = await supabase.auth.signInWithOAuth({
                       provider: 'google',
-                      options: {
-                        redirectTo: `${window.location.origin}/home`,
-                      }
                     });
                     if (error) throw error;
                   } catch (error: any) {
@@ -561,9 +558,6 @@ const Auth = () => {
                   try {
                     const { error } = await supabase.auth.signInWithOAuth({
                       provider: 'linkedin_oidc',
-                      options: {
-                        redirectTo: `${window.location.origin}/home`,
-                      }
                     });
                     if (error) throw error;
                   } catch (error: any) {
