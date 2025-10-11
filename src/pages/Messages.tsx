@@ -163,11 +163,11 @@ export default function Messages() {
       </div>
 
       {/* Main Chat Panel */}
-      <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 relative h-full">
         {selectedConversationId && selectedConversation ? (
           <>
-            {/* Chat Header */}
-            <div className="h-16 border-b border-border/20 bg-background px-4 sm:px-6 flex items-center justify-between flex-shrink-0 z-10">
+            {/* Chat Header - Sticky */}
+            <div className="sticky top-0 z-20 h-16 border-b border-border/20 bg-background/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <Button
                   variant="ghost"
@@ -220,9 +220,9 @@ export default function Messages() {
               </div>
             </div>
 
-            {/* Messages Area */}
+            {/* Messages Area - Scrollable */}
             <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
-              <div className="space-y-3">
+              <div className="space-y-3 pb-24">
                 {messages.map((msg) => (
                   <MessageBubble 
                     key={msg.id} 
@@ -233,13 +233,11 @@ export default function Messages() {
                 ))}
                 {typingUsers.length > 0 && <TypingIndicator typingUsers={typingUsers} />}
                 <div ref={messagesEndRef} />
-                {/* Spacer for sticky composer */}
-                <div className="h-32" />
               </div>
             </div>
 
-            {/* Message Composer - Sticky at bottom */}
-            <div className="sticky bottom-0 left-0 right-0 flex-shrink-0 z-10 border-t border-border/20 bg-background">
+            {/* Message Composer - Fixed at Bottom */}
+            <div className="sticky bottom-0 left-0 right-0 flex-shrink-0 z-20 border-t border-border/20 bg-background shadow-lg">
               <MessageComposer 
                 conversationId={selectedConversationId} 
                 onSend={handleSendMessage} 
