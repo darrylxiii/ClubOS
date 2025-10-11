@@ -84,15 +84,14 @@ const Auth = () => {
     }
   };
 
+  // Listen for MFA completion from OAuth flows
   useEffect(() => {
-    // Listen for MFA completion from OAuth flows
     const { data: authListener } = supabase.auth.onAuthStateChange((event, currentSession) => {
       console.log("[Auth Page] Auth state change:", event, "Has session?", !!currentSession);
       
-      // When MFA is verified, immediately redirect
-      if (event === 'MFA_CHALLENGE_VERIFIED' && currentSession) {
-        console.log("[Auth Page] MFA verified, redirecting to home");
-        setMfaRequired(false);
+      // When OAuth is successful with session, redirect
+      if ((event === 'SIGNED_IN' || event === 'MFA_CHALLENGE_VERIFIED') && currentSession) {
+        console.log("[Auth Page] OAuth/MFA completed, redirecting to home");
         setTimeout(() => {
           navigate("/home", { replace: true });
         }, 100);

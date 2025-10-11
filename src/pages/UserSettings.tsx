@@ -22,6 +22,7 @@ import { EmailVerification } from "@/components/EmailVerification";
 import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
 import { useUserRole } from "@/hooks/useUserRole";
 import { SocialConnections } from "@/components/SocialConnections";
+import { AccountLinking } from "@/components/AccountLinking";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -2070,6 +2071,9 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Account Linking */}
+          <AccountLinking />
 
           {/* Stealth Mode */}
           <StealthModeToggle
