@@ -738,12 +738,13 @@ const Profile = () => {
       return;
     }
     
-    const label = prompt(
-      `Name this calendar connection (e.g., "Personal", "Work", "Company Name"):`
+    // Create a dialog instead of using prompt
+    const label = window.prompt(
+      `Name this ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar connection:\n\nExamples: "Personal Calendar", "Work Calendar", "${provider === 'google' ? 'Gmail' : 'Outlook'} Account"`
     );
     
     if (!label || !label.trim()) {
-      toast.error('Calendar label is required');
+      toast.error('Please provide a name for this calendar connection');
       return;
     }
 

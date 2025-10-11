@@ -41,12 +41,12 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && user) {
+    if (!loading && user && !mfaRequired) {
       console.log("[Auth Page] User detected, redirecting to home");
       // Use replace to prevent back button issues
       navigate("/home", { replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, mfaRequired]);
 
   useEffect(() => {
     if (inviteCode) {
