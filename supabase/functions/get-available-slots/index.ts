@@ -42,7 +42,7 @@ serve(async (req) => {
       .eq("user_id", bookingLink.user_id)
       .single();
 
-    // Get existing bookings
+    // Get existing bookings from database
     const { data: existingBookings } = await supabaseClient
       .from("bookings")
       .select("scheduled_start, scheduled_end")
@@ -51,14 +51,65 @@ serve(async (req) => {
       .lte("scheduled_end", dateRange.end)
       .eq("status", "confirmed");
 
+    // Get connected calendars and fetch busy times
+    const { data: calendars } = await supabaseClient
+      .from("calendar_connections")
+      .select("*")
+      .eq("user_id", bookingLink.user_id)
+      .eq("is_active", true);
+
+    const calendarBusyTimes: any[] = [];
+
+    // Fetch busy times from each connected calendar
+    if (calendars && calendars.length > 0) {
+      console.log(`[Slots] Checking ${calendars.length} connected calendars`);
+      
+      for (const calendar of calendars) {
+        try {
+          const functionName = calendar.provider === 'google' 
+            ? 'google-calendar-events' 
+            : 'microsoft-calendar-events';
+          
+          const { data: busyData, error: busyError } = await supabaseClient.functions.invoke(
+            functionName,
+            {
+              body: {
+                action: 'findFreeSlots',
+                accessToken: calendar.access_token,
+                timeMin: dateRange.start,
+                timeMax: dateRange.end,
+                calendars: ['primary']
+              }
+            }
+          );
+
+          if (!busyError && busyData?.busySlots) {
+            console.log(`[Slots] Found ${busyData.busySlots.length} busy slots from ${calendar.provider}`);
+            calendarBusyTimes.push(...busyData.busySlots.map((slot: any) => ({
+              scheduled_start: slot.start,
+              scheduled_end: slot.end
+            })));
+          }
+        } catch (error) {
+          console.error(`[Slots] Error fetching calendar busy times:`, error);
+        }
+      }
+    }
+
+    // Merge database bookings with calendar busy times
+    const allBusyTimes = [...(existingBookings || []), ...calendarBusyTimes];
+    console.log(`[Slots] Total busy times: ${allBusyTimes.length}`);
+
     // Generate available slots
     const slots = generateAvailableSlots(
       dateRange,
       bookingLink,
       preferences,
-      existingBookings || [],
+      allBusyTimes,
       timezone
     );
+
+    console.log(`[Slots] Generated ${slots.length} available slots`);
 
     return new Response(
       JSON.stringify({ slots }),
