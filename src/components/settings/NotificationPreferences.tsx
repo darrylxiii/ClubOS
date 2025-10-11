@@ -66,7 +66,7 @@ export const NotificationPreferences = () => {
 
     try {
       const { data, error } = await supabase
-        .from('notification_preferences')
+        .from('notification_preferences' as any)
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -74,25 +74,26 @@ export const NotificationPreferences = () => {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
+        const prefData = data as any;
         setPrefs({
-          email_enabled: data.email_enabled,
-          email_applications: data.email_applications,
-          email_messages: data.email_messages,
-          email_interviews: data.email_interviews,
-          email_job_matches: data.email_job_matches,
-          email_system: data.email_system,
-          email_digest: data.email_digest,
-          email_digest_frequency: data.email_digest_frequency,
-          inapp_enabled: data.inapp_enabled,
-          inapp_applications: data.inapp_applications,
-          inapp_messages: data.inapp_messages,
-          inapp_interviews: data.inapp_interviews,
-          inapp_job_matches: data.inapp_job_matches,
-          inapp_system: data.inapp_system,
-          quiet_hours_enabled: data.quiet_hours_enabled,
-          quiet_hours_start: data.quiet_hours_start || '22:00',
-          quiet_hours_end: data.quiet_hours_end || '08:00',
-          quiet_hours_timezone: data.quiet_hours_timezone,
+          email_enabled: prefData.email_enabled,
+          email_applications: prefData.email_applications,
+          email_messages: prefData.email_messages,
+          email_interviews: prefData.email_interviews,
+          email_job_matches: prefData.email_job_matches,
+          email_system: prefData.email_system,
+          email_digest: prefData.email_digest,
+          email_digest_frequency: prefData.email_digest_frequency,
+          inapp_enabled: prefData.inapp_enabled,
+          inapp_applications: prefData.inapp_applications,
+          inapp_messages: prefData.inapp_messages,
+          inapp_interviews: prefData.inapp_interviews,
+          inapp_job_matches: prefData.inapp_job_matches,
+          inapp_system: prefData.inapp_system,
+          quiet_hours_enabled: prefData.quiet_hours_enabled,
+          quiet_hours_start: prefData.quiet_hours_start || '22:00',
+          quiet_hours_end: prefData.quiet_hours_end || '08:00',
+          quiet_hours_timezone: prefData.quiet_hours_timezone,
         });
       }
     } catch (error) {
@@ -109,7 +110,7 @@ export const NotificationPreferences = () => {
     setSaving(true);
     try {
       const { error } = await supabase
-        .from('notification_preferences')
+        .from('notification_preferences' as any)
         .upsert({
           user_id: user.id,
           ...prefs,

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Bell, Check, Trash2, Archive, ExternalLink, Filter } from 'lucide-react';
+import { Bell, Check, Trash2, Archive, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -12,15 +12,17 @@ import { formatDistanceToNow } from 'date-fns';
 
 interface Notification {
   id: string;
+  user_id: string;
   title: string;
   message: string;
   type: string;
   category: 'info' | 'success' | 'warning' | 'error';
-  action_url?: string;
-  action_label?: string;
+  action_url: string | null;
+  action_label: string | null;
   metadata: any;
   is_read: boolean;
   is_archived: boolean;
+  read_at: string | null;
   created_at: string;
 }
 
@@ -42,7 +44,7 @@ export const NotificationsPanel = () => {
 
     try {
       let query = supabase
-        .from('notifications')
+        .from('notifications' as any)
         .select('*')
         .eq('user_id', user.id)
         .eq('is_archived', false)
@@ -55,7 +57,7 @@ export const NotificationsPanel = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-      setNotifications(data || []);
+      setNotifications((data as any) || []);
     } catch (error) {
       console.error('Error loading notifications:', error);
     } finally {
@@ -77,8 +79,8 @@ export const NotificationsPanel = () => {
           filter: `user_id=eq.${user.id}`
         },
         (payload) => {
-          setNotifications((prev) => [payload.new as Notification, ...prev]);
-          toast.info(payload.new.title);
+          setNotifications((prev) => [payload.new as any as Notification, ...prev]);
+          toast.info((payload.new as any).title);
         }
       )
       .subscribe();
@@ -91,7 +93,7 @@ export const NotificationsPanel = () => {
   const markAsRead = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('notifications')
+        .from('notifications' as any)
         .update({ is_read: true, read_at: new Date().toISOString() })
         .eq('id', id)
         .eq('user_id', user?.id);
@@ -99,7 +101,7 @@ export const NotificationsPanel = () => {
       if (error) throw error;
 
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
+        prev.map((n) => (n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n))
       );
     } catch (error) {
       console.error('Error marking as read:', error);
@@ -112,14 +114,14 @@ export const NotificationsPanel = () => {
     try {
       const unreadIds = notifications.filter((n) => !n.is_read).map((n) => n.id);
       
-      const { error } = await supabase.rpc('mark_notifications_read', {
+      const { error } = await supabase.rpc('mark_notifications_read' as any, {
         notification_ids: unreadIds
       });
 
       if (error) throw error;
 
       setNotifications((prev) =>
-        prev.map((n) => ({ ...n, is_read: true }))
+        prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() }))
       );
       toast.success('All notifications marked as read');
     } catch (error) {
@@ -131,7 +133,7 @@ export const NotificationsPanel = () => {
   const archiveNotification = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('notifications')
+        .from('notifications' as any)
         .update({ is_archived: true })
         .eq('id', id)
         .eq('user_id', user?.id);
@@ -149,7 +151,7 @@ export const NotificationsPanel = () => {
   const deleteNotification = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('notifications')
+        .from('notifications' as any)
         .delete()
         .eq('id', id)
         .eq('user_id', user?.id);
