@@ -21,7 +21,7 @@ const passwordSchema = z.string()
   .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
 const Auth = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, session } = useAuth();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
   
@@ -41,16 +41,17 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("[Auth Page] State:", { loading, user: !!user, mfaRequired });
+    console.log("[Auth Page] State:", { loading, user: !!user, mfaRequired, session: !!session });
     
-    if (!loading && user && !mfaRequired) {
+    // Check if user is fully authenticated (either no MFA or MFA completed)
+    if (!loading && user && session && !mfaRequired) {
       console.log("[Auth Page] User authenticated, redirecting to home");
       // Small delay to ensure session is fully established
       setTimeout(() => {
         navigate("/home", { replace: true });
       }, 100);
     }
-  }, [user, loading, navigate, mfaRequired]);
+  }, [user, loading, navigate, mfaRequired, session]);
 
   useEffect(() => {
     if (inviteCode) {
@@ -83,6 +84,23 @@ const Auth = () => {
       setInviteValid(false);
     }
   };
+
+  useEffect(() => {
+    // Listen for MFA completion from OAuth flows
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      console.log("[Auth Page] Auth state change:", event, "MFA required?", mfaRequired);
+      
+      // When MFA is verified after OAuth login, clear the MFA requirement
+      if (event === 'MFA_CHALLENGE_VERIFIED' && currentSession) {
+        console.log("[Auth Page] MFA verified, clearing requirement");
+        setMfaRequired(false);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [mfaRequired]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -738,13 +738,66 @@ const Profile = () => {
       return;
     }
     
-    // Create a dialog instead of using prompt
-    const label = window.prompt(
-      `Name this ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar connection:\n\nExamples: "Personal Calendar", "Work Calendar", "${provider === 'google' ? 'Gmail' : 'Outlook'} Account"`
-    );
+    // Use a custom input dialog instead of system prompt
+    const labelInput = document.createElement('input');
+    labelInput.type = 'text';
+    labelInput.placeholder = `e.g., "Personal Calendar", "Work Calendar"`;
+    labelInput.className = 'w-full px-3 py-2 border rounded-md';
     
-    if (!label || !label.trim()) {
-      toast.error('Please provide a name for this calendar connection');
+    const label = await new Promise<string | null>((resolve) => {
+      const dialog = document.createElement('div');
+      dialog.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+      dialog.innerHTML = `
+        <div class="bg-background border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+          <h3 class="text-lg font-semibold mb-2">Name Your Calendar</h3>
+          <p class="text-sm text-muted-foreground mb-4">Choose a name for this ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar connection</p>
+          <input 
+            type="text" 
+            id="calendar-label-input"
+            placeholder="e.g., Personal Calendar, Work Calendar"
+            class="w-full px-3 py-2 border rounded-md mb-4"
+          />
+          <div class="flex gap-2 justify-end">
+            <button id="cancel-btn" class="px-4 py-2 border rounded-md hover:bg-accent">Cancel</button>
+            <button id="connect-btn" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">Connect</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(dialog);
+      const input = dialog.querySelector('#calendar-label-input') as HTMLInputElement;
+      const cancelBtn = dialog.querySelector('#cancel-btn') as HTMLButtonElement;
+      const connectBtn = dialog.querySelector('#connect-btn') as HTMLButtonElement;
+      
+      input.focus();
+      
+      const cleanup = () => document.body.removeChild(dialog);
+      
+      cancelBtn.onclick = () => {
+        cleanup();
+        resolve(null);
+      };
+      
+      connectBtn.onclick = () => {
+        const value = input.value.trim();
+        cleanup();
+        resolve(value || null);
+      };
+      
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          const value = input.value.trim();
+          cleanup();
+          resolve(value || null);
+        } else if (e.key === 'Escape') {
+          cleanup();
+          resolve(null);
+        }
+      };
+    });
+    
+    if (!label) {
+      toast.error('Calendar connection cancelled');
       return;
     }
 
@@ -836,8 +889,14 @@ const Profile = () => {
             let email: string = 'Calendar Account';
 
             if (provider === 'google') {
+              // Get current session token
+              const { data: { session } } = await supabase.auth.getSession();
+              
               const { data, error: invocationError } = await supabase.functions.invoke('google-calendar-auth', {
-                body: { action: 'exchangeCode', code, redirectUri }
+                body: { action: 'exchangeCode', code, redirectUri },
+                headers: {
+                  Authorization: `Bearer ${session?.access_token}`
+                }
               });
 
               if (invocationError) {
@@ -862,8 +921,14 @@ const Profile = () => {
                 console.log('Could not fetch user email');
               }
             } else {
+              // Get current session token
+              const { data: { session } } = await supabase.auth.getSession();
+              
               const { data, error: invocationError } = await supabase.functions.invoke('microsoft-calendar-auth', {
-                body: { action: 'exchangeCode', code, redirectUri }
+                body: { action: 'exchangeCode', code, redirectUri },
+                headers: {
+                  Authorization: `Bearer ${session?.access_token}`
+                }
               });
 
               if (invocationError) {
