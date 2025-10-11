@@ -750,7 +750,7 @@ const Profile = () => {
     try {
       setCalendarLoading(true);
       
-      const redirectUri = `${window.location.origin}/profile`;
+      const redirectUri = `${window.location.origin}/settings`;
       console.log(`[Calendar] Connecting ${provider} with redirect URI:`, redirectUri);
       
       const functionName = provider === 'google' ? 'google-calendar-auth' : 'microsoft-calendar-auth';
@@ -818,7 +818,7 @@ const Profile = () => {
         
         toast.error(errorMessage);
         localStorage.removeItem('pending_calendar_connection');
-        window.history.replaceState({}, document.title, '/profile');
+        window.history.replaceState({}, document.title, '/settings');
       }
       return;
     }
@@ -829,7 +829,7 @@ const Profile = () => {
           const pendingConnection = localStorage.getItem('pending_calendar_connection');
           if (pendingConnection) {
             const { provider, label } = JSON.parse(pendingConnection);
-            const redirectUri = `${window.location.origin}/profile`;
+            const redirectUri = `${window.location.origin}/settings`;
             
             let token: string;
             let email: string = 'Calendar Account';
@@ -904,7 +904,7 @@ const Profile = () => {
             localStorage.removeItem('pending_calendar_connection');
             
             // Clean up URL
-            window.history.replaceState({}, document.title, '/profile');
+            window.history.replaceState({}, document.title, '/settings');
             
             toast.success(`${provider === 'google' ? 'Google' : 'Microsoft'} Calendar "${label}" connected successfully!`);
           } else {

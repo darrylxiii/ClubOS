@@ -520,7 +520,7 @@ const Auth = () => {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background/50 backdrop-blur-sm px-4 py-1 rounded-full text-white/70 font-semibold tracking-wider">
-                  Coming Soon
+                  Or continue with
                 </span>
               </div>
             </div>
@@ -529,8 +529,20 @@ const Auth = () => {
             <div className="flex items-center justify-center gap-4">
               <button
                 type="button"
-                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/70 backdrop-blur-sm"
-                disabled
+                onClick={async () => {
+                  try {
+                    const { error } = await supabase.auth.signInWithOAuth({
+                      provider: 'google',
+                      options: {
+                        redirectTo: `${window.location.origin}/home`,
+                      }
+                    });
+                    if (error) throw error;
+                  } catch (error: any) {
+                    toast.error(error.message || 'Failed to sign in with Google');
+                  }
+                }}
+                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50"
               >
                 <FaGoogle className="w-5 h-5 text-foreground" />
               </button>
@@ -545,8 +557,20 @@ const Auth = () => {
 
               <button
                 type="button"
-                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/70 backdrop-blur-sm"
-                disabled
+                onClick={async () => {
+                  try {
+                    const { error } = await supabase.auth.signInWithOAuth({
+                      provider: 'linkedin_oidc',
+                      options: {
+                        redirectTo: `${window.location.origin}/home`,
+                      }
+                    });
+                    if (error) throw error;
+                  } catch (error: any) {
+                    toast.error(error.message || 'Failed to sign in with LinkedIn');
+                  }
+                }}
+                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50"
               >
                 <FaLinkedin className="w-5 h-5 text-foreground" />
               </button>
