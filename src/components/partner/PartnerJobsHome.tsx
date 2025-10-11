@@ -240,6 +240,29 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     }
   };
 
+  const handlePublishJob = async (jobId: string, jobTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({
+          status: 'published',
+          published_at: new Date().toISOString()
+        })
+        .eq('id', jobId);
+
+      if (error) throw error;
+
+      toast.success(`${jobTitle} is now live!`, {
+        description: "Candidates can now see and apply to this job"
+      });
+      fetchJobsWithMetrics();
+      celebrateAction();
+    } catch (error) {
+      console.error('Error publishing job:', error);
+      toast.error("Failed to publish job");
+    }
+  };
+
   const handleClubSyncAction = async (jobId: string, action: 'accept' | 'decline') => {
     // TODO: Implement Club Sync API call
     toast.success(`Club Sync ${action === 'accept' ? 'accepted' : 'declined'} for this role`, {
@@ -720,6 +743,12 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
+                      {job.status === 'draft' && (
+                        <DropdownMenuItem onClick={() => handlePublishJob(job.id, job.title)} className="text-accent">
+                          <Flag className="w-4 h-4 mr-2" />
+                          Publish Job
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem onClick={() => handleQuickAction('invite', job.id, job.title)}>
                         <UserPlus className="w-4 h-4 mr-2" />
                         Invite Candidate
