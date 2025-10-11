@@ -102,27 +102,36 @@ export default function Messages() {
 
   return (
     <AppLayout>
-      <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background/95 to-primary/5">
+      <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-background via-background/95 to-primary/5 overflow-hidden">
+        {/* Mobile sidebar overlay */}
+        {showMobileSidebar && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-10"
+            onClick={() => setShowMobileSidebar(false)}
+          />
+        )}
+
         {/* Conversation List Panel */}
         <div 
           className={cn(
-            "w-80 border-r border-border/30 flex flex-col glass-strong backdrop-blur-2xl transition-transform duration-300 shadow-glass-lg",
+            "w-full sm:w-80 border-r border-border/30 flex flex-col glass-strong backdrop-blur-2xl transition-transform duration-300 shadow-glass-lg",
             "lg:translate-x-0",
-            showMobileSidebar ? "translate-x-0" : "-translate-x-full absolute lg:relative z-20 h-full"
+            showMobileSidebar ? "translate-x-0 absolute lg:relative" : "-translate-x-full absolute lg:relative",
+            "z-20 h-full"
           )}
         >
-        <div className="p-4 border-b border-border/30 bg-card/40 backdrop-blur-xl">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-bold flex items-center gap-2.5">
-              <MessageCircle className="h-5 w-5 text-primary" />
+        <div className="p-3 sm:p-4 border-b border-border/30 bg-card/40 backdrop-blur-xl flex-shrink-0">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">Messages</span>
             </h2>
             <Button 
               size="icon" 
               onClick={() => setCreateDialogOpen(true)} 
-              className="rounded-full shadow-glass-md hover:shadow-glow hover:scale-110 transition-all duration-200 bg-gradient-accent"
+              className="rounded-full shadow-glass-md hover:shadow-glow hover:scale-110 transition-all duration-200 bg-gradient-accent h-9 w-9 sm:h-10 sm:w-10"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
           <div className="relative">
@@ -131,7 +140,7 @@ export default function Messages() {
               placeholder="Search conversations..." 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)} 
-              className="pl-9 glass-subtle border-border/30 rounded-xl focus:shadow-glass-md transition-shadow font-medium"
+              className="pl-9 glass-subtle border-border/30 rounded-xl focus:shadow-glass-md transition-shadow font-medium text-sm"
             />
           </div>
         </div>
@@ -157,17 +166,17 @@ export default function Messages() {
         {selectedConversationId && selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 border-b border-border/30 glass-strong backdrop-blur-2xl px-6 flex items-center justify-between shadow-glass-md flex-shrink-0">
-              <div className="flex items-center gap-3.5">
+            <div className="h-14 sm:h-16 border-b border-border/30 glass-strong backdrop-blur-2xl px-3 sm:px-6 flex items-center justify-between shadow-glass-md flex-shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3.5 min-w-0 flex-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="lg:hidden hover:bg-accent/50 rounded-xl"
+                  className="lg:hidden hover:bg-accent/50 rounded-xl h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
                   onClick={() => setShowMobileSidebar(true)}
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
-                <Avatar className="h-10 w-10 ring-2 ring-background shadow-glass-md hover:ring-primary/60 transition-all">
+                <Avatar className="h-8 w-8 sm:h-10 sm:w-10 ring-2 ring-background shadow-glass-md hover:ring-primary/60 transition-all flex-shrink-0">
                   <AvatarImage 
                     src={
                       isGroup 
@@ -176,22 +185,22 @@ export default function Messages() {
                     }
                     className="object-cover"
                   />
-                  <AvatarFallback className="bg-gradient-accent text-white font-semibold text-sm">
-                    {isGroup ? <Users className="h-4 w-4" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
+                  <AvatarFallback className="bg-gradient-accent text-white font-semibold text-xs sm:text-sm">
+                    {isGroup ? <Users className="h-3 w-3 sm:h-4 sm:w-4" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <h3 className="font-bold text-base">{selectedConversation.title}</h3>
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-bold text-sm sm:text-base truncate">{selectedConversation.title}</h3>
                   {isGroup && (
-                    <p className="text-xs font-medium text-muted-foreground/80">
+                    <p className="text-xs font-medium text-muted-foreground/80 truncate">
                       {selectedConversation.metadata?.participant_count || 0} members
                     </p>
                   )}
                 </div>
               </div>
-              <div className="flex gap-1.5">
-                <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary rounded-xl transition-all duration-200 hover:scale-110" title="Voice call">
-                  <Phone className="h-5 w-5" />
+              <div className="flex gap-1 sm:gap-1.5 flex-shrink-0">
+                <Button variant="ghost" size="icon" className="hover:bg-primary/10 hover:text-primary rounded-xl transition-all duration-200 hover:scale-110 h-8 w-8 sm:h-9 sm:w-9 hidden sm:flex" title="Voice call">
+                  <Phone className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
                 <VideoCallLauncher 
                   conversationId={selectedConversationId}
@@ -202,19 +211,19 @@ export default function Messages() {
                   size="icon" 
                   onClick={() => setShowGroupInfo(!showGroupInfo)}
                   className={cn(
-                    "transition-all duration-200 rounded-xl hover:scale-110",
+                    "transition-all duration-200 rounded-xl hover:scale-110 h-8 w-8 sm:h-9 sm:w-9",
                     showGroupInfo ? "bg-gradient-accent text-white shadow-glow" : "hover:bg-primary/10 hover:text-primary"
                   )}
                   title={showGroupInfo ? "Hide Info" : "Show Info"}
                 >
-                  <Info className="h-5 w-5" />
+                  <Info className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </div>
             </div>
 
             {/* Messages Area */}
-            <ScrollArea className="flex-1 p-6 bg-gradient-to-b from-background/80 via-background/70 to-primary/5 backdrop-blur-sm overflow-y-auto">
-              <div className="space-y-4 pb-4">
+            <ScrollArea className="flex-1 p-3 sm:p-4 md:p-6 bg-gradient-to-b from-background/80 via-background/70 to-primary/5 backdrop-blur-sm overflow-y-auto">
+              <div className="space-y-3 sm:space-y-4 pb-4">
                 {messages.map((msg) => (
                   <MessageBubble 
                     key={msg.id} 
@@ -266,7 +275,7 @@ export default function Messages() {
             
             {/* Mobile Overlay */}
             <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={() => setShowGroupInfo(false)}>
-              <div className="absolute right-0 top-0 bottom-0 w-80 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+              <div className="absolute right-0 top-0 bottom-0 w-full sm:w-80 animate-slide-up" onClick={(e) => e.stopPropagation()}>
                 <GroupInfoPanel 
                   conversation={selectedConversation} 
                   onClose={() => setShowGroupInfo(false)}

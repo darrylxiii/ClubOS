@@ -54,9 +54,10 @@ export const CreateConversationDialog = ({
     setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('public_profiles')
+        .from('profiles')
         .select('id, full_name, avatar_url, current_title')
         .neq('id', user.id)
+        .eq('stealth_mode_enabled', false)
         .ilike('full_name', `%${query}%`)
         .limit(10);
 
@@ -112,7 +113,7 @@ export const CreateConversationDialog = ({
 
       // Get participant names for title
       const { data: participants } = await supabase
-        .from('public_profiles')
+        .from('profiles')
         .select('full_name')
         .in('id', participantIds);
 
@@ -176,12 +177,12 @@ export const CreateConversationDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
+      <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle>Start New Conversation</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Start New Conversation</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 flex-1 overflow-hidden flex flex-col">
+        <div className="space-y-3 sm:space-y-4 flex-1 overflow-hidden flex flex-col min-h-0">
           <div className="flex items-center gap-2">
             <Switch
               id="group-chat"
@@ -209,12 +210,12 @@ export const CreateConversationDialog = ({
           )}
 
           {selectedUsers.length > 0 && (
-            <div className="flex flex-wrap gap-2 p-2 bg-accent/30 rounded-lg border border-border/50">
+            <div className="flex flex-wrap gap-2 p-2 sm:p-3 bg-accent/30 rounded-lg border border-border/50 max-h-24 overflow-y-auto">
               {selectedUsers.map((user) => (
-                <Badge key={user.id} variant="secondary" className="gap-2">
-                  {user.full_name || 'Unknown'}
+                <Badge key={user.id} variant="secondary" className="gap-1.5 sm:gap-2 text-xs">
+                  <span className="truncate max-w-[120px]">{user.full_name || 'Unknown'}</span>
                   <X
-                    className="h-3 w-3 cursor-pointer hover:text-destructive"
+                    className="h-3 w-3 cursor-pointer hover:text-destructive flex-shrink-0"
                     onClick={() => toggleUserSelection(user)}
                   />
                 </Badge>
@@ -235,12 +236,12 @@ export const CreateConversationDialog = ({
             />
           </div>
 
-          <div className="flex-1 overflow-y-auto border rounded-lg">
+          <div className="flex-1 overflow-y-auto border rounded-lg min-h-[200px] max-h-[350px]">
             {loading ? (
               <p className="text-sm text-muted-foreground text-center py-8">Searching...</p>
             ) : searchResults.length === 0 && searchQuery ? (
               <p className="text-sm text-muted-foreground text-center py-8">No users found</p>
-            ) : (
+            ) : searchQuery && searchResults.length > 0 ? (
               searchResults.map((result) => {
                 const isSelected = selectedUsers.some((u) => u.id === result.id);
                 const initials = (result.full_name || '?')
@@ -253,7 +254,7 @@ export const CreateConversationDialog = ({
                 return (
                   <div
                     key={result.id}
-                    className="flex items-center gap-3 p-3 hover:bg-accent transition-colors border-b last:border-b-0 cursor-pointer"
+                    className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 hover:bg-accent transition-colors border-b last:border-b-0 cursor-pointer"
                     onClick={() => {
                       if (isGroupChat) {
                         toggleUserSelection(result);
@@ -263,23 +264,27 @@ export const CreateConversationDialog = ({
                     }}
                   >
                     {isGroupChat && (
-                      <Checkbox checked={isSelected} />
+                      <Checkbox checked={isSelected} className="flex-shrink-0" />
                     )}
-                    <Avatar>
-                      <AvatarImage src={result.avatar_url || ''} />
-                      <AvatarFallback className="bg-primary/10 text-primary">
+                    <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                      <AvatarImage src={result.avatar_url || ''} className="object-cover" />
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{result.full_name || 'Unknown'}</p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {result.current_title || 'Member'}
-                      </p>
+                      <p className="font-medium truncate text-sm sm:text-base">{result.full_name || 'Unknown'}</p>
+                      {result.current_title && (
+                        <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                          {result.current_title}
+                        </p>
+                      )}
                     </div>
                   </div>
                 );
               })
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-8">Search for users to start chatting</p>
             )}
           </div>
 
