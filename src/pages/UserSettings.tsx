@@ -23,6 +23,7 @@ import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
 import { useUserRole } from "@/hooks/useUserRole";
 import { SocialConnections } from "@/components/SocialConnections";
 import { AccountLinking } from "@/components/AccountLinking";
+import { AuthDiagnostics } from "@/components/AuthDiagnostics";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -2074,6 +2075,9 @@ const Profile = () => {
 
           {/* Account Linking */}
           <AccountLinking />
+
+          {/* Auth Diagnostics - for debugging */}
+          {role === 'admin' && <AuthDiagnostics />}
 
           {/* Stealth Mode */}
           <StealthModeToggle

@@ -553,12 +553,26 @@ const Auth = () => {
               <button
                 type="button"
                 onClick={async () => {
+                  console.log('[OAuth] Starting Google sign in...');
                   try {
-                    const { error } = await supabase.auth.signInWithOAuth({
+                    const { data, error } = await supabase.auth.signInWithOAuth({
                       provider: 'google',
+                      options: {
+                        redirectTo: `${window.location.origin}/auth`,
+                        queryParams: {
+                          access_type: 'offline',
+                          prompt: 'consent',
+                        }
+                      }
                     });
-                    if (error) throw error;
+                    console.log('[OAuth] Google response:', { data, error });
+                    if (error) {
+                      console.error('[OAuth] Google error:', error);
+                      throw error;
+                    }
+                    console.log('[OAuth] Redirecting to Google...');
                   } catch (error: any) {
+                    console.error('[OAuth] Caught error:', error);
                     toast.error(error.message || 'Failed to sign in with Google');
                   }
                 }}
