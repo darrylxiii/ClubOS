@@ -222,7 +222,7 @@ export default function Messages() {
 
             {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
-              <div className="space-y-3 pb-4">
+              <div className="space-y-3">
                 {messages.map((msg) => (
                   <MessageBubble 
                     key={msg.id} 
@@ -233,11 +233,13 @@ export default function Messages() {
                 ))}
                 {typingUsers.length > 0 && <TypingIndicator typingUsers={typingUsers} />}
                 <div ref={messagesEndRef} />
+                {/* Spacer for sticky composer */}
+                <div className="h-32" />
               </div>
             </div>
 
-            {/* Message Composer - Fixed at bottom */}
-            <div className="flex-shrink-0 border-t border-border/20">
+            {/* Message Composer - Sticky at bottom */}
+            <div className="sticky bottom-0 left-0 right-0 flex-shrink-0 z-10 border-t border-border/20 bg-background">
               <MessageComposer 
                 conversationId={selectedConversationId} 
                 onSend={handleSendMessage} 
