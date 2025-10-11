@@ -41,10 +41,14 @@ const Auth = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("[Auth Page] State:", { loading, user: !!user, mfaRequired });
+    
     if (!loading && user && !mfaRequired) {
-      console.log("[Auth Page] User detected, redirecting to home");
-      // Use replace to prevent back button issues
-      navigate("/home", { replace: true });
+      console.log("[Auth Page] User authenticated, redirecting to home");
+      // Small delay to ensure session is fully established
+      setTimeout(() => {
+        navigate("/home", { replace: true });
+      }, 100);
     }
   }, [user, loading, navigate, mfaRequired]);
 
