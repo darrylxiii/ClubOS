@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { useLocation, useNavigate } from "react-router-dom";
 import { TwoFactorSettings } from "@/components/TwoFactorSettings";
+import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -347,50 +348,7 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="w-5 h-5" />
-                  Notification Preferences
-                </CardTitle>
-                <CardDescription>
-                  Choose what notifications you want to receive
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Email Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Receive notifications via email
-                    </p>
-                  </div>
-...
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Message Notifications</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Get notified about new messages
-                    </p>
-                  </div>
-                  <Switch 
-                    checked={messageNotifications}
-                    onCheckedChange={setMessageNotifications}
-                  />
-                </div>
-
-                <Button 
-                  onClick={handleSaveNotifications}
-                  className="w-full"
-                >
-                  Save Preferences
-                </Button>
-              </CardContent>
-            </Card>
+            <NotificationPreferences />
           </TabsContent>
 
           <TabsContent value="privacy" className="space-y-4">
