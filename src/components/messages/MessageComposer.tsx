@@ -92,9 +92,9 @@ export const MessageComposer = ({
   };
 
   return (
-    <div className="border-t border-border/30 glass-strong backdrop-blur-2xl p-2 sm:p-3 md:p-4 shadow-glass-lg">
+    <div className="border-t border-border/20 bg-background p-3 md:p-4">
       {attachment && (
-        <div className="mb-2 sm:mb-3 flex items-center gap-2 sm:gap-2.5 text-xs sm:text-sm font-medium glass-subtle p-2 sm:p-3 rounded-xl border border-border/30 shadow-glass-sm">
+        <div className="mb-2 flex items-center gap-2 text-xs sm:text-sm font-medium bg-muted/50 p-2 sm:p-3 rounded-lg border border-border/20">
           <Paperclip className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
           <span className="truncate text-foreground">{attachment.name}</span>
           <Button
@@ -108,7 +108,7 @@ export const MessageComposer = ({
         </div>
       )}
 
-      <div className="flex items-end gap-1 sm:gap-2">
+      <div className="flex items-end gap-2">
         <input
           type="file"
           ref={fileInputRef}
@@ -122,10 +122,10 @@ export const MessageComposer = ({
           size="icon"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || sending}
-          className="flex-shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary hover:scale-110 transition-all duration-200 shadow-glass-sm h-9 w-9 sm:h-10 sm:w-10"
+          className="flex-shrink-0 rounded-lg h-10 w-10"
           title="Attach file"
         >
-          <Paperclip className="h-4 w-4 sm:h-5 sm:w-5" />
+          <Paperclip className="h-5 w-5" />
         </Button>
 
         <EnhancedEmojiPicker onSelect={handleEmojiSelect} />
@@ -143,7 +143,7 @@ export const MessageComposer = ({
           onKeyDown={handleKeyDown}
           placeholder="Type a message..."
           disabled={disabled || sending}
-          className="min-h-[40px] sm:min-h-[48px] max-h-32 resize-none glass-strong backdrop-blur-xl border-border/30 rounded-2xl focus:shadow-glass-md focus:border-primary/30 transition-all font-medium text-sm sm:text-base px-3 sm:px-4 py-2 sm:py-3"
+          className="min-h-[42px] max-h-32 resize-none bg-muted/30 border-border/20 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm px-3 py-2"
           rows={1}
         />
 
@@ -151,17 +151,17 @@ export const MessageComposer = ({
           onClick={handleSend}
           disabled={disabled || sending || (!message.trim() && !attachment)}
           size="icon"
-          className="flex-shrink-0 h-10 w-10 sm:h-12 sm:w-12 rounded-2xl bg-gradient-accent shadow-glass-md hover:shadow-glow hover:scale-110 transition-all duration-200"
+          className="flex-shrink-0 h-10 w-10 rounded-lg bg-primary"
         >
           {sending ? (
-            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
-            <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Send className="h-5 w-5" />
           )}
         </Button>
       </div>
 
-      <p className="text-xs font-medium text-muted-foreground/70 mt-2 sm:mt-2.5 px-1 hidden sm:block">
+      <p className="text-xs text-muted-foreground mt-2 px-1 hidden sm:block">
         Press Enter to send, Shift+Enter for new line
       </p>
     </div>

@@ -104,6 +104,7 @@ export const CreateConversationDialog = ({
             otherParticipants?.length === 2 &&
             otherParticipants.some((p) => p.user_id === participantIds[0])
           ) {
+            toast.success('Opening existing conversation');
             onConversationCreated?.(participation.conversation_id);
             onOpenChange(false);
             return;
@@ -151,15 +152,16 @@ export const CreateConversationDialog = ({
 
       if (participantError) throw participantError;
 
-      toast.success(isGroupChat ? 'Group chat created' : 'Conversation started');
-      onConversationCreated?.(conversation.id);
-      onOpenChange(false);
+      toast.success(isGroupChat ? 'Group chat created' : 'Opening conversation');
       
       // Reset state
       setSelectedUsers([]);
       setGroupName('');
       setIsGroupChat(false);
       setSearchQuery('');
+      
+      onConversationCreated?.(conversation.id);
+      onOpenChange(false);
     } catch (error) {
       console.error('Error creating conversation:', error);
       toast.error('Failed to create conversation');
@@ -172,6 +174,16 @@ export const CreateConversationDialog = ({
     const participantIds = selectedUsers.map((u) => u.id);
     if (participantIds.length > 0) {
       createConversation(participantIds);
+    }
+  };
+
+  const handleUserSelect = (result: UserResult) => {
+    if (isGroupChat) {
+      toggleUserSelection(result);
+    } else {
+      // For non-group chats, immediately create conversation
+      setSelectedUsers([result]);
+      createConversation([result.id]);
     }
   };
 
@@ -209,17 +221,29 @@ export const CreateConversationDialog = ({
             />
           )}
 
-          {selectedUsers.length > 0 && (
-            <div className="flex flex-wrap gap-2 p-2 sm:p-3 bg-accent/30 rounded-lg border border-border/50 max-h-24 overflow-y-auto">
-              {selectedUsers.map((user) => (
-                <Badge key={user.id} variant="secondary" className="gap-1.5 sm:gap-2 text-xs">
-                  <span className="truncate max-w-[120px]">{user.full_name || 'Unknown'}</span>
-                  <X
-                    className="h-3 w-3 cursor-pointer hover:text-destructive flex-shrink-0"
-                    onClick={() => toggleUserSelection(user)}
-                  />
-                </Badge>
-              ))}
+          {isGroupChat && selectedUsers.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-xs text-muted-foreground">Selected members ({selectedUsers.length})</Label>
+              <div className="flex flex-wrap gap-2 p-2 bg-muted/30 rounded-lg max-h-32 overflow-y-auto">
+                {selectedUsers.map((selectedUser) => (
+                  <div
+                    key={selectedUser.id}
+                    className="flex items-center gap-2 p-1.5 pr-2 bg-background rounded-lg border border-border/50 hover:border-primary/30 transition-colors group"
+                  >
+                    <Avatar className="h-6 w-6 flex-shrink-0">
+                      <AvatarImage src={selectedUser.avatar_url || ''} className="object-cover" />
+                      <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                        {(selectedUser.full_name || '?').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs font-medium truncate max-w-[100px]">{selectedUser.full_name || 'Unknown'}</span>
+                    <X
+                      className="h-3 w-3 cursor-pointer text-muted-foreground hover:text-destructive flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => toggleUserSelection(selectedUser)}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
@@ -254,14 +278,8 @@ export const CreateConversationDialog = ({
                 return (
                   <div
                     key={result.id}
-                    className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 hover:bg-accent transition-colors border-b last:border-b-0 cursor-pointer"
-                    onClick={() => {
-                      if (isGroupChat) {
-                        toggleUserSelection(result);
-                      } else {
-                        setSelectedUsers([result]);
-                      }
-                    }}
+                    className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 hover:bg-accent/50 transition-colors border-b last:border-b-0 cursor-pointer"
+                    onClick={() => handleUserSelect(result)}
                   >
                     {isGroupChat && (
                       <Checkbox checked={isSelected} className="flex-shrink-0" />

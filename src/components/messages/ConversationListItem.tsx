@@ -71,28 +71,27 @@ export const ConversationListItem = ({
     <div
       onClick={onClick}
       className={cn(
-        "flex items-start gap-2.5 sm:gap-3.5 p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl cursor-pointer transition-all duration-200",
-        "hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 hover:scale-[1.02]",
-        "border border-transparent hover:border-primary/30 hover:shadow-glass-md",
-        isSelected && "bg-gradient-to-r from-primary/15 to-accent/15 border-primary/40 shadow-glass-lg scale-[1.02]"
+        "flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all duration-150",
+        "hover:bg-muted/50",
+        isSelected && "bg-muted"
       )}
     >
       <div className="relative flex-shrink-0">
-        <Avatar className="h-10 w-10 sm:h-12 sm:w-12 ring-2 ring-background shadow-glass-md hover:ring-primary/60 transition-all">
+        <Avatar className="h-12 w-12">
           <AvatarImage src={avatarUrl || undefined} alt={displayName} className="object-cover" />
-          <AvatarFallback className="bg-gradient-accent text-white font-semibold text-xs sm:text-sm">
-            {isGroup ? <Users className="h-3 w-3 sm:h-4 sm:w-4" /> : initials}
+          <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+            {isGroup ? <Users className="h-4 w-4" /> : initials}
           </AvatarFallback>
         </Avatar>
         {!isGroup && otherParticipant && (
           <div className="absolute bottom-0 right-0">
-            <OnlineStatusIndicator userId={otherParticipant.user_id} className="w-3 h-3 sm:w-4 sm:h-4" />
+            <OnlineStatusIndicator userId={otherParticipant.user_id} className="w-3.5 h-3.5 ring-2 ring-background" />
           </div>
         )}
         {!!conversation.unread_count && (
           <Badge 
             variant="destructive" 
-            className="absolute -top-1 -right-1 h-5 w-5 sm:h-6 sm:w-6 flex items-center justify-center p-0 text-xs font-bold shadow-glow animate-pulse"
+            className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs font-bold"
           >
             {conversation.unread_count > 9 ? "9+" : conversation.unread_count}
           </Badge>
@@ -100,26 +99,26 @@ export const ConversationListItem = ({
       </div>
       
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-1.5 sm:gap-2 mb-1 sm:mb-1.5">
-          <h4 className="font-bold text-xs sm:text-sm truncate text-foreground">{displayName}</h4>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <h4 className="font-semibold text-sm truncate">{displayName}</h4>
           {conversation.last_message_at && (
-            <span className="text-[10px] sm:text-xs font-medium text-muted-foreground/80 whitespace-nowrap flex-shrink-0">
-              {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true })}
+            <span className="text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
+              {formatDistanceToNow(new Date(conversation.last_message_at), { addSuffix: true }).replace('about ', '')}
             </span>
           )}
         </div>
         
         <p className={cn(
-          "text-[11px] sm:text-xs line-clamp-2 font-medium",
-          conversation.unread_count ? "text-foreground/90" : "text-muted-foreground/80"
+          "text-sm line-clamp-1",
+          conversation.unread_count ? "font-medium text-foreground" : "text-muted-foreground"
         )}>
           {lastMessagePreview}
         </p>
         
         {isGroup && (
-          <div className="flex items-center gap-1 sm:gap-1.5 mt-1 sm:mt-1.5">
-            <Users className="h-3 w-3 text-muted-foreground/70" />
-            <span className="text-[10px] sm:text-xs font-medium text-muted-foreground/70">
+          <div className="flex items-center gap-1.5 mt-1">
+            <Users className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">
               {conversation.metadata?.participant_count || 0} members
             </span>
           </div>
