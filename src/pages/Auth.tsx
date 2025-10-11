@@ -8,7 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { Lock, Sparkles, Shield, CheckCircle2, Apple } from "lucide-react";
 import { FaGoogle, FaLinkedin } from "react-icons/fa";
-
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -33,6 +33,11 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [inviteValid, setInviteValid] = useState<boolean | null>(null);
   const [inviteInfo, setInviteInfo] = useState<any>(null);
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [emailVerificationCode, setEmailVerificationCode] = useState("");
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [mfaRequired, setMfaRequired] = useState(false);
+  const [mfaCode, setMfaCode] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -101,10 +106,19 @@ const Auth = () => {
           if (error.message.includes("Invalid login credentials")) {
             toast.error("Invalid email or password");
           } else if (error.message.includes("Email not confirmed")) {
-            toast.error("Please verify your email address");
+            toast.error("Please verify your email address first");
+            setNeedsEmailVerification(true);
           } else {
             toast.error(error.message);
           }
+          return;
+        }
+
+        // Check if MFA is required
+        const factors = data.user?.factors || [];
+        if (factors.length > 0 && factors.some(f => f.status === 'verified')) {
+          setMfaRequired(true);
+          toast.info("Please enter your 2FA code");
           return;
         }
 
@@ -161,9 +175,17 @@ const Auth = () => {
           }
         }
 
-        toast.success("Account created! You can now sign in.");
-        setIsLogin(true);
-        setPassword("");
+        toast.success("Account created! Please verify your email.");
+        setNeedsEmailVerification(true);
+        
+        // Send verification code
+        const { error: verifyError } = await supabase.functions.invoke('send-email-verification', {
+          body: { email }
+        });
+        
+        if (verifyError) {
+          console.error("Failed to send verification:", verifyError);
+        }
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -173,6 +195,64 @@ const Auth = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleVerifyEmail = async () => {
+    if (emailVerificationCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+
+    setVerificationLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('verify-email-code', {
+        body: { email, code: emailVerificationCode }
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      toast.success("Email verified! You can now sign in.");
+      setNeedsEmailVerification(false);
+      setEmailVerificationCode("");
+      setIsLogin(true);
+    } catch (error: any) {
+      toast.error(error.message || "Invalid verification code");
+    } finally {
+      setVerificationLoading(false);
+    }
+  };
+
+  const handleVerifyMFA = async () => {
+    if (mfaCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+
+    setVerificationLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("No user found");
+
+      const factor = user.factors?.find(f => f.status === 'verified');
+      if (!factor) throw new Error("No verified MFA factor found");
+
+      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
+        factorId: factor.id,
+        code: mfaCode
+      });
+
+      if (error) throw error;
+
+      if (data) {
+        toast.success("Welcome back!");
+        navigate("/home");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Invalid 2FA code");
+    } finally {
+      setVerificationLoading(false);
     }
   };
 
@@ -251,7 +331,100 @@ const Auth = () => {
         </CardHeader>
 
         <CardContent className="pt-2 px-8 pb-10">
-          <form onSubmit={handleEmailAuth} className="space-y-5">
+          {needsEmailVerification ? (
+            <div className="space-y-5">
+              <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 backdrop-blur-sm space-y-2">
+                <p className="text-sm font-bold text-primary text-center">Verify Your Email</p>
+                <p className="text-xs text-white/80 text-center">
+                  We sent a 6-digit code to {email}
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={emailVerificationCode}
+                  onChange={setEmailVerificationCode}
+                  disabled={verificationLoading}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              <Button
+                onClick={handleVerifyEmail}
+                disabled={emailVerificationCode.length !== 6 || verificationLoading}
+                className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary/90 to-accent/90 hover:from-primary hover:to-accent text-white font-bold text-lg shadow-2xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02]"
+              >
+                {verificationLoading ? "Verifying..." : "Verify Email"}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setNeedsEmailVerification(false);
+                  setEmailVerificationCode("");
+                }}
+                className="text-white/80 hover:text-white font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
+              >
+                Back to sign in
+              </button>
+            </div>
+          ) : mfaRequired ? (
+            <div className="space-y-5">
+              <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 backdrop-blur-sm space-y-2">
+                <p className="text-sm font-bold text-primary text-center">Two-Factor Authentication</p>
+                <p className="text-xs text-white/80 text-center">
+                  Enter the 6-digit code from your authenticator app
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <InputOTP
+                  maxLength={6}
+                  value={mfaCode}
+                  onChange={setMfaCode}
+                  disabled={verificationLoading}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              <Button
+                onClick={handleVerifyMFA}
+                disabled={mfaCode.length !== 6 || verificationLoading}
+                className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary/90 to-accent/90 hover:from-primary hover:to-accent text-white font-bold text-lg shadow-2xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02]"
+              >
+                {verificationLoading ? "Verifying..." : "Verify 2FA Code"}
+              </Button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setMfaRequired(false);
+                  setMfaCode("");
+                }}
+                className="text-white/80 hover:text-white font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
+              >
+                Back to sign in
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleEmailAuth} className="space-y-5">
             {!isLogin && (
               <div>
                 <Input
@@ -378,9 +551,10 @@ const Auth = () => {
                 <FaLinkedin className="w-5 h-5 text-foreground" />
               </button>
             </div>
-          </form>
+            </form>
+          )}
 
-          {!inviteCode && (
+          {!inviteCode && !needsEmailVerification && !mfaRequired && (
             <div className="text-center text-sm pt-8 pb-4">
               <button
                 type="button"
