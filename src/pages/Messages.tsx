@@ -163,11 +163,11 @@ export default function Messages() {
       </div>
 
       {/* Main Chat Panel */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex-1 flex flex-col min-w-0 relative overflow-hidden">
         {selectedConversationId && selectedConversation ? (
           <>
             {/* Chat Header */}
-            <div className="h-16 border-b border-border/20 bg-background px-4 sm:px-6 flex items-center justify-between flex-shrink-0">
+            <div className="h-16 border-b border-border/20 bg-background px-4 sm:px-6 flex items-center justify-between flex-shrink-0 z-10">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <Button
                   variant="ghost"
@@ -221,7 +221,7 @@ export default function Messages() {
             </div>
 
             {/* Messages Area */}
-            <ScrollArea className="flex-1 p-4 md:p-6 bg-muted/20 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
               <div className="space-y-3 pb-4">
                 {messages.map((msg) => (
                   <MessageBubble 
@@ -234,10 +234,10 @@ export default function Messages() {
                 {typingUsers.length > 0 && <TypingIndicator typingUsers={typingUsers} />}
                 <div ref={messagesEndRef} />
               </div>
-            </ScrollArea>
+            </div>
 
-            {/* Message Composer - Sticky at bottom */}
-            <div className="sticky bottom-0 flex-shrink-0 z-10">
+            {/* Message Composer - Fixed at bottom */}
+            <div className="flex-shrink-0 border-t border-border/20">
               <MessageComposer 
                 conversationId={selectedConversationId} 
                 onSend={handleSendMessage} 

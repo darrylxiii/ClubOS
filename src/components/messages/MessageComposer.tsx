@@ -92,7 +92,7 @@ export const MessageComposer = ({
   };
 
   return (
-    <div className="border-t border-border/20 bg-background p-3 md:p-4">
+    <div className="bg-background p-3 md:p-4">
       {attachment && (
         <div className="mb-2 flex items-center gap-2 text-xs sm:text-sm font-medium bg-muted/50 p-2 sm:p-3 rounded-lg border border-border/20">
           <Paperclip className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
@@ -141,7 +141,7 @@ export const MessageComposer = ({
             onTyping?.();
           }}
           onKeyDown={handleKeyDown}
-          placeholder="Type a message..."
+          placeholder="Type a message (Enter to send, Shift+Enter for new line)..."
           disabled={disabled || sending}
           className="min-h-[42px] max-h-32 resize-none bg-muted/30 border-border/20 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm px-3 py-2"
           rows={1}
@@ -160,10 +160,6 @@ export const MessageComposer = ({
           )}
         </Button>
       </div>
-
-      <p className="text-xs text-muted-foreground mt-2 px-1 hidden sm:block">
-        Press Enter to send, Shift+Enter for new line
-      </p>
     </div>
   );
 };
