@@ -17,7 +17,6 @@ import {
 import { ProfileCompletion } from "@/components/ProfileCompletion";
 import { LivePulse } from "@/components/LivePulse";
 import { ProfileViewers } from "@/components/ProfileViewers";
-import { AICareerChat } from "@/components/AICareerChat";
 import { Link } from "react-router-dom";
 
 export const CandidateHome = () => {
@@ -199,9 +198,6 @@ export const CandidateHome = () => {
         <LivePulse />
         <ProfileViewers />
       </div>
-
-      {/* AI Career Chat */}
-      <AICareerChat />
 
       {/* Recent Activity */}
       <Card>

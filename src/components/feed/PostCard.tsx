@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils";
 import { AlgorithmTransparency } from "./AlgorithmTransparency";
 import { PostPinning } from "./PostPinning";
 import { RepostButton } from "./RepostButton";
+import { EditPostDialog } from "./EditPostDialog";
 
 interface PostCardProps {
   post: any;
@@ -54,6 +55,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [showFullPost, setShowFullPost] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [repostCount, setRepostCount] = useState(0);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   
   // Engagement tracking
   const { trackLike, trackComment, trackShare, trackSave: trackSaveEngagement } = useEngagementTracking({
@@ -344,7 +346,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 {isOwnPost && (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
                       <Edit className="w-4 h-4 mr-2" />
                       Edit post
                     </DropdownMenuItem>
@@ -643,6 +645,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
         onConversationCreated={(conversationId) => {
           navigate('/messages');
         }}
+      />
+
+      <EditPostDialog
+        post={post}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onUpdate={onUpdate}
       />
     </Card>
   );
