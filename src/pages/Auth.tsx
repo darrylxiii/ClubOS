@@ -43,13 +43,12 @@ const Auth = () => {
   useEffect(() => {
     console.log("[Auth Page] State:", { loading, user: !!user, mfaRequired, session: !!session });
     
-    // Check if user is fully authenticated (either no MFA or MFA completed)
+    // Only redirect for non-MFA scenarios (regular login completed or OAuth without MFA)
     if (!loading && user && session && !mfaRequired) {
-      console.log("[Auth Page] User authenticated, redirecting to home");
-      // Small delay to ensure session is fully established
+      console.log("[Auth Page] User fully authenticated, redirecting to home");
       setTimeout(() => {
         navigate("/home", { replace: true });
-      }, 100);
+      }, 150);
     }
   }, [user, loading, navigate, mfaRequired, session]);
 
@@ -88,19 +87,22 @@ const Auth = () => {
   useEffect(() => {
     // Listen for MFA completion from OAuth flows
     const { data: authListener } = supabase.auth.onAuthStateChange((event, currentSession) => {
-      console.log("[Auth Page] Auth state change:", event, "MFA required?", mfaRequired);
+      console.log("[Auth Page] Auth state change:", event, "Has session?", !!currentSession);
       
-      // When MFA is verified after OAuth login, clear the MFA requirement
+      // When MFA is verified, immediately redirect
       if (event === 'MFA_CHALLENGE_VERIFIED' && currentSession) {
-        console.log("[Auth Page] MFA verified, clearing requirement");
+        console.log("[Auth Page] MFA verified, redirecting to home");
         setMfaRequired(false);
+        setTimeout(() => {
+          navigate("/home", { replace: true });
+        }, 100);
       }
     });
 
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [mfaRequired]);
+  }, [navigate]);
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
