@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, Sparkles, Shield, CheckCircle2, Apple } from "lucide-react";
-import { FaGoogle, FaLinkedin } from "react-icons/fa";
+import { Lock, Sparkles, Shield, CheckCircle2 } from "lucide-react";
+import { FaGoogle } from "react-icons/fa";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
@@ -548,8 +548,8 @@ const Auth = () => {
               </div>
             </div>
 
-            {/* Circular Social Buttons */}
-            <div className="flex items-center justify-center gap-4">
+            {/* Google Sign-in Button */}
+            <div className="flex items-center justify-center">
               <button
                 type="button"
                 onClick={async () => {
@@ -579,62 +579,6 @@ const Auth = () => {
                 className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50"
               >
                 <FaGoogle className="w-5 h-5 text-foreground" />
-              </button>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  console.log('[OAuth] Starting Apple sign in...');
-                  try {
-                    const { data, error } = await supabase.auth.signInWithOAuth({
-                      provider: 'apple',
-                      options: {
-                        redirectTo: `${window.location.origin}/auth`,
-                        scopes: 'name email',
-                      }
-                    });
-                    console.log('[OAuth] Apple response:', { data, error });
-                    if (error) {
-                      console.error('[OAuth] Apple error:', error);
-                      throw error;
-                    }
-                    console.log('[OAuth] Redirecting to Apple...');
-                  } catch (error: any) {
-                    console.error('[OAuth] Caught error:', error);
-                    toast.error(error.message || 'Failed to sign in with Apple');
-                  }
-                }}
-                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50"
-              >
-                <Apple className="w-6 h-6 text-foreground" />
-              </button>
-
-              <button
-                type="button"
-                onClick={async () => {
-                  console.log('[OAuth] Starting LinkedIn sign in...');
-                  try {
-                    const { data, error } = await supabase.auth.signInWithOAuth({
-                      provider: 'linkedin_oidc',
-                      options: {
-                        redirectTo: `${window.location.origin}/auth`,
-                        scopes: 'openid profile email',
-                      }
-                    });
-                    console.log('[OAuth] LinkedIn response:', { data, error });
-                    if (error) {
-                      console.error('[OAuth] LinkedIn error:', error);
-                      throw error;
-                    }
-                    console.log('[OAuth] Redirecting to LinkedIn...');
-                  } catch (error: any) {
-                    console.error('[OAuth] Caught error:', error);
-                    toast.error(error.message || 'Failed to sign in with LinkedIn');
-                  }
-                }}
-                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50"
-              >
-                <FaLinkedin className="w-5 h-5 text-foreground" />
               </button>
             </div>
             </form>
