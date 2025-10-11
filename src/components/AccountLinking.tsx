@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Shield, Mail, Link2, Unlink, Loader2 } from "lucide-react";
+import { Shield, Mail, Link2, Unlink, Loader2, Apple } from "lucide-react";
 import { FaGoogle, FaLinkedin } from "react-icons/fa";
 import {
   Dialog,
@@ -47,6 +47,7 @@ export const AccountLinking = () => {
   const hasEmailPassword = identities.some(i => i.provider === "email");
   const hasGoogle = identities.some(i => i.provider === "google");
   const hasLinkedIn = identities.some(i => i.provider === "linkedin_oidc");
+  const hasApple = identities.some(i => i.provider === "apple");
 
   const handleLinkGoogle = async () => {
     try {
@@ -65,12 +66,33 @@ export const AccountLinking = () => {
     try {
       const { error } = await supabase.auth.linkIdentity({
         provider: 'linkedin_oidc',
+        options: {
+          redirectTo: `${window.location.origin}/user-settings`,
+          scopes: 'openid profile email',
+        }
       });
       if (error) throw error;
       toast.success("Redirecting to LinkedIn...");
     } catch (error: any) {
       console.error("Error linking LinkedIn:", error);
       toast.error(error.message || "Failed to link LinkedIn account");
+    }
+  };
+
+  const handleLinkApple = async () => {
+    try {
+      const { error } = await supabase.auth.linkIdentity({
+        provider: 'apple',
+        options: {
+          redirectTo: `${window.location.origin}/user-settings`,
+          scopes: 'name email',
+        }
+      });
+      if (error) throw error;
+      toast.success("Redirecting to Apple...");
+    } catch (error: any) {
+      console.error("Error linking Apple:", error);
+      toast.error(error.message || "Failed to link Apple account");
     }
   };
 
@@ -307,6 +329,43 @@ export const AccountLinking = () => {
             )
           ) : (
             <Button variant="outline" size="sm" onClick={handleLinkLinkedIn}>
+              <Link2 className="w-4 h-4 mr-2" />
+              Connect
+            </Button>
+          )}
+        </div>
+
+        {/* Apple */}
+        <div className="flex items-center justify-between p-4 border rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gray-900/10 flex items-center justify-center">
+              <Apple className="w-5 h-5 text-gray-900 dark:text-gray-100" />
+            </div>
+            <div>
+              <p className="font-semibold">Apple</p>
+              <p className="text-sm text-muted-foreground">
+                {hasApple ? "Connected" : "Not connected"}
+              </p>
+            </div>
+          </div>
+          {hasApple ? (
+            identities.length > 1 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const appleIdentity = identities.find(i => i.provider === "apple");
+                  if (appleIdentity) {
+                    handleUnlinkIdentity(appleIdentity, "Apple");
+                  }
+                }}
+              >
+                <Unlink className="w-4 h-4 mr-2" />
+                Disconnect
+              </Button>
+            )
+          ) : (
+            <Button variant="outline" size="sm" onClick={handleLinkApple}>
               <Link2 className="w-4 h-4 mr-2" />
               Connect
             </Button>

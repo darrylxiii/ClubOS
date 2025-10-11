@@ -583,8 +583,28 @@ const Auth = () => {
 
               <button
                 type="button"
-                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center opacity-40 cursor-not-allowed transition-all hover:bg-background/70 backdrop-blur-sm"
-                disabled
+                onClick={async () => {
+                  console.log('[OAuth] Starting Apple sign in...');
+                  try {
+                    const { data, error } = await supabase.auth.signInWithOAuth({
+                      provider: 'apple',
+                      options: {
+                        redirectTo: `${window.location.origin}/auth`,
+                        scopes: 'name email',
+                      }
+                    });
+                    console.log('[OAuth] Apple response:', { data, error });
+                    if (error) {
+                      console.error('[OAuth] Apple error:', error);
+                      throw error;
+                    }
+                    console.log('[OAuth] Redirecting to Apple...');
+                  } catch (error: any) {
+                    console.error('[OAuth] Caught error:', error);
+                    toast.error(error.message || 'Failed to sign in with Apple');
+                  }
+                }}
+                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50"
               >
                 <Apple className="w-6 h-6 text-foreground" />
               </button>
@@ -592,12 +612,23 @@ const Auth = () => {
               <button
                 type="button"
                 onClick={async () => {
+                  console.log('[OAuth] Starting LinkedIn sign in...');
                   try {
-                    const { error } = await supabase.auth.signInWithOAuth({
+                    const { data, error } = await supabase.auth.signInWithOAuth({
                       provider: 'linkedin_oidc',
+                      options: {
+                        redirectTo: `${window.location.origin}/auth`,
+                        scopes: 'openid profile email',
+                      }
                     });
-                    if (error) throw error;
+                    console.log('[OAuth] LinkedIn response:', { data, error });
+                    if (error) {
+                      console.error('[OAuth] LinkedIn error:', error);
+                      throw error;
+                    }
+                    console.log('[OAuth] Redirecting to LinkedIn...');
                   } catch (error: any) {
+                    console.error('[OAuth] Caught error:', error);
                     toast.error(error.message || 'Failed to sign in with LinkedIn');
                   }
                 }}
