@@ -107,9 +107,8 @@ export const TwoFactorSettings = () => {
         setFactorId(data.id);
         setSecret(data.totp.secret);
         
-        // Generate QR code
-        const qrCodeUrl = data.totp.qr_code;
-        const qr = await QRCode.toDataURL(qrCodeUrl);
+        // Generate QR code from the URI (not the SVG)
+        const qr = await QRCode.toDataURL(data.totp.uri);
         setQrCode(qr);
         
         toast.success('Scan the QR code with your authenticator app');
