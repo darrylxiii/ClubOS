@@ -23,6 +23,7 @@ import { MessageComposer } from '@/components/messages/MessageComposer';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { GroupInfoPanel } from '@/components/messages/GroupInfoPanel';
 import { VideoCallLauncher } from '@/components/messages/VideoCallLauncher';
+import { AudioCallLauncher } from '@/components/messages/AudioCallLauncher';
 import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
@@ -199,9 +200,10 @@ export default function Messages() {
                 </div>
               </div>
               <div className="flex gap-1 flex-shrink-0">
-                <Button variant="ghost" size="icon" className="h-9 w-9 hidden sm:flex" title="Voice call">
-                  <Phone className="h-5 w-5" />
-                </Button>
+                <AudioCallLauncher 
+                  conversationId={selectedConversationId}
+                  participantName={selectedConversation.title}
+                />
                 <VideoCallLauncher 
                   conversationId={selectedConversationId}
                   participantName={selectedConversation.title}

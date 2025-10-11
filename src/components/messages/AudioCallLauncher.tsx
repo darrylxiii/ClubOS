@@ -1,14 +1,14 @@
 import { Button } from "@/components/ui/button";
-import { Video } from "lucide-react";
+import { Phone } from "lucide-react";
 import { useState } from "react";
-import { VideoCallInterface } from "./VideoCallInterface";
+import { AudioCallInterface } from "./AudioCallInterface";
 
-interface VideoCallLauncherProps {
+interface AudioCallLauncherProps {
   conversationId: string;
   participantName: string;
 }
 
-export function VideoCallLauncher({ conversationId, participantName }: VideoCallLauncherProps) {
+export function AudioCallLauncher({ conversationId, participantName }: AudioCallLauncherProps) {
   const [callActive, setCallActive] = useState(false);
 
   const handleStartCall = () => {
@@ -26,13 +26,13 @@ export function VideoCallLauncher({ conversationId, participantName }: VideoCall
         size="icon" 
         onClick={handleStartCall}
         className="h-9 w-9 hover:bg-primary/10 hover:text-primary"
-        title="Start video call"
+        title="Start voice call"
       >
-        <Video className="h-5 w-5" />
+        <Phone className="h-5 w-5" />
       </Button>
 
       {callActive && (
-        <VideoCallInterface 
+        <AudioCallInterface 
           conversationId={conversationId}
           participantName={participantName}
           onEnd={handleEndCall}

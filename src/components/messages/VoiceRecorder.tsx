@@ -28,7 +28,15 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Request microphone permission with better error handling
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+      
       const mediaRecorder = new MediaRecorder(stream, { 
         mimeType: 'audio/webm;codecs=opus' 
       });
@@ -49,9 +57,18 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       timerRef.current = setInterval(() => {
         setDuration((prev) => prev + 1);
       }, 1000);
-    } catch (error) {
+      
+      toast.success("Recording started");
+    } catch (error: any) {
       console.error("Error accessing microphone:", error);
-      toast.error("Could not access microphone");
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        toast.error("Microphone access denied. Please allow microphone permissions in your browser settings.");
+      } else if (error.name === 'NotFoundError') {
+        toast.error("No microphone found on your device.");
+      } else {
+        toast.error("Could not access microphone. Please check your device settings.");
+      }
     }
   };
 
