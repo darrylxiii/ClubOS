@@ -18,6 +18,8 @@ export const TwoFactorSettings = () => {
   const [verifyCode, setVerifyCode] = useState('');
   const [factorId, setFactorId] = useState<string>('');
   const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
+  const [existingFactors, setExistingFactors] = useState<any[]>([]);
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     checkMFAStatus();
@@ -29,16 +31,61 @@ export const TwoFactorSettings = () => {
       if (!user) return;
 
       const factors = user.factors || [];
+      setExistingFactors(factors);
+      
       const hasVerifiedFactor = factors.some(f => f.status === 'verified');
       setMfaEnabled(hasVerifiedFactor);
     } catch (error) {
       console.error('Error checking MFA status:', error);
+      toast.error('Failed to check 2FA status');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleRemoveFactor = async (factorIdToRemove: string) => {
+    if (!confirm('Are you sure you want to remove this 2FA factor? This will allow you to set up a new one.')) {
+      return;
+    }
+
+    setResetting(true);
+    try {
+      const { error } = await supabase.auth.mfa.unenroll({
+        factorId: factorIdToRemove
+      });
+
+      if (error) throw error;
+
+      toast.success('2FA factor removed successfully');
+      
+      // Reset all states
+      setQrCode('');
+      setSecret('');
+      setVerifyCode('');
+      setFactorId('');
+      setRecoveryCodes([]);
+      
+      // Refresh status
+      await checkMFAStatus();
+    } catch (error: any) {
+      console.error('Error removing MFA factor:', error);
+      toast.error(error.message || 'Failed to remove 2FA factor');
+    } finally {
+      setResetting(false);
+    }
+  };
+
   const handleEnableMFA = async () => {
+    // Check if there's already an existing "Authenticator App" factor
+    const existingAuthFactor = existingFactors.find(
+      f => f.friendly_name === 'Authenticator App'
+    );
+
+    if (existingAuthFactor) {
+      toast.error('An Authenticator App is already registered. Please remove it first.');
+      return;
+    }
+
     setEnrolling(true);
     try {
       const { data, error } = await supabase.auth.mfa.enroll({
@@ -46,7 +93,15 @@ export const TwoFactorSettings = () => {
         friendlyName: 'Authenticator App'
       });
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific duplicate error
+        if (error.message?.includes('factor with the friendly name')) {
+          toast.error('2FA factor already exists. Refreshing status...');
+          await checkMFAStatus();
+          return;
+        }
+        throw error;
+      }
 
       if (data) {
         setFactorId(data.id);
@@ -58,6 +113,9 @@ export const TwoFactorSettings = () => {
         setQrCode(qr);
         
         toast.success('Scan the QR code with your authenticator app');
+        
+        // Refresh factors list
+        await checkMFAStatus();
       }
     } catch (error: any) {
       console.error('Error enabling MFA:', error);
@@ -153,12 +211,51 @@ export const TwoFactorSettings = () => {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Show existing factors status */}
+        {existingFactors.length > 0 && (
+          <div className="space-y-3">
+            <Label className="text-sm font-semibold">Current 2FA Factors:</Label>
+            {existingFactors.map((factor) => (
+              <div
+                key={factor.id}
+                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border"
+              >
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">{factor.friendly_name || 'Authenticator App'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Status: <span className={
+                      factor.status === 'verified' ? 'text-green-500' : 
+                      factor.status === 'unverified' ? 'text-amber-500' : 
+                      'text-muted-foreground'
+                    }>
+                      {factor.status}
+                    </span>
+                  </p>
+                </div>
+                {factor.status !== 'verified' && (
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleRemoveFactor(factor.id)}
+                    disabled={resetting}
+                  >
+                    {resetting ? 'Removing...' : 'Remove'}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {!mfaEnabled && !qrCode && (
           <>
             <Alert>
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                Two-factor authentication is currently disabled. Enable it to protect your account.
+                {existingFactors.some(f => f.status !== 'verified') 
+                  ? 'You have unverified 2FA factors. Please remove them before setting up a new one.'
+                  : 'Two-factor authentication is currently disabled. Enable it to protect your account.'
+                }
               </AlertDescription>
             </Alert>
 
@@ -173,7 +270,7 @@ export const TwoFactorSettings = () => {
 
               <Button 
                 onClick={handleEnableMFA}
-                disabled={enrolling}
+                disabled={enrolling || existingFactors.some(f => f.friendly_name === 'Authenticator App')}
                 className="w-full"
               >
                 {enrolling ? 'Setting up...' : 'Enable Two-Factor Authentication'}
