@@ -12,7 +12,6 @@ import { Loader2 } from "lucide-react";
 
 // Eager load critical public routes
 import Auth from "./pages/Auth";
-import Index from "./pages/Index";
 import SharedProfile from "./pages/SharedProfile";
 import BookingPage from "./pages/BookingPage";
 import NotFound from "./pages/NotFound";
@@ -69,8 +68,8 @@ const App = () => (
             <RoleProvider>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
+                <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/" element={<Index />} />
                 <Route path="/book/:slug" element={<BookingPage />} />
                 <Route path="/share/:token" element={<SharedProfile />} />
             <Route
