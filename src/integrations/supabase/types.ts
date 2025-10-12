@@ -1226,6 +1226,86 @@ export type Database = {
         }
         Relationships: []
       }
+      club_objectives: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      club_tasks: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          objective_id: string | null
+          priority: string | null
+          status: string
+          task_number: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          objective_id?: string | null
+          priority?: string | null
+          status?: string
+          task_number: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          objective_id?: string | null
+          priority?: string | null
+          status?: string
+          task_number?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_tasks_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "club_objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       collaborative_posts: {
         Row: {
           approved_by: string[] | null
@@ -5715,6 +5795,71 @@ export type Database = {
           },
         ]
       }
+      task_assignees: {
+        Row: {
+          assigned_at: string
+          id: string
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          id?: string
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          id?: string
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_assignees_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "club_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_blockers: {
+        Row: {
+          blocked_task_id: string
+          blocking_task_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_task_id: string
+          blocking_task_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_task_id?: string
+          blocking_task_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_blockers_blocked_task_id_fkey"
+            columns: ["blocked_task_id"]
+            isOneToOne: false
+            referencedRelation: "club_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_blockers_blocking_task_id_fkey"
+            columns: ["blocking_task_id"]
+            isOneToOne: false
+            referencedRelation: "club_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_scheduling_preferences: {
         Row: {
           auto_schedule_enabled: boolean | null
@@ -6611,6 +6756,10 @@ export type Database = {
         Returns: string
       }
       generate_share_token: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_task_number: {
         Args: Record<PropertyKey, never>
         Returns: string
       }

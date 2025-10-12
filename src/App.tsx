@@ -21,6 +21,7 @@ import NotFound from "./pages/NotFound";
 const ClubHome = lazy(() => import("./pages/ClubHome"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const TasksPilot = lazy(() => import("./pages/TasksPilot"));
+const ClubTasks = lazy(() => import("./pages/ClubTasks"));
 const ClubAI = lazy(() => import("./pages/ClubAI"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
@@ -109,6 +110,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <TasksPilot />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/club-tasks"
+              element={
+                <ProtectedRoute>
+                  <ClubTasks />
                 </ProtectedRoute>
               }
             />
