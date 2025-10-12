@@ -1,0 +1,256 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  Plus, 
+  Hand, 
+  Rocket, 
+  Pause, 
+  CheckCircle2, 
+  Sparkles,
+  Clock
+} from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { CreateUnifiedTaskDialog } from "./CreateUnifiedTaskDialog";
+import { UnifiedTaskDetailDialog } from "./UnifiedTaskDetailDialog";
+
+interface UnifiedTask {
+  id: string;
+  task_number: string;
+  title: string;
+  description: string | null;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  auto_scheduled: boolean;
+  scheduling_mode: string;
+  scheduled_start: string | null;
+  assignees?: Array<{
+    user_id: string;
+    profiles: {
+      full_name: string;
+      avatar_url: string | null;
+    };
+  }>;
+  blockers_count?: number;
+  migration_status: string;
+}
+
+interface UnifiedTaskBoardProps {
+  objectiveId: string | null;
+  objectiveName?: string;
+  onRefresh: () => void;
+  aiSchedulingEnabled: boolean;
+}
+
+const STATUS_COLUMNS = [
+  { key: "pending", label: "Pending", icon: Hand, color: "bg-rose-500/20 border-rose-500/50" },
+  { key: "in_progress", label: "In Progress", icon: Rocket, color: "bg-amber-500/20 border-amber-500/50" },
+  { key: "on_hold", label: "On Hold", icon: Pause, color: "bg-blue-500/20 border-blue-500/50" },
+  { key: "completed", label: "Completed", icon: CheckCircle2, color: "bg-green-500/20 border-green-500/50" },
+];
+
+export const UnifiedTaskBoard = ({ 
+  objectiveId, 
+  objectiveName, 
+  onRefresh,
+  aiSchedulingEnabled 
+}: UnifiedTaskBoardProps) => {
+  const [tasks, setTasks] = useState<UnifiedTask[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedTask, setSelectedTask] = useState<UnifiedTask | null>(null);
+
+  useEffect(() => {
+    loadTasks();
+  }, [objectiveId]);
+
+  const loadTasks = async () => {
+    try {
+      let query = supabase
+        .from("unified_tasks")
+        .select(`
+          *,
+          assignees:unified_task_assignees(
+            user_id,
+            profiles(full_name, avatar_url)
+          ),
+          blockers:unified_task_blockers!blocked_task_id(count)
+        `)
+        .order("created_at", { ascending: false });
+
+      if (objectiveId) {
+        query = query.eq("objective_id", objectiveId);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      const tasksWithBlockerCount = data?.map(task => ({
+        ...task,
+        blockers_count: task.blockers?.[0]?.count || 0
+      })) || [];
+
+      setTasks(tasksWithBlockerCount as UnifiedTask[]);
+    } catch (error) {
+      console.error("Error loading tasks:", error);
+      toast.error("Failed to load tasks");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getTasksByStatus = (status: string) => {
+    return tasks.filter(task => task.status === status);
+  };
+
+  const handleStatusChange = async (taskId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from("unified_tasks")
+        .update({ 
+          status: newStatus,
+          completed_at: newStatus === 'completed' ? new Date().toISOString() : null
+        })
+        .eq("id", taskId);
+
+      if (error) throw error;
+      toast.success("Task status updated");
+      loadTasks();
+      onRefresh();
+    } catch (error) {
+      console.error("Error updating task:", error);
+      toast.error("Failed to update task");
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {STATUS_COLUMNS.map((column) => {
+          const columnTasks = getTasksByStatus(column.key);
+          const Icon = column.icon;
+
+          return (
+            <Card key={column.key} className={`border-2 ${column.color}`}>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Icon className="h-5 w-5" />
+                    <CardTitle className="text-lg">{column.label}</CardTitle>
+                  </div>
+                  <Badge variant="secondary">{columnTasks.length}</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 min-h-[400px]">
+                {columnTasks.map((task) => (
+                  <Card
+                    key={task.id}
+                    className="p-4 hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-transparent hover:border-l-primary"
+                    onClick={() => setSelectedTask(task)}
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium">{task.title}</h4>
+                            {task.auto_scheduled && (
+                              <Sparkles className="h-3 w-3 text-accent" />
+                            )}
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {task.task_number}
+                          </p>
+                          {task.migration_status !== 'new' && (
+                            <Badge variant="outline" className="text-[10px] mt-1">
+                              {task.migration_status === 'migrated_from_club' && 'From Club'}
+                              {task.migration_status === 'migrated_from_pilot' && 'From Pilot'}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Assignees */}
+                      {task.assignees && task.assignees.length > 0 && (
+                        <div className="flex -space-x-2">
+                          {task.assignees.slice(0, 3).map((assignee) => (
+                            <Avatar key={assignee.user_id} className="h-6 w-6 border-2 border-background">
+                              <AvatarImage src={assignee.profiles?.avatar_url || undefined} />
+                              <AvatarFallback className="text-[10px]">
+                                {assignee.profiles?.full_name?.charAt(0) || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {task.assignees.length > 3 && (
+                            <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px]">
+                              +{task.assignees.length - 3}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Blockers */}
+                      {task.blockers_count > 0 && (
+                        <div className="text-xs text-destructive">
+                          🚫 Blocked by {task.blockers_count} task(s)
+                        </div>
+                      )}
+
+                      {/* Scheduling info */}
+                      {task.scheduled_start && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="h-3 w-3" />
+                          {format(new Date(task.scheduled_start), "MMM d, HH:mm")}
+                        </div>
+                      )}
+
+                      {/* Due date */}
+                      {task.due_date && (
+                        <p className="text-xs text-muted-foreground">
+                          📅 Due: {format(new Date(task.due_date), "MMM d, yyyy")}
+                        </p>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+
+                {/* Add task button */}
+                <CreateUnifiedTaskDialog
+                  objectiveId={objectiveId}
+                  defaultStatus={column.key}
+                  onTaskCreated={() => {
+                    loadTasks();
+                    onRefresh();
+                  }}
+                >
+                  <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground">
+                    <Plus className="h-4 w-4" />
+                    Add task
+                  </Button>
+                </CreateUnifiedTaskDialog>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {/* Task Detail Dialog */}
+      {selectedTask && (
+        <UnifiedTaskDetailDialog
+          task={selectedTask}
+          open={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onTaskUpdated={() => {
+            loadTasks();
+            onRefresh();
+          }}
+          onStatusChange={handleStatusChange}
+        />
+      )}
+    </div>
+  );
+};

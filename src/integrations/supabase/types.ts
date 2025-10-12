@@ -5860,6 +5860,53 @@ export type Database = {
           },
         ]
       }
+      task_migration_log: {
+        Row: {
+          error_message: string | null
+          id: string
+          migrated_at: string | null
+          migrated_by: string | null
+          migration_data: Json | null
+          migration_status: string
+          migration_type: string
+          rolled_back_at: string | null
+          source_task_id: string
+          target_task_id: string | null
+        }
+        Insert: {
+          error_message?: string | null
+          id?: string
+          migrated_at?: string | null
+          migrated_by?: string | null
+          migration_data?: Json | null
+          migration_status: string
+          migration_type: string
+          rolled_back_at?: string | null
+          source_task_id: string
+          target_task_id?: string | null
+        }
+        Update: {
+          error_message?: string | null
+          id?: string
+          migrated_at?: string | null
+          migrated_by?: string | null
+          migration_data?: Json | null
+          migration_status?: string
+          migration_type?: string
+          rolled_back_at?: string | null
+          source_task_id?: string
+          target_task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_migration_log_target_task_id_fkey"
+            columns: ["target_task_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_scheduling_preferences: {
         Row: {
           auto_schedule_enabled: boolean | null
@@ -5898,6 +5945,54 @@ export type Database = {
           max_tasks_per_day?: number | null
           preferred_task_duration_minutes?: number | null
           updated_at?: string
+          user_id?: string
+          working_days?: number[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Relationships: []
+      }
+      task_system_preferences: {
+        Row: {
+          active_system: string
+          ai_scheduling_enabled: boolean | null
+          buffer_between_tasks_minutes: number | null
+          created_at: string | null
+          id: string
+          max_tasks_per_day: number | null
+          preferences: Json | null
+          show_migration_banner: boolean | null
+          updated_at: string | null
+          user_id: string
+          working_days: number[] | null
+          working_hours_end: string | null
+          working_hours_start: string | null
+        }
+        Insert: {
+          active_system?: string
+          ai_scheduling_enabled?: boolean | null
+          buffer_between_tasks_minutes?: number | null
+          created_at?: string | null
+          id?: string
+          max_tasks_per_day?: number | null
+          preferences?: Json | null
+          show_migration_banner?: boolean | null
+          updated_at?: string | null
+          user_id: string
+          working_days?: number[] | null
+          working_hours_end?: string | null
+          working_hours_start?: string | null
+        }
+        Update: {
+          active_system?: string
+          ai_scheduling_enabled?: boolean | null
+          buffer_between_tasks_minutes?: number | null
+          created_at?: string | null
+          id?: string
+          max_tasks_per_day?: number | null
+          preferences?: Json | null
+          show_migration_banner?: boolean | null
+          updated_at?: string | null
           user_id?: string
           working_days?: number[] | null
           working_hours_end?: string | null
@@ -6131,6 +6226,189 @@ export type Database = {
             columns: ["social_account_id"]
             isOneToOne: false
             referencedRelation: "social_media_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unified_task_assignees: {
+        Row: {
+          assigned_at: string | null
+          id: string
+          role: string | null
+          task_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string | null
+          id?: string
+          role?: string | null
+          task_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string | null
+          id?: string
+          role?: string | null
+          task_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_task_assignees_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_task_assignees_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_task_assignees_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unified_task_blockers: {
+        Row: {
+          blocked_task_id: string
+          blocking_task_id: string
+          created_at: string | null
+          id: string
+          reason: string | null
+          resolved_at: string | null
+        }
+        Insert: {
+          blocked_task_id: string
+          blocking_task_id: string
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          resolved_at?: string | null
+        }
+        Update: {
+          blocked_task_id?: string
+          blocking_task_id?: string
+          created_at?: string | null
+          id?: string
+          reason?: string | null
+          resolved_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_task_blockers_blocked_task_id_fkey"
+            columns: ["blocked_task_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_task_blockers_blocking_task_id_fkey"
+            columns: ["blocking_task_id"]
+            isOneToOne: false
+            referencedRelation: "unified_tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      unified_tasks: {
+        Row: {
+          ai_confidence_score: number | null
+          auto_scheduled: boolean | null
+          company_name: string | null
+          completed_at: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          legacy_club_task_id: string | null
+          legacy_pilot_task_id: string | null
+          migration_status: string | null
+          objective_id: string | null
+          position: string | null
+          priority: string
+          scheduled_end: string | null
+          scheduled_start: string | null
+          scheduling_mode: string | null
+          status: string
+          tags: Json | null
+          task_number: string
+          task_type: string | null
+          title: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ai_confidence_score?: number | null
+          auto_scheduled?: boolean | null
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          legacy_club_task_id?: string | null
+          legacy_pilot_task_id?: string | null
+          migration_status?: string | null
+          objective_id?: string | null
+          position?: string | null
+          priority?: string
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          scheduling_mode?: string | null
+          status?: string
+          tags?: Json | null
+          task_number: string
+          task_type?: string | null
+          title: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ai_confidence_score?: number | null
+          auto_scheduled?: boolean | null
+          company_name?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          legacy_club_task_id?: string | null
+          legacy_pilot_task_id?: string | null
+          migration_status?: string | null
+          objective_id?: string | null
+          position?: string | null
+          priority?: string
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          scheduling_mode?: string | null
+          status?: string
+          tags?: Json | null
+          task_number?: string
+          task_type?: string | null
+          title?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "unified_tasks_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "club_objectives"
             referencedColumns: ["id"]
           },
         ]
@@ -6760,6 +7038,10 @@ export type Database = {
         Returns: string
       }
       generate_task_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_unified_task_number: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
