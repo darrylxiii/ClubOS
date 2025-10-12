@@ -739,6 +739,82 @@ const Profile = () => {
       });
       return;
     }
+
+    // Show setup instructions for Google Calendar
+    if (provider === 'google') {
+      const showInstructions = await new Promise<boolean>((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4';
+        modal.innerHTML = `
+          <div class="bg-background border rounded-lg p-6 max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-3">Google Calendar Setup Required</h3>
+            <div class="text-sm space-y-3 mb-4">
+              <p class="text-muted-foreground">Before connecting, ensure your Google Cloud Console is configured:</p>
+              
+              <div class="bg-accent/50 p-4 rounded-md space-y-2">
+                <p class="font-medium">1. OAuth Consent Screen</p>
+                <ul class="list-disc list-inside space-y-1 text-muted-foreground ml-2 text-xs">
+                  <li><strong>User Type:</strong> External (for testing) or Internal (for organization)</li>
+                  <li><strong>Test Users:</strong> Add your email if app is in testing mode</li>
+                  <li><strong>Publishing Status:</strong> Must be "Testing" or "Published"</li>
+                </ul>
+              </div>
+
+              <div class="bg-accent/50 p-4 rounded-md space-y-2">
+                <p class="font-medium">2. Authorized Redirect URI</p>
+                <p class="text-muted-foreground text-xs">Add this exact URL to your OAuth 2.0 Client:</p>
+                <code class="block bg-background p-2 rounded text-xs mt-2 break-all font-mono">${window.location.origin}/settings</code>
+              </div>
+
+              <div class="bg-accent/50 p-4 rounded-md space-y-2">
+                <p class="font-medium">3. Required Scopes</p>
+                <ul class="list-disc list-inside space-y-1 text-muted-foreground ml-2 text-xs">
+                  <li>https://www.googleapis.com/auth/calendar</li>
+                  <li>https://www.googleapis.com/auth/calendar.events</li>
+                </ul>
+              </div>
+
+              <div class="bg-amber-500/10 border border-amber-500/20 p-3 rounded-md">
+                <p class="text-sm font-medium text-amber-600 dark:text-amber-400">⚠️ Common 403 Errors:</p>
+                <ul class="list-disc list-inside text-xs text-muted-foreground ml-2 mt-1 space-y-1">
+                  <li>App in testing mode but your email not added to test users</li>
+                  <li>Redirect URI not added to authorized URIs list</li>
+                  <li>OAuth consent screen not configured properly</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="flex gap-2 justify-end">
+              <button id="cancel-setup-btn" class="px-4 py-2 rounded-md border hover:bg-accent text-sm">Cancel</button>
+              <button id="continue-setup-btn" class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm">I've Configured This</button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const cancelBtn = modal.querySelector('#cancel-setup-btn') as HTMLButtonElement;
+        const continueBtn = modal.querySelector('#continue-setup-btn') as HTMLButtonElement;
+
+        const cleanup = () => {
+          document.body.removeChild(modal);
+        };
+
+        cancelBtn.onclick = () => {
+          cleanup();
+          resolve(false);
+        };
+
+        continueBtn.onclick = () => {
+          cleanup();
+          resolve(true);
+        };
+      });
+
+      if (!showInstructions) {
+        return;
+      }
+    }
     
     // Use a custom input dialog instead of system prompt
     const labelInput = document.createElement('input');
