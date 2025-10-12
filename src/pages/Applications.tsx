@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OnlineStatusIndicator } from "@/components/messages/OnlineStatusIndicator";
 
 interface Application {
   id: string;
@@ -35,6 +36,7 @@ interface Application {
     id: string;
     full_name: string;
     avatar_url: string;
+    user_id: string;
   };
 }
 
@@ -90,27 +92,37 @@ export default function Applications() {
         if (app.jobs?.company_id) {
           const { data: companyMembers, error: strategistError } = await supabase
             .from("company_members")
-            .select(`
-              user_id,
-              role,
-              profiles (
-                id,
-                full_name,
-                avatar_url
-              )
-            `)
+            .select("user_id, role")
             .eq("company_id", app.jobs.company_id)
             .eq("is_active", true)
             .in("role", ["recruiter", "admin"])
+            .order('created_at', { ascending: true })
             .limit(1);
 
           if (strategistError) {
             console.error("Error fetching strategist:", strategistError);
+          } else {
+            console.log("Company members query result:", companyMembers);
           }
 
-          if (companyMembers && companyMembers.length > 0 && companyMembers[0].profiles) {
-            strategist = companyMembers[0].profiles;
-            console.log("Found strategist:", strategist);
+          // Get profile data separately
+          if (companyMembers && companyMembers.length > 0) {
+            const member = companyMembers[0];
+            const { data: profileData } = await supabase
+              .from("profiles")
+              .select("id, full_name, avatar_url")
+              .eq("id", member.user_id)
+              .single();
+
+            if (profileData) {
+              strategist = {
+                id: profileData.id,
+                full_name: profileData.full_name,
+                avatar_url: profileData.avatar_url,
+                user_id: member.user_id
+              };
+              console.log("Found strategist:", strategist);
+            }
           } else {
             console.log("No strategist found for company:", app.jobs.company_id);
           }
@@ -280,17 +292,34 @@ function ApplicationCard({ application }: { application: Application }) {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Talent Strategist - First and prominently displayed */}
-        {application.talent_strategist && (
+        {application.talent_strategist ? (
           <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 border border-border">
-            <Avatar className="w-12 h-12 ring-2 ring-primary/20">
-              <AvatarImage src={application.talent_strategist.avatar_url || ''} />
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                {application.talent_strategist.full_name?.[0] || 'T'}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="w-12 h-12 ring-2 ring-primary/20">
+                <AvatarImage src={application.talent_strategist.avatar_url || ''} />
+                <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                  {application.talent_strategist.full_name?.[0] || 'T'}
+                </AvatarFallback>
+              </Avatar>
+              {application.talent_strategist.user_id && (
+                <div className="absolute -bottom-0.5 -right-0.5">
+                  <OnlineStatusIndicator userId={application.talent_strategist.user_id} />
+                </div>
+              )}
+            </div>
             <div className="flex-1">
               <div className="text-xs text-muted-foreground font-medium">Your Talent Strategist</div>
               <div className="text-sm font-semibold">{application.talent_strategist.full_name || 'Not Assigned'}</div>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 border border-border opacity-50">
+            <Avatar className="w-12 h-12">
+              <AvatarFallback>?</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground font-medium">Your Talent Strategist</div>
+              <div className="text-sm">Not yet assigned</div>
             </div>
           </div>
         )}

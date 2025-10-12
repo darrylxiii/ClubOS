@@ -13,6 +13,7 @@ import {
   Briefcase, FileText, Target, MessageSquare, ExternalLink, Check, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { OnlineStatusIndicator } from "@/components/messages/OnlineStatusIndicator";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 
 interface ApplicationDetail {
@@ -47,6 +48,7 @@ interface ApplicationDetail {
     id: string;
     full_name: string;
     avatar_url: string;
+    user_id: string;
   };
 }
 
@@ -109,29 +111,34 @@ export default function ApplicationDetail() {
       if (data.jobs?.company_id) {
         const { data: companyMembers, error: strategistError } = await supabase
           .from("company_members")
-          .select(`
-            user_id,
-            role,
-            profiles (
-              id,
-              full_name,
-              avatar_url
-            )
-          `)
+          .select("user_id, role")
           .eq("company_id", data.jobs.company_id)
           .eq("is_active", true)
           .in("role", ["recruiter", "admin"])
+          .order('created_at', { ascending: true })
           .limit(1);
 
         if (strategistError) {
           console.error("Error fetching strategist:", strategistError);
         }
 
-        if (companyMembers && companyMembers.length > 0 && companyMembers[0].profiles) {
-          strategist = companyMembers[0].profiles;
-          console.log("Found strategist for application detail:", strategist);
-        } else {
-          console.log("No strategist found for company:", data.jobs.company_id);
+        // Get profile data separately
+        if (companyMembers && companyMembers.length > 0) {
+          const member = companyMembers[0];
+          const { data: profileData } = await supabase
+            .from("profiles")
+            .select("id, full_name, avatar_url")
+            .eq("id", member.user_id)
+            .single();
+
+          if (profileData) {
+            strategist = {
+              id: profileData.id,
+              full_name: profileData.full_name,
+              avatar_url: profileData.avatar_url,
+              user_id: member.user_id
+            };
+          }
         }
       }
 
@@ -301,12 +308,19 @@ export default function ApplicationDetail() {
                     className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 border border-border/30 cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => navigate(`/profile/${application.talent_strategist?.id}`)}
                   >
-                    <Avatar className="w-14 h-14 ring-2 ring-border/50">
-                      <AvatarImage src={application.talent_strategist.avatar_url} />
-                      <AvatarFallback className="text-lg">
-                        {application.talent_strategist.full_name?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <Avatar className="w-14 h-14 ring-2 ring-border/50">
+                        <AvatarImage src={application.talent_strategist.avatar_url} />
+                        <AvatarFallback className="text-lg">
+                          {application.talent_strategist.full_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      {application.talent_strategist.user_id && (
+                        <div className="absolute -bottom-0.5 -right-0.5">
+                          <OnlineStatusIndicator userId={application.talent_strategist.user_id} />
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1">
                       <div className="text-xs text-muted-foreground mb-1">Your Talent Strategist</div>
                       <div className="text-base font-semibold">{application.talent_strategist.full_name}</div>
@@ -591,12 +605,19 @@ export default function ApplicationDetail() {
                     className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                     onClick={() => navigate(`/profile/${application.talent_strategist?.id}`)}
                   >
-                    <Avatar className="w-14 h-14 ring-2 ring-border/50">
-                      <AvatarImage src={application.talent_strategist.avatar_url} />
-                      <AvatarFallback className="text-lg">
-                        {application.talent_strategist.full_name?.[0]}
-                      </AvatarFallback>
-                    </Avatar>
+                    <div className="relative">
+                      <Avatar className="w-14 h-14 ring-2 ring-border/50">
+                        <AvatarImage src={application.talent_strategist.avatar_url} />
+                        <AvatarFallback className="text-lg">
+                          {application.talent_strategist.full_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      {application.talent_strategist.user_id && (
+                        <div className="absolute -bottom-0.5 -right-0.5">
+                          <OnlineStatusIndicator userId={application.talent_strategist.user_id} />
+                        </div>
+                      )}
+                    </div>
                     <div className="flex-1">
                       <p className="font-semibold text-base">{application.talent_strategist.full_name}</p>
                       <p className="text-xs text-muted-foreground">Click to view profile</p>
