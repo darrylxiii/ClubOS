@@ -5,14 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, User, Users, X } from "lucide-react";
 import { format } from "date-fns";
 
 interface CreateUnifiedTaskDialogProps {
@@ -33,6 +33,8 @@ export const CreateUnifiedTaskDialog = ({
   const [loading, setLoading] = useState(false);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  const [assignToSelf, setAssignToSelf] = useState(true);
+  const [showAssignOthers, setShowAssignOthers] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -47,6 +49,9 @@ export const CreateUnifiedTaskDialog = ({
   useEffect(() => {
     if (open) {
       loadProfiles();
+      setAssignToSelf(true);
+      setSelectedAssignees([]);
+      setShowAssignOthers(false);
     }
   }, [open]);
 
@@ -55,6 +60,7 @@ export const CreateUnifiedTaskDialog = ({
       const { data, error } = await supabase
         .from("profiles")
         .select("id, full_name, avatar_url")
+        .neq("id", user?.id || "")
         .limit(50);
 
       if (error) throw error;
@@ -92,9 +98,16 @@ export const CreateUnifiedTaskDialog = ({
 
       if (taskError) throw taskError;
 
+      // Collect all assignees
+      const allAssignees: string[] = [];
+      if (assignToSelf) {
+        allAssignees.push(user.id);
+      }
+      allAssignees.push(...selectedAssignees);
+
       // Assign users
-      if (selectedAssignees.length > 0) {
-        const assigneeInserts = selectedAssignees.map(userId => ({
+      if (allAssignees.length > 0) {
+        const assigneeInserts = allAssignees.map(userId => ({
           task_id: task.id,
           user_id: userId,
         }));
@@ -130,6 +143,8 @@ export const CreateUnifiedTaskDialog = ({
       estimated_duration_minutes: 30,
     });
     setSelectedAssignees([]);
+    setAssignToSelf(true);
+    setShowAssignOthers(false);
   };
 
   const toggleAssignee = (userId: string) => {
@@ -138,6 +153,14 @@ export const CreateUnifiedTaskDialog = ({
         ? prev.filter(id => id !== userId)
         : [...prev, userId]
     );
+  };
+
+  const removeAssignee = (userId: string) => {
+    setSelectedAssignees(prev => prev.filter(id => id !== userId));
+  };
+
+  const getSelectedProfiles = () => {
+    return profiles.filter(p => selectedAssignees.includes(p.id));
   };
 
   return (
@@ -180,7 +203,7 @@ export const CreateUnifiedTaskDialog = ({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover z-50">
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="in_progress">In Progress</SelectItem>
                   <SelectItem value="on_hold">On Hold</SelectItem>
@@ -198,7 +221,7 @@ export const CreateUnifiedTaskDialog = ({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover z-50">
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
                   <SelectItem value="high">High</SelectItem>
@@ -217,7 +240,7 @@ export const CreateUnifiedTaskDialog = ({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover z-50">
                   <SelectItem value="general">General</SelectItem>
                   <SelectItem value="interview_prep">Interview Prep</SelectItem>
                   <SelectItem value="application">Application</SelectItem>
@@ -237,7 +260,7 @@ export const CreateUnifiedTaskDialog = ({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-popover z-50">
                   <SelectItem value="manual">Manual</SelectItem>
                   <SelectItem value="ai">AI Scheduled</SelectItem>
                   <SelectItem value="hybrid">Hybrid</SelectItem>
@@ -256,18 +279,19 @@ export const CreateUnifiedTaskDialog = ({
                     {formData.due_date ? format(formData.due_date, "PPP") : <span>Pick a date</span>}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
+                <PopoverContent className="w-auto p-0 bg-popover z-50">
                   <Calendar
                     mode="single"
                     selected={formData.due_date}
                     onSelect={(date) => setFormData({ ...formData, due_date: date })}
+                    className="pointer-events-auto"
                   />
                 </PopoverContent>
               </Popover>
             </div>
 
             <div>
-              <Label htmlFor="duration">Estimated Duration (minutes)</Label>
+              <Label htmlFor="duration">Duration (minutes)</Label>
               <Input
                 id="duration"
                 type="number"
@@ -279,23 +303,81 @@ export const CreateUnifiedTaskDialog = ({
             </div>
           </div>
 
-          <div>
+          <div className="space-y-3">
             <Label>Assign To</Label>
-            <div className="mt-2 max-h-48 overflow-y-auto space-y-2 border rounded-lg p-3">
-              {profiles.map((profile) => (
-                <div key={profile.id} className="flex items-center gap-3">
-                  <Checkbox
-                    checked={selectedAssignees.includes(profile.id)}
-                    onCheckedChange={() => toggleAssignee(profile.id)}
-                  />
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={profile.avatar_url || undefined} />
-                    <AvatarFallback>{profile.full_name?.charAt(0) || "?"}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">{profile.full_name || "Unknown"}</span>
-                </div>
-              ))}
-            </div>
+            
+            {/* Assign to myself button */}
+            <Button
+              type="button"
+              variant={assignToSelf ? "default" : "outline"}
+              size="sm"
+              onClick={() => setAssignToSelf(!assignToSelf)}
+              className="w-full gap-2"
+            >
+              <User className="h-4 w-4" />
+              {assignToSelf ? "✓ Assigned to myself" : "Assign to myself"}
+            </Button>
+
+            {/* Assign to others button */}
+            <Button
+              type="button"
+              variant={showAssignOthers ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowAssignOthers(!showAssignOthers)}
+              className="w-full gap-2"
+            >
+              <Users className="h-4 w-4" />
+              Assign to others
+            </Button>
+
+            {/* Selected assignees */}
+            {selectedAssignees.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {getSelectedProfiles().map((profile) => (
+                  <Badge key={profile.id} variant="secondary" className="gap-2">
+                    <Avatar className="h-4 w-4">
+                      <AvatarImage src={profile.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {profile.full_name?.charAt(0) || "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-xs">{profile.full_name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAssignee(profile.id)}
+                      className="hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+
+            {/* Dropdown for selecting others */}
+            {showAssignOthers && (
+              <div className="max-h-48 overflow-y-auto space-y-2 border rounded-lg p-3 bg-card">
+                {profiles.map((profile) => (
+                  <button
+                    key={profile.id}
+                    type="button"
+                    onClick={() => toggleAssignee(profile.id)}
+                    className={`flex items-center gap-3 w-full p-2 rounded hover:bg-accent transition-colors ${
+                      selectedAssignees.includes(profile.id) ? "bg-accent" : ""
+                    }`}
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile.avatar_url || undefined} />
+                      <AvatarFallback>{profile.full_name?.charAt(0) || "?"}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm flex-1 text-left">{profile.full_name || "Unknown"}</span>
+                    {selectedAssignees.includes(profile.id) && (
+                      <Badge variant="default" className="text-xs">Selected</Badge>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
