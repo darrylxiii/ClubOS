@@ -204,14 +204,14 @@ function ApplicationCard({ application }: { application: Application }) {
   
   return (
     <Card 
-      className="border-accent/20 bg-gradient-card shadow-glow cursor-pointer transition-all hover:shadow-xl hover:border-accent/40"
+      className="border-border/50 bg-card cursor-pointer transition-all hover:shadow-md hover:border-border"
       onClick={() => navigate(`/applications/${application.id}`)}
     >
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4 flex-1">
             {application.job?.companies?.logo_url && (
-              <Avatar className="w-16 h-16 border-2 border-accent/20">
+              <Avatar className="w-16 h-16 ring-1 ring-border/50">
                 <AvatarImage src={application.job.companies.logo_url} />
                 <AvatarFallback>{application.job?.companies?.name?.[0]}</AvatarFallback>
               </Avatar>
@@ -243,23 +243,23 @@ function ApplicationCard({ application }: { application: Application }) {
           <ArrowRight className="w-5 h-5 text-muted-foreground" />
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-3 rounded-lg bg-accent/10">
-            <div className="text-2xl font-bold text-accent">
+      <CardContent className="space-y-4">
+        {/* Stats Row - Muted, elegant design */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="p-3 rounded-lg bg-card border border-border/50">
+            <div className="text-lg font-semibold">
               {application.current_stage_index + 1}/{application.stages.length}
             </div>
-            <div className="text-xs text-muted-foreground">Stage Progress</div>
+            <div className="text-xs text-muted-foreground">Stage in Progress</div>
           </div>
-          <div className="text-center p-3 rounded-lg bg-primary/10">
-            <div className="text-2xl font-bold text-primary flex items-center justify-center gap-1">
-              <Users className="w-5 h-5" />
-              {application.other_candidates_count}
+          <div className="p-3 rounded-lg bg-card border border-border/50">
+            <div className="text-lg font-semibold flex items-center gap-1">
+              <Users className="w-4 h-4" />
+              {application.other_candidates_count + 1}
             </div>
-            <div className="text-xs text-muted-foreground">Other Candidates</div>
+            <div className="text-xs text-muted-foreground">Total Candidates</div>
           </div>
-          <div className="text-center p-3 rounded-lg bg-muted">
+          <div className="p-3 rounded-lg bg-card border border-border/50">
             <div className="text-sm font-medium">
               {new Date(application.applied_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
             </div>
@@ -269,22 +269,22 @@ function ApplicationCard({ application }: { application: Application }) {
 
         {/* Talent Strategist */}
         {application.talent_strategist && (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-card border border-border/50">
-            <Avatar className="w-10 h-10">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30">
+            <Avatar className="w-10 h-10 ring-1 ring-border/50">
               <AvatarImage src={application.talent_strategist.avatar_url} />
               <AvatarFallback>{application.talent_strategist.full_name?.[0]}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <div className="text-sm font-medium">Your Talent Strategist</div>
-              <div className="text-sm text-muted-foreground">{application.talent_strategist.full_name}</div>
+              <div className="text-xs text-muted-foreground">Talent Strategist</div>
+              <div className="text-sm font-medium">{application.talent_strategist.full_name}</div>
             </div>
           </div>
         )}
 
         {/* Pipeline Stages */}
         <div>
-          <h3 className="text-sm font-bold mb-3 text-muted-foreground uppercase">Application Pipeline</h3>
-          <div className="flex items-start w-full overflow-x-auto pb-2">
+          <h3 className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Pipeline Progress</h3>
+          <div className="flex items-start w-full overflow-x-auto pb-2 gap-1">
             {application.stages.map((stage: PipelineStageData, index: number) => (
               <ExpandablePipelineStage
                 key={stage.id}

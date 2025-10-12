@@ -10,8 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   ArrowLeft, Building2, MapPin, DollarSign, Users, Calendar, 
-  Briefcase, FileText, Target, MessageSquare, ExternalLink 
+  Briefcase, FileText, Target, MessageSquare, ExternalLink, Check, User
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 
 interface ApplicationDetail {
@@ -202,11 +203,11 @@ export default function ApplicationDetail() {
         </div>
 
         {/* Job Header Card */}
-        <Card className="border-2 border-accent/20">
+        <Card className="border border-border/50">
           <CardHeader>
             <div className="flex items-start gap-6">
               {application.job?.companies?.logo_url && (
-                <Avatar className="w-20 h-20 border-2 border-accent/20">
+                <Avatar className="w-20 h-20 ring-1 ring-border/50">
                   <AvatarImage src={application.job.companies.logo_url} />
                   <AvatarFallback className="text-2xl">
                     {application.job.companies.name?.[0]}
@@ -257,12 +258,13 @@ export default function ApplicationDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Pipeline Progress */}
+            {/* All Pipeline Stages with Preparation Info */}
             <Card>
               <CardHeader>
-                <CardTitle>Your Application Journey</CardTitle>
+                <CardTitle>Application Pipeline & Preparation</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Visual Pipeline */}
                 <div className="flex items-start w-full overflow-x-auto pb-4">
                   {application.stages.map((stage: PipelineStageData, index: number) => (
                     <ExpandablePipelineStage
@@ -281,31 +283,116 @@ export default function ApplicationDetail() {
                   ))}
                 </div>
 
-                {/* Current Stage Details */}
-                {currentStage && (
-                  <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
-                    <h4 className="font-bold mb-2 flex items-center gap-2">
-                      <Target className="w-5 h-5 text-accent" />
-                      Current Stage: {currentStage.title}
-                    </h4>
-                    {currentStage.description && (
-                      <p className="text-sm text-muted-foreground mb-3">{currentStage.description}</p>
-                    )}
-                    {currentStage.preparation?.resources && currentStage.preparation.resources.length > 0 && (
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium">Preparation Resources:</p>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          {currentStage.preparation.resources.map((resource: any, idx: number) => (
-                            <li key={idx} className="flex items-start gap-2">
-                              <FileText className="w-4 h-4 mt-0.5" />
-                              {typeof resource === 'string' ? resource : resource.title}
-                            </li>
-                          ))}
-                        </ul>
+                {/* All Stages Details for Preparation */}
+                <div className="space-y-4">
+                  {application.stages.map((stage: PipelineStageData, index: number) => {
+                    const isCurrent = index === application.current_stage_index;
+                    const isCompleted = index < application.current_stage_index;
+                    const isUpcoming = index > application.current_stage_index;
+                    
+                    return (
+                      <div 
+                        key={stage.id}
+                        className={cn(
+                          "p-4 rounded-lg border transition-all",
+                          isCurrent && "border-foreground/20 bg-muted/50",
+                          isCompleted && "border-border/30 bg-muted/20 opacity-60",
+                          isUpcoming && "border-border/30 bg-card"
+                        )}
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
+                            isCompleted && "bg-muted text-muted-foreground",
+                            isCurrent && "bg-foreground text-background",
+                            isUpcoming && "bg-muted/50 text-muted-foreground"
+                          )}>
+                            {isCompleted ? <Check className="w-4 h-4" /> : index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-bold mb-1 flex items-center gap-2">
+                              {stage.title}
+                              {isCurrent && <span className="text-xs px-2 py-0.5 rounded-full bg-foreground text-background">Current</span>}
+                            </h4>
+                            {stage.description && (
+                              <p className="text-sm text-muted-foreground mb-3">{stage.description}</p>
+                            )}
+                            
+                            {/* Preparation info */}
+                            {stage.preparation && (
+                              <div className="mt-3 p-3 rounded-lg bg-background border border-border/50">
+                                <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                  <Target className="w-4 h-4" />
+                                  {stage.preparation.title || "Preparation Guide"}
+                                </h5>
+                                {stage.preparation.content && (
+                                  <p className="text-sm text-muted-foreground mb-2">{stage.preparation.content}</p>
+                                )}
+                                {stage.preparation.resources && stage.preparation.resources.length > 0 && (
+                                  <div className="space-y-1 mt-2">
+                                    <p className="text-xs font-medium text-muted-foreground">Resources:</p>
+                                    {stage.preparation.resources.map((resource: any, idx: number) => (
+                                      <a
+                                        key={idx}
+                                        href={resource.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center gap-2 text-sm hover:underline text-foreground"
+                                      >
+                                        <FileText className="w-3 h-3" />
+                                        {resource.title}
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Interview info */}
+                            {stage.scheduledDate && (
+                              <div className="mt-3 p-3 rounded-lg bg-background border border-border/50">
+                                <div className="flex items-start gap-2">
+                                  <Calendar className="w-4 h-4 mt-0.5" />
+                                  <div className="flex-1">
+                                    <p className="text-sm font-medium">Scheduled</p>
+                                    <p className="text-sm text-muted-foreground">{stage.scheduledDate}</p>
+                                    {stage.duration && (
+                                      <p className="text-xs text-muted-foreground">Duration: {stage.duration}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Interviewers */}
+                            {stage.interviewers && stage.interviewers.length > 0 && (
+                              <div className="mt-3 p-3 rounded-lg bg-background border border-border/50">
+                                <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                  <User className="w-4 h-4" />
+                                  Who You'll Meet
+                                </h5>
+                                <div className="space-y-2">
+                                  {stage.interviewers.map((interviewer, idx) => (
+                                    <div key={idx} className="flex items-start gap-2">
+                                      <Avatar className="w-8 h-8">
+                                        <AvatarImage src={interviewer.photo} alt={interviewer.name} />
+                                        <AvatarFallback className="text-xs">{interviewer.name.charAt(0)}</AvatarFallback>
+                                      </Avatar>
+                                      <div className="flex-1">
+                                        <p className="text-sm font-medium">{interviewer.name}</p>
+                                        <p className="text-xs text-muted-foreground">{interviewer.title}</p>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </CardContent>
             </Card>
 
@@ -387,10 +474,10 @@ export default function ApplicationDetail() {
                 </div>
                 <Separator />
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">Competition</p>
+                  <p className="text-sm text-muted-foreground mb-1">Total Candidates</p>
                   <p className="font-medium flex items-center gap-2">
                     <Users className="w-4 h-4" />
-                    {application.other_candidates_count} other candidate{application.other_candidates_count !== 1 ? 's' : ''}
+                    {application.other_candidates_count + 1}
                   </p>
                 </div>
               </CardContent>
