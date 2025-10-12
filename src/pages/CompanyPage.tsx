@@ -19,6 +19,8 @@ import { CompanySocialActivity } from "@/components/companies/CompanySocialActiv
 import { CompanyPosts } from "@/components/partner/CompanyPosts";
 import { CompanyMembersStack } from "@/components/companies/CompanyMembersStack";
 import { EditCompanyDialog } from "@/components/companies/EditCompanyDialog";
+import { TeamManagement } from "@/components/partner/TeamManagement";
+import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialog";
 
 interface Company {
   id: string;
@@ -568,8 +570,24 @@ export default function CompanyPage() {
           </TabsContent>
 
           <TabsContent value="team" className="space-y-6 mt-6">
+            {/* Team Management Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">Team & Staff</h2>
+                <p className="text-muted-foreground">Manage your organizational structure</p>
+              </div>
+              {(isAdmin || isCompanyMember) && (
+                <CompanyMembersDialog companyId={company.id} companyName={company.name} />
+              )}
+            </div>
+
+            {/* Full Team Management */}
+            <TeamManagement companyId={company.id} canManage={isAdmin || isCompanyMember} />
+            
+            {/* Team Grid View */}
             <Card>
               <CardContent className="p-6">
+                <h3 className="text-lg font-bold mb-4">All Team Members</h3>
                 <CompanyMembersStack companyId={company.id} showFull />
               </CardContent>
             </Card>

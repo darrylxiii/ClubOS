@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -55,6 +56,7 @@ interface OverallMetrics {
 }
 export default function Companies() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     currentRole
   } = useRole();
@@ -68,12 +70,44 @@ export default function Companies() {
   const [sortBy, setSortBy] = useState<string>("name");
   const [expandedCompanies, setExpandedCompanies] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
+  const [partnerCompany, setPartnerCompany] = useState<Company | null>(null);
+  
   const isAdmin = currentRole === 'admin';
   const isPartner = currentRole === 'partner';
+  
   useEffect(() => {
-    loadCompanies();
-    loadOverallMetrics();
-  }, []);
+    if (isPartner && user) {
+      loadPartnerCompany();
+    } else {
+      loadCompanies();
+      loadOverallMetrics();
+    }
+  }, [isPartner, user]);
+  const loadPartnerCompany = async () => {
+    if (!user) return;
+    
+    try {
+      // Get partner's company from company_members
+      const { data: memberData, error: memberError } = await supabase
+        .from('company_members')
+        .select('company_id, companies(*)')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (memberError) throw memberError;
+      
+      if (memberData?.companies) {
+        setPartnerCompany(memberData.companies as any);
+      }
+    } catch (error) {
+      console.error("Error loading partner company:", error);
+      toast.error("Failed to load your company");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const loadCompanies = async () => {
     try {
       const {
@@ -231,6 +265,12 @@ export default function Companies() {
         return a.name.localeCompare(b.name);
     }
   });
+  // If partner, redirect to their company page
+  if (isPartner && partnerCompany && !loading) {
+    navigate(`/companies/${partnerCompany.slug}`);
+    return null;
+  }
+
   return <AppLayout>
       <div className="container mx-auto px-4 py-8 space-y-8 animate-fade-in">
         {/* Header */}
