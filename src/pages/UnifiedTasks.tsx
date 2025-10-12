@@ -42,12 +42,17 @@ const UnifiedTasks = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<string>('all');
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
 
   useEffect(() => {
-    if (user) {
-      loadPreferences();
-      loadObjectives();
-    }
+    const init = async () => {
+      if (!user) return;
+      setLoading(true);
+      await Promise.all([loadPreferences(), loadObjectives(), loadTeamMembers()]);
+      setLoading(false);
+    };
+    init();
   }, [user, refreshKey]);
 
   const loadPreferences = async () => {
@@ -102,8 +107,58 @@ const UnifiedTasks = () => {
       }
     } catch (error) {
       console.error("Error loading objectives:", error);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const loadTeamMembers = async () => {
+    if (!user) return;
+
+    // Check user role
+    const { data: roleData } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id);
+
+    const isAdmin = roleData?.some(r => r.role === 'admin');
+    const isPartner = roleData?.some(r => r.role === 'partner');
+
+    if (isAdmin) {
+      // Admins see all users
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, full_name, email')
+        .order('full_name');
+      if (data) setTeamMembers(data);
+    } else if (isPartner) {
+      // Partners see their company team members
+      const { data: companyData } = await supabase
+        .from('company_members')
+        .select('company_id')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+      
+      if (companyData && companyData.length > 0) {
+        const companyIds = companyData.map(c => c.company_id);
+        const { data } = await supabase
+          .from('company_members')
+          .select(`
+            user_id,
+            profiles:user_id (
+              id,
+              full_name,
+              email
+            )
+          `)
+          .in('company_id', companyIds)
+          .eq('is_active', true);
+        
+        if (data) {
+          const members = data
+            .map(m => m.profiles)
+            .filter(Boolean) as any[];
+          setTeamMembers(members);
+        }
+      }
     }
   };
 
@@ -240,37 +295,66 @@ const UnifiedTasks = () => {
           </AlertDescription>
         </Alert>
 
-        {/* Objective Selector */}
+        {/* Objective and Member Selectors */}
         <Card>
           <CardContent className="p-4">
-            <div className="flex items-center gap-4 overflow-x-auto">
-              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                🎯 Objective:
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant={!selectedObjective ? "default" : "outline"}
-                  onClick={() => setSelectedObjective(null)}
-                  className="whitespace-nowrap"
-                >
-                  All Tasks
-                </Button>
-                {objectives.map((objective) => (
+            <div className="space-y-4">
+              <div className="flex items-center gap-4 overflow-x-auto">
+                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  🎯 Objective:
+                </span>
+                <div className="flex gap-2">
                   <Button
-                    key={objective.id}
-                    variant={selectedObjective === objective.id ? "default" : "outline"}
-                    onClick={() => setSelectedObjective(objective.id)}
+                    variant={!selectedObjective ? "default" : "outline"}
+                    onClick={() => setSelectedObjective(null)}
                     className="whitespace-nowrap"
                   >
-                    {objective.title}
+                    All Tasks
                   </Button>
-                ))}
-                {objectives.length === 0 && (
-                  <span className="text-sm text-muted-foreground">
-                    No objectives yet. Tasks can be created without objectives.
-                  </span>
-                )}
+                  {objectives.map((objective) => (
+                    <Button
+                      key={objective.id}
+                      variant={selectedObjective === objective.id ? "default" : "outline"}
+                      onClick={() => setSelectedObjective(objective.id)}
+                      className="whitespace-nowrap"
+                    >
+                      {objective.title}
+                    </Button>
+                  ))}
+                  {objectives.length === 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      No objectives yet. Tasks can be created without objectives.
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {teamMembers.length > 0 && (
+                <div className="flex items-center gap-4 overflow-x-auto">
+                  <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                    👥 Member:
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={selectedMember === 'all' ? "default" : "outline"}
+                      onClick={() => setSelectedMember('all')}
+                      className="whitespace-nowrap"
+                    >
+                      All Members
+                    </Button>
+                    {teamMembers.map((member) => (
+                      <Button
+                        key={member.id}
+                        variant={selectedMember === member.id ? "default" : "outline"}
+                        onClick={() => setSelectedMember(member.id)}
+                        className="whitespace-nowrap"
+                      >
+                        {member.full_name || member.email}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -300,6 +384,7 @@ const UnifiedTasks = () => {
             <UnifiedTaskBoard 
               objectiveId={selectedObjective}
               objectiveName={currentObjective?.title}
+              memberId={selectedMember === 'all' ? undefined : selectedMember}
               onRefresh={handleRefresh}
               aiSchedulingEnabled={preferences.ai_scheduling_enabled}
             />
@@ -308,6 +393,7 @@ const UnifiedTasks = () => {
           <TabsContent value="list" className="space-y-4">
             <UnifiedTasksList
               objectiveId={selectedObjective}
+              memberId={selectedMember === 'all' ? undefined : selectedMember}
               onRefresh={handleRefresh}
               aiSchedulingEnabled={preferences.ai_scheduling_enabled}
             />
@@ -322,6 +408,7 @@ const UnifiedTasks = () => {
           <TabsContent value="calendar" className="space-y-4">
             <UnifiedTaskCalendar
               objectiveId={selectedObjective}
+              memberId={selectedMember === 'all' ? undefined : selectedMember}
               onRefresh={handleRefresh}
             />
           </TabsContent>

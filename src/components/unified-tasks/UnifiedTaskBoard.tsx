@@ -43,6 +43,7 @@ interface UnifiedTask {
 interface UnifiedTaskBoardProps {
   objectiveId: string | null;
   objectiveName?: string;
+  memberId?: string;
   onRefresh: () => void;
   aiSchedulingEnabled: boolean;
 }
@@ -56,7 +57,8 @@ const STATUS_COLUMNS = [
 
 export const UnifiedTaskBoard = ({ 
   objectiveId, 
-  objectiveName, 
+  objectiveName,
+  memberId, 
   onRefresh,
   aiSchedulingEnabled 
 }: UnifiedTaskBoardProps) => {
@@ -66,7 +68,7 @@ export const UnifiedTaskBoard = ({
 
   useEffect(() => {
     loadTasks();
-  }, [objectiveId]);
+  }, [objectiveId, memberId]);
 
   const loadTasks = async () => {
     try {
@@ -90,12 +92,20 @@ export const UnifiedTaskBoard = ({
 
       if (error) throw error;
 
-      const tasksWithBlockerCount = data?.map(task => ({
+      let filteredTasks = data?.map(task => ({
         ...task,
         blockers_count: task.blockers?.[0]?.count || 0
       })) || [];
 
-      setTasks(tasksWithBlockerCount as UnifiedTask[]);
+      // Filter by member if specified
+      if (memberId) {
+        filteredTasks = filteredTasks.filter(task => 
+          task.created_by === memberId ||
+          task.assignees?.some((a: any) => a.user_id === memberId)
+        );
+      }
+
+      setTasks(filteredTasks as UnifiedTask[]);
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast.error("Failed to load tasks");

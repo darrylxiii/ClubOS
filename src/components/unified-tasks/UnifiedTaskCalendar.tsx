@@ -7,11 +7,13 @@ import { Clock } from "lucide-react";
 
 interface UnifiedTaskCalendarProps {
   objectiveId: string | null;
+  memberId?: string;
   onRefresh: () => void;
 }
 
 export const UnifiedTaskCalendar = ({ 
-  objectiveId, 
+  objectiveId,
+  memberId, 
   onRefresh 
 }: UnifiedTaskCalendarProps) => {
   const [tasks, setTasks] = useState<any[]>([]);
@@ -24,13 +26,16 @@ export const UnifiedTaskCalendar = ({
     setWeekDays(days);
     
     loadTasks();
-  }, [objectiveId]);
+  }, [objectiveId, memberId]);
 
   const loadTasks = async () => {
     try {
       let query = supabase
         .from("unified_tasks")
-        .select("*")
+        .select(`
+          *,
+          assignees:unified_task_assignees(user_id)
+        `)
         .not("scheduled_start", "is", null)
         .order("scheduled_start", { ascending: true });
 
@@ -40,7 +45,18 @@ export const UnifiedTaskCalendar = ({
 
       const { data, error } = await query;
       if (error) throw error;
-      setTasks(data || []);
+      
+      let filteredTasks = data || [];
+      
+      // Filter by member if specified
+      if (memberId) {
+        filteredTasks = filteredTasks.filter(task => 
+          task.created_by === memberId ||
+          task.assignees?.some((a: any) => a.user_id === memberId)
+        );
+      }
+      
+      setTasks(filteredTasks);
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast.error("Failed to load calendar tasks");

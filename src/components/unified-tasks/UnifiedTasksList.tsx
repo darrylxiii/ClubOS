@@ -32,12 +32,14 @@ interface UnifiedTask {
 
 interface UnifiedTasksListProps {
   objectiveId: string | null;
+  memberId?: string;
   onRefresh: () => void;
   aiSchedulingEnabled: boolean;
 }
 
 export const UnifiedTasksList = ({ 
-  objectiveId, 
+  objectiveId,
+  memberId,
   onRefresh,
   aiSchedulingEnabled 
 }: UnifiedTasksListProps) => {
@@ -46,13 +48,16 @@ export const UnifiedTasksList = ({
 
   useEffect(() => {
     loadTasks();
-  }, [objectiveId]);
+  }, [objectiveId, memberId]);
 
   const loadTasks = async () => {
     try {
       let query = supabase
         .from("unified_tasks")
-        .select("*")
+        .select(`
+          *,
+          assignees:unified_task_assignees(user_id)
+        `)
         .order("due_date", { ascending: true });
 
       if (objectiveId) {
@@ -61,7 +66,18 @@ export const UnifiedTasksList = ({
 
       const { data, error } = await query;
       if (error) throw error;
-      setTasks(data || []);
+      
+      let filteredTasks = data || [];
+      
+      // Filter by member if specified
+      if (memberId) {
+        filteredTasks = filteredTasks.filter(task => 
+          task.created_by === memberId ||
+          task.assignees?.some((a: any) => a.user_id === memberId)
+        );
+      }
+      
+      setTasks(filteredTasks);
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast.error("Failed to load tasks");
