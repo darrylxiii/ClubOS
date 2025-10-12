@@ -73,7 +73,8 @@ export const CreateUnifiedTaskDialog = ({
       // Create the task
       const { data: task, error: taskError } = await supabase
         .from("unified_tasks")
-        .insert({
+        .insert([{
+          task_number: '',
           title: formData.title,
           description: formData.description || null,
           status: formData.status,
@@ -85,7 +86,7 @@ export const CreateUnifiedTaskDialog = ({
           objective_id: objectiveId,
           user_id: user.id,
           created_by: user.id,
-        })
+        }])
         .select()
         .single();
 

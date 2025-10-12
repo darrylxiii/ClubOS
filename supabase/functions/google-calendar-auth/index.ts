@@ -89,6 +89,13 @@ serve(async (req) => {
     }
 
     if (action === 'exchangeCode') {
+      if (!code) {
+        return new Response(
+          JSON.stringify({ error: 'Authorization code is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       // Exchange authorization code for tokens
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',

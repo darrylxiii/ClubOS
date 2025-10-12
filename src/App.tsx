@@ -22,6 +22,7 @@ const ClubHome = lazy(() => import("./pages/ClubHome"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const TasksPilot = lazy(() => import("./pages/TasksPilot"));
 const ClubTasks = lazy(() => import("./pages/ClubTasks"));
+const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
 const ClubAI = lazy(() => import("./pages/ClubAI"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
@@ -119,6 +120,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ClubTasks />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/unified-tasks"
+              element={
+                <ProtectedRoute>
+                  <UnifiedTasks />
                 </ProtectedRoute>
               }
             />
