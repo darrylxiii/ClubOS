@@ -26,6 +26,8 @@ import { UnifiedTasksList } from "@/components/unified-tasks/UnifiedTasksList";
 import { UnifiedTaskCalendar } from "@/components/unified-tasks/UnifiedTaskCalendar";
 import { CreateUnifiedTaskDialog } from "@/components/unified-tasks/CreateUnifiedTaskDialog";
 import { AISchedulingSettings } from "@/components/unified-tasks/AISchedulingSettings";
+import { UnifiedTasksByMember } from "@/components/unified-tasks/UnifiedTasksByMember";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface SystemPreferences {
   active_system: string;
@@ -35,6 +37,7 @@ interface SystemPreferences {
 
 const UnifiedTasks = () => {
   const { user } = useAuth();
+  const { role } = useUserRole();
   const [preferences, setPreferences] = useState<SystemPreferences | null>(null);
   const [objectives, setObjectives] = useState<any[]>([]);
   const [selectedObjective, setSelectedObjective] = useState<string | null>(null);
@@ -42,14 +45,12 @@ const UnifiedTasks = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
-  const [selectedMember, setSelectedMember] = useState<string>('all');
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
 
   useEffect(() => {
     const init = async () => {
       if (!user) return;
       setLoading(true);
-      await Promise.all([loadPreferences(), loadObjectives(), loadTeamMembers()]);
+      await Promise.all([loadPreferences(), loadObjectives()]);
       setLoading(false);
     };
     init();
@@ -110,57 +111,6 @@ const UnifiedTasks = () => {
     }
   };
 
-  const loadTeamMembers = async () => {
-    if (!user) return;
-
-    // Check user role
-    const { data: roleData } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id);
-
-    const isAdmin = roleData?.some(r => r.role === 'admin');
-    const isPartner = roleData?.some(r => r.role === 'partner');
-
-    if (isAdmin) {
-      // Admins see all users
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, full_name, email')
-        .order('full_name');
-      if (data) setTeamMembers(data);
-    } else if (isPartner) {
-      // Partners see their company team members
-      const { data: companyData } = await supabase
-        .from('company_members')
-        .select('company_id')
-        .eq('user_id', user.id)
-        .eq('is_active', true);
-      
-      if (companyData && companyData.length > 0) {
-        const companyIds = companyData.map(c => c.company_id);
-        const { data } = await supabase
-          .from('company_members')
-          .select(`
-            user_id,
-            profiles:user_id (
-              id,
-              full_name,
-              email
-            )
-          `)
-          .in('company_id', companyIds)
-          .eq('is_active', true);
-        
-        if (data) {
-          const members = data
-            .map(m => m.profiles)
-            .filter(Boolean) as any[];
-          setTeamMembers(members);
-        }
-      }
-    }
-  };
 
   const handlePreferenceUpdate = async (updates: Partial<SystemPreferences>) => {
     if (!user || !preferences) return;
@@ -295,73 +245,44 @@ const UnifiedTasks = () => {
           </AlertDescription>
         </Alert>
 
-        {/* Objective and Member Selectors */}
+        {/* Objective Selector */}
         <Card>
           <CardContent className="p-4">
-            <div className="space-y-4">
-              <div className="flex items-center gap-4 overflow-x-auto">
-                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                  🎯 Objective:
-                </span>
-                <div className="flex gap-2">
+            <div className="flex items-center gap-4 overflow-x-auto">
+              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                🎯 Objective:
+              </span>
+              <div className="flex gap-2">
+                <Button
+                  variant={!selectedObjective ? "default" : "outline"}
+                  onClick={() => setSelectedObjective(null)}
+                  className="whitespace-nowrap"
+                >
+                  All Tasks
+                </Button>
+                {objectives.map((objective) => (
                   <Button
-                    variant={!selectedObjective ? "default" : "outline"}
-                    onClick={() => setSelectedObjective(null)}
+                    key={objective.id}
+                    variant={selectedObjective === objective.id ? "default" : "outline"}
+                    onClick={() => setSelectedObjective(objective.id)}
                     className="whitespace-nowrap"
                   >
-                    All Tasks
+                    {objective.title}
                   </Button>
-                  {objectives.map((objective) => (
-                    <Button
-                      key={objective.id}
-                      variant={selectedObjective === objective.id ? "default" : "outline"}
-                      onClick={() => setSelectedObjective(objective.id)}
-                      className="whitespace-nowrap"
-                    >
-                      {objective.title}
-                    </Button>
-                  ))}
-                  {objectives.length === 0 && (
-                    <span className="text-sm text-muted-foreground">
-                      No objectives yet. Tasks can be created without objectives.
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {teamMembers.length > 0 && (
-                <div className="flex items-center gap-4 overflow-x-auto">
-                  <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                    👥 Member:
+                ))}
+                {objectives.length === 0 && (
+                  <span className="text-sm text-muted-foreground">
+                    No objectives yet. Tasks can be created without objectives.
                   </span>
-                  <div className="flex gap-2">
-                    <Button
-                      variant={selectedMember === 'all' ? "default" : "outline"}
-                      onClick={() => setSelectedMember('all')}
-                      className="whitespace-nowrap"
-                    >
-                      All Members
-                    </Button>
-                    {teamMembers.map((member) => (
-                      <Button
-                        key={member.id}
-                        variant={selectedMember === member.id ? "default" : "outline"}
-                        onClick={() => setSelectedMember(member.id)}
-                        className="whitespace-nowrap"
-                      >
-                        {member.full_name || member.email}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Main Task Views */}
         <Tabs defaultValue="board" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 lg:w-[600px]">
+          <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-4' : 'grid-cols-3'} lg:w-[600px]`}>
             <TabsTrigger value="board" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
               Board
@@ -370,10 +291,12 @@ const UnifiedTasks = () => {
               <List className="h-4 w-4" />
               List
             </TabsTrigger>
-            <TabsTrigger value="members" className="gap-2">
-              <Users className="h-4 w-4" />
-              Members
-            </TabsTrigger>
+            {(role === 'admin' || role === 'partner') && (
+              <TabsTrigger value="members" className="gap-2">
+                <Users className="h-4 w-4" />
+                Members
+              </TabsTrigger>
+            )}
             <TabsTrigger value="calendar" className="gap-2">
               <Calendar className="h-4 w-4" />
               Calendar
@@ -384,7 +307,6 @@ const UnifiedTasks = () => {
             <UnifiedTaskBoard 
               objectiveId={selectedObjective}
               objectiveName={currentObjective?.title}
-              memberId={selectedMember === 'all' ? undefined : selectedMember}
               onRefresh={handleRefresh}
               aiSchedulingEnabled={preferences.ai_scheduling_enabled}
             />
@@ -393,22 +315,23 @@ const UnifiedTasks = () => {
           <TabsContent value="list" className="space-y-4">
             <UnifiedTasksList
               objectiveId={selectedObjective}
-              memberId={selectedMember === 'all' ? undefined : selectedMember}
               onRefresh={handleRefresh}
               aiSchedulingEnabled={preferences.ai_scheduling_enabled}
             />
           </TabsContent>
 
-          <TabsContent value="members" className="space-y-4">
-            <div className="text-center py-12 text-muted-foreground">
-              Member view coming soon...
-            </div>
-          </TabsContent>
+          {(role === 'admin' || role === 'partner') && (
+            <TabsContent value="members" className="space-y-4">
+              <UnifiedTasksByMember
+                objectiveId={selectedObjective}
+                onRefresh={handleRefresh}
+              />
+            </TabsContent>
+          )}
 
           <TabsContent value="calendar" className="space-y-4">
             <UnifiedTaskCalendar
               objectiveId={selectedObjective}
-              memberId={selectedMember === 'all' ? undefined : selectedMember}
               onRefresh={handleRefresh}
             />
           </TabsContent>

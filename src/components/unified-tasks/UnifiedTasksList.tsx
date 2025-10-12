@@ -32,14 +32,12 @@ interface UnifiedTask {
 
 interface UnifiedTasksListProps {
   objectiveId: string | null;
-  memberId?: string;
   onRefresh: () => void;
   aiSchedulingEnabled: boolean;
 }
 
 export const UnifiedTasksList = ({ 
   objectiveId,
-  memberId,
   onRefresh,
   aiSchedulingEnabled 
 }: UnifiedTasksListProps) => {
@@ -48,7 +46,7 @@ export const UnifiedTasksList = ({
 
   useEffect(() => {
     loadTasks();
-  }, [objectiveId, memberId]);
+  }, [objectiveId]);
 
   const loadTasks = async () => {
     try {
@@ -68,14 +66,6 @@ export const UnifiedTasksList = ({
       if (error) throw error;
       
       let filteredTasks = data || [];
-      
-      // Filter by member if specified
-      if (memberId) {
-        filteredTasks = filteredTasks.filter(task => 
-          task.created_by === memberId ||
-          task.assignees?.some((a: any) => a.user_id === memberId)
-        );
-      }
       
       setTasks(filteredTasks);
     } catch (error) {

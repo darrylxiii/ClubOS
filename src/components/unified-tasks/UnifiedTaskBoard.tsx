@@ -43,7 +43,6 @@ interface UnifiedTask {
 interface UnifiedTaskBoardProps {
   objectiveId: string | null;
   objectiveName?: string;
-  memberId?: string;
   onRefresh: () => void;
   aiSchedulingEnabled: boolean;
 }
@@ -58,7 +57,6 @@ const STATUS_COLUMNS = [
 export const UnifiedTaskBoard = ({ 
   objectiveId, 
   objectiveName,
-  memberId, 
   onRefresh,
   aiSchedulingEnabled 
 }: UnifiedTaskBoardProps) => {
@@ -68,7 +66,7 @@ export const UnifiedTaskBoard = ({
 
   useEffect(() => {
     loadTasks();
-  }, [objectiveId, memberId]);
+  }, [objectiveId]);
 
   const loadTasks = async () => {
     try {
@@ -96,14 +94,6 @@ export const UnifiedTaskBoard = ({
         ...task,
         blockers_count: task.blockers?.[0]?.count || 0
       })) || [];
-
-      // Filter by member if specified
-      if (memberId) {
-        filteredTasks = filteredTasks.filter(task => 
-          task.created_by === memberId ||
-          task.assignees?.some((a: any) => a.user_id === memberId)
-        );
-      }
 
       setTasks(filteredTasks as UnifiedTask[]);
     } catch (error) {
