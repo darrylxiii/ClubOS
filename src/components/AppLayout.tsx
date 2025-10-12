@@ -1,6 +1,7 @@
 import { useState, useEffect, ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import quantumClubLogo from "@/assets/quantum-club-logo.png";
+import quantumClubLogoLight from "@/assets/quantum-logo-light.png";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -254,15 +255,30 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4 gap-2">
+      {/* Global Header - Always visible */}
+      <div className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4 gap-4">
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="lg:opacity-100"
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
-        <img src={quantumClubLogo} alt="Quantum Club" className="h-8 w-auto" />
+        
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <img 
+            src={quantumClubLogoLight} 
+            alt="Quantum Club" 
+            className="h-9 w-auto dark:block hidden" 
+          />
+          <img 
+            src={quantumClubLogo} 
+            alt="Quantum Club" 
+            className="h-9 w-auto dark:hidden block" 
+          />
+        </div>
+        
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <GlobalRoleSwitcher />
@@ -272,20 +288,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col",
+          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col mt-16",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="h-16 flex items-center justify-between border-b border-border px-4">
-          <img src={quantumClubLogo} alt="Quantum Club" className="h-10 w-auto" />
-          <div className="lg:flex hidden items-center gap-2">
-            <ThemeToggle />
-            <GlobalRoleSwitcher />
-            <NotificationBell />
-          </div>
-        </div>
 
-        <nav className="flex-1 overflow-y-auto py-6 px-3">
+        <nav className="flex-1 overflow-y-auto py-6 px-3 mt-2">
           <div className="space-y-3">
             {navigationGroups.map((group) => (
               <NavigationGroup
