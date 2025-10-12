@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,16 @@ serve(async (req) => {
   }
 
   try {
-    const { action, code, redirectUri } = await req.json();
+    // Validate input
+    const requestSchema = z.object({
+      action: z.enum(['getAuthUrl', 'exchangeCode']),
+      code: z.string().optional(),
+      redirectUri: z.string().url('Invalid redirect URI')
+    });
+
+    const { action, code, redirectUri } = requestSchema.parse(await req.json());
+    
+    console.log('Google Calendar auth request:', { action, redirectUri: redirectUri.substring(0, 50) + '...' });
     
     // Only verify authentication for exchangeCode action (not for getAuthUrl)
     if (action === 'exchangeCode') {
@@ -93,10 +103,35 @@ serve(async (req) => {
       });
 
       if (!tokenResponse.ok) {
-        const error = await tokenResponse.text();
-        console.error('Token exchange failed:', error);
+        const errorText = await tokenResponse.text();
+        let errorDetails;
+        try {
+          errorDetails = JSON.parse(errorText);
+        } catch {
+          errorDetails = { error: errorText };
+        }
+        
+        console.error('Token exchange failed:', {
+          status: tokenResponse.status,
+          error: errorDetails,
+          redirectUri
+        });
+        
+        let userMessage = 'Failed to authenticate with Google Calendar';
+        if (errorDetails.error === 'redirect_uri_mismatch') {
+          userMessage = `Redirect URI mismatch. Please add "${redirectUri}" to your Google Cloud Console OAuth 2.0 Client authorized redirect URIs.`;
+        } else if (errorDetails.error === 'invalid_grant') {
+          userMessage = 'Authorization code expired or invalid. Please try connecting again.';
+        } else if (errorDetails.error_description) {
+          userMessage = errorDetails.error_description;
+        }
+        
         return new Response(
-          JSON.stringify({ error: 'Failed to authenticate with Google' }),
+          JSON.stringify({ 
+            error: userMessage,
+            details: errorDetails,
+            redirectUri 
+          }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

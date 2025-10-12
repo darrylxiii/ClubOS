@@ -837,7 +837,16 @@ const Profile = () => {
     } catch (error) {
       console.error(`[Calendar] ${provider} Calendar connection error:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to connect ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar: ${errorMessage}`);
+      
+      // Show detailed error with better formatting
+      const isRedirectError = errorMessage.includes('redirect URI');
+      toast.error(
+        `Failed to connect ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar`,
+        {
+          description: errorMessage,
+          duration: isRedirectError ? 10000 : 5000 // Longer duration for redirect errors
+        }
+      );
       localStorage.removeItem('pending_calendar_connection');
     } finally {
       setCalendarLoading(false);
@@ -906,8 +915,16 @@ const Profile = () => {
                 throw new Error(invocationError.message || 'Failed to authenticate with Google Calendar');
               }
               
-              if (data.error) {
-                throw new Error(data.error);
+              if (data?.error) {
+                console.error('Google Calendar response error:', data);
+                
+                // Show detailed error with instructions
+                let errorMsg = data.error;
+                if (data.redirectUri && errorMsg.includes('redirect URI')) {
+                  errorMsg += `\n\nPlease ensure this URL is added to your Google Cloud Console:\n${data.redirectUri}\n\nGo to: APIs & Services → Credentials → Your OAuth 2.0 Client → Authorized redirect URIs`;
+                }
+                
+                throw new Error(errorMsg);
               }
               
               token = data.tokens.access_token;
