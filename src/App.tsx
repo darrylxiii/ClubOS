@@ -34,6 +34,7 @@ const InterviewPrep = lazy(() => import("./pages/InterviewPrep"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Applications = lazy(() => import("./pages/Applications"));
+const ApplicationDetail = lazy(() => import("./pages/ApplicationDetail"));
 const CompanyApplications = lazy(() => import("./pages/CompanyApplications"));
 const Companies = lazy(() => import("./pages/Companies"));
 const CompanyPage = lazy(() => import("./pages/CompanyPage"));
@@ -206,6 +207,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Applications />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/applications/:applicationId"
+              element={
+                <ProtectedRoute>
+                  <ApplicationDetail />
                 </ProtectedRoute>
               }
             />
