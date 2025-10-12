@@ -35,6 +35,11 @@ export const CreateUnifiedTaskDialog = ({
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [assignToSelf, setAssignToSelf] = useState(true);
   const [showAssignOthers, setShowAssignOthers] = useState(false);
+  const [objectives, setObjectives] = useState<any[]>([]);
+  const [selectedObjective, setSelectedObjective] = useState<string | undefined>(objectiveId || undefined);
+  const [allTasks, setAllTasks] = useState<any[]>([]);
+  const [blockingTasks, setBlockingTasks] = useState<string[]>([]);
+  const [blockedByTasks, setBlockedByTasks] = useState<string[]>([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -49,11 +54,33 @@ export const CreateUnifiedTaskDialog = ({
   useEffect(() => {
     if (open) {
       loadProfiles();
+      loadObjectives();
+      loadTasks();
       setAssignToSelf(true);
       setSelectedAssignees([]);
       setShowAssignOthers(false);
+      setSelectedObjective(objectiveId || undefined);
     }
-  }, [open]);
+  }, [open, objectiveId]);
+
+  const loadObjectives = async () => {
+    const { data } = await supabase
+      .from("club_objectives")
+      .select("id, title, status")
+      .order("created_at", { ascending: false });
+    
+    if (data) setObjectives(data);
+  };
+
+  const loadTasks = async () => {
+    const { data } = await supabase
+      .from("unified_tasks")
+      .select("id, title, status, task_number")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    
+    if (data) setAllTasks(data);
+  };
 
   const loadProfiles = async () => {
     try {
@@ -89,7 +116,7 @@ export const CreateUnifiedTaskDialog = ({
           scheduling_mode: formData.scheduling_mode,
           due_date: formData.due_date?.toISOString() || null,
           estimated_duration_minutes: formData.estimated_duration_minutes,
-          objective_id: objectiveId,
+          objective_id: selectedObjective || null,
           user_id: user.id,
           created_by: user.id,
         }])
@@ -97,6 +124,36 @@ export const CreateUnifiedTaskDialog = ({
         .single();
 
       if (taskError) throw taskError;
+
+      // Create blocking dependencies (tasks that THIS task blocks)
+      if (blockingTasks.length > 0) {
+        const blockingDeps = blockingTasks.map(blockedTaskId => ({
+          task_id: blockedTaskId,
+          depends_on_task_id: task.id,
+          created_by: user.id
+        }));
+
+        const { error: blockingError } = await supabase
+          .from("task_dependencies")
+          .insert(blockingDeps);
+
+        if (blockingError) console.error("Error creating blocking deps:", blockingError);
+      }
+
+      // Create blocked-by dependencies (tasks that block THIS task)
+      if (blockedByTasks.length > 0) {
+        const blockedByDeps = blockedByTasks.map(blockingTaskId => ({
+          task_id: task.id,
+          depends_on_task_id: blockingTaskId,
+          created_by: user.id
+        }));
+
+        const { error: blockedByError } = await supabase
+          .from("task_dependencies")
+          .insert(blockedByDeps);
+
+        if (blockedByError) console.error("Error creating blocked-by deps:", blockedByError);
+      }
 
       // Collect all assignees
       const allAssignees: string[] = [];
@@ -145,6 +202,9 @@ export const CreateUnifiedTaskDialog = ({
     setSelectedAssignees([]);
     setAssignToSelf(true);
     setShowAssignOthers(false);
+    setBlockingTasks([]);
+    setBlockedByTasks([]);
+    setSelectedObjective(undefined);
   };
 
   const toggleAssignee = (userId: string) => {
@@ -191,6 +251,23 @@ export const CreateUnifiedTaskDialog = ({
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
             />
+          </div>
+
+          <div>
+            <Label htmlFor="objective">Objective (Optional)</Label>
+            <Select value={selectedObjective || "none"} onValueChange={(val) => setSelectedObjective(val === "none" ? undefined : val)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select objective" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="none">No objective</SelectItem>
+                {objectives.map((obj) => (
+                  <SelectItem key={obj.id} value={obj.id}>
+                    {obj.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -376,6 +453,96 @@ export const CreateUnifiedTaskDialog = ({
                     )}
                   </button>
                 ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <Label>Blocking (Optional)</Label>
+            <p className="text-xs text-muted-foreground">Tasks that THIS task blocks</p>
+            <Select 
+              value="" 
+              onValueChange={(value) => {
+                if (value && !blockingTasks.includes(value)) {
+                  setBlockingTasks([...blockingTasks, value]);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select tasks to block" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                {allTasks
+                  .filter(t => !blockingTasks.includes(t.id))
+                  .map((task) => (
+                    <SelectItem key={task.id} value={task.id}>
+                      {task.task_number} - {task.title}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {blockingTasks.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {blockingTasks.map(taskId => {
+                  const task = allTasks.find(t => t.id === taskId);
+                  return task ? (
+                    <Badge key={taskId} variant="secondary" className="gap-1">
+                      {task.task_number}
+                      <button
+                        type="button"
+                        onClick={() => setBlockingTasks(blockingTasks.filter(id => id !== taskId))}
+                        className="hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ) : null;
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-3">
+            <Label>Blocked By (Optional)</Label>
+            <p className="text-xs text-muted-foreground">Tasks that block THIS task</p>
+            <Select 
+              value="" 
+              onValueChange={(value) => {
+                if (value && !blockedByTasks.includes(value)) {
+                  setBlockedByTasks([...blockedByTasks, value]);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select blocking tasks" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                {allTasks
+                  .filter(t => !blockedByTasks.includes(t.id))
+                  .map((task) => (
+                    <SelectItem key={task.id} value={task.id}>
+                      {task.task_number} - {task.title}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            {blockedByTasks.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {blockedByTasks.map(taskId => {
+                  const task = allTasks.find(t => t.id === taskId);
+                  return task ? (
+                    <Badge key={taskId} variant="secondary" className="gap-1">
+                      {task.task_number}
+                      <button
+                        type="button"
+                        onClick={() => setBlockedByTasks(blockedByTasks.filter(id => id !== taskId))}
+                        className="hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ) : null;
+                })}
               </div>
             )}
           </div>
