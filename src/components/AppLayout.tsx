@@ -260,8 +260,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="lg:opacity-100"
+          onClick={() => {
+            console.log('Toggle clicked, current state:', sidebarOpen);
+            setSidebarOpen(!sidebarOpen);
+          }}
+          className="lg:hidden"
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
@@ -288,8 +291,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col mt-16",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          "fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col pt-16 lg:static lg:pt-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full",
+          "lg:translate-x-0"
         )}
       >
 
