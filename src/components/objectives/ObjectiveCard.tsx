@@ -135,7 +135,39 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
         </div>
       )}
 
-      {/* Progress */}
+      {/* Owners - More Prominent Display */}
+      {ownerProfiles && ownerProfiles.length > 0 && (
+        <div className="flex items-center gap-3 pt-2 border-t">
+          <div className="flex items-center gap-2 flex-1">
+            <Users className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="flex -space-x-2">
+              {ownerProfiles.slice(0, 4).map((owner) => (
+                <Avatar key={owner.id} className="h-7 w-7 border-2 border-background">
+                  <AvatarImage src={owner.avatar_url} />
+                  <AvatarFallback className="text-xs">
+                    {owner.full_name?.split(' ').map(n => n[0]).join('') || '?'}
+                  </AvatarFallback>
+                </Avatar>
+              ))}
+              {ownerProfiles.length > 4 && (
+                <div className="h-7 w-7 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-medium">
+                  +{ownerProfiles.length - 4}
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xs font-medium">
+                {ownerProfiles.length === 1 ? 'Owner' : 'Owners'}
+              </span>
+              <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                {ownerProfiles[0]?.full_name}
+                {ownerProfiles.length > 1 && ` +${ownerProfiles.length - 1}`}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="text-muted-foreground">Progress</span>
@@ -143,28 +175,6 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
         </div>
         <Progress value={objective.completion_percentage || 0} className="h-2" />
       </div>
-
-      {/* Owners */}
-      {ownerProfiles && ownerProfiles.length > 0 && (
-        <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-muted-foreground" />
-          <div className="flex -space-x-2">
-            {ownerProfiles.slice(0, 3).map((owner) => (
-              <Avatar key={owner.id} className="h-6 w-6 border-2 border-background">
-                <AvatarImage src={owner.avatar_url} />
-                <AvatarFallback className="text-xs">
-                  {owner.full_name?.split(' ').map(n => n[0]).join('') || '?'}
-                </AvatarFallback>
-              </Avatar>
-            ))}
-            {ownerProfiles.length > 3 && (
-              <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs">
-                +{ownerProfiles.length - 3}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Timeline */}
       {(objective.due_date || objective.hard_deadline) && (
@@ -178,15 +188,14 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
 
       {/* Task Dependencies Stats */}
       {(objective.blockingCount || objective.blockedByCount) ? (
-        <div className="flex items-center gap-4 pt-2 border-t">
+        <div className="flex items-center gap-3 pt-2 border-t">
           <TooltipProvider>
             {objective.blockingCount > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 text-sm cursor-help">
+                  <div className="flex items-center gap-1.5 cursor-help">
                     <Lock className="h-4 w-4 text-orange-500" />
-                    <span className="font-medium">{objective.blockingCount}</span>
-                    <span className="text-muted-foreground text-xs">Blocking</span>
+                    <span className="font-medium text-sm">{objective.blockingCount}</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs bg-popover">
@@ -206,10 +215,9 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
             {objective.blockedByCount > 0 && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2 text-sm cursor-help">
+                  <div className="flex items-center gap-1.5 cursor-help">
                     <Unlock className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium">{objective.blockedByCount}</span>
-                    <span className="text-muted-foreground text-xs">Blocked By</span>
+                    <span className="font-medium text-sm">{objective.blockedByCount}</span>
                   </div>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs bg-popover">

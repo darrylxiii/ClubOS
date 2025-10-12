@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,10 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Calendar as CalendarIcon, X } from "lucide-react";
+import { Calendar as CalendarIcon, X, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +22,12 @@ interface CreateObjectiveDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: () => void;
+}
+
+interface UserProfile {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
 }
 
 export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated }: CreateObjectiveDialogProps) => {
@@ -35,6 +43,40 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [selectedOwners, setSelectedOwners] = useState<string[]>([]);
+  const [availableUsers, setAvailableUsers] = useState<UserProfile[]>([]);
+  const [showOwnerSelector, setShowOwnerSelector] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      loadUsers();
+      if (user) {
+        setSelectedOwners([user.id]);
+      }
+    }
+  }, [open, user]);
+
+  const loadUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .order("full_name");
+
+      if (error) throw error;
+      setAvailableUsers(data || []);
+    } catch (error) {
+      console.error("Error loading users:", error);
+    }
+  };
+
+  const toggleOwner = (userId: string) => {
+    setSelectedOwners(prev =>
+      prev.includes(userId)
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
 
   const handleAddTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -67,7 +109,7 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
         due_date: dueDate?.toISOString(),
         hard_deadline: hardDeadline?.toISOString(),
         tags: tags.length > 0 ? tags : null,
-        owners: [user.id],
+        owners: selectedOwners.length > 0 ? selectedOwners : [user.id],
         created_by: user.id,
       });
 
@@ -96,6 +138,8 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
     setHardDeadline(undefined);
     setTags([]);
     setTagInput("");
+    setSelectedOwners(user ? [user.id] : []);
+    setShowOwnerSelector(false);
   };
 
   return (
@@ -247,6 +291,65 @@ export const CreateObjectiveDialog = ({ children, open, onOpenChange, onCreated 
                 ))}
               </div>
             )}
+          </div>
+
+          {/* Owners */}
+          <div className="space-y-2">
+            <Label>Objective Owners</Label>
+            <div className="space-y-3">
+              {/* Selected Owners */}
+              {selectedOwners.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {availableUsers
+                    .filter(u => selectedOwners.includes(u.id))
+                    .map((owner) => (
+                      <Badge key={owner.id} variant="secondary" className="gap-2 pr-1">
+                        <Avatar className="h-5 w-5">
+                          <AvatarImage src={owner.avatar_url || undefined} />
+                          <AvatarFallback className="text-xs">
+                            {owner.full_name?.charAt(0) || "?"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{owner.full_name}</span>
+                        <X 
+                          className="h-3 w-3 cursor-pointer hover:text-destructive" 
+                          onClick={() => toggleOwner(owner.id)} 
+                        />
+                      </Badge>
+                    ))}
+                </div>
+              )}
+              
+              {/* Add Owner Button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowOwnerSelector(!showOwnerSelector)}
+                className="gap-2"
+              >
+                <UserPlus className="h-4 w-4" />
+                {showOwnerSelector ? "Hide Users" : "Add Owners"}
+              </Button>
+
+              {/* Owner Selection */}
+              {showOwnerSelector && (
+                <div className="border rounded-lg p-3 max-h-48 overflow-y-auto space-y-2">
+                  {availableUsers.map((profile) => (
+                    <div key={profile.id} className="flex items-center gap-3 p-2 hover:bg-accent rounded cursor-pointer" onClick={() => toggleOwner(profile.id)}>
+                      <Checkbox checked={selectedOwners.includes(profile.id)} />
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={profile.avatar_url || undefined} />
+                        <AvatarFallback className="text-xs">
+                          {profile.full_name?.charAt(0) || "?"}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm">{profile.full_name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Actions */}
