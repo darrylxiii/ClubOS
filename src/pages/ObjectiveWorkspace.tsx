@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { 
   ArrowLeft, Calendar, CheckCircle, Clock, Edit, Flag, 
   MessageSquare, Target, TrendingUp, Users, Activity,
-  Send, MoreVertical, Trash2
+  Send, MoreVertical, Trash2, Lock, Unlock
 } from "lucide-react";
 import { format, isPast, differenceInDays } from "date-fns";
 import { UnifiedTaskBoard } from "@/components/unified-tasks/UnifiedTaskBoard";
@@ -31,12 +31,15 @@ const ObjectiveWorkspace = () => {
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [blockingTasks, setBlockingTasks] = useState<any[]>([]);
+  const [blockedByTasks, setBlockedByTasks] = useState<any[]>([]);
 
   useEffect(() => {
     if (id && user) {
       loadObjective();
       loadComments();
       loadActivities();
+      loadDependencies();
     }
   }, [id, user]);
 
@@ -114,6 +117,60 @@ const ObjectiveWorkspace = () => {
       setActivities(data || []);
     } catch (error) {
       console.error("Error loading activities:", error);
+    }
+  };
+
+  const loadDependencies = async () => {
+    if (!id) return;
+
+    try {
+      // Get all tasks for this objective
+      const { data: objTasks } = await supabase
+        .from("unified_tasks")
+        .select("id")
+        .eq("objective_id", id);
+
+      if (!objTasks || objTasks.length === 0) return;
+
+      const taskIds = objTasks.map(t => t.id);
+
+      // Load blocking tasks (tasks these objective tasks block)
+      const { data: blocking } = await supabase
+        .from("task_dependencies")
+        .select(`
+          id,
+          task_id,
+          depends_on:unified_tasks!task_dependencies_task_id_fkey(
+            id, 
+            title, 
+            task_number, 
+            status,
+            priority
+          )
+        `)
+        .in("depends_on_task_id", taskIds);
+
+      setBlockingTasks(blocking?.map(b => b.depends_on).filter(Boolean) || []);
+
+      // Load blocked-by tasks (tasks that block these objective tasks)
+      const { data: blockedBy } = await supabase
+        .from("task_dependencies")
+        .select(`
+          id,
+          depends_on_task_id,
+          blocker:unified_tasks!task_dependencies_depends_on_task_id_fkey(
+            id, 
+            title, 
+            task_number, 
+            status,
+            priority
+          )
+        `)
+        .in("task_id", taskIds);
+
+      setBlockedByTasks(blockedBy?.map(b => b.blocker).filter(Boolean) || []);
+    } catch (error) {
+      console.error("Error loading dependencies:", error);
     }
   };
 
@@ -371,6 +428,88 @@ const ObjectiveWorkspace = () => {
                           <Badge key={idx} variant="secondary">{tag}</Badge>
                         ))}
                       </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Owners Card */}
+                {ownerProfiles.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Users className="h-4 w-4" />
+                        Objective Owners
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        {ownerProfiles.map((owner) => (
+                          <div key={owner.id} className="flex items-center gap-3">
+                            <Avatar className="h-9 w-9">
+                              <AvatarImage src={owner.avatar_url} />
+                              <AvatarFallback>
+                                {owner.full_name?.split(' ').map((n: string) => n[0]).join('') || '?'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{owner.full_name}</p>
+                              {owner.email && (
+                                <p className="text-xs text-muted-foreground">{owner.email}</p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Dependencies Card */}
+                {(blockingTasks.length > 0 || blockedByTasks.length > 0) && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-sm">Task Dependencies</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {blockingTasks.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <Lock className="h-4 w-4 text-orange-500" />
+                            <span>Blocking {blockingTasks.length}</span>
+                          </div>
+                          <div className="space-y-1 pl-6">
+                            {blockingTasks.slice(0, 5).map((task: any) => (
+                              <div key={task.id} className="text-xs flex items-center gap-2">
+                                <Badge variant="outline" className="text-[10px] px-1">{task.task_number}</Badge>
+                                <span className="truncate">{task.title}</span>
+                              </div>
+                            ))}
+                            {blockingTasks.length > 5 && (
+                              <p className="text-xs text-muted-foreground pl-0">+{blockingTasks.length - 5} more</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {blockedByTasks.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm font-medium">
+                            <Unlock className="h-4 w-4 text-blue-500" />
+                            <span>Blocked By {blockedByTasks.length}</span>
+                          </div>
+                          <div className="space-y-1 pl-6">
+                            {blockedByTasks.slice(0, 5).map((task: any) => (
+                              <div key={task.id} className="text-xs flex items-center gap-2">
+                                <Badge variant="outline" className="text-[10px] px-1">{task.task_number}</Badge>
+                                <span className="truncate">{task.title}</span>
+                              </div>
+                            ))}
+                            {blockedByTasks.length > 5 && (
+                              <p className="text-xs text-muted-foreground pl-0">+{blockedByTasks.length - 5} more</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 )}
