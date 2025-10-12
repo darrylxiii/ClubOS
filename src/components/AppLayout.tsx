@@ -93,9 +93,7 @@ const candidateNavigationGroups = [
     icon: Zap,
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
-      { name: "Unified Tasks", icon: ListTodo, path: "/unified-tasks" },
-      { name: "Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
-      { name: "Club Tasks", icon: ListTodo, path: "/club-tasks" },
+      { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
     ],
   },
   {
@@ -150,9 +148,7 @@ const partnerNavigationGroups = [
     icon: Zap,
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
-      { name: "Unified Tasks", icon: ListTodo, path: "/unified-tasks" },
-      { name: "Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
-      { name: "Club Tasks", icon: ListTodo, path: "/club-tasks" },
+      { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
     ],
   },
   {
@@ -208,9 +204,7 @@ const adminNavigationGroups = [
     icon: Zap,
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
-      { name: "Unified Tasks", icon: ListTodo, path: "/unified-tasks" },
-      { name: "Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
-      { name: "Club Tasks", icon: ListTodo, path: "/club-tasks" },
+      { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
     ],
   },
   {

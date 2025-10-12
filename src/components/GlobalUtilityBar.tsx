@@ -26,8 +26,8 @@ export const GlobalUtilityBar = ({ onCommandOpen }: GlobalUtilityBarProps) => {
     },
     {
       icon: ListTodo,
-      label: "Club Task Pilot",
-      action: () => navigate("/tasks-pilot"),
+      label: "Tasks",
+      action: () => navigate("/unified-tasks"),
       shortcut: null,
     },
     {

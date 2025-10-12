@@ -20,8 +20,6 @@ import NotFound from "./pages/NotFound";
 // Lazy load protected routes to reduce initial bundle size
 const ClubHome = lazy(() => import("./pages/ClubHome"));
 const Jobs = lazy(() => import("./pages/Jobs"));
-const TasksPilot = lazy(() => import("./pages/TasksPilot"));
-const ClubTasks = lazy(() => import("./pages/ClubTasks"));
 const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
 const ObjectiveWorkspace = lazy(() => import("./pages/ObjectiveWorkspace"));
 const ClubAI = lazy(() => import("./pages/ClubAI"));
@@ -108,22 +106,9 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/tasks-pilot"
-              element={
-                <ProtectedRoute>
-                  <TasksPilot />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/club-tasks"
-              element={
-                <ProtectedRoute>
-                  <ClubTasks />
-                </ProtectedRoute>
-              }
-            />
+            {/* Redirect old task routes to unified tasks */}
+            <Route path="/tasks-pilot" element={<Navigate to="/unified-tasks" replace />} />
+            <Route path="/club-tasks" element={<Navigate to="/unified-tasks" replace />} />
             <Route
               path="/unified-tasks"
               element={
@@ -131,6 +116,10 @@ const App = () => (
                   <UnifiedTasks />
                 </ProtectedRoute>
               }
+            />
+            <Route
+              path="/tasks"
+              element={<Navigate to="/unified-tasks" replace />}
             />
             <Route
               path="/objectives/:id"

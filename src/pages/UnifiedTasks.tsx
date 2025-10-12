@@ -3,7 +3,6 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   LayoutDashboard, 
@@ -12,17 +11,14 @@ import {
   List,
   Settings,
   Info,
-  Sparkles,
-  Plus,
   Wand2,
   Target,
-  Grid3x3
+  Grid3x3,
+  Plus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { TaskSystemToggle } from "@/components/unified-tasks/TaskSystemToggle";
-import { MigrationBanner } from "@/components/unified-tasks/MigrationBanner";
 import { UnifiedTaskBoard } from "@/components/unified-tasks/UnifiedTaskBoard";
 import { UnifiedTasksList } from "@/components/unified-tasks/UnifiedTasksList";
 import { UnifiedTaskCalendar } from "@/components/unified-tasks/UnifiedTaskCalendar";
@@ -177,13 +173,6 @@ const UnifiedTasks = () => {
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
-        {/* Migration Banner */}
-        {preferences.show_migration_banner && (
-          <MigrationBanner 
-            onDismiss={() => handlePreferenceUpdate({ show_migration_banner: false })}
-          />
-        )}
-
         {/* Header */}
         <div className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -191,11 +180,8 @@ const UnifiedTasks = () => {
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
-                    UNIFIED TASKS
+                    TASKS
                   </h1>
-                  <Badge variant="secondary" className="text-xs">
-                    BETA
-                  </Badge>
                 </div>
                 <p className="text-muted-foreground mt-2">
                   Intelligent task management with AI scheduling
@@ -225,10 +211,6 @@ const UnifiedTasks = () => {
                   <span className="sm:hidden">{scheduling ? "..." : "Schedule"}</span>
                 </Button>
               )}
-              <TaskSystemToggle
-                activeSystem={preferences.active_system}
-                onSystemChange={(system) => handlePreferenceUpdate({ active_system: system })}
-              />
             </div>
           </div>
 
@@ -236,8 +218,7 @@ const UnifiedTasks = () => {
           <Alert className="bg-primary/5 border-primary/20">
             <Info className="h-4 w-4 text-primary" />
             <AlertDescription className="text-xs sm:text-sm">
-              <strong>Unified Tasks</strong> combines Club Tasks and Task Pilot features. 
-              All your existing tasks are preserved and accessible.
+              Manage objectives and tasks with AI-powered scheduling. Use drag & drop to update statuses.
             </AlertDescription>
           </Alert>
         </div>
