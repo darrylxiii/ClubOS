@@ -1,14 +1,15 @@
-import { Clock, AlertCircle } from "lucide-react";
+import { Clock, Calendar as CalendarIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 
 interface TimelineDeadlinesProps {
+  appliedDate?: string;
   nextStageName?: string;
   estimatedDaysToNext?: number;
   finalDecisionDate?: string;
 }
 
 export function TimelineDeadlines({ 
+  appliedDate,
   nextStageName,
   estimatedDaysToNext = 0,
   finalDecisionDate 
@@ -17,56 +18,57 @@ export function TimelineDeadlines({
     ? Math.ceil((new Date(finalDecisionDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     : null;
 
-  const isUrgent = daysUntilDecision !== null && daysUntilDecision <= 7;
-
   return (
-    <div className={cn(
-      "p-3 rounded-lg border",
-      isUrgent 
-        ? "bg-orange-500/5 border-orange-500/30" 
-        : "bg-muted/30 border-border/50"
-    )}>
-      <div className="flex items-start gap-3">
-        <div className={cn(
-          "p-2 rounded-lg",
-          isUrgent ? "bg-orange-500/10" : "bg-background"
-        )}>
-          <Clock className={cn(
-            "w-4 h-4",
-            isUrgent ? "text-orange-600 dark:text-orange-400" : "text-muted-foreground"
-          )} />
-        </div>
+    <div className="p-6 rounded-2xl bg-card border border-border/50 h-full flex flex-col">
+      <div className="flex items-center gap-2 mb-4">
+        <Clock className="w-4 h-4 text-muted-foreground" />
+        <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
+          Timeline
+        </span>
+      </div>
+      
+      <div className="space-y-4 flex-1">
+        {nextStageName && estimatedDaysToNext > 0 && (
+          <div>
+            <div className="text-sm text-muted-foreground mb-1">Next:</div>
+            <div className="text-xl font-bold">
+              {nextStageName} <span className="text-muted-foreground font-normal">in ~{estimatedDaysToNext} days</span>
+            </div>
+          </div>
+        )}
         
-        <div className="flex-1 space-y-2">
-          {nextStageName && estimatedDaysToNext > 0 && (
-            <div className="text-sm">
-              <span className="text-muted-foreground">Next: </span>
-              <span className="font-semibold">{nextStageName}</span>
-              <span className="text-muted-foreground"> in ~{estimatedDaysToNext} days</span>
+        {appliedDate && (
+          <div className={nextStageName ? "pt-3 border-t border-border" : ""}>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+              <CalendarIcon className="w-3.5 h-3.5" />
+              <span>Applied:</span>
             </div>
-          )}
-          
-          {finalDecisionDate && daysUntilDecision !== null && (
+            <div className="text-base font-semibold">
+              {new Date(appliedDate).toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+              })}
+            </div>
+          </div>
+        )}
+        
+        {finalDecisionDate && daysUntilDecision !== null && (
+          <div className={(nextStageName || appliedDate) ? "pt-3 border-t border-border" : ""}>
+            <div className="text-sm text-muted-foreground mb-1">Decision by:</div>
             <div className="flex items-center gap-2">
-              {isUrgent && <AlertCircle className="w-3 h-3 text-orange-600 dark:text-orange-400" />}
-              <div className="text-xs">
-                <span className="text-muted-foreground">Decision by: </span>
-                <span className="font-semibold">
-                  {new Date(finalDecisionDate).toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}
-                </span>
-                <Badge 
-                  variant={isUrgent ? "destructive" : "secondary"}
-                  className="ml-2 text-[10px] px-1.5 py-0"
-                >
-                  {daysUntilDecision}d left
-                </Badge>
-              </div>
+              <span className="text-base font-bold">
+                {new Date(finalDecisionDate).toLocaleDateString('en-US', { 
+                  month: 'short', 
+                  day: 'numeric' 
+                })}
+              </span>
+              <Badge variant="secondary" className="text-xs">
+                {daysUntilDecision}d left
+              </Badge>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
