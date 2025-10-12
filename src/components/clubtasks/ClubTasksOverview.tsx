@@ -252,39 +252,6 @@ export const ClubTasksOverview = ({ objectiveId, onRefresh }: ClubTasksOverviewP
         </Card>
       </div>
 
-      {/* Tasks by Member Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>📊 Tasks by Member</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="name" className="text-xs" />
-                <YAxis />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: "hsl(var(--card))", 
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px"
-                  }} 
-                />
-                <Legend />
-                <Bar dataKey="Parking Lot" stackId="a" fill="hsl(var(--muted))" />
-                <Bar dataKey="Blocked" stackId="a" fill="hsl(var(--destructive))" />
-                <Bar dataKey="To Do" stackId="a" fill="hsl(var(--destructive) / 0.6)" />
-                <Bar dataKey="On Hold" stackId="a" fill="hsl(var(--primary) / 0.6)" />
-              </BarChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-[400px] flex items-center justify-center text-muted-foreground">
-              No task data available
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </div>
   );
 };

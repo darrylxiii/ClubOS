@@ -93,6 +93,7 @@ const candidateNavigationGroups = [
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
       { name: "Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
+      { name: "Club Tasks", icon: ListTodo, path: "/club-tasks" },
     ],
   },
   {
@@ -148,6 +149,7 @@ const partnerNavigationGroups = [
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
       { name: "Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
+      { name: "Club Tasks", icon: ListTodo, path: "/club-tasks" },
     ],
   },
   {
@@ -204,6 +206,7 @@ const adminNavigationGroups = [
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
       { name: "Task Pilot", icon: ListTodo, path: "/tasks-pilot" },
+      { name: "Club Tasks", icon: ListTodo, path: "/club-tasks" },
     ],
   },
   {

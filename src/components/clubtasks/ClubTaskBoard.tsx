@@ -20,6 +20,10 @@ interface ClubTask {
   due_date: string | null;
   assignees?: Array<{
     user_id: string;
+    profiles: {
+      full_name: string;
+      avatar_url: string | null;
+    };
   }>;
   blockers?: Array<{
     blocking_task_id: string;
@@ -50,13 +54,11 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
 
   const loadTasks = async () => {
     try {
-      const { data, error } = await supabase
+      // First load tasks
+      const { data: tasksData, error: tasksError } = await supabase
         .from("club_tasks")
         .select(`
           *,
-          assignees:task_assignees(
-            user_id
-          ),
           blockers:task_blockers!task_blockers_blocked_task_id_fkey(
             blocking_task_id
           )
@@ -64,8 +66,36 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
         .eq("objective_id", objectiveId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setTasks(data || []);
+      if (tasksError) throw tasksError;
+
+      // Then load assignees with profiles
+      const { data: assigneesData, error: assigneesError } = await supabase
+        .from("task_assignees")
+        .select(`
+          task_id,
+          user_id,
+          profiles(full_name, avatar_url)
+        `);
+
+      if (assigneesError) {
+        console.warn("Could not load assignee profiles:", assigneesError);
+      }
+
+      // Merge assignees into tasks
+      const tasksWithAssignees = tasksData?.map(task => ({
+        ...task,
+        assignees: assigneesData
+          ?.filter((a: any) => a.task_id === task.id)
+          .map((a: any) => ({
+            user_id: a.user_id,
+            profiles: {
+              full_name: a.profiles?.full_name || "Unknown",
+              avatar_url: a.profiles?.avatar_url || null
+            }
+          })) || []
+      })) || [];
+
+      setTasks(tasksWithAssignees as ClubTask[]);
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast.error("Failed to load tasks");
@@ -142,8 +172,20 @@ export const ClubTaskBoard = ({ objectiveId, objectiveName, onRefresh }: ClubTas
 
                       {/* Assignees */}
                       {task.assignees && task.assignees.length > 0 && (
-                        <div className="text-xs text-muted-foreground">
-                          👥 {task.assignees.length} assignee(s)
+                        <div className="flex -space-x-2">
+                          {task.assignees.slice(0, 3).map((assignee) => (
+                            <Avatar key={assignee.user_id} className="h-6 w-6 border-2 border-background">
+                              <AvatarImage src={assignee.profiles?.avatar_url || undefined} />
+                              <AvatarFallback className="text-[10px]">
+                                {assignee.profiles?.full_name?.charAt(0) || "?"}
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
+                          {task.assignees.length > 3 && (
+                            <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-[10px]">
+                              +{task.assignees.length - 3}
+                            </div>
+                          )}
                         </div>
                       )}
 
