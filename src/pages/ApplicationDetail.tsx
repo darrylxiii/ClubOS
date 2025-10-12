@@ -290,26 +290,48 @@ export default function ApplicationDetail() {
                 <CardTitle>Application Pipeline & Preparation</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Visual Pipeline */}
-                <div className="flex items-start w-full overflow-x-auto pb-4">
-                  {application.stages.map((stage: PipelineStageData, index: number) => (
-                    <ExpandablePipelineStage
-                      key={stage.id}
-                      stage={{
-                        ...stage,
-                        status:
-                          index < application.current_stage_index
-                            ? "completed"
-                            : index === application.current_stage_index
-                            ? "current"
-                            : "upcoming",
-                      }}
-                      isLast={index === application.stages.length - 1}
-                    />
-                  ))}
+                {/* Visual Pipeline - Horizontal */}
+                <div className="flex items-center justify-start gap-2 overflow-x-auto pb-4">
+                  {application.stages.map((stage: PipelineStageData, index: number) => {
+                    const isCurrent = index === application.current_stage_index;
+                    const isCompleted = index < application.current_stage_index;
+                    
+                    return (
+                      <div key={stage.id} className="flex items-center flex-shrink-0">
+                        <div className="flex flex-col items-center min-w-[100px]">
+                          <div className={cn(
+                            "w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all",
+                            isCompleted && "bg-muted border-muted-foreground/30",
+                            isCurrent && "bg-foreground border-foreground text-background scale-110",
+                            !isCompleted && !isCurrent && "bg-background border-border"
+                          )}>
+                            {isCompleted ? (
+                              <Check className="w-5 h-5" />
+                            ) : (
+                              <span className="text-sm font-semibold">
+                                {isCurrent ? "●" : "○"}
+                              </span>
+                            )}
+                          </div>
+                          <p className={cn(
+                            "mt-2 text-xs font-medium text-center max-w-[100px] break-words",
+                            isCurrent && "font-bold"
+                          )}>
+                            {stage.title}
+                          </p>
+                        </div>
+                        {index < application.stages.length - 1 && (
+                          <div className={cn(
+                            "h-0.5 w-8 mx-2 flex-shrink-0",
+                            isCompleted ? "bg-muted-foreground/30" : "bg-border"
+                          )} />
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
 
-                {/* All Stages Details for Preparation */}
+                {/* All Stages Details - Vertical List */}
                 <div className="space-y-4">
                   {application.stages.map((stage: PipelineStageData, index: number) => {
                     const isCurrent = index === application.current_stage_index;
@@ -326,93 +348,111 @@ export default function ApplicationDetail() {
                           isUpcoming && "border-border/30 bg-card"
                         )}
                       >
-                        <div className="flex items-start gap-3 mb-3">
+                        <div className="flex items-start gap-3">
                           <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold",
+                            "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0",
                             isCompleted && "bg-muted text-muted-foreground",
                             isCurrent && "bg-foreground text-background",
                             isUpcoming && "bg-muted/50 text-muted-foreground"
                           )}>
                             {isCompleted ? <Check className="w-4 h-4" /> : index + 1}
                           </div>
-                          <div className="flex-1">
-                            <h4 className="font-bold mb-1 flex items-center gap-2">
-                              {stage.title}
-                              {isCurrent && <span className="text-xs px-2 py-0.5 rounded-full bg-foreground text-background">Current</span>}
-                            </h4>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-bold text-base">{stage.title}</h4>
+                              {isCurrent && (
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-foreground text-background flex-shrink-0">
+                                  Current
+                                </span>
+                              )}
+                            </div>
+                            
                             {stage.description && (
-                              <p className="text-sm text-muted-foreground mb-3">{stage.description}</p>
+                              <p className="text-sm text-muted-foreground mb-3">
+                                {stage.description}
+                              </p>
                             )}
                             
-                            {/* Preparation info */}
-                            {stage.preparation && (
-                              <div className="mt-3 p-3 rounded-lg bg-background border border-border/50">
-                                <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                                  <Target className="w-4 h-4" />
-                                  {stage.preparation.title || "Preparation Guide"}
-                                </h5>
-                                {stage.preparation.content && (
-                                  <p className="text-sm text-muted-foreground mb-2">{stage.preparation.content}</p>
-                                )}
-                                {stage.preparation.resources && stage.preparation.resources.length > 0 && (
-                                  <div className="space-y-1 mt-2">
-                                    <p className="text-xs font-medium text-muted-foreground">Resources:</p>
-                                    {stage.preparation.resources.map((resource: any, idx: number) => (
-                                      <a
-                                        key={idx}
-                                        href={resource.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 text-sm hover:underline text-foreground"
-                                      >
-                                        <FileText className="w-3 h-3" />
-                                        {resource.title}
-                                      </a>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Interview info */}
-                            {stage.scheduledDate && (
-                              <div className="mt-3 p-3 rounded-lg bg-background border border-border/50">
-                                <div className="flex items-start gap-2">
-                                  <Calendar className="w-4 h-4 mt-0.5" />
-                                  <div className="flex-1">
-                                    <p className="text-sm font-medium">Scheduled</p>
-                                    <p className="text-sm text-muted-foreground">{stage.scheduledDate}</p>
-                                    {stage.duration && (
-                                      <p className="text-xs text-muted-foreground">Duration: {stage.duration}</p>
-                                    )}
-                                  </div>
+                            {/* Grid layout for stage details */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                              {/* Preparation info */}
+                              {stage.preparation && (
+                                <div className="p-3 rounded-lg bg-background border border-border/50">
+                                  <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                    <Target className="w-4 h-4 flex-shrink-0" />
+                                    <span className="truncate">{stage.preparation.title || "Preparation Guide"}</span>
+                                  </h5>
+                                  {stage.preparation.content && (
+                                    <p className="text-sm text-muted-foreground mb-2 line-clamp-3">
+                                      {stage.preparation.content}
+                                    </p>
+                                  )}
+                                  {stage.preparation.resources && stage.preparation.resources.length > 0 && (
+                                    <div className="space-y-1 mt-2">
+                                      <p className="text-xs font-medium text-muted-foreground">Resources:</p>
+                                      {stage.preparation.resources.map((resource: any, idx: number) => (
+                                        <a
+                                          key={idx}
+                                          href={resource.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-2 text-sm hover:underline text-foreground truncate"
+                                        >
+                                          <FileText className="w-3 h-3 flex-shrink-0" />
+                                          <span className="truncate">{resource.title}</span>
+                                        </a>
+                                      ))}
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
-                            )}
+                              )}
 
-                            {/* Interviewers */}
-                            {stage.interviewers && stage.interviewers.length > 0 && (
-                              <div className="mt-3 p-3 rounded-lg bg-background border border-border/50">
-                                <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                                  <User className="w-4 h-4" />
-                                  Who You'll Meet
-                                </h5>
-                                <div className="space-y-2">
-                                  {stage.interviewers.map((interviewer, idx) => (
-                                    <div key={idx} className="flex items-start gap-2">
-                                      <Avatar className="w-8 h-8">
-                                        <AvatarImage src={interviewer.photo} alt={interviewer.name} />
-                                        <AvatarFallback className="text-xs">{interviewer.name.charAt(0)}</AvatarFallback>
-                                      </Avatar>
-                                      <div className="flex-1">
-                                        <p className="text-sm font-medium">{interviewer.name}</p>
-                                        <p className="text-xs text-muted-foreground">{interviewer.title}</p>
+                              {/* Interview/Meeting info */}
+                              {(stage.scheduledDate || (stage.interviewers && stage.interviewers.length > 0)) && (
+                                <div className="p-3 rounded-lg bg-background border border-border/50">
+                                  {stage.scheduledDate && (
+                                    <div className="mb-3">
+                                      <div className="flex items-start gap-2 mb-1">
+                                        <Calendar className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-sm font-medium">Scheduled</p>
+                                          <p className="text-sm text-muted-foreground truncate">{stage.scheduledDate}</p>
+                                          {stage.duration && (
+                                            <p className="text-xs text-muted-foreground">Duration: {stage.duration}</p>
+                                          )}
+                                        </div>
                                       </div>
                                     </div>
-                                  ))}
+                                  )}
+
+                                  {stage.interviewers && stage.interviewers.length > 0 && (
+                                    <div>
+                                      <h5 className="text-sm font-semibold mb-2 flex items-center gap-2">
+                                        <User className="w-4 h-4 flex-shrink-0" />
+                                        Who You'll Meet
+                                      </h5>
+                                      <div className="space-y-2">
+                                        {stage.interviewers.map((interviewer, idx) => (
+                                          <div key={idx} className="flex items-center gap-2">
+                                            <Avatar className="w-8 h-8 flex-shrink-0">
+                                              <AvatarImage src={interviewer.photo} alt={interviewer.name} />
+                                              <AvatarFallback className="text-xs">
+                                                {interviewer.name.charAt(0)}
+                                              </AvatarFallback>
+                                            </Avatar>
+                                            <div className="flex-1 min-w-0">
+                                              <p className="text-sm font-medium truncate">{interviewer.name}</p>
+                                              <p className="text-xs text-muted-foreground truncate">{interviewer.title}</p>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -4,9 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight } from "lucide-react";
+import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight, Check } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Application {
@@ -310,22 +311,44 @@ function ApplicationCard({ application }: { application: Application }) {
         {/* Pipeline Stages */}
         <div>
           <h3 className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Pipeline Progress</h3>
-          <div className="flex items-start w-full overflow-x-auto pb-2 gap-1">
-            {application.stages.map((stage: PipelineStageData, index: number) => (
-              <ExpandablePipelineStage
-                key={stage.id}
-                stage={{
-                  ...stage,
-                  status:
-                    index < application.current_stage_index
-                      ? "completed"
-                      : index === application.current_stage_index
-                      ? "current"
-                      : "upcoming",
-                }}
-                isLast={index === application.stages.length - 1}
-              />
-            ))}
+          <div className="flex items-center justify-start gap-2 overflow-x-auto pb-2">
+            {application.stages.map((stage: PipelineStageData, index: number) => {
+              const isCurrent = index === application.current_stage_index;
+              const isCompleted = index < application.current_stage_index;
+              
+              return (
+                <div key={stage.id} className="flex items-center flex-shrink-0">
+                  <div className="flex flex-col items-center min-w-[80px]">
+                    <div className={cn(
+                      "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
+                      isCompleted && "bg-muted border-muted-foreground/30",
+                      isCurrent && "bg-foreground border-foreground text-background scale-110",
+                      !isCompleted && !isCurrent && "bg-background border-border"
+                    )}>
+                      {isCompleted ? (
+                        <Check className="w-4 h-4" />
+                      ) : (
+                        <span className="text-xs font-semibold">
+                          {isCurrent ? "●" : "○"}
+                        </span>
+                      )}
+                    </div>
+                    <p className={cn(
+                      "mt-2 text-xs text-center max-w-[80px] break-words leading-tight",
+                      isCurrent ? "font-bold" : "text-muted-foreground"
+                    )}>
+                      {stage.title}
+                    </p>
+                  </div>
+                  {index < application.stages.length - 1 && (
+                    <div className={cn(
+                      "h-0.5 w-6 mx-1 flex-shrink-0",
+                      isCompleted ? "bg-muted-foreground/30" : "bg-border"
+                    )} />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </CardContent>
