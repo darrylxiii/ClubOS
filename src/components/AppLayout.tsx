@@ -56,7 +56,6 @@ const candidateNavigationGroups = [
     icon: Layers,
     items: [
       { name: "Club Home", icon: Home, path: "/home" },
-      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
       { name: "Feed", icon: Rss, path: "/feed" },
       { name: "Achievements", icon: Trophy, path: "/achievements" },
     ],
@@ -113,7 +112,7 @@ const partnerNavigationGroups = [
     icon: Layers,
     items: [
       { name: "Club Home", icon: Home, path: "/home" },
-      { name: "Dashboard", icon: Building2, path: "/partner-dashboard" },
+      { name: "Jobs Dashboard", icon: Building2, path: "/partner-dashboard" },
       { name: "Feed", icon: Rss, path: "/feed" },
     ],
   },

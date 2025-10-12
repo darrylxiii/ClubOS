@@ -19,7 +19,6 @@ import NotFound from "./pages/NotFound";
 
 // Lazy load protected routes to reduce initial bundle size
 const ClubHome = lazy(() => import("./pages/ClubHome"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const TasksPilot = lazy(() => import("./pages/TasksPilot"));
 const ClubAI = lazy(() => import("./pages/ClubAI"));
@@ -87,14 +86,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ClubAI />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedRoute>
-                  <Dashboard />
                 </ProtectedRoute>
               }
             />
