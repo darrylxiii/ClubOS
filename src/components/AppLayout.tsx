@@ -287,8 +287,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col pt-16 lg:pt-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          "fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col pt-16",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
 
@@ -364,7 +364,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       )}
 
       <main className="flex-1 overflow-y-auto">
-        <div className="min-h-screen mt-16 lg:mt-0 pb-4">{children}</div>
+        <div className="min-h-screen mt-16 pb-4">{children}</div>
       </main>
 
       {/* Global Navigation Tools - Always Accessible */}
