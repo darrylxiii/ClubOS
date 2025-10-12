@@ -8,9 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Award, Plus, Trash2, Edit, Users } from "lucide-react";
+import { Award, Plus, Trash2, Edit, Users, Loader2 } from "lucide-react";
 import * as LucideIcons from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 
 interface CompanyAchievement {
   id: string;
@@ -139,36 +140,65 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
   };
 
   if (loading) {
-    return <div className="flex justify-center p-8">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Custom Achievements */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Custom Achievements</CardTitle>
-              <CardDescription>
-                Create up to 3 custom achievements that members and partners can earn (
-                {customAchievements.length}/3 used)
-              </CardDescription>
+    <div className="space-y-12">
+      {/* Header Section with Stats */}
+      <div className="glass p-8 rounded-2xl border border-primary/20">
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              Custom Company Achievements
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Create and award unique badges to recognize exceptional contributions
+            </p>
+          </div>
+          <Button 
+            size="lg"
+            onClick={() => {
+              setEditingAchievement(null);
+              setFormData({ name: "", description: "", icon: "Award" });
+              setDialogOpen(true);
+            }}
+            disabled={customAchievements.length >= 3}
+            className="shadow-lg hover:shadow-xl transition-all"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Create Achievement
+          </Button>
+        </div>
+        
+        {/* Stats Bar */}
+        <div className="grid grid-cols-3 gap-4 mt-6">
+          <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+            <div className="text-2xl font-bold text-primary">{customAchievements.length}/3</div>
+            <div className="text-sm text-muted-foreground">Custom Created</div>
+          </div>
+          <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+            <div className="text-2xl font-bold text-primary">
+              {customAchievements.reduce((sum, a) => sum + (a.earner_count || 0), 0)}
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button 
-                  disabled={customAchievements.length >= 3}
-                  onClick={() => {
-                    setEditingAchievement(null);
-                    setFormData({ name: "", description: "", icon: "Award" });
-                  }}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Achievement
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
+            <div className="text-sm text-muted-foreground">Total Awards</div>
+          </div>
+          <div className="bg-background/50 rounded-lg p-4 border border-border/50">
+            <div className="text-2xl font-bold text-primary">
+              {customAchievements.filter(a => a.is_active).length}
+            </div>
+            <div className="text-sm text-muted-foreground">Active</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Dialog for Create/Edit */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
                 <DialogHeader>
                   <DialogTitle>
                     {editingAchievement ? "Edit Achievement" : "Create Achievement"}
@@ -232,102 +262,139 @@ export const CompanyAchievements = ({ companyId }: CompanyAchievementsProps) => 
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+
+      {/* Custom Achievements Grid */}
+      <div>
+        <h3 className="text-xl font-semibold mb-6">Your Custom Achievements</h3>
+        {customAchievements.length > 0 ? (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {customAchievements.map((achievement) => {
               const IconComponent = getIconComponent(achievement.icon);
               return (
-                <Card key={achievement.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <IconComponent className="w-5 h-5 text-primary" />
-                        </div>
-                        <div>
-                          <h4 className="font-semibold">{achievement.name}</h4>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                            <Users className="w-3 h-3" />
-                            {achievement.earner_count} earned
-                          </div>
-                        </div>
+                <Card key={achievement.id} className="relative overflow-hidden group hover:shadow-xl transition-all border-primary/20">
+                  <CardContent className="p-8">
+                    <div className="flex items-start justify-between mb-6">
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20">
+                        {IconComponent && <IconComponent className="h-8 w-8 text-primary" />}
                       </div>
-                      <div className="flex gap-1">
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
-                          size="icon"
+                          size="sm"
                           variant="ghost"
                           onClick={() => openEditDialog(achievement)}
                         >
-                          <Edit className="w-4 h-4" />
+                          <Edit className="h-4 w-4" />
                         </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleDelete(achievement.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button size="sm" variant="ghost">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Achievement</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete this achievement? This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => handleDelete(achievement.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                    <h3 className="font-bold text-xl mb-3">{achievement.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-6 line-clamp-2">{achievement.description}</p>
+                    <div className="flex items-center justify-between pt-4 border-t border-border/50">
+                      <div className="flex items-center gap-2">
+                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm font-medium">
+                          {achievement.earner_count || 0} earned
+                        </span>
+                      </div>
+                      <Badge variant={achievement.is_active ? "default" : "secondary"} className="text-xs">
+                        {achievement.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
                   </CardContent>
                 </Card>
               );
             })}
           </div>
-          {customAchievements.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No custom achievements yet. Create your first one!
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        ) : (
+          <Card className="border-dashed border-2 border-primary/30">
+            <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+              <div className="p-4 rounded-full bg-primary/10 mb-4">
+                <Award className="h-12 w-12 text-primary" />
+              </div>
+              <h4 className="text-lg font-semibold mb-2">No custom achievements yet</h4>
+              <p className="text-muted-foreground mb-6 max-w-sm">
+                Create your first custom achievement to recognize and reward exceptional contributions from your team.
+              </p>
+              <Button 
+                onClick={() => {
+                  setEditingAchievement(null);
+                  setFormData({ name: "", description: "", icon: "Award" });
+                  setDialogOpen(true);
+                }} 
+                size="lg"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Create Your First Achievement
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
-      {/* Platform Generated Achievements */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Earned Achievements</CardTitle>
-          <CardDescription>
-            Platform-generated achievements based on your company's activity and performance
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {platformAchievements.map((achievement) => {
-              const IconComponent = getIconComponent(achievement.icon);
-              return (
-                <Card key={achievement.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center">
-                        <IconComponent className="w-5 h-5 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold">{achievement.name}</h4>
-                          <Badge variant="secondary">Platform</Badge>
+      {/* Platform Achievements Section */}
+      <div>
+        <h3 className="text-xl font-semibold mb-6">Platform Achievements</h3>
+        <Card className="border-primary/10">
+          <CardHeader>
+            <CardDescription>
+              Standard achievements earned by your team members across the platform
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            {platformAchievements.length > 0 ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {platformAchievements.map((achievement) => {
+                  const IconComponent = getIconComponent(achievement.icon);
+                  return (
+                    <Card key={achievement.id} className="border-border/50 hover:border-primary/30 transition-all">
+                      <CardContent className="p-6">
+                        <div className="flex flex-col items-center text-center gap-4">
+                          <div className="p-3 rounded-lg bg-secondary/30">
+                            {IconComponent && <IconComponent className="h-6 w-6 text-secondary-foreground" />}
+                          </div>
+                          <div>
+                            <h4 className="font-semibold mb-1 text-sm">{achievement.name}</h4>
+                            <p className="text-xs text-muted-foreground line-clamp-2 mb-3">{achievement.description}</p>
+                            <Badge variant="outline" className="text-xs">
+                              {achievement.earner_count || 0} earned
+                            </Badge>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
-                          <Users className="w-3 h-3" />
-                          {achievement.earner_count} earned
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{achievement.description}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-          {platformAchievements.length === 0 && (
-            <div className="text-center py-8 text-muted-foreground">
-              No platform achievements earned yet. Keep building your presence!
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-12 text-muted-foreground">
+                <Award className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No platform achievements earned by team members yet</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
