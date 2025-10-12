@@ -107,12 +107,12 @@ export default function ApplicationDetail() {
       // Get talent strategist
       let strategist = null;
       if (data.jobs?.company_id) {
-        const { data: companyMembers } = await supabase
+        const { data: companyMembers, error: strategistError } = await supabase
           .from("company_members")
           .select(`
             user_id,
             role,
-            profiles!company_members_user_id_fkey (
+            profiles (
               id,
               full_name,
               avatar_url
@@ -121,11 +121,17 @@ export default function ApplicationDetail() {
           .eq("company_id", data.jobs.company_id)
           .eq("is_active", true)
           .in("role", ["recruiter", "admin"])
-          .limit(1)
-          .single();
+          .limit(1);
 
-        if (companyMembers?.profiles) {
-          strategist = companyMembers.profiles;
+        if (strategistError) {
+          console.error("Error fetching strategist:", strategistError);
+        }
+
+        if (companyMembers && companyMembers.length > 0 && companyMembers[0].profiles) {
+          strategist = companyMembers[0].profiles;
+          console.log("Found strategist for application detail:", strategist);
+        } else {
+          console.log("No strategist found for company:", data.jobs.company_id);
         }
       }
 

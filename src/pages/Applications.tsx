@@ -88,12 +88,12 @@ export default function Applications() {
         // Get talent strategist from company members with strategist role
         let strategist = null;
         if (app.jobs?.company_id) {
-          const { data: companyMembers } = await supabase
+          const { data: companyMembers, error: strategistError } = await supabase
             .from("company_members")
             .select(`
               user_id,
               role,
-              profiles!company_members_user_id_fkey (
+              profiles (
                 id,
                 full_name,
                 avatar_url
@@ -102,11 +102,17 @@ export default function Applications() {
             .eq("company_id", app.jobs.company_id)
             .eq("is_active", true)
             .in("role", ["recruiter", "admin"])
-            .limit(1)
-            .single();
+            .limit(1);
 
-          if (companyMembers?.profiles) {
-            strategist = companyMembers.profiles;
+          if (strategistError) {
+            console.error("Error fetching strategist:", strategistError);
+          }
+
+          if (companyMembers && companyMembers.length > 0 && companyMembers[0].profiles) {
+            strategist = companyMembers[0].profiles;
+            console.log("Found strategist:", strategist);
+          } else {
+            console.log("No strategist found for company:", app.jobs.company_id);
           }
         }
 
@@ -144,6 +150,7 @@ export default function Applications() {
         };
       }));
 
+      console.log("Enriched applications with strategist data:", enrichedApps);
       setApplications(enrichedApps);
     } catch (error) {
       console.error("Error loading applications:", error);
@@ -231,10 +238,12 @@ function ApplicationCard({ application }: { application: Application }) {
   
   return (
     <Card 
-      className="border-border/50 bg-card cursor-pointer transition-all hover:shadow-md hover:border-border"
-      onClick={() => navigate(`/applications/${application.id}`)}
+      className="border-border/50 bg-card transition-all hover:shadow-md hover:border-border"
     >
-      <CardHeader>
+      <CardHeader 
+        className="cursor-pointer"
+        onClick={() => navigate(`/applications/${application.id}`)}
+      >
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4 flex-1">
             {application.job?.companies?.logo_url && (
@@ -270,6 +279,22 @@ function ApplicationCard({ application }: { application: Application }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Talent Strategist - First and prominently displayed */}
+        {application.talent_strategist && (
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50 border border-border">
+            <Avatar className="w-12 h-12 ring-2 ring-primary/20">
+              <AvatarImage src={application.talent_strategist.avatar_url || ''} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                {application.talent_strategist.full_name?.[0] || 'T'}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground font-medium">Your Talent Strategist</div>
+              <div className="text-sm font-semibold">{application.talent_strategist.full_name || 'Not Assigned'}</div>
+            </div>
+          </div>
+        )}
+
         {/* Stats Row - Muted, elegant design */}
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 rounded-lg bg-card border border-border/50">
@@ -292,20 +317,6 @@ function ApplicationCard({ application }: { application: Application }) {
             <div className="text-xs text-muted-foreground">Applied</div>
           </div>
         </div>
-
-        {/* Talent Strategist */}
-        {application.talent_strategist && (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30">
-            <Avatar className="w-12 h-12 ring-1 ring-border/50">
-              <AvatarImage src={application.talent_strategist.avatar_url} />
-              <AvatarFallback>{application.talent_strategist.full_name?.[0]}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <div className="text-xs text-muted-foreground">Your Talent Strategist</div>
-              <div className="text-sm font-semibold">{application.talent_strategist.full_name}</div>
-            </div>
-          </div>
-        )}
 
         {/* Pipeline Stages */}
         <div>
