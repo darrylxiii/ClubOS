@@ -6,6 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Plus, Target, TrendingUp, Clock, CheckCircle } from "lucide-react";
 import { CreateObjectiveDialog } from "./CreateObjectiveDialog";
 import { toast } from "sonner";
+import {
+  DndContext,
+  DragEndEvent,
+  DragOverlay,
+  DragStartEvent,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  closestCorners,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Objective {
   id: string;
@@ -51,12 +65,44 @@ const STATUS_COLUMNS = [
   }
 ];
 
+const DraggableObjectiveCard = ({ objective, ownerProfiles }: any) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: objective.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <ObjectiveCard objective={objective} ownerProfiles={ownerProfiles} />
+    </div>
+  );
+};
+
 export const ObjectivesBoard = () => {
   const { user } = useAuth();
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [loading, setLoading] = useState(true);
   const [ownerProfiles, setOwnerProfiles] = useState<Map<string, any>>(new Map());
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [activeObjective, setActiveObjective] = useState<Objective | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   useEffect(() => {
     if (user) {
@@ -155,6 +201,43 @@ export const ObjectivesBoard = () => {
     return objectives.filter(obj => obj.status === status);
   };
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const objective = objectives.find(obj => obj.id === event.active.id);
+    setActiveObjective(objective || null);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveObjective(null);
+
+    if (!over || active.id === over.id) return;
+
+    const newStatus = over.id as string;
+    const objectiveId = active.id as string;
+
+    // Optimistically update UI
+    setObjectives(prev =>
+      prev.map(obj =>
+        obj.id === objectiveId ? { ...obj, status: newStatus } : obj
+      )
+    );
+
+    try {
+      const { error } = await supabase
+        .from("club_objectives")
+        .update({ status: newStatus })
+        .eq("id", objectiveId);
+
+      if (error) throw error;
+      toast.success("Objective status updated");
+    } catch (error) {
+      console.error("Error updating objective:", error);
+      toast.error("Failed to update objective");
+      // Revert on error
+      loadObjectives();
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -167,69 +250,95 @@ export const ObjectivesBoard = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-foreground">Objectives Board</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Track and manage project objectives
-          </p>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">Objectives Board</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Drag objectives to change their status
+            </p>
+          </div>
+          <CreateObjectiveDialog open={dialogOpen} onOpenChange={setDialogOpen} onCreated={loadObjectives}>
+            <Button size="lg" className="gap-2">
+              <Plus className="h-5 w-5" />
+              New Objective
+            </Button>
+          </CreateObjectiveDialog>
         </div>
-        <CreateObjectiveDialog open={dialogOpen} onOpenChange={setDialogOpen} onCreated={loadObjectives}>
-          <Button size="lg" className="gap-2">
-            <Plus className="h-5 w-5" />
-            New Objective
-          </Button>
-        </CreateObjectiveDialog>
-      </div>
 
-      {/* Board Columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {STATUS_COLUMNS.map(column => {
-          const columnObjectives = getObjectivesByStatus(column.status);
-          const Icon = column.icon;
+        {/* Board Columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {STATUS_COLUMNS.map(column => {
+            const columnObjectives = getObjectivesByStatus(column.status);
+            const Icon = column.icon;
 
-          return (
-            <div key={column.status} className="space-y-4">
-              {/* Column Header */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Icon className="h-5 w-5 text-primary" />
-                  <h3 className="font-semibold text-foreground">{column.label}</h3>
-                  <span className="text-sm text-muted-foreground">
-                    ({columnObjectives.length})
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground">{column.description}</p>
-              </div>
-
-              {/* Objectives */}
-              <div className="space-y-3">
-                {columnObjectives.length === 0 ? (
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground">
-                    No objectives
+            return (
+              <SortableContext
+                key={column.status}
+                id={column.status}
+                items={columnObjectives.map(obj => obj.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-4">
+                  {/* Column Header */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Icon className="h-5 w-5 text-primary" />
+                      <h3 className="font-semibold text-foreground">{column.label}</h3>
+                      <span className="text-sm text-muted-foreground">
+                        ({columnObjectives.length})
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">{column.description}</p>
                   </div>
-                ) : (
-                  columnObjectives.map(objective => {
-                    const owners = objective.owners
-                      ?.map(id => ownerProfiles.get(id))
-                      .filter(Boolean);
 
-                    return (
-                      <ObjectiveCard
-                        key={objective.id}
-                        objective={objective}
-                        ownerProfiles={owners}
-                      />
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          );
-        })}
+                  {/* Drop Zone */}
+                  <div
+                    className="space-y-3 min-h-[200px] p-3 rounded-lg border-2 border-dashed border-transparent hover:border-primary/20 transition-colors"
+                  >
+                    {columnObjectives.length === 0 ? (
+                      <div className="border-2 border-dashed rounded-lg p-6 text-center text-sm text-muted-foreground">
+                        Drop objectives here
+                      </div>
+                    ) : (
+                      columnObjectives.map(objective => {
+                        const owners = objective.owners
+                          ?.map(id => ownerProfiles.get(id))
+                          .filter(Boolean);
+
+                        return (
+                          <DraggableObjectiveCard
+                            key={objective.id}
+                            objective={objective}
+                            ownerProfiles={owners}
+                          />
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </SortableContext>
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      <DragOverlay>
+        {activeObjective && (
+          <Card className="opacity-90 shadow-lg rotate-3">
+            <CardContent className="p-4">
+              <h3 className="font-semibold">{activeObjective.title}</h3>
+            </CardContent>
+          </Card>
+        )}
+      </DragOverlay>
+    </DndContext>
   );
 };
