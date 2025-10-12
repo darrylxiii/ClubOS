@@ -13,7 +13,8 @@ import {
   Settings,
   Info,
   Sparkles,
-  Plus
+  Plus,
+  Wand2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,6 +25,7 @@ import { UnifiedTaskBoard } from "@/components/unified-tasks/UnifiedTaskBoard";
 import { UnifiedTasksList } from "@/components/unified-tasks/UnifiedTasksList";
 import { UnifiedTaskCalendar } from "@/components/unified-tasks/UnifiedTaskCalendar";
 import { CreateUnifiedTaskDialog } from "@/components/unified-tasks/CreateUnifiedTaskDialog";
+import { AISchedulingSettings } from "@/components/unified-tasks/AISchedulingSettings";
 
 interface SystemPreferences {
   active_system: string;
@@ -38,6 +40,8 @@ const UnifiedTasks = () => {
   const [selectedObjective, setSelectedObjective] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [scheduling, setScheduling] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -125,6 +129,30 @@ const UnifiedTasks = () => {
     setRefreshKey(prev => prev + 1);
   };
 
+  const handleAutoSchedule = async () => {
+    if (!user) return;
+
+    setScheduling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('schedule-tasks', {
+        body: { 
+          user_id: user.id,
+          objective_id: selectedObjective 
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success("Tasks scheduled successfully!");
+      handleRefresh();
+    } catch (error) {
+      console.error("Error scheduling tasks:", error);
+      toast.error("Failed to schedule tasks");
+    } finally {
+      setScheduling(false);
+    }
+  };
+
   if (loading || !preferences) {
     return (
       <AppLayout>
@@ -165,6 +193,27 @@ const UnifiedTasks = () => {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="lg"
+              onClick={() => setSettingsOpen(true)}
+              className="gap-2"
+            >
+              <Settings className="h-5 w-5" />
+              AI Settings
+            </Button>
+            {preferences.ai_scheduling_enabled && (
+              <Button
+                variant="secondary"
+                size="lg"
+                onClick={handleAutoSchedule}
+                disabled={scheduling}
+                className="gap-2"
+              >
+                <Wand2 className="h-5 w-5" />
+                {scheduling ? "Scheduling..." : "Auto Schedule"}
+              </Button>
+            )}
             <TaskSystemToggle
               activeSystem={preferences.active_system}
               onSystemChange={(system) => handlePreferenceUpdate({ active_system: system })}
@@ -277,6 +326,13 @@ const UnifiedTasks = () => {
             />
           </TabsContent>
         </Tabs>
+
+        {/* AI Scheduling Settings Dialog */}
+        <AISchedulingSettings
+          open={settingsOpen}
+          onOpenChange={setSettingsOpen}
+          onSettingsUpdated={handleRefresh}
+        />
       </div>
     </AppLayout>
   );
