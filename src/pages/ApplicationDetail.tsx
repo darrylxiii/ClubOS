@@ -65,7 +65,7 @@ export default function ApplicationDetail() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Fetch application with full job details
+      // Fetch application with full job details including pipeline stages
       const { data, error } = await supabase
         .from("applications")
         .select(`
@@ -82,6 +82,7 @@ export default function ApplicationDetail() {
             requirements,
             benefits,
             company_id,
+            pipeline_stages,
             companies!jobs_company_id_fkey (
               name,
               logo_url,
@@ -128,6 +129,31 @@ export default function ApplicationDetail() {
         }
       }
 
+      // Use job's pipeline_stages as the source of truth
+      const jobPipelineStages = data.jobs?.pipeline_stages || [];
+      const formattedStages = Array.isArray(jobPipelineStages) 
+        ? jobPipelineStages.map((stage: any) => ({
+            id: stage.id || String(stage.order),
+            title: stage.name,
+            description: stage.description,
+            status: "upcoming" as const,
+            preparation: stage.resources ? {
+              title: "Preparation Guide",
+              content: stage.description || "",
+              resources: stage.resources
+            } : undefined,
+            scheduledDate: stage.scheduled_date,
+            duration: stage.duration,
+            location: stage.location,
+            meetingType: stage.format,
+            interviewers: stage.owner ? [{
+              name: stage.owner,
+              title: stage.owner_role || "Interviewer",
+              photo: stage.owner_avatar
+            }] : undefined,
+          }))
+        : [];
+
       setApplication({
         ...data,
         job: {
@@ -135,7 +161,7 @@ export default function ApplicationDetail() {
           requirements: (data.jobs.requirements as string[]) || [],
           benefits: (data.jobs.benefits as string[]) || [],
         },
-        stages: (data.stages as unknown as PipelineStageData[]) || [],
+        stages: formattedStages,
         other_candidates_count: count || 0,
         talent_strategist: strategist,
       });
