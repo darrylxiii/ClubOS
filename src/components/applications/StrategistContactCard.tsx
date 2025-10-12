@@ -19,20 +19,24 @@ export function StrategistContactCard({ strategist, lastContact }: StrategistCon
 
   if (!strategist) {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/30 border border-border/50 h-full">
-        <Avatar className="w-12 h-12">
-          <AvatarFallback className="bg-muted">?</AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <div className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Your Talent Strategist</div>
-          <div className="text-sm text-muted-foreground">Being assigned...</div>
+      <div className="p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 h-full">
+        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Talent Strategist</div>
+        <div className="flex items-center gap-3">
+          <Avatar className="w-12 h-12">
+            <AvatarFallback className="bg-muted">?</AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="text-sm text-muted-foreground">Being assigned...</div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 rounded-lg bg-muted/50 border border-border h-full flex flex-col">
+    <div className="p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 h-full flex flex-col">
+      <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Talent Strategist</div>
+      
       <div className="flex items-center gap-3 mb-3">
         <div className="relative">
           <Avatar className="w-12 h-12 ring-2 ring-primary/20">
@@ -46,16 +50,14 @@ export function StrategistContactCard({ strategist, lastContact }: StrategistCon
           </div>
         </div>
         <div className="flex-1">
-          <div className="text-xs text-muted-foreground font-medium">Your Talent Strategist</div>
-          <div className="text-sm font-semibold">{strategist.full_name}</div>
+          <div className="text-base font-semibold">{strategist.full_name}</div>
+          {lastContact && (
+            <div className="text-xs text-muted-foreground mt-0.5">
+              Last contact: {lastContact}
+            </div>
+          )}
         </div>
       </div>
-      
-      {lastContact && (
-        <div className="mb-3 text-xs text-muted-foreground">
-          Last contact: {lastContact}
-        </div>
-      )}
       
       <Button 
         size="sm" 
