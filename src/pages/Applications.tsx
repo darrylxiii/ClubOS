@@ -270,20 +270,6 @@ function ApplicationCard({ application }: { application: Application }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Talent Strategist - First */}
-        {application.talent_strategist && (
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30">
-            <Avatar className="w-12 h-12 ring-1 ring-border/50">
-              <AvatarImage src={application.talent_strategist.avatar_url} />
-              <AvatarFallback>{application.talent_strategist.full_name?.[0]}</AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <div className="text-xs text-muted-foreground">Your Talent Strategist</div>
-              <div className="text-sm font-semibold">{application.talent_strategist.full_name}</div>
-            </div>
-          </div>
-        )}
-
         {/* Stats Row - Muted, elegant design */}
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 rounded-lg bg-card border border-border/50">
@@ -310,13 +296,13 @@ function ApplicationCard({ application }: { application: Application }) {
         {/* Talent Strategist */}
         {application.talent_strategist && (
           <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30">
-            <Avatar className="w-10 h-10 ring-1 ring-border/50">
+            <Avatar className="w-12 h-12 ring-1 ring-border/50">
               <AvatarImage src={application.talent_strategist.avatar_url} />
               <AvatarFallback>{application.talent_strategist.full_name?.[0]}</AvatarFallback>
             </Avatar>
             <div className="flex-1">
-              <div className="text-xs text-muted-foreground">Talent Strategist</div>
-              <div className="text-sm font-medium">{application.talent_strategist.full_name}</div>
+              <div className="text-xs text-muted-foreground">Your Talent Strategist</div>
+              <div className="text-sm font-semibold">{application.talent_strategist.full_name}</div>
             </div>
           </div>
         )}
@@ -328,7 +314,50 @@ function ApplicationCard({ application }: { application: Application }) {
             <span className="text-[10px] font-normal normal-case opacity-60">(Swipe to see all stages →)</span>
           </h3>
           <div className="relative">
-            <div className="flex items-center justify-start gap-2 overflow-x-auto pb-2 scrollbar-hide cursor-grab active:cursor-grabbing">
+            <div 
+              className="flex items-center justify-start gap-2 overflow-x-scroll pb-2 scrollbar-hide"
+              style={{ touchAction: 'pan-x' }}
+              onMouseDown={(e) => {
+                const ele = e.currentTarget;
+                const startX = e.pageX - ele.offsetLeft;
+                const scrollLeft = ele.scrollLeft;
+                
+                const handleMouseMove = (e: MouseEvent) => {
+                  const x = e.pageX - ele.offsetLeft;
+                  const walk = (x - startX) * 2;
+                  ele.scrollLeft = scrollLeft - walk;
+                };
+                
+                const handleMouseUp = () => {
+                  document.removeEventListener('mousemove', handleMouseMove);
+                  document.removeEventListener('mouseup', handleMouseUp);
+                  ele.style.cursor = 'grab';
+                };
+                
+                ele.style.cursor = 'grabbing';
+                document.addEventListener('mousemove', handleMouseMove);
+                document.addEventListener('mouseup', handleMouseUp);
+              }}
+              onTouchStart={(e) => {
+                const ele = e.currentTarget;
+                const startX = e.touches[0].pageX - ele.offsetLeft;
+                const scrollLeft = ele.scrollLeft;
+                
+                const handleTouchMove = (e: TouchEvent) => {
+                  const x = e.touches[0].pageX - ele.offsetLeft;
+                  const walk = (x - startX) * 2;
+                  ele.scrollLeft = scrollLeft - walk;
+                };
+                
+                const handleTouchEnd = () => {
+                  document.removeEventListener('touchmove', handleTouchMove);
+                  document.removeEventListener('touchend', handleTouchEnd);
+                };
+                
+                document.addEventListener('touchmove', handleTouchMove);
+                document.addEventListener('touchend', handleTouchEnd);
+              }}
+            >
               {application.stages.map((stage: PipelineStageData, index: number) => {
                 const isCurrent = index === application.current_stage_index;
                 const isCompleted = index < application.current_stage_index;
