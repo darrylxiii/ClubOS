@@ -56,3 +56,33 @@ verify_jwt = true
 
 [functions.linkedin-scraper]
 verify_jwt = true
+
+# Require authentication for user-specific functions
+[functions.ai-career-advisor]
+verify_jwt = true
+
+[functions.send-email-verification]
+verify_jwt = true
+
+[functions.send-sms-verification]
+verify_jwt = true
+
+[functions.verify-email-code]
+verify_jwt = true
+
+[functions.verify-sms-code]
+verify_jwt = true
+
+# Public endpoints (intentionally no JWT for guest access)
+[functions.create-booking]
+verify_jwt = false
+
+[functions.join-waitlist]
+verify_jwt = false
+
+[functions.send-booking-confirmation]
+verify_jwt = false
+
+# Cron-triggered function (no JWT, uses internal validation)
+[functions.process-booking-reminders]
+verify_jwt = false

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,7 +13,16 @@ serve(async (req) => {
   }
 
   try {
-    const { bookingLinkId, guestName, guestEmail, guestPhone, preferredDates } = await req.json();
+    // Validate input
+    const waitlistSchema = z.object({
+      bookingLinkId: z.string().uuid('Invalid booking link ID'),
+      guestName: z.string().min(1, 'Name is required').max(200, 'Name too long'),
+      guestEmail: z.string().email('Invalid email format').max(255),
+      guestPhone: z.string().max(50).optional(),
+      preferredDates: z.array(z.string().datetime()).min(1, 'At least one preferred date required').max(10)
+    });
+
+    const { bookingLinkId, guestName, guestEmail, guestPhone, preferredDates } = waitlistSchema.parse(await req.json());
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
