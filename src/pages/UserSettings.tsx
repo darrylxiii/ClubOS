@@ -959,7 +959,7 @@ const Profile = () => {
         
         toast.error(errorMessage);
         localStorage.removeItem('pending_calendar_connection');
-        window.history.replaceState({}, document.title, '/settings');
+        window.history.replaceState({}, document.title, '/user-settings');
       }
       return;
     }
@@ -970,7 +970,7 @@ const Profile = () => {
           const pendingConnection = localStorage.getItem('pending_calendar_connection');
           if (pendingConnection) {
             const { provider, label } = JSON.parse(pendingConnection);
-            const redirectUri = `${window.location.origin}/settings`;
+            const redirectUri = `${window.location.origin}/user-settings`;
             
             let token: string;
             let email: string = 'Calendar Account';
