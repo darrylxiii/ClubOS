@@ -1,10 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { AlertCircle, Calendar, CheckCircle, Clock, Flag, Target, TrendingUp, Users, Lock, Unlock } from "lucide-react";
 import { format, differenceInDays, isPast } from "date-fns";
-import { Link } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ObjectiveCardProps {
@@ -111,165 +109,145 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
     .slice(0, 3);
 
   return (
-    <Link to={`/objectives/${objective.id}`}>
-      <Card className="hover:shadow-lg transition-all duration-200 hover:border-primary/50 cursor-pointer group">
-        <CardContent className="p-6 space-y-4">
-          {/* Header */}
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors">
-                {objective.title}
-              </h3>
-              {objective.milestone_type && (
-                <Badge variant="outline" className="shrink-0">
-                  <Target className="h-3 w-3 mr-1" />
-                  {objective.milestone_type}
-                </Badge>
-              )}
-            </div>
-            
-            {/* Status and Priority Badges */}
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className={getStatusColor(objective.status)}>
-                {objective.status.replace('_', ' ')}
-              </Badge>
-              {objective.priority && (
-                <Badge variant="outline" className={getPriorityColor(objective.priority)}>
-                  <Flag className="h-3 w-3 mr-1" />
-                  {objective.priority}
-                </Badge>
-              )}
-              {getUrgencyBadge()}
-            </div>
+    <div className="space-y-4">
+      {/* Status and Priority Badges */}
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="outline" className={getStatusColor(objective.status)}>
+          {objective.status.replace('_', ' ')}
+        </Badge>
+        {objective.priority && (
+          <Badge variant="outline" className={getPriorityColor(objective.priority)}>
+            <Flag className="h-3 w-3 mr-1" />
+            {objective.priority}
+          </Badge>
+        )}
+        {getUrgencyBadge()}
+      </div>
 
-            {/* Tags */}
-            {objective.tags && objective.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {objective.tags.map((tag: string, idx: number) => (
-                  <Badge key={idx} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
+      {/* Tags */}
+      {objective.tags && objective.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1">
+          {objective.tags.map((tag: string, idx: number) => (
+            <Badge key={idx} variant="secondary" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
+
+      {/* Progress */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Progress</span>
+          <span className="font-medium">{objective.completion_percentage || 0}%</span>
+        </div>
+        <Progress value={objective.completion_percentage || 0} className="h-2" />
+      </div>
+
+      {/* Owners */}
+      {ownerProfiles && ownerProfiles.length > 0 && (
+        <div className="flex items-center gap-2">
+          <Users className="h-4 w-4 text-muted-foreground" />
+          <div className="flex -space-x-2">
+            {ownerProfiles.slice(0, 3).map((owner) => (
+              <Avatar key={owner.id} className="h-6 w-6 border-2 border-background">
+                <AvatarImage src={owner.avatar_url} />
+                <AvatarFallback className="text-xs">
+                  {owner.full_name?.split(' ').map(n => n[0]).join('') || '?'}
+                </AvatarFallback>
+              </Avatar>
+            ))}
+            {ownerProfiles.length > 3 && (
+              <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs">
+                +{ownerProfiles.length - 3}
               </div>
             )}
           </div>
+        </div>
+      )}
 
-          {/* Progress */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Progress</span>
-              <span className="font-medium">{objective.completion_percentage || 0}%</span>
-            </div>
-            <Progress value={objective.completion_percentage || 0} className="h-2" />
-          </div>
+      {/* Timeline */}
+      {(objective.due_date || objective.hard_deadline) && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4" />
+          <span>
+            Due: {format(new Date(objective.due_date || objective.hard_deadline!), 'MMM dd, yyyy')}
+          </span>
+        </div>
+      )}
 
-          {/* Owners */}
-          {ownerProfiles && ownerProfiles.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-muted-foreground" />
-              <div className="flex -space-x-2">
-                {ownerProfiles.slice(0, 3).map((owner) => (
-                  <Avatar key={owner.id} className="h-6 w-6 border-2 border-background">
-                    <AvatarImage src={owner.avatar_url} />
-                    <AvatarFallback className="text-xs">
-                      {owner.full_name?.split(' ').map(n => n[0]).join('') || '?'}
-                    </AvatarFallback>
-                  </Avatar>
-                ))}
-                {ownerProfiles.length > 3 && (
-                  <div className="h-6 w-6 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs">
-                    +{ownerProfiles.length - 3}
+      {/* Task Dependencies Stats */}
+      {(objective.blockingCount || objective.blockedByCount) ? (
+        <div className="flex items-center gap-4 pt-2 border-t">
+          <TooltipProvider>
+            {objective.blockingCount > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2 text-sm cursor-help">
+                    <Lock className="h-4 w-4 text-orange-500" />
+                    <span className="font-medium">{objective.blockingCount}</span>
+                    <span className="text-muted-foreground text-xs">Blocking</span>
                   </div>
-                )}
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs bg-popover">
+                  <div className="space-y-1">
+                    <p className="font-semibold text-xs">Tasks Blocked By This Objective:</p>
+                    {objective.blockingTasks?.slice(0, 5).map((dep: any) => (
+                      <p key={dep.id} className="text-xs">• {dep.depends_on?.task_number} - {dep.depends_on?.title}</p>
+                    ))}
+                    {objective.blockingTasks && objective.blockingTasks.length > 5 && (
+                      <p className="text-xs text-muted-foreground">+{objective.blockingTasks.length - 5} more</p>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            
+            {objective.blockedByCount > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2 text-sm cursor-help">
+                    <Unlock className="h-4 w-4 text-blue-500" />
+                    <span className="font-medium">{objective.blockedByCount}</span>
+                    <span className="text-muted-foreground text-xs">Blocked By</span>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs bg-popover">
+                  <div className="space-y-1">
+                    <p className="font-semibold text-xs">Tasks Blocking This Objective:</p>
+                    {objective.blockedByTasks?.slice(0, 5).map((dep: any) => (
+                      <p key={dep.id} className="text-xs">• {dep.blocker?.task_number} - {dep.blocker?.title}</p>
+                    ))}
+                    {objective.blockedByTasks && objective.blockedByTasks.length > 5 && (
+                      <p className="text-xs text-muted-foreground">+{objective.blockedByTasks.length - 5} more</p>
+                    )}
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </TooltipProvider>
+        </div>
+      ) : null}
+
+      {/* Urgent Tasks Preview - Compact */}
+      {urgentTasks && urgentTasks.length > 0 && (
+        <div className="space-y-1 pt-2 border-t">
+          <div className="text-xs font-medium text-muted-foreground">Next Tasks</div>
+          <div className="space-y-0.5">
+            {urgentTasks.slice(0, 2).map((task) => (
+              <div key={task.id} className="flex items-center gap-1 text-xs">
+                <CheckCircle className="h-3 w-3 text-muted-foreground shrink-0" />
+                <span className="truncate">{task.title}</span>
               </div>
+            ))}
+          </div>
+          {objective.tasks && objective.tasks.length > 2 && (
+            <div className="text-xs text-muted-foreground">
+              +{objective.tasks.length - 2} more
             </div>
           )}
-
-          {/* Timeline */}
-          {(objective.due_date || objective.hard_deadline) && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>
-                Due: {format(new Date(objective.due_date || objective.hard_deadline!), 'MMM dd, yyyy')}
-              </span>
-            </div>
-          )}
-
-          {/* Task Dependencies Stats */}
-          {(objective.blockingCount || objective.blockedByCount) && (
-            <div className="flex items-center gap-4 pt-2 border-t">
-              <TooltipProvider>
-                {objective.blockingCount > 0 && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Lock className="h-4 w-4 text-orange-500" />
-                        <span className="font-medium">{objective.blockingCount}</span>
-                        <span className="text-muted-foreground text-xs">Blocking</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-popover">
-                      <div className="space-y-1">
-                        <p className="font-semibold text-xs">Tasks Blocked By This Objective:</p>
-                        {objective.blockingTasks?.slice(0, 5).map((dep: any) => (
-                          <p key={dep.id} className="text-xs">• {dep.depends_on?.task_number} - {dep.depends_on?.title}</p>
-                        ))}
-                        {objective.blockingTasks && objective.blockingTasks.length > 5 && (
-                          <p className="text-xs text-muted-foreground">+{objective.blockingTasks.length - 5} more</p>
-                        )}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-                
-                {objective.blockedByCount > 0 && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Unlock className="h-4 w-4 text-blue-500" />
-                        <span className="font-medium">{objective.blockedByCount}</span>
-                        <span className="text-muted-foreground text-xs">Blocked By</span>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-xs bg-popover">
-                      <div className="space-y-1">
-                        <p className="font-semibold text-xs">Tasks Blocking This Objective:</p>
-                        {objective.blockedByTasks?.slice(0, 5).map((dep: any) => (
-                          <p key={dep.id} className="text-xs">• {dep.blocker?.task_number} - {dep.blocker?.title}</p>
-                        ))}
-                        {objective.blockedByTasks && objective.blockedByTasks.length > 5 && (
-                          <p className="text-xs text-muted-foreground">+{objective.blockedByTasks.length - 5} more</p>
-                        )}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </TooltipProvider>
-            </div>
-          )}
-
-          {/* Urgent Tasks Preview */}
-          {urgentTasks && urgentTasks.length > 0 && (
-            <div className="space-y-2 pt-2 border-t">
-              <div className="text-xs font-medium text-muted-foreground">Next Tasks</div>
-              {urgentTasks.map((task) => (
-                <div key={task.id} className="flex items-center gap-2 text-sm">
-                  <CheckCircle className="h-3 w-3 text-muted-foreground shrink-0" />
-                  <span className="truncate">{task.title}</span>
-                  {task.task_number && (
-                    <span className="text-xs text-muted-foreground">#{task.task_number}</span>
-                  )}
-                </div>
-              ))}
-              {objective.tasks && objective.tasks.length > 3 && (
-                <div className="text-xs text-primary">
-                  +{objective.tasks.length - 3} more tasks
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </Link>
+        </div>
+      )}
+    </div>
   );
 };

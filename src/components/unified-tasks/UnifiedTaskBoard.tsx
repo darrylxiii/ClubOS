@@ -324,29 +324,6 @@ export const UnifiedTaskBoard = ({
       onDragEnd={handleDragEnd}
     >
       <div className="space-y-4">
-        {/* Header with Action Buttons - Moved to Tasks Section */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-          <div>
-            <h2 className="text-xl font-bold text-foreground">Task Board</h2>
-            <p className="text-sm text-muted-foreground">Drag tasks to change their status</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <CreateUnifiedTaskDialog
-              objectiveId={objectiveId}
-              defaultStatus="pending"
-              onTaskCreated={() => {
-                loadTasks();
-                onRefresh();
-              }}
-            >
-              <Button size="default" className="gap-2">
-                <Plus className="h-4 w-4" />
-                New Task
-              </Button>
-            </CreateUnifiedTaskDialog>
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {STATUS_COLUMNS.map((column) => {
             const columnTasks = getTasksByStatus(column.key);

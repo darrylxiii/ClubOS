@@ -277,6 +277,16 @@ const UnifiedTasks = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-foreground">Tasks</h2>
+            <CreateUnifiedTaskDialog
+              objectiveId={selectedObjective}
+              defaultStatus="pending"
+              onTaskCreated={handleRefresh}
+            >
+              <Button size="default" className="gap-2">
+                <Plus className="h-4 w-4" />
+                New Task
+              </Button>
+            </CreateUnifiedTaskDialog>
           </div>
 
           {/* Objective Filter */}

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { ObjectiveCard } from "./ObjectiveCard";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Target, TrendingUp, Clock, CheckCircle } from "lucide-react";
 import { CreateObjectiveDialog } from "./CreateObjectiveDialog";
 import { toast } from "sonner";
@@ -82,8 +83,36 @@ const DraggableObjectiveCard = ({ objective, ownerProfiles }: any) => {
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <ObjectiveCard objective={objective} ownerProfiles={ownerProfiles} />
+    <div ref={setNodeRef} style={style}>
+      <Card className="hover:shadow-lg transition-all duration-200 hover:border-primary/50 group">
+        <CardContent className="p-6 space-y-4">
+          {/* Drag Handle */}
+          <div 
+            {...attributes} 
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing -mx-6 -mt-6 px-6 pt-6 pb-2 hover:bg-accent/5 transition-colors"
+          >
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <h3 className="font-semibold text-lg leading-tight group-hover:text-primary transition-colors">
+                  {objective.title}
+                </h3>
+                {objective.milestone_type && (
+                  <Badge variant="outline" className="shrink-0">
+                    <Target className="h-3 w-3 mr-1" />
+                    {objective.milestone_type}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Rest of card content - not draggable */}
+          <div className="space-y-4 -mt-2">
+            <ObjectiveCard objective={objective} ownerProfiles={ownerProfiles} />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
@@ -332,9 +361,15 @@ export const ObjectivesBoard = () => {
 
       <DragOverlay>
         {activeObjective && (
-          <Card className="opacity-90 shadow-lg rotate-3">
+          <Card className="opacity-90 shadow-2xl rotate-2 border-primary w-80">
             <CardContent className="p-4">
-              <h3 className="font-semibold">{activeObjective.title}</h3>
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-primary" />
+                <h3 className="font-semibold truncate">{activeObjective.title}</h3>
+              </div>
+              <Badge variant="outline" className="mt-2 text-xs">
+                {activeObjective.status.replace('_', ' ')}
+              </Badge>
             </CardContent>
           </Card>
         )}
