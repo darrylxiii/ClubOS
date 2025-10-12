@@ -326,45 +326,54 @@ function ApplicationCard({ application }: { application: Application }) {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Strategist Contact Card */}
-        <StrategistContactCard strategist={application.talent_strategist} />
-
-        {/* Next Step Helper - Prominent CTA */}
-        {currentStage && (
-          <NextStepHelper
-            stageName={currentStage.title}
-            scheduledDate={currentStage.scheduledDate}
-            duration={currentStage.duration}
-            prepTasks={currentStage.preparation?.resources}
-            onBookPrep={() => toast.info("Opening prep session booking...")}
-            onViewMaterials={() => navigate(`/applications/${application.id}`)}
+        {/* Top Row: 2 Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Strategist Contact Card */}
+          <StrategistContactCard 
+            strategist={application.talent_strategist}
+            lastContact="2 hours ago"
           />
-        )}
 
-        {/* Progression Heatmap */}
-        <ProgressionHeatmap
-          currentStage={application.current_stage_index}
-          totalStages={application.stages.length}
-          daysInProcess={daysInProcess}
-          averageDays={21}
-        />
+          {/* Next Step Helper */}
+          {currentStage && (
+            <NextStepHelper
+              stageName={currentStage.title}
+              scheduledDate={currentStage.scheduledDate}
+              duration={currentStage.duration}
+              prepTasks={currentStage.preparation?.resources}
+              onBookPrep={() => toast.info("Opening prep session booking...")}
+              onViewMaterials={() => navigate(`/applications/${application.id}`)}
+            />
+          )}
+        </div>
 
-        {/* Competition Insight */}
-        <CompetitionInsight
-          totalCandidates={application.other_candidates_count + 1}
-          candidatesAhead={Math.floor(application.other_candidates_count * 0.3)}
-          candidatesBehind={Math.floor(application.other_candidates_count * 0.7)}
-          averageScore={7.5}
-        />
-
-        {/* Timeline & Deadlines */}
-        {nextStage && (
-          <TimelineDeadlines
-            nextStageName={nextStage.title}
-            estimatedDaysToNext={5}
-            finalDecisionDate="2025-10-25"
+        {/* Bottom Row: 3 Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Progression Heatmap */}
+          <ProgressionHeatmap
+            currentStage={application.current_stage_index}
+            totalStages={application.stages.length}
+            daysInProcess={daysInProcess}
+            averageDays={21}
           />
-        )}
+
+          {/* Competition Insight */}
+          <CompetitionInsight
+            totalCandidates={application.other_candidates_count + 1}
+            candidatesAhead={Math.floor(application.other_candidates_count * 0.3)}
+            candidatesBehind={Math.floor(application.other_candidates_count * 0.7)}
+            averageScore={7.5}
+          />
+
+          {/* Timeline & Deadlines */}
+          {nextStage && (
+            <TimelineDeadlines
+              nextStageName={nextStage.title}
+              estimatedDaysToNext={5}
+              finalDecisionDate="2025-10-25"
+            />
+          )}
+        </div>
 
         {/* Pipeline Stages */}
         <div>
