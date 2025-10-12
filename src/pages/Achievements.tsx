@@ -38,20 +38,66 @@ const Achievements = () => {
     );
   }
 
-  // Partner view - company achievements management
+  // Partner view - personal achievements + company achievements management
   if (currentRole === 'partner' && companyId) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
-              Company Achievements
-            </h1>
-            <p className="text-lg text-muted-foreground">
-              Manage and showcase your company's achievements
-            </p>
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+          {/* Hero Banner */}
+          <AchievementHero />
+
+          {/* Timeline of Ascendance */}
+          <div className="container mx-auto px-4 py-8">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+                Timeline of Ascendance
+              </h2>
+              <p className="text-muted-foreground">Your quantum journey through achievement</p>
+            </div>
+            <AchievementTimeline />
           </div>
-          <CompanyAchievements companyId={companyId} />
+
+          {/* Search & Filter */}
+          <div className="container mx-auto px-4 pb-6">
+            <AchievementSearch
+              onSearchChange={setSearchQuery}
+              onCategoryChange={setSelectedCategory}
+              onRarityChange={setSelectedRarity}
+            />
+          </div>
+
+          {/* Main Content Tabs */}
+          <div className="container mx-auto px-4 pb-16">
+            <Tabs defaultValue="clusters" className="w-full">
+              <TabsList className="glass mb-8">
+                <TabsTrigger value="clusters">Achievement Gallery</TabsTrigger>
+                <TabsTrigger value="feed">Community Feed</TabsTrigger>
+                <TabsTrigger value="company">Custom Company Achievements</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="clusters" className="space-y-8">
+                <AchievementClusters
+                  searchQuery={searchQuery}
+                  selectedCategory={selectedCategory}
+                  selectedRarity={selectedRarity}
+                />
+              </TabsContent>
+
+              <TabsContent value="feed">
+                <AchievementFeed />
+              </TabsContent>
+
+              <TabsContent value="company">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold mb-2">Custom Company Achievements</h3>
+                  <p className="text-muted-foreground">
+                    Create and manage custom achievements for your company
+                  </p>
+                </div>
+                <CompanyAchievements companyId={companyId} />
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
       </AppLayout>
     );
