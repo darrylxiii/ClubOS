@@ -113,6 +113,7 @@ const partnerNavigationGroups = [
     items: [
       { name: "Club Home", icon: Home, path: "/home" },
       { name: "Feed", icon: Rss, path: "/feed" },
+      { name: "Achievements", icon: Trophy, path: "/company-achievements" },
     ],
   },
   {
@@ -168,6 +169,7 @@ const adminNavigationGroups = [
       { name: "Club Home", icon: Home, path: "/home" },
       { name: "Admin Panel", icon: Users, path: "/admin" },
       { name: "Feed", icon: Rss, path: "/feed" },
+      { name: "Achievements", icon: Trophy, path: "/admin-achievements" },
     ],
   },
   {

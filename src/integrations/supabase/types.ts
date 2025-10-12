@@ -1381,6 +1381,104 @@ export type Database = {
         }
         Relationships: []
       }
+      company_achievement_earners: {
+        Row: {
+          achievement_id: string
+          earned_at: string
+          earned_company_id: string | null
+          granted_by: string | null
+          id: string
+          metadata: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          achievement_id: string
+          earned_at?: string
+          earned_company_id?: string | null
+          granted_by?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          achievement_id?: string
+          earned_at?: string
+          earned_company_id?: string | null
+          granted_by?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_achievement_earners_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "company_achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_achievement_earners_earned_company_id_fkey"
+            columns: ["earned_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_achievements: {
+        Row: {
+          achievement_type: Database["public"]["Enums"]["company_achievement_type"]
+          company_id: string
+          created_at: string
+          created_by: string | null
+          criteria: Json | null
+          description: string
+          display_order: number | null
+          icon: string
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          achievement_type?: Database["public"]["Enums"]["company_achievement_type"]
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          criteria?: Json | null
+          description: string
+          display_order?: number | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          achievement_type?: Database["public"]["Enums"]["company_achievement_type"]
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          criteria?: Json | null
+          description?: string
+          display_order?: number | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_achievements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_analytics: {
         Row: {
           application_completes: number | null
@@ -6567,6 +6665,7 @@ export type Database = {
         | "partner"
         | "company_admin"
         | "recruiter"
+      company_achievement_type: "custom" | "platform_generated"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -6714,6 +6813,7 @@ export const Constants = {
         "company_admin",
         "recruiter",
       ],
+      company_achievement_type: ["custom", "platform_generated"],
     },
   },
 } as const

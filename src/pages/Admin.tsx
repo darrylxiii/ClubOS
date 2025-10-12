@@ -5,6 +5,7 @@ import { CompanyManagement } from "@/components/admin/CompanyManagement";
 import { UnifiedUserManagement } from "@/components/admin/UnifiedUserManagement";
 import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
 import { RoleAssignmentFix } from "@/components/admin/RoleAssignmentFix";
+import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsManager";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -49,9 +50,10 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 max-w-2xl">
+          <TabsList className="grid w-full grid-cols-4 max-w-3xl">
             <TabsTrigger value="companies">Companies</TabsTrigger>
             <TabsTrigger value="users">Users & Roles</TabsTrigger>
+            <TabsTrigger value="achievements">Achievements</TabsTrigger>
             <TabsTrigger value="system">System Health</TabsTrigger>
           </TabsList>
 
@@ -61,6 +63,10 @@ const Admin = () => {
 
           <TabsContent value="users" className="space-y-4">
             <UnifiedUserManagement />
+          </TabsContent>
+
+          <TabsContent value="achievements" className="space-y-4">
+            <AdminAchievementsManager />
           </TabsContent>
 
           <TabsContent value="system" className="space-y-4">
