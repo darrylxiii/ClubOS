@@ -168,7 +168,7 @@ const Referrals = () => {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold mb-1 bg-gradient-accent bg-clip-text text-transparent">
+                  <div className="text-3xl font-bold mb-1 text-foreground">
                     {stat.value}
                   </div>
                   <p className="text-xs text-muted-foreground">{stat.description}</p>

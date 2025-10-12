@@ -146,7 +146,7 @@ export const CandidateActionDialog = ({
             {action === 'advance' ? (
               <>
                 <CheckCircle2 className="w-6 h-6 text-green-500" />
-                <span className="bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">
+                <span className="text-foreground font-semibold">
                   Club Check - Advance Candidate
                 </span>
               </>

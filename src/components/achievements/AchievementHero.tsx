@@ -115,7 +115,7 @@ export const AchievementHero = () => {
               {/* Info Section */}
               <div className="flex-1 text-center md:text-left">
                 <div className="flex items-center gap-3 justify-center md:justify-start mb-2">
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                  <h1 className="text-4xl font-bold text-foreground">
                     {profile?.full_name || "Quantum Member"}
                   </h1>
                   <Crown className="h-6 w-6 text-primary animate-pulse" />

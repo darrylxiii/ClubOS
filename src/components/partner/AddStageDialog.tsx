@@ -306,7 +306,7 @@ export function AddStageDialog({ open, onOpenChange, onSave, currentStagesCount,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold text-foreground">
             Add New Pipeline Stage
           </DialogTitle>
           <p className="text-sm text-muted-foreground">

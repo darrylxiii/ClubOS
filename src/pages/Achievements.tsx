@@ -49,7 +49,7 @@ const Achievements = () => {
           {/* Timeline of Ascendance */}
           <div className="container mx-auto px-4 py-8">
             <div className="mb-8">
-              <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              <h2 className="text-3xl font-bold mb-2 text-foreground">
                 Timeline of Ascendance
               </h2>
               <p className="text-muted-foreground">Your quantum journey through achievement</p>
@@ -113,7 +113,7 @@ const Achievements = () => {
         {/* Timeline of Ascendance */}
         <div className="container mx-auto px-4 py-8">
           <div className="mb-8">
-            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary via-purple-500 to-pink-500 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-2 text-foreground">
               Timeline of Ascendance
             </h2>
             <p className="text-muted-foreground">Your quantum journey through achievement</p>

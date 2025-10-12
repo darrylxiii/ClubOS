@@ -126,7 +126,7 @@ const Onboarding = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/80">
       <div className="container max-w-4xl mx-auto px-4 py-12">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-accent bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-2 text-foreground">
             Welcome to The Quantum Club
           </h1>
           <p className="text-muted-foreground">

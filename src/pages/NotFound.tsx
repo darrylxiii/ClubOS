@@ -44,7 +44,7 @@ const NotFound = () => {
       <div className="text-center relative z-10 space-y-8 max-w-2xl mx-auto animate-bounce-in">
         {/* Large 404 with glass effect */}
         <div className="relative inline-block">
-          <h1 className="text-9xl md:text-[12rem] font-black tracking-tighter bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
+          <h1 className="text-9xl md:text-[12rem] font-black tracking-tighter text-foreground">
             404
           </h1>
           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 blur-3xl -z-10"></div>

@@ -185,7 +185,7 @@ const UnifiedTasks = () => {
           <div className="flex items-center gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold text-foreground">
                   UNIFIED TASKS
                 </h1>
                 <Badge variant="secondary" className="text-xs">

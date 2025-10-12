@@ -69,7 +69,7 @@ const ClubTasks = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold text-foreground">
               CLUB TASK BOARD
             </h1>
             <p className="text-muted-foreground mt-2">
