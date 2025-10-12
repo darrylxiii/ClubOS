@@ -2,9 +2,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, Calendar, CheckCircle, Clock, Flag, Target, TrendingUp, Users } from "lucide-react";
+import { AlertCircle, Calendar, CheckCircle, Clock, Flag, Target, TrendingUp, Users, Lock, Unlock } from "lucide-react";
 import { format, differenceInDays, isPast } from "date-fns";
 import { Link } from "react-router-dom";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ObjectiveCardProps {
   objective: {
@@ -20,12 +21,17 @@ interface ObjectiveCardProps {
     completion_percentage?: number;
     tags?: any[];
     milestone_type?: string;
+    blockingCount?: number;
+    blockedByCount?: number;
+    blockingTasks?: any[];
+    blockedByTasks?: any[];
     tasks?: Array<{
       id: string;
       title: string;
       status: string;
       priority?: string;
       due_date?: string;
+      task_number?: string;
     }>;
   };
   ownerProfiles?: Array<{
@@ -189,6 +195,59 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
             </div>
           )}
 
+          {/* Task Dependencies Stats */}
+          {(objective.blockingCount || objective.blockedByCount) && (
+            <div className="flex items-center gap-4 pt-2 border-t">
+              <TooltipProvider>
+                {objective.blockingCount > 0 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Lock className="h-4 w-4 text-orange-500" />
+                        <span className="font-medium">{objective.blockingCount}</span>
+                        <span className="text-muted-foreground text-xs">Blocking</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs bg-popover">
+                      <div className="space-y-1">
+                        <p className="font-semibold text-xs">Tasks Blocked By This Objective:</p>
+                        {objective.blockingTasks?.slice(0, 5).map((dep: any) => (
+                          <p key={dep.id} className="text-xs">• {dep.depends_on?.task_number} - {dep.depends_on?.title}</p>
+                        ))}
+                        {objective.blockingTasks && objective.blockingTasks.length > 5 && (
+                          <p className="text-xs text-muted-foreground">+{objective.blockingTasks.length - 5} more</p>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+                
+                {objective.blockedByCount > 0 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-2 text-sm">
+                        <Unlock className="h-4 w-4 text-blue-500" />
+                        <span className="font-medium">{objective.blockedByCount}</span>
+                        <span className="text-muted-foreground text-xs">Blocked By</span>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs bg-popover">
+                      <div className="space-y-1">
+                        <p className="font-semibold text-xs">Tasks Blocking This Objective:</p>
+                        {objective.blockedByTasks?.slice(0, 5).map((dep: any) => (
+                          <p key={dep.id} className="text-xs">• {dep.blocker?.task_number} - {dep.blocker?.title}</p>
+                        ))}
+                        {objective.blockedByTasks && objective.blockedByTasks.length > 5 && (
+                          <p className="text-xs text-muted-foreground">+{objective.blockedByTasks.length - 5} more</p>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </TooltipProvider>
+            </div>
+          )}
+
           {/* Urgent Tasks Preview */}
           {urgentTasks && urgentTasks.length > 0 && (
             <div className="space-y-2 pt-2 border-t">
@@ -197,6 +256,9 @@ export const ObjectiveCard = ({ objective, ownerProfiles }: ObjectiveCardProps) 
                 <div key={task.id} className="flex items-center gap-2 text-sm">
                   <CheckCircle className="h-3 w-3 text-muted-foreground shrink-0" />
                   <span className="truncate">{task.title}</span>
+                  {task.task_number && (
+                    <span className="text-xs text-muted-foreground">#{task.task_number}</span>
+                  )}
                 </div>
               ))}
               {objective.tasks && objective.tasks.length > 3 && (

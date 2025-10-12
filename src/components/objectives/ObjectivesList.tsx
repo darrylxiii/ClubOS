@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Plus, Calendar, Flag, Target, Users } from "lucide-react";
+import { Plus, Calendar, Flag, Target, Users, Lock, Unlock } from "lucide-react";
 import { CreateObjectiveDialog } from "./CreateObjectiveDialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -29,6 +29,8 @@ interface Objective {
   completion_percentage?: number;
   tags?: any;
   tasks?: any[];
+  blockingCount?: number;
+  blockedByCount?: number;
 }
 
 export const ObjectivesList = () => {
@@ -54,13 +56,43 @@ export const ObjectivesList = () => {
         .from("club_objectives")
         .select(`
           *,
-          tasks:unified_tasks(id, title, status)
+          tasks:unified_tasks(id, title, status, task_number)
         `)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      setObjectives(objectivesData || []);
+      // For each objective, fetch task dependencies
+      if (objectivesData) {
+        const objectivesWithDeps = await Promise.all(
+          objectivesData.map(async (obj) => {
+            if (!obj.tasks || obj.tasks.length === 0) return obj;
+
+            const taskIds = obj.tasks.map((t: any) => t.id);
+            
+            // Get blocking dependencies
+            const { data: blocking } = await supabase
+              .from("task_dependencies")
+              .select("id")
+              .in("depends_on_task_id", taskIds);
+
+            // Get blocked-by dependencies
+            const { data: blockedBy } = await supabase
+              .from("task_dependencies")
+              .select("id")
+              .in("task_id", taskIds);
+
+            return {
+              ...obj,
+              blockingCount: blocking?.length || 0,
+              blockedByCount: blockedBy?.length || 0
+            };
+          })
+        );
+        setObjectives(objectivesWithDeps);
+      } else {
+        setObjectives([]);
+      }
 
       // Load owner profiles
       const allOwners = new Set<string>();
@@ -148,6 +180,8 @@ export const ObjectivesList = () => {
               <TableHead>Priority</TableHead>
               <TableHead>Progress</TableHead>
               <TableHead>Tasks</TableHead>
+              <TableHead className="text-center">Blocking</TableHead>
+              <TableHead className="text-center">Blocked By</TableHead>
               <TableHead>Due Date</TableHead>
               <TableHead>Tags</TableHead>
             </TableRow>
@@ -155,7 +189,7 @@ export const ObjectivesList = () => {
           <TableBody>
             {objectives.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={10} className="text-center py-12 text-muted-foreground">
                   No objectives found. Create your first objective to get started.
                 </TableCell>
               </TableRow>
@@ -221,6 +255,26 @@ export const ObjectivesList = () => {
                     </TableCell>
                     <TableCell>
                       <span className="text-sm">{objective.tasks?.length || 0}</span>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {objective.blockingCount ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <Lock className="h-4 w-4 text-orange-500" />
+                          <span className="text-sm font-medium">{objective.blockingCount}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {objective.blockedByCount ? (
+                        <div className="flex items-center justify-center gap-1">
+                          <Unlock className="h-4 w-4 text-blue-500" />
+                          <span className="text-sm font-medium">{objective.blockedByCount}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       {objective.due_date ? (

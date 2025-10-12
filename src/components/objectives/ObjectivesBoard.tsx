@@ -70,18 +70,60 @@ export const ObjectivesBoard = () => {
     try {
       setLoading(true);
       
-      // Load objectives with tasks count
+      // Load objectives with tasks and their dependencies
       const { data: objectivesData, error: objectivesError } = await supabase
         .from("club_objectives")
         .select(`
           *,
-          tasks:unified_tasks(id, title, status, priority, due_date)
+          tasks:unified_tasks(id, title, status, priority, due_date, task_number)
         `)
         .order("created_at", { ascending: false });
 
       if (objectivesError) throw objectivesError;
 
-      setObjectives(objectivesData || []);
+      // For each objective, fetch task dependencies
+      if (objectivesData) {
+        const objectivesWithDeps = await Promise.all(
+          objectivesData.map(async (obj) => {
+            if (!obj.tasks || obj.tasks.length === 0) return obj;
+
+            const taskIds = obj.tasks.map((t: any) => t.id);
+            
+            // Get blocking dependencies (tasks these tasks block)
+            const { data: blocking } = await supabase
+              .from("task_dependencies")
+              .select(`
+                id,
+                task_id,
+                depends_on_task_id,
+                depends_on:unified_tasks!task_dependencies_depends_on_task_id_fkey(id, title, task_number, status)
+              `)
+              .in("depends_on_task_id", taskIds);
+
+            // Get blocked-by dependencies (tasks that block these tasks)
+            const { data: blockedBy } = await supabase
+              .from("task_dependencies")
+              .select(`
+                id,
+                task_id,
+                depends_on_task_id,
+                blocker:unified_tasks!task_dependencies_depends_on_task_id_fkey(id, title, task_number, status)
+              `)
+              .in("task_id", taskIds);
+
+            return {
+              ...obj,
+              blockingCount: blocking?.length || 0,
+              blockedByCount: blockedBy?.length || 0,
+              blockingTasks: blocking || [],
+              blockedByTasks: blockedBy || []
+            };
+          })
+        );
+        setObjectives(objectivesWithDeps);
+      } else {
+        setObjectives([]);
+      }
 
       // Load owner profiles
       const allOwners = new Set<string>();
