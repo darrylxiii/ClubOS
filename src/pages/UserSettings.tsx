@@ -763,7 +763,7 @@ const Profile = () => {
               <div class="bg-accent/50 p-4 rounded-md space-y-2">
                 <p class="font-medium">2. Authorized Redirect URI</p>
                 <p class="text-muted-foreground text-xs">Add this exact URL to your OAuth 2.0 Client:</p>
-                <code class="block bg-background p-2 rounded text-xs mt-2 break-all font-mono">${window.location.origin}/settings</code>
+                <code class="block bg-background p-2 rounded text-xs mt-2 break-all font-mono">${window.location.origin}/user-settings</code>
               </div>
 
               <div class="bg-accent/50 p-4 rounded-md space-y-2">
@@ -882,7 +882,7 @@ const Profile = () => {
     try {
       setCalendarLoading(true);
       
-      const redirectUri = `${window.location.origin}/settings`;
+      const redirectUri = `${window.location.origin}/user-settings`;
       console.log(`[Calendar] Connecting ${provider} with redirect URI:`, redirectUri);
       
       const functionName = provider === 'google' ? 'google-calendar-auth' : 'microsoft-calendar-auth';
@@ -1065,7 +1065,7 @@ const Profile = () => {
             localStorage.removeItem('pending_calendar_connection');
             
             // Clean up URL
-            window.history.replaceState({}, document.title, '/settings');
+            window.history.replaceState({}, document.title, '/user-settings');
             
             toast.success(`${provider === 'google' ? 'Google' : 'Microsoft'} Calendar "${label}" connected successfully!`);
           } else {
