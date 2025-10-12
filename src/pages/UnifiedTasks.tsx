@@ -239,123 +239,134 @@ const UnifiedTasks = () => {
           </div>
         </div>
 
-        {/* Info Alert */}
-        <Alert className="bg-primary/5 border-primary/20">
-          <Info className="h-4 w-4 text-primary" />
-          <AlertDescription className="text-sm">
-            <strong>Unified Tasks</strong> combines Club Tasks and Task Pilot features. 
-            All your existing tasks are preserved and accessible. 
-            Use the system toggle to switch between views.
-          </AlertDescription>
-        </Alert>
+        {/* Objectives Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-foreground">Objectives</h2>
+          </div>
+          
+          <Tabs defaultValue="board" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 lg:w-auto">
+              <TabsTrigger value="board" className="gap-2">
+                <Target className="h-4 w-4" />
+                Board
+              </TabsTrigger>
+              <TabsTrigger value="list" className="gap-2">
+                <Grid3x3 className="h-4 w-4" />
+                List
+              </TabsTrigger>
+            </TabsList>
 
-        {/* Objective Selector */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-4 overflow-x-auto">
-              <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
-                🎯 Objective:
-              </span>
-              <div className="flex gap-2">
-                <Button
-                  variant={!selectedObjective ? "default" : "outline"}
-                  onClick={() => setSelectedObjective(null)}
-                  className="whitespace-nowrap"
-                >
-                  All Tasks
-                </Button>
-                {objectives.map((objective) => (
+            <TabsContent value="board" className="space-y-4">
+              <ObjectivesBoard />
+            </TabsContent>
+
+            <TabsContent value="list" className="space-y-4">
+              <ObjectivesList />
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-border/50" />
+
+        {/* Tasks Section */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-foreground">Tasks</h2>
+          </div>
+
+          {/* Objective Filter */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4 overflow-x-auto">
+                <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+                  🎯 Filter by Objective:
+                </span>
+                <div className="flex gap-2">
                   <Button
-                    key={objective.id}
-                    variant={selectedObjective === objective.id ? "default" : "outline"}
-                    onClick={() => setSelectedObjective(objective.id)}
+                    variant={!selectedObjective ? "default" : "outline"}
+                    onClick={() => setSelectedObjective(null)}
                     className="whitespace-nowrap"
                   >
-                    {objective.title}
+                    All Tasks
                   </Button>
-                ))}
-                {objectives.length === 0 && (
-                  <span className="text-sm text-muted-foreground">
-                    No objectives yet. Tasks can be created without objectives.
-                  </span>
-                )}
+                  {objectives.map((objective) => (
+                    <Button
+                      key={objective.id}
+                      variant={selectedObjective === objective.id ? "default" : "outline"}
+                      onClick={() => setSelectedObjective(objective.id)}
+                      className="whitespace-nowrap"
+                    >
+                      {objective.title}
+                    </Button>
+                  ))}
+                  {objectives.length === 0 && (
+                    <span className="text-sm text-muted-foreground">
+                      No objectives yet. Tasks can be created without objectives.
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Main Task Views */}
-        <Tabs defaultValue="board" className="space-y-6">
-          <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-6' : 'grid-cols-4'} lg:w-auto`}>
-            <TabsTrigger value="objectives-board" className="gap-2">
-              <Target className="h-4 w-4" />
-              Objectives
-            </TabsTrigger>
-            <TabsTrigger value="objectives-list" className="gap-2">
-              <Grid3x3 className="h-4 w-4" />
-              List View
-            </TabsTrigger>
-            <TabsTrigger value="board" className="gap-2">
-              <LayoutDashboard className="h-4 w-4" />
-              Tasks
-            </TabsTrigger>
-            <TabsTrigger value="list" className="gap-2">
-              <List className="h-4 w-4" />
-              Task List
-            </TabsTrigger>
-            {(role === 'admin' || role === 'partner') && (
-              <TabsTrigger value="members" className="gap-2">
-                <Users className="h-4 w-4" />
-                Members
+          <Tabs defaultValue="board" className="space-y-6">
+            <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-4' : 'grid-cols-3'} lg:w-auto`}>
+              <TabsTrigger value="board" className="gap-2">
+                <LayoutDashboard className="h-4 w-4" />
+                Board
               </TabsTrigger>
+              <TabsTrigger value="list" className="gap-2">
+                <List className="h-4 w-4" />
+                List
+              </TabsTrigger>
+              {(role === 'admin' || role === 'partner') && (
+                <TabsTrigger value="members" className="gap-2">
+                  <Users className="h-4 w-4" />
+                  Members
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="calendar" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                Calendar
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="board" className="space-y-4">
+              <UnifiedTaskBoard 
+                objectiveId={selectedObjective}
+                objectiveName={currentObjective?.title}
+                onRefresh={handleRefresh}
+                aiSchedulingEnabled={preferences.ai_scheduling_enabled}
+              />
+            </TabsContent>
+
+            <TabsContent value="list" className="space-y-4">
+              <UnifiedTasksList
+                objectiveId={selectedObjective}
+                onRefresh={handleRefresh}
+                aiSchedulingEnabled={preferences.ai_scheduling_enabled}
+              />
+            </TabsContent>
+
+            {(role === 'admin' || role === 'partner') && (
+              <TabsContent value="members" className="space-y-4">
+                <UnifiedTasksByMember
+                  objectiveId={selectedObjective}
+                  onRefresh={handleRefresh}
+                />
+              </TabsContent>
             )}
-            <TabsTrigger value="calendar" className="gap-2">
-              <Calendar className="h-4 w-4" />
-              Calendar
-            </TabsTrigger>
-          </TabsList>
 
-          <TabsContent value="objectives-board" className="space-y-4">
-            <ObjectivesBoard />
-          </TabsContent>
-
-          <TabsContent value="objectives-list" className="space-y-4">
-            <ObjectivesList />
-          </TabsContent>
-
-          <TabsContent value="board" className="space-y-4">
-            <UnifiedTaskBoard 
-              objectiveId={selectedObjective}
-              objectiveName={currentObjective?.title}
-              onRefresh={handleRefresh}
-              aiSchedulingEnabled={preferences.ai_scheduling_enabled}
-            />
-          </TabsContent>
-
-          <TabsContent value="list" className="space-y-4">
-            <UnifiedTasksList
-              objectiveId={selectedObjective}
-              onRefresh={handleRefresh}
-              aiSchedulingEnabled={preferences.ai_scheduling_enabled}
-            />
-          </TabsContent>
-
-          {(role === 'admin' || role === 'partner') && (
-            <TabsContent value="members" className="space-y-4">
-              <UnifiedTasksByMember
+            <TabsContent value="calendar" className="space-y-4">
+              <UnifiedTaskCalendar
                 objectiveId={selectedObjective}
                 onRefresh={handleRefresh}
               />
             </TabsContent>
-          )}
-
-          <TabsContent value="calendar" className="space-y-4">
-            <UnifiedTaskCalendar
-              objectiveId={selectedObjective}
-              onRefresh={handleRefresh}
-            />
-          </TabsContent>
-        </Tabs>
+          </Tabs>
+        </div>
 
         {/* AI Scheduling Settings Dialog */}
         <AISchedulingSettings
