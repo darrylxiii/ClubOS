@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
-  ArrowLeft, Building2, MapPin, DollarSign, Users, Calendar, 
+  ArrowLeft, MapPin, DollarSign, Users, Calendar, 
   Briefcase, FileText, Target, MessageSquare, ExternalLink, Check, User
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -244,7 +244,6 @@ export default function ApplicationDetail() {
                 <div>
                   <CardTitle className="text-3xl">{application.job?.title}</CardTitle>
                   <p className="text-xl text-muted-foreground flex items-center gap-2 mt-2">
-                    <Building2 className="w-5 h-5" />
                     {application.job?.companies?.name}
                   </p>
                 </div>
@@ -290,45 +289,71 @@ export default function ApplicationDetail() {
                 <CardTitle>Application Pipeline & Preparation</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Talent Strategist - At Top */}
+                {application.talent_strategist && (
+                  <div 
+                    className="flex items-center gap-4 p-4 rounded-lg bg-muted/30 border border-border/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => navigate(`/profile/${application.talent_strategist?.id}`)}
+                  >
+                    <Avatar className="w-14 h-14 ring-2 ring-border/50">
+                      <AvatarImage src={application.talent_strategist.avatar_url} />
+                      <AvatarFallback className="text-lg">
+                        {application.talent_strategist.full_name?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="text-xs text-muted-foreground mb-1">Your Talent Strategist</div>
+                      <div className="text-base font-semibold">{application.talent_strategist.full_name}</div>
+                      <div className="text-xs text-muted-foreground">Click to view profile</div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Visual Pipeline - Horizontal */}
-                <div className="flex items-center justify-start gap-2 overflow-x-auto pb-4">
-                  {application.stages.map((stage: PipelineStageData, index: number) => {
-                    const isCurrent = index === application.current_stage_index;
-                    const isCompleted = index < application.current_stage_index;
-                    
-                    return (
-                      <div key={stage.id} className="flex items-center flex-shrink-0">
-                        <div className="flex flex-col items-center min-w-[100px]">
-                          <div className={cn(
-                            "w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all",
-                            isCompleted && "bg-muted border-muted-foreground/30",
-                            isCurrent && "bg-foreground border-foreground text-background scale-110",
-                            !isCompleted && !isCurrent && "bg-background border-border"
-                          )}>
-                            {isCompleted ? (
-                              <Check className="w-5 h-5" />
-                            ) : (
-                              <span className="text-sm font-semibold">
-                                {isCurrent ? "●" : "○"}
-                              </span>
-                            )}
+                <div>
+                  <h3 className="text-sm font-semibold mb-3 text-muted-foreground flex items-center gap-2">
+                    PIPELINE PROGRESS
+                    <span className="text-xs font-normal opacity-60">(Swipe to see all stages →)</span>
+                  </h3>
+                  <div className="flex items-center justify-start gap-2 overflow-x-auto pb-4 scrollbar-hide cursor-grab active:cursor-grabbing">
+                    {application.stages.map((stage: PipelineStageData, index: number) => {
+                      const isCurrent = index === application.current_stage_index;
+                      const isCompleted = index < application.current_stage_index;
+                      
+                      return (
+                        <div key={stage.id} className="flex items-center flex-shrink-0">
+                          <div className="flex flex-col items-center min-w-[100px]">
+                            <div className={cn(
+                              "w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all",
+                              isCompleted && "bg-muted border-muted-foreground/30",
+                              isCurrent && "bg-foreground border-foreground text-background scale-110",
+                              !isCompleted && !isCurrent && "bg-background border-border"
+                            )}>
+                              {isCompleted ? (
+                                <Check className="w-5 h-5" />
+                              ) : (
+                                <span className="text-sm font-semibold">
+                                  {isCurrent ? "●" : "○"}
+                                </span>
+                              )}
+                            </div>
+                            <p className={cn(
+                              "mt-2 text-xs font-medium text-center max-w-[100px] break-words",
+                              isCurrent && "font-bold"
+                            )}>
+                              {stage.title}
+                            </p>
                           </div>
-                          <p className={cn(
-                            "mt-2 text-xs font-medium text-center max-w-[100px] break-words",
-                            isCurrent && "font-bold"
-                          )}>
-                            {stage.title}
-                          </p>
+                          {index < application.stages.length - 1 && (
+                            <div className={cn(
+                              "h-0.5 w-8 mx-2 flex-shrink-0",
+                              isCompleted ? "bg-muted-foreground/30" : "bg-border"
+                            )} />
+                          )}
                         </div>
-                        {index < application.stages.length - 1 && (
-                          <div className={cn(
-                            "h-0.5 w-8 mx-2 flex-shrink-0",
-                            isCompleted ? "bg-muted-foreground/30" : "bg-border"
-                          )} />
-                        )}
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* All Stages Details - Vertical List */}
@@ -560,14 +585,14 @@ export default function ApplicationDetail() {
                     className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
                     onClick={() => navigate(`/profile/${application.talent_strategist?.id}`)}
                   >
-                    <Avatar className="w-12 h-12">
+                    <Avatar className="w-14 h-14 ring-2 ring-border/50">
                       <AvatarImage src={application.talent_strategist.avatar_url} />
-                      <AvatarFallback>
+                      <AvatarFallback className="text-lg">
                         {application.talent_strategist.full_name?.[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="font-medium">{application.talent_strategist.full_name}</p>
+                      <p className="font-semibold text-base">{application.talent_strategist.full_name}</p>
                       <p className="text-xs text-muted-foreground">Click to view profile</p>
                     </div>
                   </div>

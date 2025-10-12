@@ -249,7 +249,6 @@ function ApplicationCard({ application }: { application: Application }) {
               </CardTitle>
               <div className="flex flex-col gap-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Building2 className="w-4 h-4" />
                   {application.job?.companies?.name || application.company_name}
                 </div>
                 {application.job?.location && (
@@ -271,6 +270,20 @@ function ApplicationCard({ application }: { application: Application }) {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Talent Strategist - First */}
+        {application.talent_strategist && (
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30 border border-border/30">
+            <Avatar className="w-12 h-12 ring-1 ring-border/50">
+              <AvatarImage src={application.talent_strategist.avatar_url} />
+              <AvatarFallback>{application.talent_strategist.full_name?.[0]}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <div className="text-xs text-muted-foreground">Your Talent Strategist</div>
+              <div className="text-sm font-semibold">{application.talent_strategist.full_name}</div>
+            </div>
+          </div>
+        )}
+
         {/* Stats Row - Muted, elegant design */}
         <div className="grid grid-cols-3 gap-3">
           <div className="p-3 rounded-lg bg-card border border-border/50">
@@ -310,45 +323,50 @@ function ApplicationCard({ application }: { application: Application }) {
 
         {/* Pipeline Stages */}
         <div>
-          <h3 className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Pipeline Progress</h3>
-          <div className="flex items-center justify-start gap-2 overflow-x-auto pb-2">
-            {application.stages.map((stage: PipelineStageData, index: number) => {
-              const isCurrent = index === application.current_stage_index;
-              const isCompleted = index < application.current_stage_index;
-              
-              return (
-                <div key={stage.id} className="flex items-center flex-shrink-0">
-                  <div className="flex flex-col items-center min-w-[80px]">
-                    <div className={cn(
-                      "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
-                      isCompleted && "bg-muted border-muted-foreground/30",
-                      isCurrent && "bg-foreground border-foreground text-background scale-110",
-                      !isCompleted && !isCurrent && "bg-background border-border"
-                    )}>
-                      {isCompleted ? (
-                        <Check className="w-4 h-4" />
-                      ) : (
-                        <span className="text-xs font-semibold">
-                          {isCurrent ? "●" : "○"}
-                        </span>
-                      )}
+          <h3 className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+            Pipeline Progress
+            <span className="text-[10px] font-normal normal-case opacity-60">(Swipe to see all stages →)</span>
+          </h3>
+          <div className="relative">
+            <div className="flex items-center justify-start gap-2 overflow-x-auto pb-2 scrollbar-hide cursor-grab active:cursor-grabbing">
+              {application.stages.map((stage: PipelineStageData, index: number) => {
+                const isCurrent = index === application.current_stage_index;
+                const isCompleted = index < application.current_stage_index;
+                
+                return (
+                  <div key={stage.id} className="flex items-center flex-shrink-0">
+                    <div className="flex flex-col items-center min-w-[80px]">
+                      <div className={cn(
+                        "w-10 h-10 rounded-full flex items-center justify-center border-2 transition-all",
+                        isCompleted && "bg-muted border-muted-foreground/30",
+                        isCurrent && "bg-foreground border-foreground text-background scale-110",
+                        !isCompleted && !isCurrent && "bg-background border-border"
+                      )}>
+                        {isCompleted ? (
+                          <Check className="w-4 h-4" />
+                        ) : (
+                          <span className="text-xs font-semibold">
+                            {isCurrent ? "●" : "○"}
+                          </span>
+                        )}
+                      </div>
+                      <p className={cn(
+                        "mt-2 text-xs text-center max-w-[80px] break-words leading-tight",
+                        isCurrent ? "font-bold" : "text-muted-foreground"
+                      )}>
+                        {stage.title}
+                      </p>
                     </div>
-                    <p className={cn(
-                      "mt-2 text-xs text-center max-w-[80px] break-words leading-tight",
-                      isCurrent ? "font-bold" : "text-muted-foreground"
-                    )}>
-                      {stage.title}
-                    </p>
+                    {index < application.stages.length - 1 && (
+                      <div className={cn(
+                        "h-0.5 w-6 mx-1 flex-shrink-0",
+                        isCompleted ? "bg-muted-foreground/30" : "bg-border"
+                      )} />
+                    )}
                   </div>
-                  {index < application.stages.length - 1 && (
-                    <div className={cn(
-                      "h-0.5 w-6 mx-1 flex-shrink-0",
-                      isCompleted ? "bg-muted-foreground/30" : "bg-border"
-                    )} />
-                  )}
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       </CardContent>
