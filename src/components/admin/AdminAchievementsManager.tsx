@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Award, Plus, Trash2, Edit, UserPlus, Building2, Search, Filter, Eye, EyeOff, Users, TrendingUp, Calendar, Activity, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -26,6 +27,7 @@ interface CompanyAchievement {
   is_active: boolean;
   earner_count?: number;
   created_at?: string;
+  criteria?: any;
 }
 
 interface QuantumAchievement {
@@ -80,28 +82,26 @@ export const AdminAchievementsManager = () => {
   
   // Dialog states
   const [grantDialogOpen, setGrantDialogOpen] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editCompanyDialogOpen, setEditCompanyDialogOpen] = useState(false);
   const [editQuantumDialogOpen, setEditQuantumDialogOpen] = useState(false);
   const [earnersDialogOpen, setEarnersDialogOpen] = useState(false);
-  const [createQuantumDialogOpen, setCreateQuantumDialogOpen] = useState(false);
   const [grantQuantumDialogOpen, setGrantQuantumDialogOpen] = useState(false);
+  
+  // Create dialog states
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createType, setCreateType] = useState<'user' | 'company'>('user');
+  const [interactionType, setInteractionType] = useState('posts');
+  const [criteriaAmount, setCriteriaAmount] = useState(1);
+  const [isTimeBound, setIsTimeBound] = useState(false);
+  const [timeBoundDays, setTimeBoundDays] = useState(30);
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
   
   const [grantForm, setGrantForm] = useState({ achievementId: "", userId: "", companyId: "" });
   const [grantQuantumForm, setGrantQuantumForm] = useState({ achievementId: "", userId: "" });
-  const [newCompanyAchievement, setNewCompanyAchievement] = useState({ name: "", description: "", icon: "Award", companyId: "" });
-  const [newQuantumAchievement, setNewQuantumAchievement] = useState({ 
-    name: "", 
-    description: "", 
-    icon_emoji: "🏆", 
-    category: "career",
-    rarity: "common",
-    points: 10
-  });
   const [editCompanyForm, setEditCompanyForm] = useState({ name: "", description: "", icon: "Award" });
-  const [editQuantumForm, setEditQuantumForm] = useState({ 
-    name: "", 
-    description: "", 
+  const [editQuantumForm, setEditQuantumForm] = useState({
+    name: "",
+    description: "",
     icon_emoji: "🏆",
     points: 10
   });
@@ -109,8 +109,18 @@ export const AdminAchievementsManager = () => {
   const { toast } = useToast();
 
   const iconOptions = ["Award", "Trophy", "Star", "Medal", "Crown", "Target", "Zap", "Heart", "Shield", "Gem", "Rocket", "Flame", "Sparkles"];
-  const categoryOptions = ["career", "social", "engagement", "milestone", "special"];
+  const categoryOptions = ["engagement", "milestone", "special", "social", "career"];
   const rarityOptions = ["common", "uncommon", "rare", "epic", "legendary"];
+  const interactionTypes = [
+    { value: 'posts', label: 'Posts' },
+    { value: 'comments', label: 'Comments' },
+    { value: 'likes', label: 'Likes' },
+    { value: 'shares', label: 'Shares' },
+    { value: 'profile_views', label: 'Profile Views' },
+    { value: 'connections', label: 'Connections' },
+    { value: 'applications', label: 'Applications' },
+    { value: 'jobs_posted', label: 'Jobs Posted' },
+  ];
 
   useEffect(() => {
     loadData();
@@ -291,52 +301,67 @@ export const AdminAchievementsManager = () => {
     }
   };
 
-  const handleCreatePlatformAchievement = async () => {
+  const handleCreateSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
     try {
-      const { error } = await supabase
-        .from("company_achievements")
-        .insert({
-          company_id: newCompanyAchievement.companyId,
-          name: newCompanyAchievement.name,
-          description: newCompanyAchievement.description,
-          icon: newCompanyAchievement.icon,
-          achievement_type: 'platform_generated'
-        });
+      const formData = {
+        name: (e.target as any).name.value,
+        description: (e.target as any).description.value,
+        icon: (e.target as any).icon?.value || 'Award',
+      };
 
-      if (error) throw error;
+      const criteria = {
+        interaction_type: interactionType,
+        amount: criteriaAmount,
+        time_bound: isTimeBound,
+        ...(isTimeBound && { days: timeBoundDays })
+      };
 
-      toast({ title: "Platform achievement created successfully" });
-      setCreateDialogOpen(false);
-      setNewCompanyAchievement({ name: "", description: "", icon: "Award", companyId: "" });
+      if (createType === 'user') {
+        const { error } = await supabase
+          .from('quantum_achievements')
+          .insert([{ 
+            ...formData,
+            icon_emoji: formData.icon,
+            category: (e.target as any).category.value as any,
+            rarity: (e.target as any).rarity.value as any,
+            points: parseInt((e.target as any).xp_reward.value),
+            unlock_criteria: criteria
+          }]);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('company_achievements')
+          .insert([{
+            ...formData,
+            company_id: selectedCompanyId,
+            achievement_type: 'platform_generated',
+            criteria
+          }]);
+        if (error) throw error;
+      }
+
+      toast({ title: 'Achievement created successfully' });
+      setShowCreateDialog(false);
+      resetCreateForm();
       loadData();
     } catch (error: any) {
+      console.error('Error creating achievement:', error);
       toast({ title: "Error creating achievement", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleCreateQuantumAchievement = async () => {
-    try {
-      const { error } = await supabase
-        .from("quantum_achievements")
-        .insert([{
-          name: newQuantumAchievement.name,
-          description: newQuantumAchievement.description,
-          icon_emoji: newQuantumAchievement.icon_emoji,
-          category: newQuantumAchievement.category as any,
-          rarity: newQuantumAchievement.rarity as any,
-          points: newQuantumAchievement.points,
-          unlock_criteria: {}
-        }]);
-
-      if (error) throw error;
-
-      toast({ title: "Platform achievement created successfully" });
-      setCreateQuantumDialogOpen(false);
-      setNewQuantumAchievement({ name: "", description: "", icon_emoji: "🏆", category: "career", rarity: "common", points: 10 });
-      loadData();
-    } catch (error: any) {
-      toast({ title: "Error creating achievement", description: error.message, variant: "destructive" });
-    }
+  const resetCreateForm = () => {
+    setCreateType('user');
+    setInteractionType('posts');
+    setCriteriaAmount(1);
+    setIsTimeBound(false);
+    setTimeBoundDays(30);
+    setSelectedCompanyId('');
   };
 
   const handleEditCompanyAchievement = async () => {
@@ -583,6 +608,18 @@ export const AdminAchievementsManager = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header with Create Button */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Achievements Management</h2>
+          <p className="text-muted-foreground">Manage platform and company achievements</p>
+        </div>
+        <Button onClick={() => setShowCreateDialog(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Create Achievement
+        </Button>
+      </div>
+
       {/* Header with Stats */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
@@ -732,89 +769,6 @@ export const AdminAchievementsManager = () => {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
-
-                  <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create Company Achievement</DialogTitle>
-                        <DialogDescription>
-                          Create a platform-generated achievement for a company
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Company</Label>
-                          <Select
-                            value={newCompanyAchievement.companyId}
-                            onValueChange={(value) => setNewCompanyAchievement({ ...newCompanyAchievement, companyId: value })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select company" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {companies.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label>Name</Label>
-                          <Input
-                            value={newCompanyAchievement.name}
-                            onChange={(e) => setNewCompanyAchievement({ ...newCompanyAchievement, name: e.target.value })}
-                            placeholder="Achievement name"
-                          />
-                        </div>
-                        <div>
-                          <Label>Description</Label>
-                          <Textarea
-                            value={newCompanyAchievement.description}
-                            onChange={(e) => setNewCompanyAchievement({ ...newCompanyAchievement, description: e.target.value })}
-                            placeholder="Achievement description"
-                            rows={3}
-                          />
-                        </div>
-                        <div>
-                          <Label>Icon</Label>
-                          <Select
-                            value={newCompanyAchievement.icon}
-                            onValueChange={(value) => setNewCompanyAchievement({ ...newCompanyAchievement, icon: value })}
-                          >
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                              {iconOptions.map((icon) => {
-                                const IconComponent = getIconComponent(icon);
-                                return (
-                                  <SelectItem key={icon} value={icon}>
-                                    <div className="flex items-center gap-2">
-                                      <IconComponent className="w-4 h-4" />
-                                      {icon}
-                                    </div>
-                                  </SelectItem>
-                                );
-                              })}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-                        <Button 
-                          onClick={handleCreatePlatformAchievement}
-                          disabled={!newCompanyAchievement.name || !newCompanyAchievement.description || !newCompanyAchievement.companyId}
-                        >
-                          Create
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
                 </div>
               </div>
 
@@ -880,55 +834,45 @@ export const AdminAchievementsManager = () => {
                                 </Badge>
                                 {!achievement.is_active && <Badge variant="outline">Inactive</Badge>}
                               </div>
-                              <p className="text-sm text-muted-foreground mb-2">{achievement.description}</p>
-                              <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                                <span className="flex items-center gap-1">
-                                  <Building2 className="w-3 h-3" />
-                                  {achievement.company_name}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Users className="w-3 h-3" />
-                                  {achievement.earner_count} earned
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  {achievement.created_at ? new Date(achievement.created_at).toLocaleDateString() : 'N/A'}
-                                </span>
-                              </div>
+                              <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                              <p className="text-xs text-muted-foreground mt-1">{achievement.company_name}</p>
+                              {achievement.criteria && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {achievement.criteria.amount} {achievement.criteria.interaction_type}
+                                  {achievement.criteria.time_bound && ` in ${achievement.criteria.days} days`}
+                                </p>
+                              )}
                             </div>
                           </div>
-                          <div className="flex gap-1">
+                          <div className="flex items-center gap-2">
                             <Button
-                              size="icon"
+                              size="sm"
                               variant="ghost"
                               onClick={() => openCompanyEarnersDialog(achievement)}
-                              title="View earners"
                             >
-                              <Users className="w-4 h-4" />
+                              <Users className="w-4 h-4 mr-1" />
+                              {achievement.earner_count}
                             </Button>
                             <Button
-                              size="icon"
+                              size="sm"
                               variant="ghost"
                               onClick={() => openEditCompanyDialog(achievement)}
-                              title="Edit"
                             >
                               <Edit className="w-4 h-4" />
                             </Button>
                             <Button
-                              size="icon"
+                              size="sm"
                               variant="ghost"
                               onClick={() => handleToggleCompanyActive(achievement.id, achievement.is_active)}
-                              title={achievement.is_active ? "Deactivate" : "Activate"}
                             >
                               {achievement.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                             </Button>
                             <Button
-                              size="icon"
+                              size="sm"
                               variant="ghost"
                               onClick={() => handleDeleteCompanyAchievement(achievement.id)}
-                              title="Delete"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
                           </div>
                         </div>
@@ -937,8 +881,8 @@ export const AdminAchievementsManager = () => {
                   );
                 })}
                 {filteredCompanyAchievements.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    No company achievements found.
+                  <div className="text-center py-8 text-muted-foreground">
+                    No company achievements found
                   </div>
                 )}
               </div>
@@ -1013,99 +957,6 @@ export const AdminAchievementsManager = () => {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
-
-                  <Dialog open={createQuantumDialogOpen} onOpenChange={setCreateQuantumDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Create
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Create Platform Achievement</DialogTitle>
-                        <DialogDescription>
-                          Create a new platform-wide achievement for members
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <Label>Name</Label>
-                          <Input
-                            value={newQuantumAchievement.name}
-                            onChange={(e) => setNewQuantumAchievement({ ...newQuantumAchievement, name: e.target.value })}
-                            placeholder="Achievement name"
-                          />
-                        </div>
-                        <div>
-                          <Label>Description</Label>
-                          <Textarea
-                            value={newQuantumAchievement.description}
-                            onChange={(e) => setNewQuantumAchievement({ ...newQuantumAchievement, description: e.target.value })}
-                            placeholder="Achievement description"
-                            rows={3}
-                          />
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label>Icon Emoji</Label>
-                            <Input
-                              value={newQuantumAchievement.icon_emoji}
-                              onChange={(e) => setNewQuantumAchievement({ ...newQuantumAchievement, icon_emoji: e.target.value })}
-                              placeholder="🏆"
-                            />
-                          </div>
-                          <div>
-                            <Label>Points</Label>
-                            <Input
-                              type="number"
-                              value={newQuantumAchievement.points}
-                              onChange={(e) => setNewQuantumAchievement({ ...newQuantumAchievement, points: parseInt(e.target.value) })}
-                            />
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label>Category</Label>
-                            <Select
-                              value={newQuantumAchievement.category}
-                              onValueChange={(value) => setNewQuantumAchievement({ ...newQuantumAchievement, category: value })}
-                            >
-                              <SelectTrigger><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                {categoryOptions.map((cat) => (
-                                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label>Rarity</Label>
-                            <Select
-                              value={newQuantumAchievement.rarity}
-                              onValueChange={(value) => setNewQuantumAchievement({ ...newQuantumAchievement, rarity: value })}
-                            >
-                              <SelectTrigger><SelectValue /></SelectTrigger>
-                              <SelectContent>
-                                {rarityOptions.map((rar) => (
-                                  <SelectItem key={rar} value={rar}>{rar}</SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setCreateQuantumDialogOpen(false)}>Cancel</Button>
-                        <Button 
-                          onClick={handleCreateQuantumAchievement}
-                          disabled={!newQuantumAchievement.name || !newQuantumAchievement.description}
-                        >
-                          Create
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
                 </div>
               </div>
 
@@ -1139,8 +990,8 @@ export const AdminAchievementsManager = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Rarities</SelectItem>
-                    {rarityOptions.map((rar) => (
-                      <SelectItem key={rar} value={rar}>{rar}</SelectItem>
+                    {rarityOptions.map((rarity) => (
+                      <SelectItem key={rarity} value={rarity}>{rarity}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -1153,66 +1004,55 @@ export const AdminAchievementsManager = () => {
                     <CardContent className="pt-6">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary via-purple-500 to-pink-500 flex items-center justify-center text-2xl">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-2xl">
                             {achievement.icon_emoji}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="font-semibold">{achievement.name}</h4>
-                              <Badge variant="default">{achievement.rarity}</Badge>
-                              <Badge variant="secondary">{achievement.category}</Badge>
+                              <Badge variant="outline">{achievement.category}</Badge>
+                              <Badge variant="secondary">{achievement.rarity}</Badge>
                               {!achievement.is_active && <Badge variant="outline">Inactive</Badge>}
-                              {achievement.is_deprecated && <Badge variant="destructive">Deprecated</Badge>}
                             </div>
-                            <p className="text-sm text-muted-foreground mb-2">{achievement.description}</p>
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <Award className="w-3 h-3" />
-                                {achievement.points} points
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                {achievement.unlock_count} unlocked
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {achievement.created_at ? new Date(achievement.created_at).toLocaleDateString() : 'N/A'}
-                              </span>
-                            </div>
+                            <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{achievement.points} XP</p>
+                            {achievement.unlock_criteria && achievement.unlock_criteria.interaction_type && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {achievement.unlock_criteria.amount} {achievement.unlock_criteria.interaction_type}
+                                {achievement.unlock_criteria.time_bound && ` in ${achievement.unlock_criteria.days} days`}
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <div className="flex gap-1">
+                        <div className="flex items-center gap-2">
                           <Button
-                            size="icon"
+                            size="sm"
                             variant="ghost"
                             onClick={() => openQuantumEarnersDialog(achievement)}
-                            title="View earners"
                           >
-                            <Users className="w-4 h-4" />
+                            <Users className="w-4 h-4 mr-1" />
+                            {achievement.unlock_count}
                           </Button>
                           <Button
-                            size="icon"
+                            size="sm"
                             variant="ghost"
                             onClick={() => openEditQuantumDialog(achievement)}
-                            title="Edit"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
                           <Button
-                            size="icon"
+                            size="sm"
                             variant="ghost"
-                            onClick={() => handleToggleQuantumActive(achievement.id, achievement.is_active || false)}
-                            title={achievement.is_active ? "Deactivate" : "Activate"}
+                            onClick={() => handleToggleQuantumActive(achievement.id, achievement.is_active)}
                           >
                             {achievement.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                           </Button>
                           <Button
-                            size="icon"
+                            size="sm"
                             variant="ghost"
                             onClick={() => handleDeleteQuantumAchievement(achievement.id)}
-                            title="Delete"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </div>
                       </div>
@@ -1220,64 +1060,50 @@ export const AdminAchievementsManager = () => {
                   </Card>
                 ))}
                 {filteredQuantumAchievements.length === 0 && (
-                  <div className="text-center py-12 text-muted-foreground">
-                    No platform achievements found.
+                  <div className="text-center py-8 text-muted-foreground">
+                    No platform achievements found
                   </div>
                 )}
               </div>
             </TabsContent>
 
             {/* Analytics Tab */}
-            <TabsContent value="analytics" className="mt-4">
+            <TabsContent value="analytics" className="space-y-4 mt-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Achievement Analytics</CardTitle>
-                  <CardDescription>Comprehensive insights across all achievement types</CardDescription>
+                  <CardDescription>Overview of achievement distribution and engagement</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid gap-6 md:grid-cols-2">
-                    <div>
-                      <h3 className="text-sm font-medium mb-3">Top Company Achievements</h3>
-                      <div className="space-y-2">
-                        {companyAchievements
-                          .sort((a, b) => (b.earner_count || 0) - (a.earner_count || 0))
-                          .slice(0, 5)
-                          .map((a) => {
-                            const IconComponent = getIconComponent(a.icon);
-                            return (
-                              <div key={a.id} className="flex items-center justify-between p-3 rounded-lg border">
-                                <div className="flex items-center gap-3">
-                                  <IconComponent className="w-5 h-5 text-primary" />
-                                  <div>
-                                    <div className="font-medium text-sm">{a.name}</div>
-                                    <div className="text-xs text-muted-foreground">{a.company_name}</div>
-                                  </div>
-                                </div>
-                                <Badge>{a.earner_count} earned</Badge>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-semibold mb-2">Top Company Achievements</h4>
+                        <div className="space-y-2">
+                          {companyAchievements
+                            .sort((a, b) => (b.earner_count || 0) - (a.earner_count || 0))
+                            .slice(0, 5)
+                            .map((a) => (
+                              <div key={a.id} className="flex justify-between text-sm">
+                                <span>{a.name}</span>
+                                <span className="text-muted-foreground">{a.earner_count} earners</span>
                               </div>
-                            );
-                          })}
+                            ))}
+                        </div>
                       </div>
-                    </div>
-
-                    <div>
-                      <h3 className="text-sm font-medium mb-3">Top Platform Achievements</h3>
-                      <div className="space-y-2">
-                        {quantumAchievements
-                          .sort((a, b) => (b.unlock_count || 0) - (a.unlock_count || 0))
-                          .slice(0, 5)
-                          .map((a) => (
-                            <div key={a.id} className="flex items-center justify-between p-3 rounded-lg border">
-                              <div className="flex items-center gap-3">
-                                <span className="text-2xl">{a.icon_emoji}</span>
-                                <div>
-                                  <div className="font-medium text-sm">{a.name}</div>
-                                  <div className="text-xs text-muted-foreground">{a.category} • {a.rarity}</div>
-                                </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Top Platform Achievements</h4>
+                        <div className="space-y-2">
+                          {quantumAchievements
+                            .sort((a, b) => (b.unlock_count || 0) - (a.unlock_count || 0))
+                            .slice(0, 5)
+                            .map((a) => (
+                              <div key={a.id} className="flex justify-between text-sm">
+                                <span>{a.icon_emoji} {a.name}</span>
+                                <span className="text-muted-foreground">{a.unlock_count} unlocks</span>
                               </div>
-                              <Badge>{a.unlock_count} unlocked</Badge>
-                            </div>
-                          ))}
+                            ))}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1288,12 +1114,180 @@ export const AdminAchievementsManager = () => {
         </CardContent>
       </Card>
 
+      {/* Create Achievement Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Achievement</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleCreateSubmit} className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+              <Label htmlFor="create-type">Achievement Type</Label>
+              <div className="flex items-center gap-2">
+                <span className={createType === 'user' ? 'font-semibold' : 'text-muted-foreground'}>User</span>
+                <Switch
+                  id="create-type"
+                  checked={createType === 'company'}
+                  onCheckedChange={(checked) => setCreateType(checked ? 'company' : 'user')}
+                />
+                <span className={createType === 'company' ? 'font-semibold' : 'text-muted-foreground'}>Company</span>
+              </div>
+            </div>
+
+            {createType === 'company' && (
+              <div>
+                <Label htmlFor="company">Company</Label>
+                <Select value={selectedCompanyId} onValueChange={setSelectedCompanyId} required>
+                  <SelectTrigger id="company">
+                    <SelectValue placeholder="Select company" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {companies.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" name="name" required />
+            </div>
+
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea id="description" name="description" required />
+            </div>
+
+            <div>
+              <Label htmlFor="icon">Icon {createType === 'user' ? '(emoji or Lucide icon name)' : '(Lucide icon name)'}</Label>
+              <Input id="icon" name="icon" defaultValue={createType === 'user' ? '🏆' : 'Award'} required />
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-semibold mb-4">Unlock Criteria</h4>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="interaction-type">Interaction Type</Label>
+                  <Select value={interactionType} onValueChange={setInteractionType}>
+                    <SelectTrigger id="interaction-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {interactionTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="amount">Amount Required</Label>
+                  <Input 
+                    id="amount" 
+                    type="number" 
+                    min="1"
+                    value={criteriaAmount}
+                    onChange={(e) => setCriteriaAmount(parseInt(e.target.value))}
+                    required 
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-muted rounded-lg mt-4">
+                <div>
+                  <Label htmlFor="time-bound">Time Bound</Label>
+                  <p className="text-sm text-muted-foreground">Require completion within a specific timeframe</p>
+                </div>
+                <Switch
+                  id="time-bound"
+                  checked={isTimeBound}
+                  onCheckedChange={setIsTimeBound}
+                />
+              </div>
+
+              {isTimeBound && (
+                <div className="mt-4">
+                  <Label htmlFor="days">Duration (days)</Label>
+                  <Input 
+                    id="days" 
+                    type="number" 
+                    min="1"
+                    value={timeBoundDays}
+                    onChange={(e) => setTimeBoundDays(parseInt(e.target.value))}
+                    required 
+                  />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Complete {criteriaAmount} {interactionType} within {timeBoundDays} days
+                  </p>
+                </div>
+              )}
+
+              {!isTimeBound && (
+                <p className="text-sm text-muted-foreground mt-4">
+                  Lifetime requirement: {criteriaAmount} {interactionType} total
+                </p>
+              )}
+            </div>
+
+            {createType === 'user' && (
+              <>
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <Select name="category" defaultValue="engagement">
+                    <SelectTrigger id="category">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOptions.map((cat) => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="rarity">Rarity</Label>
+                  <Select name="rarity" defaultValue="common">
+                    <SelectTrigger id="rarity">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rarityOptions.map((rarity) => (
+                        <SelectItem key={rarity} value={rarity}>{rarity}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="xp_reward">XP Reward</Label>
+                  <Input id="xp_reward" name="xp_reward" type="number" defaultValue="100" required />
+                </div>
+              </>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => { setShowCreateDialog(false); resetCreateForm(); }}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading || (createType === 'company' && !selectedCompanyId)}>
+                {loading ? 'Creating...' : 'Create Achievement'}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Edit Company Achievement Dialog */}
       <Dialog open={editCompanyDialogOpen} onOpenChange={setEditCompanyDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Company Achievement</DialogTitle>
-            <DialogDescription>Update achievement details</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1336,19 +1330,16 @@ export const AdminAchievementsManager = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditCompanyDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditCompanyAchievement} disabled={!editCompanyForm.name || !editCompanyForm.description}>
-              Update
-            </Button>
+            <Button onClick={handleEditCompanyAchievement}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Platform Achievement Dialog */}
+      {/* Edit Quantum Achievement Dialog */}
       <Dialog open={editQuantumDialogOpen} onOpenChange={setEditQuantumDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Platform Achievement</DialogTitle>
-            <DialogDescription>Update achievement details</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -1366,73 +1357,63 @@ export const AdminAchievementsManager = () => {
                 rows={3}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Icon Emoji</Label>
-                <Input
-                  value={editQuantumForm.icon_emoji}
-                  onChange={(e) => setEditQuantumForm({ ...editQuantumForm, icon_emoji: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Points</Label>
-                <Input
-                  type="number"
-                  value={editQuantumForm.points}
-                  onChange={(e) => setEditQuantumForm({ ...editQuantumForm, points: parseInt(e.target.value) })}
-                />
-              </div>
+            <div>
+              <Label>Icon Emoji</Label>
+              <Input
+                value={editQuantumForm.icon_emoji}
+                onChange={(e) => setEditQuantumForm({ ...editQuantumForm, icon_emoji: e.target.value })}
+              />
+            </div>
+            <div>
+              <Label>XP Points</Label>
+              <Input
+                type="number"
+                value={editQuantumForm.points}
+                onChange={(e) => setEditQuantumForm({ ...editQuantumForm, points: parseInt(e.target.value) })}
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditQuantumDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleEditQuantumAchievement} disabled={!editQuantumForm.name || !editQuantumForm.description}>
-              Update
-            </Button>
+            <Button onClick={handleEditQuantumAchievement}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* View Earners Dialog */}
+      {/* Earners Dialog */}
       <Dialog open={earnersDialogOpen} onOpenChange={setEarnersDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Achievement Earners</DialogTitle>
             <DialogDescription>
-              {selectedCompanyAchievement?.name || selectedQuantumAchievement?.name} - {earners.length} total earners
+              {selectedCompanyAchievement?.name || selectedQuantumAchievement?.name}
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="h-96">
+          <ScrollArea className="max-h-96">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Recipient</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Earned Date</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>User/Company</TableHead>
+                  <TableHead>Date Earned</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {earners.map((earner) => (
                   <TableRow key={earner.id}>
                     <TableCell>
-                      {earner.user_name || earner.company_name || 'Unknown'}
+                      {earner.user_name || earner.company_name || "Unknown"}
                     </TableCell>
                     <TableCell>
-                      <Badge variant={earner.user_id ? 'default' : 'secondary'}>
-                        {earner.user_id ? 'User' : 'Company'}
-                      </Badge>
+                      {new Date(earner.earned_at || earner.unlocked_at || "").toLocaleDateString()}
                     </TableCell>
-                    <TableCell>
-                      {new Date(earner.earned_at || earner.unlocked_at || '').toLocaleDateString()}
-                    </TableCell>
-                    <TableCell>
+                    <TableCell className="text-right">
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => handleRevokeEarner(earner.id, !!selectedQuantumAchievement)}
                       >
-                        Revoke
+                        <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -1441,7 +1422,7 @@ export const AdminAchievementsManager = () => {
             </Table>
             {earners.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
-                No one has earned this achievement yet.
+                No one has earned this achievement yet
               </div>
             )}
           </ScrollArea>
