@@ -39,8 +39,6 @@ const CompanyPage = lazy(() => import("./pages/CompanyPage"));
 const Scheduling = lazy(() => import("./pages/Scheduling"));
 const JobDashboard = lazy(() => import("./pages/JobDashboard"));
 const Admin = lazy(() => import("./pages/Admin"));
-const CompanyAchievementsPage = lazy(() => import("./pages/CompanyAchievementsPage"));
-const AdminAchievementsPage = lazy(() => import("./pages/AdminAchievementsPage"));
 const Feed = lazy(() => import("./pages/Feed"));
 const Post = lazy(() => import("./pages/Post"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -239,22 +237,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Admin />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/company-achievements"
-              element={
-                <ProtectedRoute>
-                  <CompanyAchievementsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin-achievements"
-              element={
-                <ProtectedRoute>
-                  <AdminAchievementsPage />
                 </ProtectedRoute>
               }
             />

@@ -6,12 +6,58 @@ import { AchievementClusters } from "@/components/achievements/AchievementCluste
 import { AchievementFeed } from "@/components/achievements/AchievementFeed";
 import { AchievementSearch } from "@/components/achievements/AchievementSearch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CompanyAchievements } from "@/components/partner/CompanyAchievements";
+import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsManager";
+import { useRole } from "@/contexts/RoleContext";
+import { Loader2 } from "lucide-react";
 
 const Achievements = () => {
+  const { currentRole, companyId, loading } = useRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedRarity, setSelectedRarity] = useState<string | null>(null);
 
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Admin view - comprehensive achievements management
+  if (currentRole === 'admin') {
+    return (
+      <AppLayout>
+        <div className="container mx-auto px-4 py-8">
+          <AdminAchievementsManager />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Partner view - company achievements management
+  if (currentRole === 'partner' && companyId) {
+    return (
+      <AppLayout>
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-8">
+            <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
+              Company Achievements
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              Manage and showcase your company's achievements
+            </p>
+          </div>
+          <CompanyAchievements companyId={companyId} />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Candidate/User view - personal achievements
   return (
     <AppLayout>
       <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
