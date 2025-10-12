@@ -15,6 +15,10 @@ import {
 import { cn } from "@/lib/utils";
 import { OnlineStatusIndicator } from "@/components/messages/OnlineStatusIndicator";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
+import { ProgressionHeatmap } from "@/components/applications/ProgressionHeatmap";
+import { CompetitionInsight } from "@/components/applications/CompetitionInsight";
+import { TimelineDeadlines } from "@/components/applications/TimelineDeadlines";
+import { NextStepHelper } from "@/components/applications/NextStepHelper";
 
 interface ApplicationDetail {
   id: string;
@@ -216,6 +220,8 @@ export default function ApplicationDetail() {
   }
 
   const currentStage = application.stages[application.current_stage_index];
+  const nextStage = application.stages[application.current_stage_index + 1];
+  const daysInProcess = Math.ceil((Date.now() - new Date(application.applied_at).getTime()) / (1000 * 60 * 60 * 24));
 
   const formatSalaryRange = () => {
     if (!application.job?.salary_min || !application.job?.salary_max) return null;
@@ -559,40 +565,49 @@ export default function ApplicationDetail() {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Application Stats */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Application Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Applied On</p>
-                  <p className="font-medium flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {new Date(application.applied_at).toLocaleDateString('en-US', { 
-                      month: 'long', 
-                      day: 'numeric', 
-                      year: 'numeric' 
-                    })}
-                  </p>
-                </div>
-                <Separator />
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Stage Progress</p>
-                  <p className="font-medium text-2xl text-accent">
-                    {application.current_stage_index + 1} / {application.stages.length}
-                  </p>
-                </div>
-                <Separator />
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Candidates</p>
-                  <p className="font-medium flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    {application.other_candidates_count + 1}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Next Step Actions */}
+            {currentStage && (
+              <div>
+                <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground mb-3">Next Step</h3>
+                <NextStepHelper
+                  stageName={currentStage.title}
+                  scheduledDate={currentStage.scheduledDate}
+                  duration={currentStage.duration}
+                  prepTasks={currentStage.preparation?.resources}
+                  onBookPrep={() => toast.success("Opening prep session booking...")}
+                  onViewMaterials={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                />
+              </div>
+            )}
+
+            {/* Comprehensive Stats Grid */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Application Insights</h3>
+              
+              {/* Progression Heatmap */}
+              <ProgressionHeatmap
+                currentStage={application.current_stage_index}
+                totalStages={application.stages.length}
+                daysInProcess={daysInProcess}
+                averageDays={21}
+              />
+
+              {/* Timeline & Deadlines */}
+              <TimelineDeadlines
+                appliedDate={application.applied_at}
+                nextStageName={nextStage?.title}
+                estimatedDaysToNext={5}
+                finalDecisionDate="2025-10-25"
+              />
+
+              {/* Competition Insight */}
+              <CompetitionInsight
+                totalCandidates={application.other_candidates_count + 1}
+                candidatesAhead={Math.floor(application.other_candidates_count * 0.3)}
+                candidatesBehind={Math.floor(application.other_candidates_count * 0.7)}
+                averageResponseTime="2.5 days"
+              />
+            </div>
 
             {/* Talent Strategist */}
             {application.talent_strategist && (
