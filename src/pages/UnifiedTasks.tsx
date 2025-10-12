@@ -184,59 +184,62 @@ const UnifiedTasks = () => {
           />
         )}
 
-        {/* Header with System Toggle */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-4xl font-bold text-foreground">
-                  UNIFIED TASKS
-                </h1>
-                <Badge variant="secondary" className="text-xs">
-                  BETA
-                </Badge>
+        {/* Header */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+                    UNIFIED TASKS
+                  </h1>
+                  <Badge variant="secondary" className="text-xs">
+                    BETA
+                  </Badge>
+                </div>
+                <p className="text-muted-foreground mt-2">
+                  Intelligent task management with AI scheduling
+                </p>
               </div>
-              <p className="text-muted-foreground mt-2">
-                Intelligent task management with AI scheduling
-              </p>
             </div>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => setSettingsOpen(true)}
-              className="gap-2"
-            >
-              <Settings className="h-5 w-5" />
-              AI Settings
-            </Button>
-            {preferences.ai_scheduling_enabled && (
+            <div className="flex flex-wrap gap-2">
               <Button
-                variant="secondary"
-                size="lg"
-                onClick={handleAutoSchedule}
-                disabled={scheduling}
+                variant="outline"
+                size="default"
+                onClick={() => setSettingsOpen(true)}
                 className="gap-2"
               >
-                <Wand2 className="h-5 w-5" />
-                {scheduling ? "Scheduling..." : "Auto Schedule"}
+                <Settings className="h-4 w-4" />
+                <span className="hidden sm:inline">AI Settings</span>
               </Button>
-            )}
-            <TaskSystemToggle
-              activeSystem={preferences.active_system}
-              onSystemChange={(system) => handlePreferenceUpdate({ active_system: system })}
-            />
-            <CreateUnifiedTaskDialog 
-              objectiveId={selectedObjective}
-              onTaskCreated={handleRefresh}
-            >
-              <Button size="lg" className="gap-2">
-                <Plus className="h-5 w-5" />
-                New Task
-              </Button>
-            </CreateUnifiedTaskDialog>
+              {preferences.ai_scheduling_enabled && (
+                <Button
+                  variant="secondary"
+                  size="default"
+                  onClick={handleAutoSchedule}
+                  disabled={scheduling}
+                  className="gap-2"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">{scheduling ? "Scheduling..." : "Auto Schedule"}</span>
+                  <span className="sm:hidden">{scheduling ? "..." : "Schedule"}</span>
+                </Button>
+              )}
+              <TaskSystemToggle
+                activeSystem={preferences.active_system}
+                onSystemChange={(system) => handlePreferenceUpdate({ active_system: system })}
+              />
+            </div>
           </div>
+
+          {/* Info Alert */}
+          <Alert className="bg-primary/5 border-primary/20">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertDescription className="text-xs sm:text-sm">
+              <strong>Unified Tasks</strong> combines Club Tasks and Task Pilot features. 
+              All your existing tasks are preserved and accessible.
+            </AlertDescription>
+          </Alert>
         </div>
 
         {/* Objectives Section */}

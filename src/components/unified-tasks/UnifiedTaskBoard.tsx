@@ -10,7 +10,9 @@ import {
   Pause, 
   CheckCircle2, 
   Sparkles,
-  Clock
+  Clock,
+  Lock,
+  Unlock
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -30,6 +32,7 @@ import {
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface UnifiedTask {
   id: string;
@@ -49,7 +52,8 @@ interface UnifiedTask {
       avatar_url: string | null;
     };
   }>;
-  blockers_count?: number;
+  blockingCount?: number;
+  blockedByCount?: number;
   migration_status: string;
 }
 
@@ -129,12 +133,38 @@ const DraggableTaskCard = ({ task, onClick }: { task: UnifiedTask; onClick: () =
             </div>
           )}
 
-          {/* Blockers */}
-          {task.blockers_count > 0 && (
-            <div className="text-xs text-destructive">
-              🚫 Blocked by {task.blockers_count} task(s)
+          {/* Blocking/Blocked By Stats */}
+          <TooltipProvider>
+            <div className="flex items-center gap-3">
+              {task.blockingCount > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 text-xs">
+                      <Lock className="h-3 w-3 text-orange-500" />
+                      <span className="font-medium">{task.blockingCount}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-popover">
+                    <p className="text-xs">Blocking {task.blockingCount} task(s)</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              
+              {task.blockedByCount > 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1 text-xs">
+                      <Unlock className="h-3 w-3 text-blue-500" />
+                      <span className="font-medium">{task.blockedByCount}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-popover">
+                    <p className="text-xs">Blocked by {task.blockedByCount} task(s)</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
             </div>
-          )}
+          </TooltipProvider>
 
           {/* Scheduling info */}
           {task.scheduled_start && (
@@ -188,8 +218,7 @@ export const UnifiedTaskBoard = ({
           assignees:unified_task_assignees(
             user_id,
             profiles(full_name, avatar_url)
-          ),
-          blockers:unified_task_blockers!blocked_task_id(count)
+          )
         `)
         .order("created_at", { ascending: false });
 
@@ -201,12 +230,34 @@ export const UnifiedTaskBoard = ({
 
       if (error) throw error;
 
-      let filteredTasks = data?.map(task => ({
-        ...task,
-        blockers_count: task.blockers?.[0]?.count || 0
-      })) || [];
+      // Fetch dependency counts for each task
+      if (data) {
+        const tasksWithDeps = await Promise.all(
+          data.map(async (task) => {
+            // Get blocking count (tasks this task blocks)
+            const { data: blocking } = await supabase
+              .from("task_dependencies")
+              .select("id")
+              .eq("depends_on_task_id", task.id);
 
-      setTasks(filteredTasks as UnifiedTask[]);
+            // Get blocked-by count (tasks that block this task)
+            const { data: blockedBy } = await supabase
+              .from("task_dependencies")
+              .select("id")
+              .eq("task_id", task.id);
+
+            return {
+              ...task,
+              blockingCount: blocking?.length || 0,
+              blockedByCount: blockedBy?.length || 0,
+            };
+          })
+        );
+
+        setTasks(tasksWithDeps as UnifiedTask[]);
+      } else {
+        setTasks([]);
+      }
     } catch (error) {
       console.error("Error loading tasks:", error);
       toast.error("Failed to load tasks");
@@ -273,6 +324,29 @@ export const UnifiedTaskBoard = ({
       onDragEnd={handleDragEnd}
     >
       <div className="space-y-4">
+        {/* Header with Action Buttons - Moved to Tasks Section */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 className="text-xl font-bold text-foreground">Task Board</h2>
+            <p className="text-sm text-muted-foreground">Drag tasks to change their status</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <CreateUnifiedTaskDialog
+              objectiveId={objectiveId}
+              defaultStatus="pending"
+              onTaskCreated={() => {
+                loadTasks();
+                onRefresh();
+              }}
+            >
+              <Button size="default" className="gap-2">
+                <Plus className="h-4 w-4" />
+                New Task
+              </Button>
+            </CreateUnifiedTaskDialog>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {STATUS_COLUMNS.map((column) => {
             const columnTasks = getTasksByStatus(column.key);
@@ -309,21 +383,6 @@ export const UnifiedTaskBoard = ({
                         />
                       ))
                     )}
-
-                    {/* Add task button */}
-                    <CreateUnifiedTaskDialog
-                      objectiveId={objectiveId}
-                      defaultStatus={column.key}
-                      onTaskCreated={() => {
-                        loadTasks();
-                        onRefresh();
-                      }}
-                    >
-                      <Button variant="ghost" className="w-full justify-start gap-2 text-muted-foreground">
-                        <Plus className="h-4 w-4" />
-                        Add task
-                      </Button>
-                    </CreateUnifiedTaskDialog>
                   </CardContent>
                 </Card>
               </SortableContext>
