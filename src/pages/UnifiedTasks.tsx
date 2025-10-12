@@ -14,7 +14,9 @@ import {
   Info,
   Sparkles,
   Plus,
-  Wand2
+  Wand2,
+  Target,
+  Grid3x3
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +30,8 @@ import { CreateUnifiedTaskDialog } from "@/components/unified-tasks/CreateUnifie
 import { AISchedulingSettings } from "@/components/unified-tasks/AISchedulingSettings";
 import { UnifiedTasksByMember } from "@/components/unified-tasks/UnifiedTasksByMember";
 import { useUserRole } from "@/hooks/useUserRole";
+import { ObjectivesBoard } from "@/components/objectives/ObjectivesBoard";
+import { ObjectivesList } from "@/components/objectives/ObjectivesList";
 
 interface SystemPreferences {
   active_system: string;
@@ -282,14 +286,22 @@ const UnifiedTasks = () => {
 
         {/* Main Task Views */}
         <Tabs defaultValue="board" className="space-y-6">
-          <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-4' : 'grid-cols-3'} lg:w-[600px]`}>
+          <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-6' : 'grid-cols-4'} lg:w-auto`}>
+            <TabsTrigger value="objectives-board" className="gap-2">
+              <Target className="h-4 w-4" />
+              Objectives
+            </TabsTrigger>
+            <TabsTrigger value="objectives-list" className="gap-2">
+              <Grid3x3 className="h-4 w-4" />
+              List View
+            </TabsTrigger>
             <TabsTrigger value="board" className="gap-2">
               <LayoutDashboard className="h-4 w-4" />
-              Board
+              Tasks
             </TabsTrigger>
             <TabsTrigger value="list" className="gap-2">
               <List className="h-4 w-4" />
-              List
+              Task List
             </TabsTrigger>
             {(role === 'admin' || role === 'partner') && (
               <TabsTrigger value="members" className="gap-2">
@@ -302,6 +314,14 @@ const UnifiedTasks = () => {
               Calendar
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="objectives-board" className="space-y-4">
+            <ObjectivesBoard />
+          </TabsContent>
+
+          <TabsContent value="objectives-list" className="space-y-4">
+            <ObjectivesList />
+          </TabsContent>
 
           <TabsContent value="board" className="space-y-4">
             <UnifiedTaskBoard 

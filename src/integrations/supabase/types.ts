@@ -1228,31 +1228,64 @@ export type Database = {
       }
       club_objectives: {
         Row: {
+          completion_percentage: number | null
           created_at: string
           created_by: string | null
           description: string | null
+          due_date: string | null
+          goals: string | null
+          hard_deadline: string | null
           id: string
+          milestone_type: string | null
+          owners: string[] | null
+          priority: string | null
+          start_date: string | null
           status: string
+          tags: Json | null
+          timeline_notes: string | null
           title: string
           updated_at: string
+          visibility: string | null
         }
         Insert: {
+          completion_percentage?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          due_date?: string | null
+          goals?: string | null
+          hard_deadline?: string | null
           id?: string
+          milestone_type?: string | null
+          owners?: string[] | null
+          priority?: string | null
+          start_date?: string | null
           status?: string
+          tags?: Json | null
+          timeline_notes?: string | null
           title: string
           updated_at?: string
+          visibility?: string | null
         }
         Update: {
+          completion_percentage?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          due_date?: string | null
+          goals?: string | null
+          hard_deadline?: string | null
           id?: string
+          milestone_type?: string | null
+          owners?: string[] | null
+          priority?: string | null
+          start_date?: string | null
           status?: string
+          tags?: Json | null
+          timeline_notes?: string | null
           title?: string
           updated_at?: string
+          visibility?: string | null
         }
         Relationships: []
       }
@@ -3341,6 +3374,89 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      objective_activities: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          created_at: string | null
+          id: string
+          objective_id: string
+          user_id: string | null
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          objective_id: string
+          user_id?: string | null
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          objective_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objective_activities_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "club_objectives"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      objective_comments: {
+        Row: {
+          comment: string
+          created_at: string | null
+          id: string
+          mentioned_users: string[] | null
+          objective_id: string
+          parent_comment_id: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string | null
+          id?: string
+          mentioned_users?: string[] | null
+          objective_id: string
+          parent_comment_id?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string | null
+          id?: string
+          mentioned_users?: string[] | null
+          objective_id?: string
+          parent_comment_id?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objective_comments_objective_id_fkey"
+            columns: ["objective_id"]
+            isOneToOne: false
+            referencedRelation: "club_objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objective_comments_parent_comment_id_fkey"
+            columns: ["parent_comment_id"]
+            isOneToOne: false
+            referencedRelation: "objective_comments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       phone_verifications: {
         Row: {
@@ -6991,6 +7107,10 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_objective_completion: {
+        Args: { objective_uuid: string }
+        Returns: number
+      }
       calculate_post_score: {
         Args: {
           p_comments_count: number
