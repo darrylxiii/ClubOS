@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,17 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, conversationId, userId } = await req.json();
+    // Validate input
+    const requestSchema = z.object({
+      messages: z.array(z.object({
+        role: z.enum(['user', 'assistant', 'system']),
+        content: z.string().min(1).max(10000)
+      })).min(1).max(50),
+      conversationId: z.string().uuid().optional(),
+      userId: z.string().uuid()
+    });
+
+    const { messages, conversationId, userId } = requestSchema.parse(await req.json());
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {

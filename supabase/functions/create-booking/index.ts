@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +14,19 @@ serve(async (req) => {
   }
 
   try {
+    // Validate input
+    const bookingSchema = z.object({
+      bookingLinkSlug: z.string().min(1).max(100),
+      guestName: z.string().min(1).max(200),
+      guestEmail: z.string().email().max(255),
+      guestPhone: z.string().max(50).optional(),
+      scheduledStart: z.string().datetime(),
+      scheduledEnd: z.string().datetime(),
+      timezone: z.string().min(1).max(100),
+      customResponses: z.record(z.any()).optional(),
+      notes: z.string().max(1000).optional()
+    });
+
     const {
       bookingLinkSlug,
       guestName,
@@ -23,7 +37,7 @@ serve(async (req) => {
       timezone,
       customResponses,
       notes,
-    } = await req.json();
+    } = bookingSchema.parse(await req.json());
 
     // Use service role to bypass RLS for secure booking creation
     const supabaseClient = createClient(
