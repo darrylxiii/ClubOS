@@ -41,11 +41,12 @@ export function YouTubePicker({ onSelect }: YouTubePickerProps) {
       <PopoverTrigger asChild>
         <Button 
           variant="ghost" 
-          size="icon" 
-          className="flex-shrink-0 hover:bg-accent/50"
+          size="sm" 
+          className="gap-2 whitespace-nowrap h-9 flex-shrink-0"
           title="Share YouTube video"
         >
-          <Youtube className="h-5 w-5 text-red-600" />
+          <Youtube className="h-4 w-4 text-red-600" />
+          YouTube
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-4 glass-card" align="end">

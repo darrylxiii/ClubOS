@@ -34,6 +34,7 @@ import { AlgorithmTransparency } from "./AlgorithmTransparency";
 import { PostPinning } from "./PostPinning";
 import { RepostButton } from "./RepostButton";
 import { EditPostDialog } from "./EditPostDialog";
+import { YouTubeEmbed } from "@/components/messages/YouTubeEmbed";
 
 interface PostCardProps {
   post: any;
@@ -460,7 +461,9 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 
                 return (
                   <div key={index} className="relative">
-                    {media.type === 'image' ? (
+                    {media.type === 'youtube' ? (
+                      <YouTubeEmbed videoId={media.videoId} />
+                    ) : media.type === 'image' ? (
                       <LazyMedia
                         src={media.url}
                         alt={media.name || `Media ${index + 1}`}

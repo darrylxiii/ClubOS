@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal } from "lucide-react";
+import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal, Youtube } from "lucide-react";
 import { CreatePoll } from "./PollPost";
 import { toast } from "@/hooks/use-toast";
 import { MediaEditor } from "./MediaEditor";
@@ -15,6 +15,8 @@ import { AudiencePickerModal } from "@/components/audience/AudiencePickerModal";
 import { ContentOptionsDialog } from "./ContentOptionsDialog";
 import { RichTextEditor } from "./RichTextEditor";
 import { validatePostMediaFile } from "@/lib/fileValidation";
+import { YouTubePicker } from "@/components/messages/YouTubePicker";
+import { extractYouTubeVideoId, containsYouTubeUrl } from "@/lib/youtubeUtils";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -41,6 +43,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [showContentModal, setShowContentModal] = useState(false);
   const [contentMenuOpen, setContentMenuOpen] = useState(false);
   const [audienceMenuOpen, setAudienceMenuOpen] = useState(false);
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -192,6 +196,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     }
   };
 
+  const handleYouTubeSelect = (videoId: string, url: string) => {
+    setYoutubeVideoId(videoId);
+    setYoutubeUrl(url);
+  };
+
   const handlePost = async () => {
     if (!content.trim() || !user) return;
 
@@ -204,6 +213,18 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         content: content.trim(),
         media_urls: mediaUrls
       };
+
+      // Add YouTube video if exists
+      if (youtubeVideoId && youtubeUrl) {
+        postData.media_urls = [
+          ...mediaUrls,
+          {
+            url: youtubeUrl,
+            type: 'youtube',
+            videoId: youtubeVideoId
+          }
+        ];
+      }
 
       // Add poll data if exists
       if (pollData) {
@@ -231,6 +252,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setPreviews([]);
       setPollData(null);
       setShowPollCreator(false);
+      setYoutubeVideoId(null);
+      setYoutubeUrl(null);
       toast({
         title: "Posted successfully",
         description: "Your post is now live on the feed."
@@ -266,7 +289,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             className="border-none"
           />
 
-          {previews.length > 0 && (
+          {(previews.length > 0 || youtubeVideoId) && (
             <div className="grid grid-cols-2 gap-2 mt-3">
               {previews.map((preview, index) => (
                 <div key={index} className="relative group">
@@ -299,6 +322,33 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   </Button>
                 </div>
               ))}
+              {youtubeVideoId && (
+                <div className="relative group col-span-2">
+                  <div className="relative rounded-lg overflow-hidden bg-muted">
+                    <img
+                      src={`https://img.youtube.com/vi/${youtubeVideoId}/hqdefault.jpg`}
+                      alt="YouTube video"
+                      className="w-full aspect-video object-cover"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                      <div className="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center">
+                        <Youtube className="h-6 w-6 text-white" />
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => {
+                      setYoutubeVideoId(null);
+                      setYoutubeUrl(null);
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           )}
 
@@ -389,6 +439,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       <Video className="w-4 h-4" />
                       Video
                     </Button>
+                    
+                    <YouTubePicker onSelect={handleYouTubeSelect} />
                     
                     <Button 
                       variant="ghost" 
