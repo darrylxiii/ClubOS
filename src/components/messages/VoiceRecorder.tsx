@@ -126,42 +126,44 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
 
   if (isRecording) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2 glass-strong rounded-lg border border-border/50 animate-fade-in">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="relative">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-            <div className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping" />
+      <div className="fixed bottom-20 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50">
+        <div className="flex items-center gap-2 px-4 py-3 glass-strong rounded-xl border border-border/50 animate-fade-in shadow-lg">
+          <div className="flex items-center gap-2 flex-1">
+            <div className="relative">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+              <div className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping" />
+            </div>
+            <span className="text-sm font-mono text-primary">{formatDuration(duration)}</span>
+            <div className="flex-1 h-8 flex items-center gap-0.5">
+              {Array.from({ length: 15 }).map((_, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "w-1 bg-primary/50 rounded-full transition-all",
+                    isRecording && Math.random() > 0.5 ? "h-6" : "h-2"
+                  )}
+                  style={{ animationDelay: `${i * 50}ms` }}
+                />
+              ))}
+            </div>
           </div>
-          <span className="text-sm font-mono text-primary">{formatDuration(duration)}</span>
-          <div className="flex-1 h-8 flex items-center gap-0.5">
-            {Array.from({ length: 20 }).map((_, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "w-1 bg-primary/50 rounded-full transition-all",
-                  isRecording && Math.random() > 0.5 ? "h-6" : "h-2"
-                )}
-                style={{ animationDelay: `${i * 50}ms` }}
-              />
-            ))}
-          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCancel}
+            className="hover:bg-destructive/20 hover:text-destructive h-9 w-9"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+          <Button
+            onClick={handleSend}
+            disabled={uploading}
+            size="icon"
+            className="bg-gradient-accent shadow-glass-md h-9 w-9"
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleCancel}
-          className="hover:bg-destructive/20 hover:text-destructive"
-        >
-          <Trash2 className="h-5 w-5" />
-        </Button>
-        <Button
-          onClick={handleSend}
-          disabled={uploading}
-          size="icon"
-          className="bg-gradient-accent shadow-glass-md"
-        >
-          {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-        </Button>
       </div>
     );
   }
@@ -171,10 +173,10 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       variant="ghost"
       size="icon"
       onClick={startRecording}
-      className="flex-shrink-0 hover:bg-accent/50"
+      className="flex-shrink-0 hover:bg-accent/50 h-8 w-8 p-0"
       title="Record voice note"
     >
-      <Mic className="h-5 w-5" />
+      <Mic className="h-4 w-4" />
     </Button>
   );
 };

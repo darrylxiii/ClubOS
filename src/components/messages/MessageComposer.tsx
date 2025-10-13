@@ -164,9 +164,9 @@ export const MessageComposer = ({
   };
 
   return (
-    <div className="bg-background p-3 md:p-4">
+    <div className="bg-background p-3 md:p-4 border-t border-border/20">
       {attachment && (
-        <div className="mb-2 flex items-center gap-2 text-xs sm:text-sm font-medium bg-muted/50 p-2 sm:p-3 rounded-lg border border-border/20">
+        <div className="mb-3 flex items-center gap-2 text-xs sm:text-sm font-medium bg-muted/50 p-2 sm:p-3 rounded-lg border border-border/20">
           <Paperclip className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
           <span className="truncate text-foreground">{attachment.name}</span>
           <Button
@@ -180,7 +180,8 @@ export const MessageComposer = ({
         </div>
       )}
 
-      <div className="flex items-end gap-2">
+      {/* Controls row - above the message input */}
+      <div className="flex items-center gap-1 mb-3 pb-3 border-b border-border/10">
         <input
           type="file"
           ref={fileInputRef}
@@ -194,69 +195,76 @@ export const MessageComposer = ({
           size="icon"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || sending}
-          className="flex-shrink-0 rounded-lg h-10 w-10"
+          className="flex-shrink-0 rounded-lg h-9 w-9 hover:bg-muted"
           title="Attach file"
         >
-          <Paperclip className="h-5 w-5" />
+          <Paperclip className="h-4 w-4" />
         </Button>
 
         <EnhancedEmojiPicker onSelect={handleEmojiSelect} />
         
         <GifPicker onSelect={handleGifSelect} />
 
-              <YouTubePicker onSelect={handleYouTubeSelect} />
-              
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-9 w-9 p-0"
-                    disabled={disabled}
-                  >
-                    <Music className="h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-sm">Share Spotify</h4>
-                    <p className="text-xs text-muted-foreground">
-                      Paste a Spotify link (song, album, playlist, or podcast)
-                    </p>
-                    <Input
-                      placeholder="https://open.spotify.com/track/..."
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          handleSpotifySelect(e.currentTarget.value);
-                          e.currentTarget.value = '';
-                        }
-                      }}
-                    />
-                  </div>
-                </PopoverContent>
-              </Popover>
+        <YouTubePicker onSelect={handleYouTubeSelect} />
+        
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="h-9 w-9 rounded-lg hover:bg-muted"
+              disabled={disabled}
+              title="Share Spotify"
+            >
+              <Music className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80">
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">Share Spotify</h4>
+              <p className="text-xs text-muted-foreground">
+                Paste a Spotify link (song, album, playlist, or podcast)
+              </p>
+              <Input
+                placeholder="https://open.spotify.com/track/..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    handleSpotifySelect(e.currentTarget.value);
+                    e.currentTarget.value = '';
+                  }
+                }}
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
 
-        <VoiceRecorder onSend={handleVoiceSend} />
-
-        <Textarea
-          value={message}
-          onChange={(e) => {
-            setMessage(e.target.value);
-            onTyping?.();
-          }}
-          onKeyDown={handleKeyDown}
-          placeholder="Type a message (Enter to send, Shift+Enter for new line)..."
-          disabled={disabled || sending}
-          className="min-h-[42px] max-h-32 resize-none bg-muted/30 border-border/20 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm px-3 py-2"
-          rows={1}
-        />
+      {/* Message input row with voice note inside */}
+      <div className="flex items-end gap-2">
+        <div className="flex-1 relative">
+          <div className="absolute left-3 bottom-2.5 z-10">
+            <VoiceRecorder onSend={handleVoiceSend} />
+          </div>
+          <Textarea
+            value={message}
+            onChange={(e) => {
+              setMessage(e.target.value);
+              onTyping?.();
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            disabled={disabled || sending}
+            className="min-h-[42px] max-h-32 resize-none bg-muted/30 border-border/20 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm pl-12 pr-3 py-2.5"
+            rows={1}
+          />
+        </div>
 
         <Button
           onClick={handleSend}
           disabled={disabled || sending || (!message.trim() && !attachment)}
           size="icon"
-          className="flex-shrink-0 h-10 w-10 rounded-lg bg-primary"
+          className="flex-shrink-0 h-10 w-10 rounded-xl bg-primary hover:bg-primary/90"
         >
           {sending ? (
             <Loader2 className="h-5 w-5 animate-spin" />
