@@ -1,7 +1,7 @@
 import { useState, useEffect, ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 import quantumClubLogo from "@/assets/quantum-club-logo.png";
-import quantumClubLogoLight from "@/assets/quantum-logo-light.png";
+import quantumClubLogoDark from "@/assets/quantum-logo-dark.png";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -264,7 +264,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         
         <div className="absolute left-1/2 -translate-x-1/2">
           <img 
-            src={quantumClubLogoLight} 
+            src={quantumClubLogoDark} 
             alt="Quantum Club" 
             className="h-9 w-auto dark:block hidden" 
           />
