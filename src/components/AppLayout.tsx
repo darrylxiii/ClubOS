@@ -285,13 +285,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col pt-16",
-          location.pathname === '/messages' ? "pb-24" : "",
+          "fixed top-16 bottom-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
 
-        <nav className="flex-1 overflow-y-auto py-6 px-3 mt-2">
+        <nav className="flex-1 overflow-y-auto py-6 px-3">
           <div className="space-y-3">
             {navigationGroups.map((group) => (
               <NavigationGroup
