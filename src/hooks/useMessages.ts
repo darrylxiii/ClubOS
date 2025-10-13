@@ -10,6 +10,7 @@ export interface Message {
   content: string;
   message_type: 'text' | 'system' | 'ai_generated' | 'escalation';
   is_read: boolean;
+  read_at?: string | null;
   metadata: any;
   created_at: string;
   updated_at: string;

@@ -196,10 +196,16 @@ export const MessageBubble = ({
             >
               {renderContent()}
 
-              {/* Read receipt for current user */}
+              {/* Read receipt with timestamp for current user */}
               {isCurrentUser && (
-                <div className="flex items-center justify-end gap-1 mt-1.5">
-                  {message.is_read ? (
+                <div className="flex items-center justify-end gap-1.5 mt-1.5">
+                  <span className="text-[10px] text-white/60">
+                    {message.read_at 
+                      ? `Read ${format(new Date(message.read_at), "HH:mm")}`
+                      : 'Sent'
+                    }
+                  </span>
+                  {message.read_at ? (
                     <CheckCheck className="h-3.5 w-3.5 text-white/90" />
                   ) : (
                     <Check className="h-3.5 w-3.5 text-white/60" />

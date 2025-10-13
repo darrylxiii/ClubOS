@@ -173,7 +173,7 @@ export const VoiceRecorder = ({ onSend }: VoiceRecorderProps) => {
       variant="ghost"
       size="icon"
       onClick={startRecording}
-      className="flex-shrink-0 hover:bg-accent/50 h-8 w-8 p-0"
+      className="flex-shrink-0 hover:bg-accent/50 h-9 w-9 p-0 rounded-lg"
       title="Record voice note"
     >
       <Mic className="h-4 w-4" />

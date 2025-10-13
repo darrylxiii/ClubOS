@@ -3263,6 +3263,7 @@ export type Database = {
           pinned_at: string | null
           pinned_by: string | null
           priority: string | null
+          read_at: string | null
           reply_count: number | null
           sender_id: string
           sentiment_score: number | null
@@ -3288,6 +3289,7 @@ export type Database = {
           pinned_at?: string | null
           pinned_by?: string | null
           priority?: string | null
+          read_at?: string | null
           reply_count?: number | null
           sender_id: string
           sentiment_score?: number | null
@@ -3313,6 +3315,7 @@ export type Database = {
           pinned_at?: string | null
           pinned_by?: string | null
           priority?: string | null
+          read_at?: string | null
           reply_count?: number | null
           sender_id?: string
           sentiment_score?: number | null

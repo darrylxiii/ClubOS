@@ -260,7 +260,7 @@ export const MessageComposer = ({
       {/* Message input row with voice note inside */}
       <div className="flex items-end gap-2">
         <div className="flex-1 relative">
-          <div className="absolute left-3 bottom-2.5 z-10">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
             <VoiceRecorder onSend={handleVoiceSend} />
           </div>
           <Textarea
