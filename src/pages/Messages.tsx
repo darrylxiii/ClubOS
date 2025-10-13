@@ -169,11 +169,11 @@ export default function Messages() {
       </div>
 
       {/* Main Chat Panel */}
-      <div className="flex-1 flex flex-col min-w-0 relative h-full">
+      <div className="flex-1 flex flex-col min-w-0 relative">
         {selectedConversationId && selectedConversation ? (
           <>
-            {/* Chat Header - Sticky */}
-            <div className="sticky top-0 z-20 h-16 border-b border-border/20 bg-background/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between flex-shrink-0">
+            {/* Chat Header - Fixed */}
+            <div className="flex-shrink-0 h-16 border-b border-border/20 bg-background/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <Button
                   variant="ghost"
@@ -263,8 +263,8 @@ export default function Messages() {
             </div>
 
             {/* Message Composer - Fixed at Bottom */}
-            <div className="sticky bottom-0 left-0 right-0 flex-shrink-0 z-20 border-t border-border/20 bg-background shadow-lg">
-              <MessageComposer 
+            <div className="flex-shrink-0 border-t border-border/20 bg-background">
+              <MessageComposer
                 conversationId={selectedConversationId} 
                 onSend={handleSendMessage} 
                 onTyping={broadcastTyping} 
