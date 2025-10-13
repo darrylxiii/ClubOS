@@ -25,6 +25,8 @@ import { GroupInfoPanel } from '@/components/messages/GroupInfoPanel';
 import { VideoCallLauncher } from '@/components/messages/VideoCallLauncher';
 import { AudioCallLauncher } from '@/components/messages/AudioCallLauncher';
 import { UnreadBadge } from '@/components/messages/UnreadBadge';
+import { MessageEditor } from '@/components/messages/MessageEditor';
+import { ThreadView } from '@/components/messages/ThreadView';
 import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -38,6 +40,9 @@ export default function Messages() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showGroupInfo, setShowGroupInfo] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(true);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [threadParentMessageId, setThreadParentMessageId] = useState<string | null>(null);
+  const [showThreadView, setShowThreadView] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -48,6 +53,7 @@ export default function Messages() {
     typingUsers,
     sendMessage,
     loadConversations,
+    loadMessages,
     broadcastTyping,
   } = useMessages(selectedConversationId || undefined);
 
@@ -224,12 +230,32 @@ export default function Messages() {
             <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
               <div className="space-y-3 pb-24">
                 {messages.map((msg) => (
-                  <MessageBubble 
-                    key={msg.id} 
-                    message={msg} 
-                    isCurrentUser={msg.sender_id === user?.id} 
-                    isGroup={isGroup} 
-                  />
+                  editingMessageId === msg.id ? (
+                    <div key={msg.id} className="px-4">
+                      <MessageEditor
+                        messageId={msg.id}
+                        currentContent={msg.content}
+                        onSave={() => {
+                          setEditingMessageId(null);
+                          loadMessages();
+                        }}
+                        onCancel={() => setEditingMessageId(null)}
+                      />
+                    </div>
+                  ) : (
+                    <MessageBubble 
+                      key={msg.id} 
+                      message={msg} 
+                      isCurrentUser={msg.sender_id === user?.id} 
+                      isGroup={isGroup}
+                      onEdit={() => setEditingMessageId(msg.id)}
+                      onReply={() => {
+                        setThreadParentMessageId(msg.id);
+                        setShowThreadView(true);
+                      }}
+                      onDelete={() => loadMessages()}
+                    />
+                  )
                 ))}
                 {typingUsers.length > 0 && <TypingIndicator typingUsers={typingUsers} />}
                 <div ref={messagesEndRef} />
@@ -294,6 +320,15 @@ export default function Messages() {
           confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); 
         }} 
       />
+
+      {selectedConversationId && (
+        <ThreadView
+          parentMessageId={threadParentMessageId}
+          conversationId={selectedConversationId}
+          open={showThreadView}
+          onOpenChange={setShowThreadView}
+        />
+      )}
     </AppLayout>
   );
 }

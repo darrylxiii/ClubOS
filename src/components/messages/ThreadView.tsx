@@ -10,6 +10,8 @@ import { Send } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { MessageEditor } from './MessageEditor';
+import { MessageActions } from './MessageActions';
 
 interface ThreadViewProps {
   parentMessageId: string | null;
@@ -24,6 +26,7 @@ export function ThreadView({ parentMessageId, conversationId, open, onOpenChange
   const [parentMessage, setParentMessage] = useState<any>(null);
   const [replyContent, setReplyContent] = useState('');
   const [sending, setSending] = useState(false);
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (parentMessageId && open) {
@@ -108,22 +111,53 @@ export function ThreadView({ parentMessageId, conversationId, open, onOpenChange
           <div className="space-y-3">
             {replies.map((reply) => {
               const isOwn = reply.sender_id === user?.id;
+              
+              if (editingReplyId === reply.id) {
+                return (
+                  <div key={reply.id} className="px-2">
+                    <MessageEditor
+                      messageId={reply.id}
+                      currentContent={reply.content}
+                      onSave={() => {
+                        setEditingReplyId(null);
+                        loadThread();
+                      }}
+                      onCancel={() => setEditingReplyId(null)}
+                    />
+                  </div>
+                );
+              }
+              
               return (
-                <div key={reply.id} className={cn('flex gap-3', isOwn && 'flex-row-reverse')}>
+                <div key={reply.id} className={cn('flex gap-3 group', isOwn && 'flex-row-reverse')}>
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={reply.sender?.avatar_url} />
                     <AvatarFallback>{reply.sender?.full_name?.charAt(0) || 'U'}</AvatarFallback>
                   </Avatar>
-                  <div
-                    className={cn(
-                      'rounded-lg p-3 max-w-[80%]',
-                      isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                    )}
-                  >
-                    <p className="text-sm">{reply.content}</p>
-                    <div className={cn('text-xs mt-1', isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                      {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                  <div className="flex-1 max-w-[80%]">
+                    <div
+                      className={cn(
+                        'rounded-lg p-3',
+                        isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                      )}
+                    >
+                      <p className="text-sm">{reply.content}</p>
+                      <div className={cn('text-xs mt-1', isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                        {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                        {reply.edited_at && <span className="ml-2">(edited)</span>}
+                      </div>
                     </div>
+                    {isOwn && (
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity mt-1">
+                        <MessageActions
+                          message={reply}
+                          isOwnMessage={true}
+                          onEdit={() => setEditingReplyId(reply.id)}
+                          onReply={() => {}}
+                          onDelete={loadThread}
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
               );
