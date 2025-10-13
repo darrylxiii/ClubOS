@@ -156,7 +156,7 @@ export const MessageBubble = ({
       )}
 
       {/* Avatar with online status */}
-      <div className="relative">
+      <div className="relative h-11 w-11 flex-shrink-0">
         <Avatar 
           className="h-11 w-11 cursor-pointer shadow-glass-md ring-2 ring-background hover:ring-primary/60 hover:scale-105 transition-all duration-200"
           onClick={() => navigate(`/profile/${message.sender_id}`)}
