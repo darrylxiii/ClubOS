@@ -67,13 +67,62 @@ serve(async (req) => {
         ? companyMember?.companies[0] 
         : companyMember?.companies;
 
-      // Get applications data
+      // Get applications data with full details
       const { data: applications } = await supabase
         .from("applications")
-        .select("*, jobs(title, company_name)")
+        .select(`
+          id,
+          position,
+          company_name,
+          status,
+          current_stage_index,
+          created_at,
+          updated_at,
+          stages,
+          jobs(id, title, company_name, description, location, employment_type)
+        `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
+        .limit(15);
+
+      // Get tasks
+      const { data: tasks } = await supabase
+        .from("unified_tasks")
+        .select("*")
+        .eq("assigned_to", userId)
+        .order("created_at", { ascending: false })
         .limit(10);
+
+      // Get objectives
+      const { data: objectives } = await supabase
+        .from("club_objectives")
+        .select("*")
+        .or(`created_by.eq.${userId},owners.cs.{${userId}}`)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      // Get bookings
+      const { data: bookings } = await supabase
+        .from("bookings")
+        .select(`
+          id,
+          status,
+          scheduled_start,
+          scheduled_end,
+          booking_links(title, description)
+        `)
+        .eq("user_id", userId)
+        .gte("scheduled_start", new Date().toISOString())
+        .order("scheduled_start", { ascending: true })
+        .limit(5);
+
+      // Get jobs user might be interested in
+      const { data: availableJobs } = await supabase
+        .from("jobs")
+        .select("id, title, company_name, location, employment_type, created_at")
+        .eq("is_active", true)
+        .order("created_at", { ascending: false })
+        .limit(5);
 
       // Get profile strength
       const { data: profileStrength } = await supabase
@@ -111,8 +160,38 @@ Website: ${companyData.website_url || "Not specified"}
 
 === RECENT APPLICATIONS ===
 ${applications && applications.length > 0 ? 
-  applications.map(app => `- ${app.jobs?.title || app.position} at ${app.jobs?.company_name || app.company_name} (Status: ${app.status}, Stage: ${app.current_stage_index + 1})`).join("\n")
+  applications.map(app => {
+    const stageName = app.stages?.[app.current_stage_index]?.name || "Unknown";
+    const jobData = Array.isArray(app.jobs) ? app.jobs[0] : app.jobs;
+    return `- ${jobData?.title || app.position} at ${jobData?.company_name || app.company_name}
+  Status: ${app.status} | Stage: ${stageName} (${app.current_stage_index + 1}/${app.stages?.length || 0})
+  Applied: ${new Date(app.created_at).toLocaleDateString()}`;
+  }).join("\n")
   : "No recent applications"}
+
+=== TASKS & OBJECTIVES ===
+Tasks (${tasks?.length || 0} active):
+${tasks && tasks.length > 0 ?
+  tasks.map(t => `- ${t.title} (${t.status}) - Priority: ${t.priority}`).join("\n")
+  : "No active tasks"}
+
+Objectives (${objectives?.length || 0}):
+${objectives && objectives.length > 0 ?
+  objectives.map(o => `- ${o.title} (${o.status}) - ${o.completion_percentage}% complete`).join("\n")
+  : "No active objectives"}
+
+=== UPCOMING BOOKINGS ===
+${bookings && bookings.length > 0 ?
+  bookings.map(b => {
+    const linkData = Array.isArray(b.booking_links) ? b.booking_links[0] : b.booking_links;
+    return `- ${linkData?.title || "Meeting"} on ${new Date(b.scheduled_start).toLocaleString()}`;
+  }).join("\n")
+  : "No upcoming bookings"}
+
+=== AVAILABLE OPPORTUNITIES ===
+${availableJobs && availableJobs.length > 0 ?
+  availableJobs.map(j => `- ${j.title} at ${j.company_name} (${j.location || "Remote"})`).join("\n")
+  : "No new opportunities available"}
 
 Use this context to provide personalized, relevant guidance. Reference specific details when appropriate.`;
     }
@@ -122,6 +201,31 @@ Use this context to provide personalized, relevant guidance. Reference specific 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    // Define available tools for the AI
+    const tools = [
+      {
+        type: "function",
+        function: {
+          name: "navigate_to_page",
+          description: "Navigate the user to a specific page in The Quantum Club app. Use this when you need to redirect the user.",
+          parameters: {
+            type: "object",
+            properties: {
+              path: {
+                type: "string",
+                description: "The route path to navigate to (e.g., '/admin/companies', '/jobs', '/applications', '/settings')"
+              },
+              reason: {
+                type: "string",
+                description: "Brief explanation of why you're navigating them here"
+              }
+            },
+            required: ["path", "reason"]
+          }
+        }
+      }
+    ];
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -136,9 +240,15 @@ Use this context to provide personalized, relevant guidance. Reference specific 
             role: "system",
             content: `You are Club AI, an in-app copilot for The Quantum Club. Your job is to provide professional, highly actionable, and deeply human guidance to users based on all available in-app information. You always operate with the latest context and are aware of user role (Candidate, Partner, Admin) and permissions.
 
-For any sensitive or impactful action (accessing profile, changing settings, sending data, etc.), always show a visible and friendly "Confirm" button (do not accept typed "yes" as approval—users must tap/click to proceed).
+IMPORTANT NAVIGATION CAPABILITIES:
+- You can navigate users to any page using the navigate_to_page function
+- When confirming actions that require navigation, use the tool AFTER user confirms
+- Show step-by-step progress for multi-step workflows
+- Format progress as: "Step X of Y: Description... ✅" when complete
 
-When processing or running actions, always show a clear loading indicator or message (e.g., "I'm checking your saved jobs and settings... please hold on" or explain each step for transparency).
+For any sensitive or impactful action (accessing profile, changing settings, sending data, etc.), always show a visible and friendly "Confirm" button (use <button>Confirm</button> in your response).
+
+When processing or running actions, always show clear step-by-step feedback with checkmarks (✅) for completed steps.
 
 Never simply echo or repeat prompts—respond in a warm, conversational, and professional tone, explaining your reasoning and adding value with suggestions, summaries, or bite-sized tips.
 
@@ -146,13 +256,14 @@ Guide users actively: clarify broad requests, propose next steps, and when confu
 
 At the end of any suggested action, restate what will happen, then show the "Confirm" button.
 
-After any "Confirm" button is clicked, continue to provide step-by-step feedback ("Step 1 of 3: Loading your application data…✅ Step 2 of 3: Reviewing your profile and history…").
+After any "Confirm" button is clicked, continue to provide step-by-step feedback and use navigation tools when appropriate.
 
-You must always feel attentive, proactive, privacy-aware, and trustworthy—never robotic. If you need a moment for data processing, let users know and keep them updated on your progress.
+You must always feel attentive, proactive, privacy-aware, and trustworthy—never robotic.
 ${userContext}`
           },
           ...messages,
         ],
+        tools: tools,
         stream: true,
       }),
     });

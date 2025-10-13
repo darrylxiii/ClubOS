@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,10 +28,16 @@ interface Message {
   content: string;
   needsConfirmation?: boolean;
   confirmationMessage?: string;
+  action?: {
+    type: "navigate";
+    path: string;
+    reason: string;
+  };
 }
 
 const ClubAI = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -109,9 +116,28 @@ const ClubAI = () => {
     let assistantContent = "";
     let needsConfirmation = false;
     let confirmationMessage = "";
+    let pendingToolCalls: any[] = [];
 
-    const updateAssistant = (chunk: string) => {
+    const updateAssistant = (chunk: string, toolCalls?: any) => {
       assistantContent += chunk;
+      
+      // Handle tool calls
+      if (toolCalls && Array.isArray(toolCalls)) {
+        toolCalls.forEach((tc: any) => {
+          if (tc.function?.name === "navigate_to_page") {
+            try {
+              const args = JSON.parse(tc.function.arguments || "{}");
+              pendingToolCalls.push({
+                type: "navigate",
+                path: args.path,
+                reason: args.reason
+              });
+            } catch (e) {
+              console.error("Failed to parse tool call:", e);
+            }
+          }
+        });
+      }
       
       // Check if the message contains confirmation markers
       if (assistantContent.toLowerCase().includes("<button>confirm</button>") || 
@@ -133,6 +159,8 @@ const ClubAI = () => {
       
       setMessages((prev) => {
         const last = prev[prev.length - 1];
+        const action = pendingToolCalls.length > 0 ? pendingToolCalls[0] : undefined;
+        
         if (last?.role === "assistant") {
           return prev.map((m, i) =>
             i === prev.length - 1 
@@ -140,7 +168,8 @@ const ClubAI = () => {
                   ...m, 
                   content: cleanContent,
                   needsConfirmation,
-                  confirmationMessage: confirmationMessage || cleanContent
+                  confirmationMessage: confirmationMessage || cleanContent,
+                  action
                 } 
               : m
           );
@@ -149,7 +178,8 @@ const ClubAI = () => {
           role: "assistant", 
           content: cleanContent,
           needsConfirmation,
-          confirmationMessage: confirmationMessage || cleanContent
+          confirmationMessage: confirmationMessage || cleanContent,
+          action
         }];
       });
     };
@@ -180,7 +210,7 @@ const ClubAI = () => {
   }: {
     messages: Message[];
     userId?: string;
-    onDelta: (chunk: string) => void;
+    onDelta: (chunk: string, toolCall?: any) => void;
     onDone: () => void;
   }) => {
     const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/club-ai-chat`;
@@ -244,7 +274,10 @@ const ClubAI = () => {
         try {
           const parsed = JSON.parse(jsonStr);
           const content = parsed.choices?.[0]?.delta?.content;
+          const toolCalls = parsed.choices?.[0]?.delta?.tool_calls;
+          
           if (content) onDelta(content);
+          if (toolCalls) onDelta("", toolCalls);
         } catch {
           textBuffer = line + "\n" + textBuffer;
           break;
@@ -458,8 +491,29 @@ const ClubAI = () => {
                   setIsLoading(true);
                   
                   let assistantContent = "";
-                  const updateAssistant = (chunk: string) => {
+                  let pendingToolCalls: any[] = [];
+                  
+                  const updateAssistant = (chunk: string, toolCalls?: any) => {
                     assistantContent += chunk;
+                    
+                    // Handle tool calls
+                    if (toolCalls && Array.isArray(toolCalls)) {
+                      toolCalls.forEach((tc: any) => {
+                        if (tc.function?.name === "navigate_to_page") {
+                          try {
+                            const args = JSON.parse(tc.function.arguments || "{}");
+                            pendingToolCalls.push({
+                              type: "navigate",
+                              path: args.path,
+                              reason: args.reason
+                            });
+                          } catch (e) {
+                            console.error("Failed to parse tool call:", e);
+                          }
+                        }
+                      });
+                    }
+                    
                     const cleanContent = assistantContent
                       .replace(/<button>confirm<\/button>/gi, "")
                       .replace(/\*\*Confirm\*\*/gi, "")
@@ -467,12 +521,14 @@ const ClubAI = () => {
                     
                     setMessages((prev) => {
                       const last = prev[prev.length - 1];
+                      const action = pendingToolCalls.length > 0 ? pendingToolCalls[0] : undefined;
+                      
                       if (last?.role === "assistant") {
                         return prev.map((m, i) =>
-                          i === prev.length - 1 ? { ...m, content: cleanContent } : m
+                          i === prev.length - 1 ? { ...m, content: cleanContent, action } : m
                         );
                       }
-                      return [...prev, { role: "assistant", content: cleanContent }];
+                      return [...prev, { role: "assistant", content: cleanContent, action }];
                     });
                   };
                   
@@ -481,7 +537,21 @@ const ClubAI = () => {
                       messages: [...messages, confirmMessage],
                       userId: user?.id,
                       onDelta: updateAssistant,
-                      onDone: () => setIsLoading(false),
+                      onDone: () => {
+                        setIsLoading(false);
+                        
+                        // Check if last message has navigation action
+                        setMessages((prev) => {
+                          const lastMsg = prev[prev.length - 1];
+                          if (lastMsg?.action?.type === "navigate") {
+                            // Navigate after a brief delay to show completion
+                            setTimeout(() => {
+                              navigate(lastMsg.action!.path);
+                            }, 1500);
+                          }
+                          return prev;
+                        });
+                      },
                     });
                   } catch (error) {
                     console.error("Error after confirmation:", error);
