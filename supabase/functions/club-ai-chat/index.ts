@@ -19,7 +19,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch comprehensive user data
+    // Fetch comprehensive user data - EVERYTHING in the platform
     let userContext = "";
     
     if (userId) {
@@ -79,7 +79,7 @@ serve(async (req) => {
           created_at,
           updated_at,
           stages,
-          jobs(id, title, company_name, description, location, employment_type)
+          jobs(id, title, description, location, employment_type)
         `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
@@ -89,7 +89,6 @@ serve(async (req) => {
       const { data: tasks } = await supabase
         .from("unified_tasks")
         .select("*")
-        .eq("assigned_to", userId)
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -99,7 +98,7 @@ serve(async (req) => {
         .select("*")
         .or(`created_by.eq.${userId},owners.cs.{${userId}}`)
         .order("created_at", { ascending: false })
-        .limit(5);
+        .limit(10);
 
       // Get bookings
       const { data: bookings } = await supabase
@@ -119,10 +118,10 @@ serve(async (req) => {
       // Get jobs user might be interested in
       const { data: availableJobs } = await supabase
         .from("jobs")
-        .select("id, title, company_name, location, employment_type, created_at")
+        .select("id, title, location, employment_type, created_at")
         .eq("is_active", true)
         .order("created_at", { ascending: false })
-        .limit(5);
+        .limit(10);
 
       // Get profile strength
       const { data: profileStrength } = await supabase
@@ -130,6 +129,141 @@ serve(async (req) => {
         .select("*")
         .eq("user_id", userId)
         .maybeSingle();
+
+      // === SOCIAL DATA ===
+      
+      // Get user's posts
+      const { data: userPosts } = await supabase
+        .from("posts")
+        .select("id, content, media_type, created_at, likes_count, comments_count, shares_count")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(20);
+
+      // Get user's stories
+      const { data: userStories } = await supabase
+        .from("stories")
+        .select("id, story_type, created_at, views_count")
+        .eq("user_id", userId)
+        .gte("expires_at", new Date().toISOString())
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      // Get user's social connections
+      const { data: connections } = await supabase
+        .from("social_connections")
+        .select("status, connected_user_id")
+        .eq("user_id", userId)
+        .eq("status", "accepted");
+
+      // Get user's followers count
+      const { count: followersCount } = await supabase
+        .from("social_connections")
+        .select("*", { count: "exact", head: true })
+        .eq("connected_user_id", userId)
+        .eq("status", "accepted");
+
+      // Get user's recent comments
+      const { data: recentComments } = await supabase
+        .from("comments")
+        .select("content, created_at, post_id")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      // Get user's achievements
+      const { data: achievements } = await supabase
+        .from("user_quantum_achievements")
+        .select(`
+          unlocked_at,
+          progress,
+          quantum_achievements(name, description, category, rarity)
+        `)
+        .eq("user_id", userId)
+        .order("unlocked_at", { ascending: false })
+        .limit(15);
+
+      // Get user's company achievements
+      const { data: companyAchievements } = await supabase
+        .from("company_achievement_earners")
+        .select(`
+          earned_at,
+          company_achievements(name, description)
+        `)
+        .eq("user_id", userId)
+        .order("earned_at", { ascending: false })
+        .limit(10);
+
+      // Get user's conversations
+      const { data: conversations } = await supabase
+        .from("conversation_participants")
+        .select(`
+          conversations(id, title, created_at, last_message_at)
+        `)
+        .eq("user_id", userId)
+        .limit(10);
+
+      // Get user's referrals
+      const { data: referrals } = await supabase
+        .from("referral_network")
+        .select("referred_by_type, referral_level, created_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      // Get user's sent referrals
+      const { data: sentReferrals } = await supabase
+        .from("referral_network")
+        .select("*")
+        .eq("referred_by", userId);
+
+      // Get user engagement stats
+      const { data: engagementStats } = await supabase
+        .from("user_engagement")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      // Get companies user follows
+      const { data: followedCompanies } = await supabase
+        .from("company_followers")
+        .select(`
+          companies(name, slug, industry)
+        `)
+        .eq("follower_id", userId);
+
+      // Get user's saved jobs
+      const { data: savedJobs } = await supabase
+        .from("saved_jobs")
+        .select(`
+          saved_at,
+          jobs(id, title, location, employment_type)
+        `)
+        .eq("user_id", userId)
+        .order("saved_at", { ascending: false })
+        .limit(10);
+
+      // Get user's meeting history
+      const { data: meetingHistory } = await supabase
+        .from("meeting_recordings")
+        .select("title, meeting_date, duration_minutes, analysis_summary")
+        .eq("user_id", userId)
+        .order("meeting_date", { ascending: false })
+        .limit(5);
+
+      // Get pending feedback tasks
+      const { data: feedbackTasks } = await supabase
+        .from("closed_pipelines")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("feedback_completed", false);
+
+      // Get AI conversations
+      const { data: aiConversations } = await supabase
+        .from("ai_conversations")
+        .select("conversation_type, created_at, updated_at")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(5);
 
       // Build context string
       userContext = `
@@ -163,7 +297,7 @@ ${applications && applications.length > 0 ?
   applications.map(app => {
     const stageName = app.stages?.[app.current_stage_index]?.name || "Unknown";
     const jobData = Array.isArray(app.jobs) ? app.jobs[0] : app.jobs;
-    return `- ${jobData?.title || app.position} at ${jobData?.company_name || app.company_name}
+    return `- ${jobData?.title || app.position} at ${app.company_name}
   Status: ${app.status} | Stage: ${stageName} (${app.current_stage_index + 1}/${app.stages?.length || 0})
   Applied: ${new Date(app.created_at).toLocaleDateString()}`;
   }).join("\n")
@@ -190,8 +324,100 @@ ${bookings && bookings.length > 0 ?
 
 === AVAILABLE OPPORTUNITIES ===
 ${availableJobs && availableJobs.length > 0 ?
-  availableJobs.map(j => `- ${j.title} at ${j.company_name} (${j.location || "Remote"})`).join("\n")
+  availableJobs.map(j => `- ${j.title} (${j.location || "Remote"})`).join("\n")
   : "No new opportunities available"}
+
+=== SOCIAL & CONTENT ===
+Posts Created (${userPosts?.length || 0} recent):
+${userPosts && userPosts.length > 0 ?
+  userPosts.map(p => `- Posted ${new Date(p.created_at).toLocaleDateString()}: ${p.content?.substring(0, 100)}... | ${p.likes_count} likes, ${p.comments_count} comments, ${p.shares_count} shares`).join("\n")
+  : "No posts yet"}
+
+Active Stories (${userStories?.length || 0}):
+${userStories && userStories.length > 0 ?
+  userStories.map(s => `- ${s.story_type} story (${s.views_count} views)`).join("\n")
+  : "No active stories"}
+
+Connections: ${connections?.length || 0} connections | ${followersCount || 0} followers
+
+Recent Comments (${recentComments?.length || 0}):
+${recentComments && recentComments.length > 0 ?
+  recentComments.map(c => `- ${c.content.substring(0, 80)}...`).join("\n")
+  : "No recent comments"}
+
+=== ACHIEVEMENTS & PROGRESS ===
+Unlocked Achievements (${achievements?.length || 0}):
+${achievements && achievements.length > 0 ?
+  achievements.map(a => {
+    const ach = Array.isArray(a.quantum_achievements) ? a.quantum_achievements[0] : a.quantum_achievements;
+    return `- ${ach?.name} (${ach?.rarity}) - ${ach?.category}`;
+  }).join("\n")
+  : "No achievements unlocked yet"}
+
+Company Achievements (${companyAchievements?.length || 0}):
+${companyAchievements && companyAchievements.length > 0 ?
+  companyAchievements.map(ca => {
+    const ach = Array.isArray(ca.company_achievements) ? ca.company_achievements[0] : ca.company_achievements;
+    return `- ${ach?.name}`;
+  }).join("\n")
+  : "No company achievements"}
+
+Engagement Stats:
+${engagementStats ? `
+- Current Streak: ${engagementStats.current_streak} days
+- Longest Streak: ${engagementStats.longest_streak} days
+- Total Posts: ${engagementStats.total_posts}
+- Experience Points: ${engagementStats.experience_points}
+- Level: ${engagementStats.level || 1}
+` : "No engagement data yet"}
+
+=== NETWORK & ACTIVITY ===
+Following ${followedCompanies?.length || 0} companies:
+${followedCompanies && followedCompanies.length > 0 ?
+  followedCompanies.slice(0, 5).map(fc => {
+    const company = Array.isArray(fc.companies) ? fc.companies[0] : fc.companies;
+    return `- ${company?.name} (${company?.industry || "Industry not set"})`;
+  }).join("\n")
+  : "Not following any companies"}
+
+Saved Jobs (${savedJobs?.length || 0}):
+${savedJobs && savedJobs.length > 0 ?
+  savedJobs.map(sj => {
+    const job = Array.isArray(sj.jobs) ? sj.jobs[0] : sj.jobs;
+    return `- ${job?.title} (${job?.location || "Remote"})`;
+  }).join("\n")
+  : "No saved jobs"}
+
+=== MESSAGES & COMMUNICATION ===
+Active Conversations: ${conversations?.length || 0}
+${conversations && conversations.length > 0 ?
+  conversations.slice(0, 3).map(c => {
+    const conv = Array.isArray(c.conversations) ? c.conversations[0] : c.conversations;
+    return `- ${conv?.title || "Untitled"} (Last: ${conv?.last_message_at ? new Date(conv.last_message_at).toLocaleDateString() : "Never"})`;
+  }).join("\n")
+  : "No active conversations"}
+
+=== REFERRALS ===
+${referrals ? `
+You were referred by: ${referrals.referred_by_type} (Level ${referrals.referral_level})
+Joined: ${new Date(referrals.created_at).toLocaleDateString()}
+` : "Not referred by anyone"}
+
+Referrals Made: ${sentReferrals?.length || 0} people referred
+
+=== MEETING INSIGHTS ===
+${meetingHistory && meetingHistory.length > 0 ?
+  meetingHistory.map(m => `- ${m.title} (${m.duration_minutes}min) - ${new Date(m.meeting_date).toLocaleDateString()}
+  Summary: ${m.analysis_summary?.substring(0, 100) || "No summary"}...`).join("\n")
+  : "No meeting history"}
+
+=== PENDING ACTIONS ===
+Pending Feedback: ${feedbackTasks?.length || 0} feedback requests
+Recent AI Sessions: ${aiConversations?.length || 0} conversations
+
+===
+
+You have complete access to ALL user data above. When users ask about their activity, posts, achievements, tasks, connections, or ANY aspect of their experience in The Quantum Club, you KNOW the answer. Reference specific data points naturally and confidently.
 
 Use this context to provide personalized, relevant guidance. Reference specific details when appropriate.`;
     }
