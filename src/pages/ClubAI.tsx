@@ -236,7 +236,7 @@ const ClubAI = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 h-full flex flex-col overflow-hidden">
+      <div className="container mx-auto px-4 h-full flex flex-col overflow-hidden pb-0">
         {/* Header */}
         <div className="mb-4 pt-4">
           <h1 className="text-3xl font-black uppercase tracking-tight mb-1 flex items-center gap-3">
@@ -249,7 +249,7 @@ const ClubAI = () => {
         </div>
 
         {/* Chat area - Full Screen */}
-        <Card className="flex-1 border-2 border-border flex flex-col overflow-hidden mb-4">
+        <Card className="flex-1 border-2 border-border flex flex-col overflow-hidden">
           <CardContent className="p-0 flex flex-col h-full">
             {/* Messages */}
             <ScrollArea className="flex-1 p-6" ref={scrollRef}>
