@@ -4745,6 +4745,99 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_strength_stats: {
+        Row: {
+          all_levels_completed_at: string | null
+          completed_tasks: number | null
+          completion_percentage: number | null
+          created_at: string | null
+          current_level: number | null
+          id: string
+          level_1_completed: boolean | null
+          level_2_completed: boolean | null
+          level_3_completed: boolean | null
+          level_4_completed: boolean | null
+          level_5_completed: boolean | null
+          role: Database["public"]["Enums"]["app_role"]
+          total_tasks: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          all_levels_completed_at?: string | null
+          completed_tasks?: number | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          current_level?: number | null
+          id?: string
+          level_1_completed?: boolean | null
+          level_2_completed?: boolean | null
+          level_3_completed?: boolean | null
+          level_4_completed?: boolean | null
+          level_5_completed?: boolean | null
+          role: Database["public"]["Enums"]["app_role"]
+          total_tasks?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          all_levels_completed_at?: string | null
+          completed_tasks?: number | null
+          completion_percentage?: number | null
+          created_at?: string | null
+          current_level?: number | null
+          id?: string
+          level_1_completed?: boolean | null
+          level_2_completed?: boolean | null
+          level_3_completed?: boolean | null
+          level_4_completed?: boolean | null
+          level_5_completed?: boolean | null
+          role?: Database["public"]["Enums"]["app_role"]
+          total_tasks?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profile_strength_tasks: {
+        Row: {
+          completed: boolean | null
+          completed_at: string | null
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          skipped: boolean | null
+          task_key: string
+          task_level: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          skipped?: boolean | null
+          task_key: string
+          task_level: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          completed?: boolean | null
+          completed_at?: string | null
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          skipped?: boolean | null
+          task_key?: string
+          task_level?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_views: {
         Row: {
           id: string
