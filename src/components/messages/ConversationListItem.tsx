@@ -84,7 +84,9 @@ export const ConversationListItem = ({
           </AvatarFallback>
         </Avatar>
         {!isGroup && otherParticipant && (
-          <OnlineStatusIndicator userId={otherParticipant.user_id} className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 ring-2 ring-background" />
+          <div className="absolute bottom-0 right-0">
+            <OnlineStatusIndicator userId={otherParticipant.user_id} className="w-3.5 h-3.5 ring-2 ring-background" />
+          </div>
         )}
         {!!conversation.unread_count && (
           <Badge 
