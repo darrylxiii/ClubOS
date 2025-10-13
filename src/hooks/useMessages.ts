@@ -356,7 +356,6 @@ export const useMessages = (conversationId?: string) => {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: conversationId ? `conversation_id=eq.${conversationId}` : undefined,
         },
         async (payload) => {
           const newMessage = payload.new as Message;
@@ -364,13 +363,23 @@ export const useMessages = (conversationId?: string) => {
           // Skip if deleted
           if (newMessage.deleted_at) return;
 
-          // If we're in a specific conversation, reload messages to get attachments
-          if (conversationId && newMessage.conversation_id === conversationId) {
-            loadMessages();
-          }
+          // Check if this message belongs to any of user's conversations
+          const { data: userConvos } = await supabase
+            .from('conversation_participants')
+            .select('conversation_id')
+            .eq('user_id', user.id);
 
-          // Always reload conversations to update last message
-          loadConversations();
+          const userConvoIds = userConvos?.map(c => c.conversation_id) || [];
+          
+          // If message is in one of user's conversations
+          if (userConvoIds.includes(newMessage.conversation_id)) {
+            // If we're in that specific conversation, reload messages
+            if (conversationId && newMessage.conversation_id === conversationId) {
+              loadMessages();
+            }
+            // Always reload conversations list to update unread counts
+            loadConversations();
+          }
         }
       )
       .on(

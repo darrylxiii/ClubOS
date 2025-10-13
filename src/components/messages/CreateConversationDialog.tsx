@@ -146,11 +146,32 @@ export const CreateConversationDialog = ({
           allParticipants.map((userId) => ({
             conversation_id: conversation.id,
             user_id: userId,
-            role: userId === user.id ? 'owner' : 'member',
+            role: 'candidate', // Using valid role from schema
+            notifications_enabled: true,
+            is_muted: false,
           }))
         );
 
-      if (participantError) throw participantError;
+      if (participantError) {
+        console.error('Participant error:', participantError);
+        throw participantError;
+      }
+
+      // Send initial system message for group chats
+      if (isGroupChat) {
+        const { data: creatorProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+
+        await supabase.from('messages').insert({
+          conversation_id: conversation.id,
+          sender_id: user.id,
+          content: `${creatorProfile?.full_name || 'Someone'} created this group chat`,
+          message_type: 'system',
+        });
+      }
 
       toast.success(isGroupChat ? 'Group chat created' : 'Opening conversation');
       
