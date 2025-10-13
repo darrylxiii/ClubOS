@@ -6,13 +6,66 @@ import { cn } from '@/lib/utils';
 import { useVideoPlayer } from '@/contexts/VideoPlayerContext';
 import { getYouTubeEmbedUrl } from '@/lib/youtubeUtils';
 
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
 export function FloatingVideoPlayer() {
   const { videoState, closeFloatingPlayer, isFloatingPlayerOpen } = useVideoPlayer();
   const [position, setPosition] = useState({ x: window.innerWidth - 420, y: 100 });
   const [isDragging, setIsDragging] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [currentTime, setCurrentTime] = useState(0);
   const playerRef = useRef<HTMLDivElement>(null);
+  const youtubePlayerRef = useRef<any>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Load YouTube IFrame API
+  useEffect(() => {
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    }
+  }, []);
+
+  // Initialize YouTube player when video changes
+  useEffect(() => {
+    if (!isFloatingPlayerOpen || !videoState.videoId || isMinimized) return;
+
+    const initPlayer = () => {
+      if (window.YT && window.YT.Player && iframeRef.current) {
+        youtubePlayerRef.current = new window.YT.Player(iframeRef.current, {
+          events: {
+            onReady: (event: any) => {
+              // Seek to saved time if we have one
+              if (currentTime > 0) {
+                event.target.seekTo(currentTime, true);
+              }
+            },
+          },
+        });
+      }
+    };
+
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
+
+    return () => {
+      if (youtubePlayerRef.current) {
+        youtubePlayerRef.current.destroy();
+        youtubePlayerRef.current = null;
+      }
+    };
+  }, [videoState.videoId, isFloatingPlayerOpen, isMinimized]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -48,11 +101,29 @@ export function FloatingVideoPlayer() {
     }
   };
 
+  const handleMinimize = async () => {
+    // Save current playback time before minimizing
+    if (youtubePlayerRef.current && !isMinimized) {
+      try {
+        const time = await youtubePlayerRef.current.getCurrentTime();
+        setCurrentTime(time);
+      } catch (error) {
+        console.error('Error getting current time:', error);
+      }
+    }
+    setIsMinimized(!isMinimized);
+  };
+
+  const handleClose = () => {
+    setCurrentTime(0);
+    closeFloatingPlayer();
+  };
+
   if (!isFloatingPlayerOpen || !videoState.videoId) {
     return null;
   }
 
-  const embedUrl = getYouTubeEmbedUrl(videoState.videoId);
+  const embedUrl = `${getYouTubeEmbedUrl(videoState.videoId)}?enablejsapi=1&start=${Math.floor(currentTime)}`;
 
   return (
     <Card
@@ -83,7 +154,7 @@ export function FloatingVideoPlayer() {
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            onClick={() => setIsMinimized(!isMinimized)}
+            onClick={handleMinimize}
             title={isMinimized ? "Maximize" : "Minimize"}
           >
             {isMinimized ? (
@@ -96,7 +167,7 @@ export function FloatingVideoPlayer() {
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            onClick={closeFloatingPlayer}
+            onClick={handleClose}
             title="Close"
           >
             <X className="w-4 h-4" />
@@ -108,9 +179,10 @@ export function FloatingVideoPlayer() {
       {!isMinimized && (
         <div className="relative w-full aspect-video bg-black">
           <iframe
+            ref={iframeRef}
             width="100%"
             height="100%"
-            src={`${embedUrl}?autoplay=1&rel=0`}
+            src={`${embedUrl}&autoplay=1&rel=0`}
             title="YouTube video player"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
