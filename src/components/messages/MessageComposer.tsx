@@ -34,7 +34,9 @@ export const MessageComposer = ({
   const [message, setMessage] = useState("");
   const [attachment, setAttachment] = useState<File | null>(null);
   const [sending, setSending] = useState(false);
+  const [showControls, setShowControls] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { toast } = useToast();
 
   const handleSend = async () => {
@@ -163,6 +165,19 @@ export const MessageComposer = ({
     }
   };
 
+  const handleFocus = () => {
+    setShowControls(true);
+  };
+
+  const handleBlur = (e: React.FocusEvent) => {
+    // Don't hide controls if clicking on control buttons or popovers
+    if (e.relatedTarget?.closest('.message-controls') || 
+        e.relatedTarget?.closest('[role="dialog"]')) {
+      return;
+    }
+    setTimeout(() => setShowControls(false), 200);
+  };
+
   return (
     <div className="bg-background p-3 md:p-4 border-t border-border/20">
       {attachment && (
@@ -180,65 +195,67 @@ export const MessageComposer = ({
         </div>
       )}
 
-      {/* Controls row - above the message input */}
-      <div className="flex items-center gap-1 mb-3 pb-3 border-b border-border/10">
-        <input
-          type="file"
-          ref={fileInputRef}
-          onChange={handleFileSelect}
-          className="hidden"
-          accept="image/*,video/*,.pdf,.doc,.docx"
-        />
+      {/* Controls row - shown only when focused */}
+      {showControls && (
+        <div className="message-controls flex items-center gap-1 mb-3 pb-3 border-b border-border/10 animate-fade-in">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            className="hidden"
+            accept="image/*,video/*,.pdf,.doc,.docx"
+          />
 
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || sending}
-          className="flex-shrink-0 rounded-lg h-9 w-9 hover:bg-muted"
-          title="Attach file"
-        >
-          <Paperclip className="h-4 w-4" />
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={disabled || sending}
+            className="flex-shrink-0 rounded-lg h-9 w-9 hover:bg-muted"
+            title="Attach file"
+          >
+            <Paperclip className="h-4 w-4" />
+          </Button>
 
-        <EnhancedEmojiPicker onSelect={handleEmojiSelect} />
-        
-        <GifPicker onSelect={handleGifSelect} />
+          <EnhancedEmojiPicker onSelect={handleEmojiSelect} />
+          
+          <GifPicker onSelect={handleGifSelect} />
 
-        <YouTubePicker onSelect={handleYouTubeSelect} />
-        
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-lg hover:bg-muted"
-              disabled={disabled}
-              title="Share Spotify"
-            >
-              <Music className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80">
-            <div className="space-y-3">
-              <h4 className="font-medium text-sm">Share Spotify</h4>
-              <p className="text-xs text-muted-foreground">
-                Paste a Spotify link (song, album, playlist, or podcast)
-              </p>
-              <Input
-                placeholder="https://open.spotify.com/track/..."
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    handleSpotifySelect(e.currentTarget.value);
-                    e.currentTarget.value = '';
-                  }
-                }}
-              />
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
+          <YouTubePicker onSelect={handleYouTubeSelect} />
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-lg hover:bg-muted"
+                disabled={disabled}
+                title="Share Spotify"
+              >
+                <Music className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm">Share Spotify</h4>
+                <p className="text-xs text-muted-foreground">
+                  Paste a Spotify link (song, album, playlist, or podcast)
+                </p>
+                <Input
+                  placeholder="https://open.spotify.com/track/..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSpotifySelect(e.currentTarget.value);
+                      e.currentTarget.value = '';
+                    }
+                  }}
+                />
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+      )}
 
       {/* Message input row with voice note inside */}
       <div className="flex items-end gap-2">
@@ -247,11 +264,14 @@ export const MessageComposer = ({
             <VoiceRecorder onSend={handleVoiceSend} />
           </div>
           <Textarea
+            ref={textareaRef}
             value={message}
             onChange={(e) => {
               setMessage(e.target.value);
               onTyping?.();
             }}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             disabled={disabled || sending}
