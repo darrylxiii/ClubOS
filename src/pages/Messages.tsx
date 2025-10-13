@@ -228,7 +228,7 @@ export default function Messages() {
 
             {/* Messages Area - Scrollable */}
             <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
-              <div className="space-y-3 pb-24">
+              <div className="space-y-3 pb-4">
                 {messages.map((msg) => (
                   editingMessageId === msg.id ? (
                     <div key={msg.id} className="px-4">

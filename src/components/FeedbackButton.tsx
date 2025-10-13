@@ -191,7 +191,7 @@ export const FeedbackButton = () => {
       <div 
         style={{ 
           position: 'fixed',
-          bottom: '2rem',
+          bottom: '5rem',
           right: '2rem',
           zIndex: 9999,
           display: 'flex',
