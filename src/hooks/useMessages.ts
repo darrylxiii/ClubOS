@@ -128,7 +128,7 @@ export const useMessages = (conversationId?: string) => {
           // Get participants with profiles
           const { data: participants } = await supabase
             .from('conversation_participants')
-            .select('user_id, role')
+            .select('id, conversation_id, user_id, role, joined_at, last_read_at, notifications_enabled, is_muted')
             .eq('conversation_id', convo.id);
 
           const participantIds = participants?.map(p => p.user_id) || [];
@@ -137,10 +137,23 @@ export const useMessages = (conversationId?: string) => {
             .select('id, full_name, avatar_url')
             .in('id', participantIds);
 
-          const participantsWithProfiles = participants?.map(p => ({
-            ...p,
-            profile: profiles?.find(prof => prof.id === p.user_id)
-          }));
+          const participantsWithProfiles = participants?.map(p => {
+            const profile = profiles?.find(prof => prof.id === p.user_id);
+            return {
+              id: p.id,
+              conversation_id: p.conversation_id,
+              user_id: p.user_id,
+              role: p.role,
+              joined_at: p.joined_at,
+              last_read_at: p.last_read_at,
+              notifications_enabled: p.notifications_enabled,
+              is_muted: p.is_muted,
+              profile: profile ? {
+                full_name: profile.full_name,
+                avatar_url: profile.avatar_url
+              } : null
+            };
+          });
 
           // Get last message with sender
           const { data: lastMsg } = await supabase
@@ -194,6 +207,11 @@ export const useMessages = (conversationId?: string) => {
             participants: participantsWithProfiles,
             last_message: lastMessageWithSender,
             unread_count: count || 0,
+            metadata: {
+              ...(typeof convo.metadata === 'object' && convo.metadata !== null ? convo.metadata : {}),
+              is_group: (participantsWithProfiles?.length || 0) > 2,
+              participant_count: participantsWithProfiles?.length || 0
+            }
           };
         })
       );
