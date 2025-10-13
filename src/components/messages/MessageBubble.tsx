@@ -12,6 +12,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { extractYouTubeVideoId } from "@/lib/youtubeUtils";
 import { SpotifyEmbed } from "@/components/feed/SpotifyEmbed";
+import { StoryShareCard } from "./StoryShareCard";
+import { EnhancedStoryViewer } from "@/components/social/EnhancedStoryViewer";
 
 interface MessageBubbleProps {
   message: Message;
@@ -32,6 +34,8 @@ export const MessageBubble = ({
 }: MessageBubbleProps) => {
   const navigate = useNavigate();
   const [attachmentUrls, setAttachmentUrls] = useState<Record<string, string>>({});
+  const [showStoryViewer, setShowStoryViewer] = useState(false);
+  const [storyViewerData, setStoryViewerData] = useState<any>(null);
   
   const senderName = message.sender?.full_name || "Unknown User";
   const initials = senderName
@@ -75,6 +79,12 @@ export const MessageBubble = ({
   }, [message.attachments, message.id]);
 
   const renderContent = () => {
+    // Check for Story Share
+    if (message.media_type === 'story_share' && message.metadata) {
+      const metadata = message.metadata as any;
+      return null; // Story card will be rendered separately
+    }
+
     // Check for Spotify
     if (message.media_type === 'spotify' && message.media_url) {
       const spotifyType = (message as any).spotify_type;
@@ -140,6 +150,103 @@ export const MessageBubble = ({
     // Return null if no content (attachments will be shown below)
     return null;
   };
+
+  const handleStoryClick = async () => {
+    if (message.media_type === 'story_share' && message.metadata) {
+      const metadata = message.metadata as any;
+      
+      // Fetch the full story data
+      const { data: story } = await supabase
+        .from('stories')
+        .select(`
+          *,
+          user:profiles(id, full_name, avatar_url)
+        `)
+        .eq('id', metadata.story_id)
+        .single();
+
+      if (story) {
+        setStoryViewerData({
+          stories: [story],
+          initialIndex: 0,
+          userId: story.user_id
+        });
+        setShowStoryViewer(true);
+      }
+    }
+  };
+
+  // Special rendering for story shares
+  if (message.media_type === 'story_share' && message.metadata) {
+    const metadata = message.metadata as any;
+    return (
+      <>
+        <div 
+          className={cn(
+            "flex gap-3 group animate-fade-in relative",
+            isCurrentUser && "flex-row-reverse"
+          )}
+        >
+          {/* Avatar */}
+          <div className="relative h-11 w-11 flex-shrink-0">
+            <Avatar 
+              className="h-11 w-11 cursor-pointer shadow-glass-md ring-2 ring-background hover:ring-primary/60 hover:scale-105 transition-all duration-200"
+              onClick={() => navigate(`/profile/${message.sender_id}`)}
+            >
+              <AvatarImage src={message.sender?.avatar_url || undefined} className="object-cover" />
+              <AvatarFallback className="bg-gradient-accent text-white font-semibold text-base">
+                {senderName.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            {!isCurrentUser && (
+              <OnlineStatusIndicator 
+                userId={message.sender_id} 
+                className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 ring-2 ring-background"
+              />
+            )}
+          </div>
+
+          {/* Story Share Card */}
+          <div className="flex flex-col max-w-lg">
+            <StoryShareCard
+              storyId={metadata.story_id}
+              storyUrl={metadata.story_url}
+              storyType={metadata.story_type}
+              authorName={metadata.author_name}
+              authorAvatar={metadata.author_avatar}
+              comment={message.content}
+              onStoryClick={handleStoryClick}
+              isOwnMessage={isCurrentUser}
+            />
+            
+            {/* Timestamp */}
+            <div className={cn(
+              "flex items-center gap-1.5 text-xs text-muted-foreground/80 mt-2",
+              isCurrentUser && "justify-end"
+            )}>
+              <span className="font-medium">{format(new Date(message.created_at), "HH:mm")}</span>
+              {isCurrentUser && (
+                message.read_at ? (
+                  <CheckCheck className="h-3.5 w-3.5" />
+                ) : (
+                  <Check className="h-3.5 w-3.5" />
+                )
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Story Viewer */}
+        {showStoryViewer && storyViewerData && (
+          <EnhancedStoryViewer
+            stories={storyViewerData.stories}
+            initialIndex={storyViewerData.initialIndex}
+            onClose={() => setShowStoryViewer(false)}
+          />
+        )}
+      </>
+    );
+  }
 
   return (
     <div 

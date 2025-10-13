@@ -17,6 +17,7 @@ interface CreateConversationDialogProps {
   onOpenChange: (open: boolean) => void;
   preselectedUserId?: string;
   onConversationCreated?: (conversationId: string) => void;
+  title?: string;
 }
 
 interface UserResult {
@@ -31,6 +32,7 @@ export const CreateConversationDialog = ({
   onOpenChange,
   preselectedUserId,
   onConversationCreated,
+  title = "Start New Conversation",
 }: CreateConversationDialogProps) => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,7 +58,6 @@ export const CreateConversationDialog = ({
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, avatar_url, current_title')
-        .neq('id', user.id)
         .eq('stealth_mode_enabled', false)
         .ilike('full_name', `%${query}%`)
         .limit(10);
@@ -212,7 +213,7 @@ export const CreateConversationDialog = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[85vh] flex flex-col p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle className="text-lg sm:text-xl">Start New Conversation</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">{title}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-3 sm:space-y-4 flex-1 overflow-hidden flex flex-col min-h-0">
