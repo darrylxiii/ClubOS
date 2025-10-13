@@ -236,20 +236,20 @@ const ClubAI = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 h-[calc(100vh-8rem)] flex flex-col">
+      <div className="container mx-auto px-4 h-full flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-4xl font-black uppercase tracking-tight mb-2 flex items-center gap-3">
-            <Sparkles className="w-8 h-8 text-primary" />
+        <div className="mb-4 pt-4">
+          <h1 className="text-3xl font-black uppercase tracking-tight mb-1 flex items-center gap-3">
+            <Sparkles className="w-7 h-7 text-primary" />
             Club AI
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Your personal AI career strategist, available 24/7
           </p>
         </div>
 
         {/* Chat area - Full Screen */}
-        <Card className="flex-1 border-2 border-border flex flex-col min-h-0">
+        <Card className="flex-1 border-2 border-border flex flex-col overflow-hidden mb-4">
           <CardContent className="p-0 flex flex-col h-full">
             {/* Messages */}
             <ScrollArea className="flex-1 p-6" ref={scrollRef}>
