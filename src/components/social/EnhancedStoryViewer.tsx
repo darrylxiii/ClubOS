@@ -81,6 +81,26 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const currentStory = stories[currentIndex];
 
   useEffect(() => {
+    // Lock all scrolling when story viewer is open
+    const originalBodyOverflow = document.body.style.overflow;
+    const mainElement = document.querySelector('main');
+    const originalMainOverflow = mainElement ? (mainElement as HTMLElement).style.overflow : null;
+    
+    document.body.style.overflow = 'hidden';
+    if (mainElement) {
+      (mainElement as HTMLElement).style.overflow = 'hidden';
+    }
+    
+    return () => {
+      // Restore scrolling when story viewer closes
+      document.body.style.overflow = originalBodyOverflow;
+      if (mainElement && originalMainOverflow !== null) {
+        (mainElement as HTMLElement).style.overflow = originalMainOverflow;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     recordView();
     fetchStoryStats();
     checkUserInteractions();
@@ -391,10 +411,15 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95" onClick={onClose}>
+    <div 
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 overflow-hidden" 
+      onClick={onClose}
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+    >
       <div 
-        className="relative w-full max-w-md h-[90vh] max-h-[800px] bg-black rounded-lg overflow-hidden flex flex-col"
+        className="relative w-full max-w-md h-[90vh] max-h-[800px] bg-black rounded-lg overflow-hidden flex flex-col shadow-2xl"
         onClick={(e) => e.stopPropagation()}
+        style={{ maxHeight: 'min(800px, 90vh)' }}
       >
         {/* Progress bars */}
         <div className="flex gap-1 px-4 pt-4 pb-2 flex-shrink-0">
