@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageCircleHeart, Loader2 } from 'lucide-react';
+import { MessageCircleHeart, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -26,6 +26,7 @@ interface FeedbackDraft {
 
 export const FeedbackButton = () => {
   const [open, setOpen] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [hoveredRating, setHoveredRating] = useState<number | null>(null);
@@ -186,14 +187,38 @@ export const FeedbackButton = () => {
 
   return (
     <>
-      <Button
-        onClick={handleOpen}
-        className="fixed bottom-6 right-6 h-12 px-6 rounded-full shadow-lg hover:scale-105 transition-transform z-50 gap-2"
-        aria-label="Give feedback"
-      >
-        <MessageCircleHeart className="h-5 w-5" />
-        <span className="font-medium">Quick Feedback</span>
-      </Button>
+      <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex items-center">
+        {!minimized && (
+          <Button
+            onClick={handleOpen}
+            className="h-14 pl-6 pr-4 rounded-l-full rounded-r-none shadow-lg hover:shadow-xl transition-all gap-3 border-r-0"
+            aria-label="Give feedback"
+          >
+            <MessageCircleHeart className="h-5 w-5" />
+            <span className="font-medium">Quick Feedback</span>
+          </Button>
+        )}
+        
+        <Button
+          onClick={() => setMinimized(!minimized)}
+          size="icon"
+          variant={minimized ? "default" : "secondary"}
+          className={`h-14 shadow-lg transition-all ${
+            minimized 
+              ? 'w-14 rounded-l-full rounded-r-none' 
+              : 'w-10 rounded-l-none rounded-r-full border-l-0'
+          }`}
+          aria-label={minimized ? "Expand feedback button" : "Minimize feedback button"}
+        >
+          {minimized ? (
+            <>
+              <MessageCircleHeart className="h-5 w-5" />
+            </>
+          ) : (
+            <ChevronRight className="h-4 w-4" />
+          )}
+        </Button>
+      </div>
 
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-[500px]">
