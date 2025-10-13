@@ -169,6 +169,13 @@ export const FeedbackButton = () => {
     return 'text-green-500';
   };
 
+  const getRatingBgColor = (value: number) => {
+    if (value <= 3) return 'bg-destructive/10 border-destructive';
+    if (value <= 5) return 'bg-orange-500/10 border-orange-500';
+    if (value <= 7) return 'bg-yellow-500/10 border-yellow-500';
+    return 'bg-green-500/10 border-green-500';
+  };
+
   const getRatingLabel = (value: number) => {
     if (value <= 3) return 'Poor';
     if (value <= 5) return 'Fair';
@@ -201,7 +208,7 @@ export const FeedbackButton = () => {
             {/* Rating Scale */}
             <div className="space-y-3">
               <label className="text-sm font-medium">Rating (1-10)</label>
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-center gap-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
                   <button
                     key={value}
@@ -214,9 +221,9 @@ export const FeedbackButton = () => {
                       transition-all hover:scale-110 font-semibold text-sm
                       ${
                         rating === value
-                          ? `${getRatingColor(value)} border-current bg-current/10`
+                          ? `${getRatingColor(value)} ${getRatingBgColor(value)}`
                           : hoveredRating && value <= hoveredRating
-                          ? 'border-primary/50 text-primary'
+                          ? `${getRatingColor(value)} ${getRatingBgColor(value)}`
                           : 'border-border hover:border-primary/50'
                       }
                     `}
