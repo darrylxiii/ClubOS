@@ -230,7 +230,7 @@ export const FeedbackButton = () => {
       </div>
 
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Rate Your Experience</DialogTitle>
             <DialogDescription>
@@ -242,7 +242,7 @@ export const FeedbackButton = () => {
             {/* Rating Scale */}
             <div className="space-y-3">
               <label className="text-sm font-medium">Rating (1-10)</label>
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-1.5 px-2">
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
                   <button
                     key={value}
@@ -251,7 +251,7 @@ export const FeedbackButton = () => {
                     onMouseEnter={() => setHoveredRating(value)}
                     onMouseLeave={() => setHoveredRating(null)}
                     className={`
-                      flex h-10 w-10 items-center justify-center rounded-lg border-2 
+                      flex h-9 w-9 items-center justify-center rounded-lg border-2 
                       transition-all hover:scale-110 font-semibold text-sm
                       ${
                         rating === value
