@@ -236,9 +236,9 @@ const ClubAI = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 h-full flex flex-col overflow-hidden pb-0">
+      <div className="container mx-auto px-4 h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="mb-4 pt-4">
+        <div className="mb-3 pt-3 flex-shrink-0">
           <h1 className="text-3xl font-black uppercase tracking-tight mb-1 flex items-center gap-3">
             <Sparkles className="w-7 h-7 text-primary" />
             Club AI
