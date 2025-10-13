@@ -5,9 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
+import { VideoPlayerProvider } from "@/contexts/VideoPlayerContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -68,8 +70,9 @@ const App = () => (
           <BrowserRouter>
             <AuthProvider>
               <RoleProvider>
-                <Suspense fallback={<PageLoader />}>
-                <Routes>
+                <VideoPlayerProvider>
+                  <Suspense fallback={<PageLoader />}>
+                    <Routes>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/book/:slug" element={<BookingPage />} />
@@ -318,9 +321,11 @@ const App = () => (
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
-            </RoleProvider>
-          </AuthProvider>
-        </BrowserRouter>
+              <FloatingVideoPlayer />
+            </VideoPlayerProvider>
+          </RoleProvider>
+        </AuthProvider>
+      </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>

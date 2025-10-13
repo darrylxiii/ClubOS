@@ -462,7 +462,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 return (
                   <div key={index} className="relative">
                     {media.type === 'youtube' ? (
-                      <YouTubeEmbed videoId={media.videoId} />
+                      <YouTubeEmbed videoId={media.videoId} title={`Post by ${authorName}`} />
                     ) : media.type === 'image' ? (
                       <LazyMedia
                         src={media.url}

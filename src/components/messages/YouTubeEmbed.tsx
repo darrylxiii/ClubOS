@@ -1,21 +1,31 @@
 import { useState } from 'react';
-import { Play } from 'lucide-react';
+import { Play, Maximize2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getYouTubeThumbnail, getYouTubeEmbedUrl } from '@/lib/youtubeUtils';
+import { useVideoPlayer } from '@/contexts/VideoPlayerContext';
+import { Button } from '@/components/ui/button';
 
 interface YouTubeEmbedProps {
   videoId: string;
   isOwnMessage?: boolean;
+  title?: string;
 }
 
-export function YouTubeEmbed({ videoId, isOwnMessage }: YouTubeEmbedProps) {
+export function YouTubeEmbed({ videoId, isOwnMessage, title }: YouTubeEmbedProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const { openFloatingPlayer } = useVideoPlayer();
   const thumbnailUrl = getYouTubeThumbnail(videoId, 'hq');
   const embedUrl = getYouTubeEmbedUrl(videoId);
 
+  const handlePopOut = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    openFloatingPlayer(videoId, title || 'YouTube Video');
+    setIsPlaying(false);
+  };
+
   if (isPlaying) {
     return (
-      <div className="relative w-full max-w-md rounded-xl overflow-hidden shadow-glass-md">
+      <div className="relative w-full max-w-md rounded-xl overflow-hidden shadow-glass-md group">
         <iframe
           width="100%"
           height="250"
@@ -26,6 +36,15 @@ export function YouTubeEmbed({ videoId, isOwnMessage }: YouTubeEmbedProps) {
           allowFullScreen
           className="w-full aspect-video"
         />
+        <Button
+          variant="secondary"
+          size="sm"
+          className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity gap-2"
+          onClick={handlePopOut}
+        >
+          <Maximize2 className="w-4 h-4" />
+          Pop Out
+        </Button>
       </div>
     );
   }
