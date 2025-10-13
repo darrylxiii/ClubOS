@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { MessageCircleHeart, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -185,15 +186,17 @@ export const FeedbackButton = () => {
     return 'Excellent';
   };
 
-  return (
+  const content = (
     <>
       <div 
-        className="fixed bottom-8 right-8 flex items-center gap-0" 
         style={{ 
           position: 'fixed',
           bottom: '2rem',
           right: '2rem',
-          zIndex: 9999
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0
         }}
       >
         {!minimized && (
@@ -322,4 +325,6 @@ export const FeedbackButton = () => {
       </Dialog>
     </>
   );
+
+  return createPortal(content, document.body);
 };
