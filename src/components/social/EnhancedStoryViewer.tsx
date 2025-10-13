@@ -412,14 +412,14 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 overflow-hidden" 
+      className="fixed inset-0 flex items-center justify-center bg-black" 
+      style={{ zIndex: 99999 }}
       onClick={onClose}
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <div 
-        className="relative w-full max-w-md h-[90vh] max-h-[800px] bg-black rounded-lg overflow-hidden flex flex-col shadow-2xl"
+        className="relative w-full max-w-md mx-4 bg-black rounded-lg overflow-hidden flex flex-col shadow-2xl border border-white/10"
         onClick={(e) => e.stopPropagation()}
-        style={{ maxHeight: 'min(800px, 90vh)' }}
+        style={{ height: 'min(800px, 90vh)' }}
       >
         {/* Progress bars */}
         <div className="flex gap-1 px-4 pt-4 pb-2 flex-shrink-0">
