@@ -72,6 +72,13 @@ export function FloatingVideoPlayer() {
 
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
+      e.stopPropagation();
+      
+      // Check if mouse button is still pressed
+      if (e.buttons === 0) {
+        setIsDragging(false);
+        return;
+      }
       
       // Use requestAnimationFrame for smoother updates
       requestAnimationFrame(() => {
@@ -82,29 +89,47 @@ export function FloatingVideoPlayer() {
       });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseUp = (e: MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
       setIsDragging(false);
     };
 
-    const handleMouseLeave = () => {
-      // Stop dragging if mouse leaves the window
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsDragging(false);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setIsDragging(false);
+      }
+    };
+
+    const handleBlur = () => {
       setIsDragging(false);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('mouseleave', handleMouseLeave);
+    // Use capture phase to ensure we catch all events
+    document.addEventListener('mousemove', handleMouseMove, true);
+    document.addEventListener('mouseup', handleMouseUp, true);
+    document.addEventListener('keydown', handleEscape);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleBlur);
     
-    // Also stop dragging on any pointer cancel events
-    document.addEventListener('pointercancel', handleMouseUp);
-    document.addEventListener('pointerup', handleMouseUp);
+    // Additional safety: stop after 10 seconds of dragging
+    const safetyTimeout = setTimeout(() => {
+      setIsDragging(false);
+    }, 10000);
 
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-      document.removeEventListener('mouseleave', handleMouseLeave);
-      document.removeEventListener('pointercancel', handleMouseUp);
-      document.removeEventListener('pointerup', handleMouseUp);
+      document.removeEventListener('mousemove', handleMouseMove, true);
+      document.removeEventListener('mouseup', handleMouseUp, true);
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleBlur);
+      clearTimeout(safetyTimeout);
     };
   }, [isDragging, dragOffset]);
 
@@ -112,6 +137,11 @@ export function FloatingVideoPlayer() {
     // Only allow dragging from the header, not from buttons
     const target = e.target as HTMLElement;
     if (target.closest('button')) {
+      return;
+    }
+    
+    // Only start drag on left mouse button
+    if (e.button !== 0) {
       return;
     }
     
@@ -130,6 +160,10 @@ export function FloatingVideoPlayer() {
       document.body.style.userSelect = 'none';
       document.body.style.webkitUserSelect = 'none';
     }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
   };
 
   // Clean up user-select when dragging stops and ensure drag state is reset
@@ -196,6 +230,8 @@ export function FloatingVideoPlayer() {
           isDragging ? "cursor-grabbing bg-accent/10" : "cursor-grab hover:bg-accent/5"
         )}
         onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={() => isDragging && setIsDragging(false)}
         onDragStart={(e) => e.preventDefault()}
       >
         <div 
