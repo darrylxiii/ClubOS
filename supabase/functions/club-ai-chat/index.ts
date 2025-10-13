@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.7";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,111 @@ serve(async (req) => {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, userId } = await req.json();
+    
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch comprehensive user data
+    let userContext = "";
+    
+    if (userId) {
+      // Get user profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      // Get user roles
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+
+      // Get company associations
+      const { data: companyMember } = await supabase
+        .from("company_members")
+        .select(`
+          role,
+          is_active,
+          companies!inner (
+            id,
+            name,
+            slug,
+            description,
+            industry,
+            company_size,
+            website_url,
+            headquarters_location,
+            mission,
+            vision,
+            values,
+            culture_highlights,
+            tech_stack,
+            benefits
+          )
+        `)
+        .eq("user_id", userId)
+        .eq("is_active", true)
+        .maybeSingle();
+
+      const companyData = Array.isArray(companyMember?.companies) 
+        ? companyMember?.companies[0] 
+        : companyMember?.companies;
+
+      // Get applications data
+      const { data: applications } = await supabase
+        .from("applications")
+        .select("*, jobs(title, company_name)")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      // Get profile strength
+      const { data: profileStrength } = await supabase
+        .from("profile_strength_stats")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      // Build context string
+      userContext = `
+
+=== USER PROFILE DATA ===
+Name: ${profile?.full_name || "Not set"}
+Email: ${profile?.email || "Not set"}
+Current Title: ${profile?.current_title || "Not set"}
+Bio: ${profile?.bio || "Not set"}
+Location: ${profile?.location || "Not set"}
+Phone: ${profile?.phone_verified ? "Verified" : "Not verified"}
+Email Verified: ${profile?.email_verified ? "Yes" : "No"}
+Profile Completion: ${profileStrength?.completion_percentage || 0}%
+
+=== USER ROLES ===
+${roles?.map(r => r.role).join(", ") || "No roles assigned"}
+
+=== COMPANY ASSOCIATION ===
+${companyData ? `
+Company: ${companyData.name}
+Role at Company: ${companyMember?.role || "Unknown"}
+Industry: ${companyData.industry || "Not specified"}
+Company Size: ${companyData.company_size || "Not specified"}
+Location: ${companyData.headquarters_location || "Not specified"}
+Mission: ${companyData.mission || "Not specified"}
+Website: ${companyData.website_url || "Not specified"}
+` : "User is not associated with any company"}
+
+=== RECENT APPLICATIONS ===
+${applications && applications.length > 0 ? 
+  applications.map(app => `- ${app.jobs?.title || app.position} at ${app.jobs?.company_name || app.company_name} (Status: ${app.status}, Stage: ${app.current_stage_index + 1})`).join("\n")
+  : "No recent applications"}
+
+Use this context to provide personalized, relevant guidance. Reference specific details when appropriate.`;
+    }
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
@@ -43,7 +148,8 @@ At the end of any suggested action, restate what will happen, then show the "Con
 
 After any "Confirm" button is clicked, continue to provide step-by-step feedback ("Step 1 of 3: Loading your application data…✅ Step 2 of 3: Reviewing your profile and history…").
 
-You must always feel attentive, proactive, privacy-aware, and trustworthy—never robotic. If you need a moment for data processing, let users know and keep them updated on your progress.`
+You must always feel attentive, proactive, privacy-aware, and trustworthy—never robotic. If you need a moment for data processing, let users know and keep them updated on your progress.
+${userContext}`
           },
           ...messages,
         ],

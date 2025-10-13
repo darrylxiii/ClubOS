@@ -124,6 +124,7 @@ const ClubAI = () => {
     try {
       await streamChat({
         messages: [...messages, userMessage],
+        userId: user?.id,
         onDelta: updateAssistant,
         onDone: () => setIsLoading(false),
       });
@@ -136,10 +137,12 @@ const ClubAI = () => {
 
   const streamChat = async ({
     messages,
+    userId,
     onDelta,
     onDone,
   }: {
     messages: Message[];
+    userId?: string;
     onDelta: (chunk: string) => void;
     onDone: () => void;
   }) => {
@@ -151,7 +154,7 @@ const ClubAI = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ messages }),
+      body: JSON.stringify({ messages, userId }),
     });
 
     if (!resp.ok) {
