@@ -187,7 +187,15 @@ export const FeedbackButton = () => {
 
   return (
     <>
-      <div className="fixed right-8 bottom-8 z-[9999] flex items-center animate-fade-in">
+      <div 
+        className="fixed bottom-8 right-8 flex items-center gap-0" 
+        style={{ 
+          position: 'fixed',
+          bottom: '2rem',
+          right: '2rem',
+          zIndex: 9999
+        }}
+      >
         {!minimized && (
           <Button
             onClick={handleOpen}
