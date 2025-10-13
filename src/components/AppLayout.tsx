@@ -252,9 +252,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const profilePath = '/profile';
 
   return (
-    <div className="min-h-screen flex flex-col w-full bg-background">
-      {/* Global Header - Fixed at top, always visible */}
-      <header className="sticky top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-md border-b border-border z-[100] flex items-center justify-between px-4 gap-4 shadow-sm">
+    <div className="min-h-screen flex w-full bg-background">
+      {/* Global Header - Sticky at top, always visible */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-md border-b border-border z-[100] flex items-center justify-between px-4 gap-4 shadow-sm">
         <Button
           variant="ghost"
           size="icon"
@@ -283,13 +283,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         </div>
       </header>
 
-      <div className="flex flex-1 w-full">
-        <aside
-          className={cn(
-            "fixed top-16 bottom-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col",
-            sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          )}
-        >
+      <aside
+        className={cn(
+          "fixed top-16 bottom-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
 
         <nav className="flex-1 overflow-y-auto py-6 px-3">
           <div className="space-y-3">
@@ -367,11 +366,10 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         location.pathname === '/messages' ? 'overflow-hidden' : 'overflow-y-auto'
       )}>
         <div className={cn(
-          "min-h-[calc(100vh-4rem)]",
+          "min-h-screen pt-16",
           location.pathname !== '/messages' && 'pb-4'
         )}>{children}</div>
       </main>
-      </div>
 
       {/* Global Navigation Tools - Always Accessible */}
       <CommandPalette />
