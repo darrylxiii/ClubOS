@@ -469,6 +469,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                         platform={media.platform}
                         postId={media.embedId}
                         url={media.url}
+                        username={media.username}
                       />
                     ) : media.type === 'image' ? (
                       <LazyMedia

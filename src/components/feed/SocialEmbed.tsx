@@ -10,9 +10,10 @@ interface SocialEmbedProps {
   postId: string;
   url: string;
   className?: string;
+  username?: string;
 }
 
-export function SocialEmbed({ platform, postId, url, className }: SocialEmbedProps) {
+export function SocialEmbed({ platform, postId, url, className, username }: SocialEmbedProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [embedUrl, setEmbedUrl] = useState<string>('');
 
@@ -82,9 +83,16 @@ export function SocialEmbed({ platform, postId, url, className }: SocialEmbedPro
       </div>
       
       <div className="p-3 border-t bg-background/50 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground font-medium">
-          {getPlatformName()} Post
-        </span>
+        <div className="flex flex-col">
+          <span className="text-xs text-muted-foreground font-medium">
+            {getPlatformName()} Post
+          </span>
+          {username && platform === 'linkedin' && (
+            <span className="text-xs text-muted-foreground">
+              @{username}
+            </span>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="sm"

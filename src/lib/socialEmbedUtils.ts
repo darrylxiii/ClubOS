@@ -8,6 +8,7 @@ export interface SocialEmbed {
   platform: SocialPlatform;
   url: string;
   id: string;
+  username?: string;
 }
 
 /**
@@ -35,7 +36,7 @@ export function extractTwitterId(url: string): string | null {
  */
 export function extractLinkedInId(url: string): string | null {
   const patterns = [
-    /linkedin\.com\/posts\/[^\/]+[-_]([a-zA-Z0-9\-_]+)/,
+    /linkedin\.com\/posts\/([^\/]+)[-_]([a-zA-Z0-9\-_]+)/,
     /linkedin\.com\/feed\/update\/urn:li:activity:(\d+)/,
     /linkedin\.com\/feed\/update\/urn:li:share:(\d+)/,
     /linkedin\.com\/embed\/feed\/update\/urn:li:(?:share|ugcPost):(\d+)/,
@@ -43,12 +44,20 @@ export function extractLinkedInId(url: string): string | null {
 
   for (const pattern of patterns) {
     const match = url.match(pattern);
-    if (match && match[1]) {
-      return match[1];
+    if (match && match[match.length - 1]) {
+      return match[match.length - 1];
     }
   }
 
   return null;
+}
+
+/**
+ * Extract LinkedIn username from URL
+ */
+export function extractLinkedInUsername(url: string): string | null {
+  const match = url.match(/linkedin\.com\/posts\/([^\/\-_]+)/);
+  return match ? match[1] : null;
 }
 
 /**
@@ -92,7 +101,8 @@ export function detectSocialEmbeds(text: string): SocialEmbed[] {
     // Check LinkedIn
     const linkedinId = extractLinkedInId(url);
     if (linkedinId) {
-      embeds.push({ platform: 'linkedin', url, id: linkedinId });
+      const username = extractLinkedInUsername(url);
+      embeds.push({ platform: 'linkedin', url, id: linkedinId, username });
       continue;
     }
 

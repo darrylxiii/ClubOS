@@ -108,15 +108,16 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   // Detect social media embeds in content
   useEffect(() => {
     if (content && socialEmbeds.length === 0) {
-      if (containsSocialMediaUrl(content)) {
-        const detected = detectSocialEmbeds(content);
+      const plainText = content.replace(/<[^>]*>/g, ' '); // Strip HTML tags
+      if (containsSocialMediaUrl(plainText)) {
+        const detected = detectSocialEmbeds(plainText);
         if (detected.length > 0) {
           setDetectedSocialEmbeds(detected);
           setShowSocialPrompt(true);
         }
       }
     }
-  }, [content, socialEmbeds]);
+  }, [content, socialEmbeds.length]);
 
   const handleFileSelect = (acceptedTypes: string) => {
     const input = document.createElement('input');
@@ -263,11 +264,14 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const handleEmbedDetectedSocial = () => {
     if (detectedSocialEmbeds.length > 0) {
       setSocialEmbeds([...socialEmbeds, ...detectedSocialEmbeds]);
-      // Remove all social media URLs from content
-      const updatedContent = removeSocialMediaUrls(content);
-      setContent(updatedContent);
+      // Remove all social media URLs from content (including HTML)
+      const plainText = content.replace(/<[^>]*>/g, ' ');
+      const updatedPlainText = removeSocialMediaUrls(plainText);
+      // Update content with cleaned text
+      setContent(updatedPlainText);
       setShowSocialPrompt(false);
       setDetectedSocialEmbeds([]);
+      toast({ title: "Social posts embedded", description: "URLs removed from post content" });
     }
   };
 
@@ -288,12 +292,15 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'linkedin') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
-        // Remove the URL from content if it exists
-        const updatedContent = removeSocialMediaUrls(content);
-        if (updatedContent !== content) {
-          setContent(updatedContent);
+        // Remove the URL from content if it exists (strip HTML first)
+        const plainText = content.replace(/<[^>]*>/g, ' ');
+        const updatedPlainText = removeSocialMediaUrls(plainText);
+        if (updatedPlainText !== plainText) {
+          setContent(updatedPlainText);
+          toast({ title: "LinkedIn post added", description: "URL removed from post content" });
+        } else {
+          toast({ title: "LinkedIn post added", description: "The post will be embedded" });
         }
-        toast({ title: "LinkedIn post added", description: "The post will be embedded in your post" });
       } else {
         toast({ 
           title: "Invalid LinkedIn URL", 
@@ -318,12 +325,15 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'twitter') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
-        // Remove the URL from content if it exists
-        const updatedContent = removeSocialMediaUrls(content);
-        if (updatedContent !== content) {
-          setContent(updatedContent);
+        // Remove the URL from content if it exists (strip HTML first)
+        const plainText = content.replace(/<[^>]*>/g, ' ');
+        const updatedPlainText = removeSocialMediaUrls(plainText);
+        if (updatedPlainText !== plainText) {
+          setContent(updatedPlainText);
+          toast({ title: "X post added", description: "URL removed from post content" });
+        } else {
+          toast({ title: "X post added", description: "The post will be embedded" });
         }
-        toast({ title: "X post added", description: "The post will be embedded in your post" });
       } else {
         toast({ 
           title: "Invalid X URL", 
@@ -348,12 +358,15 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'instagram') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
-        // Remove the URL from content if it exists
-        const updatedContent = removeSocialMediaUrls(content);
-        if (updatedContent !== content) {
-          setContent(updatedContent);
+        // Remove the URL from content if it exists (strip HTML first)
+        const plainText = content.replace(/<[^>]*>/g, ' ');
+        const updatedPlainText = removeSocialMediaUrls(plainText);
+        if (updatedPlainText !== plainText) {
+          setContent(updatedPlainText);
+          toast({ title: "Instagram post added", description: "URL removed from post content" });
+        } else {
+          toast({ title: "Instagram post added", description: "The post will be embedded" });
         }
-        toast({ title: "Instagram post added", description: "The post will be embedded in your post" });
       } else {
         toast({ 
           title: "Invalid Instagram URL", 
@@ -403,7 +416,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             url: embed.url,
             type: 'social_embed',
             platform: embed.platform,
-            embedId: embed.id
+            embedId: embed.id,
+            username: embed.username
           }))
         ];
       }
@@ -538,14 +552,19 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               )}
               {socialEmbeds.map((embed, index) => (
                 <div key={`social-${index}`} className="relative group col-span-2">
-                  <div className="relative rounded-lg overflow-hidden bg-muted border p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Sparkles className="w-4 h-4 text-primary" />
+                  <div className="relative rounded-lg overflow-hidden bg-muted border p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium capitalize">{embed.platform} Post</p>
-                        <p className="text-xs text-muted-foreground truncate">{embed.url}</p>
+                        <p className="text-sm font-semibold capitalize">{embed.platform} Post</p>
+                        {embed.username && (
+                          <p className="text-sm text-muted-foreground mt-0.5">@{embed.username}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1 truncate">
+                          {embed.url.length > 50 ? `${embed.url.substring(0, 50)}...` : embed.url}
+                        </p>
                       </div>
                     </div>
                   </div>
