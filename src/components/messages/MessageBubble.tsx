@@ -43,6 +43,8 @@ export const MessageBubble = ({
     const loadAttachmentUrls = async () => {
       if (!message.attachments || message.attachments.length === 0) return;
       
+      console.log('Loading attachment URLs for message:', message.id, message.attachments);
+      
       const urls: Record<string, string> = {};
       
       for (const attachment of message.attachments) {
@@ -53,19 +55,21 @@ export const MessageBubble = ({
           
           if (data?.signedUrl) {
             urls[attachment.id] = data.signedUrl;
+            console.log('Generated signed URL for:', attachment.file_name);
           } else {
-            console.error('Failed to generate signed URL:', error);
+            console.error('Failed to generate signed URL for:', attachment.file_name, error);
           }
         } catch (err) {
           console.error('Error loading attachment URL:', err);
         }
       }
       
+      console.log('Final attachment URLs:', urls);
       setAttachmentUrls(urls);
     };
     
     loadAttachmentUrls();
-  }, [message.attachments]);
+  }, [message.attachments, message.id]);
 
   const renderContent = () => {
     if (message.gif_url) {
@@ -90,7 +94,13 @@ export const MessageBubble = ({
       );
     }
 
-    return <p className="break-words">{message.content}</p>;
+    // Only show text content if it exists
+    if (message.content && message.content.trim()) {
+      return <p className="break-words">{message.content}</p>;
+    }
+
+    // Return null if no content (attachments will be shown below)
+    return null;
   };
 
   return (

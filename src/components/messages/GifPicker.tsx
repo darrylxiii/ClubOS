@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Image, Search, TrendingUp } from "lucide-react";
+import { Search, TrendingUp, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -43,8 +43,13 @@ export const GifPicker = ({ onSelect }: GifPickerProps) => {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="flex-shrink-0 hover:bg-accent/50">
-          <Image className="h-5 w-5" />
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="flex-shrink-0 hover:bg-accent/50"
+          title="Send GIF"
+        >
+          <Sparkles className="h-5 w-5" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-96 p-0 glass-card" align="end">

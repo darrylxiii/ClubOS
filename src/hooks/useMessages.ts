@@ -345,18 +345,12 @@ export const useMessages = (conversationId?: string) => {
           // Skip if deleted
           if (newMessage.deleted_at) return;
 
-          // Fetch sender details
-          const { data: sender } = await supabase
-            .from('profiles')
-            .select('id, full_name, avatar_url')
-            .eq('id', newMessage.sender_id)
-            .maybeSingle();
-
-          if (conversationId) {
-            setMessages((prev) => [...prev, { ...newMessage, sender }]);
+          // If we're in a specific conversation, reload messages to get attachments
+          if (conversationId && newMessage.conversation_id === conversationId) {
+            loadMessages();
           }
 
-          // Reload conversations to update last message
+          // Always reload conversations to update last message
           loadConversations();
         }
       )
@@ -365,7 +359,7 @@ export const useMessages = (conversationId?: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, conversationId, loadConversations]);
+  }, [user?.id, conversationId, loadConversations, loadMessages]);
 
   // Initial load
   useEffect(() => {
