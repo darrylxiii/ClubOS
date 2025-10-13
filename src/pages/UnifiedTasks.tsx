@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,6 +39,7 @@ interface SystemPreferences {
 const UnifiedTasks = () => {
   const { user } = useAuth();
   const { role } = useUserRole();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [preferences, setPreferences] = useState<SystemPreferences | null>(null);
   const [objectives, setObjectives] = useState<any[]>([]);
   const [selectedObjective, setSelectedObjective] = useState<string | null>(null);
@@ -45,6 +47,7 @@ const UnifiedTasks = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scheduling, setScheduling] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   useEffect(() => {
     const init = async () => {
@@ -55,6 +58,16 @@ const UnifiedTasks = () => {
     };
     init();
   }, [user, refreshKey]);
+
+  // Check for action parameter to auto-open dialogs
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'create') {
+      setCreateDialogOpen(true);
+      // Clear the parameter after opening
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   const loadPreferences = async () => {
     if (!user) return;
@@ -262,6 +275,8 @@ const UnifiedTasks = () => {
               objectiveId={selectedObjective}
               defaultStatus="pending"
               onTaskCreated={handleRefresh}
+              open={createDialogOpen}
+              onOpenChange={setCreateDialogOpen}
             >
               <Button size="default" className="gap-2">
                 <Plus className="h-4 w-4" />

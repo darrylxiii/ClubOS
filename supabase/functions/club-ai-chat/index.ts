@@ -208,13 +208,13 @@ Use this context to provide personalized, relevant guidance. Reference specific 
         type: "function",
         function: {
           name: "navigate_to_page",
-          description: "Navigate the user to a specific page in The Quantum Club app. Use this when you need to redirect the user.",
+          description: "Navigate the user to a specific page in The Quantum Club app. Use this when you need to redirect the user. You can also trigger actions like opening dialogs using query parameters.",
           parameters: {
             type: "object",
             properties: {
               path: {
                 type: "string",
-                description: "The route path to navigate to (e.g., '/admin/companies', '/jobs', '/applications', '/settings')"
+                description: "The route path to navigate to. Examples: '/jobs', '/applications', '/tasks-pilot?action=create' (opens task creation dialog automatically)"
               },
               reason: {
                 type: "string",
