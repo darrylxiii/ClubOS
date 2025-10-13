@@ -45,7 +45,6 @@ import {
 import { NotificationBell } from "@/components/NotificationBell";
 import { NavigationGroup } from "@/components/NavigationGroup";
 import { CommandPalette } from "@/components/CommandPalette";
-import { GlobalUtilityBar } from "@/components/GlobalUtilityBar";
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useRole } from "@/contexts/RoleContext";
@@ -366,7 +365,6 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Global Navigation Tools - Always Accessible */}
       <CommandPalette />
-      <GlobalUtilityBar />
     </div>
   );
 };
