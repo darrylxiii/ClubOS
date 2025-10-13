@@ -49,7 +49,6 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useRole } from "@/contexts/RoleContext";
-import { ProfileStrengthWidget } from "@/components/profile/ProfileStrengthWidget";
 
 // Grouped Candidate Navigation
 const candidateNavigationGroups = [
@@ -328,9 +327,6 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
         <nav className="flex-1 overflow-y-auto py-6 px-3">
           <div className="space-y-3">
-            <div className="px-2 mb-4">
-              <ProfileStrengthWidget />
-            </div>
             {navigationGroups.map((group) => (
               <NavigationGroup
                 key={group.title}
