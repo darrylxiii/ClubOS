@@ -238,25 +238,33 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     ? partnerNavigationGroups
     : candidateNavigationGroups;
 
-  // Smart header visibility on scroll
+  // Smart header visibility on scroll - works on main content area
   useEffect(() => {
+    const mainElement = document.querySelector('main');
+    if (!mainElement) return;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
+      const currentScrollY = mainElement.scrollTop;
       
-      // Show header when scrolling up or at top
-      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+      // Show header immediately when scrolling up
+      if (currentScrollY < lastScrollY) {
         setShowHeader(true);
       } 
-      // Hide header when scrolling down (after 100px)
-      else if (currentScrollY > 100 && currentScrollY > lastScrollY) {
+      // Hide header when scrolling down (after 50px from top)
+      else if (currentScrollY > 50 && currentScrollY > lastScrollY) {
         setShowHeader(false);
+      }
+      
+      // Always show at top
+      if (currentScrollY < 10) {
+        setShowHeader(true);
       }
       
       setLastScrollY(currentScrollY);
     };
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    mainElement.addEventListener('scroll', handleScroll, { passive: true });
+    return () => mainElement.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
   const handleSignOut = async () => {
