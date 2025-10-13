@@ -391,7 +391,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
+    <div className="fixed inset-0 z-50 bg-black overflow-hidden">
       {/* Progress bars */}
       <div className="absolute top-4 left-4 right-4 flex gap-1 z-50">
         {stories.map((_, idx) => (
@@ -468,36 +468,36 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         </div>
       )}
 
-      {/* Story content - properly sized */}
-      <div className="flex-1 flex items-center justify-center px-4 py-24">
-        <div className="relative w-full h-full max-w-2xl max-h-[70vh] flex items-center justify-center">
-          {currentStory.media_type === 'video' ? (
-            <video
-              ref={videoRef}
-              src={currentStory.media_url}
-              className="max-w-full max-h-full object-contain rounded-lg"
-              autoPlay
-              onEnded={handleNext}
-            />
-          ) : (
-            <img
-              src={currentStory.media_url}
-              alt="Story"
-              className="max-w-full max-h-full object-contain rounded-lg"
-            />
-          )}
-        </div>
-
-        {/* Navigation areas */}
-        <button
-          className="absolute left-0 top-0 bottom-0 w-1/3"
-          onClick={handlePrevious}
-        />
-        <button
-          className="absolute right-0 top-0 bottom-0 w-1/3"
-          onClick={handleNext}
-        />
+      {/* Story content - centered in viewport */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        {currentStory.media_type === 'video' ? (
+          <video
+            ref={videoRef}
+            src={currentStory.media_url}
+            className="max-w-full max-h-full object-contain"
+            autoPlay
+            onEnded={handleNext}
+            style={{ maxHeight: 'calc(100vh - 200px)' }}
+          />
+        ) : (
+          <img
+            src={currentStory.media_url}
+            alt="Story"
+            className="max-w-full max-h-full object-contain"
+            style={{ maxHeight: 'calc(100vh - 200px)' }}
+          />
+        )}
       </div>
+
+      {/* Navigation areas */}
+      <button
+        className="absolute left-0 top-0 bottom-0 w-1/3 z-30"
+        onClick={handlePrevious}
+      />
+      <button
+        className="absolute right-0 top-0 bottom-0 w-1/3 z-30"
+        onClick={handleNext}
+      />
 
       {/* Caption */}
       {currentStory.caption && (
