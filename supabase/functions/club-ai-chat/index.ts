@@ -132,10 +132,20 @@ serve(async (req) => {
 
       // === SOCIAL DATA ===
       
-      // Get user's posts
+      // Get user's posts with engagement counts
       const { data: userPosts } = await supabase
         .from("posts")
-        .select("id, content, media_type, created_at, likes_count, comments_count, shares_count")
+        .select(`
+          id,
+          content,
+          media_urls,
+          created_at,
+          ai_summary,
+          poll_question,
+          post_likes(count),
+          post_comments(count),
+          post_shares(count)
+        `)
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -330,7 +340,14 @@ ${availableJobs && availableJobs.length > 0 ?
 === SOCIAL & CONTENT ===
 Posts Created (${userPosts?.length || 0} recent):
 ${userPosts && userPosts.length > 0 ?
-  userPosts.map(p => `- Posted ${new Date(p.created_at).toLocaleDateString()}: ${p.content?.substring(0, 100)}... | ${p.likes_count} likes, ${p.comments_count} comments, ${p.shares_count} shares`).join("\n")
+  userPosts.map(p => {
+    const likesCount = Array.isArray(p.post_likes) ? p.post_likes[0]?.count || 0 : 0;
+    const commentsCount = Array.isArray(p.post_comments) ? p.post_comments[0]?.count || 0 : 0;
+    const sharesCount = Array.isArray(p.post_shares) ? p.post_shares[0]?.count || 0 : 0;
+    const hasMedia = p.media_urls && Array.isArray(p.media_urls) && p.media_urls.length > 0;
+    const mediaInfo = hasMedia ? ` [${p.media_urls.length} media]` : '';
+    return `- Posted ${new Date(p.created_at).toLocaleDateString()}: ${p.content?.substring(0, 100)}...${mediaInfo} | ${likesCount} likes, ${commentsCount} comments, ${sharesCount} shares`;
+  }).join("\n")
   : "No posts yet"}
 
 Active Stories (${userStories?.length || 0}):
