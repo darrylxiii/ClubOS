@@ -7162,6 +7162,10 @@ export type Database = {
         }
         Returns: number
       }
+      can_access_conversation_storage: {
+        Args: { _conversation_id: string }
+        Returns: boolean
+      }
       check_verification_rate_limit: {
         Args: { _action: string; _user_id: string; _verification_type: string }
         Returns: Json
@@ -7222,6 +7226,10 @@ export type Database = {
       log_achievement_event: {
         Args: { _event_data?: Json; _event_type: string; _user_id: string }
         Returns: string
+      }
+      owns_message_attachment: {
+        Args: { _file_path: string }
+        Returns: boolean
       }
       track_share_link_view: {
         Args: { _token: string }
