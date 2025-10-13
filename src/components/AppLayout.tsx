@@ -254,7 +254,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className="min-h-screen flex w-full bg-background">
       {/* Global Header - Always visible */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-card border-b border-border z-50 flex items-center justify-between px-4 gap-4">
+      <div className="fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-md border-b border-border z-[100] flex items-center justify-between px-4 gap-4 shadow-sm">
         <Button
           variant="ghost"
           size="icon"
