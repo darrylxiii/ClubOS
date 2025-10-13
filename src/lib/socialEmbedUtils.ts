@@ -35,8 +35,9 @@ export function extractTwitterId(url: string): string | null {
  */
 export function extractLinkedInId(url: string): string | null {
   const patterns = [
-    /linkedin\.com\/posts\/[^\/]+\/(\d+-\d+)/,
+    /linkedin\.com\/posts\/[^\/]+[-_]([a-zA-Z0-9\-_]+)/,
     /linkedin\.com\/feed\/update\/urn:li:activity:(\d+)/,
+    /linkedin\.com\/feed\/update\/urn:li:share:(\d+)/,
     /linkedin\.com\/embed\/feed\/update\/urn:li:(?:share|ugcPost):(\d+)/,
   ];
 
@@ -132,9 +133,9 @@ export function getInstagramEmbedUrl(postId: string): string {
  */
 export function containsSocialMediaUrl(text: string): boolean {
   const patterns = [
-    /(?:twitter\.com|x\.com)\/\w+\/status\/\d+/,
-    /linkedin\.com\/(?:posts|feed\/update)/,
-    /instagram\.com\/(?:p|reel|tv)\//,
+    /(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/(?:\w+\/)?status\/\d+/,
+    /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:posts|feed\/update)/,
+    /(?:https?:\/\/)?(?:www\.)?instagram\.com\/(?:p|reel|tv)\//,
   ];
 
   return patterns.some(pattern => pattern.test(text));
@@ -144,5 +145,10 @@ export function containsSocialMediaUrl(text: string): boolean {
  * Remove social media URLs from text
  */
 export function removeSocialMediaUrls(text: string): string {
-  return text.replace(/https?:\/\/(?:www\.)?(?:twitter\.com|x\.com|linkedin\.com|instagram\.com)\/[^\s]+/g, '').trim();
+  return text
+    .replace(/https?:\/\/(?:www\.)?(?:twitter\.com|x\.com)\/[^\s]+/g, '')
+    .replace(/https?:\/\/(?:www\.)?linkedin\.com\/[^\s]+/g, '')
+    .replace(/https?:\/\/(?:www\.)?instagram\.com\/[^\s]+/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }

@@ -288,6 +288,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'linkedin') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
+        // Remove the URL from content if it exists
+        const updatedContent = removeSocialMediaUrls(content);
+        if (updatedContent !== content) {
+          setContent(updatedContent);
+        }
         toast({ title: "LinkedIn post added", description: "The post will be embedded in your post" });
       } else {
         toast({ 
@@ -313,6 +318,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'twitter') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
+        // Remove the URL from content if it exists
+        const updatedContent = removeSocialMediaUrls(content);
+        if (updatedContent !== content) {
+          setContent(updatedContent);
+        }
         toast({ title: "X post added", description: "The post will be embedded in your post" });
       } else {
         toast({ 
@@ -338,6 +348,11 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'instagram') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
+        // Remove the URL from content if it exists
+        const updatedContent = removeSocialMediaUrls(content);
+        if (updatedContent !== content) {
+          setContent(updatedContent);
+        }
         toast({ title: "Instagram post added", description: "The post will be embedded in your post" });
       } else {
         toast({ 
