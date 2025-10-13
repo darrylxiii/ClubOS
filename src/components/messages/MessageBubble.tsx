@@ -7,8 +7,10 @@ import { useNavigate } from "react-router-dom";
 import { MessageActions } from "./MessageActions";
 import { MessageReactionsDisplay } from "./MessageReactionsDisplay";
 import { OnlineStatusIndicator } from "./OnlineStatusIndicator";
+import { YouTubeEmbed } from "./YouTubeEmbed";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
+import { extractYouTubeVideoId } from "@/lib/youtubeUtils";
 
 interface MessageBubbleProps {
   message: Message;
@@ -72,6 +74,21 @@ export const MessageBubble = ({
   }, [message.attachments, message.id]);
 
   const renderContent = () => {
+    // Check for YouTube video
+    if (message.media_type === 'youtube' && message.media_url) {
+      const videoId = extractYouTubeVideoId(message.media_url);
+      if (videoId) {
+        return (
+          <div className="space-y-2">
+            <YouTubeEmbed videoId={videoId} isOwnMessage={isCurrentUser} />
+            {message.content && message.content.trim() && (
+              <p className="break-words text-sm mt-2">{message.content}</p>
+            )}
+          </div>
+        );
+      }
+    }
+
     if (message.gif_url) {
       return (
         <img

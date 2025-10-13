@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
 import { GifPicker } from "./GifPicker";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { YouTubePicker } from "./YouTubePicker";
 import { validatePostMediaFile } from "@/lib/fileValidation";
 
 interface MessageComposerProps {
@@ -111,6 +112,24 @@ export const MessageComposer = ({
     }
   };
 
+  const handleYouTubeSelect = async (videoId: string, url: string) => {
+    try {
+      await onSend(message.trim() || "", undefined, {
+        media_type: 'youtube',
+        media_url: url,
+      });
+      setMessage("");
+      toast({ title: "YouTube video shared" });
+    } catch (error) {
+      console.error("Error sending YouTube video:", error);
+      toast({
+        title: "Failed to share video",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="bg-background p-3 md:p-4">
       {attachment && (
@@ -151,6 +170,8 @@ export const MessageComposer = ({
         <EnhancedEmojiPicker onSelect={handleEmojiSelect} />
         
         <GifPicker onSelect={handleGifSelect} />
+
+        <YouTubePicker onSelect={handleYouTubeSelect} />
 
         <VoiceRecorder onSend={handleVoiceSend} />
 
