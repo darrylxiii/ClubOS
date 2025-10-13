@@ -45,6 +45,8 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [audienceMenuOpen, setAudienceMenuOpen] = useState(false);
   const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState<string | null>(null);
+  const [showYoutubePrompt, setShowYoutubePrompt] = useState(false);
+  const [detectedYoutubeUrl, setDetectedYoutubeUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -78,6 +80,23 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       }
     }
   }, [user]);
+
+  // Detect YouTube URLs in content
+  useEffect(() => {
+    if (content && !youtubeVideoId) {
+      if (containsYouTubeUrl(content)) {
+        const urls = content.match(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/[^\s]+/g);
+        if (urls && urls.length > 0) {
+          const url = urls[0];
+          const videoId = extractYouTubeVideoId(url);
+          if (videoId) {
+            setDetectedYoutubeUrl(url);
+            setShowYoutubePrompt(true);
+          }
+        }
+      }
+    }
+  }, [content, youtubeVideoId]);
 
   const handleFileSelect = (acceptedTypes: string) => {
     const input = document.createElement('input');
@@ -199,6 +218,24 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const handleYouTubeSelect = (videoId: string, url: string) => {
     setYoutubeVideoId(videoId);
     setYoutubeUrl(url);
+    setShowYoutubePrompt(false);
+    setDetectedYoutubeUrl(null);
+  };
+
+  const handleEmbedDetectedVideo = () => {
+    if (detectedYoutubeUrl) {
+      const videoId = extractYouTubeVideoId(detectedYoutubeUrl);
+      if (videoId) {
+        handleYouTubeSelect(videoId, detectedYoutubeUrl);
+        // Remove the URL from content
+        setContent(content.replace(detectedYoutubeUrl, '').trim());
+      }
+    }
+  };
+
+  const handleDismissYoutubePrompt = () => {
+    setShowYoutubePrompt(false);
+    setDetectedYoutubeUrl(null);
   };
 
   const handlePost = async () => {
@@ -386,6 +423,40 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
               </div>
             </div>
           )}
+
+          {/* YouTube URL Detection Prompt */}
+          {showYoutubePrompt && detectedYoutubeUrl && (
+            <div className="mt-3 p-3 bg-accent/10 border border-accent rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-600 flex items-center justify-center">
+                  <Youtube className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">YouTube link detected</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Would you like to embed this video in your post?
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      onClick={handleEmbedDetectedVideo}
+                      className="gap-2"
+                    >
+                      <Youtube className="w-4 h-4" />
+                      Embed Video
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleDismissYoutubePrompt}
+                    >
+                      Keep as Link
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           
           <div className="flex items-center justify-between mt-3 pt-3 border-t gap-2">
             <div className="flex items-center gap-2 min-w-0 flex-shrink">
@@ -440,7 +511,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       Video
                     </Button>
                     
-                    <YouTubePicker onSelect={handleYouTubeSelect} />
+                    <div className="inline-block">
+                      <YouTubePicker onSelect={handleYouTubeSelect} />
+                    </div>
                     
                     <Button 
                       variant="ghost" 
