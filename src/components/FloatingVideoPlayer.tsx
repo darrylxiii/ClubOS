@@ -86,16 +86,35 @@ export function FloatingVideoPlayer() {
       setIsDragging(false);
     };
 
+    const handleMouseLeave = () => {
+      // Stop dragging if mouse leaves the window
+      setIsDragging(false);
+    };
+
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseleave', handleMouseLeave);
+    
+    // Also stop dragging on any pointer cancel events
+    document.addEventListener('pointercancel', handleMouseUp);
+    document.addEventListener('pointerup', handleMouseUp);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('pointercancel', handleMouseUp);
+      document.removeEventListener('pointerup', handleMouseUp);
     };
   }, [isDragging, dragOffset]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    // Only allow dragging from the header, not from buttons
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) {
+      return;
+    }
+    
     e.preventDefault();
     e.stopPropagation();
     
@@ -113,12 +132,22 @@ export function FloatingVideoPlayer() {
     }
   };
 
-  // Clean up user-select when dragging stops
+  // Clean up user-select when dragging stops and ensure drag state is reset
   useEffect(() => {
     if (!isDragging) {
       document.body.style.userSelect = '';
       document.body.style.webkitUserSelect = '';
+      document.body.style.cursor = '';
+    } else {
+      document.body.style.cursor = 'grabbing';
     }
+    
+    // Safety cleanup on unmount
+    return () => {
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+      document.body.style.cursor = '';
+    };
   }, [isDragging]);
 
   const handleMinimize = async () => {
@@ -163,16 +192,11 @@ export function FloatingVideoPlayer() {
       {/* Header */}
       <div
         className={cn(
-          "flex items-center justify-between p-2 bg-background/95 backdrop-blur border-b transition-colors",
+          "flex items-center justify-between p-2 bg-background/95 backdrop-blur border-b transition-colors select-none",
           isDragging ? "cursor-grabbing bg-accent/10" : "cursor-grab hover:bg-accent/5"
         )}
         onMouseDown={handleMouseDown}
-        style={{ 
-          userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none'
-        }}
+        onDragStart={(e) => e.preventDefault()}
       >
         <div 
           className="flex items-center gap-2 flex-1 min-w-0"
