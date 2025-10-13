@@ -48,7 +48,8 @@ import {
   AlertCircle,
   Target,
   Users,
-  Clock
+  Clock,
+  Plus
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -66,6 +67,7 @@ import {
   Cell,
   Legend
 } from 'recharts';
+import { CreateUnifiedTaskDialog } from '@/components/unified-tasks/CreateUnifiedTaskDialog';
 
 interface Feedback {
   id: string;
@@ -101,6 +103,16 @@ const FeedbackDatabase = () => {
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showTaskDialog, setShowTaskDialog] = useState(false);
+  const [taskFormData, setTaskFormData] = useState<{
+    title: string;
+    description: string;
+    priority: 'low' | 'medium' | 'high';
+  }>({
+    title: '',
+    description: '',
+    priority: 'high',
+  });
   const { toast } = useToast();
   const { currentRole } = useRole();
   const navigate = useNavigate();
@@ -375,6 +387,82 @@ const FeedbackDatabase = () => {
     URL.revokeObjectURL(url);
   };
 
+  const handleCreateTask = () => {
+    if (!selectedFeedback) return;
+    
+    const description = `
+**Feedback Issue** 
+User: ${selectedFeedback.email}
+Page: ${selectedFeedback.page_title} (${selectedFeedback.page_path})
+Rating: ${selectedFeedback.rating}/10
+Submitted: ${format(new Date(selectedFeedback.submitted_at), 'PPP')}
+
+**User Comment:**
+${selectedFeedback.comment || 'No comment provided'}
+
+**Admin Notes:**
+${adminNotes || 'No admin notes yet'}
+
+**Navigation Trail:**
+${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.title} (${t.route})`).join('\n') || 'No trail data'}
+    `.trim();
+
+    setTaskFormData({
+      title: `Fix: ${selectedFeedback.page_title} - Rating ${selectedFeedback.rating}/10`,
+      description,
+      priority: selectedFeedback.rating <= 3 ? 'high' : selectedFeedback.rating <= 5 ? 'medium' : 'low',
+    });
+    
+    setShowTaskDialog(true);
+  };
+
+  const handleTaskSubmit = async () => {
+    if (!taskFormData.title.trim()) {
+      toast({
+        title: 'Title required',
+        description: 'Please enter a task title',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('unified_tasks')
+        .insert([{
+          task_number: '',
+          title: taskFormData.title,
+          description: taskFormData.description,
+          priority: taskFormData.priority,
+          status: 'pending',
+          task_type: 'general',
+          scheduling_mode: 'manual',
+          user_id: user.id,
+          created_by: user.id,
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Task created',
+        description: 'Feedback converted to task successfully',
+      });
+      
+      setShowTaskDialog(false);
+      setTaskFormData({ title: '', description: '', priority: 'high' });
+    } catch (error: any) {
+      console.error('Error creating task:', error);
+      toast({
+        title: 'Failed to create task',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (currentRole !== 'admin') return null;
 
   return (
@@ -466,15 +554,15 @@ const FeedbackDatabase = () => {
           <TabsContent value="overview" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Rating Distribution */}
-              <Card>
+              <Card className="glass-card border-border/40">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <BarChart3 className="h-5 w-5" />
+                  <CardTitle className="flex items-center gap-2 text-foreground">
+                    <BarChart3 className="h-5 w-5 text-primary" />
                     Rating Distribution
                   </CardTitle>
                   <CardDescription>Breakdown of all ratings received</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pb-2">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
@@ -483,7 +571,7 @@ const FeedbackDatabase = () => {
                         cy="50%"
                         labelLine={false}
                         label={({ name, value }) => `${name}: ${value}`}
-                        outerRadius={80}
+                        outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -491,8 +579,17 @@ const FeedbackDatabase = () => {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip />
-                      <Legend />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px'
+                        }}
+                      />
+                      <Legend 
+                        wrapperStyle={{ paddingTop: '20px' }}
+                        iconType="circle"
+                      />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -649,42 +746,73 @@ const FeedbackDatabase = () => {
           <TabsContent value="trends" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Volume Trend */}
-              <Card>
+              <Card className="glass-card border-border/40">
                 <CardHeader>
-                  <CardTitle>Feedback Volume Trend</CardTitle>
+                  <CardTitle className="text-foreground">Feedback Volume Trend</CardTitle>
                   <CardDescription>Last 7 days submission count</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pb-2">
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={analytics.trendData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="hsl(var(--primary))" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="hsl(var(--muted-foreground))"
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <YAxis 
+                        stroke="hsl(var(--muted-foreground))"
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                          color: 'hsl(var(--foreground))'
+                        }}
+                      />
+                      <Bar dataKey="count" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
               </Card>
 
               {/* Rating Trend */}
-              <Card>
+              <Card className="glass-card border-border/40">
                 <CardHeader>
-                  <CardTitle>Average Rating Trend</CardTitle>
+                  <CardTitle className="text-foreground">Average Rating Trend</CardTitle>
                   <CardDescription>Last 7 days rating evolution</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pb-2">
                   <ResponsiveContainer width="100%" height={300}>
                     <LineChart data={analytics.trendData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis domain={[0, 10]} />
-                      <Tooltip />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="hsl(var(--muted-foreground))"
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <YAxis 
+                        domain={[0, 10]} 
+                        stroke="hsl(var(--muted-foreground))"
+                        tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))',
+                          border: '1px solid hsl(var(--border))',
+                          borderRadius: '8px',
+                          color: 'hsl(var(--foreground))'
+                        }}
+                      />
                       <Line 
                         type="monotone" 
                         dataKey="avgRating" 
                         stroke="hsl(var(--primary))" 
-                        strokeWidth={2}
+                        strokeWidth={3}
+                        dot={{ fill: 'hsl(var(--primary))', r: 6 }}
+                        activeDot={{ r: 8 }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
@@ -932,9 +1060,13 @@ const FeedbackDatabase = () => {
             </div>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={() => setSelectedFeedback(null)}>
               Close
+            </Button>
+            <Button variant="default" className="gap-2" onClick={handleCreateTask}>
+              <Plus className="h-4 w-4" />
+              Create Task
             </Button>
             <Button onClick={handleSaveNotes} disabled={isSaving}>
               {isSaving ? (
@@ -946,6 +1078,66 @@ const FeedbackDatabase = () => {
                 'Save Notes'
               )}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Task Creation Dialog */}
+      <Dialog open={showTaskDialog} onOpenChange={setShowTaskDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Create Task from Feedback</DialogTitle>
+            <DialogDescription>
+              Convert this feedback into an actionable task
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Task Title *</label>
+              <Input
+                value={taskFormData.title}
+                onChange={(e) => setTaskFormData({ ...taskFormData, title: e.target.value })}
+                placeholder="Enter task title"
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Description</label>
+              <Textarea
+                value={taskFormData.description}
+                onChange={(e) => setTaskFormData({ ...taskFormData, description: e.target.value })}
+                rows={12}
+                className="mt-2 font-mono text-xs"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium">Priority</label>
+              <Select
+                value={taskFormData.priority}
+                onValueChange={(value: 'low' | 'medium' | 'high') =>
+                  setTaskFormData({ ...taskFormData, priority: value })
+                }
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTaskDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleTaskSubmit}>Create Task</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
