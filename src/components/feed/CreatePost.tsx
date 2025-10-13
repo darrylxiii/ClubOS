@@ -264,11 +264,14 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const handleEmbedDetectedSocial = () => {
     if (detectedSocialEmbeds.length > 0) {
       setSocialEmbeds([...socialEmbeds, ...detectedSocialEmbeds]);
-      // Remove all social media URLs from content (including HTML)
-      const plainText = content.replace(/<[^>]*>/g, ' ');
-      const updatedPlainText = removeSocialMediaUrls(plainText);
-      // Update content with cleaned text
-      setContent(updatedPlainText);
+      // Get plain text content and remove social URLs
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      let plainText = tempDiv.textContent || tempDiv.innerText || '';
+      const updatedText = removeSocialMediaUrls(plainText);
+      
+      // Set the cleaned content
+      setContent(updatedText);
       setShowSocialPrompt(false);
       setDetectedSocialEmbeds([]);
       toast({ title: "Social posts embedded", description: "URLs removed from post content" });
@@ -292,11 +295,14 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'linkedin') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
-        // Remove the URL from content if it exists (strip HTML first)
-        const plainText = content.replace(/<[^>]*>/g, ' ');
-        const updatedPlainText = removeSocialMediaUrls(plainText);
-        if (updatedPlainText !== plainText) {
-          setContent(updatedPlainText);
+        // Remove the URL from content if it exists
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        let plainText = tempDiv.textContent || tempDiv.innerText || '';
+        
+        if (plainText.includes(url)) {
+          const updatedText = removeSocialMediaUrls(plainText);
+          setContent(updatedText);
           toast({ title: "LinkedIn post added", description: "URL removed from post content" });
         } else {
           toast({ title: "LinkedIn post added", description: "The post will be embedded" });
@@ -325,11 +331,14 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'twitter') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
-        // Remove the URL from content if it exists (strip HTML first)
-        const plainText = content.replace(/<[^>]*>/g, ' ');
-        const updatedPlainText = removeSocialMediaUrls(plainText);
-        if (updatedPlainText !== plainText) {
-          setContent(updatedPlainText);
+        // Remove the URL from content if it exists
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        let plainText = tempDiv.textContent || tempDiv.innerText || '';
+        
+        if (plainText.includes(url)) {
+          const updatedText = removeSocialMediaUrls(plainText);
+          setContent(updatedText);
           toast({ title: "X post added", description: "URL removed from post content" });
         } else {
           toast({ title: "X post added", description: "The post will be embedded" });
@@ -358,11 +367,14 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const detected = detectSocialEmbeds(url);
       if (detected.length > 0 && detected[0].platform === 'instagram') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
-        // Remove the URL from content if it exists (strip HTML first)
-        const plainText = content.replace(/<[^>]*>/g, ' ');
-        const updatedPlainText = removeSocialMediaUrls(plainText);
-        if (updatedPlainText !== plainText) {
-          setContent(updatedPlainText);
+        // Remove the URL from content if it exists
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        let plainText = tempDiv.textContent || tempDiv.innerText || '';
+        
+        if (plainText.includes(url)) {
+          const updatedText = removeSocialMediaUrls(plainText);
+          setContent(updatedText);
           toast({ title: "Instagram post added", description: "URL removed from post content" });
         } else {
           toast({ title: "Instagram post added", description: "The post will be embedded" });

@@ -358,13 +358,14 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
         onBlur={handleBlur}
         dir="ltr"
         className={cn(
-          "min-h-[80px] p-3 outline-none",
+          "min-h-[80px] p-3 outline-none break-words",
           "prose prose-sm max-w-none",
           "[&_ul]:list-disc [&_ul]:ml-6",
           "[&_ol]:list-decimal [&_ol]:ml-6",
           "[&_a]:text-primary [&_a]:underline",
           !value && "empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground"
         )}
+        style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
         data-placeholder={placeholder || "What do you want to talk about?"}
         suppressContentEditableWarning
       />

@@ -16,6 +16,7 @@ interface SocialEmbedProps {
 export function SocialEmbed({ platform, postId, url, className, username }: SocialEmbedProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [embedUrl, setEmbedUrl] = useState<string>('');
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     let url = '';
@@ -31,7 +32,17 @@ export function SocialEmbed({ platform, postId, url, className, username }: Soci
         break;
     }
     setEmbedUrl(url);
-  }, [platform, postId]);
+    
+    // Set a timeout to hide loader if embed takes too long
+    const timeout = setTimeout(() => {
+      if (isLoading) {
+        setIsLoading(false);
+        setHasError(true);
+      }
+    }, 10000);
+    
+    return () => clearTimeout(timeout);
+  }, [platform, postId, isLoading]);
 
   const getPlatformColor = () => {
     switch (platform) {
@@ -61,26 +72,40 @@ export function SocialEmbed({ platform, postId, url, className, username }: Soci
 
   return (
     <Card className={cn('overflow-hidden', getPlatformColor(), className)}>
-      {isLoading && (
+      {isLoading && !hasError && (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
         </div>
       )}
       
-      <div className={cn(isLoading && 'hidden')}>
-        <iframe
-          src={embedUrl}
-          className="w-full min-h-[400px] border-0"
-          onLoad={() => setIsLoading(false)}
-          onError={() => {
-            setIsLoading(false);
-            console.error(`Failed to load ${platform} embed:`, embedUrl);
-          }}
-          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
-          loading="lazy"
-          allow="autoplay; encrypted-media"
-        />
-      </div>
+      {hasError && (
+        <div className="flex flex-col items-center justify-center py-12 px-4">
+          <p className="text-sm text-muted-foreground text-center">
+            Unable to load embed. Click below to view the original post.
+          </p>
+        </div>
+      )}
+      
+      {!hasError && (
+        <div className={cn(isLoading && 'hidden', 'min-h-[400px]')}>
+          <iframe
+            src={embedUrl}
+            className="w-full min-h-[400px] border-0"
+            onLoad={() => {
+              setIsLoading(false);
+              setHasError(false);
+            }}
+            onError={() => {
+              setIsLoading(false);
+              setHasError(true);
+              console.error(`Failed to load ${platform} embed:`, embedUrl);
+            }}
+            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
+            loading="lazy"
+            allow="autoplay; encrypted-media"
+          />
+        </div>
+      )}
       
       <div className="p-3 border-t bg-background/50 flex items-center justify-between">
         <div className="flex flex-col">
