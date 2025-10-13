@@ -179,16 +179,16 @@ export const MessageComposer = ({
   };
 
   return (
-    <div className="bg-background p-2 sm:p-3 md:p-4 border-t border-border/20">
+    <div className="bg-background p-3 md:p-4 border-t border-border/20">
       {attachment && (
-        <div className="mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs font-medium bg-muted/50 p-1.5 sm:p-2 md:p-3 rounded-lg border border-border/20">
+        <div className="mb-3 flex items-center gap-2 text-xs sm:text-sm font-medium bg-muted/50 p-2 sm:p-3 rounded-lg border border-border/20">
           <Paperclip className="h-3 w-3 sm:h-4 sm:w-4 text-primary flex-shrink-0" />
-          <span className="truncate text-foreground flex-1 min-w-0">{attachment.name}</span>
+          <span className="truncate text-foreground">{attachment.name}</span>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setAttachment(null)}
-            className="hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors text-[10px] sm:text-xs h-6 sm:h-7 px-2 flex-shrink-0"
+            className="ml-auto hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors text-xs h-7"
           >
             Remove
           </Button>
@@ -197,7 +197,7 @@ export const MessageComposer = ({
 
       {/* Controls row - shown only when focused */}
       {showControls && (
-        <div className="message-controls flex items-center gap-0.5 sm:gap-1 mb-2 sm:mb-3 pb-2 sm:pb-3 border-b border-border/10 animate-fade-in overflow-x-auto">
+        <div className="message-controls flex items-center gap-1 mb-3 pb-3 border-b border-border/10 animate-fade-in">
           <input
             type="file"
             ref={fileInputRef}
@@ -211,10 +211,10 @@ export const MessageComposer = ({
             size="icon"
             onClick={() => fileInputRef.current?.click()}
             disabled={disabled || sending}
-            className="flex-shrink-0 rounded-lg h-8 w-8 sm:h-9 sm:w-9 hover:bg-muted"
+            className="flex-shrink-0 rounded-lg h-9 w-9 hover:bg-muted"
             title="Attach file"
           >
-            <Paperclip className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <Paperclip className="h-4 w-4" />
           </Button>
 
           <EnhancedEmojiPicker onSelect={handleEmojiSelect} />
@@ -229,22 +229,21 @@ export const MessageComposer = ({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 sm:h-9 sm:w-9 rounded-lg hover:bg-muted flex-shrink-0"
+                className="h-9 w-9 rounded-lg hover:bg-muted"
                 disabled={disabled}
                 title="Share Spotify"
               >
-                <Music className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <Music className="h-4 w-4" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[280px] sm:w-80">
-              <div className="space-y-2 sm:space-y-3">
-                <h4 className="font-medium text-xs sm:text-sm">Share Spotify</h4>
-                <p className="text-[10px] sm:text-xs text-muted-foreground">
+            <PopoverContent className="w-80">
+              <div className="space-y-3">
+                <h4 className="font-medium text-sm">Share Spotify</h4>
+                <p className="text-xs text-muted-foreground">
                   Paste a Spotify link (song, album, playlist, or podcast)
                 </p>
                 <Input
                   placeholder="https://open.spotify.com/track/..."
-                  className="text-xs sm:text-sm"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       handleSpotifySelect(e.currentTarget.value);
@@ -259,9 +258,9 @@ export const MessageComposer = ({
       )}
 
       {/* Message input row with voice note inside */}
-      <div className="flex items-end gap-1.5 sm:gap-2">
-        <div className="flex-1 relative min-w-0">
-          <div className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 z-10">
+      <div className="flex items-end gap-2">
+        <div className="flex-1 relative">
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10">
             <VoiceRecorder onSend={handleVoiceSend} />
           </div>
           <Textarea
@@ -276,7 +275,7 @@ export const MessageComposer = ({
             onKeyDown={handleKeyDown}
             placeholder="Type a message..."
             disabled={disabled || sending}
-            className="min-h-[38px] sm:min-h-[42px] max-h-24 sm:max-h-32 resize-none bg-muted/30 border-border/20 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-xs sm:text-sm pl-10 sm:pl-12 pr-2 sm:pr-3 py-2 sm:py-2.5"
+            className="min-h-[42px] max-h-32 resize-none bg-muted/30 border-border/20 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm pl-12 pr-3 py-2.5"
             rows={1}
           />
         </div>
@@ -285,12 +284,12 @@ export const MessageComposer = ({
           onClick={handleSend}
           disabled={disabled || sending || (!message.trim() && !attachment)}
           size="icon"
-          className="flex-shrink-0 h-9 w-9 sm:h-10 sm:w-10 rounded-xl bg-primary hover:bg-primary/90"
+          className="flex-shrink-0 h-10 w-10 rounded-xl bg-primary hover:bg-primary/90"
         >
           {sending ? (
-            <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
-            <Send className="h-4 w-4 sm:h-5 sm:w-5" />
+            <Send className="h-5 w-5" />
           )}
         </Button>
       </div>
