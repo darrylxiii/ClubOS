@@ -412,18 +412,37 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
 
   return (
     <div 
-      className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black/80 backdrop-blur-sm" 
-      style={{ zIndex: 999999, position: 'fixed' }}
+      style={{ 
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 999999,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        backdropFilter: 'blur(4px)'
+      }}
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-md mx-4 bg-black rounded-lg flex flex-col shadow-2xl border border-white/20"
-        onClick={(e) => e.stopPropagation()}
         style={{ 
+          position: 'relative',
+          width: '100%',
+          maxWidth: '448px',
           height: 'min(800px, 90vh)',
-          maxHeight: '90vh',
+          margin: '0 16px',
+          backgroundColor: '#000',
+          borderRadius: '8px',
+          display: 'flex',
+          flexDirection: 'column',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
           overflow: 'hidden'
         }}
+        onClick={(e) => e.stopPropagation()}
       >
         {/* Progress bars */}
         <div className="flex gap-1 px-4 pt-4 pb-2 flex-shrink-0">
@@ -480,13 +499,26 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         </div>
 
         {/* Story content - centered and visible */}
-        <div className="flex-1 flex items-center justify-center relative min-h-0 bg-black">
+        <div style={{ 
+          flex: 1, 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          position: 'relative',
+          minHeight: 0,
+          backgroundColor: '#000',
+          overflow: 'hidden'
+        }}>
           {currentStory.media_type === 'video' ? (
             <video
               ref={videoRef}
               src={currentStory.media_url}
-              className="w-full h-full object-contain"
-              style={{ maxHeight: '100%', maxWidth: '100%' }}
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'contain',
+                display: 'block'
+              }}
               autoPlay
               onEnded={handleNext}
             />
@@ -494,8 +526,12 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
             <img
               src={currentStory.media_url}
               alt="Story"
-              className="w-full h-full object-contain"
-              style={{ maxHeight: '100%', maxWidth: '100%' }}
+              style={{ 
+                width: '100%', 
+                height: '100%', 
+                objectFit: 'contain',
+                display: 'block'
+              }}
             />
           )}
 
