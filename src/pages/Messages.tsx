@@ -192,12 +192,12 @@ export default function Messages() {
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <div className="relative">
+                <div className="relative flex-shrink-0">
                   <Avatar className="h-10 w-10">
                     <AvatarImage 
                       src={
                         isGroup 
-                          ? selectedConversation.metadata?.group_avatar 
+                          ? selectedConversation.metadata?.group_avatar
                           : selectedConversation.participants?.find(p => p.user_id !== user?.id)?.profile?.avatar_url || undefined
                       }
                       className="object-cover"

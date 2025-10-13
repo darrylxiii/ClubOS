@@ -184,7 +184,7 @@ export const MessageBubble = ({
         )}
 
         <div className="flex flex-col gap-1.5 relative">
-          <div className="flex items-end gap-2">
+          <div className="flex items-start gap-2">
             <div
               className={cn(
                 "rounded-2xl px-4 py-3 max-w-md shadow-glass-md backdrop-blur-xl transition-all duration-200",
@@ -310,29 +310,32 @@ export const MessageBubble = ({
               )}
             </div>
 
-            {/* Reactions inline with message */}
-            <div className={cn("flex-shrink-0 mb-1", isCurrentUser && "order-first")}>
-              <MessageReactionsDisplay messageId={message.id} />
+            {/* Timestamp and Actions inline */}
+            <div className={cn(
+              "flex items-center gap-1.5 text-xs text-muted-foreground/80 mt-3",
+              isCurrentUser && "order-first flex-row-reverse"
+            )}>
+              <span className="font-medium whitespace-nowrap">
+                {format(new Date(message.created_at), "HH:mm")}
+              </span>
+              <div className="opacity-0 group-hover:opacity-100 transition-all duration-200">
+                <MessageActions 
+                  message={message as any}
+                  isOwnMessage={isCurrentUser}
+                  onEdit={onEdit}
+                  onReply={onReply}
+                  onDelete={onDelete}
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Actions & Timestamp */}
-        <div className={cn(
-          "flex items-center gap-2 mt-1.5 px-2",
-          isCurrentUser && "flex-row-reverse"
-        )}>
-          <span className="text-xs font-medium text-muted-foreground/80">
-            {format(new Date(message.created_at), "HH:mm")}
-          </span>
-          <div className="opacity-0 group-hover:opacity-100 transition-all duration-200">
-            <MessageActions 
-              message={message as any}
-              isOwnMessage={isCurrentUser}
-              onEdit={onEdit}
-              onReply={onReply}
-              onDelete={onDelete}
-            />
+          {/* Reactions at bottom right */}
+          <div className={cn(
+            "flex justify-end mt-1",
+            !isCurrentUser && "justify-start"
+          )}>
+            <MessageReactionsDisplay messageId={message.id} />
           </div>
         </div>
       </div>

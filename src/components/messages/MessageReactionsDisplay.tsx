@@ -4,7 +4,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { Smile } from "lucide-react";
 import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
 import { cn } from "@/lib/utils";
 
@@ -104,16 +104,16 @@ export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayPr
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-accent/50 shadow-glass-sm"
+          className="h-7 w-7 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-accent/50 shadow-glass-sm"
         >
-          <Plus className="h-4 w-4" />
+          <Smile className="h-4 w-4" />
         </Button>
       </EnhancedEmojiPicker>
     );
   }
 
   return (
-    <div className="flex flex-col items-center gap-1">
+    <div className="flex flex-row items-center gap-1">
       {Object.entries(groupedReactions).map(([emoji, reactionList]) => {
         const hasReacted = reactionList.some((r) => r.user_id === user?.id);
         return (
@@ -124,17 +124,17 @@ export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayPr
                 size="sm"
                 onClick={() => handleAddReaction(emoji)}
                 className={cn(
-                  "h-7 w-7 p-0 rounded-full text-sm hover:scale-125 transition-all shadow-glass-sm",
-                  hasReacted ? 'bg-primary/20 ring-2 ring-primary/50 shadow-glow' : 'bg-accent/50 hover:bg-accent/70'
+                  "h-6 px-2 rounded-full text-sm hover:scale-110 transition-all shadow-glass-sm",
+                  hasReacted ? 'bg-primary/20 ring-1 ring-primary/50 shadow-glow' : 'bg-accent/50 hover:bg-accent/70'
                 )}
               >
-                <span className="text-base">{emoji}</span>
-                <span className="absolute -top-1 -right-1 text-[10px] font-bold bg-background rounded-full w-4 h-4 flex items-center justify-center border border-border/50">
+                <span className="text-sm">{emoji}</span>
+                <span className="text-[10px] font-bold ml-1">
                   {reactionList.length}
                 </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-2 glass-card border-primary/20" align="center" side="left">
+            <PopoverContent className="w-auto p-2 glass-card border-primary/20" align="center" side="top">
               <div className="text-xs space-y-1 font-medium">
                 {reactionList.map((r) => (
                   <div key={r.id} className="text-foreground/80">
@@ -150,9 +150,9 @@ export const MessageReactionsDisplay = ({ messageId }: MessageReactionsDisplayPr
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7 rounded-full hover:scale-125 transition-all hover:bg-accent/70 shadow-glass-sm"
+          className="h-6 w-6 rounded-full hover:scale-110 transition-all hover:bg-accent/70 shadow-glass-sm"
         >
-          <Plus className="h-3.5 w-3.5" />
+          <Smile className="h-3.5 w-3.5" />
         </Button>
       </EnhancedEmojiPicker>
     </div>
