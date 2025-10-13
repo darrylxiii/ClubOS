@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
-import { Bold, Italic, List, Link as LinkIcon, Smile, Youtube } from "lucide-react";
+import { Bold, Italic, List, Link as LinkIcon, Smile, Youtube, Linkedin, Twitter, Instagram } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -27,6 +27,9 @@ interface RichTextEditorProps {
   placeholder?: string;
   className?: string;
   onYouTubeClick?: () => void;
+  onLinkedInClick?: () => void;
+  onTwitterClick?: () => void;
+  onInstagramClick?: () => void;
 }
 
 // Comprehensive emoji collection (iOS 26 style)
@@ -69,7 +72,7 @@ const EMOJI_CATEGORIES = {
   }
 };
 
-export function RichTextEditor({ value, onChange, placeholder, className, onYouTubeClick }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, className, onYouTubeClick, onLinkedInClick, onTwitterClick, onInstagramClick }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
@@ -237,6 +240,45 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
               title="Add YouTube Video"
             >
               <Youtube className="w-4 h-4 text-red-600" />
+            </Button>
+          )}
+
+          {onLinkedInClick && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={onLinkedInClick}
+              title="Embed LinkedIn Post"
+            >
+              <Linkedin className="w-4 h-4 text-blue-600" />
+            </Button>
+          )}
+
+          {onTwitterClick && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={onTwitterClick}
+              title="Embed X (Twitter) Post"
+            >
+              <Twitter className="w-4 h-4" />
+            </Button>
+          )}
+
+          {onInstagramClick && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={onInstagramClick}
+              title="Embed Instagram Post"
+            >
+              <Instagram className="w-4 h-4 text-pink-600" />
             </Button>
           )}
 

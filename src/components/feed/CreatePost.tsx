@@ -280,6 +280,45 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     setSocialEmbeds(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleLinkedInClick = () => {
+    const url = prompt('Paste a LinkedIn post URL:');
+    if (url && url.includes('linkedin.com')) {
+      const detected = detectSocialEmbeds(url);
+      if (detected.length > 0) {
+        setSocialEmbeds([...socialEmbeds, ...detected]);
+        toast({ title: "LinkedIn post added", description: "The post will be embedded" });
+      } else {
+        toast({ title: "Invalid URL", description: "Please paste a valid LinkedIn post URL", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleTwitterClick = () => {
+    const url = prompt('Paste an X (Twitter) post URL:');
+    if (url && (url.includes('twitter.com') || url.includes('x.com'))) {
+      const detected = detectSocialEmbeds(url);
+      if (detected.length > 0) {
+        setSocialEmbeds([...socialEmbeds, ...detected]);
+        toast({ title: "X post added", description: "The post will be embedded" });
+      } else {
+        toast({ title: "Invalid URL", description: "Please paste a valid X/Twitter post URL", variant: "destructive" });
+      }
+    }
+  };
+
+  const handleInstagramClick = () => {
+    const url = prompt('Paste an Instagram post URL:');
+    if (url && url.includes('instagram.com')) {
+      const detected = detectSocialEmbeds(url);
+      if (detected.length > 0) {
+        setSocialEmbeds([...socialEmbeds, ...detected]);
+        toast({ title: "Instagram post added", description: "The post will be embedded" });
+      } else {
+        toast({ title: "Invalid URL", description: "Please paste a valid Instagram post URL", variant: "destructive" });
+      }
+    }
+  };
+
   const handlePost = async () => {
     if (!content.trim() || !user) return;
 
@@ -381,6 +420,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             placeholder="What do you want to talk about?"
             className="border-none"
             onYouTubeClick={() => setShowYoutubePicker(true)}
+            onLinkedInClick={handleLinkedInClick}
+            onTwitterClick={handleTwitterClick}
+            onInstagramClick={handleInstagramClick}
           />
 
           {(previews.length > 0 || youtubeVideoId || socialEmbeds.length > 0) && (
