@@ -32,6 +32,7 @@ import {
   BarChart3,
   TrendingUp,
   Trophy,
+  MessagesSquare,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -179,6 +180,7 @@ const adminNavigationGroups = [
       { name: "Companies", icon: Building, path: "/companies" },
       { name: "Jobs", icon: Briefcase, path: "/jobs" },
       { name: "Applications", icon: FileText, path: "/applications" },
+      { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
     ],
   },
   {
