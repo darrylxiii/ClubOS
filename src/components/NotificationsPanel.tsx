@@ -16,9 +16,8 @@ interface Notification {
   title: string;
   message: string;
   type: string;
-  category: 'info' | 'success' | 'warning' | 'error';
+  category?: string;
   action_url: string | null;
-  action_label: string | null;
   metadata: any;
   is_read: boolean;
   is_archived: boolean;
@@ -43,21 +42,21 @@ export const NotificationsPanel = () => {
     if (!user) return;
 
     try {
-      let query = supabase
-        .from('notifications' as any)
+      const queryBuilder = supabase
+        .from('notifications')
         .select('*')
         .eq('user_id', user.id)
         .eq('is_archived', false)
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (filter === 'unread') {
-        query = query.eq('is_read', false);
-      }
+      const finalQuery = filter === 'unread' 
+        ? queryBuilder.eq('is_read', false)
+        : queryBuilder;
 
-      const { data, error } = await query;
-      if (error) throw error;
-      setNotifications((data as any) || []);
+      const result = await finalQuery;
+      if (result.error) throw result.error;
+      setNotifications((result.data as any) || []);
     } catch (error) {
       console.error('Error loading notifications:', error);
     } finally {
@@ -92,9 +91,9 @@ export const NotificationsPanel = () => {
 
   const markAsRead = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('notifications' as any)
-        .update({ is_read: true, read_at: new Date().toISOString() })
+      const result = await supabase
+        .from('notifications')
+        .update({ is_read: true, read_at: new Date().toISOString() } as any)
         .eq('id', id)
         .eq('user_id', user?.id);
 
@@ -278,7 +277,7 @@ export const NotificationsPanel = () => {
                             onClick={() => handleNotificationClick(notification)}
                           >
                             <ExternalLink className="w-3 h-3 mr-1" />
-                            {notification.action_label || 'View'}
+                            View
                           </Button>
                         )}
                         

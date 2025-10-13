@@ -25,15 +25,15 @@ export const NotificationBell = () => {
     if (!user) return;
 
     try {
-      const { count, error } = await supabase
-        .from('notifications' as any)
+      const result = await supabase
+        .from('notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('is_read', false)
         .eq('is_archived', false);
 
-      if (error) throw error;
-      setUnreadCount(count || 0);
+      if (result.error) throw result.error;
+      setUnreadCount(result.count || 0);
     } catch (error) {
       console.error('Error loading unread count:', error);
     }
