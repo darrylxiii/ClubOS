@@ -55,19 +55,14 @@ export const OnlineStatusIndicator = ({ userId, className }: OnlineStatusIndicat
   };
 
   return (
-    <div className={cn("relative", className)}>
-      <div
-        className={cn(
-          "w-3 h-3 rounded-full ring-2 ring-background",
-          statusColors[status],
-          status === 'online' && "animate-pulse"
-        )}
-        title={status.charAt(0).toUpperCase() + status.slice(1)}
-      />
-      {/* Extra pulse ring for online status */}
-      {status === 'online' && (
-        <div className="absolute inset-0 w-3 h-3 rounded-full bg-green-500 animate-ping opacity-40" />
+    <div
+      className={cn(
+        "w-3 h-3 rounded-full ring-2 ring-background",
+        statusColors[status],
+        status === 'online' && "animate-pulse",
+        className
       )}
-    </div>
+      title={status.charAt(0).toUpperCase() + status.slice(1)}
+    />
   );
 };

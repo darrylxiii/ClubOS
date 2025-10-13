@@ -16,6 +16,8 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { useMessages } from '@/hooks/useMessages';
+import { useReadReceipts } from '@/hooks/useReadReceipts';
+import { useUserPresence } from '@/hooks/useUserPresence';
 import { CreateConversationDialog } from '@/components/messages/CreateConversationDialog';
 import { ConversationListItem } from '@/components/messages/ConversationListItem';
 import { MessageBubble } from '@/components/messages/MessageBubble';
@@ -27,6 +29,7 @@ import { AudioCallLauncher } from '@/components/messages/AudioCallLauncher';
 import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import { MessageEditor } from '@/components/messages/MessageEditor';
 import { ThreadView } from '@/components/messages/ThreadView';
+import { OnlineStatusIndicator } from '@/components/messages/OnlineStatusIndicator';
 import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -56,6 +59,12 @@ export default function Messages() {
     loadMessages,
     broadcastTyping,
   } = useMessages(selectedConversationId || undefined);
+
+  // Track user presence
+  useUserPresence();
+
+  // Mark messages as read
+  useReadReceipts(selectedConversationId, messages);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -183,19 +192,27 @@ export default function Messages() {
                 >
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
-                <Avatar className="h-10 w-10">
-                  <AvatarImage 
-                    src={
-                      isGroup 
-                        ? selectedConversation.metadata?.group_avatar 
-                        : selectedConversation.participants?.find(p => p.user_id !== user?.id)?.profile?.avatar_url || undefined
-                    }
-                    className="object-cover"
-                  />
-                  <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                    {isGroup ? <Users className="h-4 w-4" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="relative">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage 
+                      src={
+                        isGroup 
+                          ? selectedConversation.metadata?.group_avatar 
+                          : selectedConversation.participants?.find(p => p.user_id !== user?.id)?.profile?.avatar_url || undefined
+                      }
+                      className="object-cover"
+                    />
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                      {isGroup ? <Users className="h-4 w-4" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  {!isGroup && selectedConversation.participants && (
+                    <OnlineStatusIndicator 
+                      userId={selectedConversation.participants.find(p => p.user_id !== user?.id)?.user_id || ''} 
+                      className="absolute bottom-0 right-0 ring-2 ring-background"
+                    />
+                  )}
+                </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="font-semibold text-base truncate">{selectedConversation.title}</h3>
                   {isGroup && (
