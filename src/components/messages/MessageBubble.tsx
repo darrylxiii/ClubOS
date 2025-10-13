@@ -169,7 +169,7 @@ export const MessageBubble = ({
         {!isCurrentUser && (
           <OnlineStatusIndicator 
             userId={message.sender_id} 
-            className="absolute bottom-0 right-0 ring-2 ring-background"
+            className="absolute -bottom-0.5 -right-0.5 w-3 h-3 ring-2 ring-background"
           />
         )}
       </div>
