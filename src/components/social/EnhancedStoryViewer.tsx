@@ -4,14 +4,23 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Heart, Share2, Bookmark, MessageCircle, X, 
   ChevronLeft, ChevronRight, Flame, Laugh, ThumbsUp,
-  Sparkles, MoreHorizontal
+  Sparkles, MoreHorizontal, Trash2, Send
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 interface Story {
   id: string;
@@ -43,8 +52,20 @@ const REACTION_TYPES = [
   { type: 'laugh', icon: Laugh, label: 'Laugh', color: 'text-green-500' },
 ];
 
+interface StoryComment {
+  id: string;
+  user_id: string;
+  comment_text: string;
+  created_at: string;
+  profiles: {
+    full_name: string;
+    avatar_url: string;
+  };
+}
+
 export function EnhancedStoryViewer({ stories, initialIndex, onClose }: EnhancedStoryViewerProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
   const [showReactions, setShowReactions] = useState(false);
@@ -52,6 +73,8 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const [isSaved, setIsSaved] = useState(false);
   const [stats, setStats] = useState({ views: 0, reactions: 0, shares: 0, saves: 0 });
   const [viewStartTime] = useState(Date.now());
+  const [comments, setComments] = useState<StoryComment[]>([]);
+  const [replyText, setReplyText] = useState("");
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressInterval = useRef<NodeJS.Timeout>();
 
@@ -61,6 +84,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
     recordView();
     fetchStoryStats();
     checkUserInteractions();
+    fetchComments();
     startProgress();
 
     return () => {
@@ -249,6 +273,123 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
     }
   };
 
+  const fetchComments = async () => {
+    try {
+      const { data: commentsData } = await supabase
+        .from('story_comments')
+        .select('*')
+        .eq('story_id', currentStory.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (commentsData) {
+        // Fetch profiles for comment users
+        const userIds = [...new Set(commentsData.map(c => c.user_id))];
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', userIds);
+
+        const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
+
+        setComments(commentsData.map(c => ({
+          ...c,
+          profiles: profilesMap.get(c.user_id) || { full_name: 'Unknown', avatar_url: '' }
+        })));
+      }
+    } catch (error) {
+      console.error('[StoryViewer] Error fetching comments:', error);
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!user || !replyText.trim()) return;
+
+    try {
+      // Find existing conversation
+      const { data: existingConversation } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id)
+        .single();
+
+      let conversationId = existingConversation?.conversation_id;
+
+      // Check if the story owner is also in this conversation
+      if (conversationId) {
+        const { data: otherParticipant } = await supabase
+          .from('conversation_participants')
+          .select('user_id')
+          .eq('conversation_id', conversationId)
+          .eq('user_id', currentStory.user_id)
+          .maybeSingle();
+
+        if (!otherParticipant) {
+          conversationId = null; // Need to create new conversation
+        }
+      }
+
+      // Create conversation if doesn't exist
+      if (!conversationId) {
+        const { data: newConversation } = await supabase
+          .from('conversations')
+          .insert({
+            title: `Chat with ${currentStory.profiles?.full_name}`,
+            metadata: { type: 'dm' }
+          })
+          .select()
+          .single();
+        
+        conversationId = newConversation?.id;
+
+        if (conversationId) {
+          // Add both participants
+          await supabase.from('conversation_participants').insert([
+            { conversation_id: conversationId, user_id: user.id, role: 'member' },
+            { conversation_id: conversationId, user_id: currentStory.user_id, role: 'member' }
+          ]);
+        }
+      }
+
+      if (conversationId) {
+        await supabase.from('messages').insert({
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content: `Responded to story: ${replyText}`,
+          metadata: { 
+            story_id: currentStory.id,
+            story_media_url: currentStory.media_url,
+            type: 'story_reply'
+          }
+        });
+
+        toast({ title: "Reply sent!" });
+        setReplyText("");
+      }
+    } catch (error) {
+      console.error('[StoryViewer] Error sending reply:', error);
+      toast({ title: "Failed to send reply", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteStory = async () => {
+    if (!user || currentStory.user_id !== user.id) return;
+
+    try {
+      await supabase.from('stories').delete().eq('id', currentStory.id);
+      toast({ title: "Story deleted" });
+      
+      if (stories.length === 1) {
+        onClose();
+      } else {
+        handleNext();
+      }
+    } catch (error) {
+      console.error('[StoryViewer] Error deleting story:', error);
+      toast({ title: "Failed to delete story", variant: "destructive" });
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
       {/* Progress bars */}
@@ -273,39 +414,79 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
             <AvatarFallback>{currentStory.profiles?.full_name?.[0]}</AvatarFallback>
           </Avatar>
           <div>
-            <p className="text-white font-semibold">{currentStory.profiles?.full_name}</p>
+            <p className="text-white font-semibold text-sm">{currentStory.profiles?.full_name}</p>
             <p className="text-white/70 text-xs">
               {new Date(currentStory.created_at).toLocaleTimeString()}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={onClose}>
-            <MoreHorizontal className="w-5 h-5" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                <MoreHorizontal className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="bg-background/95 backdrop-blur">
+              {user?.id === currentStory.user_id && (
+                <DropdownMenuItem onClick={handleDeleteStory} className="text-destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Story
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => handleShare('external')}>
+                <Share2 className="w-4 h-4 mr-2" />
+                Share Story
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={onClose}>
             <X className="w-6 h-6" />
           </Button>
         </div>
       </div>
 
-      {/* Story content - with proper spacing */}
+      {/* Comments in top left */}
+      {comments.length > 0 && (
+        <div className="absolute top-32 left-4 z-50 max-w-xs">
+          <ScrollArea className="h-40">
+            <div className="space-y-2">
+              {comments.map((comment) => (
+                <div key={comment.id} className="flex items-start gap-2 bg-black/50 backdrop-blur-sm rounded-lg p-2">
+                  <Avatar className="w-6 h-6 flex-shrink-0">
+                    <AvatarImage src={comment.profiles?.avatar_url} />
+                    <AvatarFallback className="text-xs">{comment.profiles?.full_name?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white text-xs font-semibold">{comment.profiles?.full_name}</p>
+                    <p className="text-white/90 text-xs">{comment.comment_text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+      )}
+
+      {/* Story content - properly sized */}
       <div className="flex-1 flex items-center justify-center px-4 py-24">
-        {currentStory.media_type === 'video' ? (
-          <video
-            ref={videoRef}
-            src={currentStory.media_url}
-            className="w-full h-full object-contain rounded-lg"
-            autoPlay
-            onEnded={handleNext}
-          />
-        ) : (
-          <img
-            src={currentStory.media_url}
-            alt="Story"
-            className="w-full h-full object-contain rounded-lg"
-          />
-        )}
+        <div className="relative w-full h-full max-w-2xl max-h-[70vh] flex items-center justify-center">
+          {currentStory.media_type === 'video' ? (
+            <video
+              ref={videoRef}
+              src={currentStory.media_url}
+              className="max-w-full max-h-full object-contain rounded-lg"
+              autoPlay
+              onEnded={handleNext}
+            />
+          ) : (
+            <img
+              src={currentStory.media_url}
+              alt="Story"
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+          )}
+        </div>
 
         {/* Navigation areas */}
         <button
@@ -320,12 +501,39 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
 
       {/* Caption */}
       {currentStory.caption && (
-        <div className="absolute bottom-32 left-4 right-4 text-white">
+        <div className="absolute bottom-32 left-4 right-4 text-white z-40">
           <p className="text-sm bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2">
             {currentStory.caption}
           </p>
         </div>
       )}
+
+      {/* Reply box */}
+      <div className="absolute bottom-20 left-4 right-4 z-50">
+        <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2">
+          <Input
+            placeholder="Send message..."
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendReply();
+              }
+            }}
+            className="flex-1 bg-transparent border-none text-white placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+          />
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={handleSendReply}
+            className="text-white hover:bg-white/20 flex-shrink-0"
+            disabled={!replyText.trim()}
+          >
+            <Send className="w-5 h-5" />
+          </Button>
+        </div>
+      </div>
 
       {/* Reactions popup */}
       {showReactions && (
