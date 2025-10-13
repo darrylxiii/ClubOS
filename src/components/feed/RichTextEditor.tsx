@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
-import { Bold, Italic, List, Link as LinkIcon, Smile, Youtube, Linkedin, Twitter, Instagram } from "lucide-react";
+import { Bold, Italic, List, Link as LinkIcon, Smile, Youtube, Linkedin, Twitter, Instagram, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -30,6 +30,7 @@ interface RichTextEditorProps {
   onLinkedInClick?: () => void;
   onTwitterClick?: () => void;
   onInstagramClick?: () => void;
+  onSpotifyClick?: () => void;
 }
 
 // Comprehensive emoji collection (iOS 26 style)
@@ -72,7 +73,7 @@ const EMOJI_CATEGORIES = {
   }
 };
 
-export function RichTextEditor({ value, onChange, placeholder, className, onYouTubeClick, onLinkedInClick, onTwitterClick, onInstagramClick }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, className, onYouTubeClick, onLinkedInClick, onTwitterClick, onInstagramClick, onSpotifyClick }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
@@ -279,6 +280,19 @@ export function RichTextEditor({ value, onChange, placeholder, className, onYouT
               title="Embed Instagram Post"
             >
               <Instagram className="w-4 h-4 text-pink-600" />
+            </Button>
+          )}
+
+          {onSpotifyClick && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={onSpotifyClick}
+              title="Embed Spotify"
+            >
+              <Music className="w-4 h-4 text-green-500" />
             </Button>
           )}
 
