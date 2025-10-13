@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquarePlus, Star, Loader2 } from 'lucide-react';
+import { MessageCircleHeart, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -181,11 +181,11 @@ export const FeedbackButton = () => {
     <>
       <Button
         onClick={handleOpen}
-        size="icon"
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:scale-110 transition-transform z-50"
+        className="fixed bottom-6 right-6 h-12 px-6 rounded-full shadow-lg hover:scale-105 transition-transform z-50 gap-2"
         aria-label="Give feedback"
       >
-        <MessageSquarePlus className="h-6 w-6" />
+        <MessageCircleHeart className="h-5 w-5" />
+        <span className="font-medium">Quick Feedback</span>
       </Button>
 
       <Dialog open={open} onOpenChange={handleClose}>
@@ -225,11 +225,13 @@ export const FeedbackButton = () => {
                   </button>
                 ))}
               </div>
-              {(rating || hoveredRating) && (
-                <p className={`text-center text-sm font-medium ${getRatingColor(rating || hoveredRating || 0)}`}>
-                  {getRatingLabel(rating || hoveredRating || 0)}
-                </p>
-              )}
+              <div className="h-6 flex items-center justify-center">
+                {(rating || hoveredRating) && (
+                  <p className={`text-center text-sm font-medium ${getRatingColor(rating || hoveredRating || 0)}`}>
+                    {getRatingLabel(rating || hoveredRating || 0)}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Comment */}
