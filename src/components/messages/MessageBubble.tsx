@@ -1,13 +1,14 @@
 import { Message } from "@/hooks/useMessages";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format } from "date-fns";
-import { Check, CheckCheck, Volume2, Pin } from "lucide-react";
+import { Check, CheckCheck, Volume2, Pin, FileText, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { MessageActions } from "./MessageActions";
 import { MessageReactionsDisplay } from "./MessageReactionsDisplay";
 import { OnlineStatusIndicator } from "./OnlineStatusIndicator";
 import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 
 interface MessageBubbleProps {
   message: Message;
@@ -27,6 +28,8 @@ export const MessageBubble = ({
   onDelete,
 }: MessageBubbleProps) => {
   const navigate = useNavigate();
+  const [attachmentUrls, setAttachmentUrls] = useState<Record<string, string>>({});
+  
   const senderName = message.sender?.full_name || "Unknown User";
   const initials = senderName
     .split(" ")
@@ -34,6 +37,35 @@ export const MessageBubble = ({
     .join("")
     .toUpperCase()
     .slice(0, 2);
+
+  // Generate signed URLs for attachments
+  useEffect(() => {
+    const loadAttachmentUrls = async () => {
+      if (!message.attachments || message.attachments.length === 0) return;
+      
+      const urls: Record<string, string> = {};
+      
+      for (const attachment of message.attachments) {
+        try {
+          const { data, error } = await supabase.storage
+            .from('message-attachments')
+            .createSignedUrl(attachment.file_path, 3600); // 1 hour expiry
+          
+          if (data?.signedUrl) {
+            urls[attachment.id] = data.signedUrl;
+          } else {
+            console.error('Failed to generate signed URL:', error);
+          }
+        } catch (err) {
+          console.error('Error loading attachment URL:', err);
+        }
+      }
+      
+      setAttachmentUrls(urls);
+    };
+    
+    loadAttachmentUrls();
+  }, [message.attachments]);
 
   const renderContent = () => {
     if (message.gif_url) {
@@ -127,36 +159,96 @@ export const MessageBubble = ({
                 </div>
               )}
 
-              {/* Image/Video attachments */}
+              {/* Image/Video/Document attachments */}
               {message.attachments && message.attachments.length > 0 && (
                 <div className="mt-3 space-y-2">
                   {message.attachments.map((attachment) => {
+                    const url = attachmentUrls[attachment.id];
+                    if (!url) {
+                      return (
+                        <div key={attachment.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <FileText className="h-4 w-4" />
+                          <span>Loading {attachment.file_name}...</span>
+                        </div>
+                      );
+                    }
+
+                    // Image attachments
                     if (attachment.file_type.startsWith('image/')) {
                       return (
                         <a
                           key={attachment.id}
-                          href={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
+                          href={url}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block rounded-xl overflow-hidden shadow-glass-md hover:shadow-glass-lg transition-shadow"
                         >
                           <img
-                            src={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
+                            src={url}
                             alt={attachment.file_name}
                             className="max-w-xs rounded-xl hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
                           />
                         </a>
                       );
                     }
+                    
+                    // Video attachments
+                    if (attachment.file_type.startsWith('video/')) {
+                      return (
+                        <video
+                          key={attachment.id}
+                          controls
+                          className="max-w-xs rounded-xl shadow-glass-md"
+                        >
+                          <source src={url} type={attachment.file_type} />
+                          Your browser doesn't support video playback.
+                        </video>
+                      );
+                    }
+                    
+                    // Document attachments (PDF, DOC, etc)
+                    const fileSize = attachment.file_size ? `${(attachment.file_size / 1024).toFixed(1)} KB` : '';
                     return (
                       <a
                         key={attachment.id}
-                        href={`${supabase.storage.from('message-attachments').getPublicUrl(attachment.file_path).data.publicUrl}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-medium underline hover:no-underline text-primary transition-colors"
+                        href={url}
+                        download={attachment.file_name}
+                        className={cn(
+                          "flex items-center gap-3 p-3 rounded-xl shadow-glass-sm hover:shadow-glass-md transition-all",
+                          "border border-border/30 hover:border-primary/30 group",
+                          isCurrentUser ? "bg-white/10" : "bg-muted/30"
+                        )}
                       >
-                        {attachment.file_name}
+                        <div className={cn(
+                          "p-2 rounded-lg",
+                          isCurrentUser ? "bg-white/20" : "bg-primary/10"
+                        )}>
+                          <FileText className={cn(
+                            "h-5 w-5",
+                            isCurrentUser ? "text-white" : "text-primary"
+                          )} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "text-sm font-medium truncate",
+                            isCurrentUser ? "text-white" : "text-foreground"
+                          )}>
+                            {attachment.file_name}
+                          </p>
+                          {fileSize && (
+                            <p className={cn(
+                              "text-xs",
+                              isCurrentUser ? "text-white/70" : "text-muted-foreground"
+                            )}>
+                              {fileSize}
+                            </p>
+                          )}
+                        </div>
+                        <Download className={cn(
+                          "h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity",
+                          isCurrentUser ? "text-white/80" : "text-primary"
+                        )} />
                       </a>
                     );
                   })}
