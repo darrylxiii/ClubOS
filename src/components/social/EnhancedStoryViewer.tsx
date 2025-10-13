@@ -412,14 +412,18 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
 
   return (
     <div 
-      className="fixed inset-0 flex items-center justify-center bg-black" 
-      style={{ zIndex: 99999 }}
+      className="fixed top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-black/80 backdrop-blur-sm" 
+      style={{ zIndex: 999999, position: 'fixed' }}
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-md mx-4 bg-black rounded-lg overflow-hidden flex flex-col shadow-2xl border border-white/10"
+        className="relative w-full max-w-md mx-4 bg-black rounded-lg flex flex-col shadow-2xl border border-white/20"
         onClick={(e) => e.stopPropagation()}
-        style={{ height: 'min(800px, 90vh)' }}
+        style={{ 
+          height: 'min(800px, 90vh)',
+          maxHeight: '90vh',
+          overflow: 'hidden'
+        }}
       >
         {/* Progress bars */}
         <div className="flex gap-1 px-4 pt-4 pb-2 flex-shrink-0">
@@ -475,13 +479,14 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
           </div>
         </div>
 
-        {/* Story content - centered */}
-        <div className="flex-1 flex items-center justify-center relative overflow-hidden min-h-0">
+        {/* Story content - centered and visible */}
+        <div className="flex-1 flex items-center justify-center relative min-h-0 bg-black">
           {currentStory.media_type === 'video' ? (
             <video
               ref={videoRef}
               src={currentStory.media_url}
-              className="max-w-full max-h-full object-contain"
+              className="w-full h-full object-contain"
+              style={{ maxHeight: '100%', maxWidth: '100%' }}
               autoPlay
               onEnded={handleNext}
             />
@@ -489,7 +494,8 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
             <img
               src={currentStory.media_url}
               alt="Story"
-              className="max-w-full max-h-full object-contain"
+              className="w-full h-full object-contain"
+              style={{ maxHeight: '100%', maxWidth: '100%' }}
             />
           )}
 
