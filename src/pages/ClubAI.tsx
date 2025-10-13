@@ -19,7 +19,7 @@ import {
 import { Sparkles, Send, Loader2, Briefcase, TrendingUp, MessageSquare, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
@@ -107,17 +107,50 @@ const ClubAI = () => {
     setIsLoading(true);
 
     let assistantContent = "";
+    let needsConfirmation = false;
+    let confirmationMessage = "";
 
     const updateAssistant = (chunk: string) => {
       assistantContent += chunk;
+      
+      // Check if the message contains confirmation markers
+      if (assistantContent.toLowerCase().includes("<button>confirm</button>") || 
+          assistantContent.toLowerCase().includes("confirm button") ||
+          assistantContent.toLowerCase().includes("click to confirm")) {
+        needsConfirmation = true;
+        // Extract confirmation message (text before the button marker)
+        const match = assistantContent.match(/(.*?)(?:<button>confirm<\/button>|confirm button|click to confirm)/is);
+        if (match) {
+          confirmationMessage = match[1].trim();
+        }
+      }
+      
+      // Clean up button tags from the content
+      const cleanContent = assistantContent
+        .replace(/<button>confirm<\/button>/gi, "")
+        .replace(/\*\*Confirm\*\*/gi, "")
+        .trim();
+      
       setMessages((prev) => {
         const last = prev[prev.length - 1];
         if (last?.role === "assistant") {
           return prev.map((m, i) =>
-            i === prev.length - 1 ? { ...m, content: assistantContent } : m
+            i === prev.length - 1 
+              ? { 
+                  ...m, 
+                  content: cleanContent,
+                  needsConfirmation,
+                  confirmationMessage: confirmationMessage || cleanContent
+                } 
+              : m
           );
         }
-        return [...prev, { role: "assistant", content: assistantContent }];
+        return [...prev, { 
+          role: "assistant", 
+          content: cleanContent,
+          needsConfirmation,
+          confirmationMessage: confirmationMessage || cleanContent
+        }];
       });
     };
 
@@ -130,7 +163,11 @@ const ClubAI = () => {
       });
     } catch (error) {
       console.error("Error sending message:", error);
-      toast.error("Failed to send message. Please try again.");
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive"
+      });
       setIsLoading(false);
     }
   };
@@ -159,11 +196,19 @@ const ClubAI = () => {
 
     if (!resp.ok) {
       if (resp.status === 429) {
-        toast.error("Rate limits exceeded, please try again later.");
+        toast({
+          title: "Rate Limit Exceeded",
+          description: "Rate limits exceeded, please try again later.",
+          variant: "destructive"
+        });
         throw new Error("Rate limited");
       }
       if (resp.status === 402) {
-        toast.error("Payment required. Please add funds to continue.");
+        toast({
+          title: "Payment Required",
+          description: "Payment required. Please add funds to continue.",
+          variant: "destructive"
+        });
         throw new Error("Payment required");
       }
       throw new Error("Failed to start stream");
@@ -321,15 +366,15 @@ const ClubAI = () => {
                             </div>
                             {message.needsConfirmation && (
                               <Button
-                                variant="outline"
+                                variant="default"
                                 size="sm"
                                 onClick={() => {
                                   setPendingAction(message.confirmationMessage || "");
                                   setShowConfirmDialog(true);
                                 }}
-                                className="mt-2"
+                                className="mt-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
                               >
-                                Confirm Action
+                                Confirm
                               </Button>
                             )}
                           </div>
@@ -389,19 +434,67 @@ const ClubAI = () => {
 
         {/* Confirmation Dialog */}
         <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <AlertDialogContent>
+          <AlertDialogContent className="max-w-md">
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Action</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Confirm Action
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-left">
                 {pendingAction || "Would you like me to proceed with this action?"}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => {
-                toast.success("Action confirmed");
-                setShowConfirmDialog(false);
-              }}>
+              <AlertDialogAction 
+                onClick={async () => {
+                  setShowConfirmDialog(false);
+                  // Send confirmation to AI
+                  const confirmMessage: Message = {
+                    role: "user",
+                    content: "Yes, confirmed. Please proceed."
+                  };
+                  setMessages((prev) => [...prev, confirmMessage]);
+                  setIsLoading(true);
+                  
+                  let assistantContent = "";
+                  const updateAssistant = (chunk: string) => {
+                    assistantContent += chunk;
+                    const cleanContent = assistantContent
+                      .replace(/<button>confirm<\/button>/gi, "")
+                      .replace(/\*\*Confirm\*\*/gi, "")
+                      .trim();
+                    
+                    setMessages((prev) => {
+                      const last = prev[prev.length - 1];
+                      if (last?.role === "assistant") {
+                        return prev.map((m, i) =>
+                          i === prev.length - 1 ? { ...m, content: cleanContent } : m
+                        );
+                      }
+                      return [...prev, { role: "assistant", content: cleanContent }];
+                    });
+                  };
+                  
+                  try {
+                    await streamChat({
+                      messages: [...messages, confirmMessage],
+                      userId: user?.id,
+                      onDelta: updateAssistant,
+                      onDone: () => setIsLoading(false),
+                    });
+                  } catch (error) {
+                    console.error("Error after confirmation:", error);
+                    toast({
+                      title: "Error",
+                      description: "Failed to process confirmation",
+                      variant: "destructive"
+                    });
+                    setIsLoading(false);
+                  }
+                }}
+                className="bg-primary hover:bg-primary/90"
+              >
                 Confirm
               </AlertDialogAction>
             </AlertDialogFooter>
