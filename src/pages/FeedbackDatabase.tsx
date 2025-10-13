@@ -104,7 +104,7 @@ const FeedbackDatabase = () => {
   const [adminNotes, setAdminNotes] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
-  const [taskFormData, setTaskFormData] = useState<{
+  const [taskInitialData, setTaskInitialData] = useState<{
     title: string;
     description: string;
     priority: 'low' | 'medium' | 'high';
@@ -391,24 +391,24 @@ const FeedbackDatabase = () => {
     if (!selectedFeedback) return;
     
     const description = `
-**Feedback Issue** 
+Feedback Issue
 User: ${selectedFeedback.email}
 Page: ${selectedFeedback.page_title} (${selectedFeedback.page_path})
 Rating: ${selectedFeedback.rating}/10
 Submitted: ${format(new Date(selectedFeedback.submitted_at), 'PPP')}
 
-**User Comment:**
+User Comment:
 ${selectedFeedback.comment || 'No comment provided'}
 
-**Admin Notes:**
+Admin Notes:
 ${adminNotes || 'No admin notes yet'}
 
-**Navigation Trail:**
+Navigation Trail:
 ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.title} (${t.route})`).join('\n') || 'No trail data'}
     `.trim();
 
-    setTaskFormData({
-      title: `Fix: ${selectedFeedback.page_title} - Rating ${selectedFeedback.rating}/10`,
+    setTaskInitialData({
+      title: `Fix: ${selectedFeedback.page_title} - Rating ${selectedFeedback.rating}/10 - ${selectedFeedback.email}`,
       description,
       priority: selectedFeedback.rating <= 3 ? 'high' : selectedFeedback.rating <= 5 ? 'medium' : 'low',
     });
@@ -416,51 +416,12 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
     setShowTaskDialog(true);
   };
 
-  const handleTaskSubmit = async () => {
-    if (!taskFormData.title.trim()) {
-      toast({
-        title: 'Title required',
-        description: 'Please enter a task title',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { error } = await supabase
-        .from('unified_tasks')
-        .insert([{
-          task_number: '',
-          title: taskFormData.title,
-          description: taskFormData.description,
-          priority: taskFormData.priority,
-          status: 'pending',
-          task_type: 'general',
-          scheduling_mode: 'manual',
-          user_id: user.id,
-          created_by: user.id,
-        }]);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Task created',
-        description: 'Feedback converted to task successfully',
-      });
-      
-      setShowTaskDialog(false);
-      setTaskFormData({ title: '', description: '', priority: 'high' });
-    } catch (error: any) {
-      console.error('Error creating task:', error);
-      toast({
-        title: 'Failed to create task',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
+  const handleTaskCreated = () => {
+    toast({
+      title: 'Task created',
+      description: 'Feedback converted to task successfully',
+    });
+    setShowTaskDialog(false);
   };
 
   if (currentRole !== 'admin') return null;
@@ -1082,65 +1043,18 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
         </DialogContent>
       </Dialog>
 
-      {/* Task Creation Dialog */}
-      <Dialog open={showTaskDialog} onOpenChange={setShowTaskDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Create Task from Feedback</DialogTitle>
-            <DialogDescription>
-              Convert this feedback into an actionable task
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Task Title *</label>
-              <Input
-                value={taskFormData.title}
-                onChange={(e) => setTaskFormData({ ...taskFormData, title: e.target.value })}
-                placeholder="Enter task title"
-                className="mt-2"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Description</label>
-              <Textarea
-                value={taskFormData.description}
-                onChange={(e) => setTaskFormData({ ...taskFormData, description: e.target.value })}
-                rows={12}
-                className="mt-2 font-mono text-xs"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium">Priority</label>
-              <Select
-                value={taskFormData.priority}
-                onValueChange={(value: 'low' | 'medium' | 'high') =>
-                  setTaskFormData({ ...taskFormData, priority: value })
-                }
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowTaskDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleTaskSubmit}>Create Task</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Task Creation Dialog - Using Unified Task System */}
+      <CreateUnifiedTaskDialog
+        objectiveId={null}
+        onTaskCreated={handleTaskCreated}
+        open={showTaskDialog}
+        onOpenChange={setShowTaskDialog}
+        initialTitle={taskInitialData.title}
+        initialDescription={taskInitialData.description}
+        initialPriority={taskInitialData.priority}
+      >
+        <div />
+      </CreateUnifiedTaskDialog>
     </AppLayout>
   );
 };

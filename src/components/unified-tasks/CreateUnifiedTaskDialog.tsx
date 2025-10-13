@@ -20,6 +20,11 @@ interface CreateUnifiedTaskDialogProps {
   defaultStatus?: string;
   children: React.ReactNode;
   onTaskCreated: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  initialTitle?: string;
+  initialDescription?: string;
+  initialPriority?: string;
 }
 
 export const CreateUnifiedTaskDialog = ({
@@ -27,9 +32,16 @@ export const CreateUnifiedTaskDialog = ({
   defaultStatus = "pending",
   children,
   onTaskCreated,
+  open: externalOpen,
+  onOpenChange: externalOnOpenChange,
+  initialTitle = "",
+  initialDescription = "",
+  initialPriority = "medium",
 }: CreateUnifiedTaskDialogProps) => {
   const { user } = useAuth();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = externalOpen !== undefined ? externalOpen : internalOpen;
+  const setOpen = externalOnOpenChange || setInternalOpen;
   const [loading, setLoading] = useState(false);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
@@ -41,10 +53,10 @@ export const CreateUnifiedTaskDialog = ({
   const [blockingTasks, setBlockingTasks] = useState<string[]>([]);
   const [blockedByTasks, setBlockedByTasks] = useState<string[]>([]);
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
+    title: initialTitle,
+    description: initialDescription,
     status: defaultStatus,
-    priority: "medium",
+    priority: initialPriority,
     task_type: "general",
     scheduling_mode: "manual",
     due_date: undefined as Date | undefined,
@@ -60,8 +72,17 @@ export const CreateUnifiedTaskDialog = ({
       setSelectedAssignees([]);
       setShowAssignOthers(false);
       setSelectedObjective(objectiveId || undefined);
+      // Set initial values when dialog opens
+      if (initialTitle || initialDescription) {
+        setFormData(prev => ({
+          ...prev,
+          title: initialTitle,
+          description: initialDescription,
+          priority: initialPriority,
+        }));
+      }
     }
-  }, [open, objectiveId]);
+  }, [open, objectiveId, initialTitle, initialDescription, initialPriority]);
 
   const loadObjectives = async () => {
     const { data } = await supabase
