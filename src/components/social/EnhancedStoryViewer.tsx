@@ -391,9 +391,9 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-black overflow-hidden flex flex-col">
       {/* Progress bars */}
-      <div className="absolute top-4 left-4 right-4 flex gap-1 z-50">
+      <div className="flex gap-1 z-50 px-4 pt-4 pb-2 flex-shrink-0">
         {stories.map((_, idx) => (
           <div key={idx} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
             <div
@@ -407,7 +407,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
       </div>
 
       {/* Header */}
-      <div className="absolute top-10 left-4 right-4 flex items-center justify-between z-50">
+      <div className="flex items-center justify-between z-50 px-4 py-2 flex-shrink-0">
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10 border-2 border-white">
             <AvatarImage src={currentStory.profiles?.avatar_url} />
@@ -448,8 +448,8 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
 
       {/* Comments in top left */}
       {comments.length > 0 && (
-        <div className="absolute top-32 left-4 z-50 max-w-xs">
-          <ScrollArea className="h-40">
+        <div className="absolute top-28 left-4 z-50 max-w-xs max-h-40">
+          <ScrollArea className="h-full">
             <div className="space-y-2">
               {comments.map((comment) => (
                 <div key={comment.id} className="flex items-start gap-2 bg-black/50 backdrop-blur-sm rounded-lg p-2">
@@ -468,8 +468,8 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         </div>
       )}
 
-      {/* Story content - centered in viewport */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Story content - centered */}
+      <div className="flex-1 flex items-center justify-center px-4 relative overflow-hidden min-h-0">
         {currentStory.media_type === 'video' ? (
           <video
             ref={videoRef}
@@ -477,31 +477,29 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
             className="max-w-full max-h-full object-contain"
             autoPlay
             onEnded={handleNext}
-            style={{ maxHeight: 'calc(100vh - 200px)' }}
           />
         ) : (
           <img
             src={currentStory.media_url}
             alt="Story"
             className="max-w-full max-h-full object-contain"
-            style={{ maxHeight: 'calc(100vh - 200px)' }}
           />
         )}
-      </div>
 
-      {/* Navigation areas */}
-      <button
-        className="absolute left-0 top-0 bottom-0 w-1/3 z-30"
-        onClick={handlePrevious}
-      />
-      <button
-        className="absolute right-0 top-0 bottom-0 w-1/3 z-30"
-        onClick={handleNext}
-      />
+        {/* Navigation areas */}
+        <button
+          className="absolute left-0 top-0 bottom-0 w-1/3 z-10"
+          onClick={handlePrevious}
+        />
+        <button
+          className="absolute right-0 top-0 bottom-0 w-1/3 z-10"
+          onClick={handleNext}
+        />
+      </div>
 
       {/* Caption */}
       {currentStory.caption && (
-        <div className="absolute bottom-32 left-4 right-4 text-white z-40">
+        <div className="px-4 py-2 text-white z-40 flex-shrink-0">
           <p className="text-sm bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2">
             {currentStory.caption}
           </p>
@@ -509,7 +507,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
       )}
 
       {/* Reply box */}
-      <div className="absolute bottom-20 left-4 right-4 z-50">
+      <div className="px-4 pb-4 z-50 flex-shrink-0">
         <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2">
           <Input
             placeholder="Send message..."
@@ -537,24 +535,26 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
 
       {/* Reactions popup */}
       {showReactions && (
-        <div className="absolute bottom-24 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-xl rounded-full px-4 py-3 flex gap-3 shadow-lg border animate-in slide-in-from-bottom-4">
-          {REACTION_TYPES.map(({ type, icon: Icon, color }) => (
-            <button
-              key={type}
-              onClick={() => handleReaction(type)}
-              className={cn(
-                "p-2 rounded-full hover:scale-110 transition-transform",
-                userReaction === type && "ring-2 ring-primary"
-              )}
-            >
-              <Icon className={cn("w-6 h-6", color)} />
-            </button>
-          ))}
+        <div className="pb-4 px-4 z-50 flex-shrink-0">
+          <div className="bg-background/95 backdrop-blur-xl rounded-full px-4 py-3 flex gap-3 shadow-lg border justify-center animate-in slide-in-from-bottom-4">
+            {REACTION_TYPES.map(({ type, icon: Icon, color }) => (
+              <button
+                key={type}
+                onClick={() => handleReaction(type)}
+                className={cn(
+                  "p-2 rounded-full hover:scale-110 transition-transform",
+                  userReaction === type && "ring-2 ring-primary"
+                )}
+              >
+                <Icon className={cn("w-6 h-6", color)} />
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {/* Action buttons */}
-      <div className="absolute bottom-6 left-4 right-4 flex items-center justify-between z-50">
+      <div className="px-4 pb-4 flex items-center justify-between z-50 flex-shrink-0">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -602,7 +602,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         <Button
           variant="ghost"
           size="icon"
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20"
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-40"
           onClick={handlePrevious}
         >
           <ChevronLeft className="w-8 h-8" />
@@ -612,7 +612,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20"
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-40"
           onClick={handleNext}
         >
           <ChevronRight className="w-8 h-8" />
