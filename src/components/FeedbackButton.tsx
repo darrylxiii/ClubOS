@@ -187,11 +187,11 @@ export const FeedbackButton = () => {
 
   return (
     <>
-      <div className="fixed right-8 bottom-8 z-[100] flex items-center animate-fade-in">
+      <div className="fixed right-8 bottom-8 z-[9999] flex items-center animate-fade-in">
         {!minimized && (
           <Button
             onClick={handleOpen}
-            className="h-12 pl-5 pr-3 rounded-l-full rounded-r-none shadow-lg hover:shadow-xl transition-all gap-2.5 border-r-0 animate-slide-in-right"
+            className="h-12 pl-5 pr-3 rounded-l-full rounded-r-none shadow-lg hover:shadow-xl transition-all gap-2.5 border-r-0"
             aria-label="Give feedback"
           >
             <MessageCircleHeart className="h-4 w-4" />
