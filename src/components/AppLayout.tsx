@@ -361,8 +361,14 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         />
       )}
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="min-h-screen mt-16 pb-4">{children}</div>
+      <main className={cn(
+        "flex-1",
+        location.pathname === '/messages' ? 'overflow-hidden' : 'overflow-y-auto'
+      )}>
+        <div className={cn(
+          "min-h-screen mt-16",
+          location.pathname !== '/messages' && 'pb-4'
+        )}>{children}</div>
       </main>
 
       {/* Global Navigation Tools - Always Accessible */}

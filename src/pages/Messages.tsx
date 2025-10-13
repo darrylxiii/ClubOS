@@ -121,7 +121,7 @@ export default function Messages() {
         {/* Conversation List Panel */}
         <div 
           className={cn(
-            "w-full sm:w-80 border-r border-border/20 flex flex-col bg-background transition-transform duration-300",
+            "w-full sm:w-80 border-r border-border/20 flex flex-col bg-background transition-transform duration-300 overflow-hidden",
             "lg:translate-x-0",
             showMobileSidebar ? "translate-x-0 absolute lg:relative" : "-translate-x-full absolute lg:relative",
             "z-20 h-full"
@@ -169,7 +169,7 @@ export default function Messages() {
       </div>
 
       {/* Main Chat Panel */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {selectedConversationId && selectedConversation ? (
           <>
             {/* Chat Header - Fixed */}
