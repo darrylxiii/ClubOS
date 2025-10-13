@@ -44,6 +44,7 @@ const ClubAI = () => {
   const [profile, setProfile] = useState<any>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState<string>("");
+  const [pendingNavigation, setPendingNavigation] = useState<{ path: string; reason: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -403,6 +404,7 @@ const ClubAI = () => {
                                 size="sm"
                                 onClick={() => {
                                   setPendingAction(message.confirmationMessage || "");
+                                  setPendingNavigation(message.action ? { path: message.action.path, reason: message.action.reason } : null);
                                   setShowConfirmDialog(true);
                                 }}
                                 className="mt-3 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
@@ -480,87 +482,14 @@ const ClubAI = () => {
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction 
-                onClick={async () => {
+                onClick={() => {
                   setShowConfirmDialog(false);
-                  // Send confirmation to AI
-                  const confirmMessage: Message = {
-                    role: "user",
-                    content: "Yes, confirmed. Please proceed."
-                  };
-                  setMessages((prev) => [...prev, confirmMessage]);
-                  setIsLoading(true);
                   
-                  let assistantContent = "";
-                  let pendingToolCalls: any[] = [];
-                  
-                  const updateAssistant = (chunk: string, toolCalls?: any) => {
-                    assistantContent += chunk;
-                    
-                    // Handle tool calls
-                    if (toolCalls && Array.isArray(toolCalls)) {
-                      toolCalls.forEach((tc: any) => {
-                        if (tc.function?.name === "navigate_to_page") {
-                          try {
-                            const args = JSON.parse(tc.function.arguments || "{}");
-                            pendingToolCalls.push({
-                              type: "navigate",
-                              path: args.path,
-                              reason: args.reason
-                            });
-                          } catch (e) {
-                            console.error("Failed to parse tool call:", e);
-                          }
-                        }
-                      });
-                    }
-                    
-                    const cleanContent = assistantContent
-                      .replace(/<button>confirm<\/button>/gi, "")
-                      .replace(/\*\*Confirm\*\*/gi, "")
-                      .trim();
-                    
-                    setMessages((prev) => {
-                      const last = prev[prev.length - 1];
-                      const action = pendingToolCalls.length > 0 ? pendingToolCalls[0] : undefined;
-                      
-                      if (last?.role === "assistant") {
-                        return prev.map((m, i) =>
-                          i === prev.length - 1 ? { ...m, content: cleanContent, action } : m
-                        );
-                      }
-                      return [...prev, { role: "assistant", content: cleanContent, action }];
-                    });
-                  };
-                  
-                  try {
-                    await streamChat({
-                      messages: [...messages, confirmMessage],
-                      userId: user?.id,
-                      onDelta: updateAssistant,
-                      onDone: () => {
-                        setIsLoading(false);
-                        
-                        // Check if last message has navigation action
-                        setMessages((prev) => {
-                          const lastMsg = prev[prev.length - 1];
-                          if (lastMsg?.action?.type === "navigate") {
-                            // Navigate after a brief delay to show completion
-                            setTimeout(() => {
-                              navigate(lastMsg.action!.path);
-                            }, 1500);
-                          }
-                          return prev;
-                        });
-                      },
-                    });
-                  } catch (error) {
-                    console.error("Error after confirmation:", error);
-                    toast({
-                      title: "Error",
-                      description: "Failed to process confirmation",
-                      variant: "destructive"
-                    });
-                    setIsLoading(false);
+                  // If there's a navigation action, execute it immediately
+                  if (pendingNavigation) {
+                    setTimeout(() => {
+                      navigate(pendingNavigation.path);
+                    }, 500);
                   }
                 }}
                 className="bg-primary hover:bg-primary/90"
