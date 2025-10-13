@@ -118,7 +118,7 @@ export default function Messages() {
 
   return (
     <AppLayout>
-      <div className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden">
+      <div className="flex h-[calc(100dvh-4rem)] bg-background overflow-hidden">
         {/* Mobile sidebar overlay */}
         {showMobileSidebar && (
           <div 
@@ -130,38 +130,38 @@ export default function Messages() {
         {/* Conversation List Panel */}
         <div 
           className={cn(
-            "w-full sm:w-80 border-r border-border/20 flex flex-col bg-background transition-transform duration-300 overflow-hidden",
+            "w-full sm:w-80 md:w-80 lg:w-96 border-r border-border/20 flex flex-col bg-background transition-transform duration-300 overflow-hidden",
             "lg:translate-x-0",
-            showMobileSidebar ? "translate-x-0 absolute lg:relative" : "-translate-x-full absolute lg:relative",
-            "z-20 h-full"
+            showMobileSidebar ? "translate-x-0 fixed lg:relative" : "-translate-x-full fixed lg:relative",
+            "z-20 inset-y-0 left-0 lg:static"
           )}
         >
         <div className="p-3 sm:p-4 border-b border-border/30 bg-background/60 backdrop-blur-xl flex-shrink-0">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-primary" />
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base sm:text-lg font-bold flex items-center gap-2">
+              <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               <span>Messages</span>
             </h2>
             <Button 
               size="icon" 
               onClick={() => setCreateDialogOpen(true)} 
-              className="rounded-full hover:scale-110 transition-all duration-200 bg-primary h-10 w-10"
+              className="rounded-full hover:scale-110 transition-all duration-200 bg-primary h-8 w-8 sm:h-10 sm:w-10"
             >
-              <Plus className="h-5 w-5" />
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5" />
             </Button>
           </div>
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-2.5 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
             <Input 
-              placeholder="Search conversations..." 
+              placeholder="Search..." 
               value={searchQuery} 
               onChange={(e) => setSearchQuery(e.target.value)} 
-              className="pl-9 bg-muted/30 border-border/30 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm"
+              className="pl-8 sm:pl-9 h-9 sm:h-10 bg-muted/30 border-border/30 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-xs sm:text-sm"
             />
           </div>
         </div>
         <ScrollArea className="flex-1">
-          <div className="p-2 space-y-1">
+          <div className="p-1 sm:p-2 space-y-0.5 sm:space-y-1">
             {filteredConversations.map((conv) => (
               <ConversationListItem
                 key={conv.id}
@@ -182,18 +182,18 @@ export default function Messages() {
         {selectedConversationId && selectedConversation ? (
           <>
             {/* Chat Header - Fixed */}
-            <div className="flex-shrink-0 h-16 border-b border-border/20 bg-background/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="flex-shrink-0 h-14 sm:h-16 border-b border-border/20 bg-background/95 backdrop-blur-md px-3 sm:px-4 md:px-6 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="lg:hidden h-9 w-9"
+                  className="lg:hidden h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
                   onClick={() => setShowMobileSidebar(true)}
                 >
-                  <ArrowLeft className="h-5 w-5" />
+                  <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
                 <div className="relative flex-shrink-0">
-                  <Avatar className="h-10 w-10">
+                  <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
                     <AvatarImage 
                       src={
                         isGroup 
@@ -202,8 +202,8 @@ export default function Messages() {
                       }
                       className="object-cover"
                     />
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                      {isGroup ? <Users className="h-4 w-4" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
+                    <AvatarFallback className="bg-primary/10 text-primary font-semibold text-xs sm:text-sm">
+                      {isGroup ? <Users className="h-3 w-3 sm:h-4 sm:w-4" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   {!isGroup && selectedConversation.participants && (
@@ -214,41 +214,43 @@ export default function Messages() {
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-base truncate">{selectedConversation.title}</h3>
+                  <h3 className="font-semibold text-sm sm:text-base truncate">{selectedConversation.title}</h3>
                   {isGroup && (
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                       {selectedConversation.metadata?.participant_count || 0} members
                     </p>
                   )}
                 </div>
               </div>
-              <div className="flex gap-1 flex-shrink-0">
-                <AudioCallLauncher 
-                  conversationId={selectedConversationId}
-                  participantName={selectedConversation.title}
-                />
-                <VideoCallLauncher 
-                  conversationId={selectedConversationId}
-                  participantName={selectedConversation.title}
-                />
+              <div className="flex gap-0.5 sm:gap-1 flex-shrink-0">
+                <div className="hidden sm:flex gap-0.5 sm:gap-1">
+                  <AudioCallLauncher 
+                    conversationId={selectedConversationId}
+                    participantName={selectedConversation.title}
+                  />
+                  <VideoCallLauncher 
+                    conversationId={selectedConversationId}
+                    participantName={selectedConversation.title}
+                  />
+                </div>
                 <Button 
                   variant={showGroupInfo ? "default" : "ghost"}
                   size="icon" 
                   onClick={() => setShowGroupInfo(!showGroupInfo)}
-                  className="h-9 w-9"
+                  className="h-8 w-8 sm:h-9 sm:w-9"
                   title={showGroupInfo ? "Hide Info" : "Show Info"}
                 >
-                  <Info className="h-5 w-5" />
+                  <Info className="h-4 w-4 sm:h-5 sm:w-5" />
                 </Button>
               </div>
             </div>
 
             {/* Messages Area - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
-              <div className="space-y-3 pb-4">
+            <div className="flex-1 overflow-y-auto p-2 sm:p-4 md:p-6 bg-muted/20">
+              <div className="space-y-2 sm:space-y-3 pb-4 max-w-4xl mx-auto">
                 {messages.map((msg) => (
                   editingMessageId === msg.id ? (
-                    <div key={msg.id} className="px-4">
+                    <div key={msg.id} className="px-2 sm:px-4">
                       <MessageEditor
                         messageId={msg.id}
                         currentContent={msg.content}
@@ -290,14 +292,14 @@ export default function Messages() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center space-y-4 animate-fade-in">
-              <div className="mx-auto w-20 h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
-                <MessageCircle className="h-10 w-10 text-white" />
+          <div className="flex-1 flex items-center justify-center p-4">
+            <div className="text-center space-y-3 sm:space-y-4 animate-fade-in max-w-sm">
+              <div className="mx-auto w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
+                <MessageCircle className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
               </div>
               <div>
-                <h3 className="text-xl font-bold mb-2">Select a conversation</h3>
-                <p className="text-muted-foreground">Choose from your existing conversations or start a new one</p>
+                <h3 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2">Select a conversation</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">Choose from your existing conversations or start a new one</p>
               </div>
             </div>
           </div>

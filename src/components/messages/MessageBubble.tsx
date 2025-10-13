@@ -144,50 +144,51 @@ export const MessageBubble = ({
   return (
     <div 
       className={cn(
-        "flex gap-3 group animate-fade-in relative",
+        "flex gap-2 sm:gap-3 group animate-fade-in relative",
         isCurrentUser && "flex-row-reverse"
       )}
     >
       {message.pinned_at && (
-        <div className="absolute -top-5 left-0 flex items-center gap-1.5 text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20 shadow-glass-sm">
-          <Pin className="h-3 w-3" />
-          <span>Pinned Message</span>
+        <div className="absolute -top-4 sm:-top-5 left-0 flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs font-medium text-primary bg-primary/10 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full border border-primary/20 shadow-glass-sm">
+          <Pin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+          <span className="hidden sm:inline">Pinned Message</span>
+          <span className="sm:hidden">Pinned</span>
         </div>
       )}
 
       {/* Avatar with online status */}
-      <div className="relative h-11 w-11 flex-shrink-0">
+      <div className="relative h-8 w-8 sm:h-10 sm:w-10 md:h-11 md:w-11 flex-shrink-0">
         <Avatar 
-          className="h-11 w-11 cursor-pointer shadow-glass-md ring-2 ring-background hover:ring-primary/60 hover:scale-105 transition-all duration-200"
+          className="h-8 w-8 sm:h-10 sm:w-10 md:h-11 md:w-11 cursor-pointer shadow-glass-md ring-2 ring-background hover:ring-primary/60 hover:scale-105 transition-all duration-200"
           onClick={() => navigate(`/profile/${message.sender_id}`)}
         >
           <AvatarImage src={message.sender?.avatar_url || undefined} className="object-cover" />
-          <AvatarFallback className="bg-gradient-accent text-white font-semibold text-base">
+          <AvatarFallback className="bg-gradient-accent text-white font-semibold text-xs sm:text-sm md:text-base">
             {initials}
           </AvatarFallback>
         </Avatar>
         {!isCurrentUser && (
           <OnlineStatusIndicator 
             userId={message.sender_id} 
-            className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 ring-2 ring-background"
+            className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-3.5 md:h-3.5 ring-2 ring-background"
           />
         )}
       </div>
 
       {/* Message Content & Actions */}
-      <div className="flex flex-col max-w-lg">
+      <div className="flex flex-col max-w-[75%] sm:max-w-sm md:max-w-md lg:max-w-lg min-w-0">
         {!isCurrentUser && isGroup && (
-          <span className="text-xs font-semibold mb-1.5 px-3 text-foreground/80 hover:text-primary transition-colors cursor-pointer"
+          <span className="text-[10px] sm:text-xs font-semibold mb-1 sm:mb-1.5 px-2 sm:px-3 text-foreground/80 hover:text-primary transition-colors cursor-pointer truncate"
             onClick={() => navigate(`/profile/${message.sender_id}`)}>
             {senderName}
           </span>
         )}
 
-        <div className="flex flex-col gap-1.5 relative">
-          <div className="flex items-start gap-2">
+        <div className="flex flex-col gap-1 sm:gap-1.5 relative">
+          <div className="flex items-start gap-1 sm:gap-2">
             <div
               className={cn(
-                "rounded-2xl px-4 py-3 max-w-md shadow-glass-md backdrop-blur-xl transition-all duration-200",
+                "rounded-2xl px-3 py-2 sm:px-4 sm:py-3 w-full shadow-glass-md backdrop-blur-xl transition-all duration-200",
                 "hover:shadow-glass-lg hover:scale-[1.01]",
                 isCurrentUser
                   ? "bg-gradient-to-br from-primary via-primary to-primary/90 text-white font-medium shadow-glow"
@@ -198,31 +199,31 @@ export const MessageBubble = ({
 
               {/* Read receipt with timestamp for current user */}
               {isCurrentUser && (
-                <div className="flex items-center justify-end gap-1.5 mt-1.5">
-                  <span className="text-[10px] text-white/60">
+                <div className="flex items-center justify-end gap-1 sm:gap-1.5 mt-1 sm:mt-1.5">
+                  <span className="text-[9px] sm:text-[10px] text-white/60">
                     {message.read_at 
                       ? `Read ${format(new Date(message.read_at), "HH:mm")}`
                       : 'Sent'
                     }
                   </span>
                   {message.read_at ? (
-                    <CheckCheck className="h-3.5 w-3.5 text-white/90" />
+                    <CheckCheck className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white/90" />
                   ) : (
-                    <Check className="h-3.5 w-3.5 text-white/60" />
+                    <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-white/60" />
                   )}
                 </div>
               )}
 
               {/* Image/Video/Document attachments */}
               {message.attachments && message.attachments.length > 0 && (
-                <div className="mt-3 space-y-2">
+                <div className="mt-2 sm:mt-3 space-y-1.5 sm:space-y-2">
                   {message.attachments.map((attachment) => {
                     const url = attachmentUrls[attachment.id];
                     if (!url) {
                       return (
-                        <div key={attachment.id} className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <FileText className="h-4 w-4" />
-                          <span>Loading {attachment.file_name}...</span>
+                        <div key={attachment.id} className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground">
+                          <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <span className="truncate">Loading {attachment.file_name}...</span>
                         </div>
                       );
                     }
@@ -235,12 +236,12 @@ export const MessageBubble = ({
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block rounded-xl overflow-hidden shadow-glass-md hover:shadow-glass-lg transition-shadow"
+                          className="block rounded-lg sm:rounded-xl overflow-hidden shadow-glass-md hover:shadow-glass-lg transition-shadow"
                         >
                           <img
                             src={url}
                             alt={attachment.file_name}
-                            className="max-w-xs rounded-xl hover:scale-105 transition-transform duration-300"
+                            className="max-w-full sm:max-w-xs rounded-lg sm:rounded-xl hover:scale-105 transition-transform duration-300"
                             loading="lazy"
                           />
                         </a>
@@ -253,7 +254,7 @@ export const MessageBubble = ({
                         <video
                           key={attachment.id}
                           controls
-                          className="max-w-xs rounded-xl shadow-glass-md"
+                          className="max-w-full sm:max-w-xs rounded-lg sm:rounded-xl shadow-glass-md"
                         >
                           <source src={url} type={attachment.file_type} />
                           Your browser doesn't support video playback.
@@ -269,30 +270,30 @@ export const MessageBubble = ({
                         href={url}
                         download={attachment.file_name}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-xl shadow-glass-sm hover:shadow-glass-md transition-all",
+                          "flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg sm:rounded-xl shadow-glass-sm hover:shadow-glass-md transition-all",
                           "border border-border/30 hover:border-primary/30 group",
                           isCurrentUser ? "bg-white/10" : "bg-muted/30"
                         )}
                       >
                         <div className={cn(
-                          "p-2 rounded-lg",
+                          "p-1.5 sm:p-2 rounded-md sm:rounded-lg flex-shrink-0",
                           isCurrentUser ? "bg-white/20" : "bg-primary/10"
                         )}>
                           <FileText className={cn(
-                            "h-5 w-5",
+                            "h-4 w-4 sm:h-5 sm:w-5",
                             isCurrentUser ? "text-white" : "text-primary"
                           )} />
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={cn(
-                            "text-sm font-medium truncate",
+                            "text-xs sm:text-sm font-medium truncate",
                             isCurrentUser ? "text-white" : "text-foreground"
                           )}>
                             {attachment.file_name}
                           </p>
                           {fileSize && (
                             <p className={cn(
-                              "text-xs",
+                              "text-[10px] sm:text-xs",
                               isCurrentUser ? "text-white/70" : "text-muted-foreground"
                             )}>
                               {fileSize}
@@ -300,7 +301,7 @@ export const MessageBubble = ({
                           )}
                         </div>
                         <Download className={cn(
-                          "h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity",
+                          "h-3.5 w-3.5 sm:h-4 sm:w-4 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0",
                           isCurrentUser ? "text-white/80" : "text-primary"
                         )} />
                       </a>
@@ -312,7 +313,7 @@ export const MessageBubble = ({
 
             {/* Timestamp and Actions inline */}
             <div className={cn(
-              "flex items-center gap-1.5 text-xs text-muted-foreground/80 mt-3",
+              "flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs text-muted-foreground/80 mt-2 sm:mt-3",
               isCurrentUser && "order-first flex-row-reverse"
             )}>
               <span className="font-medium whitespace-nowrap">
@@ -332,7 +333,7 @@ export const MessageBubble = ({
 
           {/* Reactions at bottom right */}
           <div className={cn(
-            "flex justify-end mt-1",
+            "flex justify-end mt-0.5 sm:mt-1",
             !isCurrentUser && "justify-start"
           )}>
             <MessageReactionsDisplay messageId={message.id} />
