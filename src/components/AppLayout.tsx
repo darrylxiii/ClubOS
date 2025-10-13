@@ -286,6 +286,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       <aside
         className={cn(
           "fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col pt-16",
+          location.pathname === '/messages' ? "pb-24" : "",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
