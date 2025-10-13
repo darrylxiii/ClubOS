@@ -355,6 +355,27 @@ export const useMessages = (conversationId?: string) => {
           loadConversations();
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: conversationId ? `conversation_id=eq.${conversationId}` : undefined,
+        },
+        async (payload) => {
+          const updatedMessage = payload.new as Message;
+          
+          // Update the message in local state
+          setMessages((prev) => 
+            prev.map((msg) => 
+              msg.id === updatedMessage.id 
+                ? { ...msg, ...updatedMessage, sender: msg.sender }
+                : msg
+            )
+          );
+        }
+      )
       .subscribe();
 
     return () => {
