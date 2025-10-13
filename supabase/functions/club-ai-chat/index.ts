@@ -12,12 +12,36 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userId } = await req.json();
+    const { messages, userId, conversationId } = await req.json();
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch conversation history if conversationId is provided
+    let conversationHistory = "";
+    if (conversationId) {
+      const { data: conversation } = await supabase
+        .from("ai_conversations")
+        .select("messages, context")
+        .eq("id", conversationId)
+        .single();
+      
+      if (conversation && Array.isArray(conversation.messages) && conversation.messages.length > 0) {
+        conversationHistory = `
+=== CONVERSATION HISTORY ===
+This user has had previous interactions with you. Here's the conversation history:
+
+${conversation.messages.map((msg: any, idx: number) => 
+  `[Message ${idx + 1}] ${msg.role.toUpperCase()}: ${msg.content}`
+).join("\n\n")}
+
+Based on this history, provide contextually aware responses that reference previous discussions when relevant.
+===
+`;
+      }
+    }
 
     // Fetch comprehensive user data - EVERYTHING in the platform
     let userContext = "";
@@ -502,6 +526,9 @@ At the end of any suggested action, restate what will happen, then show the "Con
 After any "Confirm" button is clicked, continue to provide step-by-step feedback and use navigation tools when appropriate.
 
 You must always feel attentive, proactive, privacy-aware, and trustworthy—never robotic.
+
+${conversationHistory}
+
 ${userContext}`
           },
           ...messages,

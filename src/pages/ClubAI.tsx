@@ -17,11 +17,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Sparkles, Send, Loader2, Briefcase, TrendingUp, MessageSquare, Target } from "lucide-react";
+import { Sparkles, Send, Loader2, Briefcase, TrendingUp, MessageSquare, Target, Plus, Clock, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 interface Message {
   role: "user" | "assistant";
@@ -47,14 +48,26 @@ const ClubAI = () => {
   const [pendingNavigation, setPendingNavigation] = useState<{ path: string; reason: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Conversation management
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [showConversations, setShowConversations] = useState(false);
 
   useEffect(() => {
     loadProfile();
+    loadConversations();
   }, [user]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+  
+  useEffect(() => {
+    if (currentConversationId) {
+      loadConversation(currentConversationId);
+    }
+  }, [currentConversationId]);
 
   const loadProfile = async () => {
     if (!user) return;
@@ -70,6 +83,125 @@ const ClubAI = () => {
       setProfile(data);
     } catch (error) {
       console.error("Error loading profile:", error);
+    }
+  };
+  
+  const loadConversations = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("ai_conversations")
+        .select("*")
+        .eq("user_id", user.id)
+        .eq("conversation_type", "club_ai")
+        .order("updated_at", { ascending: false });
+      
+      if (error) throw error;
+      setConversations(data || []);
+    } catch (error) {
+      console.error("Error loading conversations:", error);
+    }
+  };
+  
+  const loadConversation = async (conversationId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("ai_conversations")
+        .select("*")
+        .eq("id", conversationId)
+        .single();
+      
+      if (error) throw error;
+      
+      if (data && Array.isArray(data.messages)) {
+        setMessages(data.messages as unknown as Message[]);
+      }
+    } catch (error) {
+      console.error("Error loading conversation:", error);
+    }
+  };
+  
+  const createNewConversation = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from("ai_conversations")
+        .insert({
+          user_id: user.id,
+          conversation_type: "club_ai",
+          messages: [],
+          context: {}
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      setCurrentConversationId(data.id);
+      setMessages([]);
+      await loadConversations();
+      
+      toast({
+        title: "New conversation started",
+        description: "You can now chat with Club AI"
+      });
+    } catch (error) {
+      console.error("Error creating conversation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create conversation",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const deleteConversation = async (conversationId: string) => {
+    try {
+      const { error } = await supabase
+        .from("ai_conversations")
+        .delete()
+        .eq("id", conversationId);
+      
+      if (error) throw error;
+      
+      if (currentConversationId === conversationId) {
+        setCurrentConversationId(null);
+        setMessages([]);
+      }
+      
+      await loadConversations();
+      
+      toast({
+        title: "Conversation deleted",
+        description: "The conversation has been removed"
+      });
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete conversation",
+        variant: "destructive"
+      });
+    }
+  };
+  
+  const saveConversation = async (updatedMessages: Message[]) => {
+    if (!user || !currentConversationId) return;
+    
+    try {
+      const { error } = await supabase
+        .from("ai_conversations")
+        .update({
+          messages: updatedMessages as any,
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", currentConversationId);
+      
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error saving conversation:", error);
     }
   };
 
@@ -108,9 +240,17 @@ const ClubAI = () => {
   const sendMessage = async (messageText?: string) => {
     const textToSend = messageText || input;
     if (!textToSend.trim()) return;
+    
+    // Create conversation if none exists
+    if (!currentConversationId) {
+      await createNewConversation();
+      // Wait a bit for the conversation to be created
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
 
     const userMessage: Message = { role: "user", content: textToSend };
-    setMessages((prev) => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
 
@@ -189,8 +329,22 @@ const ClubAI = () => {
       await streamChat({
         messages: [...messages, userMessage],
         userId: user?.id,
+        conversationId: currentConversationId,
         onDelta: updateAssistant,
-        onDone: () => setIsLoading(false),
+        onDone: async () => {
+          setIsLoading(false);
+          // Save conversation after AI response is complete
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: assistantContent,
+            needsConfirmation,
+            confirmationMessage,
+            action: pendingToolCalls.length > 0 ? pendingToolCalls[0] : undefined
+          };
+          const finalMessages = [...messages, userMessage, assistantMessage];
+          await saveConversation(finalMessages);
+          await loadConversations();
+        },
       });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -206,11 +360,13 @@ const ClubAI = () => {
   const streamChat = async ({
     messages,
     userId,
+    conversationId,
     onDelta,
     onDone,
   }: {
     messages: Message[];
     userId?: string;
+    conversationId?: string | null;
     onDelta: (chunk: string, toolCall?: any) => void;
     onDone: () => void;
   }) => {
@@ -222,7 +378,7 @@ const ClubAI = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ messages, userId }),
+      body: JSON.stringify({ messages, userId, conversationId }),
     });
 
     if (!resp.ok) {
@@ -320,14 +476,94 @@ const ClubAI = () => {
     <AppLayout>
       <div className="container mx-auto px-4 h-[calc(100vh-4rem)] flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="mb-3 pt-3 flex-shrink-0">
-          <h1 className="text-3xl font-black uppercase tracking-tight mb-1 flex items-center gap-3">
-            <Sparkles className="w-7 h-7 text-primary" />
-            Club AI
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            Your personal AI career strategist, available 24/7
-          </p>
+        <div className="mb-3 pt-3 flex-shrink-0 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-black uppercase tracking-tight mb-1 flex items-center gap-3">
+              <Sparkles className="w-7 h-7 text-primary" />
+              Club AI
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Your personal AI career strategist, available 24/7
+            </p>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={createNewConversation}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              New Chat
+            </Button>
+            
+            <Sheet open={showConversations} onOpenChange={setShowConversations}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  History ({conversations.length})
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Conversation History</SheetTitle>
+                </SheetHeader>
+                <ScrollArea className="h-[calc(100vh-120px)] mt-6">
+                  <div className="space-y-2">
+                    {conversations.length === 0 ? (
+                      <p className="text-sm text-muted-foreground text-center py-8">
+                        No conversations yet. Start chatting!
+                      </p>
+                    ) : (
+                      conversations.map((conv) => {
+                        const firstMessage = Array.isArray(conv.messages) && conv.messages.length > 0
+                          ? conv.messages[0]?.content?.substring(0, 60) + "..."
+                          : "New conversation";
+                        const isActive = conv.id === currentConversationId;
+                        
+                        return (
+                          <Card
+                            key={conv.id}
+                            className={`p-3 cursor-pointer transition-colors ${
+                              isActive ? "border-primary bg-primary/5" : "hover:bg-muted"
+                            }`}
+                            onClick={() => {
+                              setCurrentConversationId(conv.id);
+                              setShowConversations(false);
+                            }}
+                          >
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">
+                                  {firstMessage}
+                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <Clock className="w-3 h-3 text-muted-foreground" />
+                                  <p className="text-xs text-muted-foreground">
+                                    {new Date(conv.updated_at).toLocaleDateString()}
+                                  </p>
+                                </div>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteConversation(conv.id);
+                                }}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </Card>
+                        );
+                      })
+                    )}
+                  </div>
+                </ScrollArea>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
 
         {/* Chat area - Full Screen */}
