@@ -281,41 +281,77 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   };
 
   const handleLinkedInClick = () => {
-    const url = prompt('Paste a LinkedIn post URL:');
-    if (url && url.includes('linkedin.com')) {
+    const url = prompt('Paste a LinkedIn post URL (e.g., https://linkedin.com/posts/...)');
+    if (!url) return;
+    
+    if (url.includes('linkedin.com')) {
       const detected = detectSocialEmbeds(url);
-      if (detected.length > 0) {
+      if (detected.length > 0 && detected[0].platform === 'linkedin') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
-        toast({ title: "LinkedIn post added", description: "The post will be embedded" });
+        toast({ title: "LinkedIn post added", description: "The post will be embedded in your post" });
       } else {
-        toast({ title: "Invalid URL", description: "Please paste a valid LinkedIn post URL", variant: "destructive" });
+        toast({ 
+          title: "Invalid LinkedIn URL", 
+          description: "Please paste a valid LinkedIn post URL (must include /posts/ or /feed/update/)", 
+          variant: "destructive" 
+        });
       }
+    } else {
+      toast({ 
+        title: "Not a LinkedIn URL", 
+        description: "Please paste a LinkedIn post URL", 
+        variant: "destructive" 
+      });
     }
   };
 
   const handleTwitterClick = () => {
-    const url = prompt('Paste an X (Twitter) post URL:');
-    if (url && (url.includes('twitter.com') || url.includes('x.com'))) {
+    const url = prompt('Paste an X (Twitter) post URL (e.g., https://x.com/user/status/...)');
+    if (!url) return;
+    
+    if (url.includes('twitter.com') || url.includes('x.com')) {
       const detected = detectSocialEmbeds(url);
-      if (detected.length > 0) {
+      if (detected.length > 0 && detected[0].platform === 'twitter') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
-        toast({ title: "X post added", description: "The post will be embedded" });
+        toast({ title: "X post added", description: "The post will be embedded in your post" });
       } else {
-        toast({ title: "Invalid URL", description: "Please paste a valid X/Twitter post URL", variant: "destructive" });
+        toast({ 
+          title: "Invalid X URL", 
+          description: "Please paste a valid X/Twitter post URL (must include /status/)", 
+          variant: "destructive" 
+        });
       }
+    } else {
+      toast({ 
+        title: "Not an X/Twitter URL", 
+        description: "Please paste an X or Twitter post URL", 
+        variant: "destructive" 
+      });
     }
   };
 
   const handleInstagramClick = () => {
-    const url = prompt('Paste an Instagram post URL:');
-    if (url && url.includes('instagram.com')) {
+    const url = prompt('Paste an Instagram post URL (e.g., https://instagram.com/p/...)');
+    if (!url) return;
+    
+    if (url.includes('instagram.com')) {
       const detected = detectSocialEmbeds(url);
-      if (detected.length > 0) {
+      if (detected.length > 0 && detected[0].platform === 'instagram') {
         setSocialEmbeds([...socialEmbeds, ...detected]);
-        toast({ title: "Instagram post added", description: "The post will be embedded" });
+        toast({ title: "Instagram post added", description: "The post will be embedded in your post" });
       } else {
-        toast({ title: "Invalid URL", description: "Please paste a valid Instagram post URL", variant: "destructive" });
+        toast({ 
+          title: "Invalid Instagram URL", 
+          description: "Please paste a valid Instagram post URL (must include /p/, /reel/, or /tv/)", 
+          variant: "destructive" 
+        });
       }
+    } else {
+      toast({ 
+        title: "Not an Instagram URL", 
+        description: "Please paste an Instagram post URL", 
+        variant: "destructive" 
+      });
     }
   };
 

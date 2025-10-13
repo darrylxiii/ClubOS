@@ -15,14 +15,15 @@ export interface SocialEmbed {
  */
 export function extractTwitterId(url: string): string | null {
   const patterns = [
-    /(?:twitter\.com|x\.com)\/\w+\/status\/(\d+)/,
-    /(?:twitter\.com|x\.com)\/i\/web\/status\/(\d+)/,
+    /(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/(?:#!\/)?(\w+)\/status\/(\d+)/,
+    /(?:https?:\/\/)?(?:www\.)?(?:twitter\.com|x\.com)\/i\/web\/status\/(\d+)/,
   ];
 
   for (const pattern of patterns) {
     const match = url.match(pattern);
-    if (match && match[1]) {
-      return match[1];
+    if (match) {
+      // Return the status ID (last group)
+      return match[match.length - 1];
     }
   }
 
@@ -109,7 +110,7 @@ export function detectSocialEmbeds(text: string): SocialEmbed[] {
  * Get embed URL for Twitter/X
  */
 export function getTwitterEmbedUrl(tweetId: string): string {
-  return `https://platform.twitter.com/embed/Tweet.html?id=${tweetId}`;
+  return `https://platform.twitter.com/embed/Tweet.html?id=${tweetId}&theme=dark&dnt=true`;
 }
 
 /**

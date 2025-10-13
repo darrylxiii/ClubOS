@@ -71,8 +71,13 @@ export function SocialEmbed({ platform, postId, url, className }: SocialEmbedPro
           src={embedUrl}
           className="w-full min-h-[400px] border-0"
           onLoad={() => setIsLoading(false)}
-          sandbox="allow-scripts allow-same-origin allow-popups"
+          onError={() => {
+            setIsLoading(false);
+            console.error(`Failed to load ${platform} embed:`, embedUrl);
+          }}
+          sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
           loading="lazy"
+          allow="autoplay; encrypted-media"
         />
       </div>
       
