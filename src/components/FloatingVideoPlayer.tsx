@@ -71,9 +71,14 @@ export function FloatingVideoPlayer() {
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      setPosition({
-        x: e.clientX - dragOffset.x,
-        y: e.clientY - dragOffset.y,
+      e.preventDefault();
+      
+      // Use requestAnimationFrame for smoother updates
+      requestAnimationFrame(() => {
+        setPosition({
+          x: e.clientX - dragOffset.x,
+          y: e.clientY - dragOffset.y,
+        });
       });
     };
 
@@ -91,6 +96,9 @@ export function FloatingVideoPlayer() {
   }, [isDragging, dragOffset]);
 
   const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (playerRef.current) {
       const rect = playerRef.current.getBoundingClientRect();
       setDragOffset({
@@ -98,8 +106,20 @@ export function FloatingVideoPlayer() {
         y: e.clientY - rect.top,
       });
       setIsDragging(true);
+      
+      // Prevent text selection during drag
+      document.body.style.userSelect = 'none';
+      document.body.style.webkitUserSelect = 'none';
     }
   };
+
+  // Clean up user-select when dragging stops
+  useEffect(() => {
+    if (!isDragging) {
+      document.body.style.userSelect = '';
+      document.body.style.webkitUserSelect = '';
+    }
+  }, [isDragging]);
 
   const handleMinimize = async () => {
     // Save current playback time before minimizing
@@ -129,21 +149,39 @@ export function FloatingVideoPlayer() {
     <Card
       ref={playerRef}
       className={cn(
-        "fixed z-50 shadow-2xl overflow-hidden transition-all duration-300",
-        isDragging && "cursor-grabbing",
+        "fixed z-50 shadow-2xl overflow-hidden transition-all duration-200",
+        isDragging && "cursor-grabbing shadow-glow",
         isMinimized ? "w-80" : "w-96"
       )}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
+        willChange: isDragging ? 'transform' : 'auto',
+        pointerEvents: 'auto',
       }}
     >
       {/* Header */}
       <div
-        className="flex items-center justify-between p-2 bg-background/95 backdrop-blur border-b cursor-grab active:cursor-grabbing"
+        className={cn(
+          "flex items-center justify-between p-2 bg-background/95 backdrop-blur border-b transition-colors",
+          isDragging ? "cursor-grabbing bg-accent/10" : "cursor-grab hover:bg-accent/5"
+        )}
         onMouseDown={handleMouseDown}
+        style={{ 
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none'
+        }}
       >
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+        <div 
+          className="flex items-center gap-2 flex-1 min-w-0"
+          style={{ 
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            pointerEvents: 'none'
+          }}
+        >
           <Move className="w-4 h-4 text-muted-foreground flex-shrink-0" />
           <span className="text-sm font-medium truncate">
             {videoState.title || 'YouTube Video'}
