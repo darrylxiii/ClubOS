@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal, Youtube } from "lucide-react";
+import { Image, Video, FileText, Send, X, BarChart2, Plus, Users, Globe, UserCircle, Building, Heart, MoreHorizontal, Youtube, Sparkles } from "lucide-react";
 import { CreatePoll } from "./PollPost";
 import { toast } from "@/hooks/use-toast";
 import { MediaEditor } from "./MediaEditor";
@@ -19,6 +19,7 @@ import { YouTubePicker } from "@/components/messages/YouTubePicker";
 import { extractYouTubeVideoId, containsYouTubeUrl } from "@/lib/youtubeUtils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { YouTubePickerDialog } from "./YouTubePickerDialog";
+import { detectSocialEmbeds, containsSocialMediaUrl, removeSocialMediaUrls, SocialEmbed as SocialEmbedType } from "@/lib/socialEmbedUtils";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -50,6 +51,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [showYoutubePrompt, setShowYoutubePrompt] = useState(false);
   const [detectedYoutubeUrl, setDetectedYoutubeUrl] = useState<string | null>(null);
   const [showYoutubePicker, setShowYoutubePicker] = useState(false);
+  const [socialEmbeds, setSocialEmbeds] = useState<SocialEmbedType[]>([]);
+  const [showSocialPrompt, setShowSocialPrompt] = useState(false);
+  const [detectedSocialEmbeds, setDetectedSocialEmbeds] = useState<SocialEmbedType[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -100,6 +104,19 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       }
     }
   }, [content, youtubeVideoId]);
+
+  // Detect social media embeds in content
+  useEffect(() => {
+    if (content && socialEmbeds.length === 0) {
+      if (containsSocialMediaUrl(content)) {
+        const detected = detectSocialEmbeds(content);
+        if (detected.length > 0) {
+          setDetectedSocialEmbeds(detected);
+          setShowSocialPrompt(true);
+        }
+      }
+    }
+  }, [content, socialEmbeds]);
 
   const handleFileSelect = (acceptedTypes: string) => {
     const input = document.createElement('input');
@@ -243,6 +260,26 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     setDetectedYoutubeUrl(null);
   };
 
+  const handleEmbedDetectedSocial = () => {
+    if (detectedSocialEmbeds.length > 0) {
+      setSocialEmbeds([...socialEmbeds, ...detectedSocialEmbeds]);
+      // Remove all social media URLs from content
+      const updatedContent = removeSocialMediaUrls(content);
+      setContent(updatedContent);
+      setShowSocialPrompt(false);
+      setDetectedSocialEmbeds([]);
+    }
+  };
+
+  const handleDismissSocialPrompt = () => {
+    setShowSocialPrompt(false);
+    setDetectedSocialEmbeds([]);
+  };
+
+  const removeSocialEmbed = (index: number) => {
+    setSocialEmbeds(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handlePost = async () => {
     if (!content.trim() || !user) return;
 
@@ -265,6 +302,19 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             type: 'youtube',
             videoId: youtubeVideoId
           }
+        ];
+      }
+
+      // Add social embeds if exist
+      if (socialEmbeds.length > 0) {
+        postData.media_urls = [
+          ...(postData.media_urls || mediaUrls),
+          ...socialEmbeds.map(embed => ({
+            url: embed.url,
+            type: 'social_embed',
+            platform: embed.platform,
+            embedId: embed.id
+          }))
         ];
       }
 
@@ -296,6 +346,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setShowPollCreator(false);
       setYoutubeVideoId(null);
       setYoutubeUrl(null);
+      setSocialEmbeds([]);
       toast({
         title: "Posted successfully",
         description: "Your post is now live on the feed."
@@ -332,7 +383,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             onYouTubeClick={() => setShowYoutubePicker(true)}
           />
 
-          {(previews.length > 0 || youtubeVideoId) && (
+          {(previews.length > 0 || youtubeVideoId || socialEmbeds.length > 0) && (
             <div className="grid grid-cols-2 gap-2 mt-3">
               {previews.map((preview, index) => (
                 <div key={index} className="relative group">
@@ -392,6 +443,29 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                   </Button>
                 </div>
               )}
+              {socialEmbeds.map((embed, index) => (
+                <div key={`social-${index}`} className="relative group col-span-2">
+                  <div className="relative rounded-lg overflow-hidden bg-muted border p-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Sparkles className="w-4 h-4 text-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium capitalize">{embed.platform} Post</p>
+                        <p className="text-xs text-muted-foreground truncate">{embed.url}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeSocialEmbed(index)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
             </div>
           )}
 
@@ -457,6 +531,42 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       onClick={handleDismissYoutubePrompt}
                     >
                       Keep as Link
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Social Media Embed Detection Prompt */}
+          {showSocialPrompt && detectedSocialEmbeds.length > 0 && (
+            <div className="mt-3 p-3 bg-accent/10 border border-accent rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">
+                    {detectedSocialEmbeds.length} social {detectedSocialEmbeds.length === 1 ? 'post' : 'posts'} detected
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Found {detectedSocialEmbeds.map(e => e.platform).join(', ')} link(s). Embed in your post?
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      onClick={handleEmbedDetectedSocial}
+                      className="gap-2"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Embed {detectedSocialEmbeds.length} Post{detectedSocialEmbeds.length > 1 ? 's' : ''}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleDismissSocialPrompt}
+                    >
+                      Keep as Links
                     </Button>
                   </div>
                 </div>

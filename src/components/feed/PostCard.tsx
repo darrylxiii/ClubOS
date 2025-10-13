@@ -35,6 +35,7 @@ import { PostPinning } from "./PostPinning";
 import { RepostButton } from "./RepostButton";
 import { EditPostDialog } from "./EditPostDialog";
 import { YouTubeEmbed } from "@/components/messages/YouTubeEmbed";
+import { SocialEmbed } from "./SocialEmbed";
 
 interface PostCardProps {
   post: any;
@@ -463,6 +464,12 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   <div key={index} className="relative">
                     {media.type === 'youtube' ? (
                       <YouTubeEmbed videoId={media.videoId} title={`Post by ${authorName}`} />
+                    ) : media.type === 'social_embed' ? (
+                      <SocialEmbed 
+                        platform={media.platform}
+                        postId={media.embedId}
+                        url={media.url}
+                      />
                     ) : media.type === 'image' ? (
                       <LazyMedia
                         src={media.url}
