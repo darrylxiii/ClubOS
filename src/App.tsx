@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { VideoPlayerProvider } from "@/contexts/VideoPlayerContext";
+import { NavigationHistoryProvider } from "@/contexts/NavigationHistoryContext";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -50,6 +52,7 @@ const SocialFeed = lazy(() => import("./pages/SocialFeed"));
 const SocialManagement = lazy(() => import("./pages/SocialManagement"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Achievements = lazy(() => import("./pages/Achievements"));
+const FeedbackDatabase = lazy(() => import("./pages/FeedbackDatabase"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -70,9 +73,10 @@ const App = () => (
           <BrowserRouter>
             <AuthProvider>
               <RoleProvider>
-                <VideoPlayerProvider>
-                  <Suspense fallback={<PageLoader />}>
-                    <Routes>
+                <NavigationHistoryProvider>
+                  <VideoPlayerProvider>
+                    <Suspense fallback={<PageLoader />}>
+                      <Routes>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/book/:slug" element={<BookingPage />} />
@@ -317,14 +321,24 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/feedback-database"
+              element={
+                <ProtectedRoute>
+                  <FeedbackDatabase />
+                </ProtectedRoute>
+              }
+            />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
+              <FeedbackButton />
               <FloatingVideoPlayer />
             </VideoPlayerProvider>
-          </RoleProvider>
-        </AuthProvider>
+          </NavigationHistoryProvider>
+        </RoleProvider>
+      </AuthProvider>
       </BrowserRouter>
         </TooltipProvider>
       </ThemeProvider>

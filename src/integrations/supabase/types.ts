@@ -6652,6 +6652,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_feedback: {
+        Row: {
+          admin_notes: string | null
+          comment: string | null
+          created_at: string | null
+          email: string
+          id: string
+          is_reviewed: boolean | null
+          navigation_trail: Json | null
+          page_path: string
+          page_title: string
+          rating: number
+          role: string
+          submitted_at: string | null
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          comment?: string | null
+          created_at?: string | null
+          email: string
+          id?: string
+          is_reviewed?: boolean | null
+          navigation_trail?: Json | null
+          page_path: string
+          page_title: string
+          rating: number
+          role: string
+          submitted_at?: string | null
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          comment?: string | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_reviewed?: boolean | null
+          navigation_trail?: Json | null
+          page_path?: string
+          page_title?: string
+          rating?: number
+          role?: string
+          submitted_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_network: {
         Row: {
           connected_user_id: string
