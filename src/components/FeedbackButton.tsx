@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageCircleHeart, Loader2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { MessageCircleHeart, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -187,35 +187,33 @@ export const FeedbackButton = () => {
 
   return (
     <>
-      <div className="fixed right-0 top-1/2 -translate-y-1/2 z-50 flex items-center">
+      <div className="fixed right-0 top-1/2 -translate-y-1/2 z-[100] flex items-center animate-fade-in">
         {!minimized && (
           <Button
             onClick={handleOpen}
-            className="h-14 pl-6 pr-4 rounded-l-full rounded-r-none shadow-lg hover:shadow-xl transition-all gap-3 border-r-0"
+            className="h-14 pl-6 pr-3 rounded-l-full rounded-r-none shadow-lg hover:shadow-xl transition-all gap-3 border-r-0 animate-slide-in-right"
             aria-label="Give feedback"
           >
             <MessageCircleHeart className="h-5 w-5" />
-            <span className="font-medium">Quick Feedback</span>
+            <span className="font-medium whitespace-nowrap">Quick Feedback</span>
           </Button>
         )}
         
         <Button
           onClick={() => setMinimized(!minimized)}
           size="icon"
-          variant={minimized ? "default" : "secondary"}
-          className={`h-14 shadow-lg transition-all ${
+          variant={minimized ? "default" : "ghost"}
+          className={`h-14 shadow-lg hover:shadow-xl transition-all ${
             minimized 
-              ? 'w-14 rounded-l-full rounded-r-none' 
-              : 'w-10 rounded-l-none rounded-r-full border-l-0'
+              ? 'w-14 rounded-l-full rounded-r-none hover:w-16' 
+              : 'w-10 rounded-none bg-muted/50 hover:bg-muted'
           }`}
-          aria-label={minimized ? "Expand feedback button" : "Minimize feedback button"}
+          aria-label={minimized ? "Show feedback button" : "Hide feedback button"}
         >
           {minimized ? (
-            <>
-              <MessageCircleHeart className="h-5 w-5" />
-            </>
+            <MessageCircleHeart className="h-5 w-5" />
           ) : (
-            <ChevronRight className="h-4 w-4" />
+            <X className="h-4 w-4" />
           )}
         </Button>
       </div>
