@@ -20,6 +20,7 @@ import { toast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { CreateConversationDialog } from "@/components/messages/CreateConversationDialog";
 
 interface Story {
   id: string;
@@ -74,6 +75,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const [viewStartTime] = useState(Date.now());
   const [comments, setComments] = useState<StoryComment[]>([]);
   const [replyText, setReplyText] = useState("");
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressInterval = useRef<NodeJS.Timeout>();
 
@@ -274,6 +276,12 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const handleShare = async (shareType: 'repost' | 'dm' | 'external') => {
     if (!user) return;
 
+    if (shareType === 'dm') {
+      // Open dialog to select conversation
+      setShowShareDialog(true);
+      return;
+    }
+
     const supabaseAny = supabase as any;
     await supabaseAny.from('story_shares').insert({
       story_id: currentStory.id,
@@ -283,6 +291,52 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
 
     fetchStoryStats();
     toast({ title: `Story ${shareType === 'repost' ? 'reposted' : 'shared'}!` });
+  };
+
+  const handleShareToConversation = async (conversationId: string) => {
+    if (!user || !currentStory) return;
+
+    try {
+      // Get story author info
+      const { data: authorProfile } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', currentStory.user_id)
+        .single();
+
+      // Send the story as a message
+      const { error } = await supabase.from('messages').insert({
+        conversation_id: conversationId,
+        sender_id: user.id,
+        content: replyText.trim() || '',
+        media_type: 'story_share',
+        metadata: {
+          story_id: currentStory.id,
+          story_url: currentStory.media_url,
+          story_type: currentStory.media_type,
+          author_name: authorProfile?.full_name || 'Unknown',
+          author_avatar: authorProfile?.avatar_url
+        }
+      });
+
+      if (error) throw error;
+
+      // Track the share
+      const supabaseAny = supabase as any;
+      await supabaseAny.from('story_shares').insert({
+        story_id: currentStory.id,
+        user_id: user.id,
+        share_type: 'dm',
+      });
+
+      toast({ title: "Story shared successfully!" });
+      setShowShareDialog(false);
+      setReplyText('');
+      fetchStoryStats();
+    } catch (error) {
+      console.error('Error sharing story:', error);
+      toast({ title: "Failed to share story", variant: "destructive" });
+    }
   };
 
   const handleNext = () => {
@@ -332,60 +386,100 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
     if (!user || !replyText.trim()) return;
 
     try {
-      // Find existing conversation
-      const { data: existingConversation } = await supabase
+      // Find or create 1:1 conversation with story owner
+      let conversationId: string | null = null;
+
+      // First, get all conversations the current user is part of
+      const { data: myParticipations } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      let conversationId = existingConversation?.conversation_id;
+      // Check each conversation to see if it's a 1:1 with the story owner
+      if (myParticipations) {
+        for (const participation of myParticipations) {
+          const { data: allParticipants } = await supabase
+            .from('conversation_participants')
+            .select('user_id')
+            .eq('conversation_id', participation.conversation_id);
 
-      // Check if the story owner is also in this conversation
-      if (conversationId) {
-        const { data: otherParticipant } = await supabase
-          .from('conversation_participants')
-          .select('user_id')
-          .eq('conversation_id', conversationId)
-          .eq('user_id', currentStory.user_id)
-          .maybeSingle();
-
-        if (!otherParticipant) {
-          conversationId = null; // Need to create new conversation
+          // Check if it's a 1:1 conversation with exactly the story owner and current user
+          if (allParticipants?.length === 2) {
+            const hasStoryOwner = allParticipants.some(p => p.user_id === currentStory.user_id);
+            const hasCurrentUser = allParticipants.some(p => p.user_id === user.id);
+            
+            if (hasStoryOwner && hasCurrentUser) {
+              conversationId = participation.conversation_id;
+              break;
+            }
+          }
         }
       }
 
       // Create conversation if doesn't exist
       if (!conversationId) {
-        const { data: newConversation } = await supabase
+        const { data: storyOwnerProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', currentStory.user_id)
+          .single();
+
+        const { data: newConversation, error: convError } = await supabase
           .from('conversations')
           .insert({
-            title: `Chat with ${currentStory.profiles?.full_name}`,
-            metadata: { type: 'dm' }
+            title: storyOwnerProfile?.full_name || 'Chat',
+            status: 'active',
+            metadata: {}
           })
           .select()
           .single();
         
-        conversationId = newConversation?.id;
+        if (convError) throw convError;
+        conversationId = newConversation.id;
 
-        if (conversationId) {
-          // Add both participants
-          await supabase.from('conversation_participants').insert([
-            { conversation_id: conversationId, user_id: user.id, role: 'member' },
-            { conversation_id: conversationId, user_id: currentStory.user_id, role: 'member' }
+        // Add both participants (current user and story owner)
+        const { error: participantError } = await supabase
+          .from('conversation_participants')
+          .insert([
+            { 
+              conversation_id: conversationId, 
+              user_id: user.id, 
+              role: 'candidate',
+              notifications_enabled: true,
+              is_muted: false
+            },
+            { 
+              conversation_id: conversationId, 
+              user_id: currentStory.user_id, 
+              role: 'candidate',
+              notifications_enabled: true,
+              is_muted: false
+            }
           ]);
-        }
+
+        if (participantError) throw participantError;
       }
 
+      // Get story author info for metadata
+      const { data: authorProfile } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', currentStory.user_id)
+        .single();
+
+      // Send reply as a story share message
       if (conversationId) {
         await supabase.from('messages').insert({
           conversation_id: conversationId,
           sender_id: user.id,
-          content: `Responded to story: ${replyText}`,
-          metadata: { 
+          content: replyText,
+          media_type: 'story_share',
+          metadata: {
             story_id: currentStory.id,
-            story_media_url: currentStory.media_url,
-            type: 'story_reply'
+            story_url: currentStory.media_url,
+            story_type: currentStory.media_type,
+            author_name: authorProfile?.full_name || 'Unknown',
+            author_avatar: authorProfile?.avatar_url
           }
         });
 
@@ -691,6 +785,14 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
           </div>
         )}
       </div>
+
+      {/* Share to DM Dialog */}
+      <CreateConversationDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        onConversationCreated={handleShareToConversation}
+        title="Share Story To"
+      />
     </div>,
     document.body
   );
