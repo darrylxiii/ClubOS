@@ -17,9 +17,12 @@ import { RichTextEditor } from "./RichTextEditor";
 import { validatePostMediaFile } from "@/lib/fileValidation";
 import { YouTubePicker } from "@/components/messages/YouTubePicker";
 import { extractYouTubeVideoId, containsYouTubeUrl } from "@/lib/youtubeUtils";
+import { detectSocialEmbeds, containsSocialMediaUrl, removeSocialMediaUrls, SocialEmbed as SocialEmbedType } from "@/lib/socialEmbedUtils";
+import { detectSpotifyEmbeds, containsSpotifyUrl, removeSpotifyUrls } from "@/lib/spotifyEmbedUtils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { YouTubePickerDialog } from "./YouTubePickerDialog";
-import { detectSocialEmbeds, containsSocialMediaUrl, removeSocialMediaUrls, SocialEmbed as SocialEmbedType } from "@/lib/socialEmbedUtils";
+import { SocialEmbed } from "./SocialEmbed";
+import { SpotifyEmbed } from "./SpotifyEmbed";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -54,6 +57,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [socialEmbeds, setSocialEmbeds] = useState<SocialEmbedType[]>([]);
   const [showSocialPrompt, setShowSocialPrompt] = useState(false);
   const [detectedSocialEmbeds, setDetectedSocialEmbeds] = useState<SocialEmbedType[]>([]);
+  const [spotifyEmbeds, setSpotifyEmbeds] = useState<Array<{type: string, id: string, url: string}>>([]);
+  const [showSpotifyPrompt, setShowSpotifyPrompt] = useState(false);
+  const [detectedSpotifyEmbeds, setDetectedSpotifyEmbeds] = useState<Array<{type: string, id: string, url: string}>>([]);
 
   useEffect(() => {
     if (user) {
@@ -118,6 +124,20 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       }
     }
   }, [content, socialEmbeds.length]);
+
+  // Detect Spotify embeds in content
+  useEffect(() => {
+    if (content && spotifyEmbeds.length === 0) {
+      const plainText = content.replace(/<[^>]*>/g, ' ');
+      if (containsSpotifyUrl(plainText)) {
+        const detected = detectSpotifyEmbeds(plainText);
+        if (detected.length > 0) {
+          setDetectedSpotifyEmbeds(detected);
+          setShowSpotifyPrompt(true);
+        }
+      }
+    }
+  }, [content, spotifyEmbeds.length]);
 
   const handleFileSelect = (acceptedTypes: string) => {
     const input = document.createElement('input');
@@ -287,6 +307,29 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     setSocialEmbeds(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleEmbedDetectedSpotify = () => {
+    if (detectedSpotifyEmbeds.length > 0) {
+      setSpotifyEmbeds([...spotifyEmbeds, ...detectedSpotifyEmbeds]);
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = content;
+      let plainText = tempDiv.textContent || tempDiv.innerText || '';
+      const updatedText = removeSpotifyUrls(plainText);
+      setContent(updatedText);
+      setShowSpotifyPrompt(false);
+      setDetectedSpotifyEmbeds([]);
+      toast({ title: "Spotify content embedded", description: "URLs removed from post content" });
+    }
+  };
+
+  const handleDismissSpotifyPrompt = () => {
+    setShowSpotifyPrompt(false);
+    setDetectedSpotifyEmbeds([]);
+  };
+
+  const removeSpotifyEmbed = (index: number) => {
+    setSpotifyEmbeds(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleLinkedInClick = () => {
     const url = prompt('Paste a LinkedIn post URL (e.g., https://linkedin.com/posts/...)');
     if (!url) return;
@@ -434,6 +477,19 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         ];
       }
 
+      // Add Spotify embeds if exist
+      if (spotifyEmbeds.length > 0) {
+        postData.media_urls = [
+          ...(postData.media_urls || mediaUrls),
+          ...spotifyEmbeds.map(embed => ({
+            url: embed.url,
+            type: 'spotify',
+            spotify_type: embed.type,
+            spotify_id: embed.id
+          }))
+        ];
+      }
+
       // Add poll data if exists
       if (pollData) {
         postData.poll_question = pollData.question;
@@ -463,6 +519,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setYoutubeVideoId(null);
       setYoutubeUrl(null);
       setSocialEmbeds([]);
+      setSpotifyEmbeds([]);
       toast({
         title: "Posted successfully",
         description: "Your post is now live on the feed."
@@ -502,7 +559,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             onInstagramClick={handleInstagramClick}
           />
 
-          {(previews.length > 0 || youtubeVideoId || socialEmbeds.length > 0) && (
+          {(previews.length > 0 || youtubeVideoId || socialEmbeds.length > 0 || spotifyEmbeds.length > 0) && (
             <div className="grid grid-cols-2 gap-2 mt-3">
               {previews.map((preview, index) => (
                 <div key={index} className="relative group">
@@ -585,6 +642,31 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                     size="icon"
                     className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => removeSocialEmbed(index)}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ))}
+              {spotifyEmbeds.map((embed, index) => (
+                <div key={`spotify-${index}`} className="relative group col-span-2">
+                  <div className="relative rounded-lg overflow-hidden bg-muted border p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 flex-shrink-0 rounded-full bg-green-500/10 flex items-center justify-center">
+                        <Sparkles className="w-5 h-5 text-green-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold capitalize">Spotify {embed.type}</p>
+                        <p className="text-xs text-muted-foreground mt-1 truncate">
+                          {embed.url.length > 50 ? `${embed.url.substring(0, 50)}...` : embed.url}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeSpotifyEmbed(index)}
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -689,6 +771,42 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
                       size="sm"
                       variant="ghost"
                       onClick={handleDismissSocialPrompt}
+                    >
+                      Keep as Links
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Spotify Embed Detection Prompt */}
+          {showSpotifyPrompt && detectedSpotifyEmbeds.length > 0 && (
+            <div className="mt-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-green-600 flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-sm">
+                    {detectedSpotifyEmbeds.length} Spotify {detectedSpotifyEmbeds.length === 1 ? 'link' : 'links'} detected
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Found Spotify {detectedSpotifyEmbeds.map(e => e.type).join(', ')}. Embed in your post?
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <Button
+                      size="sm"
+                      onClick={handleEmbedDetectedSpotify}
+                      className="gap-2 bg-green-600 hover:bg-green-700"
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Embed {detectedSpotifyEmbeds.length} {detectedSpotifyEmbeds.length > 1 ? 'Items' : 'Item'}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={handleDismissSpotifyPrompt}
                     >
                       Keep as Links
                     </Button>

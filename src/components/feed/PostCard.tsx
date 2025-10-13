@@ -36,6 +36,7 @@ import { RepostButton } from "./RepostButton";
 import { EditPostDialog } from "./EditPostDialog";
 import { YouTubeEmbed } from "@/components/messages/YouTubeEmbed";
 import { SocialEmbed } from "./SocialEmbed";
+import { SpotifyEmbed } from './SpotifyEmbed';
 
 interface PostCardProps {
   post: any;
@@ -465,6 +466,12 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                   <div key={index} className="relative">
                     {media.type === 'youtube' ? (
                       <YouTubeEmbed videoId={media.videoId} title={`Post by ${authorName}`} />
+                    ) : media.type === 'spotify' ? (
+                      <SpotifyEmbed
+                        type={media.spotify_type}
+                        spotifyId={media.spotify_id}
+                        url={media.url}
+                      />
                     ) : media.type === 'social_embed' ? (
                       <SocialEmbed 
                         platform={media.platform}

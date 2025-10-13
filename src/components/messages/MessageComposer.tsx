@@ -1,9 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Paperclip,
   Send,
   Loader2,
+  Music,
 } from "lucide-react";
 import { useState, useRef, KeyboardEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +16,7 @@ import { GifPicker } from "./GifPicker";
 import { VoiceRecorder } from "./VoiceRecorder";
 import { YouTubePicker } from "./YouTubePicker";
 import { validatePostMediaFile } from "@/lib/fileValidation";
+import { extractSpotifyInfo } from "@/lib/spotifyEmbedUtils";
 
 interface MessageComposerProps {
   conversationId: string;
@@ -130,6 +134,35 @@ export const MessageComposer = ({
     }
   };
 
+  const handleSpotifySelect = async (url: string) => {
+    const spotifyInfo = extractSpotifyInfo(url);
+    if (spotifyInfo) {
+      try {
+        await onSend(message.trim() || "", undefined, {
+          media_type: 'spotify',
+          media_url: url,
+          spotify_type: spotifyInfo.type,
+          spotify_id: spotifyInfo.id,
+        });
+        setMessage("");
+        toast({ title: `Spotify ${spotifyInfo.type} shared` });
+      } catch (error) {
+        console.error("Error sending Spotify:", error);
+        toast({
+          title: "Failed to share Spotify",
+          description: "Please try again",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "Invalid Spotify link",
+        description: "Please enter a valid Spotify URL",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="bg-background p-3 md:p-4">
       {attachment && (
@@ -171,7 +204,38 @@ export const MessageComposer = ({
         
         <GifPicker onSelect={handleGifSelect} />
 
-        <YouTubePicker onSelect={handleYouTubeSelect} />
+              <YouTubePicker onSelect={handleYouTubeSelect} />
+              
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-9 w-9 p-0"
+                    disabled={disabled}
+                  >
+                    <Music className="h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">Share Spotify</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Paste a Spotify link (song, album, playlist, or podcast)
+                    </p>
+                    <Input
+                      placeholder="https://open.spotify.com/track/..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleSpotifySelect(e.currentTarget.value);
+                          e.currentTarget.value = '';
+                        }
+                      }}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
 
         <VoiceRecorder onSend={handleVoiceSend} />
 

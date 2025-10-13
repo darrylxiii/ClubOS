@@ -11,6 +11,7 @@ import { YouTubeEmbed } from "./YouTubeEmbed";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { extractYouTubeVideoId } from "@/lib/youtubeUtils";
+import { SpotifyEmbed } from "@/components/feed/SpotifyEmbed";
 
 interface MessageBubbleProps {
   message: Message;
@@ -74,6 +75,26 @@ export const MessageBubble = ({
   }, [message.attachments, message.id]);
 
   const renderContent = () => {
+    // Check for Spotify
+    if (message.media_type === 'spotify' && message.media_url) {
+      const spotifyType = (message as any).spotify_type;
+      const spotifyId = (message as any).spotify_id;
+      if (spotifyType && spotifyId) {
+        return (
+          <div className="space-y-2">
+            <SpotifyEmbed 
+              type={spotifyType}
+              spotifyId={spotifyId}
+              url={message.media_url}
+            />
+            {message.content && message.content.trim() && (
+              <p className="break-words text-sm mt-2">{message.content}</p>
+            )}
+          </div>
+        );
+      }
+    }
+
     // Check for YouTube video
     if (message.media_type === 'youtube' && message.media_url) {
       const videoId = extractYouTubeVideoId(message.media_url);
