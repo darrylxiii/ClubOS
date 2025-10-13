@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import DOMPurify from "dompurify";
 import { Button } from "@/components/ui/button";
-import { Bold, Italic, List, Link as LinkIcon, Smile } from "lucide-react";
+import { Bold, Italic, List, Link as LinkIcon, Smile, Youtube } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -26,6 +26,7 @@ interface RichTextEditorProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  onYouTubeClick?: () => void;
 }
 
 // Comprehensive emoji collection (iOS 26 style)
@@ -68,7 +69,7 @@ const EMOJI_CATEGORIES = {
   }
 };
 
-export function RichTextEditor({ value, onChange, placeholder, className }: RichTextEditorProps) {
+export function RichTextEditor({ value, onChange, placeholder, className, onYouTubeClick }: RichTextEditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [showToolbar, setShowToolbar] = useState(false);
   const [showLinkDialog, setShowLinkDialog] = useState(false);
@@ -225,6 +226,19 @@ export function RichTextEditor({ value, onChange, placeholder, className }: Rich
           >
             <LinkIcon className="w-4 h-4" />
           </Button>
+
+          {onYouTubeClick && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              onClick={onYouTubeClick}
+              title="Add YouTube Video"
+            >
+              <Youtube className="w-4 h-4 text-red-600" />
+            </Button>
+          )}
 
           <Popover open={emojiPickerOpen} onOpenChange={setEmojiPickerOpen}>
             <PopoverTrigger asChild>

@@ -17,6 +17,8 @@ import { RichTextEditor } from "./RichTextEditor";
 import { validatePostMediaFile } from "@/lib/fileValidation";
 import { YouTubePicker } from "@/components/messages/YouTubePicker";
 import { extractYouTubeVideoId, containsYouTubeUrl } from "@/lib/youtubeUtils";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { YouTubePickerDialog } from "./YouTubePickerDialog";
 
 interface CreatePostProps {
   onPostCreated: () => void;
@@ -47,6 +49,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
   const [youtubeUrl, setYoutubeUrl] = useState<string | null>(null);
   const [showYoutubePrompt, setShowYoutubePrompt] = useState(false);
   const [detectedYoutubeUrl, setDetectedYoutubeUrl] = useState<string | null>(null);
+  const [showYoutubePicker, setShowYoutubePicker] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -220,6 +223,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
     setYoutubeUrl(url);
     setShowYoutubePrompt(false);
     setDetectedYoutubeUrl(null);
+    setShowYoutubePicker(false);
   };
 
   const handleEmbedDetectedVideo = () => {
@@ -227,8 +231,9 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       const videoId = extractYouTubeVideoId(detectedYoutubeUrl);
       if (videoId) {
         handleYouTubeSelect(videoId, detectedYoutubeUrl);
-        // Remove the URL from content
-        setContent(content.replace(detectedYoutubeUrl, '').trim());
+        // Remove ALL YouTube URLs from content
+        const updatedContent = content.replace(/(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/[^\s]+/g, '').trim();
+        setContent(updatedContent);
       }
     }
   };
@@ -324,6 +329,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
             onChange={setContent}
             placeholder="What do you want to talk about?"
             className="border-none"
+            onYouTubeClick={() => setShowYoutubePicker(true)}
           />
 
           {(previews.length > 0 || youtubeVideoId) && (
@@ -634,6 +640,17 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         onPollSelect={() => setShowPollCreator(true)}
         disabled={loading}
       />
+
+      {showYoutubePicker && (
+        <Dialog open={showYoutubePicker} onOpenChange={setShowYoutubePicker}>
+          <DialogContent className="sm:max-w-md p-0">
+            <YouTubePickerDialog 
+              onSelect={handleYouTubeSelect}
+              onClose={() => setShowYoutubePicker(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 }
