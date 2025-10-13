@@ -391,152 +391,217 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black overflow-hidden flex flex-col">
-      {/* Progress bars */}
-      <div className="flex gap-1 z-50 px-4 pt-4 pb-2 flex-shrink-0">
-        {stories.map((_, idx) => (
-          <div key={idx} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-white transition-all duration-100"
-              style={{
-                width: idx < currentIndex ? '100%' : idx === currentIndex ? `${progress}%` : '0%'
-              }}
-            />
-          </div>
-        ))}
-      </div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95" onClick={onClose}>
+      <div 
+        className="relative w-full max-w-md h-[90vh] max-h-[800px] bg-black rounded-lg overflow-hidden flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Progress bars */}
+        <div className="flex gap-1 px-4 pt-4 pb-2 flex-shrink-0">
+          {stories.map((_, idx) => (
+            <div key={idx} className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-white transition-all duration-100"
+                style={{
+                  width: idx < currentIndex ? '100%' : idx === currentIndex ? `${progress}%` : '0%'
+                }}
+              />
+            </div>
+          ))}
+        </div>
 
-      {/* Header */}
-      <div className="flex items-center justify-between z-50 px-4 py-2 flex-shrink-0">
-        <div className="flex items-center gap-3">
-          <Avatar className="w-10 h-10 border-2 border-white">
-            <AvatarImage src={currentStory.profiles?.avatar_url} />
-            <AvatarFallback>{currentStory.profiles?.full_name?.[0]}</AvatarFallback>
-          </Avatar>
-          <div>
-            <p className="text-white font-semibold text-sm">{currentStory.profiles?.full_name}</p>
-            <p className="text-white/70 text-xs">
-              {new Date(currentStory.created_at).toLocaleTimeString()}
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-10 h-10 border-2 border-white">
+              <AvatarImage src={currentStory.profiles?.avatar_url} />
+              <AvatarFallback>{currentStory.profiles?.full_name?.[0]}</AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-white font-semibold text-sm">{currentStory.profiles?.full_name}</p>
+              <p className="text-white/70 text-xs">
+                {new Date(currentStory.created_at).toLocaleTimeString()}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                  <MoreHorizontal className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-background/95 backdrop-blur">
+                {user?.id === currentStory.user_id && (
+                  <DropdownMenuItem onClick={handleDeleteStory} className="text-destructive">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Story
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => handleShare('external')}>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share Story
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={onClose}>
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Story content - centered */}
+        <div className="flex-1 flex items-center justify-center relative overflow-hidden min-h-0">
+          {currentStory.media_type === 'video' ? (
+            <video
+              ref={videoRef}
+              src={currentStory.media_url}
+              className="max-w-full max-h-full object-contain"
+              autoPlay
+              onEnded={handleNext}
+            />
+          ) : (
+            <img
+              src={currentStory.media_url}
+              alt="Story"
+              className="max-w-full max-h-full object-contain"
+            />
+          )}
+
+          {/* Navigation areas */}
+          <button
+            className="absolute left-0 top-0 bottom-0 w-1/3"
+            onClick={handlePrevious}
+          />
+          <button
+            className="absolute right-0 top-0 bottom-0 w-1/3"
+            onClick={handleNext}
+          />
+
+          {/* Comments overlay */}
+          {comments.length > 0 && (
+            <div className="absolute top-4 left-4 max-w-[200px] max-h-[150px]">
+              <div className="space-y-2">
+                {comments.slice(0, 3).map((comment) => (
+                  <div key={comment.id} className="flex items-start gap-2 bg-black/70 backdrop-blur-sm rounded-lg p-2">
+                    <Avatar className="w-6 h-6 flex-shrink-0">
+                      <AvatarImage src={comment.profiles?.avatar_url} />
+                      <AvatarFallback className="text-xs">{comment.profiles?.full_name?.[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-xs font-semibold truncate">{comment.profiles?.full_name}</p>
+                      <p className="text-white/90 text-xs line-clamp-2">{comment.comment_text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Navigation buttons */}
+          {currentIndex > 0 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-10"
+              onClick={handlePrevious}
+            >
+              <ChevronLeft className="w-8 h-8" />
+            </Button>
+          )}
+          {currentIndex < stories.length - 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-10"
+              onClick={handleNext}
+            >
+              <ChevronRight className="w-8 h-8" />
+            </Button>
+          )}
+        </div>
+
+        {/* Caption */}
+        {currentStory.caption && (
+          <div className="px-4 py-2 text-white flex-shrink-0">
+            <p className="text-sm bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2 line-clamp-2">
+              {currentStory.caption}
             </p>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-background/95 backdrop-blur">
-              {user?.id === currentStory.user_id && (
-                <DropdownMenuItem onClick={handleDeleteStory} className="text-destructive">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Story
-                </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={() => handleShare('external')}>
-                <Share2 className="w-4 h-4 mr-2" />
-                Share Story
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={onClose}>
-            <X className="w-6 h-6" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Comments in top left */}
-      {comments.length > 0 && (
-        <div className="absolute top-28 left-4 z-50 max-w-xs max-h-40">
-          <ScrollArea className="h-full">
-            <div className="space-y-2">
-              {comments.map((comment) => (
-                <div key={comment.id} className="flex items-start gap-2 bg-black/50 backdrop-blur-sm rounded-lg p-2">
-                  <Avatar className="w-6 h-6 flex-shrink-0">
-                    <AvatarImage src={comment.profiles?.avatar_url} />
-                    <AvatarFallback className="text-xs">{comment.profiles?.full_name?.[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-white text-xs font-semibold">{comment.profiles?.full_name}</p>
-                    <p className="text-white/90 text-xs">{comment.comment_text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </ScrollArea>
-        </div>
-      )}
-
-      {/* Story content - centered */}
-      <div className="flex-1 flex items-center justify-center px-4 relative overflow-hidden min-h-0">
-        {currentStory.media_type === 'video' ? (
-          <video
-            ref={videoRef}
-            src={currentStory.media_url}
-            className="max-w-full max-h-full object-contain"
-            autoPlay
-            onEnded={handleNext}
-          />
-        ) : (
-          <img
-            src={currentStory.media_url}
-            alt="Story"
-            className="max-w-full max-h-full object-contain"
-          />
         )}
 
-        {/* Navigation areas */}
-        <button
-          className="absolute left-0 top-0 bottom-0 w-1/3 z-10"
-          onClick={handlePrevious}
-        />
-        <button
-          className="absolute right-0 top-0 bottom-0 w-1/3 z-10"
-          onClick={handleNext}
-        />
-      </div>
-
-      {/* Caption */}
-      {currentStory.caption && (
-        <div className="px-4 py-2 text-white z-40 flex-shrink-0">
-          <p className="text-sm bg-black/50 backdrop-blur-sm rounded-lg px-4 py-2">
-            {currentStory.caption}
-          </p>
+        {/* Reply box */}
+        <div className="px-4 pb-3 flex-shrink-0">
+          <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+            <Input
+              placeholder="Send message..."
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendReply();
+                }
+              }}
+              className="flex-1 bg-transparent border-none text-white placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={handleSendReply}
+              className="text-white hover:bg-white/20 flex-shrink-0"
+              disabled={!replyText.trim()}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-      )}
 
-      {/* Reply box */}
-      <div className="px-4 pb-4 z-50 flex-shrink-0">
-        <div className="flex items-center gap-2 bg-black/70 backdrop-blur-sm rounded-full px-4 py-2">
-          <Input
-            placeholder="Send message..."
-            value={replyText}
-            onChange={(e) => setReplyText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSendReply();
-              }
-            }}
-            className="flex-1 bg-transparent border-none text-white placeholder:text-white/60 focus-visible:ring-0 focus-visible:ring-offset-0"
-          />
-          <Button
-            size="icon"
-            variant="ghost"
-            onClick={handleSendReply}
-            className="text-white hover:bg-white/20 flex-shrink-0"
-            disabled={!replyText.trim()}
-          >
-            <Send className="w-5 h-5" />
-          </Button>
+        {/* Action buttons */}
+        <div className="px-4 pb-4 flex items-center justify-between flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={() => setShowReactions(!showReactions)}
+            >
+              <Heart className={cn("w-5 h-5", userReaction && "fill-current text-red-500")} />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={() => handleShare('dm')}
+            >
+              <MessageCircle className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={() => handleShare('repost')}
+            >
+              <Share2 className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={handleSave}
+            >
+              <Bookmark className={cn("w-5 h-5", isSaved && "fill-current")} />
+            </Button>
+          </div>
+
+          <div className="text-white text-xs">
+            {stats.views} • {stats.reactions}
+          </div>
         </div>
-      </div>
 
-      {/* Reactions popup */}
-      {showReactions && (
-        <div className="pb-4 px-4 z-50 flex-shrink-0">
-          <div className="bg-background/95 backdrop-blur-xl rounded-full px-4 py-3 flex gap-3 shadow-lg border justify-center animate-in slide-in-from-bottom-4">
+        {/* Reactions popup */}
+        {showReactions && (
+          <div className="absolute bottom-20 left-1/2 -translate-x-1/2 bg-background/95 backdrop-blur-xl rounded-full px-4 py-2 flex gap-2 shadow-lg border animate-in slide-in-from-bottom-4 z-20">
             {REACTION_TYPES.map(({ type, icon: Icon, color }) => (
               <button
                 key={type}
@@ -546,78 +611,12 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
                   userReaction === type && "ring-2 ring-primary"
                 )}
               >
-                <Icon className={cn("w-6 h-6", color)} />
+                <Icon className={cn("w-5 h-5", color)} />
               </button>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* Action buttons */}
-      <div className="px-4 pb-4 flex items-center justify-between z-50 flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20"
-            onClick={() => setShowReactions(!showReactions)}
-          >
-            <Heart className={cn("w-6 h-6", userReaction && "fill-current text-red-500")} />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20"
-            onClick={() => handleShare('dm')}
-          >
-            <MessageCircle className="w-6 h-6" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20"
-            onClick={() => handleShare('repost')}
-          >
-            <Share2 className="w-6 h-6" />
-          </Button>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="text-white text-sm">
-            {stats.views} views • {stats.reactions} reactions
-          </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20"
-            onClick={handleSave}
-          >
-            <Bookmark className={cn("w-6 h-6", isSaved && "fill-current")} />
-          </Button>
-        </div>
+        )}
       </div>
-
-      {/* Navigation buttons */}
-      {currentIndex > 0 && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-40"
-          onClick={handlePrevious}
-        >
-          <ChevronLeft className="w-8 h-8" />
-        </Button>
-      )}
-      {currentIndex < stories.length - 1 && (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/20 z-40"
-          onClick={handleNext}
-        >
-          <ChevronRight className="w-8 h-8" />
-        </Button>
-      )}
     </div>
   );
 }
