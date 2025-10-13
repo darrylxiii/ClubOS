@@ -128,6 +128,7 @@ export function getTwitterEmbedUrl(tweetId: string): string {
  * Get embed URL for LinkedIn
  */
 export function getLinkedInEmbedUrl(postId: string): string {
+  // LinkedIn embed format - try to use the post ID directly
   return `https://www.linkedin.com/embed/feed/update/urn:li:share:${postId}`;
 }
 

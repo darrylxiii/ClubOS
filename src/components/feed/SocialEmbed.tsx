@@ -19,30 +19,38 @@ export function SocialEmbed({ platform, postId, url, className, username }: Soci
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    let url = '';
-    switch (platform) {
-      case 'twitter':
-        url = getTwitterEmbedUrl(postId);
-        break;
-      case 'linkedin':
-        url = getLinkedInEmbedUrl(postId);
-        break;
-      case 'instagram':
-        url = getInstagramEmbedUrl(postId);
-        break;
+    let embedUrl = '';
+    try {
+      switch (platform) {
+        case 'twitter':
+          embedUrl = getTwitterEmbedUrl(postId);
+          break;
+        case 'linkedin':
+          embedUrl = getLinkedInEmbedUrl(postId);
+          break;
+        case 'instagram':
+          embedUrl = getInstagramEmbedUrl(postId);
+          break;
+      }
+      setEmbedUrl(embedUrl);
+      console.log(`[SocialEmbed] Loading ${platform} embed:`, embedUrl);
+    } catch (error) {
+      console.error(`[SocialEmbed] Error creating ${platform} embed URL:`, error);
+      setHasError(true);
+      setIsLoading(false);
     }
-    setEmbedUrl(url);
     
     // Set a timeout to hide loader if embed takes too long
     const timeout = setTimeout(() => {
       if (isLoading) {
+        console.warn(`[SocialEmbed] ${platform} embed timed out after 10s`);
         setIsLoading(false);
         setHasError(true);
       }
     }, 10000);
     
     return () => clearTimeout(timeout);
-  }, [platform, postId, isLoading]);
+  }, [platform, postId]);
 
   const getPlatformColor = () => {
     switch (platform) {

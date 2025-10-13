@@ -384,12 +384,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           <div className="relative">
             <div 
               className={cn(
-                "mt-3 whitespace-pre-wrap prose prose-sm max-w-none",
+                "mt-3 whitespace-pre-wrap break-words prose prose-sm max-w-none",
                 "[&_ul]:list-disc [&_ul]:ml-6",
                 "[&_ol]:list-decimal [&_ol]:ml-6",
-                "[&_a]:text-primary [&_a]:underline",
+                "[&_a]:text-primary [&_a]:underline [&_a]:break-all",
                 isLongContent && isCollapsed && "line-clamp-4"
               )}
+              style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
               dangerouslySetInnerHTML={{ 
                 __html: DOMPurify.sanitize(post.content, {
                   ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i'],
