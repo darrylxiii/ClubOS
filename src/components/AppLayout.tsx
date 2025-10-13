@@ -228,6 +228,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation();
   const { currentRole } = useRole();
   const [userProfile, setUserProfile] = useState<{ id: string } | null>(null);
+  const [showHeader, setShowHeader] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   // Determine navigation based on current role from context
   const navigationGroups = currentRole === 'admin'
@@ -235,6 +237,27 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     : currentRole === 'partner'
     ? partnerNavigationGroups
     : candidateNavigationGroups;
+
+  // Smart header visibility on scroll
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show header when scrolling up or at top
+      if (currentScrollY < lastScrollY || currentScrollY < 10) {
+        setShowHeader(true);
+      } 
+      // Hide header when scrolling down (after 100px)
+      else if (currentScrollY > 100 && currentScrollY > lastScrollY) {
+        setShowHeader(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -253,8 +276,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      {/* Global Header - Sticky at top, always visible */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-md border-b border-border z-[100] flex items-center justify-between px-4 gap-4 shadow-sm">
+      {/* Global Header - Smart scroll behavior */}
+      <header className={cn(
+        "fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-md border-b border-border z-[100] flex items-center justify-between px-4 gap-4 shadow-sm transition-transform duration-300",
+        showHeader ? "translate-y-0" : "-translate-y-full"
+      )}>
         <Button
           variant="ghost"
           size="icon"
@@ -285,7 +311,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       <aside
         className={cn(
-          "fixed top-16 bottom-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-transform duration-300 ease-in-out flex flex-col",
+          "fixed bottom-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-all duration-300 ease-in-out flex flex-col",
+          showHeader ? "top-16" : "top-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
