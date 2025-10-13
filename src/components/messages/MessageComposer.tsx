@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EnhancedEmojiPicker } from "./EnhancedEmojiPicker";
 import { GifPicker } from "./GifPicker";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { validatePostMediaFile } from "@/lib/fileValidation";
 
 interface MessageComposerProps {
   conversationId: string;
@@ -61,11 +62,12 @@ export const MessageComposer = ({
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Check file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
+      // Validate file
+      const validation = validatePostMediaFile(file);
+      if (!validation.valid) {
         toast({
-          title: "File too large",
-          description: "Please select a file smaller than 10MB",
+          title: "Invalid file",
+          description: validation.error,
           variant: "destructive",
         });
         return;
@@ -79,16 +81,34 @@ export const MessageComposer = ({
   };
 
   const handleGifSelect = async (gifUrl: string) => {
-    await onSend("", undefined, { gif_url: gifUrl });
-    toast({ title: "GIF sent" });
+    try {
+      await onSend("", undefined, { gif_url: gifUrl });
+      toast({ title: "GIF sent" });
+    } catch (error) {
+      console.error("Error sending GIF:", error);
+      toast({
+        title: "Failed to send GIF",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleVoiceSend = async (audioUrl: string, duration: number) => {
-    await onSend("", undefined, { 
-      media_type: 'audio', 
-      media_url: audioUrl, 
-      media_duration: duration 
-    });
+    try {
+      await onSend("", undefined, { 
+        media_type: 'audio', 
+        media_url: audioUrl, 
+        media_duration: duration 
+      });
+    } catch (error) {
+      console.error("Error sending voice message:", error);
+      toast({
+        title: "Failed to send voice message",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

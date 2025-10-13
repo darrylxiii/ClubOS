@@ -255,7 +255,7 @@ export const useMessages = (conversationId?: string) => {
 
   const sendMessage = useCallback(
     async (content: string, files?: File[], metadata?: Record<string, any>) => {
-      if (!conversationId || !user?.id || (!content.trim() && !files?.length && !metadata?.media_url)) return;
+      if (!conversationId || !user?.id || (!content.trim() && !files?.length && !metadata?.media_url && !metadata?.gif_url && !metadata?.sticker_url)) return;
 
       setSending(true);
       try {
@@ -290,15 +290,23 @@ export const useMessages = (conversationId?: string) => {
               .from('message-attachments')
               .upload(filePath, file);
 
-            if (uploadError) throw uploadError;
+            if (uploadError) {
+              console.error('Storage upload error:', uploadError);
+              throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
+            }
 
-            await supabase.from('message_attachments').insert({
+            const { error: attachmentError } = await supabase.from('message_attachments').insert({
               message_id: newMessage.id,
               file_name: file.name,
               file_path: filePath,
               file_type: file.type,
               file_size: file.size,
             });
+
+            if (attachmentError) {
+              console.error('Attachment record error:', attachmentError);
+              throw new Error(`Failed to save attachment record: ${attachmentError.message}`);
+            }
           }
         }
 
@@ -307,7 +315,9 @@ export const useMessages = (conversationId?: string) => {
         });
       } catch (error: any) {
         console.error('Error sending message:', error);
-        toast.error('Failed to send message');
+        toast.error('Failed to send message', {
+          description: error.message || 'Please try again',
+        });
       } finally {
         setSending(false);
       }
