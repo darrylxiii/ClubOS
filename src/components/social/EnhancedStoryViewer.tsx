@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -81,21 +80,28 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
   const currentStory = stories[currentIndex];
 
   useEffect(() => {
-    // Lock all scrolling when story viewer is open
-    const originalBodyOverflow = document.body.style.overflow;
-    const mainElement = document.querySelector('main');
-    const originalMainOverflow = mainElement ? (mainElement as HTMLElement).style.overflow : null;
-    
+    // Lock ALL scrolling when story viewer is open
+    const scrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = '100%';
     document.body.style.overflow = 'hidden';
+    
+    const mainElement = document.querySelector('main');
     if (mainElement) {
       (mainElement as HTMLElement).style.overflow = 'hidden';
     }
     
     return () => {
       // Restore scrolling when story viewer closes
-      document.body.style.overflow = originalBodyOverflow;
-      if (mainElement && originalMainOverflow !== null) {
-        (mainElement as HTMLElement).style.overflow = originalMainOverflow;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.width = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, scrollY);
+      
+      if (mainElement) {
+        (mainElement as HTMLElement).style.overflow = '';
       }
     };
   }, []);
@@ -410,11 +416,11 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
     }
   };
 
-  return (
+  return createPortal(
     <div 
       style={{ 
         position: 'fixed',
-        top: 0,
+        top: '64px',
         left: 0,
         right: 0,
         bottom: 0,
@@ -423,7 +429,8 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'rgba(0, 0, 0, 0.85)',
-        backdropFilter: 'blur(4px)'
+        backdropFilter: 'blur(4px)',
+        overflow: 'hidden'
       }}
       onClick={onClose}
     >
@@ -431,11 +438,11 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
         style={{ 
           position: 'relative',
           width: '100%',
-          maxWidth: '448px',
-          height: 'min(800px, 90vh)',
-          margin: '0 16px',
+          maxWidth: '500px',
+          height: '90vh',
+          margin: '0 20px',
           backgroundColor: '#000',
-          borderRadius: '8px',
+          borderRadius: '12px',
           display: 'flex',
           flexDirection: 'column',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
@@ -684,6 +691,7 @@ export function EnhancedStoryViewer({ stories, initialIndex, onClose }: Enhanced
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
