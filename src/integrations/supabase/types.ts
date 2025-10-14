@@ -2956,6 +2956,84 @@ export type Database = {
           },
         ]
       }
+      funnel_analytics: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          session_id: string
+          source_channel: string | null
+          step_name: string
+          step_number: number
+          time_on_step_seconds: number | null
+          user_agent: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          session_id: string
+          source_channel?: string | null
+          step_name: string
+          step_number: number
+          time_on_step_seconds?: number | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          session_id?: string
+          source_channel?: string | null
+          step_name?: string
+          step_number?: number
+          time_on_step_seconds?: number | null
+          user_agent?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
+      funnel_config: {
+        Row: {
+          created_at: string
+          custom_questions: Json
+          custom_steps: Json
+          id: string
+          is_active: boolean
+          live_stats: Json
+          social_proof_items: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_questions?: Json
+          custom_steps?: Json
+          id?: string
+          is_active?: boolean
+          live_stats?: Json
+          social_proof_items?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_questions?: Json
+          custom_steps?: Json
+          id?: string
+          is_active?: boolean
+          live_stats?: Json
+          social_proof_items?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hashtags: {
         Row: {
           category: string | null
@@ -4651,6 +4729,111 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      partner_requests: {
+        Row: {
+          agreed_nda: boolean | null
+          agreed_no_cure_no_pay: boolean
+          agreed_privacy: boolean
+          assigned_to: string | null
+          budget_range: string | null
+          company_name: string
+          company_size: string
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          created_at: string
+          description: string
+          estimated_roles_per_year: number | null
+          followed_up_at: string | null
+          headquarters_location: string | null
+          id: string
+          industry: string
+          last_step_viewed: string | null
+          linkedin_url: string | null
+          notes: string | null
+          partnership_type: string
+          session_id: string | null
+          source_channel: string | null
+          status: string
+          steps_completed: number
+          time_to_complete_seconds: number | null
+          timeline: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          website: string | null
+        }
+        Insert: {
+          agreed_nda?: boolean | null
+          agreed_no_cure_no_pay?: boolean
+          agreed_privacy?: boolean
+          assigned_to?: string | null
+          budget_range?: string | null
+          company_name: string
+          company_size: string
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string
+          description: string
+          estimated_roles_per_year?: number | null
+          followed_up_at?: string | null
+          headquarters_location?: string | null
+          id?: string
+          industry: string
+          last_step_viewed?: string | null
+          linkedin_url?: string | null
+          notes?: string | null
+          partnership_type: string
+          session_id?: string | null
+          source_channel?: string | null
+          status?: string
+          steps_completed?: number
+          time_to_complete_seconds?: number | null
+          timeline?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          website?: string | null
+        }
+        Update: {
+          agreed_nda?: boolean | null
+          agreed_no_cure_no_pay?: boolean
+          agreed_privacy?: boolean
+          assigned_to?: string | null
+          budget_range?: string | null
+          company_name?: string
+          company_size?: string
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string
+          description?: string
+          estimated_roles_per_year?: number | null
+          followed_up_at?: string | null
+          headquarters_location?: string | null
+          id?: string
+          industry?: string
+          last_step_viewed?: string | null
+          linkedin_url?: string | null
+          notes?: string | null
+          partnership_type?: string
+          session_id?: string | null
+          source_channel?: string | null
+          status?: string
+          steps_completed?: number
+          time_to_complete_seconds?: number | null
+          timeline?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          website?: string | null
+        }
+        Relationships: []
       }
       path_enrollments: {
         Row: {

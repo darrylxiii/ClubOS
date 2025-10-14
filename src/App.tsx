@@ -19,6 +19,7 @@ import { Loader2 } from "lucide-react";
 import Auth from "./pages/Auth";
 import SharedProfile from "./pages/SharedProfile";
 import BookingPage from "./pages/BookingPage";
+import PartnerFunnel from "./pages/PartnerFunnel";
 import NotFound from "./pages/NotFound";
 
 // Lazy load protected routes to reduce initial bundle size
@@ -57,6 +58,7 @@ const SocialManagement = lazy(() => import("./pages/SocialManagement"));
 const Analytics = lazy(() => import("./pages/Analytics"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const FeedbackDatabase = lazy(() => import("./pages/FeedbackDatabase"));
+const FunnelAnalytics = lazy(() => import("./pages/FunnelAnalytics"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -85,6 +87,15 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/book/:slug" element={<BookingPage />} />
                 <Route path="/share/:token" element={<SharedProfile />} />
+                <Route path="/partner-funnel" element={<PartnerFunnel />} />
+                <Route
+                  path="/funnel-analytics"
+                  element={
+                    <ProtectedRoute>
+                      <FunnelAnalytics />
+                    </ProtectedRoute>
+                  }
+                />
             <Route
               path="/home"
               element={
