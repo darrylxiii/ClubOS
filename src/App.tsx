@@ -28,6 +28,7 @@ const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
 const ObjectiveWorkspace = lazy(() => import("./pages/ObjectiveWorkspace"));
 const ClubAI = lazy(() => import("./pages/ClubAI"));
 const Academy = lazy(() => import("./pages/Academy"));
+const AcademyCreatorHub = lazy(() => import("./pages/AcademyCreatorHub"));
 const ModuleDetail = lazy(() => import("./pages/ModuleDetail"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
@@ -334,6 +335,7 @@ const App = () => (
             />
             <Route path="/academy" element={<Academy />} />
             <Route path="/academy/:slug" element={<Academy />} />
+            <Route path="/academy/creator" element={<AcademyCreatorHub />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
             <Route path="/module/:moduleId" element={<ModuleDetail />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

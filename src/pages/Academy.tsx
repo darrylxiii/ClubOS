@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ import { BadgesDisplay } from "@/components/academy/BadgesDisplay";
 
 export default function Academy() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -150,10 +151,20 @@ export default function Academy() {
                 </div>
               </div>
               {isExpert && (
-                <Button onClick={() => setShowCreateCourse(true)} className="squircle">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Course
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => navigate("/academy/creator")} 
+                    className="squircle"
+                  >
+                    <GraduationCap className="mr-2 h-4 w-4" />
+                    Creator Hub
+                  </Button>
+                  <Button onClick={() => setShowCreateCourse(true)} className="squircle">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Course
+                  </Button>
+                </div>
               )}
             </div>
 
