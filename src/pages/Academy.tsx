@@ -242,50 +242,77 @@ export default function Academy() {
 
                 {/* Materials Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <MaterialCard
-                    type="quiz"
-                    title="5 Steps Optimizing User Experience"
-                    category="UI/UX Design"
-                    urgency="Urgent"
-                    count={20}
-                    countType="Question"
-                    certified
-                    points={20}
-                    passingPoints={20}
-                    progress={0}
-                    illustration="quiz"
-                  />
-                  <MaterialCard
-                    type="page"
-                    title="Heuristics: 10 Usability Principles To improve UI Design"
-                    category="Learning Design"
-                    urgency="Not Urgent"
-                    count={12}
-                    countType="Chapters"
-                    progress={40}
-                    illustration="book"
-                  />
-                  <MaterialCard
-                    type="path"
-                    title="General Knowledge & Methodology - Layout & Spacing"
-                    category="Consistency"
-                    urgency="Not Urgent"
-                    count={20}
-                    countType="Path"
-                    progress={0}
-                    status="Not Started"
-                    illustration="path"
-                  />
-                  <MaterialCard
-                    type="course"
-                    title="Mastering UI Design for Impactful Solutions"
-                    category="UI/UX Design"
-                    urgency="Not Urgent"
-                    count={12}
-                    countType="Materials"
-                    progress={50}
-                    illustration="design"
-                  />
+                  {courses.length === 0 ? (
+                    <Card className="p-12 text-center squircle col-span-full">
+                      <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <h3 className="text-xl font-semibold mb-2">No courses yet</h3>
+                      <p className="text-muted-foreground mb-6">
+                        {isExpert 
+                          ? "Be the first to create a course for this academy!"
+                          : "Check back soon for new courses"}
+                      </p>
+                      {isExpert && (
+                        <Button onClick={() => setShowCreateCourse(true)}>
+                          <Plus className="mr-2 h-4 w-4" />
+                          Create First Course
+                        </Button>
+                      )}
+                    </Card>
+                  ) : (
+                    courses.map((course) => (
+                      <Link key={course.id} to={`/courses/${course.slug}`}>
+                        <Card className="squircle overflow-hidden hover-lift h-full transition-all cursor-pointer">
+                          {/* Course illustration header */}
+                          <div className="h-48 bg-gradient-to-br from-purple-300 via-pink-300 to-purple-400 p-6 flex items-center justify-center relative overflow-hidden">
+                            <Badge className="absolute top-4 right-4 squircle-sm bg-background/90 backdrop-blur-sm text-foreground font-bold">
+                              {course.estimated_hours || 12} Hours
+                            </Badge>
+                            <BookOpen className="h-24 w-24 text-white/60" />
+                            {!course.is_published && (
+                              <Badge className="absolute top-4 left-4 squircle-sm bg-yellow-500/90 backdrop-blur-sm text-background">
+                                Draft
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-4 space-y-3 bg-card">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="squircle-sm text-xs text-primary border-primary">
+                                Course
+                              </Badge>
+                              {course.difficulty_level && (
+                                <Badge variant="secondary" className="squircle-sm text-xs">
+                                  {course.difficulty_level}
+                                </Badge>
+                              )}
+                            </div>
+
+                            <h3 className="font-bold line-clamp-2 min-h-[3rem] text-foreground">
+                              {course.title}
+                            </h3>
+
+                            {course.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {course.description}
+                              </p>
+                            )}
+
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2 border-t border-border">
+                              <div className="flex items-center gap-1">
+                                <PlayCircle className="h-4 w-4" />
+                                <span>Start</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                <span>{course.estimated_hours || 0}h</span>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+                      </Link>
+                    ))
+                  )}
                 </div>
               </div>
             </TabsContent>
