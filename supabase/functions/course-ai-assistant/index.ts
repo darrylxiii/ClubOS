@@ -25,6 +25,8 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    console.log('Fetching course with ID:', courseId);
+
     // Fetch the current course with all its modules
     const { data: course, error: courseError } = await supabase
       .from('courses')
@@ -48,10 +50,15 @@ Deno.serve(async (req) => {
     if (courseError || !course) {
       console.error('Error fetching course:', courseError);
       return new Response(
-        JSON.stringify({ error: 'Course not found' }),
+        JSON.stringify({ 
+          error: 'Course not found', 
+          details: courseError?.message || 'No course data returned'
+        }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log('Successfully fetched course:', course.title, 'with', course.modules?.length || 0, 'modules');
 
     // Fetch all other courses for comparative questions
     const { data: allCourses } = await supabase
