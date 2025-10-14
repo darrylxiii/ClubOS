@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { BookOpen, Clock, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -79,6 +80,20 @@ export function PopularCourseCard({ course }: PopularCourseCardProps) {
             <div className="flex items-center gap-1">
               <Clock className="h-4 w-4" />
               <span>{course.estimated_hours || 48} Hours</span>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <div className="flex -space-x-1.5">
+                <Avatar className="h-5 w-5 border-2 border-background">
+                  <AvatarFallback className="bg-primary/10 text-primary text-[10px]">A</AvatarFallback>
+                </Avatar>
+                <Avatar className="h-5 w-5 border-2 border-background">
+                  <AvatarFallback className="bg-secondary/10 text-secondary text-[10px]">B</AvatarFallback>
+                </Avatar>
+                <Avatar className="h-5 w-5 border-2 border-background">
+                  <AvatarFallback className="bg-accent/10 text-accent text-[10px]">C</AvatarFallback>
+                </Avatar>
+              </div>
+              <span>26</span>
             </div>
           </div>
         </div>

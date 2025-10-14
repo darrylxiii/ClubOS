@@ -63,9 +63,19 @@ export function CourseCard({ course }: CourseCardProps) {
                 <span>{course.estimated_hours}h</span>
               </div>
             )}
-            <div className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
-              <span>0 enrolled</span>
+            <div className="flex items-center gap-1.5">
+              <div className="flex -space-x-1.5">
+                <Avatar className="h-5 w-5 border-2 border-background">
+                  <AvatarFallback className="bg-primary/10 text-primary text-[10px]">A</AvatarFallback>
+                </Avatar>
+                <Avatar className="h-5 w-5 border-2 border-background">
+                  <AvatarFallback className="bg-secondary/10 text-secondary text-[10px]">B</AvatarFallback>
+                </Avatar>
+                <Avatar className="h-5 w-5 border-2 border-background">
+                  <AvatarFallback className="bg-accent/10 text-accent text-[10px]">C</AvatarFallback>
+                </Avatar>
+              </div>
+              <span>26</span>
             </div>
             <div className="flex items-center gap-1">
               <Star className="h-4 w-4 fill-warning text-warning" />

@@ -194,6 +194,20 @@ export default function CourseDetail() {
                   <span>{course.estimated_hours}h</span>
                 </div>
                 <div className="flex items-center gap-2">
+                  <div className="flex -space-x-2">
+                    <Avatar className="h-6 w-6 border-2 border-background">
+                      <AvatarFallback className="bg-primary/10 text-primary text-xs">A</AvatarFallback>
+                    </Avatar>
+                    <Avatar className="h-6 w-6 border-2 border-background">
+                      <AvatarFallback className="bg-secondary/10 text-secondary text-xs">B</AvatarFallback>
+                    </Avatar>
+                    <Avatar className="h-6 w-6 border-2 border-background">
+                      <AvatarFallback className="bg-accent/10 text-accent text-xs">C</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <span>26 enrolled</span>
+                </div>
+                <div className="flex items-center gap-2">
                   <Star className="h-4 w-4 fill-primary text-primary" />
                   <span>4.5 (126 reviews)</span>
                 </div>
@@ -327,25 +341,6 @@ export default function CourseDetail() {
               <p className="text-sm text-muted-foreground">
                 Expert instructor with extensive industry experience.
               </p>
-            </Card>
-
-            {/* Enrolled Students Card */}
-            <Card className="p-6">
-              <h3 className="font-bold mb-4">Students Enrolled</h3>
-              <div className="flex items-center gap-3">
-                <div className="flex -space-x-2">
-                  <Avatar className="border-2 border-background">
-                    <AvatarFallback className="bg-primary/10 text-primary">A</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="border-2 border-background">
-                    <AvatarFallback className="bg-secondary/10 text-secondary">B</AvatarFallback>
-                  </Avatar>
-                  <Avatar className="border-2 border-background">
-                    <AvatarFallback className="bg-accent/10 text-accent">C</AvatarFallback>
-                  </Avatar>
-                </div>
-                <p className="text-sm text-muted-foreground">+ 23 others enrolled</p>
-              </div>
             </Card>
 
             <Card className="p-6">
