@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -13,16 +13,20 @@ import {
   GraduationCap, 
   BookOpen, 
   Clock, 
-  Users, 
-  Star,
-  Plus,
-  TrendingUp,
+  CheckCircle2,
   Award,
-  Target
+  Target,
+  Plus,
+  Search,
+  Filter,
+  ArrowUpDown,
+  PlayCircle
 } from "lucide-react";
 import { CreateCourseDialog } from "@/components/academy/CreateCourseDialog";
-import { CourseCard } from "@/components/academy/CourseCard";
-import { LearningPathCard } from "@/components/academy/LearningPathCard";
+import { AcademyDashboard } from "@/components/academy/AcademyDashboard";
+import { ContinueLearningCard } from "@/components/academy/ContinueLearningCard";
+import { MaterialCard } from "@/components/academy/MaterialCard";
+import { PopularCourseCard } from "@/components/academy/PopularCourseCard";
 
 export default function Academy() {
   const { slug } = useParams();
@@ -124,105 +128,151 @@ export default function Academy() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
-        {/* Hero Section */}
-        <div className="relative overflow-hidden bg-gradient-hero py-20">
-          <div className="absolute inset-0 bg-gradient-mesh opacity-30" />
-          <div className="container relative mx-auto px-4">
-            <div className="max-w-4xl mx-auto text-center text-white">
-              <div className="mb-6 flex justify-center">
-                <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-md">
-                  <GraduationCap className="h-12 w-12" />
+        <div className="container mx-auto px-4 py-8 max-w-7xl">
+          <Tabs defaultValue="dashboard" className="space-y-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-3 squircle bg-primary/10">
+                  <GraduationCap className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <h1 className="text-3xl font-bold">{academy?.name || "The Quantum Club Academy"}</h1>
+                  <p className="text-muted-foreground">{academy?.tagline || "Master your craft with expert-led courses"}</p>
                 </div>
               </div>
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 tracking-tight">
-                {academy.name}
-              </h1>
-              <p className="text-xl md:text-2xl mb-8 text-white/90">
-                {academy.tagline}
-              </p>
-              <p className="text-lg text-white/80 max-w-2xl mx-auto">
-                {academy.description}
-              </p>
-              
               {isExpert && (
-                <div className="mt-8">
-                  <Button 
-                    size="lg" 
-                    onClick={() => setShowCreateCourse(true)}
-                    className="squircle-lg"
-                  >
-                    <Plus className="mr-2 h-5 w-5" />
-                    Create Course
-                  </Button>
-                </div>
+                <Button onClick={() => setShowCreateCourse(true)} className="squircle">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Course
+                </Button>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Stats Bar */}
-        <div className="border-b">
-          <div className="container mx-auto px-4 py-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-primary/10">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{courses.length}</p>
-                  <p className="text-sm text-muted-foreground">Courses</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-accent/10">
-                  <Target className="h-5 w-5 text-accent" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{learningPaths.length}</p>
-                  <p className="text-sm text-muted-foreground">Learning Paths</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-success/10">
-                  <Users className="h-5 w-5 text-success" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">1.2K+</p>
-                  <p className="text-sm text-muted-foreground">Active Learners</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-warning/10">
-                  <Award className="h-5 w-5 text-warning" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">95%</p>
-                  <p className="text-sm text-muted-foreground">Completion Rate</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="container mx-auto px-4 py-12">
-          <Tabs defaultValue="courses" className="space-y-8">
             <TabsList className="squircle">
-              <TabsTrigger value="courses">All Courses</TabsTrigger>
-              <TabsTrigger value="paths">Learning Paths</TabsTrigger>
-              <TabsTrigger value="continue">Continue Learning</TabsTrigger>
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="my-courses">My Courses</TabsTrigger>
+              <TabsTrigger value="explore">Explore</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="courses" className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-3xl font-bold">Explore Courses</h2>
-                  <p className="text-muted-foreground mt-1">
-                    Master new skills with expert-led courses
-                  </p>
+            <TabsContent value="dashboard" className="space-y-8">
+              <AcademyDashboard />
+
+              {/* Popular Courses */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold">Popular Courses</h2>
+                  <Button variant="ghost" className="squircle-sm">View All</Button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {courses.slice(0, 3).map((course) => (
+                    <PopularCourseCard key={course.id} course={course} />
+                  ))}
                 </div>
               </div>
 
+              {/* Continue Learning */}
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold">Continue Learning</h2>
+                <div className="space-y-4">
+                  <ContinueLearningCard
+                    title="Creating Engaging Learning Journeys: UI/UX Best Practices"
+                    progress={80}
+                    materials={12}
+                    category="Course"
+                    illustration="design"
+                    nextLesson="Advance your learning with Mastering UI Design for Impactful Solutions"
+                  />
+                  <ContinueLearningCard
+                    title="The Art of Blending Aesthetics and Functionality in UI/UX Design"
+                    progress={30}
+                    materials={12}
+                    category="Course"
+                    illustration="blend"
+                    nextLesson="Next, you can dive into Advanced techniques commonly used in UI/UX Design"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="my-courses" className="space-y-6">
+              <div className="space-y-4">
+                <h2 className="text-2xl font-bold">All Materials</h2>
+                
+                {/* Filters */}
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex gap-2">
+                    <Button variant="secondary" className="squircle-sm">All Status</Button>
+                    <Button variant="ghost" className="squircle-sm">Not Started</Button>
+                    <Button variant="ghost" className="squircle-sm">In Progress</Button>
+                    <Button variant="ghost" className="squircle-sm">Completed</Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input placeholder="Search..." className="pl-9 squircle-sm" />
+                    </div>
+                    <Button variant="outline" className="squircle-sm">
+                      <Filter className="mr-2 h-4 w-4" />
+                      Add Filter
+                    </Button>
+                    <Button variant="outline" className="squircle-sm">
+                      <ArrowUpDown className="mr-2 h-4 w-4" />
+                      Sort by
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Materials Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <MaterialCard
+                    type="quiz"
+                    title="5 Steps Optimizing User Experience"
+                    category="UI/UX Design"
+                    urgency="Urgent"
+                    count={20}
+                    countType="Question"
+                    certified
+                    points={20}
+                    passingPoints={20}
+                    progress={0}
+                    illustration="quiz"
+                  />
+                  <MaterialCard
+                    type="page"
+                    title="Heuristics: 10 Usability Principles To improve UI Design"
+                    category="Learning Design"
+                    urgency="Not Urgent"
+                    count={12}
+                    countType="Chapters"
+                    progress={40}
+                    illustration="book"
+                  />
+                  <MaterialCard
+                    type="path"
+                    title="General Knowledge & Methodology - Layout & Spacing"
+                    category="Consistency"
+                    urgency="Not Urgent"
+                    count={20}
+                    countType="Path"
+                    progress={0}
+                    status="Not Started"
+                    illustration="path"
+                  />
+                  <MaterialCard
+                    type="course"
+                    title="Mastering UI Design for Impactful Solutions"
+                    category="UI/UX Design"
+                    urgency="Not Urgent"
+                    count={12}
+                    countType="Materials"
+                    progress={50}
+                    illustration="design"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="explore" className="space-y-6">
               {courses.length === 0 ? (
                 <Card className="p-12 text-center squircle">
                   <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
@@ -242,55 +292,10 @@ export default function Academy() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {courses.map((course) => (
-                    <CourseCard key={course.id} course={course} />
+                    <PopularCourseCard key={course.id} course={course} />
                   ))}
                 </div>
               )}
-            </TabsContent>
-
-            <TabsContent value="paths" className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold">Learning Paths</h2>
-                <p className="text-muted-foreground mt-1">
-                  Structured journeys to master specific skills
-                </p>
-              </div>
-
-              {learningPaths.length === 0 ? (
-                <Card className="p-12 text-center squircle">
-                  <Target className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <h3 className="text-xl font-semibold mb-2">No learning paths yet</h3>
-                  <p className="text-muted-foreground">
-                    Learning paths will be available soon
-                  </p>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {learningPaths.map((path) => (
-                    <LearningPathCard key={path.id} path={path} />
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="continue" className="space-y-6">
-              <div>
-                <h2 className="text-3xl font-bold">Continue Learning</h2>
-                <p className="text-muted-foreground mt-1">
-                  Pick up where you left off
-                </p>
-              </div>
-
-              <Card className="p-12 text-center squircle">
-                <TrendingUp className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">No courses in progress</h3>
-                <p className="text-muted-foreground mb-6">
-                  Start a course to track your progress
-                </p>
-                <Link to="#courses">
-                  <Button>Browse Courses</Button>
-                </Link>
-              </Card>
             </TabsContent>
           </Tabs>
         </div>
