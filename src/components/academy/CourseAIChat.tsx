@@ -8,11 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 
 interface CourseAIChatProps {
   courseId: string;
-  courseTitle: string;
-  courseDescription?: string;
 }
 
-export function CourseAIChat({ courseId, courseTitle, courseDescription }: CourseAIChatProps) {
+export function CourseAIChat({ courseId }: CourseAIChatProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [input, setInput] = useState("");
   const [answer, setAnswer] = useState("");
@@ -29,10 +27,7 @@ export function CourseAIChat({ courseId, courseTitle, courseDescription }: Cours
       const { data, error } = await supabase.functions.invoke('course-ai-assistant', {
         body: {
           messages: [{ role: 'user', content: input }],
-          courseContext: {
-            title: courseTitle,
-            description: courseDescription,
-          }
+          courseId: courseId
         }
       });
 

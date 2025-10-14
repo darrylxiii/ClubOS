@@ -1,3 +1,5 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -14,33 +16,99 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { messages, courseContext } = await req.json() as {
+    const { messages, courseId } = await req.json() as {
       messages: Message[];
-      courseContext?: {
-        title: string;
-        description?: string;
-      };
+      courseId: string;
     };
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Fetch the current course with all its modules
+    const { data: course, error: courseError } = await supabase
+      .from('courses')
+      .select(`
+        *,
+        profiles:created_by(full_name),
+        modules(
+          id,
+          title,
+          description,
+          content,
+          estimated_minutes,
+          display_order
+        )
+      `)
+      .eq('id', courseId)
+      .single();
+
+    if (courseError || !course) {
+      console.error('Error fetching course:', courseError);
+      return new Response(
+        JSON.stringify({ error: 'Course not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Fetch all other courses for comparative questions
+    const { data: allCourses } = await supabase
+      .from('courses')
+      .select('id, title, description, difficulty_level, estimated_hours, is_published')
+      .eq('is_published', true)
+      .order('created_at', { ascending: false });
+
+    // Build comprehensive course context
+    const modulesContext = course.modules
+      ?.sort((a: any, b: any) => a.display_order - b.display_order)
+      .map((mod: any, idx: number) => `
+Module ${idx + 1}: ${mod.title}
+${mod.description ? `Description: ${mod.description}` : ''}
+${mod.estimated_minutes ? `Duration: ${mod.estimated_minutes} minutes` : ''}
+${mod.content ? `\nContent Overview: ${mod.content.slice(0, 500)}...` : ''}
+`).join('\n') || 'No modules available yet.';
+
+    const otherCoursesContext = allCourses
+      ?.filter((c: any) => c.id !== courseId)
+      .map((c: any) => `- ${c.title} (${c.difficulty_level}, ${c.estimated_hours}h)`)
+      .join('\n') || '';
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const systemPrompt = `You are an expert learning assistant for "${courseContext?.title || 'Quantum Club Academy'}".
+    const systemPrompt = `You are an expert learning assistant for Quantum Club Academy, currently helping with the course: "${course.title}"
 
-${courseContext ? `
-Course: ${courseContext.title}
-${courseContext.description ? `Description: ${courseContext.description}` : ''}
-` : ''}
+# CURRENT COURSE YOU'RE ASSISTING WITH:
+**${course.title}** (${course.difficulty_level || 'All levels'})
+${course.description || 'No description available'}
+Duration: ${course.estimated_hours || 'N/A'} hours
+Instructor: ${course.profiles?.full_name || 'Expert Instructor'}
 
-Your role:
-- Answer questions clearly and concisely about this course
-- Explain what students will learn and what skills they'll gain
-- Provide information about course structure, duration, and difficulty
-- Help prospective students understand if this course is right for them
+# COURSE MODULES:
+${modulesContext}
+
+${otherCoursesContext ? `# OTHER AVAILABLE COURSES:
+${otherCoursesContext}` : ''}
+
+# YOUR ROLE:
+- Answer questions clearly and concisely about **this specific course** ("${course.title}")
+- Explain what students will learn from specific modules and the overall course structure
+- Provide insights about the course difficulty, prerequisites, and who it's best suited for
+- When asked about other courses, you can reference them using the list above
+- Help prospective students understand if this course matches their goals
+- Explain module content, sequence, and estimated time commitments
+- Suggest study approaches and learning strategies
 - Be encouraging and highlight the value of the course
-- When unsure about specific details, acknowledge limitations
+- If asked about content not covered in this course, suggest other courses if relevant
+- When unsure about specific details, acknowledge limitations honestly
+
+# IMPORTANT CONTEXT AWARENESS:
+- Users are currently viewing the "${course.title}" course page
+- If they ask "this course" or "the course", they mean "${course.title}"
+- Provide specific, accurate information based on the modules and content above
+- Don't invent features or content not present in the course data
 
 Keep responses focused, helpful, and encouraging. Use markdown formatting for clarity.`;
 

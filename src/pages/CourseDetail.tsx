@@ -225,11 +225,7 @@ export default function CourseDetail() {
               </div>
 
               {/* AI Course Chat */}
-              <CourseAIChat 
-                courseId={course.id}
-                courseTitle={course.title}
-                courseDescription={course.description}
-              />
+              <CourseAIChat courseId={course.id} />
             </div>
 
             {/* Course Preview Video */}
