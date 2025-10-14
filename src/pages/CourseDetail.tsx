@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
+import { CourseAIChat } from "@/components/academy/CourseAIChat";
 import { 
   BookOpen, 
   Clock, 
@@ -222,6 +223,13 @@ export default function CourseDetail() {
                   <Share2 className="h-4 w-4" />
                 </Button>
               </div>
+
+              {/* AI Course Chat */}
+              <CourseAIChat 
+                courseId={course.id}
+                courseTitle={course.title}
+                courseDescription={course.description}
+              />
             </div>
 
             {/* Course Preview Video */}
