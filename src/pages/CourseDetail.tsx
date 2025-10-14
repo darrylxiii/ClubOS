@@ -300,6 +300,54 @@ export default function CourseDetail() {
 
           {/* Sidebar - Right Side */}
           <div className="lg:col-span-1 space-y-6">
+            {/* Instructor Card */}
+            <Card className="p-6">
+              <h3 className="font-bold mb-4">Instructor</h3>
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage src={course.profiles?.avatar_url} />
+                  <AvatarFallback>
+                    {course.profiles?.full_name?.[0] || "I"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm truncate">
+                      {course.profiles?.full_name || "Expert Instructor"}
+                    </p>
+                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Star className="h-3 w-3 fill-primary text-primary" />
+                    <span>4.8</span>
+                  </div>
+                </div>
+              </div>
+              <Separator className="my-4" />
+              <p className="text-sm text-muted-foreground">
+                Expert instructor with extensive industry experience.
+              </p>
+            </Card>
+
+            {/* Enrolled Students Card */}
+            <Card className="p-6">
+              <h3 className="font-bold mb-4">Students Enrolled</h3>
+              <div className="flex items-center gap-3">
+                <div className="flex -space-x-2">
+                  <Avatar className="border-2 border-background">
+                    <AvatarFallback className="bg-primary/10 text-primary">A</AvatarFallback>
+                  </Avatar>
+                  <Avatar className="border-2 border-background">
+                    <AvatarFallback className="bg-secondary/10 text-secondary">B</AvatarFallback>
+                  </Avatar>
+                  <Avatar className="border-2 border-background">
+                    <AvatarFallback className="bg-accent/10 text-accent">C</AvatarFallback>
+                  </Avatar>
+                </div>
+                <p className="text-sm text-muted-foreground">+ 23 others enrolled</p>
+              </div>
+            </Card>
+
             <Card className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-bold">Course Content</h3>
@@ -363,35 +411,6 @@ export default function CourseDetail() {
                   </AccordionItem>
                 </Accordion>
               </div>
-            </Card>
-
-            {/* Instructor Card */}
-            <Card className="p-6">
-              <h3 className="font-bold mb-4">Instructor</h3>
-              <div className="flex items-center gap-3">
-                <Avatar>
-                  <AvatarImage src={course.profiles?.avatar_url} />
-                  <AvatarFallback>
-                    {course.profiles?.full_name?.[0] || "I"}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-semibold text-sm truncate">
-                      {course.profiles?.full_name || "Expert Instructor"}
-                    </p>
-                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Star className="h-3 w-3 fill-primary text-primary" />
-                    <span>4.8</span>
-                  </div>
-                </div>
-              </div>
-              <Separator className="my-4" />
-              <p className="text-sm text-muted-foreground">
-                Expert instructor with extensive industry experience.
-              </p>
             </Card>
 
             {/* Progress Card */}
