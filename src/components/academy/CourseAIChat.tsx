@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Loader2, Send, Bot } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ReactMarkdown from "react-markdown";
 
 interface CourseAIChatProps {
   courseId: string;
@@ -80,8 +81,8 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
         <Card className="p-4 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="flex items-start gap-3">
             <Bot className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-            <div className="flex-1 text-sm leading-relaxed">
-              {answer}
+            <div className="flex-1 text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert">
+              <ReactMarkdown>{answer}</ReactMarkdown>
             </div>
           </div>
         </Card>
