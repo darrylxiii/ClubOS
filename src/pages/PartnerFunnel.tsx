@@ -37,18 +37,20 @@ export default function PartnerFunnel() {
       <div className="min-h-screen bg-background">
         {/* Top Banner */}
         <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="container mx-auto px-4 py-3 relative flex justify-center items-center">
             <img 
               src={quantumLogoDark} 
               alt="Quantum Club" 
-              className="h-12 dark:hidden"
+              className="h-16 dark:hidden"
             />
             <img 
               src={quantumLogoLight} 
               alt="Quantum Club" 
-              className="h-12 hidden dark:block"
+              className="h-16 hidden dark:block"
             />
-            <ThemeToggle />
+            <div className="absolute right-4">
+              <ThemeToggle />
+            </div>
           </div>
         </div>
 
@@ -70,18 +72,20 @@ export default function PartnerFunnel() {
     <div className="min-h-screen bg-background">
       {/* Top Banner */}
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="container mx-auto px-4 py-3 relative flex justify-center items-center">
           <img 
             src={quantumLogoDark} 
             alt="Quantum Club" 
-            className="h-12 dark:hidden"
+            className="h-16 dark:hidden"
           />
           <img 
             src={quantumLogoLight} 
             alt="Quantum Club" 
-            className="h-12 hidden dark:block"
+            className="h-16 hidden dark:block"
           />
-          <ThemeToggle />
+          <div className="absolute right-4">
+            <ThemeToggle />
+          </div>
         </div>
       </div>
 
