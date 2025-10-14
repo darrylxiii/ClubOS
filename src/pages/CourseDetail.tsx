@@ -4,6 +4,11 @@ import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -11,14 +16,11 @@ import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 import { 
   BookOpen, 
   Clock, 
-  ArrowLeft,
   PlayCircle,
   CheckCircle2,
-  Lock,
-  GraduationCap,
-  Edit,
-  Eye,
-  EyeOff,
+  Star,
+  Share2,
+  ChevronRight,
   Plus,
   Loader2
 } from "lucide-react";
@@ -32,8 +34,8 @@ export default function CourseDetail() {
   const [modules, setModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
-  const [publishing, setPublishing] = useState(false);
-  const [showCreateModule, setShowCreateModule] = useState(false);
+  const [showModuleDialog, setShowModuleDialog] = useState(false);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     loadCourseData();
@@ -43,7 +45,6 @@ export default function CourseDetail() {
     try {
       setLoading(true);
 
-      // Load course
       const { data: courseData, error: courseError } = await supabase
         .from("courses")
         .select(`
@@ -57,7 +58,6 @@ export default function CourseDetail() {
       setCourse(courseData);
       setIsOwner(user?.id === courseData.created_by);
 
-      // Load modules
       const { data: modulesData } = await supabase
         .from("modules")
         .select("*")
@@ -65,6 +65,20 @@ export default function CourseDetail() {
         .order("display_order");
 
       setModules(modulesData || []);
+
+      // Fetch course progress if user is logged in
+      if (user && courseData.id) {
+        const { data: progressData } = await supabase
+          .from('learner_progress')
+          .select('progress_percentage')
+          .eq('user_id', user.id)
+          .in('module_id', modulesData?.map(m => m.id) || []);
+
+        if (progressData && progressData.length > 0) {
+          const avgProgress = progressData.reduce((sum, p) => sum + p.progress_percentage, 0) / progressData.length;
+          setProgress(avgProgress);
+        }
+      }
     } catch (error: any) {
       toast({
         title: "Error loading course",
@@ -79,7 +93,6 @@ export default function CourseDetail() {
   const handlePublishToggle = async () => {
     if (!course) return;
 
-    setPublishing(true);
     try {
       const { error } = await supabase
         .from("courses")
@@ -102,8 +115,6 @@ export default function CourseDetail() {
         description: error.message,
         variant: "destructive",
       });
-    } finally {
-      setPublishing(false);
     }
   };
 
@@ -120,178 +131,296 @@ export default function CourseDetail() {
   if (!course) {
     return (
       <AppLayout>
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold">Course not found</h2>
+        <div className="container max-w-6xl mx-auto p-6 text-center py-12">
+          <h2 className="text-2xl font-bold mb-4">Course not found</h2>
           <Link to="/academy">
-            <Button className="mt-4">Back to Academy</Button>
+            <Button>Back to Academy</Button>
           </Link>
         </div>
       </AppLayout>
     );
   }
 
+  const totalModules = modules.length;
+  const completedModules = Math.floor((progress / 100) * totalModules);
+
   return (
     <AppLayout>
-      <div className="container max-w-6xl mx-auto p-6 space-y-8">
-        {/* Back Button */}
-        <Link to="/academy">
-          <Button variant="ghost" className="squircle-sm">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Academy
-          </Button>
-        </Link>
+      <div className="container max-w-7xl mx-auto p-6">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+          <Link to="/academy" className="hover:text-foreground">
+            <BookOpen className="h-4 w-4 inline mr-1" />
+            Courses
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="text-foreground">{course.title}</span>
+        </div>
 
-        {/* Course Header */}
-        <div className="space-y-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2 flex-1">
-              <div className="flex items-center gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content - Left Side */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Course Header */}
+            <div className="space-y-4">
+              {isOwner && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handlePublishToggle}
+                    size="sm"
+                  >
+                    {course.is_published ? "Unpublish" : "Publish"}
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    Edit Course
+                  </Button>
+                </div>
+              )}
+
+              <div>
+                <h1 className="text-3xl font-bold mb-2">{course.title}</h1>
                 <Badge variant="outline" className="squircle-sm">
                   {course.difficulty_level}
                 </Badge>
-                {!course.is_published && (
-                  <Badge variant="secondary" className="squircle-sm">
-                    <EyeOff className="mr-1 h-3 w-3" />
-                    Unpublished
-                  </Badge>
-                )}
               </div>
-              <h1 className="text-4xl font-bold">{course.title}</h1>
-              <p className="text-lg text-muted-foreground">{course.description}</p>
-              
-              <div className="flex items-center gap-6 text-sm text-muted-foreground pt-4">
+
+              <div className="flex items-center gap-6 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  <span>{modules.length} Modules</span>
+                  <PlayCircle className="h-4 w-4" />
+                  <span>{totalModules} lessons</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  <span>{course.estimated_hours || 0} Hours</span>
+                  <span>{course.estimated_hours}h</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <GraduationCap className="h-4 w-4" />
-                  <span>By {course.profiles?.full_name || "Unknown"}</span>
+                  <Star className="h-4 w-4 fill-primary text-primary" />
+                  <span>4.5 (126 reviews)</span>
                 </div>
               </div>
-            </div>
 
-            {isOwner && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={handlePublishToggle}
-                  disabled={publishing}
-                >
-                  {publishing ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : course.is_published ? (
-                    <EyeOff className="mr-2 h-4 w-4" />
-                  ) : (
-                    <Eye className="mr-2 h-4 w-4" />
-                  )}
-                  {course.is_published ? "Unpublish" : "Publish"}
+              <div className="flex gap-3">
+                <Button className="flex-1">
+                  <PlayCircle className="mr-2 h-4 w-4" />
+                  Enroll Now
                 </Button>
                 <Button variant="outline">
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Course
+                  <Share2 className="h-4 w-4" />
                 </Button>
               </div>
-            )}
-          </div>
-        </div>
-
-        {/* Modules List */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold">Course Modules</h2>
-            {isOwner && modules.length > 0 && (
-              <Button onClick={() => setShowCreateModule(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Module
-              </Button>
-            )}
-          </div>
-          
-          {modules.length === 0 ? (
-            <Card className="p-12 text-center">
-              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No modules yet</h3>
-              <p className="text-muted-foreground mb-4">
-                {isOwner 
-                  ? "Add modules to this course to get started"
-                  : "This course doesn't have any modules yet"}
-              </p>
-              {isOwner && (
-                <Button onClick={() => setShowCreateModule(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add First Module
-                </Button>
-              )}
-            </Card>
-          ) : (
-            <div className="space-y-3">
-              {modules.map((module, index) => (
-                <Link key={module.id} to={`/academy/modules/${module.slug}`}>
-                  <Card className="p-6 hover-lift transition-all">
-                    <div className="flex items-start gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">
-                        {index + 1}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3 mb-2">
-                          <h3 className="font-semibold">{module.title}</h3>
-                          {!module.is_published && (
-                            <Badge variant="secondary" className="squircle-sm text-xs">
-                              <EyeOff className="mr-1 h-3 w-3" />
-                              Draft
-                            </Badge>
-                          )}
-                        </div>
-                        {module.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {module.description}
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
-                          {module.estimated_minutes && (
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{module.estimated_minutes} min</span>
-                            </div>
-                          )}
-                          {module.video_url && (
-                            <div className="flex items-center gap-1">
-                              <PlayCircle className="h-3 w-3" />
-                              <span>Video</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {module.is_published ? (
-                          <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
-                        ) : (
-                          <Lock className="h-5 w-5 text-muted-foreground" />
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                </Link>
-              ))}
             </div>
-          )}
+
+            {/* Course Preview Video */}
+            <Card className="overflow-hidden">
+              <div className="aspect-video bg-muted flex items-center justify-center">
+                <div className="text-center p-12">
+                  <PlayCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground">Course preview coming soon</p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Tabs */}
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="squircle">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="instructor">Instructor</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="space-y-6 mt-6">
+                <Card className="p-6">
+                  <h3 className="text-xl font-bold mb-4">About This Course</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {course.description}
+                  </p>
+                </Card>
+
+                <Card className="p-6">
+                  <h3 className="text-xl font-bold mb-4">What You'll Learn</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      "Master the fundamentals",
+                      "Build real-world projects",
+                      "Industry best practices",
+                      "Advanced techniques",
+                      "Professional workflow",
+                      "Portfolio-ready skills",
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{item}</span>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="instructor" className="mt-6">
+                <Card className="p-6">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={course.profiles?.avatar_url} />
+                      <AvatarFallback>
+                        {course.profiles?.full_name?.[0] || "I"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-bold text-lg">
+                          {course.profiles?.full_name || "Expert Instructor"}
+                        </h3>
+                        <Badge variant="secondary" className="squircle-sm">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Verified
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Expert Instructor & Industry Professional
+                      </p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        A seasoned professional with extensive experience in the field. 
+                        Passionate about teaching and helping others master modern skills and methodologies.
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="reviews" className="mt-6">
+                <Card className="p-6">
+                  <h3 className="text-xl font-bold mb-4">Student Reviews</h3>
+                  <p className="text-muted-foreground text-sm">
+                    No reviews yet. Be the first to review this course!
+                  </p>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sidebar - Right Side */}
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-bold">Course Content</h3>
+                {isOwner && (
+                  <Button onClick={() => setShowModuleDialog(true)} size="sm" variant="ghost">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              
+              <div className="space-y-4">
+                <Accordion type="single" collapsible defaultValue="section-1">
+                  <AccordionItem value="section-1">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center justify-between w-full pr-4">
+                        <span className="text-sm font-semibold">
+                          Course Modules
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {totalModules} lessons
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {modules.length === 0 ? (
+                        <div className="text-center py-6">
+                          <p className="text-sm text-muted-foreground mb-3">No modules yet</p>
+                          {isOwner && (
+                            <Button onClick={() => setShowModuleDialog(true)} size="sm">
+                              <Plus className="mr-2 h-4 w-4" />
+                              Add First Module
+                            </Button>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="space-y-2 mt-2">
+                          {modules.map((mod, index) => (
+                            <Link 
+                              key={mod.id} 
+                              to={`/academy/modules/${mod.slug}`}
+                              className="block"
+                            >
+                              <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted transition-colors">
+                                <PlayCircle className="h-4 w-4 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    {mod.title}
+                                  </p>
+                                  {mod.estimated_minutes && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {mod.estimated_minutes} min
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            </Card>
+
+            {/* Instructor Card */}
+            <Card className="p-6">
+              <h3 className="font-bold mb-4">Instructor</h3>
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage src={course.profiles?.avatar_url} />
+                  <AvatarFallback>
+                    {course.profiles?.full_name?.[0] || "I"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm truncate">
+                      {course.profiles?.full_name || "Expert Instructor"}
+                    </p>
+                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Star className="h-3 w-3 fill-primary text-primary" />
+                    <span>4.8</span>
+                  </div>
+                </div>
+              </div>
+              <Separator className="my-4" />
+              <p className="text-sm text-muted-foreground">
+                Expert instructor with extensive industry experience.
+              </p>
+            </Card>
+
+            {/* Progress Card */}
+            {user && (
+              <Card className="p-6">
+                <h3 className="font-bold mb-4">Your Progress</h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">
+                        {completedModules} of {totalModules} complete
+                      </span>
+                      <span className="font-semibold">{Math.round(progress)}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                  </div>
+                </div>
+              </Card>
+            )}
+          </div>
         </div>
 
-        {/* Create Module Dialog */}
-        {isOwner && course && (
-          <CreateModuleDialog
-            open={showCreateModule}
-            onOpenChange={setShowCreateModule}
-            courseId={course.id}
-            onSuccess={loadCourseData}
-            nextDisplayOrder={modules.length + 1}
-          />
-        )}
+        <CreateModuleDialog
+          open={showModuleDialog}
+          onOpenChange={setShowModuleDialog}
+          courseId={course.id}
+          onSuccess={loadCourseData}
+          nextDisplayOrder={modules.length + 1}
+        />
       </div>
     </AppLayout>
   );
