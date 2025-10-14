@@ -8,11 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
+import { usePhoneVerification } from "@/hooks/usePhoneVerification";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
-const STEPS = ["contact", "company", "partnership", "compliance"];
+const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
 export function FunnelSteps() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -20,8 +23,18 @@ export function FunnelSteps() {
   const [startTime] = useState(Date.now());
   const [stepStartTime, setStepStartTime] = useState(Date.now());
   const [trackDialogOpen, setTrackDialogOpen] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { 
+    sendOTP, 
+    verifyOTP, 
+    otpSent, 
+    isVerifying, 
+    isSendingOtp,
+    resendCooldown 
+  } = usePhoneVerification();
 
   const [formData, setFormData] = useState({
     // Contact
@@ -75,6 +88,18 @@ export function FunnelSteps() {
   const handleNext = async () => {
     if (!validateStep()) return;
     
+    // If moving from compliance to verification, send OTP
+    if (currentStep === 3) {
+      if (!phoneNumber) {
+        toast({ title: "Please enter your phone number", variant: "destructive" });
+        return;
+      }
+      const success = await sendOTP(phoneNumber);
+      if (!success) {
+        return;
+      }
+    }
+    
     await trackStep("complete");
     setCurrentStep(currentStep + 1);
   };
@@ -109,43 +134,53 @@ export function FunnelSteps() {
           toast({ title: "Please accept the required terms", variant: "destructive" });
           return false;
         }
+        if (!phoneNumber) {
+          toast({ title: "Please enter your phone number", variant: "destructive" });
+          return false;
+        }
         break;
     }
     return true;
   };
 
   const handleSubmit = async () => {
-    if (!validateStep()) return;
+    // Verify phone before submission
+    const verified = await verifyOTP(phoneNumber, verificationCode, async () => {
+      const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
 
-    const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
+      const { error } = await supabase.from("partner_requests").insert({
+        ...formData,
+        contact_phone: phoneNumber,
+        estimated_roles_per_year: formData.estimated_roles_per_year ? parseInt(formData.estimated_roles_per_year) : null,
+        session_id: sessionId,
+        steps_completed: 5,
+        time_to_complete_seconds: timeToComplete,
+        last_step_viewed: "verification",
+        source_channel: new URLSearchParams(window.location.search).get("source") || "direct",
+        utm_source: new URLSearchParams(window.location.search).get("utm_source"),
+        utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
+        utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
+      });
 
-    const { error } = await supabase.from("partner_requests").insert({
-      ...formData,
-      estimated_roles_per_year: formData.estimated_roles_per_year ? parseInt(formData.estimated_roles_per_year) : null,
-      session_id: sessionId,
-      steps_completed: 4,
-      time_to_complete_seconds: timeToComplete,
-      last_step_viewed: "compliance",
-      source_channel: new URLSearchParams(window.location.search).get("source") || "direct",
-      utm_source: new URLSearchParams(window.location.search).get("utm_source"),
-      utm_medium: new URLSearchParams(window.location.search).get("utm_medium"),
-      utm_campaign: new URLSearchParams(window.location.search).get("utm_campaign"),
+      await trackStep("complete");
+
+      if (error) {
+        toast({ title: "Submission failed", description: error.message, variant: "destructive" });
+        return;
+      }
+
+      toast({
+        title: "Request submitted successfully!",
+        description: "We'll be in touch within 48 hours.",
+      });
+
+      // Show success view
+      setCurrentStep(5);
     });
 
-    await trackStep("complete");
-
-    if (error) {
-      toast({ title: "Submission failed", description: error.message, variant: "destructive" });
-      return;
+    if (!verified) {
+      toast({ title: "Invalid verification code", description: "Please try again.", variant: "destructive" });
     }
-
-    toast({
-      title: "Request submitted successfully!",
-      description: "We'll be in touch within 48 hours.",
-    });
-
-    // Show success view
-    setCurrentStep(4);
   };
 
   const renderStep = () => {
@@ -173,15 +208,6 @@ export function FunnelSteps() {
                 value={formData.contact_email}
                 onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
                 placeholder="john@company.com"
-              />
-            </div>
-            <div>
-              <Label>Phone Number</Label>
-              <Input
-                type="tel"
-                value={formData.contact_phone}
-                onChange={(e) => setFormData({ ...formData, contact_phone: e.target.value })}
-                placeholder="+31 6 12345678"
               />
             </div>
             <div>
@@ -396,10 +422,60 @@ export function FunnelSteps() {
                 </Label>
               </div>
             </Card>
+
+            <div>
+              <Label>Phone Number *</Label>
+              <PhoneInput
+                international
+                defaultCountry="NL"
+                value={phoneNumber}
+                onChange={(value) => setPhoneNumber(value || "")}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              />
+            </div>
           </div>
         );
 
       case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-6">
+              <Phone className="w-16 h-16 mx-auto mb-4 text-primary" />
+              <h2 className="text-2xl font-bold mb-2">Verify Your Phone</h2>
+              <p className="text-muted-foreground">
+                We sent a verification code to {phoneNumber}
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <Label htmlFor="code">Verification Code *</Label>
+              <Input
+                id="code"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="Enter 6-digit code"
+                maxLength={6}
+              />
+            </div>
+
+            {resendCooldown > 0 ? (
+              <p className="text-sm text-muted-foreground text-center">
+                Resend code in {resendCooldown}s
+              </p>
+            ) : (
+              <Button
+                variant="ghost"
+                onClick={() => sendOTP(phoneNumber)}
+                disabled={isSendingOtp}
+                className="w-full"
+              >
+                Resend Code
+              </Button>
+            )}
+          </div>
+        );
+
+      case 5:
         return (
           <div className="text-center py-12">
             <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
@@ -425,64 +501,59 @@ export function FunnelSteps() {
     }
   };
 
-  if (currentStep === 4) {
+  if (currentStep === 5) {
     return <Card className="p-8 glass-effect">{renderStep()}</Card>;
   }
 
   return (
-    <div>
+    <Card className="p-8 glass-effect">
       {/* Progress Bar */}
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-2">
-          {STEPS.map((step, index) => (
-            <div
-              key={step}
-              className={`flex-1 ${index < STEPS.length - 1 ? "mr-2" : ""}`}
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm text-muted-foreground">
+            Step {currentStep + 1} of 5
+          </span>
+          <span className="text-sm font-medium">
+            {Math.round(((currentStep + 1) / 5) * 100)}%
+          </span>
+        </div>
+        <div className="h-2 bg-muted rounded-full overflow-hidden">
+          <div
+            className="h-full bg-primary transition-all duration-300"
+            style={{ width: `${((currentStep + 1) / 5) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      {/* Step Content */}
+      {renderStep()}
+
+      {/* Navigation Buttons */}
+      {currentStep < 5 && (
+        <div className="flex gap-4 mt-8">
+          {currentStep > 0 && (
+            <Button variant="outline" onClick={handleBack} className="flex-1">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back
+            </Button>
+          )}
+          {currentStep < 4 ? (
+            <Button onClick={handleNext} className="flex-1">
+              Next
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleSubmit} 
+              className="flex-1"
+              disabled={!verificationCode || verificationCode.length !== 6 || isVerifying}
             >
-              <div
-                className={`h-2 rounded-full transition-all ${
-                  index <= currentStep ? "bg-primary" : "bg-muted"
-                }`}
-              />
-            </div>
-          ))}
+              {isVerifying ? "Verifying..." : "Submit Request"}
+              <CheckCircle className="w-4 h-4 ml-2" />
+            </Button>
+          )}
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground mt-2">
-          <span>Contact</span>
-          <span>Company</span>
-          <span>Partnership</span>
-          <span>Compliance</span>
-        </div>
-      </div>
-
-      {/* Form */}
-      <Card className="p-8 glass-effect mb-6">
-        {renderStep()}
-      </Card>
-
-      {/* Navigation */}
-      <div className="flex justify-between">
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={handleBack}
-          disabled={currentStep === 0}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        {currentStep < 3 ? (
-          <Button size="lg" onClick={handleNext}>
-            Next
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        ) : (
-          <Button size="lg" onClick={handleSubmit}>
-            Submit Request
-            <CheckCircle className="w-4 h-4 ml-2" />
-          </Button>
-        )}
-      </div>
-    </div>
+      )}
+    </Card>
   );
 }
