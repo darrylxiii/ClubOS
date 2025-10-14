@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { Loader2, Send, Bot } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2, Send, Bot, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
@@ -80,10 +81,20 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
       {isExpanded && answer && (
         <Card className="p-4 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="flex items-start gap-3">
-            <Bot className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-            <div className="flex-1 text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert">
-              <ReactMarkdown>{answer}</ReactMarkdown>
-            </div>
+            <Bot className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
+            <ScrollArea className="flex-1 max-h-[400px]">
+              <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert pr-4">
+                <ReactMarkdown>{answer}</ReactMarkdown>
+              </div>
+            </ScrollArea>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 flex-shrink-0"
+              onClick={() => setIsExpanded(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
         </Card>
       )}
