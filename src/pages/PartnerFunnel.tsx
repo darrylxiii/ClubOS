@@ -5,8 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Sparkles } from "lucide-react";
-import quantumLogoLight from "@/assets/quantum-logo-white.png";
-import quantumLogoDark from "@/assets/quantum-logo-black.png";
+import quantumLogoLight from "@/assets/quantum-logo-light-transparent.png";
+import quantumLogoDark from "@/assets/quantum-logo-dark-transparent.png";
 
 export default function PartnerFunnel() {
   const [isActive, setIsActive] = useState(true);

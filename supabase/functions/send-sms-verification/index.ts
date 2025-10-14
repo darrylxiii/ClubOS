@@ -42,7 +42,9 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     const { phone } = await req.json();
-    const ipAddress = req.headers.get('x-forwarded-for') || 'unknown';
+    // Extract first IP from x-forwarded-for header (may contain multiple IPs)
+    const forwardedFor = req.headers.get('x-forwarded-for');
+    const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
     // Check rate limiting
