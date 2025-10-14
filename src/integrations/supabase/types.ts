@@ -2702,6 +2702,20 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "courses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "courses_learning_path_id_fkey"
             columns: ["learning_path_id"]
             isOneToOne: false
