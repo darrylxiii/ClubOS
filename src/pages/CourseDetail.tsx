@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 import { 
   BookOpen, 
   Clock, 
@@ -17,9 +18,10 @@ import {
   GraduationCap,
   Edit,
   Eye,
-  EyeOff
+  EyeOff,
+  Plus,
+  Loader2
 } from "lucide-react";
-import { Loader2 } from "lucide-react";
 
 export default function CourseDetail() {
   const { slug } = useParams();
@@ -31,6 +33,7 @@ export default function CourseDetail() {
   const [loading, setLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [showCreateModule, setShowCreateModule] = useState(false);
 
   useEffect(() => {
     loadCourseData();
@@ -199,7 +202,15 @@ export default function CourseDetail() {
 
         {/* Modules List */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold">Course Modules</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold">Course Modules</h2>
+            {isOwner && modules.length > 0 && (
+              <Button onClick={() => setShowCreateModule(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Module
+              </Button>
+            )}
+          </div>
           
           {modules.length === 0 ? (
             <Card className="p-12 text-center">
@@ -211,7 +222,10 @@ export default function CourseDetail() {
                   : "This course doesn't have any modules yet"}
               </p>
               {isOwner && (
-                <Button>Add First Module</Button>
+                <Button onClick={() => setShowCreateModule(true)}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add First Module
+                </Button>
               )}
             </Card>
           ) : (
@@ -267,6 +281,17 @@ export default function CourseDetail() {
             </div>
           )}
         </div>
+
+        {/* Create Module Dialog */}
+        {isOwner && course && (
+          <CreateModuleDialog
+            open={showCreateModule}
+            onOpenChange={setShowCreateModule}
+            courseId={course.id}
+            onSuccess={loadCourseData}
+            nextDisplayOrder={modules.length + 1}
+          />
+        )}
       </div>
     </AppLayout>
   );
