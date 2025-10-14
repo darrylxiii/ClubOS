@@ -66,6 +66,36 @@ export function PartnerRequestTracker() {
 
   return (
     <div className="space-y-6">
+      {/* Strategist Card */}
+      {!loading && strategist && (
+        <Card className="p-6 glass-effect border-primary/20">
+          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
+            Who will handle your request
+          </div>
+          <div className="flex items-start gap-4">
+            <Avatar className="w-16 h-16 border-2 border-primary/20">
+              <AvatarImage src={strategist.avatar_url} />
+              <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                {strategist.full_name
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <h4 className="font-semibold text-lg">{strategist.full_name}</h4>
+              <p className="text-sm text-muted-foreground mb-3">Founder & CEO</p>
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="w-4 h-4 text-primary" />
+                <span className="text-muted-foreground">
+                  Avg. response time: <span className="font-semibold text-foreground">19 minutes</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Progress Overview */}
       <Card className="p-6 glass-effect border-primary/20">
         <div className="flex items-center gap-4 mb-4">
@@ -121,36 +151,6 @@ export function PartnerRequestTracker() {
           ))}
         </div>
       </Card>
-
-      {/* Strategist Card */}
-      {!loading && strategist && (
-        <Card className="p-6 glass-effect border-primary/20">
-          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-4">
-            Your Talent Strategist
-          </div>
-          <div className="flex items-start gap-4">
-            <Avatar className="w-16 h-16 border-2 border-primary/20">
-              <AvatarImage src={strategist.avatar_url} />
-              <AvatarFallback className="bg-primary/10 text-primary text-lg">
-                {strategist.full_name
-                  ?.split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <h4 className="font-semibold text-lg">{strategist.full_name}</h4>
-              <p className="text-sm text-muted-foreground mb-3">Talent Strategist</p>
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="w-4 h-4 text-primary" />
-                <span className="text-muted-foreground">
-                  Avg. response time: <span className="font-semibold text-foreground">19 minutes</span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </Card>
-      )}
     </div>
   );
 }
