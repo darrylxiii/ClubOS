@@ -326,20 +326,41 @@ export default function Academy() {
                               </p>
                             )}
 
-                            <div className="flex items-center justify-between pt-2 border-t border-border">
-                              <div className="flex items-center gap-2">
-                                <Avatar className="h-6 w-6 border-2 border-border">
-                                  <AvatarImage src={course.profiles?.avatar_url} alt={course.profiles?.full_name} />
-                                  <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
-                                    {course.profiles?.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || "AN"}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span className="text-xs text-muted-foreground">{course.profiles?.full_name || "Anonymous"}</span>
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-1">
+                                  <BookOpen className="h-4 w-4" />
+                                  <span>{Math.floor((course.estimated_hours || 12) * 2)} Lessons</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-4 w-4" />
+                                  <span>{course.estimated_hours || 0}h</span>
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                                <Clock className="h-4 w-4" />
-                                <span>{course.estimated_hours || 0}h</span>
+                              <div className="flex items-center gap-1.5">
+                                <div className="flex -space-x-1.5">
+                                  <Avatar className="h-5 w-5 border-2 border-background">
+                                    <AvatarFallback className="bg-primary/10 text-primary text-[10px]">A</AvatarFallback>
+                                  </Avatar>
+                                  <Avatar className="h-5 w-5 border-2 border-background">
+                                    <AvatarFallback className="bg-secondary/10 text-secondary text-[10px]">B</AvatarFallback>
+                                  </Avatar>
+                                  <Avatar className="h-5 w-5 border-2 border-background">
+                                    <AvatarFallback className="bg-accent/10 text-accent text-[10px]">C</AvatarFallback>
+                                  </Avatar>
+                                </div>
+                                <span className="text-xs">26</span>
                               </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 pt-2 border-t border-border">
+                              <Avatar className="h-6 w-6 border-2 border-border">
+                                <AvatarImage src={course.profiles?.avatar_url} alt={course.profiles?.full_name} />
+                                <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                                  {course.profiles?.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || "AN"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span className="text-xs text-muted-foreground">{course.profiles?.full_name || "Anonymous"}</span>
                             </div>
                           </div>
                         </Card>
