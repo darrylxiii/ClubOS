@@ -1,25 +1,30 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { AIModuleAssistant } from "@/components/academy/AIModuleAssistant";
-import { ModuleDiscussion } from "@/components/academy/ModuleDiscussion";
-import { VideoPlayerWithTranscript } from "@/components/academy/VideoPlayerWithTranscript";
-import { SharedModuleChat } from "@/components/academy/SharedModuleChat";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import {
   ArrowLeft,
   BookOpen,
   CheckCircle2,
   Clock,
   PlayCircle,
-  FileText,
-  MessageSquare,
+  Star,
   Users,
+  Share2,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 interface Module {
   id: string;
@@ -28,74 +33,101 @@ interface Module {
   estimated_minutes: number;
   display_order: number;
   video_url?: string;
-  video_duration_seconds?: number;
-  transcript?: TranscriptSegment[];
+  is_published: boolean;
   course: {
+    id: string;
     title: string;
     slug: string;
+    difficulty_level: string;
+    estimated_hours: number;
+    profiles?: {
+      full_name: string;
+      avatar_url?: string;
+    };
   };
-  module_content: Array<{
-    content_type: string;
-    content_body: any;
-    display_order: number;
-  }>;
 }
 
-interface TranscriptSegment {
-  start: number;
-  end: number;
-  text: string;
-  words?: Array<{
-    word: string;
-    start: number;
-    end: number;
-  }>;
+interface CourseModule {
+  id: string;
+  title: string;
+  slug: string;
+  estimated_minutes: number;
+  is_published: boolean;
 }
 
 export default function ModuleDetail() {
-  const { moduleId } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [module, setModule] = useState<Module | null>(null);
+  const [courseModules, setCourseModules] = useState<CourseModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
 
   useEffect(() => {
     fetchModule();
-  }, [moduleId]);
+  }, [slug]);
 
   const fetchModule = async () => {
-    if (!moduleId) return;
+    if (!slug) return;
 
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      
+      const { data: moduleData, error: moduleError } = await supabase
         .from('modules')
         .select(`
           *,
-          course:courses(title, slug)
+          course:courses(
+            id,
+            title,
+            slug,
+            difficulty_level,
+            estimated_hours,
+            profiles:created_by(full_name, avatar_url)
+          )
         `)
-        .eq('id', moduleId)
+        .eq('slug', slug)
         .single();
 
-      if (error) throw error;
-      // Add empty module_content array until migration is run
-      setModule({ ...data, module_content: [] } as any);
+      if (moduleError) throw moduleError;
+      setModule(moduleData as Module);
 
-      // Fetch progress
-      const { data: progressData } = await supabase
-        .from('learner_progress')
-        .select('progress_percentage')
-        .eq('module_id', moduleId)
-        .maybeSingle();
+      // Fetch all modules in this course
+      if (moduleData.course) {
+        const { data: modulesData } = await supabase
+          .from('modules')
+          .select('id, title, slug, estimated_minutes, is_published')
+          .eq('course_id', moduleData.course.id)
+          .order('display_order');
 
-      if (progressData) {
-        setProgress(progressData.progress_percentage);
+        if (modulesData) {
+          setCourseModules(modulesData);
+          const index = modulesData.findIndex(m => m.slug === slug);
+          setCurrentModuleIndex(index);
+        }
       }
-    } catch (error) {
+
+      // Fetch learner progress if user is logged in
+      if (user && moduleData.id) {
+        const { data: progressData } = await supabase
+          .from('learner_progress')
+          .select('progress_percentage')
+          .eq('module_id', moduleData.id)
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (progressData) {
+          setProgress(progressData.progress_percentage);
+        }
+      }
+    } catch (error: any) {
       console.error('Error fetching module:', error);
       toast({
-        title: "Error",
-        description: "Failed to load module",
+        title: "Error loading module",
+        description: error.message,
         variant: "destructive",
       });
     } finally {
@@ -104,20 +136,16 @@ export default function ModuleDetail() {
   };
 
   const markComplete = async () => {
-    if (!moduleId) return;
+    if (!module || !user) return;
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
       const { error } = await supabase
         .from('learner_progress')
         .upsert({
           user_id: user.id,
-          module_id: moduleId,
+          module_id: module.id,
           progress_percentage: 100,
-          completed: true,
-          last_accessed_at: new Date().toISOString(),
+          completed_at: new Date().toISOString(),
         });
 
       if (error) throw error;
@@ -125,13 +153,18 @@ export default function ModuleDetail() {
       setProgress(100);
       toast({
         title: "Module completed!",
-        description: "Great work! You've completed this module.",
+        description: "Great job! Moving to the next module...",
       });
-    } catch (error) {
-      console.error('Error marking complete:', error);
+
+      // Navigate to next module if available
+      if (currentModuleIndex < courseModules.length - 1) {
+        const nextModule = courseModules[currentModuleIndex + 1];
+        navigate(`/academy/modules/${nextModule.slug}`);
+      }
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to mark module as complete",
+        description: error.message,
         variant: "destructive",
       });
     }
@@ -139,172 +172,336 @@ export default function ModuleDetail() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-      </div>
+      <AppLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
     );
   }
 
   if (!module) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <p className="text-muted-foreground">Module not found</p>
-        <Button onClick={() => navigate('/academy')}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Academy
-        </Button>
-      </div>
+      <AppLayout>
+        <div className="container max-w-6xl mx-auto p-6 text-center py-12">
+          <h2 className="text-2xl font-bold mb-4">Module not found</h2>
+          <Link to="/academy">
+            <Button>Back to Academy</Button>
+          </Link>
+        </div>
+      </AppLayout>
     );
   }
 
-  const moduleContext = {
-    title: module.title,
-    description: module.description || undefined,
-    content: module.module_content
-      .map((c) => JSON.stringify(c.content_body))
-      .join('\n'),
-    courseTitle: module.course.title,
-  };
+  const totalModules = courseModules.length;
+  const totalDuration = courseModules.reduce((acc, m) => acc + (m.estimated_minutes || 0), 0);
+  const completedModules = Math.floor((progress / 100) * totalModules);
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-7xl">
-      {/* Header */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(`/academy`)}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Academy
-        </Button>
-
-        <div className="flex flex-col gap-4">
-          <div>
-            <div className="text-sm text-muted-foreground mb-2">
-              {module.course.title}
-            </div>
-            <h1 className="text-3xl font-bold mb-2">{module.title}</h1>
-            <p className="text-muted-foreground">{module.description}</p>
-          </div>
-
-            <div className="flex items-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span>{Math.round(module.estimated_minutes / 60)}h estimated</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-              <span>{module.module_content.length} materials</span>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Your progress</span>
-              <span className="font-medium">{progress}%</span>
-            </div>
-            <Progress value={progress} className="h-2" />
-          </div>
+    <AppLayout>
+      <div className="container max-w-7xl mx-auto p-6">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+          <Link to="/academy" className="hover:text-foreground">
+            <BookOpen className="h-4 w-4 inline mr-1" />
+            Courses
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <Link 
+            to={`/courses/${module.course.slug}`}
+            className="hover:text-foreground"
+          >
+            {module.course.title}
+          </Link>
+          <ChevronRight className="h-4 w-4" />
+          <span className="text-foreground">{module.title}</span>
         </div>
-      </div>
 
-      {/* Content */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Video Player with Transcript */}
-          {module.video_url && (
-            <VideoPlayerWithTranscript
-              videoUrl={module.video_url}
-              transcript={module.transcript || []}
-              title={module.title}
-            />
-          )}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content - Left Side */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Course Header */}
+            <div className="space-y-4">
+              <Link to={`/courses/${module.course.slug}`}>
+                <Button variant="ghost" size="sm" className="squircle-sm">
+                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  Back to Course
+                </Button>
+              </Link>
 
-          <Tabs defaultValue="content" className="w-full">
-            <TabsList className="w-full">
-              <TabsTrigger value="content" className="flex-1">
-                <FileText className="h-4 w-4 mr-2" />
-                Content
-              </TabsTrigger>
-              <TabsTrigger value="discussion" className="flex-1">
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Q&A
-              </TabsTrigger>
-              <TabsTrigger value="shared-chat" className="flex-1">
-                <Users className="h-4 w-4 mr-2" />
-                Class Chat
-              </TabsTrigger>
-            </TabsList>
+              <div>
+                <h1 className="text-3xl font-bold mb-2">{module.title}</h1>
+                <Badge variant="outline" className="squircle-sm">
+                  {module.course.difficulty_level}
+                </Badge>
+              </div>
 
-            <TabsContent value="content" className="space-y-4 mt-6">
-              <Card className="squircle p-6">
-                <h2 className="text-2xl font-bold mb-4">Module Content</h2>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
+              <div className="flex items-center gap-6 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <PlayCircle className="h-4 w-4" />
+                  <span>{totalModules} lessons</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  <span>{Math.floor(totalDuration / 60)}h {totalDuration % 60}min</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 fill-primary text-primary" />
+                  <span>4.5 (126 reviews)</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <Button className="flex-1">
+                  <PlayCircle className="mr-2 h-4 w-4" />
+                  Enroll Now
+                </Button>
+                <Button variant="outline">
+                  <Share2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Video Player */}
+            <Card className="overflow-hidden">
+              <div className="aspect-video bg-muted flex items-center justify-center">
+                {module.video_url ? (
+                  <video 
+                    src={module.video_url} 
+                    controls 
+                    className="w-full h-full"
+                  />
+                ) : (
+                  <div className="text-center p-12">
+                    <PlayCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground">Video content coming soon</p>
+                  </div>
+                )}
+              </div>
+            </Card>
+
+            {/* Tabs */}
+            <Tabs defaultValue="overview" className="w-full">
+              <TabsList className="squircle">
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="author">Author</TabsTrigger>
+                <TabsTrigger value="faq">FAQ</TabsTrigger>
+                <TabsTrigger value="reviews">Reviews</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="overview" className="space-y-6 mt-6">
+                <Card className="p-6">
+                  <h3 className="text-xl font-bold mb-4">About Module</h3>
                   <p className="text-muted-foreground leading-relaxed">
                     {module.description}
                   </p>
-                </div>
-              </Card>
+                </Card>
 
-              {module.module_content
-                .sort((a, b) => a.display_order - b.display_order)
-                .map((content, idx) => (
-                  <Card key={idx} className="squircle p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="p-3 rounded-lg bg-primary/10">
-                        {content.content_type === 'video' && (
-                          <PlayCircle className="h-5 w-5 text-primary" />
-                        )}
-                        {content.content_type === 'text' && (
-                          <FileText className="h-5 w-5 text-primary" />
-                        )}
+                <Card className="p-6">
+                  <h3 className="text-xl font-bold mb-4">What You'll Learn</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {[
+                      "Setting up the environment",
+                      "Advanced HTML Practices",
+                      "Build a portfolio website",
+                      "Responsive Designs",
+                      "Understand HTML Programming",
+                      "Code HTML",
+                      "Start building beautiful websites",
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <CheckCircle2 className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                        <span className="text-sm">{item}</span>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold mb-2">
-                          {content.content_body?.title || `Content ${idx + 1}`}
+                    ))}
+                  </div>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="author" className="mt-6">
+                <Card className="p-6">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="h-16 w-16">
+                      <AvatarImage src={module.course.profiles?.avatar_url} />
+                      <AvatarFallback>
+                        {module.course.profiles?.full_name?.[0] || "A"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-bold text-lg">
+                          {module.course.profiles?.full_name || "Expert Instructor"}
                         </h3>
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <p className="text-sm text-muted-foreground">
-                            {content.content_body?.description || 'No description available'}
-                          </p>
-                          {content.content_body?.body && (
-                            <div className="mt-4">
-                              {content.content_body.body}
-                            </div>
-                          )}
+                        <Badge variant="secondary" className="squircle-sm">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Verified
+                        </Badge>
+                        <div className="flex items-center gap-1 text-sm">
+                          <Star className="h-4 w-4 fill-primary text-primary" />
+                          <span className="font-semibold">4.8</span>
                         </div>
                       </div>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        UI/UX Specialist
+                      </p>
+                      <p className="text-sm leading-relaxed text-muted-foreground">
+                        A seasoned UI/UX designer with over a decade of experience crafting 
+                        user-centered digital experiences. Passionate about teaching and helping 
+                        others master modern design tools and methodologies.
+                      </p>
                     </div>
-                  </Card>
-                ))}
+                  </div>
+                </Card>
+              </TabsContent>
 
-              <div className="flex justify-between items-center pt-4">
-                <Button variant="outline">Previous Module</Button>
-                <Button onClick={markComplete} className="gap-2">
-                  <CheckCircle2 className="h-4 w-4" />
-                  Mark as Complete
-                </Button>
+              <TabsContent value="faq" className="mt-6">
+                <Card className="p-6">
+                  <h3 className="text-xl font-bold mb-4">Frequently Asked Questions</h3>
+                  <p className="text-muted-foreground text-sm">
+                    Coming soon...
+                  </p>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="reviews" className="mt-6">
+                <Card className="p-6">
+                  <h3 className="text-xl font-bold mb-4">Student Reviews</h3>
+                  <p className="text-muted-foreground text-sm">
+                    No reviews yet. Be the first to review this module!
+                  </p>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          {/* Sidebar - Right Side */}
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="p-6">
+              <h3 className="font-bold mb-4">Course Content</h3>
+              
+              <div className="space-y-4">
+                {/* Group modules by section - for now just show all */}
+                <Accordion type="single" collapsible defaultValue="section-1">
+                  <AccordionItem value="section-1">
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center justify-between w-full pr-4">
+                        <span className="text-sm font-semibold">
+                          01: Course Modules
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {Math.floor(totalDuration / 60)}h {totalDuration % 60}min
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-2 mt-2">
+                        {courseModules.map((mod, index) => {
+                          const isActive = mod.slug === slug;
+                          const isCompleted = progress === 100 && index < currentModuleIndex;
+                          
+                          return (
+                            <Link 
+                              key={mod.id} 
+                              to={`/academy/modules/${mod.slug}`}
+                              className={`block`}
+                            >
+                              <div
+                                className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                                  isActive 
+                                    ? 'bg-primary/10 text-primary' 
+                                    : 'hover:bg-muted'
+                                }`}
+                              >
+                                {isCompleted ? (
+                                  <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                                ) : (
+                                  <PlayCircle className="h-4 w-4 flex-shrink-0" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">
+                                    {mod.title}
+                                  </p>
+                                  {mod.estimated_minutes && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {mod.estimated_minutes} min
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
               </div>
-            </TabsContent>
+            </Card>
 
-            <TabsContent value="discussion" className="mt-6">
-              <ModuleDiscussion moduleId={moduleId!} />
-            </TabsContent>
+            {/* Author Card */}
+            <Card className="p-6">
+              <h3 className="font-bold mb-4">Author</h3>
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage src={module.course.profiles?.avatar_url} />
+                  <AvatarFallback>
+                    {module.course.profiles?.full_name?.[0] || "A"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-semibold text-sm truncate">
+                      {module.course.profiles?.full_name || "Expert Instructor"}
+                    </p>
+                    <CheckCircle2 className="h-4 w-4 text-primary flex-shrink-0" />
+                  </div>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                    <Star className="h-3 w-3 fill-primary text-primary" />
+                    <span>4.8</span>
+                  </div>
+                </div>
+              </div>
+              <Separator className="my-4" />
+              <p className="text-sm text-muted-foreground">
+                UI/UX Specialist with expertise in modern design tools and methodologies.
+              </p>
+            </Card>
 
-            <TabsContent value="shared-chat" className="mt-6">
-              <SharedModuleChat 
-                moduleId={moduleId!} 
-                moduleName={module.title}
-              />
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        <div className="lg:col-span-1">
-          <AIModuleAssistant moduleContext={moduleContext} />
+            {/* Progress Card */}
+            {user && (
+              <Card className="p-6">
+                <h3 className="font-bold mb-4">Your Progress</h3>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-muted-foreground">
+                        {completedModules} of {totalModules} complete
+                      </span>
+                      <span className="font-semibold">{Math.round(progress)}%</span>
+                    </div>
+                    <Progress value={progress} className="h-2" />
+                  </div>
+                  
+                  <Button 
+                    onClick={markComplete} 
+                    className="w-full"
+                    disabled={progress === 100}
+                  >
+                    {progress === 100 ? (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Completed
+                      </>
+                    ) : (
+                      "Mark as Complete"
+                    )}
+                  </Button>
+                </div>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   );
 }
