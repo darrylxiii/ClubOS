@@ -61,8 +61,11 @@ verify_jwt = true
 [functions.ai-career-advisor]
 verify_jwt = true
 
-[functions.module-ai-assistant]
+[functions.ai-course-generator]
 verify_jwt = true
+
+[functions.module-ai-assistant]
+verify_jwt = false
 
 [functions.send-email-verification]
 verify_jwt = true

@@ -17,10 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, Sparkles, Wand2, Brain, ChevronRight, CheckCircle2 } from "lucide-react";
 
 interface CreateCourseDialogProps {
   open: boolean;
@@ -38,6 +40,9 @@ export function CreateCourseDialog({
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [suggestedModules, setSuggestedModules] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -45,34 +50,185 @@ export function CreateCourseDialog({
     estimated_hours: "",
   });
 
+  const generateCourseFromAI = async () => {
+    if (!aiPrompt.trim()) {
+      toast({
+        title: "Enter a prompt",
+        description: "Please describe the course you want to create",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-course-generator', {
+        body: { action: 'generate_course', prompt: aiPrompt }
+      });
+
+      if (error) throw error;
+
+      const courseData = JSON.parse(data.content);
+      setFormData({
+        title: courseData.title,
+        description: courseData.description,
+        difficulty_level: courseData.difficulty_level,
+        estimated_hours: courseData.estimated_hours.toString(),
+      });
+      setSuggestedModules(courseData.modules || []);
+
+      toast({
+        title: "Course generated",
+        description: "Review and customize the AI-generated course details",
+      });
+    } catch (error: any) {
+      toast({
+        title: "AI generation failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const enhanceDescription = async () => {
+    if (!formData.title || !formData.description) {
+      toast({
+        title: "Missing information",
+        description: "Please add a title and description first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-course-generator', {
+        body: { 
+          action: 'enhance_description', 
+          prompt: formData.description,
+          courseData: { title: formData.title }
+        }
+      });
+
+      if (error) throw error;
+
+      setFormData({ ...formData, description: data.content });
+      toast({
+        title: "Description enhanced",
+        description: "AI has improved your course description",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Enhancement failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const suggestModulesFromAI = async () => {
+    if (!formData.title || !formData.description) {
+      toast({
+        title: "Missing information",
+        description: "Please add a title and description first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setAiLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-course-generator', {
+        body: { 
+          action: 'suggest_modules',
+          courseData: { title: formData.title, description: formData.description }
+        }
+      });
+
+      if (error) throw error;
+
+      const modules = JSON.parse(data.content);
+      setSuggestedModules(modules);
+      toast({
+        title: "Modules suggested",
+        description: `AI has generated ${modules.length} module suggestions`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Suggestion failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
     setLoading(true);
     try {
-      // Generate slug from title
       const slug = formData.title
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, "-")
         .replace(/^-|-$/g, "");
 
-      const { error } = await supabase.from("courses").insert({
-        academy_id: academyId,
-        title: formData.title,
-        slug,
-        description: formData.description,
-        difficulty_level: formData.difficulty_level,
-        estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : null,
-        created_by: user.id,
-        is_published: false,
-      });
+      const { data: courseData, error: courseError } = await supabase
+        .from("courses")
+        .insert({
+          academy_id: academyId,
+          title: formData.title,
+          slug,
+          description: formData.description,
+          difficulty_level: formData.difficulty_level,
+          estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : null,
+          created_by: user.id,
+          is_published: false,
+        })
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (courseError) throw courseError;
+
+      // Create suggested modules if any
+      if (suggestedModules.length > 0 && courseData) {
+        const modulesInsert = suggestedModules.map((module, index) => {
+          const slug = module.title
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "");
+          
+          return {
+            course_id: courseData.id,
+            title: module.title,
+            slug,
+            description: module.description,
+            display_order: index + 1,
+            created_by: user.id,
+            is_published: false,
+          };
+        });
+
+        const { error: modulesError } = await supabase
+          .from("modules")
+          .insert(modulesInsert);
+
+        if (modulesError) {
+          console.error("Error creating modules:", modulesError);
+        }
+      }
 
       toast({
         title: "Course created",
-        description: "Your course has been created successfully. You can now add modules to it.",
+        description: suggestedModules.length > 0 
+          ? `Course created with ${suggestedModules.length} modules. You can now add content to them.`
+          : "Your course has been created successfully. You can now add modules to it.",
       });
 
       onOpenChange(false);
@@ -83,6 +239,8 @@ export function CreateCourseDialog({
         difficulty_level: "beginner",
         estimated_hours: "",
       });
+      setSuggestedModules([]);
+      setAiPrompt("");
     } catch (error: any) {
       toast({
         title: "Error creating course",
@@ -96,87 +254,309 @@ export function CreateCourseDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="squircle max-w-2xl">
+      <DialogContent className="squircle max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Course</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            <Sparkles className="w-5 h-5 text-primary" />
+            AI-Powered Course Creator
+          </DialogTitle>
           <DialogDescription>
-            Create a comprehensive course with multiple modules. You can add content after creating the course.
+            Let AI help you create a comprehensive course structure, or build it manually
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="title">Course Title *</Label>
-            <Input
-              id="title"
-              placeholder="e.g., Advanced Career Strategies for Tech Leaders"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
-              className="squircle-sm"
-            />
-          </div>
+        <Tabs defaultValue="ai" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="ai" className="flex items-center gap-2">
+              <Brain className="w-4 h-4" />
+              AI Assistant
+            </TabsTrigger>
+            <TabsTrigger value="manual">Manual Entry</TabsTrigger>
+          </TabsList>
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Description *</Label>
-            <Textarea
-              id="description"
-              placeholder="Describe what learners will achieve in this course..."
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              required
-              rows={4}
-              className="squircle-sm"
-            />
-          </div>
+          <TabsContent value="ai" className="space-y-6">
+            <Card className="p-6 bg-primary/5 border-primary/20">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="ai-prompt" className="text-base font-semibold">
+                    Describe Your Course Idea
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-1 mb-3">
+                    Tell the AI what kind of course you want to create. Be specific about the topic, target audience, and goals.
+                  </p>
+                  <Textarea
+                    id="ai-prompt"
+                    placeholder="e.g., 'I want to create a course teaching software engineers how to transition into leadership roles, covering communication skills, team management, and strategic thinking...'"
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    rows={4}
+                    className="squircle-sm"
+                  />
+                </div>
+                <Button
+                  onClick={generateCourseFromAI}
+                  disabled={aiLoading || !aiPrompt.trim()}
+                  className="w-full"
+                  size="lg"
+                >
+                  {aiLoading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Wand2 className="mr-2 h-4 w-4" />
+                  )}
+                  Generate Complete Course Structure
+                </Button>
+              </div>
+            </Card>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="difficulty">Difficulty Level</Label>
-              <Select
-                value={formData.difficulty_level}
-                onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
+            {formData.title && (
+              <div className="space-y-4 animate-in fade-in duration-500">
+                <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                  <CheckCircle2 className="w-4 h-4" />
+                  AI Generated Course Details
+                </div>
+                
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Course Title *</Label>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                      required
+                      className="squircle-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="description">Description *</Label>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={enhanceDescription}
+                        disabled={aiLoading}
+                      >
+                        {aiLoading ? (
+                          <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="mr-2 h-3 w-3" />
+                        )}
+                        Enhance with AI
+                      </Button>
+                    </div>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      required
+                      rows={5}
+                      className="squircle-sm"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="difficulty">Difficulty Level</Label>
+                      <Select
+                        value={formData.difficulty_level}
+                        onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
+                      >
+                        <SelectTrigger id="difficulty" className="squircle-sm">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="squircle">
+                          <SelectItem value="beginner">Beginner</SelectItem>
+                          <SelectItem value="intermediate">Intermediate</SelectItem>
+                          <SelectItem value="advanced">Advanced</SelectItem>
+                          <SelectItem value="expert">Expert</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="hours">Estimated Hours</Label>
+                      <Input
+                        id="hours"
+                        type="number"
+                        value={formData.estimated_hours}
+                        onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
+                        className="squircle-sm"
+                      />
+                    </div>
+                  </div>
+
+                  {suggestedModules.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-base">Suggested Modules ({suggestedModules.length})</Label>
+                      </div>
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {suggestedModules.map((module, index) => (
+                          <Card key={index} className="p-3">
+                            <div className="flex items-start gap-3">
+                              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                                {index + 1}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm">{module.title}</p>
+                                <p className="text-xs text-muted-foreground mt-1">{module.description}</p>
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-3 pt-4 border-t">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => onOpenChange(false)}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={loading}>
+                      {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create Course {suggestedModules.length > 0 && `with ${suggestedModules.length} Modules`}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="manual">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="manual-title">Course Title *</Label>
+                <Input
+                  id="manual-title"
+                  placeholder="e.g., Advanced Career Strategies for Tech Leaders"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  required
+                  className="squircle-sm"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="manual-description">Description *</Label>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={enhanceDescription}
+                    disabled={aiLoading || !formData.title}
+                  >
+                    {aiLoading ? (
+                      <Loader2 className="mr-2 h-3 w-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="mr-2 h-3 w-3" />
+                    )}
+                    Enhance with AI
+                  </Button>
+                </div>
+                <Textarea
+                  id="manual-description"
+                  placeholder="Describe what learners will achieve in this course..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  required
+                  rows={5}
+                  className="squircle-sm"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="manual-difficulty">Difficulty Level</Label>
+                  <Select
+                    value={formData.difficulty_level}
+                    onValueChange={(value) => setFormData({ ...formData, difficulty_level: value })}
+                  >
+                    <SelectTrigger id="manual-difficulty" className="squircle-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="squircle">
+                      <SelectItem value="beginner">Beginner</SelectItem>
+                      <SelectItem value="intermediate">Intermediate</SelectItem>
+                      <SelectItem value="advanced">Advanced</SelectItem>
+                      <SelectItem value="expert">Expert</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="manual-hours">Estimated Hours</Label>
+                  <Input
+                    id="manual-hours"
+                    type="number"
+                    placeholder="e.g., 8"
+                    value={formData.estimated_hours}
+                    onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
+                    className="squircle-sm"
+                  />
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={suggestModulesFromAI}
+                disabled={aiLoading || !formData.title || !formData.description}
+                className="w-full"
               >
-                <SelectTrigger id="difficulty" className="squircle-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="squircle">
-                  <SelectItem value="beginner">Beginner</SelectItem>
-                  <SelectItem value="intermediate">Intermediate</SelectItem>
-                  <SelectItem value="advanced">Advanced</SelectItem>
-                  <SelectItem value="expert">Expert</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                {aiLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Brain className="mr-2 h-4 w-4" />
+                )}
+                Get AI Module Suggestions
+              </Button>
 
-            <div className="space-y-2">
-              <Label htmlFor="hours">Estimated Hours</Label>
-              <Input
-                id="hours"
-                type="number"
-                placeholder="e.g., 8"
-                value={formData.estimated_hours}
-                onChange={(e) => setFormData({ ...formData, estimated_hours: e.target.value })}
-                className="squircle-sm"
-              />
-            </div>
-          </div>
+              {suggestedModules.length > 0 && (
+                <div className="space-y-3">
+                  <Label className="text-base">Suggested Modules ({suggestedModules.length})</Label>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {suggestedModules.map((module, index) => (
+                      <Card key={index} className="p-3">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-sm">{module.title}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{module.description}</p>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-          <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={loading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Create Course
-            </Button>
-          </div>
-        </form>
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => onOpenChange(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={loading}>
+                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create Course {suggestedModules.length > 0 && `with ${suggestedModules.length} Modules`}
+                </Button>
+              </div>
+            </form>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
