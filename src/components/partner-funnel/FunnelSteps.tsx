@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { TrackRequestDialog } from "./TrackRequestDialog";
 
 const STEPS = ["contact", "company", "partnership", "compliance"];
 
@@ -18,6 +19,7 @@ export function FunnelSteps() {
   const [sessionId] = useState(() => crypto.randomUUID());
   const [startTime] = useState(Date.now());
   const [stepStartTime, setStepStartTime] = useState(Date.now());
+  const [trackDialogOpen, setTrackDialogOpen] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -413,10 +415,11 @@ export function FunnelSteps() {
               <Button size="lg" variant="outline" onClick={() => navigate("/companies")}>
                 View Portfolio
               </Button>
-              <Button size="lg" variant="ghost">
+              <Button size="lg" variant="ghost" onClick={() => setTrackDialogOpen(true)}>
                 Track My Request
               </Button>
             </div>
+            <TrackRequestDialog open={trackDialogOpen} onOpenChange={setTrackDialogOpen} />
           </div>
         );
     }

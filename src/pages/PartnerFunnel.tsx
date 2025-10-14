@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { FunnelSteps } from "@/components/partner-funnel/FunnelSteps";
-import { SocialProofCarousel } from "@/components/partner-funnel/SocialProofCarousel";
 import { FunnelAIAssistant } from "@/components/partner-funnel/FunnelAIAssistant";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -81,9 +80,6 @@ export default function PartnerFunnel() {
               <div className="text-sm text-muted-foreground">Active Roles</div>
             </Card>
           </div>
-
-          {/* Social Proof */}
-          <SocialProofCarousel />
         </div>
 
         {/* Main Funnel */}
