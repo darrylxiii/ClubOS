@@ -22,7 +22,7 @@ export function PopularCourseCard({ course }: PopularCourseCardProps) {
     : "CODE";
 
   return (
-    <Link to={`/academy/courses/${course.slug}`}>
+    <Link to={`/courses/${course.slug}`}>
       <Card className="squircle overflow-hidden hover-lift h-full">
         {/* Illustration */}
         <div

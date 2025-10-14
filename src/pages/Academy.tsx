@@ -61,18 +61,24 @@ export default function Academy() {
       if (academyError) throw academyError;
       setAcademy(academyData);
 
-      // Load courses
-      const { data: coursesData } = await supabase
+      // Load courses - show published courses + user's own unpublished courses
+      let coursesQuery = supabase
         .from("courses")
         .select(`
           *,
           profiles:created_by(full_name, avatar_url)
         `)
         .eq("academy_id", academyData.id)
-        .eq("is_published", true)
         .order("display_order");
 
-      setCourses(coursesData || []);
+      // If user is logged in, also show their unpublished courses
+      if (user) {
+        const { data: coursesData } = await coursesQuery.or(`is_published.eq.true,created_by.eq.${user.id}`);
+        setCourses(coursesData || []);
+      } else {
+        const { data: coursesData } = await coursesQuery.eq("is_published", true);
+        setCourses(coursesData || []);
+      }
 
       // Load learning paths
       const { data: pathsData } = await supabase
