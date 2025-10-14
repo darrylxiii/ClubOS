@@ -37,23 +37,23 @@ export default function PartnerFunnel() {
       <div className="min-h-screen bg-background">
         {/* Top Banner */}
         <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto px-4 py-4 flex justify-end">
+          <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+            <img 
+              src={quantumLogoDark} 
+              alt="Quantum Club" 
+              className="h-12 dark:hidden"
+            />
+            <img 
+              src={quantumLogoLight} 
+              alt="Quantum Club" 
+              className="h-12 hidden dark:block"
+            />
             <ThemeToggle />
           </div>
         </div>
 
         <div className="flex items-center justify-center p-4 min-h-[calc(100vh-80px)]">
           <Card className="max-w-2xl w-full p-12 text-center glass-effect">
-            <img 
-              src={quantumLogoLight} 
-              alt="Quantum Club" 
-              className="h-24 mx-auto mb-8 dark:hidden"
-            />
-            <img 
-              src={quantumLogoDark} 
-              alt="Quantum Club" 
-              className="h-24 mx-auto mb-8 hidden dark:block"
-            />
             <Sparkles className="w-16 h-16 mx-auto mb-6 text-primary" />
             <h1 className="text-4xl font-bold mb-4">Partnership Applications Temporarily Paused</h1>
             <p className="text-muted-foreground text-lg">
@@ -70,25 +70,25 @@ export default function PartnerFunnel() {
     <div className="min-h-screen bg-background">
       {/* Top Banner */}
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-4 py-4 flex justify-end">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <img 
+            src={quantumLogoDark} 
+            alt="Quantum Club" 
+            className="h-12 dark:hidden"
+          />
+          <img 
+            src={quantumLogoLight} 
+            alt="Quantum Club" 
+            className="h-12 hidden dark:block"
+          />
           <ThemeToggle />
         </div>
       </div>
 
       {/* Hero Section */}
-      <div className="container mx-auto px-4 py-12">
-        <div className="text-center max-w-4xl mx-auto mb-12">
-          <img 
-            src={quantumLogoLight} 
-            alt="Quantum Club" 
-            className="h-24 mx-auto mb-8 dark:hidden"
-          />
-          <img 
-            src={quantumLogoDark} 
-            alt="Quantum Club" 
-            className="h-24 mx-auto mb-8 hidden dark:block"
-          />
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
+      <div className="container mx-auto px-4 py-6">
+        <div className="text-center max-w-4xl mx-auto mb-8">
+          <h1 className="text-5xl md:text-6xl font-bold text-white">
             Partner Request
           </h1>
         </div>
