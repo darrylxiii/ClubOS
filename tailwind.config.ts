@@ -79,10 +79,6 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        squircle: "var(--radius-squircle)",
-        "squircle-sm": "var(--radius-squircle-sm)",
-        "squircle-lg": "var(--radius-squircle-lg)",
-        "squircle-xl": "var(--radius-squircle-xl)",
       },
       letterSpacing: {
         tighter: "-0.05em",

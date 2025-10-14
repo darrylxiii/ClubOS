@@ -55,12 +55,6 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --ring: 220 85% 58%;
 
     --radius: 1.25rem;
-    
-    /* Squircle radius values - Apple-style continuous curvature */
-    --radius-squircle-sm: 12px;
-    --radius-squircle: 20px;
-    --radius-squircle-lg: 28px;
-    --radius-squircle-xl: 36px;
 
     /* QuantumClub Warm Gradients */
     --gradient-hero: linear-gradient(135deg, hsl(220 85% 65%) 0%, hsl(280 70% 68%) 50%, hsl(35 60% 72%) 100%);
@@ -191,29 +185,29 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
   /* Glassmorphism effects */
   .glass {
-    @apply bg-card/70 backdrop-blur-[var(--blur-glass)] border border-border/50 squircle;
+    @apply bg-card/70 backdrop-blur-[var(--blur-glass)] border border-border/50;
     box-shadow: var(--shadow-glass-md), var(--shadow-inner);
   }
 
   .glass-strong {
-    @apply bg-card/90 backdrop-blur-[var(--blur-glass-strong)] border border-border/60 squircle;
+    @apply bg-card/90 backdrop-blur-[var(--blur-glass-strong)] border border-border/60;
     box-shadow: var(--shadow-glass-lg), var(--shadow-inner);
   }
 
   .glass-subtle {
-    @apply bg-card/50 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30 squircle-sm;
+    @apply bg-card/50 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30;
     box-shadow: var(--shadow-glass-sm);
   }
 
   .glass-card {
-    @apply glass squircle p-6;
+    @apply glass rounded-2xl p-6;
     background: var(--gradient-glass);
   }
 
   /* Floating effect */
   .float {
     box-shadow: var(--shadow-float);
-    @apply squircle;
+    @apply rounded-2xl;
   }
 
   /* iOS-style glow effects */
@@ -279,27 +273,5 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
   .animate-pulse-slow {
     animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  /* Squircle utilities - Apple-style continuous curvature */
-  .squircle {
-    border-radius: 20% / 50%;
-  }
-
-  .squircle-sm {
-    border-radius: 15% / 40%;
-  }
-
-  .squircle-lg {
-    border-radius: 25% / 60%;
-  }
-
-  .squircle-xl {
-    border-radius: 30% / 65%;
-  }
-
-  /* Apply squircle to specific element types for smooth transitions */
-  .squircle-container > * {
-    border-radius: inherit;
   }
 }
