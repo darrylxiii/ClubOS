@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { AIModuleAssistant } from "@/components/academy/AIModuleAssistant";
+import { ModuleDiscussion } from "@/components/academy/ModuleDiscussion";
 import {
   ArrowLeft,
   BookOpen,
@@ -254,11 +255,7 @@ export default function ModuleDetail() {
             </TabsContent>
 
             <TabsContent value="qa" className="mt-6">
-              <Card className="squircle p-6">
-                <p className="text-muted-foreground text-center py-8">
-                  Q&A feature coming soon
-                </p>
-              </Card>
+              <ModuleDiscussion moduleId={moduleId!} />
             </TabsContent>
           </Tabs>
         </div>

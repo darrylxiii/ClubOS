@@ -27,6 +27,9 @@ import { AcademyDashboard } from "@/components/academy/AcademyDashboard";
 import { ContinueLearningCard } from "@/components/academy/ContinueLearningCard";
 import { MaterialCard } from "@/components/academy/MaterialCard";
 import { PopularCourseCard } from "@/components/academy/PopularCourseCard";
+import { LearnerDashboard } from "@/components/academy/LearnerDashboard";
+import { RecommendationsPanel } from "@/components/academy/RecommendationsPanel";
+import { BadgesDisplay } from "@/components/academy/BadgesDisplay";
 
 export default function Academy() {
   const { slug } = useParams();
@@ -155,7 +158,16 @@ export default function Academy() {
             </TabsList>
 
             <TabsContent value="dashboard" className="space-y-8">
-              <AcademyDashboard />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <AcademyDashboard />
+                  <LearnerDashboard />
+                </div>
+                <div className="space-y-6">
+                  <RecommendationsPanel />
+                  <BadgesDisplay />
+                </div>
+              </div>
 
               {/* Popular Courses */}
               <div className="space-y-4">
