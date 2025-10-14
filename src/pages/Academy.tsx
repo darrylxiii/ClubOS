@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -271,24 +272,42 @@ export default function Academy() {
                     courses.map((course) => (
                       <Link key={course.id} to={`/courses/${course.slug}`}>
                         <Card className="squircle overflow-hidden hover-lift h-full transition-all cursor-pointer">
-                          {/* Course illustration header */}
-                          <div className="h-48 bg-gradient-to-br from-purple-300 via-pink-300 to-purple-400 p-6 flex items-center justify-center relative overflow-hidden">
-                            <Badge className="absolute top-4 right-4 squircle-sm bg-background/90 backdrop-blur-sm text-foreground font-bold">
-                              {course.estimated_hours || 12} Hours
-                            </Badge>
-                            <BookOpen className="h-24 w-24 text-white/60" />
-                            {!course.is_published && (
-                              <Badge className="absolute top-4 left-4 squircle-sm bg-yellow-500/90 backdrop-blur-sm text-background">
-                                Draft
+                          {/* Course image or illustration header */}
+                          {course.course_image_url ? (
+                            <div className="h-48 relative overflow-hidden">
+                              <img 
+                                src={course.course_image_url} 
+                                alt={course.title}
+                                className="w-full h-full object-cover"
+                              />
+                              <Badge className="absolute top-4 right-4 squircle-sm bg-background/90 backdrop-blur-sm text-foreground font-bold">
+                                {course.estimated_hours || 12} Hours
                               </Badge>
-                            )}
-                          </div>
+                              {!course.is_published && (
+                                <Badge className="absolute top-4 left-4 squircle-sm bg-yellow-500/90 backdrop-blur-sm text-background">
+                                  Draft
+                                </Badge>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="h-48 bg-gradient-to-br from-purple-300 via-pink-300 to-purple-400 p-6 flex items-center justify-center relative overflow-hidden">
+                              <Badge className="absolute top-4 right-4 squircle-sm bg-background/90 backdrop-blur-sm text-foreground font-bold">
+                                {course.estimated_hours || 12} Hours
+                              </Badge>
+                              <BookOpen className="h-24 w-24 text-white/60" />
+                              {!course.is_published && (
+                                <Badge className="absolute top-4 left-4 squircle-sm bg-yellow-500/90 backdrop-blur-sm text-background">
+                                  Draft
+                                </Badge>
+                              )}
+                            </div>
+                          )}
 
                           {/* Content */}
                           <div className="p-4 space-y-3 bg-card">
                             <div className="flex items-center gap-2">
                               <Badge variant="outline" className="squircle-sm text-xs text-primary border-primary">
-                                Course
+                                {course.category || "Course"}
                               </Badge>
                               {course.difficulty_level && (
                                 <Badge variant="secondary" className="squircle-sm text-xs">
@@ -307,12 +326,17 @@ export default function Academy() {
                               </p>
                             )}
 
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground pt-2 border-t border-border">
-                              <div className="flex items-center gap-1">
-                                <PlayCircle className="h-4 w-4" />
-                                <span>Start</span>
+                            <div className="flex items-center justify-between pt-2 border-t border-border">
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-6 w-6 border-2 border-border">
+                                  <AvatarImage src={course.profiles?.avatar_url} alt={course.profiles?.full_name} />
+                                  <AvatarFallback className="bg-primary/10 text-primary text-[10px]">
+                                    {course.profiles?.full_name?.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) || "AN"}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="text-xs text-muted-foreground">{course.profiles?.full_name || "Anonymous"}</span>
                               </div>
-                              <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1 text-sm text-muted-foreground">
                                 <Clock className="h-4 w-4" />
                                 <span>{course.estimated_hours || 0}h</span>
                               </div>

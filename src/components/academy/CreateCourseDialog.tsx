@@ -48,6 +48,9 @@ export function CreateCourseDialog({
     description: "",
     difficulty_level: "beginner",
     estimated_hours: "",
+    category: "",
+    course_image_url: "",
+    course_video_url: "",
   });
 
   const generateCourseFromAI = async () => {
@@ -74,6 +77,9 @@ export function CreateCourseDialog({
         description: courseData.description,
         difficulty_level: courseData.difficulty_level,
         estimated_hours: courseData.estimated_hours.toString(),
+        category: courseData.category || "",
+        course_image_url: "",
+        course_video_url: "",
       });
       setSuggestedModules(courseData.modules || []);
 
@@ -188,6 +194,9 @@ export function CreateCourseDialog({
           description: formData.description,
           difficulty_level: formData.difficulty_level,
           estimated_hours: formData.estimated_hours ? parseInt(formData.estimated_hours) : null,
+          category: formData.category || null,
+          course_image_url: formData.course_image_url || null,
+          course_video_url: formData.course_video_url || null,
           created_by: user.id,
           is_published: false,
         })
@@ -238,6 +247,9 @@ export function CreateCourseDialog({
         description: "",
         difficulty_level: "beginner",
         estimated_hours: "",
+        category: "",
+        course_image_url: "",
+        course_video_url: "",
       });
       setSuggestedModules([]);
       setAiPrompt("");
@@ -356,6 +368,54 @@ export function CreateCourseDialog({
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="category">Category/Topic *</Label>
+                    <Select
+                      value={formData.category}
+                      onValueChange={(value) => setFormData({ ...formData, category: value })}
+                    >
+                      <SelectTrigger id="category" className="squircle-sm">
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                      <SelectContent className="squircle">
+                        <SelectItem value="Design">Design</SelectItem>
+                        <SelectItem value="Business">Business</SelectItem>
+                        <SelectItem value="Code">Code</SelectItem>
+                        <SelectItem value="Marketing">Marketing</SelectItem>
+                        <SelectItem value="Leadership">Leadership</SelectItem>
+                        <SelectItem value="Data">Data</SelectItem>
+                        <SelectItem value="Product">Product</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="course-image">Course Image URL (Optional)</Label>
+                    <Input
+                      id="course-image"
+                      type="url"
+                      placeholder="https://example.com/image.jpg"
+                      value={formData.course_image_url}
+                      onChange={(e) => setFormData({ ...formData, course_image_url: e.target.value })}
+                      className="squircle-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">Image will be displayed on course cards</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="course-video">Course Video URL (Optional)</Label>
+                    <Input
+                      id="course-video"
+                      type="url"
+                      placeholder="https://youtube.com/..."
+                      value={formData.course_video_url}
+                      onChange={(e) => setFormData({ ...formData, course_video_url: e.target.value })}
+                      className="squircle-sm"
+                    />
+                    <p className="text-xs text-muted-foreground">Preview video for the course</p>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="difficulty">Difficulty Level</Label>
@@ -470,6 +530,54 @@ export function CreateCourseDialog({
                   rows={5}
                   className="squircle-sm"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="manual-category">Category/Topic *</Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => setFormData({ ...formData, category: value })}
+                >
+                  <SelectTrigger id="manual-category" className="squircle-sm">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent className="squircle">
+                    <SelectItem value="Design">Design</SelectItem>
+                    <SelectItem value="Business">Business</SelectItem>
+                    <SelectItem value="Code">Code</SelectItem>
+                    <SelectItem value="Marketing">Marketing</SelectItem>
+                    <SelectItem value="Leadership">Leadership</SelectItem>
+                    <SelectItem value="Data">Data</SelectItem>
+                    <SelectItem value="Product">Product</SelectItem>
+                    <SelectItem value="Other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="manual-course-image">Course Image URL (Optional)</Label>
+                <Input
+                  id="manual-course-image"
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={formData.course_image_url}
+                  onChange={(e) => setFormData({ ...formData, course_image_url: e.target.value })}
+                  className="squircle-sm"
+                />
+                <p className="text-xs text-muted-foreground">Image will be displayed on course cards</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="manual-course-video">Course Video URL (Optional)</Label>
+                <Input
+                  id="manual-course-video"
+                  type="url"
+                  placeholder="https://youtube.com/..."
+                  value={formData.course_video_url}
+                  onChange={(e) => setFormData({ ...formData, course_video_url: e.target.value })}
+                  className="squircle-sm"
+                />
+                <p className="text-xs text-muted-foreground">Preview video for the course</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

@@ -2638,6 +2638,9 @@ export type Database = {
       courses: {
         Row: {
           academy_id: string
+          category: string | null
+          course_image_url: string | null
+          course_video_url: string | null
           cover_image_url: string | null
           created_at: string | null
           created_by: string | null
@@ -2657,6 +2660,9 @@ export type Database = {
         }
         Insert: {
           academy_id: string
+          category?: string | null
+          course_image_url?: string | null
+          course_video_url?: string | null
           cover_image_url?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -2676,6 +2682,9 @@ export type Database = {
         }
         Update: {
           academy_id?: string
+          category?: string | null
+          course_image_url?: string | null
+          course_video_url?: string | null
           cover_image_url?: string | null
           created_at?: string | null
           created_by?: string | null
