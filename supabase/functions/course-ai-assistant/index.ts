@@ -35,9 +35,11 @@ Deno.serve(async (req) => {
           id,
           title,
           description,
-          content,
           estimated_minutes,
-          display_order
+          display_order,
+          module_type,
+          video_url,
+          is_published
         )
       `)
       .eq('id', courseId)
@@ -62,10 +64,11 @@ Deno.serve(async (req) => {
     const modulesContext = course.modules
       ?.sort((a: any, b: any) => a.display_order - b.display_order)
       .map((mod: any, idx: number) => `
-Module ${idx + 1}: ${mod.title}
+Module ${idx + 1}: ${mod.title} (${mod.module_type})
 ${mod.description ? `Description: ${mod.description}` : ''}
 ${mod.estimated_minutes ? `Duration: ${mod.estimated_minutes} minutes` : ''}
-${mod.content ? `\nContent Overview: ${mod.content.slice(0, 500)}...` : ''}
+${mod.video_url ? `Has video content` : ''}
+${mod.is_published ? 'Published' : 'Draft'}
 `).join('\n') || 'No modules available yet.';
 
     const otherCoursesContext = allCourses
