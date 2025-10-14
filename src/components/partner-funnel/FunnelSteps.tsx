@@ -14,6 +14,7 @@ import { TrackRequestDialog } from "./TrackRequestDialog";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
+import { PartnerRequestTracker } from "./PartnerRequestTracker";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
@@ -170,8 +171,8 @@ export function FunnelSteps() {
       }
 
       toast({
-        title: "Request submitted successfully!",
-        description: "We'll be in touch within 48 hours.",
+        title: "Successfully submitted Partner Request",
+        description: "Your strategist will respond within 19 minutes on average.",
       });
 
       // Show success view
@@ -477,25 +478,28 @@ export function FunnelSteps() {
 
       case 5:
         return (
-          <div className="text-center py-12">
-            <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
-            <h2 className="text-3xl font-bold mb-4">Request Submitted Successfully!</h2>
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Thank you for your interest in partnering with The Quantum Club. 
-              Our team will review your request and respond within 48 hours.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <div className="py-8">
+            <div className="text-center mb-8">
+              <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
+              <h2 className="text-3xl font-bold mb-3">Successfully Submitted Partner Request</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Thank you for your interest in partnering with The Quantum Club. 
+                Your strategist is reviewing your request now.
+              </p>
+            </div>
+
+            <div className="max-w-2xl mx-auto">
+              <PartnerRequestTracker />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <Button size="lg" onClick={() => navigate("/booking")}>
                 Book a Call
               </Button>
               <Button size="lg" variant="outline" onClick={() => navigate("/companies")}>
                 View Portfolio
               </Button>
-              <Button size="lg" variant="ghost" onClick={() => setTrackDialogOpen(true)}>
-                Track My Request
-              </Button>
             </div>
-            <TrackRequestDialog open={trackDialogOpen} onOpenChange={setTrackDialogOpen} />
           </div>
         );
     }
