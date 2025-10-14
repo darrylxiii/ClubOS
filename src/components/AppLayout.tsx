@@ -33,6 +33,7 @@ import {
   TrendingUp,
   Trophy,
   MessagesSquare,
+  GraduationCap,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -86,6 +87,13 @@ const candidateNavigationGroups = [
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
       { name: "Meeting History", icon: Video, path: "/meeting-history" },
       { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
+    ],
+  },
+  {
+    title: "Learning",
+    icon: GraduationCap,
+    items: [
+      { name: "Academy", icon: GraduationCap, path: "/academy" },
     ],
   },
   {
@@ -144,6 +152,13 @@ const partnerNavigationGroups = [
     ],
   },
   {
+    title: "Learning",
+    icon: GraduationCap,
+    items: [
+      { name: "Academy", icon: GraduationCap, path: "/academy" },
+    ],
+  },
+  {
     title: "AI & Tools",
     icon: Zap,
     items: [
@@ -198,6 +213,13 @@ const adminNavigationGroups = [
     items: [
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+    ],
+  },
+  {
+    title: "Learning",
+    icon: GraduationCap,
+    items: [
+      { name: "Academy", icon: GraduationCap, path: "/academy" },
     ],
   },
   {

@@ -27,6 +27,7 @@ const Jobs = lazy(() => import("./pages/Jobs"));
 const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
 const ObjectiveWorkspace = lazy(() => import("./pages/ObjectiveWorkspace"));
 const ClubAI = lazy(() => import("./pages/ClubAI"));
+const Academy = lazy(() => import("./pages/Academy"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
 const UserSettings = lazy(() => import("./pages/UserSettings"));
@@ -329,6 +330,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/academy" element={<Academy />} />
+            <Route path="/academy/:slug" element={<Academy />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
                 </Routes>
