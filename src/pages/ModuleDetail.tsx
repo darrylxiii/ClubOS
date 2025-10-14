@@ -8,6 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { AIModuleAssistant } from "@/components/academy/AIModuleAssistant";
 import { ModuleDiscussion } from "@/components/academy/ModuleDiscussion";
+import { VideoPlayerWithTranscript } from "@/components/academy/VideoPlayerWithTranscript";
+import { SharedModuleChat } from "@/components/academy/SharedModuleChat";
 import {
   ArrowLeft,
   BookOpen,
@@ -16,6 +18,7 @@ import {
   PlayCircle,
   FileText,
   MessageSquare,
+  Users,
 } from "lucide-react";
 
 interface Module {
@@ -24,6 +27,9 @@ interface Module {
   description: string;
   estimated_minutes: number;
   display_order: number;
+  video_url?: string;
+  video_duration_seconds?: number;
+  transcript?: TranscriptSegment[];
   course: {
     title: string;
     slug: string;
@@ -32,6 +38,17 @@ interface Module {
     content_type: string;
     content_body: any;
     display_order: number;
+  }>;
+}
+
+interface TranscriptSegment {
+  start: number;
+  end: number;
+  text: string;
+  words?: Array<{
+    word: string;
+    start: number;
+    end: number;
   }>;
 }
 
@@ -195,23 +212,41 @@ export default function ModuleDetail() {
       {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+          {/* Video Player with Transcript */}
+          {module.video_url && (
+            <VideoPlayerWithTranscript
+              videoUrl={module.video_url}
+              transcript={module.transcript || []}
+              title={module.title}
+            />
+          )}
+
           <Tabs defaultValue="content" className="w-full">
             <TabsList className="w-full">
               <TabsTrigger value="content" className="flex-1">
                 <FileText className="h-4 w-4 mr-2" />
                 Content
               </TabsTrigger>
-              <TabsTrigger value="resources" className="flex-1">
-                <BookOpen className="h-4 w-4 mr-2" />
-                Resources
-              </TabsTrigger>
-              <TabsTrigger value="qa" className="flex-1">
+              <TabsTrigger value="discussion" className="flex-1">
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Q&A
+              </TabsTrigger>
+              <TabsTrigger value="shared-chat" className="flex-1">
+                <Users className="h-4 w-4 mr-2" />
+                Class Chat
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="content" className="space-y-4 mt-6">
+              <Card className="squircle p-6">
+                <h2 className="text-2xl font-bold mb-4">Module Content</h2>
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  <p className="text-muted-foreground leading-relaxed">
+                    {module.description}
+                  </p>
+                </div>
+              </Card>
+
               {module.module_content
                 .sort((a, b) => a.display_order - b.display_order)
                 .map((content, idx) => (
@@ -229,16 +264,23 @@ export default function ModuleDetail() {
                         <h3 className="font-semibold mb-2">
                           {content.content_body?.title || `Content ${idx + 1}`}
                         </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {content.content_body?.description || 'No description available'}
-                        </p>
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <p className="text-sm text-muted-foreground">
+                            {content.content_body?.description || 'No description available'}
+                          </p>
+                          {content.content_body?.body && (
+                            <div className="mt-4">
+                              {content.content_body.body}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </Card>
                 ))}
 
               <div className="flex justify-between items-center pt-4">
-                <Button variant="outline">Previous</Button>
+                <Button variant="outline">Previous Module</Button>
                 <Button onClick={markComplete} className="gap-2">
                   <CheckCircle2 className="h-4 w-4" />
                   Mark as Complete
@@ -246,16 +288,15 @@ export default function ModuleDetail() {
               </div>
             </TabsContent>
 
-            <TabsContent value="resources" className="mt-6">
-              <Card className="squircle p-6">
-                <p className="text-muted-foreground text-center py-8">
-                  No additional resources yet
-                </p>
-              </Card>
+            <TabsContent value="discussion" className="mt-6">
+              <ModuleDiscussion moduleId={moduleId!} />
             </TabsContent>
 
-            <TabsContent value="qa" className="mt-6">
-              <ModuleDiscussion moduleId={moduleId!} />
+            <TabsContent value="shared-chat" className="mt-6">
+              <SharedModuleChat 
+                moduleId={moduleId!} 
+                moduleName={module.title}
+              />
             </TabsContent>
           </Tabs>
         </div>

@@ -4154,6 +4154,55 @@ export type Database = {
           },
         ]
       }
+      module_chat_messages: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_instructor: boolean | null
+          message: string
+          module_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_instructor?: boolean | null
+          message: string
+          module_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_instructor?: boolean | null
+          message?: string
+          module_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "module_chat_messages_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "module_chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       module_content: {
         Row: {
           content: Json
@@ -4405,7 +4454,10 @@ export type Database = {
           published_at: string | null
           slug: string
           title: string
+          transcript: Json | null
           updated_at: string | null
+          video_duration_seconds: number | null
+          video_url: string | null
         }
         Insert: {
           course_id: string
@@ -4421,7 +4473,10 @@ export type Database = {
           published_at?: string | null
           slug: string
           title: string
+          transcript?: Json | null
           updated_at?: string | null
+          video_duration_seconds?: number | null
+          video_url?: string | null
         }
         Update: {
           course_id?: string
@@ -4437,7 +4492,10 @@ export type Database = {
           published_at?: string | null
           slug?: string
           title?: string
+          transcript?: Json | null
           updated_at?: string | null
+          video_duration_seconds?: number | null
+          video_url?: string | null
         }
         Relationships: [
           {
