@@ -37,7 +37,7 @@ export default function PartnerFunnel() {
       <div className="min-h-screen bg-background">
         {/* Top Banner */}
         <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="container mx-auto px-2 py-2 relative flex justify-center items-center">
+          <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
             <img 
               src={quantumLogoDark} 
               alt="Quantum Club" 
@@ -72,7 +72,7 @@ export default function PartnerFunnel() {
     <div className="min-h-screen bg-background">
       {/* Top Banner */}
       <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto px-2 py-2 relative flex justify-center items-center">
+        <div className="container mx-auto px-2 py-1 relative flex justify-center items-center">
           <img 
             src={quantumLogoDark} 
             alt="Quantum Club" 
@@ -92,7 +92,7 @@ export default function PartnerFunnel() {
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-6">
         <div className="text-center max-w-4xl mx-auto mb-8">
-          <h1 className="text-5xl md:text-6xl font-bold text-white">
+          <h1 className="text-5xl md:text-6xl font-bold text-foreground">
             Partner Request
           </h1>
         </div>
