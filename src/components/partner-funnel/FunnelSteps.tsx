@@ -46,6 +46,7 @@ export function FunnelSteps() {
     // Contact
     contact_name: "",
     contact_email: "",
+    contact_email_confirm: "",
     contact_phone: "",
     linkedin_url: "",
     // Company
@@ -55,7 +56,6 @@ export function FunnelSteps() {
     company_size: "",
     headquarters_location: "",
     // Partnership
-    partnership_type: "",
     estimated_roles_per_year: "",
     budget_range: "",
     timeline: "",
@@ -102,7 +102,11 @@ export function FunnelSteps() {
       }
       
       if (!recaptchaToken) {
-        toast({ title: "Please complete the reCAPTCHA verification", variant: "destructive" });
+        toast({ 
+          title: "Please complete the reCAPTCHA verification", 
+          description: "Make sure you check the reCAPTCHA box",
+          variant: "destructive" 
+        });
         return;
       }
       
@@ -115,7 +119,7 @@ export function FunnelSteps() {
         if (error || !data?.success) {
           toast({ 
             title: "reCAPTCHA verification failed", 
-            description: "Please try again",
+            description: data?.error || "The reCAPTCHA key may be invalid. Please contact support.",
             variant: "destructive" 
           });
           recaptchaRef.current?.reset();
@@ -126,7 +130,7 @@ export function FunnelSteps() {
         console.error('reCAPTCHA verification error:', error);
         toast({ 
           title: "Verification error", 
-          description: "Please try again",
+          description: "Please try again or contact support if the problem persists",
           variant: "destructive" 
         });
         return;
@@ -148,10 +152,20 @@ export function FunnelSteps() {
   };
 
   const validateStep = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
     switch (currentStep) {
       case 0: // Contact
-        if (!formData.contact_name || !formData.contact_email) {
+        if (!formData.contact_name || !formData.contact_email || !formData.contact_email_confirm) {
           toast({ title: "Please fill in all required fields", variant: "destructive" });
+          return false;
+        }
+        if (!emailRegex.test(formData.contact_email)) {
+          toast({ title: "Please enter a valid email address", variant: "destructive" });
+          return false;
+        }
+        if (formData.contact_email !== formData.contact_email_confirm) {
+          toast({ title: "Email addresses do not match", variant: "destructive" });
           return false;
         }
         break;
@@ -162,7 +176,7 @@ export function FunnelSteps() {
         }
         break;
       case 2: // Partnership
-        if (!formData.partnership_type || !formData.description) {
+        if (!formData.description) {
           toast({ title: "Please fill in all required fields", variant: "destructive" });
           return false;
         }
@@ -186,8 +200,11 @@ export function FunnelSteps() {
     const verified = await verifyOTP(phoneNumber, verificationCode, async () => {
       const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
 
+      // Remove contact_email_confirm before submission (it's only for validation)
+      const { contact_email_confirm, ...submissionData } = formData;
+
       const { error } = await supabase.from("partner_requests").insert({
-        ...formData,
+        ...submissionData,
         contact_phone: phoneNumber,
         estimated_roles_per_year: formData.estimated_roles_per_year ? parseInt(formData.estimated_roles_per_year) : null,
         session_id: sessionId,
@@ -245,6 +262,15 @@ export function FunnelSteps() {
                 type="email"
                 value={formData.contact_email}
                 onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                placeholder="john@company.com"
+              />
+            </div>
+            <div>
+              <Label>Confirm Email Address *</Label>
+              <Input
+                type="email"
+                value={formData.contact_email_confirm}
+                onChange={(e) => setFormData({ ...formData, contact_email_confirm: e.target.value })}
                 placeholder="john@company.com"
               />
             </div>
@@ -334,21 +360,6 @@ export function FunnelSteps() {
               <Calendar className="w-12 h-12 text-primary mx-auto mb-3" />
               <h2 className="text-2xl font-bold mb-2">Partnership Details</h2>
               <p className="text-muted-foreground">Define your recruitment needs</p>
-            </div>
-            <div>
-              <Label>Partnership Type *</Label>
-              <Select value={formData.partnership_type} onValueChange={(value) => setFormData({ ...formData, partnership_type: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="executive_search">Executive Search</SelectItem>
-                  <SelectItem value="bulk_hiring">Bulk Hiring</SelectItem>
-                  <SelectItem value="retained">Retained Partnership</SelectItem>
-                  <SelectItem value="project_based">Project-Based</SelectItem>
-                  <SelectItem value="ongoing">Ongoing Collaboration</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <div>
               <Label>Estimated Roles per Year</Label>

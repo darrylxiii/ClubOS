@@ -4752,7 +4752,7 @@ export type Database = {
           last_step_viewed: string | null
           linkedin_url: string | null
           notes: string | null
-          partnership_type: string
+          partnership_type: string | null
           session_id: string | null
           source_channel: string | null
           status: string
@@ -4786,7 +4786,7 @@ export type Database = {
           last_step_viewed?: string | null
           linkedin_url?: string | null
           notes?: string | null
-          partnership_type: string
+          partnership_type?: string | null
           session_id?: string | null
           source_channel?: string | null
           status?: string
@@ -4820,7 +4820,7 @@ export type Database = {
           last_step_viewed?: string | null
           linkedin_url?: string | null
           notes?: string | null
-          partnership_type?: string
+          partnership_type?: string | null
           session_id?: string | null
           source_channel?: string | null
           status?: string
