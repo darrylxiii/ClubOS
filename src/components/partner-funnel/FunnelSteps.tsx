@@ -511,6 +511,17 @@ export function FunnelSteps() {
 
   return (
     <Card className="p-8 glass-effect">
+      {/* Availability Indicator */}
+      <div className="flex items-center justify-center gap-3 p-4 glass-effect border border-primary/20 rounded-2xl mb-6">
+        <div className="relative">
+          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+          <div className="absolute inset-0 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+        </div>
+        <span className="text-sm font-semibold">
+          <span className="text-green-500">2/5</span> partner spots left for this quarter
+        </span>
+      </div>
+
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
