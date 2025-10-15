@@ -15,24 +15,30 @@ interface Profile {
 const TRACKER_STEPS = [
   { 
     id: 1, 
-    name: "Contact", 
-    description: "Initial response from your strategist",
+    name: "Fill out Partner Request", 
+    description: "Initial information submitted",
     status: "completed" as const
   },
   { 
     id: 2, 
+    name: "Contact", 
+    description: "Initial response from your strategist",
+    status: "in_progress" as const
+  },
+  { 
+    id: 3, 
     name: "Assessment", 
     description: "Needs analysis & partnership fit",
     status: "in_progress" as const
   },
   { 
-    id: 3, 
+    id: 4, 
     name: "Sync Call", 
     description: "Strategy alignment meeting",
     status: "pending" as const
   },
   { 
-    id: 4, 
+    id: 5, 
     name: "Legal & Kick-off", 
     description: "Agreement & project launch",
     status: "pending" as const
@@ -66,6 +72,17 @@ export function PartnerRequestTracker() {
 
   return (
     <div className="space-y-6">
+      {/* Availability Indicator */}
+      <div className="flex items-center justify-center gap-3 p-4 glass-effect border border-primary/20 rounded-2xl">
+        <div className="relative">
+          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+          <div className="absolute inset-0 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+        </div>
+        <span className="text-sm font-semibold">
+          <span className="text-green-500">2/5</span> partner spots left for this quarter
+        </span>
+      </div>
+
       {/* Strategist Card */}
       {!loading && strategist && (
         <Card className="p-6 glass-effect border-primary/20">
