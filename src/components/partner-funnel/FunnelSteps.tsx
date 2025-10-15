@@ -104,6 +104,18 @@ export function FunnelSteps() {
   };
 
   const handleNext = async () => {
+    // If on contact step and email not verified, send OTP
+    if (currentStep === 0 && !emailVerified) {
+      const success = await sendEmailOTP(formData.contact_email);
+      if (success) {
+        toast({ 
+          title: "Verification code sent", 
+          description: "Please check your email and enter the code below" 
+        });
+      }
+      return;
+    }
+    
     if (!validateStep()) return;
     
     // If moving from compliance to verification, verify reCAPTCHA and send OTP
@@ -267,63 +279,75 @@ export function FunnelSteps() {
             </div>
             <div>
               <Label>Email Address *</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="email"
-                  value={formData.contact_email}
-                  onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                  placeholder="john@company.com"
-                  disabled={emailVerified}
-                />
-                {!emailVerified && (
-                  <Button 
-                    type="button"
-                    onClick={() => sendEmailOTP(formData.contact_email)}
-                    disabled={isSendingEmailOtp || emailResendCooldown > 0 || !formData.contact_email}
-                  >
-                    {emailResendCooldown > 0 ? `Wait ${emailResendCooldown}s` : emailOtpSent ? "Resend Code" : "Send Code"}
-                  </Button>
-                )}
-                {emailVerified && (
-                  <Button type="button" variant="outline" className="text-green-600" disabled>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Verified
-                  </Button>
-                )}
-              </div>
+              <Input
+                type="email"
+                value={formData.contact_email}
+                onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                placeholder="john@company.com"
+                disabled={emailVerified}
+              />
+              {emailVerified && (
+                <p className="text-sm text-green-600 mt-2 flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Email verified
+                </p>
+              )}
             </div>
 
             {emailOtpSent && !emailVerified && (
-              <div className="space-y-3">
-                <Label>Enter Verification Code *</Label>
-                <p className="text-sm text-muted-foreground">
-                  We've sent a 6-digit code to {formData.contact_email}
-                </p>
-                <InputOTP
-                  maxLength={6}
-                  value={emailOtpCode}
-                  onChange={(value) => {
-                    setEmailOtpCode(value);
-                    if (value.length === 6) {
-                      verifyEmailOTP(formData.contact_email, value, () => {
-                        setEmailVerified(true);
-                        setEmailOtpCode("");
-                      });
-                    }
-                  }}
-                >
-                  <InputOTPGroup>
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-                {isVerifyingEmail && (
-                  <p className="text-sm text-muted-foreground">Verifying...</p>
-                )}
+              <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <Label className="text-base font-semibold">Verify Your Email</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      We've sent a 6-digit code to {formData.contact_email}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Enter Verification Code *</Label>
+                  <InputOTP
+                    maxLength={6}
+                    value={emailOtpCode}
+                    onChange={(value) => {
+                      setEmailOtpCode(value);
+                      if (value.length === 6) {
+                        verifyEmailOTP(formData.contact_email, value, () => {
+                          setEmailVerified(true);
+                          setEmailOtpCode("");
+                        });
+                      }
+                    }}
+                  >
+                    <InputOTPGroup>
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                  {isVerifyingEmail && (
+                    <p className="text-sm text-muted-foreground">Verifying...</p>
+                  )}
+                  {emailResendCooldown === 0 && emailOtpSent && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={() => sendEmailOTP(formData.contact_email)}
+                      disabled={isSendingEmailOtp}
+                      className="p-0 h-auto"
+                    >
+                      Resend code
+                    </Button>
+                  )}
+                  {emailResendCooldown > 0 && (
+                    <p className="text-sm text-muted-foreground">
+                      Resend available in {emailResendCooldown}s
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
