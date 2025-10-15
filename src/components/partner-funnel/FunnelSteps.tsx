@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,9 @@ import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { PartnerRequestTracker } from "./PartnerRequestTracker";
+import ReCAPTCHA from "react-google-recaptcha";
+
+const RECAPTCHA_SITE_KEY = "6LdusOorAAAAAJLafi_rysBZBoO4lNnWc0Z7o7-7";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
@@ -26,6 +29,8 @@ export function FunnelSteps() {
   const [trackDialogOpen, setTrackDialogOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { 
@@ -89,12 +94,44 @@ export function FunnelSteps() {
   const handleNext = async () => {
     if (!validateStep()) return;
     
-    // If moving from compliance to verification, send OTP
+    // If moving from compliance to verification, verify reCAPTCHA and send OTP
     if (currentStep === 3) {
       if (!phoneNumber) {
         toast({ title: "Please enter your phone number", variant: "destructive" });
         return;
       }
+      
+      if (!recaptchaToken) {
+        toast({ title: "Please complete the reCAPTCHA verification", variant: "destructive" });
+        return;
+      }
+      
+      // Verify reCAPTCHA token
+      try {
+        const { data, error } = await supabase.functions.invoke('verify-recaptcha', {
+          body: { token: recaptchaToken }
+        });
+        
+        if (error || !data?.success) {
+          toast({ 
+            title: "reCAPTCHA verification failed", 
+            description: "Please try again",
+            variant: "destructive" 
+          });
+          recaptchaRef.current?.reset();
+          setRecaptchaToken(null);
+          return;
+        }
+      } catch (error) {
+        console.error('reCAPTCHA verification error:', error);
+        toast({ 
+          title: "Verification error", 
+          description: "Please try again",
+          variant: "destructive" 
+        });
+        return;
+      }
+      
       const success = await sendOTP(phoneNumber);
       if (!success) {
         return;
@@ -432,6 +469,15 @@ export function FunnelSteps() {
                 value={phoneNumber}
                 onChange={(value) => setPhoneNumber(value || "")}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              />
+            </div>
+
+            <div className="flex justify-center pt-4">
+              <ReCAPTCHA
+                ref={recaptchaRef}
+                sitekey={RECAPTCHA_SITE_KEY}
+                onChange={(token) => setRecaptchaToken(token)}
+                onExpired={() => setRecaptchaToken(null)}
               />
             </div>
           </div>
