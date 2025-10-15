@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
@@ -17,8 +17,6 @@ import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { PartnerRequestTracker } from "./PartnerRequestTracker";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
-
-const RECAPTCHA_SITE_KEY = "6LeZq-orAAAAAOsHQEIOOfm57DYaGN9BXD-V2z9a";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
@@ -30,8 +28,7 @@ export function FunnelSteps() {
   const [trackDialogOpen, setTrackDialogOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
-  const [isVerifyingRecaptcha, setIsVerifyingRecaptcha] = useState(false);
+  
   const { toast } = useToast();
   const navigate = useNavigate();
   const { 
@@ -55,40 +52,6 @@ export function FunnelSteps() {
   const [emailVerified, setEmailVerified] = useState(false);
   const [emailOtpCode, setEmailOtpCode] = useState("");
 
-  // Load reCAPTCHA v3 script
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${RECAPTCHA_SITE_KEY}`;
-    script.async = true;
-    document.head.appendChild(script);
-    
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
-
-  // Execute reCAPTCHA v3 verification
-  const executeRecaptcha = async (): Promise<string | null> => {
-    return new Promise((resolve) => {
-      if (!(window as any).grecaptcha) {
-        console.error('reCAPTCHA not loaded');
-        resolve(null);
-        return;
-      }
-
-      (window as any).grecaptcha.ready(() => {
-        (window as any).grecaptcha
-          .execute(RECAPTCHA_SITE_KEY, { action: 'submit' })
-          .then((token: string) => {
-            resolve(token);
-          })
-          .catch((error: any) => {
-            console.error('reCAPTCHA execution error:', error);
-            resolve(null);
-          });
-      });
-    });
-  };
 
   const [formData, setFormData] = useState({
     // Contact
@@ -152,66 +115,12 @@ export function FunnelSteps() {
     
     if (!validateStep()) return;
     
-    // If moving from compliance to verification, verify reCAPTCHA and send OTP
+    // If moving from compliance to verification, send OTP
     if (currentStep === 3) {
       if (!phoneNumber) {
         toast({ title: "Please enter your phone number", variant: "destructive" });
         return;
       }
-      
-      setIsVerifyingRecaptcha(true);
-      
-      // Execute reCAPTCHA v3 invisibly
-      const token = await executeRecaptcha();
-      
-      if (!token) {
-        toast({ 
-          title: "Security verification failed", 
-          description: "Please try again or contact support if the problem persists",
-          variant: "destructive" 
-        });
-        setIsVerifyingRecaptcha(false);
-        return;
-      }
-      
-      // Verify reCAPTCHA token
-      try {
-        const { data, error } = await supabase.functions.invoke('verify-recaptcha', {
-          body: { token }
-        });
-        
-        if (error || !data?.success) {
-          toast({ 
-            title: "Security verification failed", 
-            description: data?.error || "Please try again or contact support.",
-            variant: "destructive" 
-          });
-          setIsVerifyingRecaptcha(false);
-          return;
-        }
-
-        // Check score (v3 returns a score between 0.0-1.0)
-        if (data.score && data.score < 0.5) {
-          toast({ 
-            title: "Security verification failed", 
-            description: "Your request appears suspicious. Please contact support if you believe this is an error.",
-            variant: "destructive" 
-          });
-          setIsVerifyingRecaptcha(false);
-          return;
-        }
-      } catch (error) {
-        console.error('reCAPTCHA verification error:', error);
-        toast({ 
-          title: "Verification error", 
-          description: "Please try again or contact support if the problem persists",
-          variant: "destructive" 
-        });
-        setIsVerifyingRecaptcha(false);
-        return;
-      }
-      
-      setIsVerifyingRecaptcha(false);
       
       const success = await sendOTP(phoneNumber);
       if (!success) {
@@ -728,8 +637,8 @@ export function FunnelSteps() {
             </Button>
           )}
           {currentStep < 4 ? (
-            <Button onClick={handleNext} className="flex-1" disabled={isVerifyingRecaptcha}>
-              {isVerifyingRecaptcha ? "Verifying..." : "Next"}
+            <Button onClick={handleNext} className="flex-1">
+              Next
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
