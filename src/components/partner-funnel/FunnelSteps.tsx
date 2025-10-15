@@ -12,10 +12,12 @@ import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone } fr
 import { useNavigate } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
+import { useEmailVerification } from "@/hooks/useEmailVerification";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { PartnerRequestTracker } from "./PartnerRequestTracker";
 import ReCAPTCHA from "react-google-recaptcha";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const RECAPTCHA_SITE_KEY = "6LdusOorAAAAAJLafi_rysBZBoO4lNnWc0Z7o7-7";
 
@@ -41,14 +43,24 @@ export function FunnelSteps() {
     isSendingOtp,
     resendCooldown 
   } = usePhoneVerification();
+  
+  const { 
+    sendOTP: sendEmailOTP, 
+    verifyOTP: verifyEmailOTP, 
+    otpSent: emailOtpSent, 
+    isVerifying: isVerifyingEmail, 
+    isSendingOtp: isSendingEmailOtp,
+    resendCooldown: emailResendCooldown 
+  } = useEmailVerification();
+
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailOtpCode, setEmailOtpCode] = useState("");
 
   const [formData, setFormData] = useState({
     // Contact
     contact_name: "",
     contact_email: "",
-    contact_email_confirm: "",
     contact_phone: "",
-    linkedin_url: "",
     // Company
     company_name: "",
     website: "",
@@ -156,7 +168,7 @@ export function FunnelSteps() {
     
     switch (currentStep) {
       case 0: // Contact
-        if (!formData.contact_name || !formData.contact_email || !formData.contact_email_confirm) {
+        if (!formData.contact_name || !formData.contact_email) {
           toast({ title: "Please fill in all required fields", variant: "destructive" });
           return false;
         }
@@ -164,8 +176,8 @@ export function FunnelSteps() {
           toast({ title: "Please enter a valid email address", variant: "destructive" });
           return false;
         }
-        if (formData.contact_email !== formData.contact_email_confirm) {
-          toast({ title: "Email addresses do not match", variant: "destructive" });
+        if (!emailVerified) {
+          toast({ title: "Please verify your email address first", variant: "destructive" });
           return false;
         }
         break;
@@ -200,11 +212,8 @@ export function FunnelSteps() {
     const verified = await verifyOTP(phoneNumber, verificationCode, async () => {
       const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
 
-      // Remove contact_email_confirm before submission (it's only for validation)
-      const { contact_email_confirm, ...submissionData } = formData;
-
       const { error } = await supabase.from("partner_requests").insert({
-        ...submissionData,
+        ...formData,
         contact_phone: phoneNumber,
         estimated_roles_per_year: formData.estimated_roles_per_year ? parseInt(formData.estimated_roles_per_year) : null,
         session_id: sessionId,
@@ -258,30 +267,65 @@ export function FunnelSteps() {
             </div>
             <div>
               <Label>Email Address *</Label>
-              <Input
-                type="email"
-                value={formData.contact_email}
-                onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
-                placeholder="john@company.com"
-              />
+              <div className="flex gap-2">
+                <Input
+                  type="email"
+                  value={formData.contact_email}
+                  onChange={(e) => setFormData({ ...formData, contact_email: e.target.value })}
+                  placeholder="john@company.com"
+                  disabled={emailVerified}
+                />
+                {!emailVerified && (
+                  <Button 
+                    type="button"
+                    onClick={() => sendEmailOTP(formData.contact_email)}
+                    disabled={isSendingEmailOtp || emailResendCooldown > 0 || !formData.contact_email}
+                  >
+                    {emailResendCooldown > 0 ? `Wait ${emailResendCooldown}s` : emailOtpSent ? "Resend Code" : "Send Code"}
+                  </Button>
+                )}
+                {emailVerified && (
+                  <Button type="button" variant="outline" className="text-green-600" disabled>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Verified
+                  </Button>
+                )}
+              </div>
             </div>
-            <div>
-              <Label>Confirm Email Address *</Label>
-              <Input
-                type="email"
-                value={formData.contact_email_confirm}
-                onChange={(e) => setFormData({ ...formData, contact_email_confirm: e.target.value })}
-                placeholder="john@company.com"
-              />
-            </div>
-            <div>
-              <Label>LinkedIn Profile</Label>
-              <Input
-                value={formData.linkedin_url}
-                onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
-                placeholder="linkedin.com/in/johndoe"
-              />
-            </div>
+
+            {emailOtpSent && !emailVerified && (
+              <div className="space-y-3">
+                <Label>Enter Verification Code *</Label>
+                <p className="text-sm text-muted-foreground">
+                  We've sent a 6-digit code to {formData.contact_email}
+                </p>
+                <InputOTP
+                  maxLength={6}
+                  value={emailOtpCode}
+                  onChange={(value) => {
+                    setEmailOtpCode(value);
+                    if (value.length === 6) {
+                      verifyEmailOTP(formData.contact_email, value, () => {
+                        setEmailVerified(true);
+                        setEmailOtpCode("");
+                      });
+                    }
+                  }}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+                {isVerifyingEmail && (
+                  <p className="text-sm text-muted-foreground">Verifying...</p>
+                )}
+              </div>
+            )}
           </div>
         );
 
