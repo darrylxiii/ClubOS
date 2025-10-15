@@ -266,7 +266,7 @@ export function FunnelSteps() {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <Users className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-bold mb-2">Contact Information</h2>
+              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Contact Information</h2>
               <p className="text-muted-foreground">Let's start with your details</p>
             </div>
             <div>
@@ -312,9 +312,12 @@ export function FunnelSteps() {
                     onChange={(value) => {
                       setEmailOtpCode(value);
                       if (value.length === 6) {
-                        verifyEmailOTP(formData.contact_email, value, () => {
+                        verifyEmailOTP(formData.contact_email, value, async () => {
                           setEmailVerified(true);
                           setEmailOtpCode("");
+                          // Auto-advance to next step
+                          await trackStep("complete");
+                          setCurrentStep(1);
                         });
                       }
                     }}
@@ -358,7 +361,7 @@ export function FunnelSteps() {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <Target className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-bold mb-2">Company Details</h2>
+              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Company Details</h2>
               <p className="text-muted-foreground">Tell us about your organization</p>
             </div>
             <div>
@@ -426,7 +429,7 @@ export function FunnelSteps() {
           <div className="space-y-4">
             <div className="text-center mb-6">
               <Calendar className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-bold mb-2">Partnership Details</h2>
+              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Partnership Details</h2>
               <p className="text-muted-foreground">Define your recruitment needs</p>
             </div>
             <div>
@@ -439,7 +442,7 @@ export function FunnelSteps() {
               />
             </div>
             <div>
-              <Label>Budget Range</Label>
+              <Label>Investment Range</Label>
               <Select value={formData.budget_range} onValueChange={(value) => setFormData({ ...formData, budget_range: value })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select range" />
@@ -485,7 +488,7 @@ export function FunnelSteps() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <CheckCircle className="w-12 h-12 text-primary mx-auto mb-3" />
-              <h2 className="text-2xl font-bold mb-2">Terms & Compliance</h2>
+              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Terms & Compliance</h2>
               <p className="text-muted-foreground">Review and accept our partnership terms</p>
             </div>
             
@@ -567,7 +570,7 @@ export function FunnelSteps() {
           <div className="space-y-6">
             <div className="text-center mb-6">
               <Phone className="w-16 h-16 mx-auto mb-4 text-primary" />
-              <h2 className="text-2xl font-bold mb-2">Verify Your Phone</h2>
+              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Verify Your Phone</h2>
               <p className="text-muted-foreground">
                 We sent a verification code to {phoneNumber}
               </p>
@@ -606,7 +609,7 @@ export function FunnelSteps() {
           <div className="py-8">
             <div className="text-center mb-8">
               <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
-              <h2 className="text-3xl font-bold mb-3">Successfully Submitted Partner Request</h2>
+              <h2 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">Successfully Submitted Partner Request</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
                 Thank you for your interest in partnering with The Quantum Club. 
                 Your strategist is reviewing your request now.
