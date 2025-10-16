@@ -450,14 +450,14 @@ const Auth = () => {
             <form onSubmit={handleEmailAuth} className="space-y-5">
             {!isLogin && (
               <div>
-              <Input
-                type="text"
-                placeholder="Full Name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="h-14 bg-card/80 backdrop-blur-sm border-white/20 rounded-2xl font-semibold text-base placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
-              />
+                <Input
+                  type="text"
+                  placeholder="Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                  className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
+                />
               </div>
             )}
 
@@ -468,7 +468,7 @@ const Auth = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-14 bg-card/80 backdrop-blur-sm border-white/20 rounded-2xl font-semibold text-base placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
               />
             </div>
 
@@ -479,7 +479,7 @@ const Auth = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="h-14 bg-card/80 backdrop-blur-sm border-white/20 rounded-2xl font-semibold text-base placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
               />
               {!isLogin && password && (
                 <div className="text-xs space-y-2 mt-4 p-4 rounded-2xl bg-background/30 border border-white/10 backdrop-blur-sm">
@@ -510,7 +510,7 @@ const Auth = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="h-14 bg-card/80 backdrop-blur-sm border-white/20 rounded-2xl font-semibold text-base placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                  className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
                 />
               </div>
             )}
@@ -596,7 +596,7 @@ const Auth = () => {
                 className="text-white/80 hover:text-white font-semibold transition-colors duration-300 underline-offset-4 hover:underline"
               >
                 {isLogin
-                  ? "Click here to request Club Membership"
+                  ? "Need an account? Request invite"
                   : "Already have an account? Sign in"}
               </button>
             </div>
