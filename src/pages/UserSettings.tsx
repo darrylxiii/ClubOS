@@ -645,7 +645,7 @@ const Profile = () => {
         setProfileData({
           firstName,
           lastName,
-          email: data.email || '',
+          email: data.email || user.email || '', // Fallback to auth email if profile email is empty
           phone: data.phone || '',
           location: data.location || '',
           currentTitle: data.current_title || '',
@@ -653,6 +653,15 @@ const Profile = () => {
           noticePeriod: data.notice_period || '2_weeks',
           preferences: data.career_preferences || '',
         });
+
+        // Load verification status
+        setPhoneNumber(data.phone || '');
+        setPhoneVerified(data.phone_verified || false);
+        setEmailVerified(data.email_verified || false);
+
+        // Load work preferences
+        setPreferredWorkLocations((data.preferred_work_locations as string[]) || []);
+        setRemoteWorkPreference(data.remote_work_preference || false);
 
         setContractEndDate((data as any).contract_end_date ? new Date((data as any).contract_end_date) : null);
         setHasIndefiniteContract((data as any).has_indefinite_contract || false);
@@ -676,10 +685,62 @@ const Profile = () => {
         if (data.preferred_currency) {
           setPreferredCurrency(data.preferred_currency as any);
         }
+
+        // Load employment preferences
+        setEmploymentType((data.employment_type_preference as 'fulltime' | 'freelance' | 'both') || 'fulltime');
+        if (data.freelance_hourly_rate_min && data.freelance_hourly_rate_max) {
+          setFreelanceHourlyRate([data.freelance_hourly_rate_min, data.freelance_hourly_rate_max]);
+        }
+        if (data.fulltime_hours_per_week_min && data.fulltime_hours_per_week_max) {
+          setFulltimeHoursPerWeek([data.fulltime_hours_per_week_min, data.fulltime_hours_per_week_max]);
+        }
+        if (data.freelance_hours_per_week_min && data.freelance_hours_per_week_max) {
+          setFreelanceHoursPerWeek([data.freelance_hours_per_week_min, data.freelance_hours_per_week_max]);
+        }
+
+        // Load stealth mode settings
+        setStealthModeEnabled(data.stealth_mode_enabled || false);
+        setStealthModeLevel(data.stealth_mode_level || 1);
+        setAllowStealthColdOutreach(data.allow_stealth_cold_outreach !== false);
+
+        // Load social media connections
+        if (data.linkedin_connected) {
+          setSocialConnections(prev => ({ ...prev, linkedin: true }));
+        }
+        if (data.instagram_connected && data.instagram_username) {
+          setSocialConnections(prev => ({ 
+            ...prev, 
+            instagram: true,
+            instagramUsername: data.instagram_username 
+          }));
+        }
+        if (data.twitter_connected && data.twitter_username) {
+          setSocialConnections(prev => ({ 
+            ...prev, 
+            twitter: true,
+            twitterUsername: data.twitter_username 
+          }));
+        }
+        if (data.github_connected && data.github_username) {
+          setSocialConnections(prev => ({ 
+            ...prev, 
+            github: true,
+            githubUsername: data.github_username 
+          }));
+        }
+
+        // Load music connections
+        setMusicConnections({
+          spotifyConnected: (data as any).spotify_connected || false,
+          appleMusicConnected: (data as any).apple_music_connected || false,
+          spotifyPlaylists: (data as any).spotify_playlists || [],
+          appleMusicPlaylists: (data as any).apple_music_playlists || [],
+        });
       }
     };
 
     loadProfile();
+    loadUserResumes();
   }, [user]);
 
   // Auto-save profile data with debouncing
@@ -745,139 +806,8 @@ const Profile = () => {
     return () => clearTimeout(debounceTimer);
   }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, stealthModeEnabled, stealthModeLevel, allowStealthColdOutreach, user]);
 
-  // Load profile data from database
+  // Load cities and calendar data
   useEffect(() => {
-    const loadProfile = async () => {
-      if (!user) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
-
-        if (error) throw error;
-
-        if (data) {
-          // Parse full name into first and last name
-          const [firstName, ...lastNameParts] = (data.full_name || '').split(' ');
-          
-          // Load avatar URL
-          setAvatarUrl(data.avatar_url || null);
-          
-          setProfileData({
-            firstName: firstName || '',
-            lastName: lastNameParts.join(' ') || '',
-            email: data.email || '',
-            phone: data.phone || '',
-            location: data.location || '',
-            currentTitle: data.current_title || '',
-            linkedin: data.linkedin_url || '',
-            noticePeriod: data.notice_period || '2_weeks',
-            preferences: data.career_preferences || '',
-          });
-
-          if (data.current_salary_min && data.current_salary_max) {
-            setCurrentSalaryRange([data.current_salary_min, data.current_salary_max]);
-          }
-          
-          if (data.desired_salary_min && data.desired_salary_max) {
-            setDesiredSalaryRange([data.desired_salary_min, data.desired_salary_max]);
-          }
-
-          if (data.blocked_companies) {
-            const companies = data.blocked_companies as any;
-            setBlockedCompanies(Array.isArray(companies) ? companies.filter((c): c is string => typeof c === 'string') : []);
-          }
-
-          if (data.privacy_settings) {
-            setPrivacySettings(data.privacy_settings as any);
-          }
-
-          // Load new fields
-          if (data.phone) {
-            setPhoneNumber(data.phone);
-          }
-          if (data.phone_verified) {
-            setPhoneVerified(data.phone_verified);
-          }
-          if (data.email_verified) {
-            setEmailVerified(data.email_verified);
-          }
-          if (data.preferred_work_locations) {
-            setPreferredWorkLocations(data.preferred_work_locations as string[]);
-          }
-          if (data.remote_work_preference !== undefined) {
-            setRemoteWorkPreference(data.remote_work_preference);
-          }
-
-          // Load social media connections
-          if (data.linkedin_connected) {
-            setSocialConnections(prev => ({ ...prev, linkedin: true }));
-          }
-          if (data.instagram_connected && data.instagram_username) {
-            setSocialConnections(prev => ({ 
-              ...prev, 
-              instagram: true, 
-              instagramUsername: data.instagram_username 
-            }));
-          }
-          if (data.twitter_connected && data.twitter_username) {
-            setSocialConnections(prev => ({ 
-              ...prev, 
-              twitter: true, 
-              twitterUsername: data.twitter_username 
-            }));
-          }
-          if (data.github_connected && data.github_username) {
-            setSocialConnections(prev => ({ 
-              ...prev, 
-              github: true, 
-              githubUsername: data.github_username 
-            }));
-          }
-
-          // Load music connections
-          setMusicConnections({
-            spotifyConnected: (data as any).spotify_connected || false,
-            appleMusicConnected: (data as any).apple_music_connected || false,
-            spotifyPlaylists: (data as any).spotify_playlists || [],
-            appleMusicPlaylists: (data as any).apple_music_playlists || [],
-          });
-
-          // Load employment preferences
-          if (data.employment_type_preference) {
-            setEmploymentType(data.employment_type_preference as 'fulltime' | 'freelance' | 'both');
-          }
-          if (data.freelance_hourly_rate_min && data.freelance_hourly_rate_max) {
-            setFreelanceHourlyRate([data.freelance_hourly_rate_min, data.freelance_hourly_rate_max]);
-          }
-          if (data.fulltime_hours_per_week_min && data.fulltime_hours_per_week_max) {
-            setFulltimeHoursPerWeek([data.fulltime_hours_per_week_min, data.fulltime_hours_per_week_max]);
-          }
-          if (data.freelance_hours_per_week_min && data.freelance_hours_per_week_max) {
-            setFreelanceHoursPerWeek([data.freelance_hours_per_week_min, data.freelance_hours_per_week_max]);
-          }
-
-          // Load stealth mode settings
-          if (data.stealth_mode_enabled !== undefined) {
-            setStealthModeEnabled(data.stealth_mode_enabled);
-          }
-          if (data.stealth_mode_level) {
-            setStealthModeLevel(data.stealth_mode_level);
-          }
-          if (data.allow_stealth_cold_outreach !== undefined) {
-            setAllowStealthColdOutreach(data.allow_stealth_cold_outreach);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading profile:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     // Load cities from database
     const loadCities = async () => {
       try {
@@ -907,10 +837,8 @@ const Profile = () => {
       }
     }
 
-    loadProfile();
     loadCities();
-    loadUserResumes();
-  }, [user]);
+  }, []);
 
   const handleConnectCalendar = async (provider: 'google' | 'microsoft' | 'apple') => {
     // Apple Calendar support coming soon
