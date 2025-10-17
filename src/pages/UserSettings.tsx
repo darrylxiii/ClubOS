@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, Loader2, MapPin, Globe } from "lucide-react";
@@ -101,7 +102,19 @@ const Profile = () => {
   const [fulltimeHoursPerWeek, setFulltimeHoursPerWeek] = useState<[number, number]>([35, 45]);
   const [freelanceHoursPerWeek, setFreelanceHoursPerWeek] = useState<[number, number]>([15, 25]);
 
-  const [resume, setResume] = useState<File | null>(null);
+  const [userResumes, setUserResumes] = useState<Array<{
+    id: string;
+    display_name: string;
+    file_name: string;
+    file_path: string;
+    file_size: number;
+    is_primary: boolean;
+    uploaded_at: string;
+  }>>([]);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const [showResumeDialog, setShowResumeDialog] = useState(false);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [resumeDisplayName, setResumeDisplayName] = useState('');
   
   interface CalendarConnection {
     id: string;
@@ -433,9 +446,149 @@ const Profile = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setResume(e.target.files[0]);
-      localStorage.setItem('resume_uploaded', 'true');
-      toast.success("Resume uploaded - will be saved with profile");
+      const file = e.target.files[0];
+      setResumeFile(file);
+      setResumeDisplayName(file.name.replace(/\.[^/.]+$/, '')); // Remove extension
+      setShowResumeDialog(true);
+    }
+  };
+
+  const loadUserResumes = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('user_resumes')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('uploaded_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error loading resumes:', error);
+      return;
+    }
+    
+    setUserResumes(data || []);
+  };
+
+  const handleUploadResume = async () => {
+    if (!resumeFile || !user || !resumeDisplayName.trim()) {
+      toast.error('Please provide a name for your resume');
+      return;
+    }
+
+    setIsUploadingResume(true);
+    try {
+      // Upload to storage
+      const fileExt = resumeFile.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(fileName, resumeFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Save to database
+      const { error: dbError } = await supabase
+        .from('user_resumes')
+        .insert({
+          user_id: user.id,
+          file_name: resumeFile.name,
+          display_name: resumeDisplayName.trim(),
+          file_path: fileName,
+          file_size: resumeFile.size,
+          mime_type: resumeFile.type,
+          is_primary: userResumes.length === 0 // First resume is primary
+        });
+
+      if (dbError) throw dbError;
+
+      toast.success('Resume uploaded successfully!');
+      setShowResumeDialog(false);
+      setResumeFile(null);
+      setResumeDisplayName('');
+      await loadUserResumes();
+    } catch (error) {
+      console.error('Error uploading resume:', error);
+      toast.error('Failed to upload resume');
+    } finally {
+      setIsUploadingResume(false);
+    }
+  };
+
+  const handleDeleteResume = async (resumeId: string, filePath: string) => {
+    if (!confirm('Are you sure you want to delete this resume?')) return;
+
+    try {
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('resumes')
+        .remove([filePath]);
+
+      if (storageError) throw storageError;
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('user_resumes')
+        .delete()
+        .eq('id', resumeId);
+
+      if (dbError) throw dbError;
+
+      toast.success('Resume deleted successfully');
+      await loadUserResumes();
+    } catch (error) {
+      console.error('Error deleting resume:', error);
+      toast.error('Failed to delete resume');
+    }
+  };
+
+  const handleDownloadResume = async (filePath: string, fileName: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .download(filePath);
+
+      if (error) throw error;
+
+      const url = window.URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading resume:', error);
+      toast.error('Failed to download resume');
+    }
+  };
+
+  const handleSetPrimaryResume = async (resumeId: string) => {
+    try {
+      // Unset all primary flags
+      await supabase
+        .from('user_resumes')
+        .update({ is_primary: false })
+        .eq('user_id', user?.id);
+
+      // Set new primary
+      const { error } = await supabase
+        .from('user_resumes')
+        .update({ is_primary: true })
+        .eq('id', resumeId);
+
+      if (error) throw error;
+
+      toast.success('Primary resume updated');
+      await loadUserResumes();
+    } catch (error) {
+      console.error('Error setting primary resume:', error);
+      toast.error('Failed to set primary resume');
     }
   };
 
@@ -729,6 +882,7 @@ const Profile = () => {
 
     loadProfile();
     loadCities();
+    loadUserResumes();
   }, [user]);
 
   const handleConnectCalendar = async (provider: 'google' | 'microsoft' | 'apple') => {
@@ -1494,9 +1648,10 @@ const Profile = () => {
                 <Upload className="w-5 h-5 text-accent" />
                 Resume/CV
               </CardTitle>
-              <CardDescription>Update your resume for the latest opportunities</CardDescription>
+              <CardDescription>Upload and manage your resumes</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Upload new resume */}
               <div className="border-2 border-dashed border-accent/30 rounded-lg p-8 text-center hover:border-accent/50 transition-colors">
                 <input
                   type="file"
@@ -1508,13 +1663,60 @@ const Profile = () => {
                 <label htmlFor="resume" className="cursor-pointer">
                   <Upload className="w-12 h-12 mx-auto mb-4 text-accent" />
                   <p className="text-sm font-medium mb-1">
-                    {resume ? resume.name : "Click to upload new resume"}
+                    Click to upload new resume
                   </p>
                   <p className="text-xs text-muted-foreground">
                     PDF, DOC, or DOCX (Max 10MB)
                   </p>
                 </label>
               </div>
+
+              {/* List of uploaded resumes */}
+              {userResumes.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Your Resumes</h4>
+                  {userResumes.map((resume) => (
+                    <div key={resume.id} className="flex items-center justify-between p-3 border rounded-lg bg-card/30">
+                      <div className="flex items-center gap-3 flex-1">
+                        <FileText className="w-5 h-5 text-accent" />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{resume.display_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(resume.file_size / 1024 / 1024).toFixed(2)} MB • 
+                            {new Date(resume.uploaded_at).toLocaleDateString()}
+                            {resume.is_primary && <span className="ml-2 text-accent">• Primary</span>}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {!resume.is_primary && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleSetPrimaryResume(resume.id)}
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDownloadResume(resume.file_path, resume.file_name)}
+                        >
+                          <Upload className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDeleteResume(resume.id, resume.file_path)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -2410,6 +2612,60 @@ const Profile = () => {
           </div>
         </form>
       </div>
+
+      {/* Resume Upload Dialog */}
+      <Dialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Name Your Resume</DialogTitle>
+            <DialogDescription>
+              Give your resume a descriptive name to easily identify it later
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="resume-name">Resume Name</Label>
+              <Input
+                id="resume-name"
+                value={resumeDisplayName}
+                onChange={(e) => setResumeDisplayName(e.target.value)}
+                placeholder="e.g., Software Engineer Resume 2025"
+              />
+            </div>
+            {resumeFile && (
+              <div className="text-sm text-muted-foreground">
+                <p>File: {resumeFile.name}</p>
+                <p>Size: {(resumeFile.size / 1024 / 1024).toFixed(2)} MB</p>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowResumeDialog(false);
+                setResumeFile(null);
+                setResumeDisplayName('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUploadResume}
+              disabled={!resumeDisplayName.trim() || isUploadingResume}
+            >
+              {isUploadingResume ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                'Upload Resume'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

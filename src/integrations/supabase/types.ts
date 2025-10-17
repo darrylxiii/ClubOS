@@ -8462,6 +8462,45 @@ export type Database = {
         }
         Relationships: []
       }
+      user_resumes: {
+        Row: {
+          display_name: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id: string
+          is_primary: boolean | null
+          mime_type: string
+          updated_at: string | null
+          uploaded_at: string | null
+          user_id: string
+        }
+        Insert: {
+          display_name: string
+          file_name: string
+          file_path: string
+          file_size: number
+          id?: string
+          is_primary?: boolean | null
+          mime_type: string
+          updated_at?: string | null
+          uploaded_at?: string | null
+          user_id: string
+        }
+        Update: {
+          display_name?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          id?: string
+          is_primary?: boolean | null
+          mime_type?: string
+          updated_at?: string | null
+          uploaded_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
