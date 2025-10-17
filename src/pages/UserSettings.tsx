@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, Loader2, MapPin, Globe } from "lucide-react";
+import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, Loader2, MapPin, Globe, Eye, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -108,6 +108,7 @@ const Profile = () => {
     file_name: string;
     file_path: string;
     file_size: number;
+    mime_type: string;
     is_primary: boolean;
     uploaded_at: string;
   }>>([]);
@@ -115,6 +116,9 @@ const Profile = () => {
   const [showResumeDialog, setShowResumeDialog] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [resumeDisplayName, setResumeDisplayName] = useState('');
+  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+  const [previewResumeUrl, setPreviewResumeUrl] = useState<string | null>(null);
+  const [previewResumeName, setPreviewResumeName] = useState('');
   
   interface CalendarConnection {
     id: string;
@@ -565,6 +569,29 @@ const Profile = () => {
     } catch (error) {
       console.error('Error downloading resume:', error);
       toast.error('Failed to download resume');
+    }
+  };
+
+  const handlePreviewResume = async (filePath: string, fileName: string, mimeType: string) => {
+    try {
+      // Only allow preview for PDFs
+      if (!mimeType.includes('pdf')) {
+        toast.error('Only PDF files can be previewed. Please download to view.');
+        return;
+      }
+
+      const { data, error } = await supabase.storage
+        .from('resumes')
+        .createSignedUrl(filePath, 3600); // 1 hour expiry
+
+      if (error) throw error;
+
+      setPreviewResumeUrl(data.signedUrl);
+      setPreviewResumeName(fileName);
+      setShowPreviewDialog(true);
+    } catch (error) {
+      console.error('Error previewing resume:', error);
+      toast.error('Failed to preview resume');
     }
   };
 
@@ -1694,6 +1721,7 @@ const Profile = () => {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleSetPrimaryResume(resume.id)}
+                            title="Set as primary"
                           >
                             <CheckCircle2 className="w-4 h-4" />
                           </Button>
@@ -1701,14 +1729,24 @@ const Profile = () => {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleDownloadResume(resume.file_path, resume.file_name)}
+                          onClick={() => handlePreviewResume(resume.file_path, resume.file_name, resume.mime_type)}
+                          title="Preview"
                         >
-                          <Upload className="w-4 h-4" />
+                          <Eye className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDownloadResume(resume.file_path, resume.file_name)}
+                          title="Download"
+                        >
+                          <Download className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDeleteResume(resume.id, resume.file_path)}
+                          title="Delete"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -2662,6 +2700,39 @@ const Profile = () => {
               ) : (
                 'Upload Resume'
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resume Preview Dialog */}
+      <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
+        <DialogContent className="max-w-4xl h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>{previewResumeName}</DialogTitle>
+            <DialogDescription>
+              Preview of your resume document
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex-1 w-full h-full overflow-hidden">
+            {previewResumeUrl && (
+              <iframe
+                src={previewResumeUrl}
+                className="w-full h-[calc(90vh-120px)] border-0 rounded-lg"
+                title="Resume Preview"
+              />
+            )}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowPreviewDialog(false);
+                setPreviewResumeUrl(null);
+                setPreviewResumeName('');
+              }}
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
