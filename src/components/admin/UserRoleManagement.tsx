@@ -28,15 +28,22 @@ const AVAILABLE_ROLES = [
   { value: 'user', label: 'Candidate', description: 'Standard user access' },
 ];
 
+interface Company {
+  id: string;
+  name: string;
+}
+
 export function UserRoleManagement() {
   const [users, setUsers] = useState<UserWithRoles[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserWithRoles[]>([]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserWithRoles | null>(null);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [selectedCompany, setSelectedCompany] = useState<string>("");
 
   useEffect(() => {
     fetchUsers();
@@ -62,6 +69,16 @@ export function UserRoleManagement() {
         .select('user_id, role');
 
       if (rolesError) throw rolesError;
+
+      // Fetch all companies
+      const { data: companiesData, error: companiesError } = await supabase
+        .from('companies')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name');
+
+      if (companiesError) throw companiesError;
+      setCompanies(companiesData || []);
 
       // Combine data
       const usersWithRoles: UserWithRoles[] = (profiles || []).map(profile => ({
@@ -118,6 +135,14 @@ export function UserRoleManagement() {
         return;
       }
 
+      // If partner role is selected, company must be selected
+      if (selectedRoles.includes('partner') && !selectedCompany) {
+        toast.error("Company required for partner role", {
+          description: "Please select a company when assigning the partner role"
+        });
+        return;
+      }
+
       // Delete existing roles
       const { error: deleteError } = await supabase
         .from('user_roles')
@@ -140,6 +165,39 @@ export function UserRoleManagement() {
           description: insertError.message
         });
         return;
+      }
+
+      // If partner role is selected, also add to company_members
+      if (selectedRoles.includes('partner') && selectedCompany) {
+        // Check if already a member
+        const { data: existingMember } = await supabase
+          .from('company_members')
+          .select('id')
+          .eq('user_id', editingUser.id)
+          .eq('company_id', selectedCompany)
+          .maybeSingle();
+
+        if (!existingMember) {
+          const { error: memberError } = await supabase
+            .from('company_members')
+            .insert({
+              user_id: editingUser.id,
+              company_id: selectedCompany,
+              role: 'admin',
+              is_active: true,
+            });
+
+          if (memberError) {
+            console.error('Error adding company member:', memberError);
+            toast.error("Role updated but failed to add to company");
+          }
+
+          // Update profile with company_id
+          await supabase
+            .from('profiles')
+            .update({ company_id: selectedCompany })
+            .eq('id', editingUser.id);
+        }
       }
 
       // Log role change in audit table
@@ -174,6 +232,7 @@ export function UserRoleManagement() {
   const openEditDialog = (user: UserWithRoles) => {
     setEditingUser(user);
     setSelectedRoles(user.roles);
+    setSelectedCompany("");
     setDialogOpen(true);
   };
 
@@ -381,6 +440,28 @@ export function UserRoleManagement() {
                   </div>
                 </div>
               ))}
+
+              {/* Company selection for partner role */}
+              {selectedRoles.includes('partner') && (
+                <div className="space-y-2 pt-4 border-t">
+                  <Label htmlFor="company">Company Assignment *</Label>
+                  <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select company" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {companies.map((company) => (
+                        <SelectItem key={company.id} value={company.id}>
+                          {company.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    This user will be added as a company admin with full hiring pipeline control
+                  </p>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button onClick={handleUpdateRoles}>Update Roles</Button>

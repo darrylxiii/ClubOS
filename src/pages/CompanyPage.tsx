@@ -21,6 +21,8 @@ import { CompanyMembersStack } from "@/components/companies/CompanyMembersStack"
 import { EditCompanyDialog } from "@/components/companies/EditCompanyDialog";
 import { TeamManagement } from "@/components/partner/TeamManagement";
 import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialog";
+import { CreateJobDialog } from "@/components/partner/CreateJobDialog";
+import { JobCard } from "@/components/JobCard";
 
 interface Company {
   id: string;
@@ -66,6 +68,8 @@ export default function CompanyPage() {
   const [jobCount, setJobCount] = useState(0);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [isCompanyMember, setIsCompanyMember] = useState(false);
+  const [createJobDialogOpen, setCreateJobDialogOpen] = useState(false);
+  const [jobs, setJobs] = useState<any[]>([]);
 
   const isAdmin = currentRole === 'admin';
   const isPartner = currentRole === 'partner';
@@ -154,13 +158,15 @@ export default function CompanyPage() {
     if (!company) return;
 
     try {
-      const [followersRes, jobsRes] = await Promise.all([
+      const [followersRes, jobsRes, jobsDataRes] = await Promise.all([
         supabase.from("company_followers").select("id", { count: 'exact', head: true }).eq("company_id", company.id),
         supabase.from("jobs").select("id", { count: 'exact', head: true }).eq("company_id", company.id).eq("status", "published"),
+        supabase.from("jobs").select("*").eq("company_id", company.id).order("created_at", { ascending: false }),
       ]);
 
       setFollowerCount(followersRes.count || 0);
       setJobCount(jobsRes.count || 0);
+      setJobs(jobsDataRes.data || []);
     } catch (error) {
       console.error("Error loading stats:", error);
     }
@@ -552,21 +558,60 @@ export default function CompanyPage() {
           </TabsContent>
 
           <TabsContent value="jobs" className="space-y-6 mt-6">
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-muted-foreground text-center py-12">
-                  View all open positions on our careers page
+            {/* Jobs Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">Open Positions</h2>
+                <p className="text-muted-foreground">
+                  {jobCount} {jobCount === 1 ? 'role' : 'roles'} currently available
                 </p>
-                {company.careers_page_url && (
-                  <div className="text-center">
-                    <Button onClick={() => window.open(company.careers_page_url!, '_blank')}>
-                      <Briefcase className="w-4 h-4 mr-2" />
-                      View Open Roles
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+              </div>
+              {(isAdmin || isCompanyMember) && (
+                <Button onClick={() => setCreateJobDialogOpen(true)}>
+                  <Briefcase className="w-4 h-4 mr-2" />
+                  Create New Job
+                </Button>
+              )}
+            </div>
+
+            {/* Jobs List */}
+            {jobs.length === 0 ? (
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-muted-foreground text-center py-12">
+                    {(isAdmin || isCompanyMember) 
+                      ? "No jobs posted yet. Create your first job to start hiring!"
+                      : "No open positions at the moment. Check back soon!"}
+                  </p>
+                  {company.careers_page_url && (
+                    <div className="text-center">
+                      <Button onClick={() => window.open(company.careers_page_url!, '_blank')}>
+                        <Briefcase className="w-4 h-4 mr-2" />
+                        Visit Careers Page
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-6">
+                {jobs.map((job) => (
+                  <JobCard 
+                    key={job.id}
+                    title={job.title}
+                    company={company.name}
+                    location={job.location || "Remote"}
+                    type={job.employment_type || "Full-time"}
+                    postedDate={new Date(job.created_at).toLocaleDateString()}
+                    tags={[]}
+                    salary={job.salary_min && job.salary_max 
+                      ? `${job.currency} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`
+                      : undefined}
+                    onApply={() => navigate(`/jobs/${job.id}`)}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="team" className="space-y-6 mt-6">
@@ -616,15 +661,28 @@ export default function CompanyPage() {
 
       {/* Edit Company Dialog */}
       {company && (
-        <EditCompanyDialog
-          companyId={company.id}
-          open={editDialogOpen}
-          onClose={() => setEditDialogOpen(false)}
-          onSuccess={() => {
-            loadCompany();
-            setEditDialogOpen(false);
-          }}
-        />
+        <>
+          <EditCompanyDialog
+            companyId={company.id}
+            open={editDialogOpen}
+            onClose={() => setEditDialogOpen(false)}
+            onSuccess={() => {
+              loadCompany();
+              setEditDialogOpen(false);
+            }}
+          />
+          
+          {/* Create Job Dialog */}
+          <CreateJobDialog
+            open={createJobDialogOpen}
+            onOpenChange={setCreateJobDialogOpen}
+            companyId={company.id}
+            onJobCreated={() => {
+              loadStats();
+              toast.success("Job created successfully!");
+            }}
+          />
+        </>
       )}
     </AppLayout>
   );
