@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,14 @@ import { toast } from "sonner";
 interface CreateJobDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  companyId: string;
+  companyId?: string;
   onJobCreated: () => void;
 }
 
 export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }: CreateJobDialogProps) => {
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -27,17 +28,47 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
     salary_min: '',
     salary_max: '',
     currency: 'EUR',
+    company_id: companyId || '',
   });
+
+  useEffect(() => {
+    if (!companyId && open) {
+      fetchCompanies();
+    }
+  }, [companyId, open]);
+
+  const fetchCompanies = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('id, name')
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setCompanies(data || []);
+    } catch (error) {
+      console.error('Error fetching companies:', error);
+      toast.error("Failed to load companies");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const targetCompanyId = companyId || formData.company_id;
+    if (!targetCompanyId) {
+      toast.error("Please select a company");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await supabase
         .from('jobs')
         .insert({
-          company_id: companyId,
+          company_id: targetCompanyId,
           created_by: user!.id,
           title: formData.title,
           description: formData.description,
@@ -62,6 +93,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
         salary_min: '',
         salary_max: '',
         currency: 'EUR',
+        company_id: companyId || '',
       });
     } catch (error) {
       console.error('Error creating job:', error);
@@ -78,6 +110,28 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
           <DialogTitle className="text-2xl font-black uppercase">Create New Job</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {!companyId && (
+            <div className="space-y-2">
+              <Label htmlFor="company">Company *</Label>
+              <Select
+                value={formData.company_id}
+                onValueChange={(value) => setFormData({ ...formData, company_id: value })}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a company" />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="title">Job Title *</Label>
             <Input
