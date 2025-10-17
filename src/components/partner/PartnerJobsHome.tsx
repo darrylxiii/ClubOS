@@ -53,6 +53,7 @@ import {
   Timer,
   Flag,
   PlayCircle,
+  Settings,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
 import { AdminBoardTools } from "./AdminBoardTools";
@@ -503,6 +504,15 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
             >
               <LayoutDashboard className="w-4 h-4" />
               <span className="hidden sm:inline">Applications Hub</span>
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="gap-2"
+              onClick={() => navigate('/company-jobs')}
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Company Settings</span>
             </Button>
             <Button variant="outline" size="lg" className="gap-2">
               <Users className="w-4 h-4" />

@@ -45,6 +45,7 @@ const Messages = lazy(() => import("./pages/Messages"));
 const Applications = lazy(() => import("./pages/Applications"));
 const ApplicationDetail = lazy(() => import("./pages/ApplicationDetail"));
 const CompanyApplications = lazy(() => import("./pages/CompanyApplications"));
+const CompanyJobsDashboard = lazy(() => import("./pages/CompanyJobsDashboard"));
 const Companies = lazy(() => import("./pages/Companies"));
 const CompanyPage = lazy(() => import("./pages/CompanyPage"));
 const Scheduling = lazy(() => import("./pages/Scheduling"));
@@ -125,6 +126,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Jobs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/company-jobs"
+              element={
+                <ProtectedRoute>
+                  <CompanyJobsDashboard />
                 </ProtectedRoute>
               }
             />

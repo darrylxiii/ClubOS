@@ -1986,6 +1986,41 @@ export type Database = {
           },
         ]
       }
+      company_settings: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          pipeline_settings: Json | null
+          role_settings: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          pipeline_settings?: Json | null
+          role_settings?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          pipeline_settings?: Json | null
+          role_settings?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_stories: {
         Row: {
           caption: string | null
