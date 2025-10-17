@@ -1652,15 +1652,15 @@ const Profile = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Upload new resume */}
-              <div className="border-2 border-dashed border-accent/30 rounded-lg p-8 text-center hover:border-accent/50 transition-colors">
+              <div className="border-2 border-dashed border-accent/30 rounded-lg hover:border-accent/50 transition-colors">
                 <input
                   type="file"
-                  id="resume"
+                  id="resume-upload"
                   accept=".pdf,.doc,.docx"
                   onChange={handleFileChange}
                   className="hidden"
                 />
-                <label htmlFor="resume" className="cursor-pointer">
+                <label htmlFor="resume-upload" className="cursor-pointer block p-8 text-center">
                   <Upload className="w-12 h-12 mx-auto mb-4 text-accent" />
                   <p className="text-sm font-medium mb-1">
                     Click to upload new resume
