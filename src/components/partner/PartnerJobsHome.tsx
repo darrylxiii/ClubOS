@@ -60,7 +60,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import confetti from "canvas-confetti";
 
 interface PartnerJobsHomeProps {
-  companyId: string;
+  companyId: string | null;
 }
 
 interface JobWithMetrics {
@@ -871,7 +871,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       <CreateJobDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
-        companyId={companyId}
+        companyId={companyId || undefined}
         onJobCreated={fetchJobsWithMetrics}
       />
     </TooltipProvider>
