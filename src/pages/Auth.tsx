@@ -40,6 +40,7 @@ const Auth = () => {
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [mfaRequired, setMfaRequired] = useState(false);
   const [mfaCode, setMfaCode] = useState("");
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -157,6 +158,8 @@ const Auth = () => {
               return;
             }
 
+            // Store BOTH factor ID and challenge ID separately
+            setMfaFactorId(verifiedFactor.id);
             setMfaChallengeId(challengeData.id);
             setMfaRequired(true);
             toast.info("Please enter your 2FA code");
@@ -273,7 +276,7 @@ const Auth = () => {
       return;
     }
 
-    if (!mfaChallengeId) {
+    if (!mfaFactorId || !mfaChallengeId) {
       toast.error("No MFA challenge found. Please try signing in again.");
       setMfaRequired(false);
       return;
@@ -281,9 +284,10 @@ const Auth = () => {
 
     setVerificationLoading(true);
     try {
+      // Use the correct factor ID and challenge ID
       const { data, error } = await supabase.auth.mfa.verify({
-        factorId: mfaChallengeId,
-        challengeId: mfaChallengeId,
+        factorId: mfaFactorId,      // The MFA factor ID
+        challengeId: mfaChallengeId, // The challenge ID
         code: mfaCode
       });
 
@@ -292,6 +296,7 @@ const Auth = () => {
       if (data) {
         toast.success("Welcome back!");
         setMfaRequired(false);
+        setMfaFactorId(null);
         setMfaChallengeId(null);
         navigate("/home");
       }
@@ -464,6 +469,7 @@ const Auth = () => {
                 onClick={() => {
                   setMfaRequired(false);
                   setMfaCode("");
+                  setMfaFactorId(null);
                   setMfaChallengeId(null);
                 }}
                 className="text-white/80 hover:text-white font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
