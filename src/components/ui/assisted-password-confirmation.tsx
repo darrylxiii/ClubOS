@@ -59,41 +59,61 @@ export function AssistedPasswordConfirmation({
   };
 
   return (
-    <div className="relative">
+    <div className="space-y-3">
+      {/* Visual Feedback Box - Shows dots with colored highlights */}
       <motion.div
-        className="relative h-14 w-full rounded-2xl border-2 bg-white/90 px-3.5 py-3 overflow-hidden"
+        className="h-14 w-full rounded-2xl border-2 bg-white/90 px-2 py-2"
         animate={{
           ...bounceAnimation,
           ...matchAnimation,
           ...borderAnimation,
         }}
       >
-        {/* Background indicators for each character */}
-        <div className="absolute inset-0 z-0 flex items-center justify-start px-3.5 pointer-events-none">
-          {password.split('').map((letter, index) => (
-            <motion.div
-              key={index}
-              className={`h-full transition-all duration-300 ${getLetterStatus(
-                letter,
-                index,
-              )}`}
-              style={{
-                width: '0.53em',
-                scaleX: confirmPassword[index] ? 1 : 0,
-                transformOrigin: 'left',
-              }}
-            />
-          ))}
+        <div className="relative h-full w-fit overflow-hidden rounded-lg">
+          {/* Dots display */}
+          <div className="z-10 flex h-full items-center justify-center bg-transparent px-0 py-1 tracking-[0.15em]">
+            {password.split('').map((_, index) => (
+              <div
+                key={index}
+                className="flex h-full w-4 shrink-0 items-center justify-center"
+              >
+                <span className="size-[5px] rounded-full bg-gray-900"></span>
+              </div>
+            ))}
+          </div>
+          
+          {/* Colored background indicators */}
+          <div className="absolute bottom-0 left-0 top-0 z-0 flex h-full w-full items-center justify-start">
+            {password.split('').map((letter, index) => (
+              <motion.div
+                key={index}
+                className={`ease absolute h-full w-4 transition-all duration-300 ${getLetterStatus(
+                  letter,
+                  index,
+                )}`}
+                style={{
+                  left: `${index * 16}px`,
+                  scaleX: confirmPassword[index] ? 1 : 0,
+                  transformOrigin: 'left',
+                }}
+              />
+            ))}
+          </div>
         </div>
-        
-        {/* Input field */}
-        <input
-          id="confirmPassword"
-          className="relative z-10 h-full w-full bg-transparent tracking-[0.4em] text-gray-900 outline-none placeholder:tracking-normal placeholder:text-gray-500 font-semibold text-base"
+      </motion.div>
+
+      {/* Actual Input Box */}
+      <motion.div
+        className="h-14 w-full overflow-hidden rounded-2xl"
+        animate={matchAnimation}
+      >
+        <motion.input
+          className="h-full w-full rounded-2xl border-2 bg-white/90 px-3.5 py-3 tracking-[0.4em] text-gray-900 outline-none placeholder:tracking-normal placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 font-semibold text-base transition-all"
           type="password"
           placeholder="Confirm Password"
           value={confirmPassword}
           onChange={handleConfirmPasswordChange}
+          animate={borderAnimation}
         />
       </motion.div>
     </div>
