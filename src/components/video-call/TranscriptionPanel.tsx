@@ -1,7 +1,8 @@
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Download } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Download } from 'lucide-react';
 
 interface Transcript {
   id: string;
@@ -12,11 +13,15 @@ interface Transcript {
 }
 
 interface TranscriptionPanelProps {
-  transcripts: Transcript[];
-  onClose: () => void;
+  meetingId: string;
 }
 
-export function TranscriptionPanel({ transcripts, onClose }: TranscriptionPanelProps) {
+export function TranscriptionPanel({ meetingId }: TranscriptionPanelProps) {
+  const [transcripts, setTranscripts] = useState<Transcript[]>([]);
+
+  // In a real implementation, this would use Speech-to-Text API
+  // For now, we'll show a placeholder
+
   const downloadTranscript = () => {
     const text = transcripts
       .map(t => `[${new Date(t.timestamp_ms).toLocaleTimeString()}] ${t.text}`)
@@ -26,45 +31,47 @@ export function TranscriptionPanel({ transcripts, onClose }: TranscriptionPanelP
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `transcript-${Date.now()}.txt`;
+    a.download = `transcript-${meetingId}-${Date.now()}.txt`;
     a.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className="absolute left-0 top-0 bottom-0 w-96 glass-card border-r border-border/20 flex flex-col z-[10001]">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border/20">
-        <h3 className="font-semibold text-lg">Live Transcription</h3>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="icon" onClick={downloadTranscript}>
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-5 w-5" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Transcripts */}
+    <div className="flex flex-col h-full">
       <ScrollArea className="flex-1 p-4">
-        <div className="space-y-3">
-          {transcripts.map((transcript) => (
-            <div key={transcript.id} className="space-y-1">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>{new Date(transcript.timestamp_ms).toLocaleTimeString()}</span>
-                {!transcript.is_final && (
-                  <Badge variant="secondary" className="text-xs">
-                    Interim
-                  </Badge>
-                )}
+        {transcripts.length === 0 ? (
+          <div className="text-center text-muted-foreground py-8">
+            <p>Transcription will appear here during the meeting</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {transcripts.map((transcript) => (
+              <div key={transcript.id} className="space-y-1">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>{new Date(transcript.timestamp_ms).toLocaleTimeString()}</span>
+                  {!transcript.is_final && (
+                    <Badge variant="secondary" className="text-xs">
+                      Interim
+                    </Badge>
+                  )}
+                </div>
+                <p className={transcript.is_final ? '' : 'italic opacity-70'}>
+                  {transcript.text}
+                </p>
               </div>
-              <p className={transcript.is_final ? '' : 'italic opacity-70'}>
-                {transcript.text}
-              </p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </ScrollArea>
+
+      {transcripts.length > 0 && (
+        <div className="p-4 border-t border-white/10">
+          <Button onClick={downloadTranscript} className="w-full">
+            <Download className="h-4 w-4 mr-2" />
+            Download Transcript
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

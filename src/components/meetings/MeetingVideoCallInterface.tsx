@@ -9,6 +9,13 @@ import { ControlsPanel } from '@/components/video-call/ControlsPanel';
 import { VideoGrid } from '@/components/video-call/VideoGrid';
 import { PreCallDiagnostics } from '@/components/video-call/PreCallDiagnostics';
 import { OnScreenReactions } from '@/components/video-call/OnScreenReactions';
+import { MeetingChatSidebar } from '@/components/video-call/MeetingChatSidebar';
+import { DeviceSelector } from '@/components/video-call/DeviceSelector';
+import { LiveCaptions } from '@/components/video-call/LiveCaptions';
+import { MeetingNotes } from '@/components/video-call/MeetingNotes';
+import { TranscriptionPanel } from '@/components/video-call/TranscriptionPanel';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Video } from 'lucide-react';
 
 interface MeetingVideoCallInterfaceProps {
@@ -32,6 +39,11 @@ export function MeetingVideoCallInterface({
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
+  const [showTranscription, setShowTranscription] = useState(false);
+  const [captionsEnabled, setCaptionsEnabled] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const {
@@ -367,13 +379,63 @@ export function MeetingVideoCallInterface({
         onToggleRecording={() => toast.info('Recording coming soon')}
         onToggleHandRaise={() => setIsHandRaised(!isHandRaised)}
         onEndCall={handleEndCall}
-        onOpenChat={() => toast.info('Chat coming soon')}
+        onOpenChat={() => setShowChat(true)}
         onOpenParticipants={() => toast.info('Participant panel coming soon')}
-        onOpenSettings={() => toast.info('Settings coming soon')}
+        onOpenSettings={() => setShowSettings(true)}
         onReaction={(emoji) => {
           sendReaction(emoji);
         }}
+        onOpenNotes={() => setShowNotes(true)}
+        onToggleCaptions={() => setCaptionsEnabled(!captionsEnabled)}
+        captionsEnabled={captionsEnabled}
       />
+
+      {/* Live Captions */}
+      <LiveCaptions enabled={captionsEnabled} localStream={localStream} />
+
+      {/* Chat Sidebar */}
+      <Sheet open={showChat} onOpenChange={setShowChat}>
+        <SheetContent side="right" className="w-96 p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>Meeting Chat</SheetTitle>
+          </SheetHeader>
+          <MeetingChatSidebar 
+            meetingId={meeting.id} 
+            participantId={participantId}
+            participantName={participantName}
+          />
+        </SheetContent>
+      </Sheet>
+
+      {/* Settings Dialog */}
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Meeting Settings</DialogTitle>
+          </DialogHeader>
+          <DeviceSelector />
+        </DialogContent>
+      </Dialog>
+
+      {/* Notes Panel */}
+      <Sheet open={showNotes} onOpenChange={setShowNotes}>
+        <SheetContent side="right" className="w-[600px] p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>Meeting Notes</SheetTitle>
+          </SheetHeader>
+          <MeetingNotes meetingId={meeting.id} meetingTitle={meeting.title} />
+        </SheetContent>
+      </Sheet>
+
+      {/* Transcription Panel */}
+      <Sheet open={showTranscription} onOpenChange={setShowTranscription}>
+        <SheetContent side="right" className="w-96 p-0">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle>Transcription</SheetTitle>
+          </SheetHeader>
+          <TranscriptionPanel meetingId={meeting.id} />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 

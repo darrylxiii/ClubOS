@@ -12,7 +12,9 @@ import {
   Users,
   Settings,
   MoreVertical,
-  Circle
+  Circle,
+  Subtitles,
+  FileText
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -38,6 +40,9 @@ interface ControlsPanelProps {
   onOpenParticipants: () => void;
   onOpenSettings: () => void;
   onReaction: (emoji: string) => void;
+  onToggleCaptions?: () => void;
+  onOpenNotes?: () => void;
+  captionsEnabled?: boolean;
 }
 
 export function ControlsPanel({
@@ -55,6 +60,9 @@ export function ControlsPanel({
   onOpenChat,
   onOpenParticipants,
   onOpenSettings,
+  onToggleCaptions,
+  onOpenNotes,
+  captionsEnabled = false,
   onReaction
 }: ControlsPanelProps) {
   const reactions = ['👍', '👏', '❤️', '😂', '🎉', '👋'];
@@ -170,6 +178,18 @@ export function ControlsPanel({
               <MessageSquare className="h-4 w-4" />
               Chat
             </DropdownMenuItem>
+            {onToggleCaptions && (
+              <DropdownMenuItem onClick={onToggleCaptions} className="gap-2 text-white hover:bg-white/10">
+                <Subtitles className={cn("h-4 w-4", captionsEnabled && "text-primary")} />
+                {captionsEnabled ? 'Hide Captions' : 'Show Captions'}
+              </DropdownMenuItem>
+            )}
+            {onOpenNotes && (
+              <DropdownMenuItem onClick={onOpenNotes} className="gap-2 text-white hover:bg-white/10">
+                <FileText className="h-4 w-4" />
+                Meeting Notes
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onOpenParticipants} className="gap-2 text-white hover:bg-white/10">
               <Users className="h-4 w-4" />
               Participants
