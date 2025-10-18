@@ -56,6 +56,7 @@ const allCommands: CommandItem[] = [
   
   // Communication
   { id: "messages", label: "Messages", icon: MessageSquare, path: "/messages", category: "Communication", roles: ["user", "partner", "admin", "strategist"] },
+  { id: "meetings", label: "Meetings", icon: Video, path: "/meetings", category: "Communication", roles: ["user", "partner", "admin", "strategist"] },
   { id: "scheduling", label: "Scheduling", icon: Calendar, path: "/scheduling", category: "Communication", roles: ["user", "partner", "admin", "strategist"] },
   { id: "meeting-history", label: "Meeting History", icon: Video, path: "/meeting-history", category: "Communication", roles: ["user", "partner", "admin", "strategist"] },
   { id: "interview-prep", label: "Interview Prep", icon: Clock, path: "/interview-prep", category: "Communication", roles: ["user", "strategist"] },
