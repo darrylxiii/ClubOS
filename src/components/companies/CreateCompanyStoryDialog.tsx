@@ -138,7 +138,7 @@ export function CreateCompanyStoryDialog({
                   )}
                   <Button
                     size="sm"
-                    variant="destructive"
+                    variant="ghost"
                     className="absolute top-2 right-2"
                     onClick={() => {
                       setMediaFile(null);

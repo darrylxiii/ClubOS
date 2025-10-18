@@ -144,7 +144,7 @@ export default function FunnelAnalytics() {
               Export CSV
             </Button>
             <Button 
-              variant={isActive ? "destructive" : "default"}
+              variant={isActive ? "secondary" : "default"}
               onClick={toggleFunnel}
             >
               {isActive ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}

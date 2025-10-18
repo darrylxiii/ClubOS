@@ -224,7 +224,7 @@ export const ProfileHeaderUpload = ({
 
           {currentMediaUrl && (
             <Button
-              variant="destructive"
+              variant="ghost"
               className="w-full"
               onClick={handleDelete}
               disabled={deleting}

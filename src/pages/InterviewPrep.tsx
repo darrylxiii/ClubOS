@@ -337,7 +337,7 @@ const InterviewPrep = () => {
                   <div className="flex gap-2">
                     <Button
                       onClick={endInterview}
-                      variant="destructive"
+                      variant="ghost"
                       className="w-full"
                     >
                       <MicOff className="w-4 h-4 mr-2" />

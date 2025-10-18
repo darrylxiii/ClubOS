@@ -436,7 +436,7 @@ const Settings = () => {
                   <p className="text-sm text-muted-foreground">
                     Permanently delete your account and all data
                   </p>
-                  <Button variant="destructive" size="sm">
+                  <Button variant="ghost" size="sm">
                     Delete Account
                   </Button>
                 </div>

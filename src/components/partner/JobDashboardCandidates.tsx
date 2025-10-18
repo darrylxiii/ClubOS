@@ -261,7 +261,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
                           )}
                           <Button
                             size="sm"
-                            variant="destructive"
+                            variant="ghost"
                             onClick={() => handleOpenActionDialog(app, 'reject')}
                           >
                             <UserX className="w-4 h-4 mr-2" />

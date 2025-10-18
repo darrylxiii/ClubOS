@@ -130,7 +130,7 @@ export function AudioCallInterface({ conversationId, participantName, onEnd }: A
         <div className="flex gap-6 justify-center pt-8">
           <Button
             size="icon"
-            variant={audioEnabled ? "default" : "destructive"}
+            variant={audioEnabled ? "default" : "secondary"}
             onClick={toggleAudio}
             className="h-16 w-16 rounded-full shadow-2xl"
           >
@@ -139,7 +139,7 @@ export function AudioCallInterface({ conversationId, participantName, onEnd }: A
           
           <Button
             size="icon"
-            variant="destructive"
+            variant="ghost"
             onClick={handleEndCall}
             className="h-16 w-16 rounded-full shadow-2xl"
           >

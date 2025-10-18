@@ -163,7 +163,7 @@ export function VideoCallInterface({ conversationId, participantName, onEnd }: V
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4">
         <Button
           size="icon"
-          variant={videoEnabled ? "default" : "destructive"}
+          variant={videoEnabled ? "default" : "secondary"}
           onClick={toggleVideo}
           className="h-14 w-14 rounded-full shadow-2xl"
         >
@@ -172,7 +172,7 @@ export function VideoCallInterface({ conversationId, participantName, onEnd }: V
         
         <Button
           size="icon"
-          variant={audioEnabled ? "default" : "destructive"}
+          variant={audioEnabled ? "default" : "secondary"}
           onClick={toggleAudio}
           className="h-14 w-14 rounded-full shadow-2xl"
         >
@@ -181,7 +181,7 @@ export function VideoCallInterface({ conversationId, participantName, onEnd }: V
         
         <Button
           size="icon"
-          variant="destructive"
+          variant="ghost"
           onClick={handleEndCall}
           className="h-14 w-14 rounded-full shadow-2xl"
         >

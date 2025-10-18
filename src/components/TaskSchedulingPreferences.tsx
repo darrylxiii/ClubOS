@@ -267,7 +267,8 @@ export function TaskSchedulingPreferences() {
         <Button
           onClick={savePreferences}
           disabled={saving}
-          className="w-full bg-gradient-accent text-background"
+          className="w-full"
+          variant="glass"
         >
           {saving ? 'Saving...' : 'Save Preferences'}
         </Button>

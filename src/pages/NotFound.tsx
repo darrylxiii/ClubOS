@@ -60,7 +60,7 @@ const NotFound = () => {
 
         {/* CTA Button */}
         <a href="/">
-          <Button variant="gradient" size="lg" className="font-bold hover-lift">
+          <Button variant="glass" size="lg" className="font-bold hover-lift">
             Return Home
           </Button>
         </a>

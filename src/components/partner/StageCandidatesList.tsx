@@ -193,7 +193,7 @@ export function StageCandidatesList({
                     )}
                     <Button
                       size="sm"
-                      variant="destructive"
+                      variant="ghost"
                       onClick={(e) => {
                         e.stopPropagation();
                         onReject(candidate);

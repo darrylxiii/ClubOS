@@ -575,7 +575,7 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
                   <div className="relative rounded-lg overflow-hidden border-2 border-border">
                     <img src={coverPreview} alt="Cover" className="w-full h-48 object-cover" />
                     <Button
-                      variant="destructive"
+                      variant="ghost"
                       size="icon"
                       className="absolute top-2 right-2"
                       onClick={() => {

@@ -260,7 +260,7 @@ export default function Scheduling() {
           
           <Dialog>
             <DialogTrigger asChild>
-              <Button>
+              <Button variant="glass">
                 <Plus className="h-4 w-4 mr-2" />
                 New Booking Link
               </Button>
@@ -492,6 +492,7 @@ export default function Scheduling() {
                   onClick={createBookingLink}
                   disabled={isCreatingLink}
                   className="w-full"
+                  variant="glass"
                 >
                   {isCreatingLink ? "Creating..." : "Create Booking Link"}
                 </Button>

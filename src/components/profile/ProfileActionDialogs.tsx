@@ -335,7 +335,7 @@ export function ProfileActionDialogs({
               <Button variant="outline" onClick={() => onClose('report')}>
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={() => {
+              <Button variant="ghost" onClick={() => {
                 onSubmit('report', { reason: reportReason, message });
                 setMessage("");
                 setReportReason("spam");

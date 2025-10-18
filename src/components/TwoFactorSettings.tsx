@@ -234,7 +234,7 @@ export const TwoFactorSettings = () => {
                 {factor.status !== 'verified' && (
                   <Button
                     size="sm"
-                    variant="destructive"
+                    variant="ghost"
                     onClick={() => handleRemoveFactor(factor.id)}
                     disabled={resetting}
                   >
@@ -415,7 +415,7 @@ export const TwoFactorSettings = () => {
             </div>
 
             <Button
-              variant="destructive"
+              variant="ghost"
               onClick={handleDisableMFA}
               className="w-full"
             >
