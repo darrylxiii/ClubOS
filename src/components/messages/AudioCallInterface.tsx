@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, PhoneOff } from 'lucide-react';
 import { toast } from 'sonner';
@@ -80,32 +81,30 @@ export function AudioCallInterface({ conversationId, participantName, onEnd }: A
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  if (permissionDenied) {
-    return (
-      <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center">
-        <div className="max-w-md w-full p-8 text-center space-y-6 glass-card mx-4">
-          <div className="w-20 h-20 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
-            <MicOff className="h-10 w-10 text-destructive" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold mb-2">Microphone Access Required</h3>
-            <p className="text-muted-foreground mb-4">
-              Please enable microphone permissions in your browser to start a voice call.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Click the microphone icon in your browser's address bar to allow access.
-            </p>
-          </div>
-          <Button onClick={handleEndCall} variant="outline" className="w-full">
-            Close
-          </Button>
+  const content = permissionDenied ? (
+    <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-xl flex items-center justify-center w-screen h-screen"
+         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+      <div className="max-w-md w-full p-8 text-center space-y-6 glass-card mx-4">
+        <div className="w-20 h-20 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
+          <MicOff className="h-10 w-10 text-destructive" />
         </div>
+        <div>
+          <h3 className="text-xl font-bold mb-2">Microphone Access Required</h3>
+          <p className="text-muted-foreground mb-4">
+            Please enable microphone permissions in your browser to start a voice call.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Click the microphone icon in your browser's address bar to allow access.
+          </p>
+        </div>
+        <Button onClick={handleEndCall} variant="outline" className="w-full">
+          Close
+        </Button>
       </div>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center">
+    </div>
+  ) : (
+    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-900 via-gray-800 to-black flex items-center justify-center w-screen h-screen"
+         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       <div className="text-center space-y-8 animate-fade-in">
         {/* Avatar */}
         <div className="relative">
@@ -149,4 +148,6 @@ export function AudioCallInterface({ conversationId, participantName, onEnd }: A
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }

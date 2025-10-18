@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Video, VideoOff, Mic, MicOff, PhoneOff } from 'lucide-react';
 import { toast } from 'sonner';
@@ -91,32 +92,29 @@ export function VideoCallInterface({ conversationId, participantName, onEnd }: V
     onEnd();
   };
 
-  if (permissionDenied) {
-    return (
-      <div className="fixed inset-0 z-50 bg-black flex items-center justify-center">
-        <div className="max-w-md w-full p-8 text-center space-y-6 glass-card mx-4">
-          <div className="w-20 h-20 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
-            <VideoOff className="h-10 w-10 text-destructive" />
-          </div>
-          <div>
-            <h3 className="text-xl font-bold mb-2">Camera/Microphone Access Required</h3>
-            <p className="text-muted-foreground mb-4">
-              Please enable camera and microphone permissions in your browser to start a video call.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Click the camera icon in your browser's address bar to allow access.
-            </p>
-          </div>
-          <Button onClick={handleEndCall} variant="outline" className="w-full">
-            Close
-          </Button>
+  const content = permissionDenied ? (
+    <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
+      <div className="max-w-md w-full p-8 text-center space-y-6 glass-card mx-4">
+        <div className="w-20 h-20 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
+          <VideoOff className="h-10 w-10 text-destructive" />
         </div>
+        <div>
+          <h3 className="text-xl font-bold mb-2">Camera/Microphone Access Required</h3>
+          <p className="text-muted-foreground mb-4">
+            Please enable camera and microphone permissions in your browser to start a video call.
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Click the camera icon in your browser's address bar to allow access.
+          </p>
+        </div>
+        <Button onClick={handleEndCall} variant="outline" className="w-full">
+          Close
+        </Button>
       </div>
-    );
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 bg-black">
+    </div>
+  ) : (
+    <div className="fixed inset-0 z-[9999] bg-black w-screen h-screen"
+         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       {/* Remote Video (Full Screen) */}
       <video
         ref={remoteVideoRef}
@@ -190,4 +188,6 @@ export function VideoCallInterface({ conversationId, participantName, onEnd }: V
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 }
