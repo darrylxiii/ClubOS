@@ -475,58 +475,49 @@ const Auth = () => {
 
             {!isLogin ? (
               <>
-                <div>
-                  <Input
-                    type="password"
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
-                  />
-                  {password && !(
-                    password.length >= 12 &&
-                    /[A-Z]/.test(password) &&
-                    /[a-z]/.test(password) &&
-                    /[0-9]/.test(password) &&
-                    /[^A-Za-z0-9]/.test(password)
-                  ) && (
-                    <div className="text-xs space-y-2 mt-4 p-4 rounded-2xl bg-background/30 border border-white/10 backdrop-blur-sm animate-fade-in">
-                      <p className={password.length >= 12 ? "text-success font-semibold" : "text-white/70"}>
-                        {password.length >= 12 ? "✓" : "○"} At least 12 characters
-                      </p>
-                      <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
-                        {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
-                      </p>
-                      <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
-                        {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
-                      </p>
-                      <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
-                        {/[0-9]/.test(password) ? "✓" : "○"} One number
-                      </p>
-                      <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
-                        {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Only show confirmation when all requirements are met */}
-                {password && (
+                {/* Password requirements - show until met */}
+                {password && !(
                   password.length >= 12 &&
                   /[A-Z]/.test(password) &&
                   /[a-z]/.test(password) &&
                   /[0-9]/.test(password) &&
                   /[^A-Za-z0-9]/.test(password)
                 ) && (
-                  <div className="animate-fade-in">
-                    <AssistedPasswordConfirmation
-                      password={password}
-                      confirmPassword={confirmPassword}
-                      onConfirmPasswordChange={setConfirmPassword}
-                    />
+                  <div className="text-xs space-y-2 p-4 rounded-2xl bg-background/30 border border-white/10 backdrop-blur-sm animate-fade-in mb-3">
+                    <p className={password.length >= 12 ? "text-success font-semibold" : "text-white/70"}>
+                      {password.length >= 12 ? "✓" : "○"} At least 12 characters
+                    </p>
+                    <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
+                      {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
+                    </p>
+                    <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
+                      {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
+                    </p>
+                    <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
+                      {/[0-9]/.test(password) ? "✓" : "○"} One number
+                    </p>
+                    <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
+                      {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
+                    </p>
                   </div>
                 )}
+
+                {/* Two-box password system */}
+                <div className="animate-fade-in">
+                  <AssistedPasswordConfirmation
+                    password={password}
+                    confirmPassword={confirmPassword}
+                    onConfirmPasswordChange={setConfirmPassword}
+                    onPasswordChange={setPassword}
+                    showPasswordInput={!(
+                      password.length >= 12 &&
+                      /[A-Z]/.test(password) &&
+                      /[a-z]/.test(password) &&
+                      /[0-9]/.test(password) &&
+                      /[^A-Za-z0-9]/.test(password)
+                    )}
+                  />
+                </div>
               </>
             ) : (
               <div>
