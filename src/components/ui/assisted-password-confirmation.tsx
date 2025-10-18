@@ -74,44 +74,27 @@ export function AssistedPasswordConfirmation({
           transition: { duration: 0.3 },
         }}
       >
-        {/* Visual feedback layer - dots and colored backgrounds */}
-        {!showPasswordInput && password && (
-          <div className="absolute inset-0 px-2 py-2 pointer-events-none">
-            <div className="relative h-full w-fit overflow-hidden rounded-lg">
-              {/* Dots display */}
-              <div className="z-10 flex h-full items-center justify-center bg-transparent px-0 py-1 tracking-[0.15em]">
-                {password.split('').map((_, index) => (
-                  <div
-                    key={index}
-                    className="flex h-full w-4 shrink-0 items-center justify-center"
-                  >
-                    <span className="size-[5px] rounded-full bg-gray-900"></span>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Colored background indicators */}
-              <div className="absolute bottom-0 left-0 top-0 z-0 flex h-full w-full items-center justify-start">
-                {password.split('').map((letter, index) => (
-                  <motion.div
-                    key={index}
-                    className={`ease absolute h-full w-4 transition-all duration-300 ${getLetterStatus(
-                      letter,
-                      index,
-                    )}`}
-                    style={{
-                      left: `${index * 16}px`,
-                      scaleX: confirmPassword[index] ? 1 : 0,
-                      transformOrigin: 'left',
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
+        {/* Visual feedback layer - ONLY colored backgrounds, NO dots */}
+        {!showPasswordInput && password && confirmPassword && (
+          <div className="absolute inset-0 px-3.5 flex items-center pointer-events-none">
+            {password.split('').map((letter, index) => (
+              <motion.div
+                key={index}
+                className={`h-full transition-all duration-300 ${getLetterStatus(
+                  letter,
+                  index,
+                )}`}
+                style={{
+                  width: '0.53em',
+                  scaleX: confirmPassword[index] ? 1 : 0,
+                  transformOrigin: 'left',
+                }}
+              />
+            ))}
           </div>
         )}
         
-        {/* Actual password input - ALWAYS present and editable */}
+        {/* Actual password input - shows native password dots */}
         <input
           type="password"
           placeholder="Password"
