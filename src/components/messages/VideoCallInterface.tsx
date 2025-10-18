@@ -66,11 +66,17 @@ export function VideoCallInterface({ conversationId, participantName, participan
     setShowDiagnostics(false);
     
     try {
-      // Initialize media and session
-      await initializeMedia();
+      // Start session first (this was causing the recursion error before)
       const newSession = await startSession();
       
-      if (newSession && localVideoRef.current && localStream) {
+      if (!newSession) {
+        throw new Error('Failed to create session');
+      }
+
+      // Then initialize media
+      await initializeMedia();
+      
+      if (localVideoRef.current && localStream) {
         localVideoRef.current.srcObject = localStream;
       }
 
@@ -90,8 +96,22 @@ export function VideoCallInterface({ conversationId, participantName, participan
     } catch (error: any) {
       console.error('Error initializing call:', error);
       setPermissionDenied(true);
-      toast.error('Failed to initialize call. Please check permissions.');
+      
+      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+        toast.error('Camera/microphone access denied. Please allow permissions.');
+      } else if (error.name === 'NotFoundError') {
+        toast.error('No camera or microphone found on your device.');
+      } else if (error.code === '42P17') {
+        toast.error('Database error. Please try again.');
+      } else {
+        toast.error('Failed to initialize call. Please try again.');
+      }
     }
+  };
+
+  const handleRetry = () => {
+    setPermissionDenied(false);
+    setShowDiagnostics(true);
   };
 
   const handleScreenShare = async () => {
@@ -146,13 +166,23 @@ export function VideoCallInterface({ conversationId, participantName, participan
           <p className="text-muted-foreground mb-4">
             Please enable camera and microphone permissions in your browser to start a video call.
           </p>
-          <p className="text-sm text-muted-foreground">
-            Click the camera icon in your browser's address bar to allow access.
-          </p>
+          <div className="text-sm text-muted-foreground space-y-2 text-left bg-muted/50 rounded-lg p-4">
+            <p className="font-semibold">How to enable permissions:</p>
+            <ol className="list-decimal list-inside space-y-1">
+              <li>Click the camera icon in your browser's address bar</li>
+              <li>Select "Allow" for both camera and microphone</li>
+              <li>Click the "Try Again" button below</li>
+            </ol>
+          </div>
         </div>
-        <Button onClick={handleEndCall} variant="outline" className="w-full">
-          Close
-        </Button>
+        <div className="flex gap-3">
+          <Button onClick={handleEndCall} variant="outline" className="flex-1">
+            Cancel
+          </Button>
+          <Button onClick={handleRetry} className="flex-1">
+            Try Again
+          </Button>
+        </div>
       </div>
     </div>,
     document.body
