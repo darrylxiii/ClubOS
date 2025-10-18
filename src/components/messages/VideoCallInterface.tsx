@@ -2,10 +2,22 @@ import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Video, VideoOff, Mic, MicOff, PhoneOff } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Video, VideoOff, Mic, MicOff, PhoneOff, Pencil } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useVideoCall } from '@/hooks/useVideoCall';
+import { useWebRTC } from '@/hooks/useWebRTC';
+import { useBandwidthMonitor } from '@/hooks/useBandwidthMonitor';
+import { ControlsPanel } from '@/components/video-call/ControlsPanel';
+import { ChatSidebar } from '@/components/video-call/ChatSidebar';
+import { ParticipantPanel } from '@/components/video-call/ParticipantPanel';
+import { SettingsPanel } from '@/components/video-call/SettingsPanel';
+import { ScreenAnnotation } from '@/components/video-call/ScreenAnnotation';
+import { OnScreenReactions } from '@/components/video-call/OnScreenReactions';
+import { VideoGrid } from '@/components/video-call/VideoGrid';
+import { PreCallDiagnostics } from '@/components/video-call/PreCallDiagnostics';
 
 interface VideoCallInterfaceProps {
   conversationId: string;
@@ -15,108 +27,115 @@ interface VideoCallInterfaceProps {
 }
 
 export function VideoCallInterface({ conversationId, participantName, participantAvatar, onEnd }: VideoCallInterfaceProps) {
-  const [localStream, setLocalStream] = useState<MediaStream | null>(null);
-  const [videoEnabled, setVideoEnabled] = useState(true);
-  const [audioEnabled, setAudioEnabled] = useState(true);
+  const [showDiagnostics, setShowDiagnostics] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isCalling, setIsCalling] = useState(true);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const [isAnnotating, setIsAnnotating] = useState(false);
+  const [isHandRaised, setIsHandRaised] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [showParticipants, setShowParticipants] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
+  
   const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const callingAudioRef = useRef<HTMLAudioElement>(null);
 
-  useEffect(() => {
-    initializeCall();
-    
-    // Play calling sound
-    if (callingAudioRef.current) {
-      callingAudioRef.current.loop = true;
-      callingAudioRef.current.play().catch(console.error);
-    }
-
-    // Simulate call connection after 3 seconds (replace with actual WebRTC logic)
-    const timer = setTimeout(() => {
-      setIsCalling(false);
-      if (callingAudioRef.current) {
-        callingAudioRef.current.pause();
-      }
-    }, 3000);
-
-    return () => {
-      cleanup();
-      clearTimeout(timer);
-      if (callingAudioRef.current) {
-        callingAudioRef.current.pause();
-      }
-    };
-  }, []);
-
-  const initializeCall = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
-          facingMode: 'user'
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
+  // Hooks
+  const { session, participants, reactions, isRecording, startSession, updateParticipantState, sendReaction, toggleRecording, endSession } = useVideoCall(conversationId);
+  
+  const { localStream, isVideoEnabled, isAudioEnabled, initializeMedia, sendOffer, toggleVideo, toggleAudio, startScreenShare, cleanup } = useWebRTC({
+    sessionId: session?.id || '',
+    userId: 'current-user-id', // Replace with actual user ID
+    onRemoteStream: (userId, stream) => {
+      setRemoteStreams(prev => new Map(prev).set(userId, stream));
+    },
+    onParticipantLeft: (userId) => {
+      setRemoteStreams(prev => {
+        const newMap = new Map(prev);
+        newMap.delete(userId);
+        return newMap;
       });
+    }
+  });
 
-      setLocalStream(stream);
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
+  const { stats } = useBandwidthMonitor();
+
+  // Diagnostics complete handler
+  const handleDiagnosticsComplete = async () => {
+    setShowDiagnostics(false);
+    
+    try {
+      // Initialize media and session
+      await initializeMedia();
+      const newSession = await startSession();
       
-      toast.success('Camera and microphone access granted');
+      if (newSession && localVideoRef.current && localStream) {
+        localVideoRef.current.srcObject = localStream;
+      }
+
+      // Play calling sound
+      if (callingAudioRef.current) {
+        callingAudioRef.current.loop = true;
+        callingAudioRef.current.play().catch(console.error);
+      }
+
+      // Simulate connection
+      setTimeout(() => {
+        setIsCalling(false);
+        callingAudioRef.current?.pause();
+      }, 3000);
+
+      toast.success('Connected to call');
     } catch (error: any) {
-      console.error('Error accessing media devices:', error);
+      console.error('Error initializing call:', error);
       setPermissionDenied(true);
-      
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        toast.error('Camera/microphone access denied. Please allow permissions in your browser.');
-      } else if (error.name === 'NotFoundError') {
-        toast.error('No camera or microphone found on your device.');
+      toast.error('Failed to initialize call. Please check permissions.');
+    }
+  };
+
+  const handleScreenShare = async () => {
+    try {
+      if (isScreenSharing) {
+        // Stop screen sharing
+        setIsScreenSharing(false);
+        setIsAnnotating(false);
       } else {
-        toast.error('Failed to access camera/microphone. Please check your device.');
+        await startScreenShare();
+        setIsScreenSharing(true);
+        toast.success('Screen sharing started');
       }
+    } catch (error) {
+      toast.error('Failed to start screen sharing');
     }
   };
 
-  const toggleVideo = () => {
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
-      if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setVideoEnabled(videoTrack.enabled);
-      }
-    }
-  };
-
-  const toggleAudio = () => {
-    if (localStream) {
-      const audioTrack = localStream.getAudioTracks()[0];
-      if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setAudioEnabled(audioTrack.enabled);
-      }
-    }
-  };
-
-  const cleanup = () => {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
-    }
-  };
-
-  const handleEndCall = () => {
+  const handleEndCall = async () => {
+    await endSession();
     cleanup();
     onEnd();
   };
 
-  const content = permissionDenied ? (
+  useEffect(() => {
+    return () => {
+      cleanup();
+      callingAudioRef.current?.pause();
+    };
+  }, []);
+
+  // Show diagnostics first
+  if (showDiagnostics) {
+    return (
+      <PreCallDiagnostics
+        onComplete={handleDiagnosticsComplete}
+        onCancel={onEnd}
+      />
+    );
+  }
+
+  // Permission denied screen
+  if (permissionDenied) {
+    return createPortal(
     <div className="fixed inset-0 z-[9999] bg-black flex items-center justify-center">
       <div className="max-w-md w-full p-8 text-center space-y-6 glass-card mx-4">
         <div className="w-20 h-20 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
@@ -135,16 +154,56 @@ export function VideoCallInterface({ conversationId, participantName, participan
           Close
         </Button>
       </div>
-    </div>
-  ) : (
-    <div className="fixed inset-0 z-[9999] bg-black w-screen h-screen"
+    </div>,
+    document.body
+    );
+  }
+
+  // Main call interface
+  const content = (
+    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-900 to-black w-screen h-screen"
          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-      {/* Remote Video (Full Screen) */}
-      <video
-        ref={remoteVideoRef}
-        autoPlay
-        playsInline
-        className="w-full h-full object-cover"
+      
+      {/* Connection Quality Badge */}
+      <div className="absolute top-4 left-4 z-[10000]">
+        <Badge 
+          variant={stats.quality === 'excellent' || stats.quality === 'good' ? 'default' : 'destructive'}
+          className="glass-card"
+        >
+          {stats.quality === 'excellent' && '🟢'} 
+          {stats.quality === 'good' && '🟡'}
+          {stats.quality === 'fair' && '🟠'}
+          {stats.quality === 'poor' && '🔴'}
+          {' '}{stats.latency}ms
+        </Badge>
+      </div>
+
+      {/* Video Grid */}
+      <VideoGrid
+        participants={participants.map(p => ({
+          id: p.id,
+          display_name: p.display_name,
+          role: p.role,
+          is_muted: p.is_muted,
+          is_video_off: p.is_video_off,
+          is_screen_sharing: p.is_screen_sharing,
+          is_hand_raised: p.is_hand_raised,
+          is_speaking: p.is_speaking,
+          stream: remoteStreams.get(p.user_id)
+        }))}
+        localParticipant={{
+          id: 'local',
+          display_name: 'You',
+          role: 'host',
+          is_muted: !isAudioEnabled,
+          is_video_off: !isVideoEnabled,
+          is_screen_sharing: isScreenSharing,
+          is_hand_raised: isHandRaised,
+          is_speaking: false,
+          stream: localStream || undefined
+        }}
+        focusedParticipantId={undefined}
+        layout="grid"
       />
       
       {/* Placeholder when calling/no remote stream */}
@@ -195,54 +254,67 @@ export function VideoCallInterface({ conversationId, participantName, participan
         preload="auto"
       />
 
-      {/* Local Video (Picture-in-Picture) */}
-      <div className="absolute top-4 right-4 w-48 h-36 rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl">
-        <video
-          ref={localVideoRef}
-          autoPlay
-          playsInline
-          muted
-          className={cn(
-            "w-full h-full object-cover",
-            !videoEnabled && "hidden"
-          )}
-        />
-        {!videoEnabled && (
-          <div className="w-full h-full bg-gray-800 flex items-center justify-center">
-            <VideoOff className="h-8 w-8 text-white" />
-          </div>
-        )}
-      </div>
+      {/* Screen Annotation Toolbar */}
+      {isScreenSharing && !isAnnotating && (
+        <div className="absolute top-4 right-4 z-[10000]">
+          <Button
+            onClick={() => setIsAnnotating(true)}
+            className="glass-card rounded-full"
+          >
+            <Pencil className="h-5 w-5 mr-2" />
+            Annotate
+          </Button>
+        </div>
+      )}
 
-      {/* Controls */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-4">
-        <Button
-          size="icon"
-          variant={videoEnabled ? "default" : "secondary"}
-          onClick={toggleVideo}
-          className="h-14 w-14 rounded-full shadow-2xl"
-        >
-          {videoEnabled ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
-        </Button>
-        
-        <Button
-          size="icon"
-          variant={audioEnabled ? "default" : "secondary"}
-          onClick={toggleAudio}
-          className="h-14 w-14 rounded-full shadow-2xl"
-        >
-          {audioEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
-        </Button>
-        
-        <Button
-          size="icon"
-          variant="ghost"
-          onClick={handleEndCall}
-          className="h-14 w-14 rounded-full shadow-2xl"
-        >
-          <PhoneOff className="h-6 w-6" />
-        </Button>
-      </div>
+      {/* Annotation Layer */}
+      <ScreenAnnotation
+        isAnnotating={isAnnotating}
+        onClose={() => setIsAnnotating(false)}
+      />
+
+      {/* On-Screen Reactions */}
+      <OnScreenReactions reactions={reactions} />
+
+      {/* Side Panels */}
+      {showChat && (
+        <ChatSidebar
+          conversationId={conversationId}
+          onClose={() => setShowChat(false)}
+        />
+      )}
+
+      {showParticipants && (
+        <ParticipantPanel
+          participants={participants}
+          onClose={() => setShowParticipants(false)}
+        />
+      )}
+
+      {showSettings && (
+        <SettingsPanel
+          onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {/* Controls Panel */}
+      <ControlsPanel
+        isAudioEnabled={isAudioEnabled}
+        isVideoEnabled={isVideoEnabled}
+        isScreenSharing={isScreenSharing}
+        isRecording={isRecording}
+        isHandRaised={isHandRaised}
+        onToggleAudio={toggleAudio}
+        onToggleVideo={toggleVideo}
+        onToggleScreenShare={handleScreenShare}
+        onToggleRecording={toggleRecording}
+        onToggleHandRaise={() => setIsHandRaised(!isHandRaised)}
+        onEndCall={handleEndCall}
+        onOpenChat={() => setShowChat(!showChat)}
+        onOpenParticipants={() => setShowParticipants(!showParticipants)}
+        onOpenSettings={() => setShowSettings(!showSettings)}
+        onReaction={(emoji) => sendReaction(emoji)}
+      />
     </div>
   );
 
