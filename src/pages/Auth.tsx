@@ -474,7 +474,7 @@ const Auth = () => {
             </div>
 
             {!isLogin ? (
-              <>
+              <div className="space-y-3 animate-fade-in">
                 {/* Password requirements - show until met */}
                 {password && !(
                   password.length >= 12 &&
@@ -483,7 +483,7 @@ const Auth = () => {
                   /[0-9]/.test(password) &&
                   /[^A-Za-z0-9]/.test(password)
                 ) && (
-                  <div className="text-xs space-y-2 p-4 rounded-2xl bg-background/30 border border-white/10 backdrop-blur-sm animate-fade-in mb-3">
+                  <div className="text-xs space-y-2 p-4 rounded-2xl bg-background/30 border border-white/10 backdrop-blur-sm">
                     <p className={password.length >= 12 ? "text-success font-semibold" : "text-white/70"}>
                       {password.length >= 12 ? "✓" : "○"} At least 12 characters
                     </p>
@@ -502,23 +502,21 @@ const Auth = () => {
                   </div>
                 )}
 
-                {/* Two-box password system */}
-                <div className="animate-fade-in">
-                  <AssistedPasswordConfirmation
-                    password={password}
-                    confirmPassword={confirmPassword}
-                    onConfirmPasswordChange={setConfirmPassword}
-                    onPasswordChange={setPassword}
-                    showPasswordInput={!(
-                      password.length >= 12 &&
-                      /[A-Z]/.test(password) &&
-                      /[a-z]/.test(password) &&
-                      /[0-9]/.test(password) &&
-                      /[^A-Za-z0-9]/.test(password)
-                    )}
-                  />
-                </div>
-              </>
+                {/* Enhanced password input - always shown from start */}
+                <AssistedPasswordConfirmation
+                  password={password}
+                  confirmPassword={confirmPassword}
+                  onConfirmPasswordChange={setConfirmPassword}
+                  onPasswordChange={setPassword}
+                  showPasswordInput={!(
+                    password.length >= 12 &&
+                    /[A-Z]/.test(password) &&
+                    /[a-z]/.test(password) &&
+                    /[0-9]/.test(password) &&
+                    /[^A-Za-z0-9]/.test(password)
+                  )}
+                />
+              </div>
             ) : (
               <div>
                 <Input
