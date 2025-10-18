@@ -245,7 +245,8 @@ export function MeetingVideoCallInterface({
         .from('meeting_participants')
         .select('*', { count: 'exact' })
         .eq('meeting_id', meeting.id)
-        .eq('status', 'accepted');
+        .eq('status', 'accepted')
+        .is('left_at', null);
 
       console.log('[Meeting] Total participants in DB:', count, 'WebRTC participants:', allParticipants.length);
       setTotalParticipants(count || 0);
