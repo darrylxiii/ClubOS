@@ -253,26 +253,116 @@ export function useMeetingWebRTC({
   }, [meetingId, participantId]);
 
   // Toggle video
-  const toggleVideo = useCallback(() => {
+  const toggleVideo = useCallback(async () => {
     if (localStream) {
       const videoTrack = localStream.getVideoTracks()[0];
       if (videoTrack) {
-        videoTrack.enabled = !videoTrack.enabled;
-        setIsVideoEnabled(videoTrack.enabled);
+        const newState = !videoTrack.enabled;
+        videoTrack.enabled = newState;
+        setIsVideoEnabled(newState);
+        console.log('[WebRTC] Video toggled:', newState ? 'ON' : 'OFF');
+      }
+    } else {
+      // If no stream exists, try to initialize it
+      console.log('[WebRTC] No stream found, attempting to reinitialize...');
+      try {
+        await initializeMedia();
+      } catch (error) {
+        console.error('[WebRTC] Failed to reinitialize media:', error);
       }
     }
-  }, [localStream]);
+  }, [localStream, initializeMedia]);
 
   // Toggle audio
   const toggleAudio = useCallback(() => {
     if (localStream) {
       const audioTrack = localStream.getAudioTracks()[0];
       if (audioTrack) {
-        audioTrack.enabled = !audioTrack.enabled;
-        setIsAudioEnabled(audioTrack.enabled);
+        const newState = !audioTrack.enabled;
+        audioTrack.enabled = newState;
+        setIsAudioEnabled(newState);
+        console.log('[WebRTC] Audio toggled:', newState ? 'ON' : 'OFF');
       }
     }
   }, [localStream]);
+
+  // Screen sharing
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  
+  const toggleScreenShare = useCallback(async () => {
+    if (screenStream) {
+      // Stop screen sharing
+      screenStream.getTracks().forEach(track => track.stop());
+      setScreenStream(null);
+      
+      // Notify peers to stop displaying screen share
+      await sendSignal({
+        type: 'screen-share-stop',
+        data: {}
+      });
+      
+      return false;
+    } else {
+      // Start screen sharing
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+          audio: false
+        });
+        
+        setScreenStream(stream);
+        
+        // Replace video track in all peer connections
+        const screenTrack = stream.getVideoTracks()[0];
+        peerConnections.current.forEach((pc) => {
+          const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+          if (sender) {
+            sender.replaceTrack(screenTrack);
+          }
+        });
+        
+        // Notify peers about screen share
+        await sendSignal({
+          type: 'screen-share-start',
+          data: {}
+        });
+        
+        // Handle when user stops sharing via browser UI
+        screenTrack.onended = async () => {
+          setScreenStream(null);
+          
+          // Restore camera track
+          if (localStream) {
+            const cameraTrack = localStream.getVideoTracks()[0];
+            peerConnections.current.forEach((pc) => {
+              const sender = pc.getSenders().find(s => s.track?.kind === 'video');
+              if (sender && cameraTrack) {
+                sender.replaceTrack(cameraTrack);
+              }
+            });
+          }
+          
+          await sendSignal({
+            type: 'screen-share-stop',
+            data: {}
+          });
+        };
+        
+        return true;
+      } catch (error) {
+        console.error('[WebRTC] Failed to start screen share:', error);
+        return false;
+      }
+    }
+  }, [screenStream, localStream, peerConnections]);
+
+  // Send reaction
+  const sendReaction = useCallback(async (emoji: string) => {
+    await sendSignal({
+      type: 'reaction',
+      data: { emoji, participantName }
+    });
+  }, [participantName]);
 
   // Cleanup
   const cleanup = useCallback(() => {
@@ -294,9 +384,12 @@ export function useMeetingWebRTC({
     isAudioEnabled,
     connectionState,
     participants,
+    screenStream,
     initializeMedia,
     toggleVideo,
     toggleAudio,
+    toggleScreenShare,
+    sendReaction,
     cleanup
   };
 }

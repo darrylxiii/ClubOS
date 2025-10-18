@@ -3,10 +3,12 @@ import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import { useMeetingWebRTC } from '@/hooks/useMeetingWebRTC';
 import { ControlsPanel } from '@/components/video-call/ControlsPanel';
 import { VideoGrid } from '@/components/video-call/VideoGrid';
 import { PreCallDiagnostics } from '@/components/video-call/PreCallDiagnostics';
+import { OnScreenReactions } from '@/components/video-call/OnScreenReactions';
 import { Video } from 'lucide-react';
 
 interface MeetingVideoCallInterfaceProps {
@@ -28,6 +30,7 @@ export function MeetingVideoCallInterface({
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, { stream: MediaStream; name: string }>>(new Map());
   const [isHandRaised, setIsHandRaised] = useState(false);
+  const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
 
   const {
     localStream,
@@ -35,9 +38,12 @@ export function MeetingVideoCallInterface({
     isAudioEnabled,
     connectionState,
     participants,
+    screenStream,
     initializeMedia,
     toggleVideo,
     toggleAudio,
+    toggleScreenShare,
+    sendReaction,
     cleanup
   } = useMeetingWebRTC({
     meetingId: meeting.id,
@@ -88,6 +94,51 @@ export function MeetingVideoCallInterface({
     cleanup();
     onEnd();
   };
+
+  // Subscribe to reactions
+  useEffect(() => {
+    if (!meeting?.id) return;
+
+    const channel = supabase
+      .channel(`meeting-reactions-${meeting.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'webrtc_signals',
+          filter: `meeting_id=eq.${meeting.id}`
+        },
+        (payload: any) => {
+          const signal = payload.new;
+          if (signal.signal_type === 'reaction') {
+            const reactionData = signal.signal_data;
+            const newReaction = {
+              id: signal.id,
+              emoji: reactionData.emoji,
+              name: reactionData.participantName
+            };
+            
+            setReactions(prev => [...prev, newReaction]);
+            
+            // Show toast
+            toast(`${reactionData.participantName} reacted with ${reactionData.emoji}`, {
+              duration: 2000
+            });
+            
+            // Remove after animation
+            setTimeout(() => {
+              setReactions(prev => prev.filter(r => r.id !== newReaction.id));
+            }, 3000);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [meeting?.id]);
 
   useEffect(() => {
     return () => {
@@ -173,14 +224,14 @@ export function MeetingVideoCallInterface({
       
       {/* Meeting Info Header */}
       <div className="absolute top-4 left-4 z-[10000] space-y-2">
-        <div className="glass-card px-4 py-2 rounded-lg">
+        <div className="backdrop-blur-2xl bg-black/40 border border-white/10 px-4 py-2 rounded-lg shadow-xl">
           <h3 className="font-semibold text-white">{meeting.title}</h3>
           <p className="text-xs text-gray-400">{meeting.meeting_code}</p>
         </div>
         
         <Badge 
           variant={connectionState === 'connected' ? 'default' : 'secondary'}
-          className="glass-card"
+          className="backdrop-blur-2xl bg-black/40 border border-white/10 shadow-lg"
         >
           {connectionState === 'connected' ? '🟢' : '🟡'} {connectionState}
         </Badge>
@@ -188,7 +239,7 @@ export function MeetingVideoCallInterface({
 
       {/* Participant Count */}
       <div className="absolute top-4 right-4 z-[10000]">
-        <div className="glass-card px-4 py-2 rounded-lg text-sm text-white">
+        <div className="backdrop-blur-2xl bg-black/40 border border-white/10 px-4 py-2 rounded-lg text-sm text-white shadow-xl">
           {allParticipants.length} participant{allParticipants.length !== 1 ? 's' : ''}
         </div>
       </div>
@@ -226,23 +277,35 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
+      {/* On-Screen Reactions */}
+      <OnScreenReactions reactions={reactions.map(r => ({ 
+        id: r.id, 
+        reaction_type: r.emoji,
+        participant_name: r.name 
+      }))} />
+
       {/* Controls Panel */}
       <ControlsPanel
         isAudioEnabled={isAudioEnabled}
         isVideoEnabled={isVideoEnabled}
-        isScreenSharing={false}
+        isScreenSharing={!!screenStream}
         isRecording={false}
         isHandRaised={isHandRaised}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
-        onToggleScreenShare={() => toast.info('Screen sharing coming soon')}
+        onToggleScreenShare={async () => {
+          const isSharing = await toggleScreenShare();
+          toast(isSharing ? 'Screen sharing started' : 'Screen sharing stopped');
+        }}
         onToggleRecording={() => toast.info('Recording coming soon')}
         onToggleHandRaise={() => setIsHandRaised(!isHandRaised)}
         onEndCall={handleEndCall}
         onOpenChat={() => toast.info('Chat coming soon')}
         onOpenParticipants={() => toast.info('Participant panel coming soon')}
         onOpenSettings={() => toast.info('Settings coming soon')}
-        onReaction={(emoji) => console.log('Reaction:', emoji)}
+        onReaction={(emoji) => {
+          sendReaction(emoji);
+        }}
       />
     </div>
   );
