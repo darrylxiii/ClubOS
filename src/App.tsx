@@ -21,6 +21,8 @@ import SharedProfile from "./pages/SharedProfile";
 import BookingPage from "./pages/BookingPage";
 import PartnerFunnel from "./pages/PartnerFunnel";
 import NotFound from "./pages/NotFound";
+import Meetings from "./pages/Meetings";
+import MeetingRoom from "./pages/MeetingRoom";
 
 // Lazy load protected routes to reduce initial bundle size
 const ClubHome = lazy(() => import("./pages/ClubHome"));
@@ -359,6 +361,8 @@ const App = () => (
             <Route path="/courses/:slug" element={<CourseDetail />} />
             <Route path="/academy/modules/:slug" element={<ModuleDetail />} />
             <Route path="/module/:moduleId" element={<ModuleDetail />} />
+            <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
+            <Route path="/meetings/:meetingCode" element={<MeetingRoom />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
                 </Routes>

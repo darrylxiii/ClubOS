@@ -3727,6 +3727,112 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_analytics: {
+        Row: {
+          chat_messages_count: number | null
+          created_at: string | null
+          engagement_score: number | null
+          id: string
+          meeting_id: string
+          metadata: Json | null
+          polls_count: number | null
+          reactions_count: number | null
+          recording_duration_minutes: number | null
+          screen_shares_count: number | null
+          total_duration_minutes: number | null
+          total_participants: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          chat_messages_count?: number | null
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          meeting_id: string
+          metadata?: Json | null
+          polls_count?: number | null
+          reactions_count?: number | null
+          recording_duration_minutes?: number | null
+          screen_shares_count?: number | null
+          total_duration_minutes?: number | null
+          total_participants?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          chat_messages_count?: number | null
+          created_at?: string | null
+          engagement_score?: number | null
+          id?: string
+          meeting_id?: string
+          metadata?: Json | null
+          polls_count?: number | null
+          reactions_count?: number | null
+          recording_duration_minutes?: number | null
+          screen_shares_count?: number | null
+          total_duration_minutes?: number | null
+          total_participants?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_analytics_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_participants: {
+        Row: {
+          created_at: string | null
+          guest_email: string | null
+          guest_name: string | null
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          meeting_id: string
+          permissions: Json | null
+          role: string
+          status: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          meeting_id: string
+          permissions?: Json | null
+          role?: string
+          status?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          guest_email?: string | null
+          guest_name?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          meeting_id?: string
+          permissions?: Json | null
+          role?: string
+          status?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_participants_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_polls: {
         Row: {
           booking_link_id: string
@@ -3845,6 +3951,160 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      meeting_summaries: {
+        Row: {
+          action_items: Json | null
+          generated_at: string | null
+          highlights: Json | null
+          id: string
+          key_points: Json | null
+          meeting_id: string
+          summary: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          generated_at?: string | null
+          highlights?: Json | null
+          id?: string
+          key_points?: Json | null
+          meeting_id: string
+          summary?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          generated_at?: string | null
+          highlights?: Json | null
+          id?: string
+          key_points?: Json | null
+          meeting_id?: string
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_summaries_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_templates: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_public: boolean | null
+          name: string
+          settings: Json | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_public?: boolean | null
+          name: string
+          settings?: Json | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          settings?: Json | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      meetings: {
+        Row: {
+          access_type: string
+          agenda: string | null
+          allow_guests: boolean | null
+          branding: Json | null
+          created_at: string | null
+          description: string | null
+          host_id: string
+          id: string
+          max_participants: number | null
+          meeting_code: string
+          meeting_password: string | null
+          recurrence_rule: string | null
+          require_approval: boolean | null
+          scheduled_end: string
+          scheduled_start: string
+          settings: Json | null
+          status: string
+          timezone: string
+          title: string
+          updated_at: string | null
+          video_session_id: string | null
+        }
+        Insert: {
+          access_type?: string
+          agenda?: string | null
+          allow_guests?: boolean | null
+          branding?: Json | null
+          created_at?: string | null
+          description?: string | null
+          host_id: string
+          id?: string
+          max_participants?: number | null
+          meeting_code: string
+          meeting_password?: string | null
+          recurrence_rule?: string | null
+          require_approval?: boolean | null
+          scheduled_end: string
+          scheduled_start: string
+          settings?: Json | null
+          status?: string
+          timezone?: string
+          title: string
+          updated_at?: string | null
+          video_session_id?: string | null
+        }
+        Update: {
+          access_type?: string
+          agenda?: string | null
+          allow_guests?: boolean | null
+          branding?: Json | null
+          created_at?: string | null
+          description?: string | null
+          host_id?: string
+          id?: string
+          max_participants?: number | null
+          meeting_code?: string
+          meeting_password?: string | null
+          recurrence_rule?: string | null
+          require_approval?: boolean | null
+          scheduled_end?: string
+          scheduled_start?: string
+          settings?: Json | null
+          status?: string
+          timezone?: string
+          title?: string
+          updated_at?: string | null
+          video_session_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meetings_video_session_id_fkey"
+            columns: ["video_session_id"]
+            isOneToOne: false
+            referencedRelation: "video_call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       message_attachments: {
         Row: {
@@ -9225,6 +9485,10 @@ export type Database = {
         }[]
       }
       generate_invite_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      generate_meeting_code: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
