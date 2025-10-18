@@ -59,47 +59,43 @@ export function AssistedPasswordConfirmation({
   };
 
   return (
-    <div className="space-y-2">
-      <label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-        Confirm Password
-      </label>
-      <div className="relative">
-        <motion.div
-          className="relative h-[52px] w-full rounded-lg border-2 bg-background/50 px-2 py-2 overflow-hidden"
-          animate={{
-            ...bounceAnimation,
-            ...matchAnimation,
-            ...borderAnimation,
-          }}
-        >
-          {/* Background indicators for each character */}
-          <div className="absolute bottom-0 left-2 top-0 z-0 flex h-full items-center justify-start pointer-events-none">
-            {password.split('').map((letter, index) => (
-              <motion.div
-                key={index}
-                className={`h-full w-[0.6rem] transition-all duration-300 ${getLetterStatus(
-                  letter,
-                  index,
-                )}`}
-                style={{
-                  scaleX: confirmPassword[index] ? 1 : 0,
-                  transformOrigin: 'left',
-                }}
-              />
-            ))}
-          </div>
-          
-          {/* Input field */}
-          <input
-            id="confirmPassword"
-            className="relative z-10 h-full w-full bg-transparent px-1.5 tracking-[0.4em] text-foreground outline-none placeholder:tracking-normal placeholder:text-muted-foreground font-medium"
-            type="password"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={handleConfirmPasswordChange}
-          />
-        </motion.div>
-      </div>
+    <div className="relative">
+      <motion.div
+        className="relative h-14 w-full rounded-2xl border-2 bg-white/90 px-3.5 py-3 overflow-hidden"
+        animate={{
+          ...bounceAnimation,
+          ...matchAnimation,
+          ...borderAnimation,
+        }}
+      >
+        {/* Background indicators for each character */}
+        <div className="absolute inset-0 z-0 flex items-center justify-start px-3.5 pointer-events-none">
+          {password.split('').map((letter, index) => (
+            <motion.div
+              key={index}
+              className={`h-full transition-all duration-300 ${getLetterStatus(
+                letter,
+                index,
+              )}`}
+              style={{
+                width: '0.53em',
+                scaleX: confirmPassword[index] ? 1 : 0,
+                transformOrigin: 'left',
+              }}
+            />
+          ))}
+        </div>
+        
+        {/* Input field */}
+        <input
+          id="confirmPassword"
+          className="relative z-10 h-full w-full bg-transparent tracking-[0.4em] text-gray-900 outline-none placeholder:tracking-normal placeholder:text-gray-500 font-semibold text-base"
+          type="password"
+          placeholder="Confirm Password"
+          value={confirmPassword}
+          onChange={handleConfirmPasswordChange}
+        />
+      </motion.div>
     </div>
   );
 }
