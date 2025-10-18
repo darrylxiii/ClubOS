@@ -74,24 +74,10 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --shadow-inner: inset 0 1px 3px hsl(25 15% 15% / 0.04);
     --shadow-glow: 0 0 24px hsl(220 85% 58% / 0.25), 0 0 48px hsl(220 85% 58% / 0.12);
     
-    /* iOS Glass Tahoe - Material System Blur Levels */
-    --blur-ultra-thin: 10px;
-    --blur-thin: 20px;
-    --blur-medium: 30px;
-    --blur-thick: 50px;
-    --blur-ultra-thick: 80px;
-    
-    /* Legacy support - maps to new system */
-    --blur-glass: var(--blur-medium);
-    --blur-glass-strong: var(--blur-thick);
-    --blur-glass-subtle: var(--blur-thin);
-    
-    /* Material Opacity Levels */
-    --material-ultra-thin-opacity: 0.3;
-    --material-thin-opacity: 0.5;
-    --material-medium-opacity: 0.7;
-    --material-thick-opacity: 0.85;
-    --material-ultra-thick-opacity: 0.95;
+    /* Blur intensities */
+    --blur-glass: 24px;
+    --blur-glass-strong: 40px;
+    --blur-glass-subtle: 12px;
   }
 
   .dark {
@@ -197,75 +183,25 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     @apply uppercase tracking-wide text-xs font-semibold;
   }
 
-  /* iOS Glass Tahoe - Material System */
-  .material-ultra-thin {
-    background: hsl(var(--card) / var(--material-ultra-thin-opacity));
-    backdrop-filter: blur(var(--blur-ultra-thin)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--blur-ultra-thin)) saturate(180%);
-    border: 0.5px solid hsl(var(--border) / 0.2);
-    box-shadow: var(--shadow-glass-sm);
-  }
-
-  .material-thin {
-    background: hsl(var(--card) / var(--material-thin-opacity));
-    backdrop-filter: blur(var(--blur-thin)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--blur-thin)) saturate(180%);
-    border: 0.5px solid hsl(var(--border) / 0.3);
-    box-shadow: var(--shadow-glass-sm);
-  }
-
-  .material-medium {
-    background: hsl(var(--card) / var(--material-medium-opacity));
-    backdrop-filter: blur(var(--blur-medium)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--blur-medium)) saturate(180%);
-    border: 1px solid hsl(var(--border) / 0.4);
-    box-shadow: var(--shadow-glass-md);
-  }
-
-  .material-thick {
-    background: hsl(var(--card) / var(--material-thick-opacity));
-    backdrop-filter: blur(var(--blur-thick)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--blur-thick)) saturate(180%);
-    border: 1px solid hsl(var(--border) / 0.5);
-    box-shadow: var(--shadow-glass-lg);
-  }
-
-  .material-ultra-thick {
-    background: hsl(var(--card) / var(--material-ultra-thick-opacity));
-    backdrop-filter: blur(var(--blur-ultra-thick)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--blur-ultra-thick)) saturate(180%);
-    border: 1px solid hsl(var(--border) / 0.6);
-    box-shadow: var(--shadow-glass-xl);
-  }
-
-  /* Liquid Glass Components */
-  .liquid-glass-small {
-    @apply material-thin rounded-full;
-  }
-
-  .liquid-glass-medium {
-    @apply material-medium rounded-3xl;
-  }
-
-  .liquid-glass-large {
-    @apply material-thick rounded-[2rem];
-  }
-
-  /* Legacy glass classes - map to new material system */
+  /* Glassmorphism effects */
   .glass {
-    @apply material-medium;
+    @apply bg-card/70 backdrop-blur-[var(--blur-glass)] border border-border/50;
+    box-shadow: var(--shadow-glass-md), var(--shadow-inner);
   }
 
   .glass-strong {
-    @apply material-thick;
+    @apply bg-card/90 backdrop-blur-[var(--blur-glass-strong)] border border-border/60;
+    box-shadow: var(--shadow-glass-lg), var(--shadow-inner);
   }
 
   .glass-subtle {
-    @apply material-thin;
+    @apply bg-card/50 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30;
+    box-shadow: var(--shadow-glass-sm);
   }
 
   .glass-card {
-    @apply material-medium rounded-2xl p-6;
+    @apply glass rounded-2xl p-6;
+    background: var(--gradient-glass);
   }
 
   /* Floating effect */
