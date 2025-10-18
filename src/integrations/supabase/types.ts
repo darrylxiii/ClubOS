@@ -8599,6 +8599,314 @@ export type Database = {
         }
         Relationships: []
       }
+      video_call_participants: {
+        Row: {
+          connection_quality: string | null
+          created_at: string | null
+          display_name: string
+          id: string
+          is_hand_raised: boolean | null
+          is_muted: boolean | null
+          is_screen_sharing: boolean | null
+          is_speaking: boolean | null
+          is_video_off: boolean | null
+          joined_at: string | null
+          left_at: string | null
+          metadata: Json | null
+          role: string | null
+          session_id: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          connection_quality?: string | null
+          created_at?: string | null
+          display_name: string
+          id?: string
+          is_hand_raised?: boolean | null
+          is_muted?: boolean | null
+          is_screen_sharing?: boolean | null
+          is_speaking?: boolean | null
+          is_video_off?: boolean | null
+          joined_at?: string | null
+          left_at?: string | null
+          metadata?: Json | null
+          role?: string | null
+          session_id: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          connection_quality?: string | null
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          is_hand_raised?: boolean | null
+          is_muted?: boolean | null
+          is_screen_sharing?: boolean | null
+          is_speaking?: boolean | null
+          is_video_off?: boolean | null
+          joined_at?: string | null
+          left_at?: string | null
+          metadata?: Json | null
+          role?: string | null
+          session_id?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_call_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "video_call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_call_reactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          participant_id: string
+          reaction_type: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          participant_id: string
+          reaction_type: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          participant_id?: string
+          reaction_type?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_call_reactions_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "video_call_participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_call_reactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "video_call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_call_recordings: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          download_url: string | null
+          duration_seconds: number | null
+          expires_at: string | null
+          file_size_bytes: number | null
+          format: string | null
+          id: string
+          participants: Json | null
+          session_id: string
+          storage_path: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          download_url?: string | null
+          duration_seconds?: number | null
+          expires_at?: string | null
+          file_size_bytes?: number | null
+          format?: string | null
+          id?: string
+          participants?: Json | null
+          session_id: string
+          storage_path: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          download_url?: string | null
+          duration_seconds?: number | null
+          expires_at?: string | null
+          file_size_bytes?: number | null
+          format?: string | null
+          id?: string
+          participants?: Json | null
+          session_id?: string
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_call_recordings_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "video_call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_call_sessions: {
+        Row: {
+          conversation_id: string | null
+          created_at: string | null
+          ended_at: string | null
+          host_id: string | null
+          id: string
+          is_recording: boolean | null
+          meeting_code: string | null
+          password: string | null
+          recording_url: string | null
+          settings: Json | null
+          started_at: string | null
+          status: string | null
+          title: string | null
+          transcript: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          conversation_id?: string | null
+          created_at?: string | null
+          ended_at?: string | null
+          host_id?: string | null
+          id?: string
+          is_recording?: boolean | null
+          meeting_code?: string | null
+          password?: string | null
+          recording_url?: string | null
+          settings?: Json | null
+          started_at?: string | null
+          status?: string | null
+          title?: string | null
+          transcript?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          conversation_id?: string | null
+          created_at?: string | null
+          ended_at?: string | null
+          host_id?: string | null
+          id?: string
+          is_recording?: boolean | null
+          meeting_code?: string | null
+          password?: string | null
+          recording_url?: string | null
+          settings?: Json | null
+          started_at?: string | null
+          status?: string | null
+          title?: string | null
+          transcript?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_call_sessions_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_call_signals: {
+        Row: {
+          created_at: string | null
+          from_user_id: string
+          id: string
+          processed: boolean | null
+          session_id: string
+          signal_data: Json
+          signal_type: string
+          to_user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          from_user_id: string
+          id?: string
+          processed?: boolean | null
+          session_id: string
+          signal_data: Json
+          signal_type: string
+          to_user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          from_user_id?: string
+          id?: string
+          processed?: boolean | null
+          session_id?: string
+          signal_data?: Json
+          signal_type?: string
+          to_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_call_signals_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "video_call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_call_transcripts: {
+        Row: {
+          confidence: number | null
+          created_at: string | null
+          id: string
+          is_final: boolean | null
+          language: string | null
+          participant_id: string | null
+          session_id: string
+          text: string
+          timestamp_ms: number
+        }
+        Insert: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_final?: boolean | null
+          language?: string | null
+          participant_id?: string | null
+          session_id: string
+          text: string
+          timestamp_ms: number
+        }
+        Update: {
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_final?: boolean | null
+          language?: string | null
+          participant_id?: string | null
+          session_id?: string
+          text?: string
+          timestamp_ms?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_call_transcripts_participant_id_fkey"
+            columns: ["participant_id"]
+            isOneToOne: false
+            referencedRelation: "video_call_participants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_call_transcripts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "video_call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waitlist: {
         Row: {
           applicant_type: string | null
