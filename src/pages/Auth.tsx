@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -531,9 +532,9 @@ const Auth = () => {
             )}
 
             {/* Main CTA Button */}
-            <Button
+            <RainbowButton
               type="submit"
-              className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary/90 to-accent/90 hover:from-primary hover:to-accent text-white font-bold text-lg shadow-2xl shadow-primary/20 mt-8 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="w-full h-16 rounded-2xl font-bold text-lg shadow-2xl shadow-primary/20 mt-8 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
               disabled={isLoading || (inviteCode && !isLogin && inviteValid === false)}
             >
               {isLoading ? (
@@ -549,7 +550,7 @@ const Auth = () => {
                   <Sparkles className="w-5 h-5" />
                 </span>
               )}
-            </Button>
+            </RainbowButton>
 
             {/* Social Login Section */}
             <div className="relative my-8">

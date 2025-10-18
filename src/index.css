@@ -19,6 +19,13 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   }
 
   :root {
+    /* Rainbow button colors */
+    --color-1: 0 100% 63%;
+    --color-2: 270 100% 63%;
+    --color-3: 210 100% 63%;
+    --color-4: 195 100% 63%;
+    --color-5: 90 100% 63%;
+
     /* QuantumClub Glassmorphic Colors - Warm, Premium Palette */
     --background: 30 20% 96%;
     --foreground: 25 15% 15%;
