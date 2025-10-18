@@ -97,10 +97,21 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
         throw new Error('Failed to fetch request details');
       }
 
-      // Create meeting participant entry for the guest (upsert to prevent duplicates)
+      // First, mark any existing participant with this session as left
+      await supabase
+        .from('meeting_participants')
+        .update({ 
+          left_at: new Date().toISOString(),
+          status: 'left'
+        })
+        .eq('meeting_id', request.meeting_id)
+        .eq('session_token', request.session_token)
+        .is('left_at', null);
+
+      // Create meeting participant entry for the guest
       const { error: participantError } = await supabase
         .from('meeting_participants')
-        .upsert({
+        .insert({
           meeting_id: request.meeting_id,
           user_id: null,
           guest_name: request.guest_name,
@@ -109,9 +120,6 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
           status: 'accepted',
           joined_at: new Date().toISOString(),
           left_at: null
-        }, {
-          onConflict: 'meeting_id,session_token',
-          ignoreDuplicates: false
         });
 
       if (participantError) {
