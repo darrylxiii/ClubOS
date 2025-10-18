@@ -9382,6 +9382,47 @@ export type Database = {
           },
         ]
       }
+      webrtc_signals: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_id: string
+          processed: boolean | null
+          receiver_id: string | null
+          sender_id: string
+          signal_data: Json
+          signal_type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_id: string
+          processed?: boolean | null
+          receiver_id?: string | null
+          sender_id: string
+          signal_data?: Json
+          signal_type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_id?: string
+          processed?: boolean | null
+          receiver_id?: string | null
+          sender_id?: string
+          signal_data?: Json
+          signal_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webrtc_signals_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       public_profiles: {

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { VideoCallInterface } from '@/components/messages/VideoCallInterface';
+import { MeetingVideoCallInterface } from '@/components/meetings/MeetingVideoCallInterface';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,25 +33,32 @@ export default function MeetingRoom() {
   const loadMeeting = async () => {
     try {
       setLoading(true);
+      
+      // Use maybeSingle to avoid errors when meeting not found
       const { data, error } = await supabase
         .from('meetings')
         .select('*')
         .eq('meeting_code', meetingCode)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error loading meeting:', error);
+        throw error;
+      }
 
       if (!data) {
-        toast.error('Meeting not found');
-        navigate('/meetings');
+        console.log('Meeting not found with code:', meetingCode);
+        toast.error('Meeting not found. Please check the meeting link.');
+        // Don't auto-navigate - let user see the error
+        setLoading(false);
         return;
       }
 
+      console.log('Meeting loaded successfully:', data);
       setMeeting(data);
     } catch (error: any) {
       console.error('Error loading meeting:', error);
-      toast.error('Failed to load meeting');
-      navigate('/meetings');
+      toast.error(error.message || 'Failed to load meeting. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -60,10 +67,24 @@ export default function MeetingRoom() {
   const handleJoinMeeting = async () => {
     if (!meeting) return;
 
+    // Check if user needs to authenticate
+    if (!user && !meeting.allow_guests) {
+      toast.error('This meeting requires authentication');
+      navigate('/auth?redirect=' + encodeURIComponent(window.location.pathname));
+      return;
+    }
+
     // Validate guest info if not logged in
     if (!user && meeting.allow_guests) {
-      if (!guestName || !guestEmail) {
+      if (!guestName?.trim() || !guestEmail?.trim()) {
         toast.error('Please provide your name and email');
+        return;
+      }
+      
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(guestEmail)) {
+        toast.error('Please provide a valid email address');
         return;
       }
     }
@@ -76,29 +97,42 @@ export default function MeetingRoom() {
 
     setJoining(true);
     try {
+      console.log('Joining meeting:', meeting.id);
+      
       // Add participant
       const { error } = await supabase
         .from('meeting_participants')
         .insert({
           meeting_id: meeting.id,
-          user_id: user?.id,
-          guest_name: !user ? guestName : null,
-          guest_email: !user ? guestEmail : null,
+          user_id: user?.id || null,
+          guest_name: !user ? guestName.trim() : null,
+          guest_email: !user ? guestEmail.trim() : null,
           status: meeting.require_approval ? 'pending' : 'accepted',
           joined_at: new Date().toISOString()
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding participant:', error);
+        throw error;
+      }
 
-      if (meeting.require_approval) {
+      if (meeting.require_approval && user?.id !== meeting.host_id) {
         toast.success('Join request sent. Waiting for host approval...');
-        // TODO: Show waiting room
+        // TODO: Show waiting room with real-time approval updates
       } else {
+        console.log('Participant added successfully, joining call');
         setInCall(true);
       }
     } catch (error: any) {
       console.error('Error joining meeting:', error);
-      toast.error('Failed to join meeting');
+      
+      if (error.code === '23505') {
+        // Duplicate entry - already joined
+        toast.info('You have already joined this meeting');
+        setInCall(true);
+      } else {
+        toast.error(error.message || 'Failed to join meeting. Please try again.');
+      }
     } finally {
       setJoining(false);
     }
@@ -113,21 +147,47 @@ export default function MeetingRoom() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-8">
         <Card className="max-w-2xl w-full p-8">
-          <Skeleton className="h-64 w-full" />
+          <div className="text-center space-y-4">
+            <Skeleton className="h-16 w-16 rounded-full mx-auto" />
+            <Skeleton className="h-8 w-3/4 mx-auto" />
+            <Skeleton className="h-4 w-1/2 mx-auto" />
+            <Skeleton className="h-32 w-full" />
+          </div>
         </Card>
       </div>
     );
   }
 
   if (!meeting) {
-    return null;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-8">
+        <Card className="max-w-2xl w-full p-8 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+            <Video className="h-8 w-8 text-destructive" />
+          </div>
+          <h2 className="text-2xl font-bold">Meeting Not Found</h2>
+          <p className="text-muted-foreground">
+            The meeting link may be invalid or the meeting may have been deleted.
+          </p>
+          <Button onClick={() => navigate('/meetings')} className="mt-4">
+            View All Meetings
+          </Button>
+        </Card>
+      </div>
+    );
   }
 
   if (inCall) {
+    // Generate participant ID (user ID or guest session ID)
+    const currentParticipantId = user?.id || `guest-${guestEmail}`;
+    const displayName = user?.user_metadata?.full_name || user?.email || guestName;
+
     return (
-      <VideoCallInterface
-        conversationId={meeting.id}
-        participantName={meeting.title}
+      <MeetingVideoCallInterface
+        meeting={meeting}
+        participantId={currentParticipantId}
+        participantName={displayName}
+        isGuest={!user}
         onEnd={handleEndCall}
       />
     );
