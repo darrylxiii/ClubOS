@@ -15,6 +15,9 @@ import { LiveCaptions } from '@/components/video-call/LiveCaptions';
 import { MeetingNotes } from '@/components/video-call/MeetingNotes';
 import { TranscriptionPanel } from '@/components/video-call/TranscriptionPanel';
 import { HostApprovalPanel } from '@/components/meetings/HostApprovalPanel';
+import { HostSettingsPanel } from '@/components/meetings/HostSettingsPanel';
+import { ParticipantsPanel } from '@/components/meetings/ParticipantsPanel';
+import { MeetingDetailsPanel } from '@/components/meetings/MeetingDetailsPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Video } from 'lucide-react';
@@ -45,7 +48,22 @@ export function MeetingVideoCallInterface({
   const [showNotes, setShowNotes] = useState(false);
   const [showTranscription, setShowTranscription] = useState(false);
   const [captionsEnabled, setCaptionsEnabled] = useState(false);
+  const [showHostSettings, setShowHostSettings] = useState(false);
+  const [showParticipants, setShowParticipants] = useState(false);
+  const [showMeetingDetails, setShowMeetingDetails] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const [hostSettings, setHostSettings] = useState({
+    allowScreenShare: true,
+    allowReactions: true,
+    allowMicControl: true,
+    allowVideoControl: true,
+    allowChat: true,
+    accessType: 'open' as 'open' | 'trusted' | 'restricted',
+    requireHostApproval: false,
+    allowAddActivities: true,
+    allowThirdPartyAudio: true,
+  });
 
   const {
     localStream,
@@ -63,6 +81,7 @@ export function MeetingVideoCallInterface({
     toggleAudio,
     toggleScreenShare,
     sendReaction,
+    enablePictureInPicture,
     cleanup
   } = useMeetingWebRTC({
     meetingId: meeting.id,
@@ -115,10 +134,25 @@ export function MeetingVideoCallInterface({
   };
 
   const handleToggleScreenShare = async () => {
+    if (!hostSettings.allowScreenShare && meeting.host_id !== participantId) {
+      toast.error('Screen sharing is disabled by the host');
+      return;
+    }
     const sharing = await toggleScreenShare();
     setIsScreenSharing(sharing);
     toast(sharing ? 'Screen sharing started' : 'Screen sharing stopped');
   };
+
+  const handleEnablePiP = async () => {
+    const success = await enablePictureInPicture();
+    if (success) {
+      toast.success('Picture-in-Picture enabled');
+    } else {
+      toast.error('Picture-in-Picture not supported');
+    }
+  };
+
+  const meetingUrl = `${window.location.origin}/meetings/${meeting.meeting_code}`;
 
   // Update video ref when stream changes
   useEffect(() => {
@@ -229,7 +263,7 @@ export function MeetingVideoCallInterface({
     {
       id: 'local',
       display_name: participantName + (isGuest ? ' (Guest)' : ''),
-      role: meeting.host_id === participantId ? 'host' : 'participant',
+      role: (meeting.host_id === participantId ? 'host' : 'participant') as 'host' | 'participant',
       is_muted: !isAudioEnabled,
       is_video_off: !isVideoEnabled,
       is_screen_sharing: isScreenSharing,
@@ -240,7 +274,7 @@ export function MeetingVideoCallInterface({
     ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
       id,
       display_name: name,
-      role: 'participant',
+      role: 'participant' as 'host' | 'participant',
       is_muted: false,
       is_video_off: false,
       is_screen_sharing: false,
@@ -381,14 +415,21 @@ export function MeetingVideoCallInterface({
         onToggleHandRaise={() => setIsHandRaised(!isHandRaised)}
         onEndCall={handleEndCall}
         onOpenChat={() => setShowChat(true)}
-        onOpenParticipants={() => toast.info('Participant panel coming soon')}
+        onOpenParticipants={() => setShowParticipants(true)}
         onOpenSettings={() => setShowSettings(true)}
         onReaction={(emoji) => {
+          if (!hostSettings.allowReactions && meeting.host_id !== participantId) {
+            toast.error('Reactions are disabled by the host');
+            return;
+          }
           sendReaction(emoji);
         }}
         onOpenNotes={() => setShowNotes(true)}
         onToggleCaptions={() => setCaptionsEnabled(!captionsEnabled)}
         captionsEnabled={captionsEnabled}
+        onOpenHostSettings={meeting.host_id === participantId ? () => setShowHostSettings(true) : undefined}
+        onOpenMeetingInfo={() => setShowMeetingDetails(true)}
+        onEnablePiP={handleEnablePiP}
       />
 
       {/* Live Captions */}
@@ -443,6 +484,32 @@ export function MeetingVideoCallInterface({
           <TranscriptionPanel meetingId={meeting.id} />
         </SheetContent>
       </Sheet>
+
+      {/* Host Settings Panel */}
+      {meeting.host_id === participantId && (
+        <HostSettingsPanel
+          open={showHostSettings}
+          onOpenChange={setShowHostSettings}
+          meetingId={meeting.id}
+          settings={hostSettings}
+        />
+      )}
+
+      {/* Participants Panel */}
+      <ParticipantsPanel
+        open={showParticipants}
+        onOpenChange={setShowParticipants}
+        participants={allParticipants}
+        isHost={meeting.host_id === participantId}
+      />
+
+      {/* Meeting Details Panel */}
+      <MeetingDetailsPanel
+        open={showMeetingDetails}
+        onOpenChange={setShowMeetingDetails}
+        meetingCode={meeting.meeting_code}
+        meetingUrl={meetingUrl}
+      />
     </div>
   );
 

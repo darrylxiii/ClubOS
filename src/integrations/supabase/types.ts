@@ -4082,6 +4082,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           host_id: string
+          host_settings: Json | null
           id: string
           max_participants: number | null
           meeting_code: string
@@ -4105,6 +4106,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           host_id: string
+          host_settings?: Json | null
           id?: string
           max_participants?: number | null
           meeting_code: string
@@ -4128,6 +4130,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           host_id?: string
+          host_settings?: Json | null
           id?: string
           max_participants?: number | null
           meeting_code?: string

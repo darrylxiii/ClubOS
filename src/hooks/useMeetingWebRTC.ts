@@ -404,6 +404,26 @@ export function useMeetingWebRTC({
     });
   }, [participantName]);
 
+  // Picture-in-Picture support
+  const enablePictureInPicture = async () => {
+    if (!localStream || !document.pictureInPictureEnabled) {
+      console.warn('[PiP] Picture-in-Picture not supported');
+      return false;
+    }
+
+    try {
+      const videoElement = document.createElement('video');
+      videoElement.srcObject = localStream;
+      videoElement.muted = true;
+      await videoElement.play();
+      await videoElement.requestPictureInPicture();
+      return true;
+    } catch (error) {
+      console.error('[PiP] Failed to enable picture-in-picture:', error);
+      return false;
+    }
+  };
+
   // Cleanup with robust teardown
   const cleanup = useCallback(() => {
     console.log('[WebRTC] Cleaning up all resources...');
@@ -465,6 +485,7 @@ export function useMeetingWebRTC({
     toggleAudio,
     toggleScreenShare,
     sendReaction,
+    enablePictureInPicture,
     cleanup
   };
 }

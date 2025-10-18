@@ -14,7 +14,9 @@ import {
   MoreVertical,
   Circle,
   Subtitles,
-  FileText
+  FileText,
+  Info,
+  PictureInPicture2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -43,6 +45,9 @@ interface ControlsPanelProps {
   onToggleCaptions?: () => void;
   onOpenNotes?: () => void;
   captionsEnabled?: boolean;
+  onOpenHostSettings?: () => void;
+  onOpenMeetingInfo?: () => void;
+  onEnablePiP?: () => void;
 }
 
 export function ControlsPanel({
@@ -63,7 +68,10 @@ export function ControlsPanel({
   onToggleCaptions,
   onOpenNotes,
   captionsEnabled = false,
-  onReaction
+  onReaction,
+  onOpenHostSettings,
+  onOpenMeetingInfo,
+  onEnablePiP
 }: ControlsPanelProps) {
   const reactions = ['👍', '👏', '❤️', '😂', '🎉', '👋'];
 
@@ -198,6 +206,24 @@ export function ControlsPanel({
               <Settings className="h-4 w-4" />
               Settings
             </DropdownMenuItem>
+            {onOpenHostSettings && (
+              <DropdownMenuItem onClick={onOpenHostSettings} className="gap-2 text-white hover:bg-white/10">
+                <Settings className="h-4 w-4" />
+                Host Settings
+              </DropdownMenuItem>
+            )}
+            {onOpenMeetingInfo && (
+              <DropdownMenuItem onClick={onOpenMeetingInfo} className="gap-2 text-white hover:bg-white/10">
+                <Info className="h-4 w-4" />
+                Meeting Details
+              </DropdownMenuItem>
+            )}
+            {onEnablePiP && (
+              <DropdownMenuItem onClick={onEnablePiP} className="gap-2 text-white hover:bg-white/10">
+                <PictureInPicture2 className="h-4 w-4" />
+                Picture-in-Picture
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
