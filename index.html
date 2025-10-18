@@ -64,7 +64,8 @@
       
       /* Prevent absolute elements from causing layout shifts */
       .absolute {
-        will-change: auto;
+        contain: layout style paint;
+        will-change: transform;
       }
     </style>
 
