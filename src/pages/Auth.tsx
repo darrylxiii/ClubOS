@@ -40,6 +40,7 @@ const Auth = () => {
   const [verificationLoading, setVerificationLoading] = useState(false);
   const [mfaRequired, setMfaRequired] = useState(false);
   const [mfaCode, setMfaCode] = useState("");
+  const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -139,14 +140,31 @@ const Auth = () => {
           return;
         }
 
-        // Check if MFA is required
-        const factors = data.user?.factors || [];
-        if (factors.length > 0 && factors.some(f => f.status === 'verified')) {
-          setMfaRequired(true);
-          toast.info("Please enter your 2FA code");
-          return;
+        // Check if MFA is required (no session but user exists with verified factors)
+        if (!data.session && data.user) {
+          const factors = data.user.factors || [];
+          const verifiedFactor = factors.find(f => f.status === 'verified');
+          
+          if (verifiedFactor) {
+            // Create MFA challenge
+            const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+              factorId: verifiedFactor.id
+            });
+
+            if (challengeError) {
+              toast.error("Failed to initiate 2FA verification");
+              console.error("MFA challenge error:", challengeError);
+              return;
+            }
+
+            setMfaChallengeId(challengeData.id);
+            setMfaRequired(true);
+            toast.info("Please enter your 2FA code");
+            return;
+          }
         }
 
+        // Only navigate if we have a session (no MFA or MFA already verified)
         if (data?.session) {
           toast.success("Welcome back!");
           navigate("/home");
@@ -255,16 +273,17 @@ const Auth = () => {
       return;
     }
 
+    if (!mfaChallengeId) {
+      toast.error("No MFA challenge found. Please try signing in again.");
+      setMfaRequired(false);
+      return;
+    }
+
     setVerificationLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("No user found");
-
-      const factor = user.factors?.find(f => f.status === 'verified');
-      if (!factor) throw new Error("No verified MFA factor found");
-
-      const { data, error } = await supabase.auth.mfa.challengeAndVerify({
-        factorId: factor.id,
+      const { data, error } = await supabase.auth.mfa.verify({
+        factorId: mfaChallengeId,
+        challengeId: mfaChallengeId,
         code: mfaCode
       });
 
@@ -272,10 +291,13 @@ const Auth = () => {
 
       if (data) {
         toast.success("Welcome back!");
+        setMfaRequired(false);
+        setMfaChallengeId(null);
         navigate("/home");
       }
     } catch (error: any) {
       toast.error(error.message || "Invalid 2FA code");
+      setMfaCode("");
     } finally {
       setVerificationLoading(false);
     }
@@ -442,6 +464,7 @@ const Auth = () => {
                 onClick={() => {
                   setMfaRequired(false);
                   setMfaCode("");
+                  setMfaChallengeId(null);
                 }}
                 className="text-white/80 hover:text-white font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
               >
