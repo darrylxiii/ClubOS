@@ -76,9 +76,18 @@ export function useMeetingWebRTC({
 
   // Create peer connection
   const createPeerConnection = useCallback((targetParticipantId: string) => {
+    // Check if connection already exists
+    if (peerConnections.current.has(targetParticipantId)) {
+      console.log('[WebRTC] Reusing existing peer connection for:', targetParticipantId);
+      return peerConnections.current.get(targetParticipantId)!;
+    }
+    
     console.log('[WebRTC] Creating peer connection for:', targetParticipantId);
     
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+
+    // Store the connection immediately to prevent duplicates
+    peerConnections.current.set(targetParticipantId, pc);
 
     // Add local stream tracks
     if (localStream) {
@@ -108,7 +117,7 @@ export function useMeetingWebRTC({
 
     // Connection state changes with recovery
     pc.onconnectionstatechange = () => {
-      console.log('[WebRTC] Connection state:', pc.connectionState);
+      console.log('[WebRTC] Connection state:', pc.connectionState, 'for:', targetParticipantId);
       setConnectionState(pc.connectionState);
       
       if (pc.connectionState === 'failed') {
@@ -139,7 +148,6 @@ export function useMeetingWebRTC({
       }
     };
 
-    peerConnections.current.set(targetParticipantId, pc);
     return pc;
   }, [localStream, onRemoteStream, onParticipantLeft]);
 
@@ -168,7 +176,14 @@ export function useMeetingWebRTC({
     
     let pc = peerConnections.current.get(senderId);
     if (!pc) {
+      console.log('[WebRTC] Creating new peer connection for offer from:', senderId);
       pc = createPeerConnection(senderId);
+    }
+
+    // Check if we're in a stable state before setting remote description
+    if (pc.signalingState !== 'stable') {
+      console.log('[WebRTC] Signaling state not stable, ignoring offer from:', senderId);
+      return;
     }
 
     await pc.setRemoteDescription(new RTCSessionDescription(offer));
@@ -205,6 +220,12 @@ export function useMeetingWebRTC({
   // Handle new participant join
   const handleParticipantJoin = async (newParticipantId: string) => {
     if (newParticipantId === participantId) return;
+    
+    // Check if we already have a connection
+    if (peerConnections.current.has(newParticipantId)) {
+      console.log('[WebRTC] Already have connection to:', newParticipantId);
+      return;
+    }
     
     console.log('[WebRTC] New participant joined:', newParticipantId);
     setParticipants(prev => [...new Set([...prev, newParticipantId])]);
@@ -276,33 +297,13 @@ export function useMeetingWebRTC({
 
     // Query existing participants and send join signal
     const joinMeeting = async () => {
-      // Announce join
+      // Announce join first
       await sendSignal({
         type: 'join',
         data: { name: participantName }
       });
 
-      // Query existing participants
-      const { data: existingParticipants } = await supabase
-        .from('meeting_participants')
-        .select('user_id, session_token')
-        .eq('meeting_id', meetingId)
-        .eq('status', 'accepted');
-
-      console.log('[WebRTC] Found existing participants:', existingParticipants?.length || 0);
-
-      // Filter out self and create offers to all existing participants
-      if (existingParticipants) {
-        for (const participant of existingParticipants) {
-          // Use session_token for guests, user_id for authenticated users
-          const remoteParticipantId = participant.session_token || participant.user_id;
-          
-          // Skip self
-          if (remoteParticipantId === participantId) continue;
-          
-          await handleParticipantJoin(remoteParticipantId);
-        }
-      }
+      console.log('[WebRTC] Join signal sent, waiting for offers from existing participants');
     };
 
     joinMeeting();

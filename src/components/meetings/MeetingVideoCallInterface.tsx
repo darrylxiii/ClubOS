@@ -247,8 +247,13 @@ export function MeetingVideoCallInterface({
         .eq('meeting_id', meeting.id)
         .eq('status', 'accepted');
 
-      console.log('[Meeting] Total participants in DB:', count);
+      console.log('[Meeting] Total participants in DB:', count, 'WebRTC participants:', allParticipants.length);
       setTotalParticipants(count || 0);
+      
+      // Auto-start meeting when 2+ participants are in
+      if ((count || 0) >= 2 && !meetingStarted) {
+        setMeetingStarted(true);
+      }
     };
 
     fetchParticipants();
@@ -454,7 +459,7 @@ export function MeetingVideoCallInterface({
       />
       
       {/* Waiting Room Overlay */}
-      {!meetingStarted && totalParticipants === 1 && (
+      {!meetingStarted && totalParticipants <= 1 && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-sm z-[1000]">
           <div className="text-center space-y-6 animate-fade-in max-w-md mx-4">
             <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
