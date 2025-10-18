@@ -9551,6 +9551,10 @@ export type Database = {
         Args: { _code: string; _user_id: string }
         Returns: Json
       }
+      user_in_video_session: {
+        Args: { session_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
     }
     Enums: {
       achievement_category:

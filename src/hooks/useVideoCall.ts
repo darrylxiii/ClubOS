@@ -48,7 +48,7 @@ export function useVideoCall(conversationId: string) {
 
     if (existingSession) {
       setSession(existingSession);
-      await joinSession(existingSession.id);
+      await joinSession(existingSession.id, existingSession.host_id);
       return existingSession;
     }
 
@@ -75,12 +75,12 @@ export function useVideoCall(conversationId: string) {
     if (error) throw error;
 
     setSession(newSession);
-    await joinSession(newSession.id);
+    await joinSession(newSession.id, newSession.host_id);
     return newSession;
   }, [user, conversationId]);
 
   // Join session as participant
-  const joinSession = useCallback(async (sessionId: string) => {
+  const joinSession = useCallback(async (sessionId: string, hostId: string) => {
     if (!user) return;
 
     const { error } = await supabase
@@ -89,11 +89,11 @@ export function useVideoCall(conversationId: string) {
         session_id: sessionId,
         user_id: user.id,
         display_name: user.user_metadata?.full_name || user.email || 'Guest',
-        role: session?.host_id === user.id ? 'host' : 'participant'
+        role: hostId === user.id ? 'host' : 'participant'
       });
 
     if (error) console.error('Error joining session:', error);
-  }, [user, session]);
+  }, [user]);
 
   // Load participants
   const loadParticipants = useCallback(async (sessionId: string) => {
