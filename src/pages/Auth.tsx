@@ -511,8 +511,15 @@ const Auth = () => {
                   )}
                 </div>
 
+                {/* Only show confirmation when all requirements are met */}
                 {password && (
-                  <div className="mt-6 animate-fade-in">
+                  password.length >= 12 &&
+                  /[A-Z]/.test(password) &&
+                  /[a-z]/.test(password) &&
+                  /[0-9]/.test(password) &&
+                  /[^A-Za-z0-9]/.test(password)
+                ) && (
+                  <div className="animate-fade-in">
                     <AssistedPasswordConfirmation
                       password={password}
                       confirmPassword={confirmPassword}
