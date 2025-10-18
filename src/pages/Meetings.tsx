@@ -29,14 +29,35 @@ export default function Meetings() {
   const loadMeetings = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      
+      // Get meetings where user is host
+      const { data: hostedMeetings, error: hostedError } = await supabase
         .from('meetings')
-        .select('*, meeting_participants!inner(user_id)')
-        .or(`host_id.eq.${user?.id},meeting_participants.user_id.eq.${user?.id}`)
-        .order('scheduled_start', { ascending: true });
+        .select('*')
+        .eq('host_id', user?.id);
 
-      if (error) throw error;
-      setMeetings(data || []);
+      if (hostedError) throw hostedError;
+
+      // Get meetings where user is participant
+      const { data: participantMeetings, error: participantError } = await supabase
+        .from('meeting_participants')
+        .select('meeting_id, meetings(*)')
+        .eq('user_id', user?.id);
+
+      if (participantError) throw participantError;
+
+      // Combine and deduplicate meetings
+      const allMeetings = [
+        ...(hostedMeetings || []),
+        ...(participantMeetings?.map(p => p.meetings).filter(Boolean) || [])
+      ];
+
+      // Remove duplicates by id
+      const uniqueMeetings = Array.from(
+        new Map(allMeetings.map(m => [m.id, m])).values()
+      ).sort((a, b) => new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime());
+
+      setMeetings(uniqueMeetings);
     } catch (error: any) {
       console.error('Error loading meetings:', error);
       toast.error('Failed to load meetings');
