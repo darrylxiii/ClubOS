@@ -76,17 +76,19 @@ export function AssistedPasswordConfirmation({
       >
         {/* Visual feedback layer - ONLY colored backgrounds, NO dots */}
         {!showPasswordInput && password && confirmPassword && (
-          <div className="absolute inset-0 px-3.5 flex items-center pointer-events-none z-0">
+          <div className="absolute left-0 top-0 h-full flex items-center pointer-events-none z-0 pl-[14px]">
             {password.split('').map((letter, index) => (
               <motion.div
                 key={index}
-                className={`h-full w-4 transition-all duration-300 ${getLetterStatus(
+                className={`h-full transition-all duration-300 ${getLetterStatus(
                   letter,
                   index,
                 )}`}
                 style={{
+                  width: 'calc(0.4em + 1ch)',
                   scaleX: confirmPassword[index] ? 1 : 0,
                   transformOrigin: 'left',
+                  marginRight: '0.4em',
                 }}
               />
             ))}
