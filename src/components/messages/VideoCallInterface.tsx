@@ -1,28 +1,52 @@
 import { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Video, VideoOff, Mic, MicOff, PhoneOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 interface VideoCallInterfaceProps {
   conversationId: string;
   participantName: string;
+  participantAvatar?: string;
   onEnd: () => void;
 }
 
-export function VideoCallInterface({ conversationId, participantName, onEnd }: VideoCallInterfaceProps) {
+export function VideoCallInterface({ conversationId, participantName, participantAvatar, onEnd }: VideoCallInterfaceProps) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [videoEnabled, setVideoEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
+  const [isCalling, setIsCalling] = useState(true);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const callingAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     initializeCall();
+    
+    // Play calling sound
+    if (callingAudioRef.current) {
+      callingAudioRef.current.loop = true;
+      callingAudioRef.current.play().catch(console.error);
+    }
+
+    // Simulate call connection after 3 seconds (replace with actual WebRTC logic)
+    const timer = setTimeout(() => {
+      setIsCalling(false);
+      if (callingAudioRef.current) {
+        callingAudioRef.current.pause();
+      }
+    }, 3000);
+
     return () => {
       cleanup();
+      clearTimeout(timer);
+      if (callingAudioRef.current) {
+        callingAudioRef.current.pause();
+      }
     };
   }, []);
 
@@ -123,20 +147,53 @@ export function VideoCallInterface({ conversationId, participantName, onEnd }: V
         className="w-full h-full object-cover"
       />
       
-      {/* Placeholder when no remote stream */}
-      <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-        <div className="text-center space-y-4">
-          <div className="w-32 h-32 rounded-full bg-primary/20 flex items-center justify-center mx-auto">
-            <span className="text-4xl font-bold text-primary">
-              {participantName.slice(0, 2).toUpperCase()}
-            </span>
-          </div>
-          <div>
-            <h3 className="text-2xl font-bold text-white mb-2">{participantName}</h3>
-            <p className="text-gray-400">Calling...</p>
+      {/* Placeholder when calling/no remote stream */}
+      {isCalling && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+          <div className="text-center space-y-6 animate-fade-in">
+            {/* Animated calling avatar with pulsing border */}
+            <div className="relative inline-block">
+              {/* Animated pulsing rings */}
+              <div className="absolute inset-0 -m-4 rounded-full bg-primary/20 animate-ping" />
+              <div className="absolute inset-0 -m-2 rounded-full bg-primary/30 animate-pulse" />
+              
+              {/* Avatar with border animation */}
+              <div className="relative">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-purple-500 to-primary animate-spin-slow" 
+                     style={{ padding: '4px' }}>
+                  <div className="w-full h-full rounded-full bg-gray-900" />
+                </div>
+                <Avatar className="relative w-32 h-32 border-4 border-gray-900">
+                  {participantAvatar ? (
+                    <AvatarImage src={participantAvatar} alt={participantName} />
+                  ) : null}
+                  <AvatarFallback className="text-4xl font-bold bg-primary/20 text-primary">
+                    {participantName.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </div>
+
+            {/* Calling text */}
+            <div className="space-y-2">
+              <h3 className="text-3xl font-bold text-white">{participantName}</h3>
+              <div className="flex items-center justify-center gap-1">
+                <p className="text-xl text-gray-400">Calling</p>
+                <span className="animate-[bounce_1s_ease-in-out_infinite]">.</span>
+                <span className="animate-[bounce_1s_ease-in-out_0.2s_infinite]">.</span>
+                <span className="animate-[bounce_1s_ease-in-out_0.4s_infinite]">.</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
+      
+      {/* Hidden audio element for calling sound */}
+      <audio
+        ref={callingAudioRef}
+        src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+        preload="auto"
+      />
 
       {/* Local Video (Picture-in-Picture) */}
       <div className="absolute top-4 right-4 w-48 h-36 rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl">

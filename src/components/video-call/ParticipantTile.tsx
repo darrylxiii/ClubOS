@@ -48,10 +48,7 @@ export function ParticipantTile({ participant, isLocal, isFocused, className }: 
           autoPlay
           playsInline
           muted={isLocal}
-          className={cn(
-            "w-full h-full object-cover",
-            isLocal && "scale-x-[-1]"
-          )}
+          className="w-full h-full object-cover"
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
