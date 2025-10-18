@@ -72,11 +72,9 @@ serve(async (req) => {
     const validationResult = requestSchema.safeParse(rawBody);
     
     if (!validationResult.success) {
+      console.error('[Validation] Invalid request parameters:', validationResult.error.issues);
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid request parameters',
-          details: validationResult.error.issues 
-        }),
+        JSON.stringify({ error: 'Invalid request format' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
@@ -218,10 +216,10 @@ serve(async (req) => {
 
     throw new Error('Invalid action');
   } catch (error: any) {
-    console.error('Error:', error);
+    console.error('[Internal] Error in linkedin-job-import:', error);
     return new Response(
-      JSON.stringify({ error: error?.message || 'Unknown error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      JSON.stringify({ error: 'Unable to process LinkedIn import. Please try again.' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });

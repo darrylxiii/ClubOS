@@ -26,11 +26,9 @@ Deno.serve(async (req) => {
     const validationResult = requestSchema.safeParse(rawBody);
     
     if (!validationResult.success) {
+      console.error('[Validation] Invalid request parameters:', validationResult.error.issues);
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid request parameters',
-          details: validationResult.error.issues 
-        }),
+        JSON.stringify({ error: 'Invalid request format' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
@@ -179,9 +177,9 @@ Be specific and realistic. Timeframes should match the actual effort needed (e.g
     );
 
   } catch (error) {
-    console.error('Error in calculate-match-score:', error);
+    console.error('[Internal] Error in calculate-match-score:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Unable to calculate match score. Please try again.' }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

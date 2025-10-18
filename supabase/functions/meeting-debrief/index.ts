@@ -24,11 +24,9 @@ serve(async (req) => {
     const validationResult = requestSchema.safeParse(rawBody);
     
     if (!validationResult.success) {
+      console.error('[Validation] Invalid request parameters:', validationResult.error.issues);
       return new Response(
-        JSON.stringify({ 
-          error: 'Invalid request parameters',
-          details: validationResult.error.issues 
-        }),
+        JSON.stringify({ error: 'Invalid recording ID format' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
@@ -260,7 +258,7 @@ Focus on:
     );
 
   } catch (error) {
-    console.error('Error in meeting-debrief:', error);
+    console.error('[Internal] Error in meeting-debrief:', error);
     
     // Update status to failed if we have recordingId
     try {
@@ -278,11 +276,11 @@ Focus on:
           .eq('id', recordingId);
       }
     } catch (e) {
-      console.error('Error updating failed status:', e);
+      console.error('[Internal] Error updating failed status:', e);
     }
 
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Unable to process meeting recording. Please try again.' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
