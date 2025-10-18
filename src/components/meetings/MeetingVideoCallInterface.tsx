@@ -31,6 +31,8 @@ export function MeetingVideoCallInterface({
   const [remoteStreams, setRemoteStreams] = useState<Map<string, { stream: MediaStream; name: string }>>(new Map());
   const [isHandRaised, setIsHandRaised] = useState(false);
   const [reactions, setReactions] = useState<Array<{ id: string; emoji: string; name: string }>>([]);
+  const [isScreenSharing, setIsScreenSharing] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const {
     localStream,
@@ -94,6 +96,19 @@ export function MeetingVideoCallInterface({
     cleanup();
     onEnd();
   };
+
+  const handleToggleScreenShare = async () => {
+    const sharing = await toggleScreenShare();
+    setIsScreenSharing(sharing);
+    toast(sharing ? 'Screen sharing started' : 'Screen sharing stopped');
+  };
+
+  // Update video ref when stream changes
+  useEffect(() => {
+    if (videoRef.current && localStream) {
+      videoRef.current.srcObject = localStream;
+    }
+  }, [localStream, isVideoEnabled]);
 
   // Subscribe to reactions
   useEffect(() => {
@@ -200,10 +215,10 @@ export function MeetingVideoCallInterface({
       role: meeting.host_id === participantId ? 'host' : 'participant',
       is_muted: !isAudioEnabled,
       is_video_off: !isVideoEnabled,
-      is_screen_sharing: false,
+      is_screen_sharing: isScreenSharing,
       is_hand_raised: isHandRaised,
       is_speaking: false,
-      stream: localStream || undefined
+      stream: (isScreenSharing ? screenStream : localStream) || undefined
     },
     ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
       id,
@@ -293,10 +308,7 @@ export function MeetingVideoCallInterface({
         isHandRaised={isHandRaised}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
-        onToggleScreenShare={async () => {
-          const isSharing = await toggleScreenShare();
-          toast(isSharing ? 'Screen sharing started' : 'Screen sharing stopped');
-        }}
+        onToggleScreenShare={handleToggleScreenShare}
         onToggleRecording={() => toast.info('Recording coming soon')}
         onToggleHandRaise={() => setIsHandRaised(!isHandRaised)}
         onEndCall={handleEndCall}

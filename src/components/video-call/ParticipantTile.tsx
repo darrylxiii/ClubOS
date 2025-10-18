@@ -27,10 +27,16 @@ export function ParticipantTile({ participant, isLocal, isFocused, className }: 
 
   useEffect(() => {
     if (videoRef.current && participant.stream) {
+      console.log(`[ParticipantTile] Setting stream for ${participant.display_name}, video_off: ${participant.is_video_off}`);
       videoRef.current.srcObject = participant.stream;
-      videoRef.current.onloadedmetadata = () => setIsLoading(false);
+      videoRef.current.onloadedmetadata = () => {
+        console.log(`[ParticipantTile] Video loaded for ${participant.display_name}`);
+        setIsLoading(false);
+      };
+    } else {
+      setIsLoading(false);
     }
-  }, [participant.stream]);
+  }, [participant.stream, participant.is_video_off, participant.display_name]);
 
   return (
     <div
@@ -42,13 +48,16 @@ export function ParticipantTile({ participant, isLocal, isFocused, className }: 
       )}
     >
       {/* Video/Avatar Display */}
-      {!participant.is_video_off && participant.stream ? (
+      {participant.stream && !participant.is_video_off ? (
         <video
           ref={videoRef}
           autoPlay
           playsInline
           muted={isLocal}
-          className="w-full h-full object-cover"
+          className={cn(
+            "w-full h-full object-cover",
+            participant.is_screen_sharing && "object-contain bg-black"
+          )}
         />
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
