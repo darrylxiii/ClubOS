@@ -9527,6 +9527,10 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      is_meeting_participant: {
+        Args: { _meeting_id: string; _user_id: string }
+        Returns: boolean
+      }
       log_achievement_event: {
         Args: { _event_data?: Json; _event_type: string; _user_id: string }
         Returns: string
