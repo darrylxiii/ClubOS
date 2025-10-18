@@ -159,7 +159,7 @@ export default {
         "scale-in": "scale-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
         "slide-up": "slide-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
         "bounce-in": "bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
-        rainbow: "rainbow var(--speed, 2s) infinite linear",
+        rainbow: "rainbow var(--speed, 8s) infinite linear",
       },
     },
   },
