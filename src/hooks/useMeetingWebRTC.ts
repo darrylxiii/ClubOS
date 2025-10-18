@@ -274,11 +274,33 @@ export function useMeetingWebRTC({
 
     signalChannel.current = channel;
 
-    // Announce join
-    sendSignal({
-      type: 'join',
-      data: { name: participantName }
-    });
+    // Query existing participants and send join signal
+    const joinMeeting = async () => {
+      // Announce join
+      await sendSignal({
+        type: 'join',
+        data: { name: participantName }
+      });
+
+      // Query existing participants
+      const { data: existingParticipants } = await supabase
+        .from('meeting_participants')
+        .select('user_id')
+        .eq('meeting_id', meetingId)
+        .eq('status', 'accepted')
+        .neq('user_id', participantId);
+
+      console.log('[WebRTC] Found existing participants:', existingParticipants?.length || 0);
+
+      // Create offers to all existing participants
+      if (existingParticipants) {
+        for (const participant of existingParticipants) {
+          await handleParticipantJoin(participant.user_id);
+        }
+      }
+    };
+
+    joinMeeting();
 
     return () => {
       // Announce leave

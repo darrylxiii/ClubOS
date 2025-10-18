@@ -51,6 +51,8 @@ export function MeetingVideoCallInterface({
   const [showHostSettings, setShowHostSettings] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showMeetingDetails, setShowMeetingDetails] = useState(false);
+  const [meetingStarted, setMeetingStarted] = useState(false);
+  const [totalParticipants, setTotalParticipants] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [hostSettings, setHostSettings] = useState({
@@ -197,6 +199,45 @@ export function MeetingVideoCallInterface({
               setReactions(prev => prev.filter(r => r.id !== newReaction.id));
             }, 3000);
           }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [meeting?.id]);
+
+  // Track total participants including those not yet connected via WebRTC
+  useEffect(() => {
+    if (!meeting?.id) return;
+
+    const fetchParticipants = async () => {
+      const { data, count } = await supabase
+        .from('meeting_participants')
+        .select('*', { count: 'exact' })
+        .eq('meeting_id', meeting.id)
+        .eq('status', 'accepted');
+
+      console.log('[Meeting] Total participants in DB:', count);
+      setTotalParticipants(count || 0);
+    };
+
+    fetchParticipants();
+
+    // Subscribe to participant changes
+    const channel = supabase
+      .channel(`meeting-participants-${meeting.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'meeting_participants',
+          filter: `meeting_id=eq.${meeting.id}`
+        },
+        () => {
+          fetchParticipants();
         }
       )
       .subscribe();
@@ -370,8 +411,8 @@ export function MeetingVideoCallInterface({
       />
       
       {/* Waiting Room Overlay */}
-      {allParticipants.length === 1 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-sm">
+      {!meetingStarted && totalParticipants === 1 && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-sm z-[1000]">
           <div className="text-center space-y-6 animate-fade-in max-w-md mx-4">
             <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
               <Video className="h-12 w-12 text-primary" />
@@ -390,6 +431,18 @@ export function MeetingVideoCallInterface({
                 <span>Connected and ready</span>
               </div>
             </div>
+
+            {meeting.host_id === participantId && (
+              <Button
+                onClick={() => {
+                  setMeetingStarted(true);
+                  toast.success('Meeting started');
+                }}
+                className="mt-4"
+              >
+                Start Meeting Anyway
+              </Button>
+            )}
           </div>
         </div>
       )}
