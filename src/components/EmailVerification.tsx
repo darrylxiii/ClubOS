@@ -5,13 +5,7 @@ import { Label } from '@/components/ui/label';
 import { CheckCircle2, XCircle, Loader2, Mail } from 'lucide-react';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useEmailVerification } from '@/hooks/useEmailVerification';
-
-interface EmailVerificationProps {
-  email: string;
-  emailVerified: boolean;
-  onEmailChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onVerificationComplete?: () => void;
-}
+import type { EmailVerificationProps } from '@/types/verification';
 
 export const EmailVerification = ({
   email,

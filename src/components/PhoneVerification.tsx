@@ -8,13 +8,7 @@ import 'react-phone-number-input/style.css';
 import '@/styles/phone-input.css';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { usePhoneVerification } from '@/hooks/usePhoneVerification';
-
-interface PhoneVerificationProps {
-  phoneNumber: string;
-  phoneVerified: boolean;
-  onPhoneChange: (value: string | undefined) => void;
-  onVerificationComplete?: () => void;
-}
+import type { PhoneVerificationProps } from '@/types/verification';
 
 export const PhoneVerification = ({
   phoneNumber,

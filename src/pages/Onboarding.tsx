@@ -10,14 +10,19 @@ import { Upload, Briefcase, DollarSign, Target, User } from "lucide-react";
 import { AvatarUpload } from "@/components/AvatarUpload";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
+import type { OnboardingFormData, ReferralMetadata } from "@/types/onboarding";
+import { validateOnboardingForm } from "@/types/onboarding";
+import { validateFile } from "@/lib/validation";
 
 const Onboarding = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { profile, loading: profileLoading } = useProfile({ userId: user?.id });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [referralMetadata, setReferralMetadata] = useState<any>(null);
+  const [referralMetadata, setReferralMetadata] = useState<ReferralMetadata | null>(null);
   const [referrerName, setReferrerName] = useState<string>("");
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<OnboardingFormData>({
     firstName: "",
     lastName: "",
     email: "",
@@ -31,20 +36,18 @@ const Onboarding = () => {
     preferences: "",
   });
   const [resume, setResume] = useState<File | null>(null);
+  const [errors, setErrors] = useState<Partial<Record<keyof OnboardingFormData, string>>>({});
+
+  // Load avatar from profile hook
+  useEffect(() => {
+    if (profile?.avatar_url) {
+      setAvatarUrl(profile.avatar_url);
+    }
+  }, [profile]);
 
   useEffect(() => {
-    const loadProfile = async () => {
+    const loadReferralData = async () => {
       if (!user) return;
-
-      const { data } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('id', user.id)
-        .single();
-
-      if (data?.avatar_url) {
-        setAvatarUrl(data.avatar_url);
-      }
 
       // Check for invite code with metadata
       const urlParams = new URLSearchParams(window.location.search);
@@ -89,7 +92,7 @@ const Onboarding = () => {
       }
     };
 
-    loadProfile();
+    loadReferralData();
   }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -101,7 +104,19 @@ const Onboarding = () => {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setResume(e.target.files[0]);
+      const file = e.target.files[0];
+      
+      const validation = validateFile(file, {
+        maxSize: 10 * 1024 * 1024, // 10MB
+        allowedExtensions: ['.pdf', '.doc', '.docx'],
+      });
+
+      if (!validation.isValid) {
+        toast.error(validation.error);
+        return;
+      }
+
+      setResume(file);
       toast.success("Resume uploaded successfully");
     }
   };
@@ -113,6 +128,20 @@ const Onboarding = () => {
       toast.error("Please upload a profile picture to continue");
       return;
     }
+    
+    // Validate form
+    const validationErrors = validateOnboardingForm(formData);
+    if (validationErrors.length > 0) {
+      const errorMap: Partial<Record<keyof OnboardingFormData, string>> = {};
+      validationErrors.forEach(err => {
+        errorMap[err.field] = err.message;
+        toast.error(err.message);
+      });
+      setErrors(errorMap);
+      return;
+    }
+
+    setErrors({});
     
     // Here you would typically send data to backend for processing
     console.log("Form submitted:", formData);

@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { UserPlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import type { CompanyBasic, CompanyMember, CompanyAssignmentFormData, CompanyRole } from "@/types/company";
+import { validateCompanyAssignment, COMPANY_ROLES } from "@/types/company";
 
 interface User {
   id: string;
@@ -15,32 +17,13 @@ interface User {
   full_name: string | null;
 }
 
-interface Company {
-  id: string;
-  name: string;
-}
-
-interface CompanyMember {
-  id: string;
-  user_id: string;
-  company_id: string;
-  role: string;
-  profiles?: {
-    email: string;
-    full_name: string | null;
-  };
-  companies?: {
-    name: string;
-  };
-}
-
 export function UserCompanyAssignment() {
   const [users, setUsers] = useState<User[]>([]);
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<CompanyBasic[]>([]);
   const [members, setMembers] = useState<CompanyMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CompanyAssignmentFormData>({
     userId: "",
     companyId: "",
     role: "recruiter",
@@ -102,6 +85,13 @@ export function UserCompanyAssignment() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form data
+    const errors = validateCompanyAssignment(formData);
+    if (errors.length > 0) {
+      errors.forEach(err => toast.error(err.message));
+      return;
+    }
 
     try {
       const { error } = await supabase
@@ -246,15 +236,17 @@ export function UserCompanyAssignment() {
                     <Select
                       required
                       value={formData.role}
-                      onValueChange={(value) => setFormData({ ...formData, role: value })}
+                      onValueChange={(value: string) => setFormData({ ...formData, role: value as CompanyRole })}
                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="owner">Owner</SelectItem>
-                        <SelectItem value="admin">Admin</SelectItem>
-                        <SelectItem value="recruiter">Recruiter</SelectItem>
+                        {COMPANY_ROLES.map(role => (
+                          <SelectItem key={role} value={role}>
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>

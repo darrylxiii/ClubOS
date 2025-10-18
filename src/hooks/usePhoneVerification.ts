@@ -1,16 +1,19 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { validatePhoneNumber, validateOTP } from '@/lib/validation';
+import type { VerificationHookReturn } from '@/types/verification';
 
-export const usePhoneVerification = () => {
+export const usePhoneVerification = (): VerificationHookReturn => {
   const [otpSent, setOtpSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const sendOTP = useCallback(async (phoneNumber: string) => {
-    if (!phoneNumber) {
-      toast.error('Please enter a phone number');
+    const phoneValidation = validatePhoneNumber(phoneNumber);
+    if (!phoneValidation.isValid) {
+      toast.error(phoneValidation.error);
       return false;
     }
 
@@ -58,12 +61,19 @@ export const usePhoneVerification = () => {
   }, []);
 
   const verifyOTP = useCallback(async (
-    phoneNumber: string, 
+    phoneNumber: string,
     token: string,
     onSuccess?: () => void
   ) => {
-    if (!token || token.length !== 6) {
-      toast.error('Please enter a valid 6-digit code');
+    const otpValidation = validateOTP(token, 6);
+    if (!otpValidation.isValid) {
+      toast.error(otpValidation.error);
+      return false;
+    }
+
+    const phoneValidation = validatePhoneNumber(phoneNumber);
+    if (!phoneValidation.isValid) {
+      toast.error(phoneValidation.error);
       return false;
     }
 

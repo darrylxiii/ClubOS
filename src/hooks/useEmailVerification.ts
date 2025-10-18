@@ -1,16 +1,19 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { validateEmail, validateOTP } from '@/lib/validation';
+import type { VerificationHookReturn } from '@/types/verification';
 
-export const useEmailVerification = () => {
+export const useEmailVerification = (): VerificationHookReturn => {
   const [otpSent, setOtpSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
   const sendOTP = useCallback(async (email: string) => {
-    if (!email) {
-      toast.error('Please enter an email address');
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      toast.error(emailValidation.error);
       return false;
     }
 
@@ -62,8 +65,15 @@ export const useEmailVerification = () => {
     token: string,
     onSuccess?: () => void
   ) => {
-    if (!token || token.length !== 6) {
-      toast.error('Please enter a valid 6-digit code');
+    const otpValidation = validateOTP(token, 6);
+    if (!otpValidation.isValid) {
+      toast.error(otpValidation.error);
+      return false;
+    }
+
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.isValid) {
+      toast.error(emailValidation.error);
       return false;
     }
 
