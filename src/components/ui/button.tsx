@@ -11,12 +11,15 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-glass-md hover:shadow-glass-lg",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-glass-md hover:shadow-glass-lg",
-        outline: "border-2 border-border bg-card/50 backdrop-blur-[var(--blur-glass-subtle)] hover:bg-card/80 hover:border-primary/50 shadow-glass-sm hover:shadow-glass-md",
+        outline: "material-thin hover:material-medium border-2 border-border",
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-glass-sm hover:shadow-glass-md",
         ghost: "hover:bg-accent/10 hover:text-accent",
         link: "text-primary underline-offset-4 hover:underline",
-        glass: "bg-card/70 backdrop-blur-[var(--blur-glass)] border border-border/50 hover:bg-card/90 shadow-glass-md hover:shadow-glass-lg",
+        glass: "material-medium hover:material-thick",
         gradient: "bg-gradient-to-r from-primary to-accent text-primary-foreground hover:opacity-90 shadow-glass-lg hover:shadow-float",
+        "liquid-small": "liquid-glass-small hover:shadow-glass-md",
+        "liquid-medium": "liquid-glass-medium hover:shadow-glass-lg",
+        "liquid-large": "liquid-glass-large hover:shadow-glass-xl",
       },
       size: {
         default: "h-11 px-6 py-2.5",
