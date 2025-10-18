@@ -3783,6 +3783,53 @@ export type Database = {
           },
         ]
       }
+      meeting_join_requests: {
+        Row: {
+          created_at: string
+          guest_email: string | null
+          guest_name: string
+          id: string
+          meeting_id: string
+          request_status: string
+          requested_at: string
+          responded_at: string | null
+          responded_by: string | null
+          session_token: string
+        }
+        Insert: {
+          created_at?: string
+          guest_email?: string | null
+          guest_name: string
+          id?: string
+          meeting_id: string
+          request_status?: string
+          requested_at?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          session_token: string
+        }
+        Update: {
+          created_at?: string
+          guest_email?: string | null
+          guest_name?: string
+          id?: string
+          meeting_id?: string
+          request_status?: string
+          requested_at?: string
+          responded_at?: string | null
+          responded_by?: string | null
+          session_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_join_requests_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_participants: {
         Row: {
           created_at: string | null

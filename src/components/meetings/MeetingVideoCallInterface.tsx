@@ -14,6 +14,7 @@ import { DeviceSelector } from '@/components/video-call/DeviceSelector';
 import { LiveCaptions } from '@/components/video-call/LiveCaptions';
 import { MeetingNotes } from '@/components/video-call/MeetingNotes';
 import { TranscriptionPanel } from '@/components/video-call/TranscriptionPanel';
+import { HostApprovalPanel } from '@/components/meetings/HostApprovalPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Video } from 'lucide-react';
@@ -392,6 +393,12 @@ export function MeetingVideoCallInterface({
 
       {/* Live Captions */}
       <LiveCaptions enabled={captionsEnabled} localStream={localStream} />
+
+      {/* Host Approval Panel */}
+      <HostApprovalPanel 
+        meetingId={meeting.id} 
+        isHost={meeting.host_id === participantId}
+      />
 
       {/* Chat Sidebar */}
       <Sheet open={showChat} onOpenChange={setShowChat}>

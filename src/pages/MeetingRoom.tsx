@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { MeetingVideoCallInterface } from '@/components/meetings/MeetingVideoCallInterface';
+import { GuestJoinDialog } from '@/components/meetings/GuestJoinDialog';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,8 @@ export default function MeetingRoom() {
   const [password, setPassword] = useState('');
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
+  const [showGuestDialog, setShowGuestDialog] = useState(false);
+  const [guestSessionToken, setGuestSessionToken] = useState<string | null>(null);
 
   useEffect(() => {
     if (meetingCode) {
@@ -67,75 +70,48 @@ export default function MeetingRoom() {
   const handleJoinMeeting = async () => {
     if (!meeting) return;
 
-    // Check if user needs to authenticate
-    if (!user && !meeting.allow_guests) {
-      toast.error('This meeting requires authentication');
-      navigate('/auth?redirect=' + encodeURIComponent(window.location.pathname));
-      return;
-    }
-
-    // Validate guest info if not logged in
-    if (!user && meeting.allow_guests) {
-      if (!guestName?.trim() || !guestEmail?.trim()) {
-        toast.error('Please provide your name and email');
-        return;
-      }
-      
-      // Basic email validation
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(guestEmail)) {
-        toast.error('Please provide a valid email address');
-        return;
-      }
-    }
-
-    // Check password
+    // Check password first if required
     if (meeting.access_type === 'password' && meeting.meeting_password !== password) {
       toast.error('Incorrect password');
       return;
     }
 
+    // For guests, show the approval dialog
+    if (!user) {
+      setShowGuestDialog(true);
+      return;
+    }
+
+    // For authenticated users, join directly
     setJoining(true);
     try {
-      console.log('Joining meeting:', meeting.id);
-      
-      // Add participant
       const { error } = await supabase
         .from('meeting_participants')
         .insert({
           meeting_id: meeting.id,
-          user_id: user?.id || null,
-          guest_name: !user ? guestName.trim() : null,
-          guest_email: !user ? guestEmail.trim() : null,
-          status: meeting.require_approval ? 'pending' : 'accepted',
+          user_id: user.id,
+          status: 'accepted',
           joined_at: new Date().toISOString()
         });
 
-      if (error) {
-        console.error('Error adding participant:', error);
+      if (error && error.code !== '23505') { // Ignore duplicate errors
         throw error;
       }
 
-      if (meeting.require_approval && user?.id !== meeting.host_id) {
-        toast.success('Join request sent. Waiting for host approval...');
-        // TODO: Show waiting room with real-time approval updates
-      } else {
-        console.log('Participant added successfully, joining call');
-        setInCall(true);
-      }
+      setInCall(true);
     } catch (error: any) {
       console.error('Error joining meeting:', error);
-      
-      if (error.code === '23505') {
-        // Duplicate entry - already joined
-        toast.info('You have already joined this meeting');
-        setInCall(true);
-      } else {
-        toast.error(error.message || 'Failed to join meeting. Please try again.');
-      }
+      toast.error(error.message || 'Failed to join meeting');
     } finally {
       setJoining(false);
     }
+  };
+
+  const handleGuestJoinApproved = (name: string, sessionToken: string) => {
+    setGuestName(name);
+    setGuestSessionToken(sessionToken);
+    setShowGuestDialog(false);
+    setInCall(true);
   };
 
   const handleEndCall = () => {
@@ -177,9 +153,18 @@ export default function MeetingRoom() {
     );
   }
 
+  if (showGuestDialog && meeting) {
+    return (
+      <GuestJoinDialog
+        meetingCode={meeting.meeting_code}
+        onJoinApproved={handleGuestJoinApproved}
+      />
+    );
+  }
+
   if (inCall) {
-    // Generate participant ID (user ID or guest session ID)
-    const currentParticipantId = user?.id || `guest-${guestEmail}`;
+    // Generate participant ID (user ID or guest session token)
+    const currentParticipantId = user?.id || guestSessionToken || `guest-${Date.now()}`;
     const displayName = user?.user_metadata?.full_name || user?.email || guestName;
 
     return (
@@ -226,35 +211,6 @@ export default function MeetingRoom() {
         {/* Join Form */}
         {!hasEnded ? (
           <div className="space-y-6">
-            {/* Guest Info */}
-            {!user && meeting.allow_guests && (
-              <div className="space-y-4 p-4 rounded-lg bg-muted/50">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <Users className="h-4 w-4" />
-                  Join as Guest
-                </div>
-                <div>
-                  <Label htmlFor="guest-name">Your Name *</Label>
-                  <Input
-                    id="guest-name"
-                    value={guestName}
-                    onChange={(e) => setGuestName(e.target.value)}
-                    placeholder="Enter your name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="guest-email">Your Email *</Label>
-                  <Input
-                    id="guest-email"
-                    type="email"
-                    value={guestEmail}
-                    onChange={(e) => setGuestEmail(e.target.value)}
-                    placeholder="Enter your email"
-                  />
-                </div>
-              </div>
-            )}
-
             {/* Password */}
             {meeting.access_type === 'password' && (
               <div>
@@ -283,12 +239,9 @@ export default function MeetingRoom() {
               {joining ? 'Joining...' : !isStarted ? 'Meeting Not Started' : 'Join Meeting'}
             </Button>
 
-            {!user && !meeting.allow_guests && (
+            {!user && (
               <p className="text-center text-sm text-muted-foreground">
-                <Button variant="link" onClick={() => navigate('/auth')}>
-                  Sign in
-                </Button>
-                to join this meeting
+                Joining as a guest. You'll need host approval to enter.
               </p>
             )}
 
