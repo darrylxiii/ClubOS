@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Lock, Sparkles, Shield, CheckCircle2 } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -502,15 +503,12 @@ const Auth = () => {
               )}
             </div>
 
-            {!isLogin && (
-              <div>
-                <Input
-                  type="password"
-                  placeholder="Confirm Password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
+            {!isLogin && password && (
+              <div className="mt-6">
+                <AssistedPasswordConfirmation
+                  password={password}
+                  confirmPassword={confirmPassword}
+                  onConfirmPasswordChange={setConfirmPassword}
                 />
               </div>
             )}
