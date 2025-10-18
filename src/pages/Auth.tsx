@@ -318,39 +318,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Gradient Background */}
-      <div 
-        className="fixed inset-0 pointer-events-none" 
-        aria-hidden="true"
-        role="presentation"
-        style={{ 
-          transform: 'translateZ(0)', 
-          contain: 'strict', 
-          contentVisibility: 'auto',
-          zIndex: -1
-        }}
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-background/20" />
-      </div>
-
-      {/* Floating ambient orbs */}
-      <div 
-        className="fixed inset-0 overflow-hidden pointer-events-none" 
-        aria-hidden="true"
-        role="presentation"
-        style={{ 
-          transform: 'translateZ(0)', 
-          contain: 'strict',
-          contentVisibility: 'auto',
-          zIndex: -1
-        }}
-      >
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
-      </div>
-
       <Card className="w-full max-w-lg relative z-10 bg-background/30 backdrop-blur-xl border border-white/10 shadow-2xl rounded-[32px] animate-fade-in overflow-hidden">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           {/* Logo with glow */}
@@ -668,6 +635,39 @@ const Auth = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Gradient Background - render after content for better LCP */}
+      <div 
+        className="fixed inset-0 pointer-events-none" 
+        aria-hidden="true"
+        role="presentation"
+        style={{ 
+          transform: 'translateZ(0)', 
+          contain: 'strict', 
+          contentVisibility: 'auto',
+          zIndex: -1
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-background/20" />
+      </div>
+
+      {/* Floating ambient orbs - render after content for better LCP */}
+      <div 
+        className="fixed inset-0 overflow-hidden pointer-events-none" 
+        aria-hidden="true"
+        role="presentation"
+        style={{ 
+          transform: 'translateZ(0)', 
+          contain: 'strict',
+          contentVisibility: 'auto',
+          zIndex: -1
+        }}
+      >
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
+      </div>
     </div>
   );
 };
