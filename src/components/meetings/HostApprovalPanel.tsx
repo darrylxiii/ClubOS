@@ -86,6 +86,36 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
     setProcessingIds(prev => new Set(prev).add(requestId));
 
     try {
+      // Get the request details first
+      const { data: request, error: fetchError } = await supabase
+        .from('meeting_join_requests')
+        .select('*')
+        .eq('id', requestId)
+        .single();
+
+      if (fetchError || !request) {
+        throw new Error('Failed to fetch request details');
+      }
+
+      // Create meeting participant entry for the guest
+      const { error: participantError } = await supabase
+        .from('meeting_participants')
+        .insert({
+          meeting_id: request.meeting_id,
+          user_id: null, // Guests don't have user_id
+          guest_name: request.guest_name,
+          guest_email: request.guest_email,
+          session_token: request.session_token, // Store session token for guest identification
+          status: 'accepted',
+          joined_at: new Date().toISOString()
+        });
+
+      if (participantError && participantError.code !== '23505') { // Ignore duplicate errors
+        console.error('[HostApproval] Failed to create participant:', participantError);
+        throw participantError;
+      }
+
+      // Update the request status
       const { error } = await supabase
         .from('meeting_join_requests')
         .update({
@@ -97,7 +127,8 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
 
       if (error) throw error;
 
-      toast.success('Guest approved to join');
+      console.log('[HostApproval] Guest approved and added to participants:', request.guest_name);
+      toast.success(`${request.guest_name} has been admitted to the meeting`);
       setRequests(prev => prev.filter(r => r.id !== requestId));
     } catch (error) {
       console.error('[HostApproval] Failed to approve:', error);

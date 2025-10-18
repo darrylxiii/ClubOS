@@ -285,17 +285,22 @@ export function useMeetingWebRTC({
       // Query existing participants
       const { data: existingParticipants } = await supabase
         .from('meeting_participants')
-        .select('user_id')
+        .select('user_id, session_token')
         .eq('meeting_id', meetingId)
-        .eq('status', 'accepted')
-        .neq('user_id', participantId);
+        .eq('status', 'accepted');
 
       console.log('[WebRTC] Found existing participants:', existingParticipants?.length || 0);
 
-      // Create offers to all existing participants
+      // Filter out self and create offers to all existing participants
       if (existingParticipants) {
         for (const participant of existingParticipants) {
-          await handleParticipantJoin(participant.user_id);
+          // Use session_token for guests, user_id for authenticated users
+          const remoteParticipantId = participant.session_token || participant.user_id;
+          
+          // Skip self
+          if (remoteParticipantId === participantId) continue;
+          
+          await handleParticipantJoin(remoteParticipantId);
         }
       }
     };

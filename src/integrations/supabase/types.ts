@@ -3841,6 +3841,7 @@ export type Database = {
           meeting_id: string
           permissions: Json | null
           role: string
+          session_token: string | null
           status: string
           user_id: string | null
         }
@@ -3854,6 +3855,7 @@ export type Database = {
           meeting_id: string
           permissions?: Json | null
           role?: string
+          session_token?: string | null
           status?: string
           user_id?: string | null
         }
@@ -3867,6 +3869,7 @@ export type Database = {
           meeting_id?: string
           permissions?: Json | null
           role?: string
+          session_token?: string | null
           status?: string
           user_id?: string | null
         }

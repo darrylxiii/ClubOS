@@ -89,11 +89,39 @@ export function MeetingVideoCallInterface({
     meetingId: meeting.id,
     participantId,
     participantName,
-    onRemoteStream: (remoteParticipantId, stream) => {
+    onRemoteStream: async (remoteParticipantId, stream) => {
       console.log('[Meeting] Remote stream received from:', remoteParticipantId);
+      
+      // Fetch participant name from database
+      const { data: participant } = await supabase
+        .from('meeting_participants')
+        .select('user_id, guest_name, session_token')
+        .eq('meeting_id', meeting.id)
+        .or(`user_id.eq.${remoteParticipantId},session_token.eq.${remoteParticipantId}`)
+        .single();
+      
+      // Determine display name
+      let displayName = `Participant ${remoteParticipantId.slice(0, 6)}`;
+      if (participant) {
+        if (participant.guest_name) {
+          displayName = participant.guest_name;
+        } else if (participant.user_id) {
+          // Fetch user profile for authenticated users
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, email')
+            .eq('id', participant.user_id)
+            .single();
+          
+          if (profile) {
+            displayName = profile.full_name || profile.email || displayName;
+          }
+        }
+      }
+      
       setRemoteStreams(prev => new Map(prev).set(remoteParticipantId, {
         stream,
-        name: `Participant ${remoteParticipantId.slice(0, 6)}`
+        name: displayName
       }));
     },
     onParticipantLeft: (remoteParticipantId) => {
