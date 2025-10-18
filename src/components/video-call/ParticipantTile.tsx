@@ -3,6 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Mic, MicOff, Video, VideoOff, Hand, Monitor, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ScreenShareOverlay } from './ScreenShareOverlay';
 
 interface ParticipantTileProps {
   participant: {
@@ -19,9 +20,10 @@ interface ParticipantTileProps {
   isLocal?: boolean;
   isFocused?: boolean;
   className?: string;
+  hideScreenShare?: boolean;
 }
 
-export function ParticipantTile({ participant, isLocal, isFocused, className }: ParticipantTileProps) {
+export function ParticipantTile({ participant, isLocal, isFocused, className, hideScreenShare }: ParticipantTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,16 +51,22 @@ export function ParticipantTile({ participant, isLocal, isFocused, className }: 
     >
       {/* Video/Avatar Display */}
       {participant.stream && !participant.is_video_off ? (
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted={isLocal}
-          className={cn(
-            "w-full h-full object-cover",
-            participant.is_screen_sharing && "object-contain bg-black"
+        <>
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            muted={isLocal}
+            className={cn(
+              "w-full h-full object-cover",
+              participant.is_screen_sharing && "object-contain bg-black"
+            )}
+          />
+          {/* Screen share overlay for presenter to prevent infinite loop */}
+          {hideScreenShare && participant.is_screen_sharing && (
+            <ScreenShareOverlay participantName={participant.display_name} />
           )}
-        />
+        </>
       ) : (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
           <Avatar className="w-24 h-24 border-4 border-background/50">

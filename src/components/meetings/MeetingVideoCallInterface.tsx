@@ -299,19 +299,33 @@ export function MeetingVideoCallInterface({
     );
   }
 
-  // Main call interface
+  // Main call interface - separate screen share from video
   const allParticipants = [
+    // Local participant with their camera
     {
       id: 'local',
       display_name: participantName + (isGuest ? ' (Guest)' : ''),
       role: (meeting.host_id === participantId ? 'host' : 'participant') as 'host' | 'participant',
       is_muted: !isAudioEnabled,
       is_video_off: !isVideoEnabled,
-      is_screen_sharing: isScreenSharing,
+      is_screen_sharing: false,
       is_hand_raised: isHandRaised,
       is_speaking: false,
-      stream: (isScreenSharing ? screenStream : localStream) || undefined
+      stream: localStream || undefined
     },
+    // Screen share as separate participant if active
+    ...(isScreenSharing && screenStream ? [{
+      id: 'local-screen',
+      display_name: `${participantName}'s screen`,
+      role: 'participant' as 'host' | 'participant',
+      is_muted: true,
+      is_video_off: false,
+      is_screen_sharing: true,
+      is_hand_raised: false,
+      is_speaking: false,
+      stream: screenStream
+    }] : []),
+    // Remote participants
     ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
       id,
       display_name: name,
@@ -404,10 +418,11 @@ export function MeetingVideoCallInterface({
 
       {/* Video Grid */}
       <VideoGrid
-        participants={allParticipants.slice(1)} // Remote participants
-        localParticipant={allParticipants[0]} // Local participant
-        focusedParticipantId={undefined}
-        layout="grid"
+        participants={allParticipants.slice(1)} // All participants except local camera
+        localParticipant={allParticipants[0]} // Local camera participant
+        focusedParticipantId={isScreenSharing ? 'local-screen' : undefined}
+        layout={isScreenSharing ? 'spotlight' : 'grid'}
+        presenterId={isScreenSharing ? participantId : undefined}
       />
       
       {/* Waiting Room Overlay */}
