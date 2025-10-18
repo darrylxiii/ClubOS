@@ -97,20 +97,24 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
         throw new Error('Failed to fetch request details');
       }
 
-      // Create meeting participant entry for the guest
+      // Create meeting participant entry for the guest (upsert to prevent duplicates)
       const { error: participantError } = await supabase
         .from('meeting_participants')
-        .insert({
+        .upsert({
           meeting_id: request.meeting_id,
-          user_id: null, // Guests don't have user_id
+          user_id: null,
           guest_name: request.guest_name,
           guest_email: request.guest_email,
-          session_token: request.session_token, // Store session token for guest identification
+          session_token: request.session_token,
           status: 'accepted',
-          joined_at: new Date().toISOString()
+          joined_at: new Date().toISOString(),
+          left_at: null
+        }, {
+          onConflict: 'meeting_id,session_token',
+          ignoreDuplicates: false
         });
 
-      if (participantError && participantError.code !== '23505') { // Ignore duplicate errors
+      if (participantError) {
         console.error('[HostApproval] Failed to create participant:', participantError);
         throw participantError;
       }

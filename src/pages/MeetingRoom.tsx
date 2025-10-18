@@ -85,19 +85,26 @@ export default function MeetingRoom() {
     // For authenticated users, join directly
     setJoining(true);
     try {
+      // Upsert to prevent duplicates
       const { error } = await supabase
         .from('meeting_participants')
-        .insert({
+        .upsert({
           meeting_id: meeting.id,
           user_id: user.id,
           status: 'accepted',
-          joined_at: new Date().toISOString()
+          joined_at: new Date().toISOString(),
+          left_at: null
+        }, {
+          onConflict: 'meeting_id,user_id',
+          ignoreDuplicates: false
         });
 
-      if (error && error.code !== '23505') { // Ignore duplicate errors
+      if (error) {
+        console.error('[MeetingRoom] Error upserting participant:', error);
         throw error;
       }
 
+      console.log('[MeetingRoom] User joined meeting successfully');
       setInCall(true);
     } catch (error: any) {
       console.error('Error joining meeting:', error);
@@ -108,13 +115,35 @@ export default function MeetingRoom() {
   };
 
   const handleGuestJoinApproved = (name: string, sessionToken: string) => {
+    console.log('[MeetingRoom] Guest approved with session token:', sessionToken);
     setGuestName(name);
     setGuestSessionToken(sessionToken);
     setShowGuestDialog(false);
     setInCall(true);
   };
 
-  const handleEndCall = () => {
+  const handleEndCall = async () => {
+    // Mark participant as left in database
+    try {
+      if (user) {
+        await supabase
+          .from('meeting_participants')
+          .update({ left_at: new Date().toISOString(), status: 'left' })
+          .eq('meeting_id', meeting.id)
+          .eq('user_id', user.id)
+          .is('left_at', null);
+      } else if (guestSessionToken) {
+        await supabase
+          .from('meeting_participants')
+          .update({ left_at: new Date().toISOString(), status: 'left' })
+          .eq('meeting_id', meeting.id)
+          .eq('session_token', guestSessionToken)
+          .is('left_at', null);
+      }
+    } catch (error) {
+      console.error('[MeetingRoom] Error marking participant as left:', error);
+    }
+    
     setInCall(false);
     navigate('/meetings');
   };
@@ -166,6 +195,8 @@ export default function MeetingRoom() {
     // Generate participant ID (user ID or guest session token)
     const currentParticipantId = user?.id || guestSessionToken || `guest-${Date.now()}`;
     const displayName = user?.user_metadata?.full_name || user?.email || guestName;
+
+    console.log('[MeetingRoom] Entering call with participant ID:', currentParticipantId, 'Display name:', displayName);
 
     return (
       <MeetingVideoCallInterface

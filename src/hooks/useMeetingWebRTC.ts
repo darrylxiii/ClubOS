@@ -98,9 +98,14 @@ export function useMeetingWebRTC({
 
     // Handle remote stream
     pc.ontrack = (event) => {
-      console.log('[WebRTC] Received remote track from:', targetParticipantId);
+      console.log('[WebRTC] Received remote track from:', targetParticipantId, 'Kind:', event.track.kind, 'Streams:', event.streams.length);
       const [remoteStream] = event.streams;
-      onRemoteStream(targetParticipantId, remoteStream);
+      if (remoteStream) {
+        console.log('[WebRTC] Remote stream has tracks:', remoteStream.getTracks().length);
+        onRemoteStream(targetParticipantId, remoteStream);
+      } else {
+        console.warn('[WebRTC] No remote stream in track event');
+      }
     };
 
     // Handle ICE candidates
@@ -202,8 +207,15 @@ export function useMeetingWebRTC({
     console.log('[WebRTC] Handling answer from:', senderId);
     
     const pc = peerConnections.current.get(senderId);
-    if (pc) {
-      await pc.setRemoteDescription(new RTCSessionDescription(answer));
+    if (pc && pc.signalingState === 'have-local-offer') {
+      try {
+        await pc.setRemoteDescription(new RTCSessionDescription(answer));
+        console.log('[WebRTC] Answer processed successfully from:', senderId);
+      } catch (error) {
+        console.error('[WebRTC] Error setting remote description:', error);
+      }
+    } else {
+      console.warn('[WebRTC] Received answer but not in correct state:', pc?.signalingState);
     }
   };
 
@@ -212,8 +224,15 @@ export function useMeetingWebRTC({
     console.log('[WebRTC] Handling ICE candidate from:', senderId);
     
     const pc = peerConnections.current.get(senderId);
-    if (pc) {
-      await pc.addIceCandidate(new RTCIceCandidate(candidate));
+    if (pc && pc.remoteDescription) {
+      try {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        console.log('[WebRTC] ICE candidate added successfully');
+      } catch (error) {
+        console.error('[WebRTC] Error adding ICE candidate:', error);
+      }
+    } else {
+      console.warn('[WebRTC] Cannot add ICE candidate, remote description not set yet');
     }
   };
 
@@ -297,7 +316,22 @@ export function useMeetingWebRTC({
 
     // Query existing participants and send join signal
     const joinMeeting = async () => {
-      // Announce join first
+      console.log('[WebRTC] Waiting for channel to be ready...');
+      
+      // Wait for channel to be subscribed
+      await new Promise((resolve) => {
+        const checkSubscription = () => {
+          if (channel.state === 'joined') {
+            console.log('[WebRTC] Channel ready, sending join signal');
+            resolve(true);
+          } else {
+            setTimeout(checkSubscription, 100);
+          }
+        };
+        checkSubscription();
+      });
+
+      // Announce join
       await sendSignal({
         type: 'join',
         data: { name: participantName }
@@ -325,10 +359,16 @@ export function useMeetingWebRTC({
     if (localStream) {
       const videoTrack = localStream.getVideoTracks()[0];
       if (videoTrack) {
-        const newState = !videoTrack.enabled;
+        const newState = !isVideoEnabled;
         videoTrack.enabled = newState;
         setIsVideoEnabled(newState);
         console.log('[WebRTC] Video toggled:', newState ? 'ON' : 'OFF');
+        
+        // Notify peers about video state change
+        await sendSignal({
+          type: 'video-state',
+          data: { enabled: newState }
+        });
       }
     } else {
       // If no stream exists, try to initialize it
@@ -339,20 +379,26 @@ export function useMeetingWebRTC({
         console.error('[WebRTC] Failed to reinitialize media:', error);
       }
     }
-  }, [localStream, initializeMedia]);
+  }, [localStream, isVideoEnabled, initializeMedia]);
 
   // Toggle audio
-  const toggleAudio = useCallback(() => {
+  const toggleAudio = useCallback(async () => {
     if (localStream) {
       const audioTrack = localStream.getAudioTracks()[0];
       if (audioTrack) {
-        const newState = !audioTrack.enabled;
+        const newState = !isAudioEnabled;
         audioTrack.enabled = newState;
         setIsAudioEnabled(newState);
         console.log('[WebRTC] Audio toggled:', newState ? 'ON' : 'OFF');
+        
+        // Notify peers about audio state change
+        await sendSignal({
+          type: 'audio-state',
+          data: { enabled: newState }
+        });
       }
     }
-  }, [localStream]);
+  }, [localStream, isAudioEnabled]);
 
   // Screen sharing
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
@@ -480,11 +526,25 @@ export function useMeetingWebRTC({
       });
       peerConnections.current.clear();
       
-      // Unsubscribe from channel
+      // Unsubscribe from channel and send leave signal
       if (signalChannel.current) {
+        // Send leave signal before unsubscribing
+        void sendSignal({
+          type: 'leave',
+          data: {}
+        });
+        
         signalChannel.current.unsubscribe();
         signalChannel.current = null;
       }
+      
+      // Mark as left in database
+      void supabase
+        .from('meeting_participants')
+        .update({ left_at: new Date().toISOString(), status: 'left' })
+        .eq('meeting_id', meetingId)
+        .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
+        .is('left_at', null);
       
       setLocalStream(null);
       setScreenStream(null);

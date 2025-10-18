@@ -138,7 +138,7 @@ export function MeetingVideoCallInterface({
     setShowDiagnostics(false);
     
     try {
-      console.log('[Meeting] Initializing media for meeting:', meeting.title);
+      console.log('[Meeting] Initializing media for meeting:', meeting.title, 'Participant ID:', participantId);
       await initializeMedia();
       toast.success('Joined meeting room');
     } catch (error: any) {
