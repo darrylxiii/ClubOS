@@ -41,6 +41,10 @@ export function MeetingVideoCallInterface({
     connectionState,
     participants,
     screenStream,
+    networkQuality,
+    bandwidth,
+    latency,
+    error,
     initializeMedia,
     toggleVideo,
     toggleAudio,
@@ -244,13 +248,64 @@ export function MeetingVideoCallInterface({
           <p className="text-xs text-gray-400">{meeting.meeting_code}</p>
         </div>
         
-        <Badge 
-          variant={connectionState === 'connected' ? 'default' : 'secondary'}
-          className="backdrop-blur-2xl bg-black/40 border border-white/10 shadow-lg"
-        >
-          {connectionState === 'connected' ? '🟢' : '🟡'} {connectionState}
-        </Badge>
+        <div className="flex gap-2">
+          <Badge 
+            variant={connectionState === 'connected' ? 'default' : 'secondary'}
+            className="backdrop-blur-2xl bg-black/40 border border-white/10 shadow-lg"
+          >
+            {connectionState === 'connected' ? '🟢' : '🟡'} {connectionState}
+          </Badge>
+          
+          <Badge 
+            variant={
+              networkQuality === 'excellent' ? 'default' : 
+              networkQuality === 'good' ? 'default' : 
+              networkQuality === 'fair' ? 'secondary' : 'destructive'
+            }
+            className="backdrop-blur-2xl bg-black/40 border border-white/10 shadow-lg"
+          >
+            {networkQuality === 'excellent' ? '📶' : 
+             networkQuality === 'good' ? '📶' : 
+             networkQuality === 'fair' ? '📉' : '⚠️'} {networkQuality}
+          </Badge>
+        </div>
+        
+        {latency > 0 && (
+          <div className="text-xs text-gray-400 backdrop-blur-2xl bg-black/40 border border-white/10 px-2 py-1 rounded">
+            {latency}ms • {bandwidth.toFixed(1)} Mbps
+          </div>
+        )}
       </div>
+
+      {/* Error Recovery Banner */}
+      {error && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[10000] max-w-md">
+          <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-4 py-3 rounded-lg shadow-xl">
+            <div className="flex items-center gap-3">
+              <span className="text-yellow-500">⚠️</span>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-white">{error.message}</p>
+                {error.recoverable && (
+                  <p className="text-xs text-gray-300">Attempting to reconnect...</p>
+                )}
+              </div>
+              {error.recoverable && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    cleanup();
+                    initializeMedia();
+                  }}
+                  className="backdrop-blur-sm bg-white/10"
+                >
+                  Retry
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Participant Count */}
       <div className="absolute top-4 right-4 z-[10000]">

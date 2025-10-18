@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { useBandwidthMonitor } from './useBandwidthMonitor';
 
 interface MeetingWebRTCConfig {
   meetingId: string;
@@ -27,18 +28,24 @@ export function useMeetingWebRTC({
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [connectionState, setConnectionState] = useState<string>('new');
   const [participants, setParticipants] = useState<string[]>([]);
+  const [error, setError] = useState<{ message: string; recoverable: boolean } | null>(null);
   
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const signalChannel = useRef<RealtimeChannel | null>(null);
+  const { stats, getVideoConstraints } = useBandwidthMonitor();
 
-  // Initialize local media
+  // Initialize local media with adaptive quality
   const initializeMedia = useCallback(async () => {
     try {
       console.log('[WebRTC] Initializing local media...');
+      setError(null);
+      
+      const videoConstraints = getVideoConstraints();
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+          width: { ideal: videoConstraints.width },
+          height: { ideal: videoConstraints.height },
+          frameRate: { ideal: videoConstraints.frameRate }
         },
         audio: {
           echoCancellation: true,
@@ -47,14 +54,25 @@ export function useMeetingWebRTC({
         }
       });
 
-      console.log('[WebRTC] Local media initialized successfully');
+      console.log('[WebRTC] Local media initialized successfully with quality:', stats.recommendedQuality);
       setLocalStream(stream);
       return stream;
-    } catch (error) {
+    } catch (error: any) {
       console.error('[WebRTC] Failed to initialize media:', error);
+      
+      const recoverable = error.name !== 'NotAllowedError' && error.name !== 'PermissionDeniedError';
+      setError({
+        message: error.name === 'NotFoundError' 
+          ? 'No camera or microphone found'
+          : error.name === 'NotAllowedError'
+          ? 'Camera/microphone access denied'
+          : 'Failed to access media devices',
+        recoverable
+      });
+      
       throw error;
     }
-  }, []);
+  }, [getVideoConstraints, stats.recommendedQuality]);
 
   // Create peer connection
   const createPeerConnection = useCallback((targetParticipantId: string) => {
@@ -88,14 +106,36 @@ export function useMeetingWebRTC({
       }
     };
 
-    // Connection state changes
+    // Connection state changes with recovery
     pc.onconnectionstatechange = () => {
       console.log('[WebRTC] Connection state:', pc.connectionState);
       setConnectionState(pc.connectionState);
       
-      if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
-        onParticipantLeft(targetParticipantId);
-        peerConnections.current.delete(targetParticipantId);
+      if (pc.connectionState === 'failed') {
+        console.warn('[WebRTC] Connection failed, attempting to reconnect...');
+        setError({ message: 'Connection lost, reconnecting...', recoverable: true });
+        
+        // Attempt ICE restart
+        pc.restartIce();
+        
+        setTimeout(() => {
+          if (pc.connectionState === 'failed') {
+            onParticipantLeft(targetParticipantId);
+            peerConnections.current.delete(targetParticipantId);
+          }
+        }, 5000);
+      } else if (pc.connectionState === 'disconnected') {
+        console.warn('[WebRTC] Connection disconnected');
+        setError({ message: 'Connection unstable', recoverable: true });
+        
+        setTimeout(() => {
+          if (pc.connectionState === 'disconnected') {
+            onParticipantLeft(targetParticipantId);
+            peerConnections.current.delete(targetParticipantId);
+          }
+        }, 10000);
+      } else if (pc.connectionState === 'connected') {
+        setError(null);
       }
     };
 
@@ -364,19 +404,50 @@ export function useMeetingWebRTC({
     });
   }, [participantName]);
 
-  // Cleanup
+  // Cleanup with robust teardown
   const cleanup = useCallback(() => {
-    console.log('[WebRTC] Cleaning up...');
+    console.log('[WebRTC] Cleaning up all resources...');
     
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
+    try {
+      // Stop all local tracks
+      if (localStream) {
+        localStream.getTracks().forEach(track => {
+          track.stop();
+          console.log('[WebRTC] Stopped track:', track.kind);
+        });
+      }
+      
+      // Stop screen share if active
+      if (screenStream) {
+        screenStream.getTracks().forEach(track => {
+          track.stop();
+          console.log('[WebRTC] Stopped screen share track');
+        });
+      }
+      
+      // Close all peer connections
+      peerConnections.current.forEach((pc, id) => {
+        console.log('[WebRTC] Closing peer connection:', id);
+        pc.close();
+      });
+      peerConnections.current.clear();
+      
+      // Unsubscribe from channel
+      if (signalChannel.current) {
+        signalChannel.current.unsubscribe();
+        signalChannel.current = null;
+      }
+      
+      setLocalStream(null);
+      setScreenStream(null);
+      setParticipants([]);
+      setError(null);
+      
+      console.log('[WebRTC] Cleanup complete');
+    } catch (err) {
+      console.error('[WebRTC] Error during cleanup:', err);
     }
-    
-    peerConnections.current.forEach(pc => pc.close());
-    peerConnections.current.clear();
-    
-    setLocalStream(null);
-  }, [localStream]);
+  }, [localStream, screenStream]);
 
   return {
     localStream,
@@ -385,6 +456,10 @@ export function useMeetingWebRTC({
     connectionState,
     participants,
     screenStream,
+    networkQuality: stats.quality,
+    bandwidth: stats.bandwidth,
+    latency: stats.latency,
+    error,
     initializeMedia,
     toggleVideo,
     toggleAudio,
