@@ -321,12 +321,13 @@ const Auth = () => {
       {/* Gradient Background */}
       <div 
         className="fixed inset-0 pointer-events-none" 
+        aria-hidden="true"
+        role="presentation"
         style={{ 
           transform: 'translateZ(0)', 
-          contain: 'layout style paint', 
-          willChange: 'transform',
+          contain: 'strict', 
           contentVisibility: 'auto',
-          containIntrinsicSize: '100vw 100vh'
+          zIndex: -1
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
@@ -337,12 +338,13 @@ const Auth = () => {
       {/* Floating ambient orbs */}
       <div 
         className="fixed inset-0 overflow-hidden pointer-events-none" 
+        aria-hidden="true"
+        role="presentation"
         style={{ 
           transform: 'translateZ(0)', 
-          contain: 'layout style paint', 
-          willChange: 'transform',
+          contain: 'strict',
           contentVisibility: 'auto',
-          containIntrinsicSize: '100vw 100vh'
+          zIndex: -1
         }}
       >
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
