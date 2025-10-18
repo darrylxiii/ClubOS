@@ -64,47 +64,53 @@ export function VideoCallInterface({ conversationId, participantName, participan
   // Diagnostics complete handler
   const handleDiagnosticsComplete = async () => {
     setShowDiagnostics(false);
+    setIsCalling(false); // Stop calling animation immediately
     
     try {
-      // Start session first (this was causing the recursion error before)
+      // Start session first - this should always work
+      console.log('Starting session...');
       const newSession = await startSession();
       
       if (!newSession) {
         throw new Error('Failed to create session');
       }
-
-      // Then initialize media
-      await initializeMedia();
       
-      if (localVideoRef.current && localStream) {
-        localVideoRef.current.srcObject = localStream;
+      console.log('Session started successfully:', newSession.id);
+      toast.success('Joined meeting room');
+
+      // Try to initialize media, but don't fail if it doesn't work
+      try {
+        console.log('Initializing media...');
+        await initializeMedia();
+        
+        if (localVideoRef.current && localStream) {
+          localVideoRef.current.srcObject = localStream;
+        }
+        console.log('Media initialized successfully');
+        toast.success('Camera and microphone connected');
+      } catch (mediaError: any) {
+        console.error('Media initialization failed (non-fatal):', mediaError);
+        toast.warning('Joined without camera/microphone. You can try reconnecting from settings.');
       }
 
-      // Play calling sound
-      if (callingAudioRef.current) {
-        callingAudioRef.current.loop = true;
-        callingAudioRef.current.play().catch(console.error);
-      }
-
-      // Simulate connection
-      setTimeout(() => {
-        setIsCalling(false);
-        callingAudioRef.current?.pause();
-      }, 3000);
-
-      toast.success('Connected to call');
     } catch (error: any) {
       console.error('Error initializing call:', error);
+      
+      if (error.code === '42P17') {
+        toast.error('Database error. Retrying...');
+        // Auto-retry once for database errors
+        setTimeout(() => {
+          handleDiagnosticsComplete();
+        }, 1000);
+        return;
+      }
+      
       setPermissionDenied(true);
       
-      if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
-        toast.error('Camera/microphone access denied. Please allow permissions.');
-      } else if (error.name === 'NotFoundError') {
-        toast.error('No camera or microphone found on your device.');
-      } else if (error.code === '42P17') {
-        toast.error('Database error. Please try again.');
+      if (error.message?.includes('Failed to create session')) {
+        toast.error('Could not connect to meeting room. Please try again.');
       } else {
-        toast.error('Failed to initialize call. Please try again.');
+        toast.error('Failed to join call. Please try again.');
       }
     }
   };
@@ -112,6 +118,19 @@ export function VideoCallInterface({ conversationId, participantName, participan
   const handleRetry = () => {
     setPermissionDenied(false);
     setShowDiagnostics(true);
+  };
+  
+  const handleRetryMedia = async () => {
+    try {
+      await initializeMedia();
+      if (localVideoRef.current && localStream) {
+        localVideoRef.current.srcObject = localStream;
+      }
+      toast.success('Camera and microphone reconnected');
+    } catch (error: any) {
+      console.error('Media retry failed:', error);
+      toast.error('Failed to connect media. Please check your permissions.');
+    }
   };
 
   const handleScreenShare = async () => {
@@ -236,42 +255,41 @@ export function VideoCallInterface({ conversationId, participantName, participan
         layout="grid"
       />
       
-      {/* Placeholder when calling/no remote stream */}
-      {isCalling && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
-          <div className="text-center space-y-6 animate-fade-in">
-            {/* Animated calling avatar with pulsing border */}
-            <div className="relative inline-block">
-              {/* Animated pulsing rings */}
-              <div className="absolute inset-0 -m-4 rounded-full bg-primary/20 animate-ping" />
-              <div className="absolute inset-0 -m-2 rounded-full bg-primary/30 animate-pulse" />
-              
-              {/* Avatar with border animation */}
-              <div className="relative">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-purple-500 to-primary animate-spin-slow" 
-                     style={{ padding: '4px' }}>
-                  <div className="w-full h-full rounded-full bg-gray-900" />
-                </div>
-                <Avatar className="relative w-32 h-32 border-4 border-gray-900">
-                  {participantAvatar ? (
-                    <AvatarImage src={participantAvatar} alt={participantName} />
-                  ) : null}
-                  <AvatarFallback className="text-4xl font-bold bg-primary/20 text-primary">
-                    {participantName.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
+      {/* Waiting Room - when no other participants */}
+      {!isCalling && participants.length <= 1 && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-sm">
+          <div className="text-center space-y-6 animate-fade-in max-w-md mx-4">
+            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+              <Video className="h-12 w-12 text-primary" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-white">Waiting for others to join</h3>
+              <p className="text-muted-foreground">
+                Share the meeting link or wait for other participants
+              </p>
             </div>
 
-            {/* Calling text */}
-            <div className="space-y-2">
-              <h3 className="text-3xl font-bold text-white">{participantName}</h3>
-              <div className="flex items-center justify-center gap-1">
-                <p className="text-xl text-gray-400">Calling</p>
-                <span className="animate-[bounce_1s_ease-in-out_infinite]">.</span>
-                <span className="animate-[bounce_1s_ease-in-out_0.2s_infinite]">.</span>
-                <span className="animate-[bounce_1s_ease-in-out_0.4s_infinite]">.</span>
+            {/* Show reconnect option if no local stream */}
+            {!localStream && (
+              <div className="space-y-3 p-4 bg-muted/20 rounded-lg">
+                <p className="text-sm text-muted-foreground">
+                  Your camera and microphone are not connected
+                </p>
+                <Button onClick={handleRetryMedia} variant="outline" size="sm">
+                  <Video className="h-4 w-4 mr-2" />
+                  Connect Camera & Mic
+                </Button>
               </div>
+            )}
+
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span>Connected</span>
+              </div>
+              <span>•</span>
+              <span>{participants.length} participant{participants.length !== 1 ? 's' : ''}</span>
             </div>
           </div>
         </div>

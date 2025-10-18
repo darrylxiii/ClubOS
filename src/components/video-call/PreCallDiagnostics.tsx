@@ -141,6 +141,7 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
 
   const allPassed = checks.every(c => c.status === 'passed' || c.status === 'warning');
   const anyFailed = checks.some(c => c.status === 'failed');
+  const isComplete = overallProgress === 100;
 
   return (
     <div className="flex items-center justify-center min-h-screen p-8 bg-background">
@@ -200,6 +201,16 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
           ))}
         </div>
 
+        {/* Warning message if issues detected */}
+        {anyFailed && isComplete && (
+          <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+            <p className="text-sm text-yellow-600 dark:text-yellow-400">
+              ⚠️ Some checks failed. You can still join the call, but your experience may be limited. 
+              We recommend fixing the issues above first.
+            </p>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="flex gap-3">
           <Button
@@ -209,12 +220,21 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
           >
             Cancel
           </Button>
+          {!isComplete && (
+            <Button
+              onClick={onComplete}
+              variant="ghost"
+              className="flex-1"
+            >
+              Skip Checks
+            </Button>
+          )}
           <Button
             onClick={onComplete}
-            disabled={!allPassed && anyFailed}
+            disabled={!isComplete && !anyFailed}
             className="flex-1"
           >
-            {anyFailed ? 'Fix Issues to Continue' : 'Join Call'}
+            {anyFailed ? 'Join Anyway' : isComplete ? 'Join Call' : 'Please Wait...'}
           </Button>
         </div>
       </Card>
