@@ -47,7 +47,7 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, ...props }, ref) => (
   <textarea
     className={cn(
-      "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none scrollbar-thin scrollbar-thumb-[#444444] scrollbar-track-transparent hover:scrollbar-thumb-[#555555]",
+      "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none scrollbar-thin scrollbar-thumb-[#444444] scrollbar-track-transparent hover:scrollbar-thumb-[#555555]",
       className
     )}
     ref={ref}
@@ -410,7 +410,7 @@ const PromptInputTextarea: React.FC<PromptInputTextareaProps & React.ComponentPr
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={handleKeyDown}
-      className={cn("text-base text-black dark:text-white", className)}
+      className={cn("text-base text-foreground", className)}
       disabled={disabled}
       placeholder={placeholder}
       {...props}
@@ -637,7 +637,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
         isLoading={isLoading}
         onSubmit={handleSubmit}
         className={cn(
-          "w-full bg-white dark:bg-[#2D1810] border border-border dark:border-[#4A2F1C] shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 ease-in-out",
+          "w-full bg-white dark:bg-card border border-border shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 ease-in-out rounded-3xl",
           isRecording && "border-red-500/70",
           className
         )}
@@ -716,7 +716,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
               <PromptInputAction tooltip="Select AI model">
                 <PopoverTrigger asChild>
                   <button
-                    className="flex h-8 items-center gap-1.5 rounded-full px-3 text-foreground/60 dark:text-[#9CA3AF] cursor-pointer transition-colors hover:bg-muted dark:hover:bg-gray-600/30 hover:text-foreground dark:hover:text-[#D1D5DB] border border-transparent hover:border-border dark:hover:border-[#444444]"
+                    className="flex h-8 items-center gap-1.5 rounded-full px-3 text-foreground cursor-pointer transition-colors hover:bg-muted border border-transparent hover:border-border"
                     disabled={isRecording}
                   >
                     {currentModel.icon}
@@ -724,11 +724,11 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                   </button>
                 </PopoverTrigger>
               </PromptInputAction>
-              <PopoverContent align="start" className="w-80 p-2 bg-white dark:bg-[#2D1810] border-border dark:border-[#4A2F1C]">
+              <PopoverContent align="start" className="w-80 p-2 bg-white dark:bg-card border-border">
                 <div className="space-y-1">
                   <div className="px-2 py-1.5">
-                    <h4 className="text-sm font-semibold text-black dark:text-white mb-1">Select AI Model</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">Choose which model powers your conversation</p>
+                    <h4 className="text-sm font-semibold text-foreground mb-1">Select AI Model</h4>
+                    <p className="text-xs text-muted-foreground">Choose which model powers your conversation</p>
                   </div>
                   {AI_MODELS.map((model) => (
                     <button
@@ -739,21 +739,21 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                         "w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all",
                         selectedModel === model.id
                           ? "bg-[#9b87f5]/10 border border-[#9b87f5]"
-                          : "hover:bg-muted dark:hover:bg-[#3D2416] border border-transparent",
+                          : "hover:bg-muted border border-transparent",
                         model.locked && "opacity-60 cursor-not-allowed"
                       )}
                     >
-                      <div className="flex-shrink-0 mt-0.5 text-black dark:text-white">{model.icon}</div>
+                      <div className="flex-shrink-0 mt-0.5 text-foreground">{model.icon}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h5 className="text-sm font-medium text-black dark:text-white">{model.name}</h5>
+                          <h5 className="text-sm font-medium text-foreground">{model.name}</h5>
                           {model.locked && (
                             <span className="text-xs px-1.5 py-0.5 rounded bg-[#9b87f5]/20 text-[#9b87f5] border border-[#9b87f5]/30">
                               Premium
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{model.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{model.description}</p>
                       </div>
                     </button>
                   ))}
@@ -765,7 +765,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
             <PromptInputAction tooltip="Upload image">
               <button
                 onClick={() => uploadInputRef.current?.click()}
-                className="flex h-8 w-8 text-foreground/60 dark:text-[#9CA3AF] cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-muted dark:hover:bg-gray-600/30 hover:text-foreground dark:hover:text-[#D1D5DB]"
+                className="flex h-8 w-8 text-foreground cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-muted"
                 disabled={isRecording}
               >
                 <Paperclip className="h-5 w-5 transition-colors" />
@@ -792,7 +792,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                   "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
                   showSearch
                     ? "bg-[#1EAEDB]/15 border-[#1EAEDB] text-[#1EAEDB]"
-                    : "bg-transparent border-transparent text-foreground/60 dark:text-[#9CA3AF] hover:text-foreground dark:hover:text-[#D1D5DB]"
+                    : "bg-transparent border-transparent text-foreground hover:text-foreground"
                 )}
               >
                 <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
@@ -828,7 +828,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                   "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
                   showThink
                     ? "bg-[#8B5CF6]/15 border-[#8B5CF6] text-[#8B5CF6]"
-                    : "bg-transparent border-transparent text-foreground/60 dark:text-[#9CA3AF] hover:text-foreground dark:hover:text-[#D1D5DB]"
+                    : "bg-transparent border-transparent text-foreground hover:text-foreground"
                 )}
               >
                 <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
@@ -864,7 +864,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                   "rounded-full transition-all flex items-center gap-1 px-2 py-1 border h-8",
                   showCanvas
                     ? "bg-[#F97316]/15 border-[#F97316] text-[#F97316]"
-                    : "bg-transparent border-transparent text-foreground/60 dark:text-[#9CA3AF] hover:text-foreground dark:hover:text-[#D1D5DB]"
+                    : "bg-transparent border-transparent text-foreground hover:text-foreground"
                 )}
               >
                 <div className="w-5 h-5 flex items-center justify-center flex-shrink-0">
@@ -910,10 +910,10 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
               className={cn(
                 "h-8 w-8 rounded-full transition-all duration-200",
                 isRecording
-                  ? "bg-transparent hover:bg-muted dark:hover:bg-gray-600/30 text-red-500 hover:text-red-400"
+                  ? "bg-transparent hover:bg-muted text-red-500 hover:text-red-400"
                   : hasContent
                   ? "bg-primary hover:bg-primary/80 text-primary-foreground"
-                  : "bg-transparent hover:bg-muted dark:hover:bg-gray-600/30 text-foreground/60 dark:text-[#9CA3AF] hover:text-foreground dark:hover:text-[#D1D5DB]"
+                  : "bg-transparent hover:bg-muted text-foreground"
               )}
               onClick={() => {
                 if (isRecording) setIsRecording(false);
