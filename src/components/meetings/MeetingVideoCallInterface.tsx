@@ -78,13 +78,15 @@ export function MeetingVideoCallInterface({
     bandwidth,
     latency,
     error,
+    channelStatus,
     initializeMedia,
     toggleVideo,
     toggleAudio,
     toggleScreenShare,
     sendReaction,
     enablePictureInPicture,
-    cleanup
+    cleanup,
+    retryConnection
   } = useMeetingWebRTC({
     meetingId: meeting.id,
     participantId,
@@ -428,28 +430,45 @@ export function MeetingVideoCallInterface({
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[10000] max-w-md">
           <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-4 py-3 rounded-lg shadow-xl">
             <div className="flex items-center gap-3">
-              <span className="text-yellow-500">⚠️</span>
+              <span className="text-yellow-500">
+                {channelStatus === 'error' ? '❌' : 
+                 channelStatus === 'disconnected' ? '📡' : '⚠️'}
+              </span>
               <div className="flex-1">
-                <p className="text-sm font-medium text-white">{error.message}</p>
+                <p className="text-sm font-medium text-white">
+                  {channelStatus === 'error' ? 'Connection Error' : 
+                   channelStatus === 'disconnected' ? 'Reconnecting...' : 
+                   error.message}
+                </p>
                 {error.recoverable && (
-                  <p className="text-xs text-gray-300">Attempting to reconnect...</p>
+                  <p className="text-xs text-gray-300">
+                    {channelStatus === 'disconnected' 
+                      ? 'Using fallback connection mode' 
+                      : 'Attempting to reconnect...'}
+                  </p>
                 )}
               </div>
               {error.recoverable && (
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    cleanup();
-                    initializeMedia();
-                  }}
-                  className="backdrop-blur-sm bg-white/10"
+                  onClick={retryConnection}
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs"
                 >
                   Retry
                 </Button>
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Channel Status Indicator (when no error but not connected) */}
+      {!error && channelStatus !== 'connected' && (
+        <div className="absolute top-4 right-4 z-[10000]">
+          <Badge className="backdrop-blur-sm bg-blue-500/80 text-white">
+            {channelStatus === 'connecting' ? '🔄 Connecting...' : '📡 Reconnecting...'}
+          </Badge>
         </div>
       )}
 

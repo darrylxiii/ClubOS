@@ -29,10 +29,15 @@ export function useMeetingWebRTC({
   const [connectionState, setConnectionState] = useState<string>('new');
   const [participants, setParticipants] = useState<string[]>([]);
   const [error, setError] = useState<{ message: string; recoverable: boolean } | null>(null);
+  const [channelStatus, setChannelStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('connecting');
   
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const signalChannel = useRef<RealtimeChannel | null>(null);
   const hasJoinedRef = useRef(false);
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 5;
+  const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+  const signalRetryQueue = useRef<Map<string, { signal: any; retries: number; timestamp: number }>>(new Map());
   const { stats, getVideoConstraints } = useBandwidthMonitor();
 
   // Initialize local media with adaptive quality
@@ -205,12 +210,14 @@ export function useMeetingWebRTC({
     return pc;
   }, [localStream, onRemoteStream, onParticipantLeft]);
 
-  // Send signal through Supabase
+  // Send signal through Supabase with retry logic
   const sendSignal = async (signal: {
     type: string;
     receiverId?: string;
     data: any;
   }) => {
+    const signalKey = `${signal.type}-${signal.receiverId || 'broadcast'}-${Date.now()}`;
+    
     try {
       console.log('[WebRTC] 📤 Sending signal:', signal.type, 'to:', signal.receiverId || 'broadcast', 'from:', participantId);
       
@@ -223,8 +230,33 @@ export function useMeetingWebRTC({
       });
       
       console.log('[WebRTC] ✅ Signal sent successfully:', signal.type);
+      
+      // Remove from retry queue if it was there
+      signalRetryQueue.current.delete(signalKey);
     } catch (error) {
       console.error('[WebRTC] ❌ Failed to send signal:', signal.type, error);
+      
+      // Add to retry queue for critical signals
+      if (['join', 'offer', 'answer'].includes(signal.type)) {
+        const existing = signalRetryQueue.current.get(signalKey);
+        const retries = existing ? existing.retries + 1 : 1;
+        
+        if (retries <= 3) {
+          signalRetryQueue.current.set(signalKey, {
+            signal,
+            retries,
+            timestamp: Date.now()
+          });
+          
+          console.log('[WebRTC] 🔄 Signal queued for retry:', signal.type, 'attempt:', retries);
+          
+          // Retry after exponential backoff
+          setTimeout(() => sendSignal(signal), Math.min(1000 * Math.pow(2, retries), 5000));
+        } else {
+          console.error('[WebRTC] ❌ Signal retry limit exceeded:', signal.type);
+          setError({ message: 'Failed to send signal. Connection may be unstable.', recoverable: true });
+        }
+      }
     }
   };
 
@@ -305,7 +337,146 @@ export function useMeetingWebRTC({
     }
   };
 
-  // Handle new participant join
+  // Fallback polling for participants (when realtime fails)
+  const pollParticipants = useCallback(async () => {
+    try {
+      const { data: participants, error } = await supabase
+        .from('meeting_participants')
+        .select('user_id, session_token')
+        .eq('meeting_id', meetingId)
+        .is('left_at', null);
+      
+      if (error) {
+        console.error('[WebRTC] ❌ Failed to poll participants:', error);
+        return;
+      }
+      
+      if (participants) {
+        console.log('[WebRTC] 📊 Polled participants:', participants.length);
+        
+        const newParticipantIds = participants
+          .map(p => p.user_id || p.session_token)
+          .filter((id): id is string => id !== null && id !== participantId);
+        
+        // Check for new participants
+        for (const newId of newParticipantIds) {
+          const currentParticipants = Array.from(peerConnections.current.keys());
+          if (!currentParticipants.includes(newId)) {
+            console.log('[WebRTC] 🆕 New participant found via polling:', newId);
+            // Call handleParticipantJoin which is defined later
+            if (newId === participantId) continue;
+            
+            // Check if we already have a connection
+            if (peerConnections.current.has(newId)) {
+              console.log('[WebRTC] Already have connection to:', newId);
+              continue;
+            }
+            
+            console.log('[WebRTC] ✅ New participant joined:', newId, '| Creating offer...');
+            setParticipants(prev => [...new Set([...prev, newId])]);
+
+            // Create peer connection and offer
+            const pc = createPeerConnection(newId);
+            
+            try {
+              const offer = await pc.createOffer();
+              await pc.setLocalDescription(offer);
+              
+              console.log('[WebRTC] ✅ Offer created for:', newId, '| Sending offer...');
+              
+              await sendSignal({
+                type: 'offer',
+                receiverId: newId,
+                data: offer
+              });
+              
+              console.log('[WebRTC] ✅ Offer sent to:', newId);
+            } catch (error) {
+              console.error('[WebRTC] ❌ Failed to create/send offer to:', newId, error);
+            }
+          }
+        }
+        
+        setParticipants(newParticipantIds);
+      }
+    } catch (error) {
+      console.error('[WebRTC] ❌ Participant polling error:', error);
+    }
+  }, [meetingId, participantId, createPeerConnection, sendSignal]);
+
+  // Fallback polling for signals (when realtime fails)
+  const pollSignals = useCallback(async () => {
+    try {
+      const { data: signals, error } = await supabase
+        .from('webrtc_signals')
+        .select('*')
+        .eq('meeting_id', meetingId)
+        .or(`receiver_id.eq.${participantId},receiver_id.is.null`)
+        .neq('sender_id', participantId)
+        .eq('processed', false)
+        .order('created_at', { ascending: true })
+        .limit(10);
+      
+      if (error) {
+        console.error('[WebRTC] ❌ Failed to poll signals:', error);
+        return;
+      }
+      
+      if (signals && signals.length > 0) {
+        console.log('[WebRTC] 📊 Processing', signals.length, 'signals from polling');
+        
+        for (const signal of signals) {
+          // Process signal - cast signal_data to appropriate type via unknown
+          switch (signal.signal_type) {
+            case 'join':
+              await handleParticipantJoin(signal.sender_id);
+              break;
+            case 'offer':
+              await handleOffer(signal.sender_id, signal.signal_data as unknown as RTCSessionDescriptionInit);
+              break;
+            case 'answer':
+              await handleAnswer(signal.sender_id, signal.signal_data as unknown as RTCSessionDescriptionInit);
+              break;
+            case 'ice-candidate':
+              await handleIceCandidate(signal.sender_id, signal.signal_data as unknown as RTCIceCandidateInit);
+              break;
+          }
+          
+          // Mark as processed
+          await supabase
+            .from('webrtc_signals')
+            .update({ processed: true })
+            .eq('id', signal.id);
+        }
+      }
+    } catch (error) {
+      console.error('[WebRTC] ❌ Signal polling error:', error);
+    }
+  }, [meetingId, participantId]);
+
+  // Start fallback polling when channel is unreliable
+  useEffect(() => {
+    if (channelStatus === 'disconnected' || channelStatus === 'error') {
+      console.log('[WebRTC] 🔄 Starting fallback polling due to channel issues');
+      
+      // Poll participants and signals every 2 seconds
+      pollingInterval.current = setInterval(() => {
+        pollParticipants();
+        pollSignals();
+      }, 2000);
+      
+      return () => {
+        if (pollingInterval.current) {
+          clearInterval(pollingInterval.current);
+          pollingInterval.current = null;
+        }
+      };
+    } else if (pollingInterval.current) {
+      // Stop polling when channel is healthy
+      clearInterval(pollingInterval.current);
+      pollingInterval.current = null;
+    }
+  }, [channelStatus, pollParticipants, pollSignals]);
   const handleParticipantJoin = async (newParticipantId: string) => {
     if (newParticipantId === participantId) {
       console.log('[WebRTC] Ignoring own join signal');
@@ -671,12 +842,22 @@ export function useMeetingWebRTC({
     bandwidth: stats.bandwidth,
     latency: stats.latency,
     error,
+    channelStatus,
     initializeMedia,
     toggleVideo,
     toggleAudio,
     toggleScreenShare,
     sendReaction,
     enablePictureInPicture,
-    cleanup
+    cleanup,
+    retryConnection: () => {
+      // Manual retry - reset state and channel
+      setChannelStatus('connecting');
+      setError(null);
+      if (signalChannel.current) {
+        signalChannel.current.unsubscribe();
+        signalChannel.current = null;
+      }
+    }
   };
 }
