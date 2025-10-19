@@ -501,12 +501,15 @@ export function MeetingVideoCallInterface({
               <p className="text-muted-foreground">
                 Share the meeting link: <span className="font-mono text-primary">{meeting.meeting_code}</span>
               </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Total participants: {totalParticipants} | Connected: {allParticipants.length}
+              </p>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span>Connected and ready</span>
+                <span>Your camera is ready</span>
               </div>
             </div>
 
@@ -521,6 +524,24 @@ export function MeetingVideoCallInterface({
                 Start Meeting Anyway
               </Button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Connecting Overlay - Show when participants are joining but video not established */}
+      {meetingStarted && totalParticipants >= 2 && remoteStreams.size === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/60 to-gray-800/60 backdrop-blur-sm z-[999]">
+          <div className="text-center space-y-4 animate-fade-in">
+            <div className="w-16 h-16 rounded-full border-4 border-primary border-t-transparent animate-spin mx-auto" />
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-white">Connecting video...</h3>
+              <p className="text-muted-foreground text-sm">
+                {totalParticipants} participants detected | Establishing connection
+              </p>
+              <p className="text-xs text-gray-400">
+                Connection: {connectionState} | Channel: {channelStatus}
+              </p>
+            </div>
           </div>
         </div>
       )}

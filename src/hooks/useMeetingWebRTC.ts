@@ -147,7 +147,7 @@ export function useMeetingWebRTC({
     }
     
     if (!localStream || !mediaReadyRef.current) {
-      console.error('[WebRTC] ❌ Cannot create peer connection, media not ready!');
+      console.error('[WebRTC] ❌ Cannot create peer connection, media not ready! | Local stream:', !!localStream, '| Media ready flag:', mediaReadyRef.current);
       throw new Error('Media not initialized');
     }
     
@@ -277,7 +277,18 @@ export function useMeetingWebRTC({
 
   // Handle incoming offer
   const handleOffer = async (senderId: string, offer: RTCSessionDescriptionInit) => {
-    console.log('[WebRTC] 📞 Handling offer from:', senderId, '| Current peers:', Array.from(peerConnections.current.keys()));
+    console.log('[WebRTC] 📞 Handling offer from:', senderId, '| Media ready:', mediaReadyRef.current, '| Stream:', !!localStream);
+    
+    // Check if media is ready before handling offer
+    if (!mediaReadyRef.current || !localStream) {
+      console.warn('[WebRTC] ⚠️ Received offer but media not ready yet. Queuing sender:', senderId);
+      if (!pendingJoinSignals.current.includes(senderId)) {
+        pendingJoinSignals.current.push(senderId);
+      }
+      return;
+    }
+    
+    console.log('[WebRTC] Current peers:', Array.from(peerConnections.current.keys()));
     
     let pc = peerConnections.current.get(senderId);
     if (!pc) {
@@ -490,23 +501,35 @@ export function useMeetingWebRTC({
       return;
     }
     
+    // Double-check media is ready before proceeding
+    if (!mediaReadyRef.current || !localStream) {
+      console.error('[WebRTC] ❌ handleParticipantJoinInternal called but media not ready! This should not happen. | Media ready:', mediaReadyRef.current, '| Stream:', !!localStream);
+      // Queue it again
+      if (!pendingJoinSignals.current.includes(newParticipantId)) {
+        pendingJoinSignals.current.push(newParticipantId);
+      }
+      return;
+    }
+    
     // Check if we already have a connection
     if (peerConnections.current.has(newParticipantId)) {
       console.log('[WebRTC] Already have connection to:', newParticipantId);
       return;
     }
     
-    console.log('[WebRTC] ✅ New participant joined:', newParticipantId, '| Creating offer with media ready');
+    console.log('[WebRTC] ✅ New participant joined:', newParticipantId, '| Media confirmed ready | Creating offer');
     setParticipants(prev => [...new Set([...prev, newParticipantId])]);
 
     try {
       // Create peer connection with media tracks
+      console.log('[WebRTC] 📞 Creating peer connection with tracks for:', newParticipantId);
       const pc = createPeerConnection(newParticipantId);
       
+      console.log('[WebRTC] 🎬 Creating offer with', localStream.getTracks().length, 'tracks');
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       
-      console.log('[WebRTC] ✅ Offer created for:', newParticipantId, '| Sending offer...');
+      console.log('[WebRTC] ✅ Offer created for:', newParticipantId, '| SDP:', offer.sdp?.substring(0, 100) + '...');
       
       await sendSignal({
         type: 'offer',
@@ -522,14 +545,16 @@ export function useMeetingWebRTC({
 
   // External handler that queues join signals until media is ready
   const handleParticipantJoin = async (newParticipantId: string) => {
-    if (!mediaReadyRef.current) {
-      console.log('[WebRTC] ⏸️ Media not ready, queueing join signal from:', newParticipantId);
+    if (!mediaReadyRef.current || !localStream) {
+      console.log('[WebRTC] ⏸️ Media not ready, queueing join signal from:', newParticipantId, '| Media ready:', mediaReadyRef.current, '| Stream:', !!localStream);
       if (!pendingJoinSignals.current.includes(newParticipantId)) {
         pendingJoinSignals.current.push(newParticipantId);
+        console.log('[WebRTC] 📝 Queued participant:', newParticipantId, '| Queue length:', pendingJoinSignals.current.length);
       }
       return;
     }
     
+    console.log('[WebRTC] ✅ Media is ready, processing join from:', newParticipantId);
     await handleParticipantJoinInternal(newParticipantId);
   };
 
@@ -619,16 +644,16 @@ export function useMeetingWebRTC({
 
       // If we have media already, send join signal immediately
       // Otherwise, initializeMedia will send it when ready
-      if (localStream && !hasJoinedRef.current) {
+      if (mediaReadyRef.current && !hasJoinedRef.current) {
         console.log('[WebRTC] 📢 Media already available, sending join signal');
         await sendSignal({
           type: 'join',
           data: { name: participantName }
         });
         hasJoinedRef.current = true;
-        console.log('[WebRTC] ✅ Join signal sent');
+        console.log('[WebRTC] ✅ Join signal sent immediately (media pre-initialized)');
       } else {
-        console.log('[WebRTC] ⏸️ Waiting for media to be initialized before sending join signal');
+        console.log('[WebRTC] ⏸️ Waiting for media to be initialized before sending join signal | Media ready:', mediaReadyRef.current, '| Has joined:', hasJoinedRef.current);
       }
     };
 
