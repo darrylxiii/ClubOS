@@ -45,6 +45,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { NotificationBell } from "@/components/NotificationBell";
+import { MusicPlayer } from "@/components/MusicPlayer";
 import { NavigationGroup } from "@/components/NavigationGroup";
 import { CommandPalette } from "@/components/CommandPalette";
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
@@ -338,6 +339,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <GlobalRoleSwitcher />
+          <MusicPlayer />
           <NotificationBell />
         </div>
       </header>
