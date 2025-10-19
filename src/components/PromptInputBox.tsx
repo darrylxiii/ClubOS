@@ -47,7 +47,7 @@ interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ className, ...props }, ref) => (
   <textarea
     className={cn(
-      "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none scrollbar-thin scrollbar-thumb-[#444444] scrollbar-track-transparent hover:scrollbar-thumb-[#555555]",
+      "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-black dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none scrollbar-thin scrollbar-thumb-[#444444] scrollbar-track-transparent hover:scrollbar-thumb-[#555555]",
       className
     )}
     ref={ref}
@@ -410,7 +410,7 @@ const PromptInputTextarea: React.FC<PromptInputTextareaProps & React.ComponentPr
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onKeyDown={handleKeyDown}
-      className={cn("text-base", className)}
+      className={cn("text-base text-black dark:text-white", className)}
       disabled={disabled}
       placeholder={placeholder}
       {...props}
@@ -637,7 +637,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
         isLoading={isLoading}
         onSubmit={handleSubmit}
         className={cn(
-          "w-full bg-card dark:bg-[#1F2023] border border-border dark:border-[#444444] shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 ease-in-out",
+          "w-full bg-white dark:bg-[#2D1810] border border-border dark:border-[#4A2F1C] shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 ease-in-out",
           isRecording && "border-red-500/70",
           className
         )}
@@ -724,11 +724,11 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                   </button>
                 </PopoverTrigger>
               </PromptInputAction>
-              <PopoverContent align="start" className="w-80 p-2">
+              <PopoverContent align="start" className="w-80 p-2 bg-white dark:bg-[#2D1810] border-border dark:border-[#4A2F1C]">
                 <div className="space-y-1">
                   <div className="px-2 py-1.5">
-                    <h4 className="text-sm font-semibold text-white mb-1">Select AI Model</h4>
-                    <p className="text-xs text-gray-400">Choose which model powers your conversation</p>
+                    <h4 className="text-sm font-semibold text-black dark:text-white mb-1">Select AI Model</h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Choose which model powers your conversation</p>
                   </div>
                   {AI_MODELS.map((model) => (
                     <button
@@ -739,21 +739,21 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                         "w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all",
                         selectedModel === model.id
                           ? "bg-[#9b87f5]/10 border border-[#9b87f5]"
-                          : "hover:bg-[#2E3033] border border-transparent",
+                          : "hover:bg-muted dark:hover:bg-[#3D2416] border border-transparent",
                         model.locked && "opacity-60 cursor-not-allowed"
                       )}
                     >
-                      <div className="flex-shrink-0 mt-0.5 text-white">{model.icon}</div>
+                      <div className="flex-shrink-0 mt-0.5 text-black dark:text-white">{model.icon}</div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h5 className="text-sm font-medium text-white">{model.name}</h5>
+                          <h5 className="text-sm font-medium text-black dark:text-white">{model.name}</h5>
                           {model.locked && (
                             <span className="text-xs px-1.5 py-0.5 rounded bg-[#9b87f5]/20 text-[#9b87f5] border border-[#9b87f5]/30">
                               Premium
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-400 mt-0.5">{model.description}</p>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">{model.description}</p>
                       </div>
                     </button>
                   ))}
