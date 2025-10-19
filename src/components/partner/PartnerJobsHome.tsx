@@ -377,9 +377,26 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   }
 
   return (
-    <TooltipProvider>
-      {/* Welcome Modal */}
-      <Dialog open={welcomeModalOpen} onOpenChange={setWelcomeModalOpen}>
+    <div className="relative min-h-screen">
+      {/* Background Video */}
+      <div className="fixed inset-0 z-0">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
+        >
+          <source src="/videos/ocean-background.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/80 to-background/95" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10">
+        <TooltipProvider>
+          {/* Welcome Modal */}
+          <Dialog open={welcomeModalOpen} onOpenChange={setWelcomeModalOpen}>
         <DialogContent className="sm:max-w-lg glass-card">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
@@ -528,13 +545,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         {/* Bento KPI Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Active Searches - Larger emphasis */}
-          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-accent/10 via-background to-background hover:shadow-xl transition-all sm:col-span-2 lg:col-span-1">
+          <Card className="border border-border/20 bg-gradient-to-br from-accent/5 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="p-3 rounded-xl bg-gradient-accent">
                   <Briefcase className="w-6 h-6 text-primary-foreground" />
                 </div>
-                <Badge className="text-xs bg-success text-success-foreground">Live</Badge>
+                <Badge className="text-xs bg-success/20 backdrop-blur-[var(--blur-glass-subtle)] border border-success/40 text-success-foreground">Live</Badge>
               </div>
               <div className="space-y-1">
                 <p className="text-4xl font-black">{companyMetrics.activeSearches}</p>
@@ -544,7 +561,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </Card>
 
           {/* Total Candidates */}
-          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-accent/5 via-background to-background hover:shadow-xl transition-all">
+          <Card className="border border-border/20 bg-gradient-to-br from-accent/3 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="p-2 rounded-lg bg-accent/10">
@@ -560,7 +577,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </Card>
 
           {/* Avg Time to Hire */}
-          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-background via-background to-primary/5 hover:shadow-xl transition-all">
+          <Card className="border border-border/20 bg-gradient-to-br from-card/20 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="p-2 rounded-lg bg-primary/10">
@@ -578,7 +595,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </Card>
 
           {/* Conversion Rate */}
-          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-accent/5 via-background to-background hover:shadow-xl transition-all">
+          <Card className="border border-border/20 bg-gradient-to-br from-accent/3 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="p-2 rounded-lg bg-accent/10">
@@ -596,7 +613,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </Card>
 
           {/* Club Sync Status - Larger emphasis */}
-          <Card className="border-2 border-accent/30 bg-gradient-to-br from-accent/10 via-background to-background hover:shadow-xl transition-all sm:col-span-2 lg:col-span-1">
+          <Card className="border border-accent/20 bg-gradient-to-br from-accent/5 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-accent/40 transition-all sm:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -619,7 +636,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <Badge className="text-xs bg-accent text-primary-foreground">Premium</Badge>
+                <Badge className="text-xs bg-accent/20 backdrop-blur-[var(--blur-glass-subtle)] border border-accent/40 text-accent-foreground">Premium</Badge>
               </div>
               <div className="space-y-1">
                 <p className="text-4xl font-black text-accent">{companyMetrics.clubSyncActive}</p>
@@ -640,7 +657,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </Card>
 
           {/* Pending Actions */}
-          <Card className="border-2 border-foreground/10 bg-gradient-to-br from-primary/5 via-background to-background hover:shadow-xl transition-all">
+          <Card className="border border-border/20 bg-gradient-to-br from-card/20 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="p-2 rounded-lg bg-primary/10">
@@ -657,7 +674,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         </div>
 
         {/* Quick Actions Bar with Notifications */}
-        <Card className="border-2 border-foreground/10 bg-gradient-card">
+        <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-border/40 transition-all">
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -705,7 +722,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
       {/* Jobs Grid */}
       {jobs.length === 0 ? (
-        <Card className="border-2 border-dashed border-border bg-gradient-card hover:border-accent/50 transition-colors">
+        <Card className="border-2 border-dashed border-border/40 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-accent/40 transition-colors">
           <CardContent className="flex flex-col items-center justify-center py-16 px-6">
             <div className="p-4 rounded-full bg-accent/10 mb-4">
               <Briefcase className="w-12 h-12 text-accent" />
@@ -731,7 +748,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           {jobs.map((job) => (
             <Card
               key={job.id}
-              className="border-2 border-foreground/10 bg-gradient-to-br from-background via-background to-primary/5 hover:shadow-2xl hover:border-primary/30 transition-all duration-300 backdrop-blur-sm"
+              className="border border-border/20 bg-gradient-to-br from-card/20 via-card/25 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-2xl hover:border-border/40 transition-all duration-300"
             >
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-4 mb-3">
@@ -794,7 +811,8 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                       </Button>
                       <Button
                         size="sm"
-                        className="bg-accent hover:bg-accent/90"
+                        variant="glass"
+                        className="font-semibold border-accent/40"
                         onClick={() => handleClubSyncAction(job.id, 'accept')}
                       >
                         Accept
@@ -866,7 +884,8 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
                 {/* Primary CTA */}
                 <Button
-                  className="w-full bg-primary hover:bg-primary/90 font-semibold"
+                  variant="glass"
+                  className="w-full font-semibold"
                   onClick={() => navigate(`/jobs/${job.id}/dashboard`)}
                 >
                   <LayoutDashboard className="w-4 h-4 mr-2" />
@@ -884,6 +903,8 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         companyId={companyId || undefined}
         onJobCreated={fetchJobsWithMetrics}
       />
-    </TooltipProvider>
+        </TooltipProvider>
+      </div>
+    </div>
   );
 };

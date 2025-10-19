@@ -31,7 +31,23 @@ const Admin = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 lg:py-12">
+      <div className="relative">
+        {/* Background Video */}
+        <div className="fixed inset-0 z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover opacity-40"
+          >
+            <source src="/videos/ocean-background.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/80 to-background/95" />
+        </div>
+
+        {/* Content */}
+        <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12">
         <div className="space-y-4 mb-12">
           <div className="flex items-center gap-2">
             <Shield className="w-8 h-8" />
@@ -73,6 +89,7 @@ const Admin = () => {
             <RoleAssignmentFix />
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </AppLayout>
   );

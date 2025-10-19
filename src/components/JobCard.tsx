@@ -85,12 +85,12 @@ export const JobCard = ({
       <CardContent>
         <div className="flex flex-wrap gap-2 mb-4">
           {tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs">
+            <Badge key={tag} variant="secondary" className="text-xs bg-card/30 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30">
               {tag}
             </Badge>
           ))}
           {salary && (
-            <Badge variant="outline" className="text-xs font-semibold">
+            <Badge variant="outline" className="text-xs font-semibold bg-card/20 backdrop-blur-[var(--blur-glass-subtle)] border-border/30">
               {salary}
             </Badge>
           )}
@@ -99,7 +99,7 @@ export const JobCard = ({
         {matchScore !== undefined && (
           <>
             <div 
-              className="mb-4 p-3 rounded-lg bg-gradient-card border border-border/50 cursor-pointer hover:border-primary/50 transition-colors"
+              className="mb-4 p-4 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30 cursor-pointer hover:border-border/50 hover:bg-card/30 transition-all"
               onClick={() => setShowBreakdown(true)}
             >
               <div className="flex items-center justify-between mb-2">
@@ -150,13 +150,14 @@ export const JobCard = ({
                   <Button 
                     onClick={onClubSync} 
                     size="sm" 
-                    className="bg-gradient-accent text-primary-foreground hover:opacity-90 font-semibold"
+                    variant="glass"
+                    className="font-semibold border-accent/40 hover:border-accent/60"
                   >
                     <Zap className="w-4 h-4 mr-1" />
                     Club Sync
                   </Button>
                 ) : (
-                  <Button onClick={onApply} size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
+                  <Button onClick={onApply} size="sm" variant="glass" className="font-semibold">
                     Apply Now
                   </Button>
                 )}

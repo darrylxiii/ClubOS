@@ -9,12 +9,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-card/70 backdrop-blur-[var(--blur-glass)] border border-border/50 hover:bg-card/90 shadow-glass-md hover:shadow-glass-lg text-foreground",
-        outline: "border-2 border-border bg-card/30 backdrop-blur-[var(--blur-glass-subtle)] hover:bg-card/60 hover:border-foreground/20 shadow-glass-sm hover:shadow-glass-md text-foreground",
-        secondary: "bg-muted/50 text-foreground hover:bg-muted/80 shadow-glass-sm hover:shadow-glass-md backdrop-blur-[var(--blur-glass-subtle)]",
-        ghost: "hover:bg-accent/10 hover:text-foreground text-muted-foreground",
+        default: "bg-card/40 backdrop-blur-[var(--blur-glass)] border border-border/40 hover:bg-card/60 hover:border-border/60 shadow-glass-md hover:shadow-glass-lg text-foreground transition-all",
+        outline: "border border-border/30 bg-card/20 backdrop-blur-[var(--blur-glass-subtle)] hover:bg-card/40 hover:border-border/50 shadow-glass-sm hover:shadow-glass-md text-foreground transition-all",
+        secondary: "bg-card/30 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30 text-foreground hover:bg-card/50 hover:border-border/50 shadow-glass-sm hover:shadow-glass-md transition-all",
+        ghost: "hover:bg-card/20 hover:text-foreground text-muted-foreground backdrop-blur-[var(--blur-glass-subtle)] transition-all",
         link: "text-foreground underline-offset-4 hover:underline hover:text-foreground/80",
-        glass: "bg-card/70 backdrop-blur-[var(--blur-glass)] border border-border/50 hover:bg-card/90 shadow-glass-md hover:shadow-glass-lg text-foreground",
+        glass: "bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/40 hover:bg-card/50 hover:border-border/60 shadow-glass-md hover:shadow-glass-lg text-foreground transition-all",
       },
       size: {
         default: "h-11 px-6 py-2.5",
