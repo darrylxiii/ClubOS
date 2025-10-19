@@ -139,31 +139,28 @@ const Referrals = () => {
         </div>
 
         {/* Tabs for Invite System and Referral Tracking */}
-        <Tabs defaultValue="invites" className="space-y-6">
+        <Tabs defaultValue="tracking" className="space-y-6">
           <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="invites">Invite Codes</TabsTrigger>
             <TabsTrigger value="tracking">Referral Tracking</TabsTrigger>
+            <TabsTrigger value="invites">Invite Codes</TabsTrigger>
           </TabsList>
 
-          {/* Invite System Tab */}
-          <TabsContent value="invites" className="space-y-6">
-            <InviteSystem />
-          </TabsContent>
 
           {/* Referral Tracking Tab */}
-          <TabsContent value="tracking" className="space-y-6">{/* Stats Grid */}
+          <TabsContent value="tracking" className="space-y-6">
+        {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.title} className="border border-accent/20 bg-gradient-card shadow-glow hover:shadow-lg transition-all duration-300">
+              <Card key={stat.title} className="glass-card hover:shadow-lg transition-all duration-300">
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                       {stat.title}
                     </CardTitle>
-                    <div className="p-2 rounded-lg bg-accent/10">
-                      <Icon className="w-4 h-4 text-accent" />
+                    <div className="p-2 rounded-lg bg-muted">
+                      <Icon className="w-4 h-4 text-foreground" />
                     </div>
                   </div>
                 </CardHeader>
@@ -179,31 +176,31 @@ const Referrals = () => {
         </div>
 
         {/* Compensation Bands Info */}
-        <Card className="border border-accent/20 bg-gradient-card">
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Euro className="w-5 h-5 text-accent" />
+              <Euro className="w-5 h-5" />
               Referral Bonus Structure
             </CardTitle>
             <CardDescription>Earn competitive bonuses based on role compensation</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+              <div className="p-4 rounded-lg bg-muted/50">
                 <div className="text-sm text-muted-foreground mb-1">€0 - €50k</div>
-                <div className="text-2xl font-bold text-accent">€1,000</div>
+                <div className="text-2xl font-bold">€1,000</div>
               </div>
-              <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+              <div className="p-4 rounded-lg bg-muted/50">
                 <div className="text-sm text-muted-foreground mb-1">€50k - €75k</div>
-                <div className="text-2xl font-bold text-accent">€1,500</div>
+                <div className="text-2xl font-bold">€1,500</div>
               </div>
-              <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+              <div className="p-4 rounded-lg bg-muted/50">
                 <div className="text-sm text-muted-foreground mb-1">€75k - €125k</div>
-                <div className="text-2xl font-bold text-accent">€2,000</div>
+                <div className="text-2xl font-bold">€2,000</div>
               </div>
-              <div className="p-4 rounded-lg bg-secondary/50 border border-border">
+              <div className="p-4 rounded-lg bg-muted/50">
                 <div className="text-sm text-muted-foreground mb-1">€125k+</div>
-                <div className="text-2xl font-bold text-accent">€3,000</div>
+                <div className="text-2xl font-bold">€3,000</div>
               </div>
             </div>
           </CardContent>
@@ -214,13 +211,13 @@ const Referrals = () => {
           <h2 className="text-2xl font-bold">Your Referrals</h2>
           
           {loading ? (
-            <Card className="border border-accent/20 bg-gradient-card">
+            <Card className="glass-card">
               <CardContent className="py-8 text-center text-muted-foreground">
                 Loading referrals...
               </CardContent>
             </Card>
           ) : referralData.length === 0 ? (
-            <Card className="border border-accent/20 bg-gradient-card">
+            <Card className="glass-card">
               <CardContent className="py-8 text-center text-muted-foreground">
                 No referrals yet. Start by inviting friends using the Invite Codes tab!
               </CardContent>
@@ -231,7 +228,7 @@ const Referrals = () => {
               const hasJoined = invite.referral_network?.length > 0;
               
               return (
-                <Card key={invite.id} className="border border-accent/20 bg-gradient-card hover:shadow-lg transition-all duration-300">
+                <Card key={invite.id} className="glass-card hover:shadow-lg transition-all duration-300">
                   <CardHeader>
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -302,6 +299,11 @@ const Referrals = () => {
           )}
         </div>
       </TabsContent>
+
+          {/* Invite System Tab */}
+          <TabsContent value="invites" className="space-y-6">
+            <InviteSystem />
+          </TabsContent>
     </Tabs>
       </div>
     </AppLayout>
