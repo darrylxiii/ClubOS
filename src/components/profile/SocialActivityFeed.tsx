@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Heart, MessageCircle, Share2, Instagram, Twitter, Video, Settings } from "lucide-react";
+import { Heart, MessageCircle, Share2, Instagram, Twitter, Video, Settings, Youtube, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { processPostContent } from "@/lib/textUtils";
+import { extractYouTubeVideoId, containsYouTubeUrl } from "@/lib/youtubeUtils";
 
 interface Post {
   id: string;
@@ -210,28 +212,55 @@ export const SocialActivityFeed = () => {
                 <p>No posts yet</p>
               </div>
             ) : (
-              posts.map((post) => (
-                <div key={post.id} className="border rounded-lg p-4 space-y-3">
-                  <p className="text-sm">{post.content}</p>
-                  {post.media_url && (
-                    <img
-                      src={post.media_url}
-                      alt="Post media"
-                      className="rounded-lg w-full max-h-64 object-cover"
-                    />
-                  )}
-                  <div className="flex gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Heart className="w-4 h-4" />
-                      {post.likes_count || 0}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MessageCircle className="w-4 h-4" />
-                      {post.comments_count || 0}
-                    </span>
+              posts.map((post) => {
+                const cleanContent = processPostContent(post.content);
+                const hasYouTube = containsYouTubeUrl(post.content);
+                const youtubeId = hasYouTube ? extractYouTubeVideoId(post.content) : null;
+                
+                return (
+                  <div key={post.id} className="glass-card p-4 space-y-3 relative">
+                    <p className="text-sm text-foreground break-words">{cleanContent}</p>
+                    
+                    {hasYouTube && youtubeId && (
+                      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                        <Youtube className="w-4 h-4 text-red-500 flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground truncate">YouTube Video</span>
+                      </div>
+                    )}
+                    
+                    {post.media_url && !hasYouTube && (
+                      <img
+                        src={post.media_url}
+                        alt="Post media"
+                        className="rounded-lg w-16 h-16 object-cover"
+                      />
+                    )}
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-4 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Heart className="w-4 h-4" />
+                          {post.likes_count || 0}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MessageCircle className="w-4 h-4" />
+                          {post.comments_count || 0}
+                        </span>
+                      </div>
+                      
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/feed?highlight=${post.id}`)}
+                        className="text-xs gap-1 h-auto py-1 px-2"
+                      >
+                        See full post
+                        <ArrowRight className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </TabsContent>
 
@@ -270,24 +299,50 @@ export const SocialActivityFeed = () => {
                 <p>No liked posts yet</p>
               </div>
             ) : (
-              likes.map((like) => (
-                <div key={like.id} className="border rounded-lg p-4 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Avatar className="w-8 h-8">
-                      <AvatarImage src={like.post?.user?.avatar_url} />
-                      <AvatarFallback>{like.post?.user?.full_name?.[0]}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{like.post?.user?.full_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(like.created_at).toLocaleDateString()}
-                      </p>
+              likes.map((like) => {
+                const cleanContent = like.post?.content ? processPostContent(like.post.content) : '';
+                const hasYouTube = like.post?.content ? containsYouTubeUrl(like.post.content) : false;
+                const youtubeId = hasYouTube && like.post?.content ? extractYouTubeVideoId(like.post.content) : null;
+                
+                return (
+                  <div key={like.id} className="glass-card p-4 space-y-3 relative">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="w-8 h-8">
+                        <AvatarImage src={like.post?.user?.avatar_url} />
+                        <AvatarFallback>{like.post?.user?.full_name?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{like.post?.user?.full_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(like.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Heart className="w-5 h-5 fill-red-500 text-red-500" />
                     </div>
-                    <Heart className="w-5 h-5 fill-red-500 text-red-500" />
+                    
+                    <p className="text-sm text-foreground break-words">{cleanContent}</p>
+                    
+                    {hasYouTube && youtubeId && (
+                      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+                        <Youtube className="w-4 h-4 text-red-500 flex-shrink-0" />
+                        <span className="text-xs text-muted-foreground truncate">YouTube Video</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-end">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => navigate(`/feed?highlight=${like.post_id}`)}
+                        className="text-xs gap-1 h-auto py-1 px-2"
+                      >
+                        See full post
+                        <ArrowRight className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <p className="text-sm">{like.post?.content}</p>
-                </div>
-              ))
+                );
+              })
             )}
           </TabsContent>
         </Tabs>
