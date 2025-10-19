@@ -186,7 +186,21 @@ const Jobs = () => {
   // Candidate view (default)
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Background Video */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
+        >
+          <source src="/videos/ocean-background.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+      </div>
+      
+      <div className="relative z-10 container mx-auto px-4 py-8 space-y-6">
         {/* Header */}
         <div className="space-y-4 border-b-2 border-foreground pb-8">
           <p className="text-caps text-muted-foreground">Curated Roles</p>
