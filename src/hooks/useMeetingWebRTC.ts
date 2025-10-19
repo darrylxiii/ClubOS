@@ -641,27 +641,60 @@ export function useMeetingWebRTC({
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log('[WebRTC] 📡 Channel subscription status:', status, err);
+        if (status === 'SUBSCRIBED') {
+          setChannelStatus('connected');
+        } else if (status === 'CHANNEL_ERROR') {
+          setChannelStatus('error');
+        } else if (status === 'TIMED_OUT') {
+          setChannelStatus('disconnected');
+        } else if (status === 'CLOSED') {
+          console.warn('[WebRTC] ⚠️ Channel closed');
+          setChannelStatus('disconnected');
+        }
+      });
 
     signalChannel.current = channel;
 
     // Wait for channel to be ready, then send join signal if media is ready
     const setupChannel = async () => {
       console.log('[WebRTC] ⏳ Waiting for channel to be ready...');
+      setChannelStatus('connecting');
       
-      // Wait for channel to be subscribed
-      await new Promise((resolve) => {
-        const checkSubscription = () => {
-          if (channel.state === 'joined') {
-            console.log('[WebRTC] ✅ Channel ready and joined');
-            resolve(true);
-          } else {
-            console.log('[WebRTC] ⏳ Channel state:', channel.state);
-            setTimeout(checkSubscription, 100);
-          }
-        };
-        checkSubscription();
-      });
+      // Wait for channel to be subscribed with timeout
+      const channelReady = await Promise.race([
+        new Promise<boolean>((resolve) => {
+          const checkSubscription = () => {
+            const state = channel.state;
+            console.log('[WebRTC] 📡 Current channel state:', state);
+            
+            if (state === 'joined') {
+              console.log('[WebRTC] ✅ Channel ready and joined');
+              setChannelStatus('connected');
+              resolve(true);
+            } else if (state === 'closed') {
+              console.warn('[WebRTC] ⚠️ Channel is closed, retrying...');
+              resolve(false);
+            } else {
+              setTimeout(checkSubscription, 100);
+            }
+          };
+          checkSubscription();
+        }),
+        new Promise<boolean>((resolve) => {
+          setTimeout(() => {
+            console.warn('[WebRTC] ⏱️ Channel setup timeout after 10s');
+            setChannelStatus('error');
+            resolve(false);
+          }, 10000);
+        })
+      ]);
+
+      if (!channelReady) {
+        console.error('[WebRTC] ❌ Channel failed to initialize, will use polling');
+        return;
+      }
 
       // If we have media already, send join signal immediately
       // Otherwise, initializeMedia will send it when ready

@@ -26,11 +26,17 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
   const [processingIds, setProcessingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!isHost) return;
+    console.log('[HostApproval] 🔧 Setting up approval panel | Meeting ID:', meetingId, '| Is Host:', isHost);
+    
+    if (!isHost) {
+      console.log('[HostApproval] ⏸️ Not host, skipping request monitoring');
+      return;
+    }
 
     loadRequests();
 
     // Subscribe to new requests
+    console.log('[HostApproval] 📡 Subscribing to join requests...');
     const channel = supabase
       .channel(`meeting-requests-${meetingId}`)
       .on(
@@ -41,18 +47,24 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
           table: 'meeting_join_requests',
           filter: `meeting_id=eq.${meetingId}`
         },
-        () => {
+        (payload) => {
+          console.log('[HostApproval] 🔔 Join request change detected:', payload.eventType, payload.new);
           loadRequests();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[HostApproval] 📡 Subscription status:', status);
+      });
 
     return () => {
+      console.log('[HostApproval] 🔌 Unsubscribing from join requests');
       channel.unsubscribe();
     };
   }, [meetingId, isHost]);
 
   const loadRequests = async () => {
+    console.log('[HostApproval] 🔍 Loading join requests for meeting:', meetingId);
+    
     const { data, error } = await supabase
       .from('meeting_join_requests')
       .select('*')
@@ -61,10 +73,11 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
       .order('requested_at', { ascending: true });
 
     if (error) {
-      console.error('[HostApproval] Failed to load requests:', error);
+      console.error('[HostApproval] ❌ Failed to load requests:', error);
       return;
     }
 
+    console.log('[HostApproval] 📊 Found', data?.length || 0, 'pending requests:', data);
     setRequests(data || []);
 
     // Show toast for new requests

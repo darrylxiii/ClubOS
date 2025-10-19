@@ -263,24 +263,30 @@ export function MeetingVideoCallInterface({
     if (!meeting?.id) return;
 
     const fetchParticipants = async () => {
+      // Count all active participants (accepted and present in the meeting, not left)
       const { data, count } = await supabase
         .from('meeting_participants')
         .select('*', { count: 'exact' })
         .eq('meeting_id', meeting.id)
-        .eq('status', 'accepted')
-        .is('left_at', null);
+        .eq('status', 'accepted')  // Only count accepted participants
+        .is('left_at', null);       // Who haven't left yet
 
-      console.log('[Meeting] 👥 Total participants in DB:', count);
+      console.log('[Meeting] 👥 Accepted participants in DB:', count);
       console.log('[Meeting] 📊 Participant details:', data);
       console.log('[Meeting] 🔗 WebRTC connected participants:', participants.length);
-      setTotalParticipants(count || 0);
       
-      // Auto-start meeting when 2+ participants are in
-      if ((count || 0) >= 2 && !meetingStarted) {
-        console.log('[Meeting] ✅ Starting meeting with', count, 'participants');
+      // Count connected WebRTC participants + local participant as the active count
+      const activeParticipantCount = participants.length + 1; // +1 for local
+      console.log('[Meeting] 🎯 Active participants (WebRTC + local):', activeParticipantCount);
+      
+      setTotalParticipants(activeParticipantCount);
+      
+      // Auto-start meeting when 2+ participants are actively connected via WebRTC
+      if (activeParticipantCount >= 2 && !meetingStarted) {
+        console.log('[Meeting] ✅ Starting meeting with', activeParticipantCount, 'active participants');
         setMeetingStarted(true);
-      } else if ((count || 0) < 2) {
-        console.log('[Meeting] ⏸️ Waiting for more participants:', count, 'of 2 required');
+      } else if (activeParticipantCount < 2) {
+        console.log('[Meeting] ⏸️ Waiting for more participants:', activeParticipantCount, 'of 2 required');
       }
     };
 
@@ -307,7 +313,7 @@ export function MeetingVideoCallInterface({
     return () => {
       channel.unsubscribe();
     };
-  }, [meeting?.id]);
+  }, [meeting?.id, participants, meetingStarted]); // Added participants and meetingStarted to re-count when they change
 
   useEffect(() => {
     return () => {
