@@ -39,6 +39,7 @@ export function useMeetingWebRTC({
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const signalRetryQueue = useRef<Map<string, { signal: any; retries: number; timestamp: number }>>(new Map());
   const mediaReadyRef = useRef(false);
+  const localStreamRef = useRef<MediaStream | null>(null);
   const pendingJoinSignals = useRef<string[]>([]);
   const { stats, getVideoConstraints } = useBandwidthMonitor();
 
@@ -64,8 +65,9 @@ export function useMeetingWebRTC({
 
       console.log('[WebRTC] Local media initialized successfully with quality:', stats.recommendedQuality);
       setLocalStream(stream);
+      localStreamRef.current = stream; // Store in ref for closure access
       
-      console.log('[WebRTC] ✅ Media ready flag set to true');
+      console.log('[WebRTC] ✅ Media ready flag set to true | Stream in ref:', !!localStreamRef.current);
       mediaReadyRef.current = true;
       
       // Add tracks to existing peer connections (if any were created before media was ready)
@@ -146,12 +148,13 @@ export function useMeetingWebRTC({
       return peerConnections.current.get(targetParticipantId)!;
     }
     
-    if (!localStream || !mediaReadyRef.current) {
-      console.error('[WebRTC] ❌ Cannot create peer connection, media not ready! | Local stream:', !!localStream, '| Media ready flag:', mediaReadyRef.current);
+    const currentStream = localStreamRef.current;
+    if (!currentStream || !mediaReadyRef.current) {
+      console.error('[WebRTC] ❌ Cannot create peer connection, media not ready! | Local stream ref:', !!localStreamRef.current, '| Media ready flag:', mediaReadyRef.current);
       throw new Error('Media not initialized');
     }
     
-    console.log('[WebRTC] 🆕 Creating peer connection for:', targetParticipantId, '| Media ready:', mediaReadyRef.current);
+    console.log('[WebRTC] 🆕 Creating peer connection for:', targetParticipantId, '| Media ready:', mediaReadyRef.current, '| Tracks:', currentStream.getTracks().length);
     
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
 
@@ -160,9 +163,9 @@ export function useMeetingWebRTC({
 
     // Add local stream tracks
     console.log('[WebRTC] ✅ Adding local tracks to peer connection for:', targetParticipantId);
-    localStream.getTracks().forEach(track => {
+    currentStream.getTracks().forEach(track => {
       console.log('[WebRTC] 📹 Adding track:', track.kind, 'enabled:', track.enabled);
-      pc.addTrack(track, localStream);
+      pc.addTrack(track, currentStream);
     });
 
     // Handle remote stream
@@ -277,10 +280,10 @@ export function useMeetingWebRTC({
 
   // Handle incoming offer
   const handleOffer = async (senderId: string, offer: RTCSessionDescriptionInit) => {
-    console.log('[WebRTC] 📞 Handling offer from:', senderId, '| Media ready:', mediaReadyRef.current, '| Stream:', !!localStream);
+    console.log('[WebRTC] 📞 Handling offer from:', senderId, '| Media ready:', mediaReadyRef.current, '| Stream ref:', !!localStreamRef.current);
     
     // Check if media is ready before handling offer
-    if (!mediaReadyRef.current || !localStream) {
+    if (!mediaReadyRef.current || !localStreamRef.current) {
       console.warn('[WebRTC] ⚠️ Received offer but media not ready yet. Queuing sender:', senderId);
       if (!pendingJoinSignals.current.includes(senderId)) {
         pendingJoinSignals.current.push(senderId);
@@ -502,14 +505,17 @@ export function useMeetingWebRTC({
     }
     
     // Double-check media is ready before proceeding
-    if (!mediaReadyRef.current || !localStream) {
-      console.error('[WebRTC] ❌ handleParticipantJoinInternal called but media not ready! This should not happen. | Media ready:', mediaReadyRef.current, '| Stream:', !!localStream);
+    if (!mediaReadyRef.current || !localStreamRef.current) {
+      console.error('[WebRTC] ❌ handleParticipantJoinInternal called but media not ready! This should not happen. | Media ready:', mediaReadyRef.current, '| Stream ref:', !!localStreamRef.current);
       // Queue it again
       if (!pendingJoinSignals.current.includes(newParticipantId)) {
         pendingJoinSignals.current.push(newParticipantId);
       }
       return;
     }
+    
+    const currentStream = localStreamRef.current;
+    console.log('[WebRTC] ✅ Media confirmed ready | Stream tracks:', currentStream.getTracks().length);
     
     // Check if we already have a connection
     if (peerConnections.current.has(newParticipantId)) {
@@ -525,7 +531,7 @@ export function useMeetingWebRTC({
       console.log('[WebRTC] 📞 Creating peer connection with tracks for:', newParticipantId);
       const pc = createPeerConnection(newParticipantId);
       
-      console.log('[WebRTC] 🎬 Creating offer with', localStream.getTracks().length, 'tracks');
+      console.log('[WebRTC] 🎬 Creating offer with', currentStream.getTracks().length, 'tracks');
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       
@@ -545,8 +551,8 @@ export function useMeetingWebRTC({
 
   // External handler that queues join signals until media is ready
   const handleParticipantJoin = async (newParticipantId: string) => {
-    if (!mediaReadyRef.current || !localStream) {
-      console.log('[WebRTC] ⏸️ Media not ready, queueing join signal from:', newParticipantId, '| Media ready:', mediaReadyRef.current, '| Stream:', !!localStream);
+    if (!mediaReadyRef.current || !localStreamRef.current) {
+      console.log('[WebRTC] ⏸️ Media not ready, queueing join signal from:', newParticipantId, '| Media ready:', mediaReadyRef.current, '| Stream ref:', !!localStreamRef.current);
       if (!pendingJoinSignals.current.includes(newParticipantId)) {
         pendingJoinSignals.current.push(newParticipantId);
         console.log('[WebRTC] 📝 Queued participant:', newParticipantId, '| Queue length:', pendingJoinSignals.current.length);
@@ -554,7 +560,7 @@ export function useMeetingWebRTC({
       return;
     }
     
-    console.log('[WebRTC] ✅ Media is ready, processing join from:', newParticipantId);
+    console.log('[WebRTC] ✅ Media is ready (stream in ref), processing join from:', newParticipantId);
     await handleParticipantJoinInternal(newParticipantId);
   };
 
@@ -686,8 +692,9 @@ export function useMeetingWebRTC({
 
   // Toggle video
   const toggleVideo = useCallback(async () => {
-    if (localStream) {
-      const videoTrack = localStream.getVideoTracks()[0];
+    const currentStream = localStreamRef.current;
+    if (currentStream) {
+      const videoTrack = currentStream.getVideoTracks()[0];
       if (videoTrack) {
         const newState = !isVideoEnabled;
         videoTrack.enabled = newState;
@@ -709,12 +716,13 @@ export function useMeetingWebRTC({
         console.error('[WebRTC] Failed to reinitialize media:', error);
       }
     }
-  }, [localStream, isVideoEnabled, initializeMedia]);
+  }, [isVideoEnabled, initializeMedia]);
 
   // Toggle audio
   const toggleAudio = useCallback(async () => {
-    if (localStream) {
-      const audioTrack = localStream.getAudioTracks()[0];
+    const currentStream = localStreamRef.current;
+    if (currentStream) {
+      const audioTrack = currentStream.getAudioTracks()[0];
       if (audioTrack) {
         const newState = !isAudioEnabled;
         audioTrack.enabled = newState;
@@ -728,7 +736,7 @@ export function useMeetingWebRTC({
         });
       }
     }
-  }, [localStream, isAudioEnabled]);
+  }, [isAudioEnabled]);
 
   // Screen sharing
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
@@ -776,8 +784,9 @@ export function useMeetingWebRTC({
           setScreenStream(null);
           
           // Restore camera track
-          if (localStream) {
-            const cameraTrack = localStream.getVideoTracks()[0];
+          const currentStream = localStreamRef.current;
+          if (currentStream) {
+            const cameraTrack = currentStream.getVideoTracks()[0];
             peerConnections.current.forEach((pc) => {
               const sender = pc.getSenders().find(s => s.track?.kind === 'video');
               if (sender && cameraTrack) {
@@ -810,14 +819,15 @@ export function useMeetingWebRTC({
 
   // Picture-in-Picture support
   const enablePictureInPicture = async () => {
-    if (!localStream || !document.pictureInPictureEnabled) {
+    const currentStream = localStreamRef.current;
+    if (!currentStream || !document.pictureInPictureEnabled) {
       console.warn('[PiP] Picture-in-Picture not supported');
       return false;
     }
 
     try {
       const videoElement = document.createElement('video');
-      videoElement.srcObject = localStream;
+      videoElement.srcObject = currentStream;
       videoElement.muted = true;
       await videoElement.play();
       await videoElement.requestPictureInPicture();
@@ -834,11 +844,13 @@ export function useMeetingWebRTC({
     
     try {
       // Stop all local tracks
-      if (localStream) {
-        localStream.getTracks().forEach(track => {
+      const currentStream = localStreamRef.current;
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => {
           track.stop();
           console.log('[WebRTC] Stopped track:', track.kind);
         });
+        localStreamRef.current = null;
       }
       
       // Stop screen share if active
