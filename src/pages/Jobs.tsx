@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyConversion";
 import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useUserRole } from "@/hooks/useUserRole";
+import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 type SortOption = "match" | "newest" | "salary";
 const Jobs = () => {
   const {
@@ -180,13 +181,7 @@ const Jobs = () => {
 
   // Candidate view (default)
   return <AppLayout>
-      {/* Background Video */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-40">
-          <source src="/videos/ocean-background.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
-      </div>
+      <OceanBackgroundVideo />
       
       <div className="relative z-10 container mx-auto px-4 py-8 space-y-6">
         {/* Header */}

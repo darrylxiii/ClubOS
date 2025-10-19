@@ -9,6 +9,7 @@ import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsMa
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 
 const Admin = () => {
   const { currentRole, loading } = useRole();
@@ -32,19 +33,7 @@ const Admin = () => {
   return (
     <AppLayout>
       <div className="relative">
-        {/* Background Video */}
-        <div className="fixed inset-0 z-0">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-40"
-          >
-            <source src="/videos/ocean-background.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/80 to-background/95" />
-        </div>
+        <OceanBackgroundVideo />
 
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12">

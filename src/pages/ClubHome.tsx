@@ -7,6 +7,7 @@ import { CandidateHome } from "@/components/clubhome/CandidateHome";
 import { PartnerHome } from "@/components/clubhome/PartnerHome";
 import { AdminHome } from "@/components/clubhome/AdminHome";
 import { ClubHomeHeader } from "@/components/clubhome/ClubHomeHeader";
+import { BackgroundVideo } from "@/components/BackgroundVideo";
 
 const ClubHome = () => {
   const { currentRole: role, loading } = useRole();
@@ -60,19 +61,7 @@ const ClubHome = () => {
 
   return (
     <AppLayout>
-      {/* Background Video */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
-        >
-          <source src="/videos/surreal-background.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
-      </div>
+      <BackgroundVideo />
 
       <div className="relative z-10 container mx-auto py-8 space-y-8 animate-fade-in">
         <ClubHomeHeader role={role} />

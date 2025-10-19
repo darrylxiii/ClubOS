@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { VideoPlayerProvider } from "@/contexts/VideoPlayerContext";
 import { NavigationHistoryProvider } from "@/contexts/NavigationHistoryContext";
+import { MotionProvider } from "@/contexts/MotionContext";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -86,7 +87,8 @@ const App = () => (
             <AuthProvider>
               <RoleProvider>
                 <NavigationHistoryProvider>
-                  <VideoPlayerProvider>
+                  <MotionProvider>
+                    <VideoPlayerProvider>
                     <Suspense fallback={<PageLoader />}>
                       <Routes>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
@@ -383,6 +385,7 @@ const App = () => (
               <FeedbackButton />
               <FloatingVideoPlayer />
             </VideoPlayerProvider>
+          </MotionProvider>
           </NavigationHistoryProvider>
         </RoleProvider>
       </AuthProvider>

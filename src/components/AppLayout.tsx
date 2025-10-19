@@ -50,6 +50,7 @@ import { NavigationGroup } from "@/components/NavigationGroup";
 import { CommandPalette } from "@/components/CommandPalette";
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { MotionToggle } from "@/components/MotionToggle";
 import { useRole } from "@/contexts/RoleContext";
 
 // Grouped Candidate Navigation
@@ -339,6 +340,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <div className="flex items-center gap-2">
           <ThemeToggle />
           <GlobalRoleSwitcher />
+          <MotionToggle />
           <MusicPlayer />
           <NotificationBell />
         </div>

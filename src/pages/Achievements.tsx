@@ -10,6 +10,7 @@ import { CompanyAchievements } from "@/components/partner/CompanyAchievements";
 import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsManager";
 import { useRole } from "@/contexts/RoleContext";
 import { Loader2 } from "lucide-react";
+import { BackgroundVideo } from "@/components/BackgroundVideo";
 
 const Achievements = () => {
   const { currentRole, companyId, loading } = useRole();
@@ -42,19 +43,7 @@ const Achievements = () => {
   if (currentRole === 'partner' && companyId) {
     return (
       <AppLayout>
-        {/* Background Video */}
-        <div className="fixed inset-0 z-0 overflow-hidden">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover opacity-40"
-          >
-            <source src="/videos/surreal-background.mp4" type="video/mp4" />
-          </video>
-          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
-        </div>
+        <BackgroundVideo />
 
         <div className="relative z-10 min-h-screen">
           {/* Hero Banner */}
@@ -120,19 +109,7 @@ const Achievements = () => {
   // Candidate/User view - personal achievements
   return (
     <AppLayout>
-      {/* Background Video */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
-        >
-          <source src="/videos/surreal-background.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
-      </div>
+      <BackgroundVideo />
 
       <div className="relative z-10 min-h-screen">
         {/* Hero Banner */}

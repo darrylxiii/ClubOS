@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { AppLayout } from "@/components/AppLayout";
 import { TrendingUp, Users, Sparkles } from "lucide-react";
 import { useAlgorithmicFeed } from "@/hooks/useAlgorithmicFeed";
+import { BackgroundVideo } from "@/components/BackgroundVideo";
 
 export default function Feed() {
   const { user } = useAuth();
@@ -14,19 +15,7 @@ export default function Feed() {
 
   return (
     <AppLayout>
-      {/* Background Video */}
-      <div className="fixed inset-0 z-0 overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
-        >
-          <source src="/videos/surreal-background.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
-      </div>
+      <BackgroundVideo />
 
       <div className="relative z-10 max-w-3xl mx-auto py-8 px-4 space-y-6">
         {/* Stories Section */}
