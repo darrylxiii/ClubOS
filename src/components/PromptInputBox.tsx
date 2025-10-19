@@ -1,7 +1,8 @@
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode } from "lucide-react";
+import * as PopoverPrimitive from "@radix-ui/react-popover";
+import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode, Sparkles, Lock } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Utility function for className merging
@@ -129,6 +130,28 @@ const DialogTitle = React.forwardRef<
   />
 ));
 DialogTitle.displayName = DialogPrimitive.Title.displayName;
+
+// Popover Components
+const Popover = PopoverPrimitive.Root;
+const PopoverTrigger = PopoverPrimitive.Trigger;
+const PopoverContent = React.forwardRef<
+  React.ElementRef<typeof PopoverPrimitive.Content>,
+  React.ComponentPropsWithoutRef<typeof PopoverPrimitive.Content>
+>(({ className, align = "center", sideOffset = 4, ...props }, ref) => (
+  <PopoverPrimitive.Portal>
+    <PopoverPrimitive.Content
+      ref={ref}
+      align={align}
+      sideOffset={sideOffset}
+      className={cn(
+        "z-50 w-72 rounded-xl border border-[#333333] bg-[#1F2023] p-3 shadow-xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        className
+      )}
+      {...props}
+    />
+  </PopoverPrimitive.Portal>
+));
+PopoverContent.displayName = PopoverPrimitive.Content.displayName;
 
 // Button Component
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -440,9 +463,42 @@ const CustomDivider: React.FC = () => (
   </div>
 );
 
+// AI Model definitions
+interface AIModel {
+  id: string;
+  name: string;
+  description: string;
+  locked: boolean;
+  icon: React.ReactNode;
+}
+
+const AI_MODELS: AIModel[] = [
+  {
+    id: "quantum-0.1",
+    name: "Quantum 0.1",
+    description: "Our flagship model - balanced and powerful",
+    locked: false,
+    icon: <Sparkles className="h-4 w-4" />,
+  },
+  {
+    id: "gpt-5",
+    name: "GPT-5",
+    description: "OpenAI's most advanced model",
+    locked: true,
+    icon: <Lock className="h-4 w-4" />,
+  },
+  {
+    id: "claude-sonnet-4-5",
+    name: "Claude 4.5 Sonnet",
+    description: "Anthropic's reasoning powerhouse",
+    locked: true,
+    icon: <Lock className="h-4 w-4" />,
+  },
+];
+
 // Main PromptInputBox Component
 interface PromptInputBoxProps {
-  onSend?: (message: string, files?: File[]) => void;
+  onSend?: (message: string, files?: File[], model?: string) => void;
   isLoading?: boolean;
   placeholder?: string;
   className?: string;
@@ -457,6 +513,8 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
   const [showSearch, setShowSearch] = React.useState(false);
   const [showThink, setShowThink] = React.useState(false);
   const [showCanvas, setShowCanvas] = React.useState(false);
+  const [selectedModel, setSelectedModel] = React.useState<string>("quantum-0.1");
+  const [modelPopoverOpen, setModelPopoverOpen] = React.useState(false);
   const uploadInputRef = React.useRef<HTMLInputElement>(null);
   const promptBoxRef = React.useRef<HTMLDivElement>(null);
 
@@ -542,12 +600,24 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
       else if (showThink) messagePrefix = "[Think: ";
       else if (showCanvas) messagePrefix = "[Canvas: ";
       const formattedInput = messagePrefix ? `${messagePrefix}${input}]` : input;
-      onSend(formattedInput, files);
+      onSend(formattedInput, files, selectedModel);
       setInput("");
       setFiles([]);
       setFilePreviews({});
     }
   };
+
+  const handleModelSelect = (modelId: string) => {
+    const model = AI_MODELS.find(m => m.id === modelId);
+    if (model?.locked) {
+      console.log("This model is locked. Upgrade to access premium models.");
+      return;
+    }
+    setSelectedModel(modelId);
+    setModelPopoverOpen(false);
+  };
+
+  const currentModel = AI_MODELS.find(m => m.id === selectedModel) || AI_MODELS[0];
 
   const handleStartRecording = () => console.log("Started recording");
 
@@ -642,6 +712,56 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
               isRecording ? "opacity-0 invisible h-0" : "opacity-100 visible"
             )}
           >
+            <Popover open={modelPopoverOpen} onOpenChange={setModelPopoverOpen}>
+              <PromptInputAction tooltip="Select AI model">
+                <PopoverTrigger asChild>
+                  <button
+                    className="flex h-8 items-center gap-1.5 rounded-full px-3 text-[#9CA3AF] cursor-pointer transition-colors hover:bg-gray-600/30 hover:text-[#D1D5DB] border border-transparent hover:border-[#444444]"
+                    disabled={isRecording}
+                  >
+                    {currentModel.icon}
+                    <span className="text-xs font-medium">{currentModel.name}</span>
+                  </button>
+                </PopoverTrigger>
+              </PromptInputAction>
+              <PopoverContent align="start" className="w-80 p-2">
+                <div className="space-y-1">
+                  <div className="px-2 py-1.5">
+                    <h4 className="text-sm font-semibold text-white mb-1">Select AI Model</h4>
+                    <p className="text-xs text-gray-400">Choose which model powers your conversation</p>
+                  </div>
+                  {AI_MODELS.map((model) => (
+                    <button
+                      key={model.id}
+                      onClick={() => handleModelSelect(model.id)}
+                      disabled={model.locked}
+                      className={cn(
+                        "w-full flex items-start gap-3 p-3 rounded-lg text-left transition-all",
+                        selectedModel === model.id
+                          ? "bg-[#9b87f5]/10 border border-[#9b87f5]"
+                          : "hover:bg-[#2E3033] border border-transparent",
+                        model.locked && "opacity-60 cursor-not-allowed"
+                      )}
+                    >
+                      <div className="flex-shrink-0 mt-0.5 text-white">{model.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h5 className="text-sm font-medium text-white">{model.name}</h5>
+                          {model.locked && (
+                            <span className="text-xs px-1.5 py-0.5 rounded bg-[#9b87f5]/20 text-[#9b87f5] border border-[#9b87f5]/30">
+                              Premium
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-400 mt-0.5">{model.description}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <CustomDivider />
             <PromptInputAction tooltip="Upload image">
               <button
                 onClick={() => uploadInputRef.current?.click()}

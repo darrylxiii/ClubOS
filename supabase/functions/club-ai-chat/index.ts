@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userId, conversationId, images } = await req.json();
+    const { messages, userId, conversationId, images, selectedModel: clientSelectedModel } = await req.json();
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -562,8 +562,18 @@ Use this context to provide personalized, relevant guidance. Reference specific 
 
     const tools = [...baseTools, ...searchTools];
 
-    // Select model and system prompt based on mode
-    let selectedModel = "google/gemini-2.5-flash";
+    // Map client-selected model to actual AI model
+    let selectedModel = 'google/gemini-2.5-flash'; // Default
+    if (clientSelectedModel === 'quantum-0.1') {
+      selectedModel = 'google/gemini-2.5-flash';
+    } else if (clientSelectedModel === 'gpt-5') {
+      selectedModel = 'openai/gpt-5';
+    } else if (clientSelectedModel === 'claude-sonnet-4-5') {
+      selectedModel = 'claude-sonnet-4-5';
+    }
+
+    console.log('Client selected model:', clientSelectedModel, '→ Actual model:', selectedModel);
+
     let systemPrompt = `You are Club AI, an in-app copilot for The Quantum Club. Your job is to provide professional, highly actionable, and deeply human guidance to users based on all available in-app information. You always operate with the latest context and are aware of user role (Candidate, Partner, Admin) and permissions.
 
 IMPORTANT NAVIGATION CAPABILITIES:

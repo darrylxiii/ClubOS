@@ -236,7 +236,7 @@ const ClubAI = () => {
     await sendMessage(promptText);
   };
 
-  const sendMessage = async (messageText: string, uploadedFiles?: File[]) => {
+  const sendMessage = async (messageText: string, uploadedFiles?: File[], selectedModel?: string) => {
     if (!messageText.trim()) return;
     
     // Create conversation if none exists
@@ -359,6 +359,7 @@ const ClubAI = () => {
         userId: user?.id,
         conversationId: currentConversationId,
         images: imageDataUrls.length > 0 ? imageDataUrls : undefined,
+        selectedModel,
         onDelta: updateAssistant,
         onDone: async () => {
           setIsLoading(false);
@@ -391,6 +392,7 @@ const ClubAI = () => {
     userId,
     conversationId,
     images,
+    selectedModel,
     onDelta,
     onDone,
   }: {
@@ -398,6 +400,7 @@ const ClubAI = () => {
     userId?: string;
     conversationId?: string | null;
     images?: string[];
+    selectedModel?: string;
     onDelta: (chunk: string, toolCall?: any) => void;
     onDone: () => void;
   }) => {
@@ -409,7 +412,7 @@ const ClubAI = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ messages, userId, conversationId }),
+      body: JSON.stringify({ messages, userId, conversationId, images, selectedModel }),
     });
 
     if (!resp.ok) {
