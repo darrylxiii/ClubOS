@@ -153,7 +153,7 @@ export function Stories() {
       <div className="relative flex pb-4">
         {/* Create Story Card - Sticky */}
         <Card 
-          className="sticky left-0 z-10 flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group bg-background/95 backdrop-blur select-none"
+          className="sticky left-0 z-10 flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden group bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20 shadow-[var(--shadow-glass-md)] select-none"
           onClick={handleCreateStory}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-primary/40" />
@@ -180,7 +180,7 @@ export function Stories() {
           {stories.map((story) => (
             <Card 
               key={story.id}
-              className="flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden select-none"
+              className="flex-shrink-0 w-24 h-32 cursor-pointer hover:scale-105 transition-transform relative overflow-hidden select-none bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20 shadow-[var(--shadow-glass-md)]"
               onClick={() => handleStoryClick(story)}
             >
               {story.media_type === 'image' ? (
