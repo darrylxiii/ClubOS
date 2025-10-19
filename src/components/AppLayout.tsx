@@ -348,28 +348,29 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       <aside
         className={cn(
-          "fixed left-0 z-40 w-64 bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20 shadow-[var(--shadow-glass-lg)] transform transition-all duration-300 ease-in-out flex flex-col",
+          "fixed left-0 z-40 w-64 bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20 shadow-[var(--shadow-glass-lg)] transform transition-all duration-300 ease-in-out",
           showHeader ? "top-16 bottom-0" : "top-0 bottom-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Scrollable Navigation Area */}
-        <nav className="flex-1 overflow-y-auto py-6 px-3 min-h-0">
-          <div className="space-y-3">
-            {navigationGroups.map((group) => (
-              <NavigationGroup
-                key={group.title}
-                title={group.title}
-                icon={group.icon}
-                items={group.items}
-                defaultOpen={true}
-              />
-            ))}
-          </div>
-        </nav>
+        <div className="h-full flex flex-col">
+          {/* Scrollable Navigation Area */}
+          <nav className="flex-1 overflow-y-auto py-6 px-3 min-h-0">
+            <div className="space-y-3">
+              {navigationGroups.map((group) => (
+                <NavigationGroup
+                  key={group.title}
+                  title={group.title}
+                  icon={group.icon}
+                  items={group.items}
+                  defaultOpen={true}
+                />
+              ))}
+            </div>
+          </nav>
 
-        {/* Fixed User Profile Card at Bottom */}
-        <div className="flex-shrink-0 p-4 border-t border-border/20 bg-card/50 backdrop-blur-[var(--blur-glass)]">
+          {/* Fixed User Profile Card at Bottom - Always Visible */}
+          <div className="flex-shrink-0 p-4 border-t border-border/20 bg-card/50 backdrop-blur-[var(--blur-glass)]">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
@@ -416,6 +417,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+        </div>
         </div>
       </aside>
 
