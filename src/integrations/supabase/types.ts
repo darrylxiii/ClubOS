@@ -2812,6 +2812,51 @@ export type Database = {
           },
         ]
       }
+      dj_queue: {
+        Row: {
+          created_at: string
+          id: string
+          is_playing: boolean | null
+          played_at: string | null
+          playlist_id: string | null
+          position: number
+          track_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_playing?: boolean | null
+          played_at?: string | null
+          playlist_id?: string | null
+          position: number
+          track_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_playing?: boolean | null
+          played_at?: string | null
+          playlist_id?: string | null
+          position?: number
+          track_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dj_queue_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dj_queue_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_verifications: {
         Row: {
           code: string
@@ -5423,6 +5468,81 @@ export type Database = {
           what_could_improve?: string | null
           what_went_well?: string | null
           would_apply_again?: boolean | null
+        }
+        Relationships: []
+      }
+      playlist_tracks: {
+        Row: {
+          created_at: string
+          id: string
+          playlist_id: string
+          position: number
+          track_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          playlist_id: string
+          position: number
+          track_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          playlist_id?: string
+          position?: number
+          track_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playlist_tracks_playlist_id_fkey"
+            columns: ["playlist_id"]
+            isOneToOne: false
+            referencedRelation: "playlists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "playlist_tracks_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playlists: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_live: boolean | null
+          is_published: boolean | null
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_live?: boolean | null
+          is_published?: boolean | null
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_live?: boolean | null
+          is_published?: boolean | null
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -8147,6 +8267,45 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      tracks: {
+        Row: {
+          artist: string | null
+          cover_image_url: string | null
+          created_at: string
+          created_by: string
+          duration_seconds: number | null
+          file_url: string
+          id: string
+          tags: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          artist?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by: string
+          duration_seconds?: number | null
+          file_url: string
+          id?: string
+          tags?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          artist?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string
+          duration_seconds?: number | null
+          file_url?: string
+          id?: string
+          tags?: Json | null
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }

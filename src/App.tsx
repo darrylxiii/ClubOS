@@ -62,6 +62,7 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const FeedbackDatabase = lazy(() => import("./pages/FeedbackDatabase"));
 const FunnelAnalytics = lazy(() => import("./pages/FunnelAnalytics"));
+const ClubDJ = lazy(() => import("./pages/ClubDJ"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -363,6 +364,14 @@ const App = () => (
             <Route path="/module/:moduleId" element={<ModuleDetail />} />
             <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
             <Route path="/meetings/:meetingCode" element={<MeetingRoom />} />
+            <Route
+              path="/club-dj"
+              element={
+                <ProtectedRoute>
+                  <ClubDJ />
+                </ProtectedRoute>
+              }
+            />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
                 </Routes>
