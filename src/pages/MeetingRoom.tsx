@@ -85,99 +85,36 @@ export default function MeetingRoom() {
     // For authenticated users, join directly
     setJoining(true);
     try {
-      console.log('[MeetingRoom] 🚪 Authenticated user joining meeting:', user.id);
-      
-      // First, mark any existing active participant as left (in case of reconnection)
-      const { error: updateError } = await supabase
-        .from('meeting_participants')
-        .update({ 
-          left_at: new Date().toISOString(),
-          status: 'left'
-        })
-        .eq('meeting_id', meeting.id)
-        .eq('user_id', user.id)
-        .is('left_at', null);
-
-      if (updateError) {
-        console.warn('[MeetingRoom] ⚠️ Could not mark old participant as left:', updateError);
-      }
-
-      // Now insert the new active participant entry
-      const { error: insertError } = await supabase
+      const { error } = await supabase
         .from('meeting_participants')
         .insert({
           meeting_id: meeting.id,
           user_id: user.id,
           status: 'accepted',
-          joined_at: new Date().toISOString(),
-          left_at: null
+          joined_at: new Date().toISOString()
         });
 
-      if (insertError) {
-        // If it's a duplicate error, the user might already be in - that's okay
-        if (insertError.code === '23505') {
-          console.log('[MeetingRoom] ✅ User already in meeting, proceeding...');
-          toast.info('Rejoining meeting...');
-        } else {
-          console.error('[MeetingRoom] ❌ Error inserting participant:', insertError);
-          throw insertError;
-        }
-      } else {
-        console.log('[MeetingRoom] ✅ User joined meeting successfully');
+      if (error && error.code !== '23505') { // Ignore duplicate errors
+        throw error;
       }
 
       setInCall(true);
     } catch (error: any) {
-      console.error('[MeetingRoom] ❌ Error joining meeting:', error);
-      
-      // Show user-friendly error with retry option
-      if (error.code === '23505') {
-        toast.info('You are already in this meeting');
-        setInCall(true); // Allow them to proceed anyway
-      } else {
-        toast.error('Failed to join meeting', {
-          description: 'Please check your connection and try again',
-          action: {
-            label: 'Retry',
-            onClick: () => handleJoinMeeting()
-          }
-        });
-      }
+      console.error('Error joining meeting:', error);
+      toast.error(error.message || 'Failed to join meeting');
     } finally {
       setJoining(false);
     }
   };
 
   const handleGuestJoinApproved = (name: string, sessionToken: string) => {
-    console.log('[MeetingRoom] Guest approved with session token:', sessionToken);
     setGuestName(name);
     setGuestSessionToken(sessionToken);
     setShowGuestDialog(false);
     setInCall(true);
   };
 
-  const handleEndCall = async () => {
-    // Mark participant as left in database
-    try {
-      if (user) {
-        await supabase
-          .from('meeting_participants')
-          .update({ left_at: new Date().toISOString(), status: 'left' })
-          .eq('meeting_id', meeting.id)
-          .eq('user_id', user.id)
-          .is('left_at', null);
-      } else if (guestSessionToken) {
-        await supabase
-          .from('meeting_participants')
-          .update({ left_at: new Date().toISOString(), status: 'left' })
-          .eq('meeting_id', meeting.id)
-          .eq('session_token', guestSessionToken)
-          .is('left_at', null);
-      }
-    } catch (error) {
-      console.error('[MeetingRoom] Error marking participant as left:', error);
-    }
-    
+  const handleEndCall = () => {
     setInCall(false);
     navigate('/meetings');
   };
@@ -229,8 +166,6 @@ export default function MeetingRoom() {
     // Generate participant ID (user ID or guest session token)
     const currentParticipantId = user?.id || guestSessionToken || `guest-${Date.now()}`;
     const displayName = user?.user_metadata?.full_name || user?.email || guestName;
-
-    console.log('[MeetingRoom] Entering call with participant ID:', currentParticipantId, 'Display name:', displayName);
 
     return (
       <MeetingVideoCallInterface
