@@ -34,6 +34,7 @@ interface Message {
     path: string;
     reason: string;
   };
+  mode?: "search" | "think" | "canvas" | "normal";
 }
 
 const ClubAI = () => {
@@ -235,7 +236,7 @@ const ClubAI = () => {
     await sendMessage(promptText);
   };
 
-  const sendMessage = async (messageText: string) => {
+  const sendMessage = async (messageText: string, uploadedFiles?: File[]) => {
     if (!messageText.trim()) return;
     
     // Create conversation if none exists
@@ -245,7 +246,38 @@ const ClubAI = () => {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    const userMessage: Message = { role: "user", content: messageText };
+    // Detect mode from message prefix
+    let mode: "search" | "think" | "canvas" | "normal" = "normal";
+    if (messageText.startsWith("[Search:")) mode = "search";
+    else if (messageText.startsWith("[Think:")) mode = "think";
+    else if (messageText.startsWith("[Canvas:")) mode = "canvas";
+
+    // Convert uploaded files to base64 if provided
+    let imageDataUrls: string[] = [];
+    if (uploadedFiles && uploadedFiles.length > 0) {
+      const imagePromises = uploadedFiles.map(file => {
+        return new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target?.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+      });
+      
+      try {
+        imageDataUrls = await Promise.all(imagePromises);
+      } catch (error) {
+        console.error("Error converting files to base64:", error);
+        toast({
+          title: "Error",
+          description: "Failed to process uploaded files",
+          variant: "destructive"
+        });
+        return;
+      }
+    }
+
+    const userMessage: Message = { role: "user", content: messageText, mode };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setIsLoading(true);
@@ -326,6 +358,7 @@ const ClubAI = () => {
         messages: [...messages, userMessage],
         userId: user?.id,
         conversationId: currentConversationId,
+        images: imageDataUrls.length > 0 ? imageDataUrls : undefined,
         onDelta: updateAssistant,
         onDone: async () => {
           setIsLoading(false);
@@ -357,12 +390,14 @@ const ClubAI = () => {
     messages,
     userId,
     conversationId,
+    images,
     onDelta,
     onDone,
   }: {
     messages: Message[];
     userId?: string;
     conversationId?: string | null;
+    images?: string[];
     onDelta: (chunk: string, toolCall?: any) => void;
     onDone: () => void;
   }) => {
@@ -618,6 +653,25 @@ const ClubAI = () => {
                             : "bg-muted"
                         }`}
                       >
+                        {message.mode && message.mode !== "normal" && message.role === "user" && (
+                          <div className="mb-2 flex gap-1">
+                            {message.mode === "search" && (
+                              <Badge variant="secondary" className="text-xs bg-[#1EAEDB]/15 text-[#1EAEDB] border-[#1EAEDB]">
+                                🌐 Search Mode
+                              </Badge>
+                            )}
+                            {message.mode === "think" && (
+                              <Badge variant="secondary" className="text-xs bg-[#8B5CF6]/15 text-[#8B5CF6] border-[#8B5CF6]">
+                                🧠 Deep Think
+                              </Badge>
+                            )}
+                            {message.mode === "canvas" && (
+                              <Badge variant="secondary" className="text-xs bg-[#F97316]/15 text-[#F97316] border-[#F97316]">
+                                🎨 Canvas Mode
+                              </Badge>
+                            )}
+                          </div>
+                        )}
                          {message.role === "assistant" ? (
                           <div className="space-y-3">
                             <div className="text-sm prose prose-sm max-w-none dark:prose-invert">
@@ -662,7 +716,7 @@ const ClubAI = () => {
             <div className="border-t border-border p-4">
               <div className="max-w-4xl mx-auto">
                 <PromptInputBox
-                  onSend={(message) => sendMessage(message)}
+                  onSend={(message, files) => sendMessage(message, files)}
                   isLoading={isLoading}
                   placeholder="Ask me anything about your career..."
                 />

@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userId, conversationId } = await req.json();
+    const { messages, userId, conversationId, images } = await req.json();
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -469,8 +469,53 @@ Use this context to provide personalized, relevant guidance. Reference specific 
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Define available tools for the AI
-    const tools = [
+    // Detect interaction mode from last user message
+    let mode = "normal";
+    let cleanedMessages = [...messages];
+    const lastUserMessage = messages.filter((m: any) => m.role === "user").pop();
+    
+    if (lastUserMessage && typeof lastUserMessage.content === "string") {
+      if (lastUserMessage.content.startsWith("[Search:")) {
+        mode = "search";
+        // Remove the prefix for cleaner processing
+        cleanedMessages = messages.map((m: any) => {
+          if (m === lastUserMessage) {
+            return {
+              ...m,
+              content: m.content.replace(/^\[Search:\s*/, "").replace(/\]$/, "")
+            };
+          }
+          return m;
+        });
+      } else if (lastUserMessage.content.startsWith("[Think:")) {
+        mode = "think";
+        cleanedMessages = messages.map((m: any) => {
+          if (m === lastUserMessage) {
+            return {
+              ...m,
+              content: m.content.replace(/^\[Think:\s*/, "").replace(/\]$/, "")
+            };
+          }
+          return m;
+        });
+      } else if (lastUserMessage.content.startsWith("[Canvas:")) {
+        mode = "canvas";
+        cleanedMessages = messages.map((m: any) => {
+          if (m === lastUserMessage) {
+            return {
+              ...m,
+              content: m.content.replace(/^\[Canvas:\s*/, "").replace(/\]$/, "")
+            };
+          }
+          return m;
+        });
+      }
+    }
+
+    console.log("Detected mode:", mode);
+
+    // Define base tools available to all modes
+    const baseTools = [
       {
         type: "function",
         function: {
@@ -494,18 +539,32 @@ Use this context to provide personalized, relevant guidance. Reference specific 
       }
     ];
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: `You are Club AI, an in-app copilot for The Quantum Club. Your job is to provide professional, highly actionable, and deeply human guidance to users based on all available in-app information. You always operate with the latest context and are aware of user role (Candidate, Partner, Admin) and permissions.
+    // Add web search tool for search mode
+    const searchTools = mode === "search" ? [
+      {
+        type: "function",
+        function: {
+          name: "web_search",
+          description: "Search the web for current information, news, or data. Use this when the user asks about current events, recent developments, or information not in your knowledge base.",
+          parameters: {
+            type: "object",
+            properties: {
+              query: {
+                type: "string",
+                description: "The search query to execute"
+              }
+            },
+            required: ["query"]
+          }
+        }
+      }
+    ] : [];
+
+    const tools = [...baseTools, ...searchTools];
+
+    // Select model and system prompt based on mode
+    let selectedModel = "google/gemini-2.5-flash";
+    let systemPrompt = `You are Club AI, an in-app copilot for The Quantum Club. Your job is to provide professional, highly actionable, and deeply human guidance to users based on all available in-app information. You always operate with the latest context and are aware of user role (Candidate, Partner, Admin) and permissions.
 
 IMPORTANT NAVIGATION CAPABILITIES:
 - You can navigate users to any page using the navigate_to_page function
@@ -529,9 +588,66 @@ You must always feel attentive, proactive, privacy-aware, and trustworthy—neve
 
 ${conversationHistory}
 
-${userContext}`
+${userContext}`;
+
+    // Customize based on mode
+    if (mode === "search") {
+      systemPrompt += `\n\n🌐 SEARCH MODE ACTIVE: The user has activated web search mode. You have access to the web_search tool to find current information, news, and real-time data. Use it proactively when you need up-to-date information or when the user's question requires external knowledge. Always cite sources when presenting search results.`;
+    } else if (mode === "think") {
+      selectedModel = "google/gemini-2.5-pro"; // Use more powerful model for deep thinking
+      systemPrompt += `\n\n🧠 DEEP THINK MODE ACTIVE: The user wants you to think deeply about their question. Take your time to reason through complex problems step-by-step. Break down multi-faceted questions into components, consider multiple perspectives, show your reasoning process, and provide comprehensive, well-thought-out answers. Use chain-of-thought reasoning and explain your logic.`;
+    } else if (mode === "canvas") {
+      systemPrompt += `\n\n🎨 CANVAS MODE ACTIVE: The user is working on a creative, design, or code project. Focus on helping them build, design, or visualize things. Provide structured, actionable guidance for creating layouts, writing code, designing workflows, or planning visual elements. Think like a creative collaborator and technical architect combined.`;
+    }
+
+    // Prepare messages with image support if provided
+    let formattedMessages: any[] = cleanedMessages;
+    
+    if (images && images.length > 0) {
+      // If images are provided, format the last user message to include them
+      formattedMessages = cleanedMessages.map((msg: any, idx: number) => {
+        // Add images to the last user message
+        if (idx === cleanedMessages.length - 1 && msg.role === "user") {
+          const contentParts: any[] = [
+            {
+              type: "text",
+              text: msg.content
+            }
+          ];
+          
+          // Add each image
+          images.forEach((imageData: string) => {
+            contentParts.push({
+              type: "image_url",
+              image_url: {
+                url: imageData // Base64 encoded image data
+              }
+            });
+          });
+          
+          return {
+            ...msg,
+            content: contentParts
+          };
+        }
+        return msg;
+      });
+    }
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
           },
-          ...messages,
+          ...formattedMessages,
         ],
         tools: tools,
         stream: true,
