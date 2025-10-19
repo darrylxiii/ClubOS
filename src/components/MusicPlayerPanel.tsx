@@ -158,8 +158,8 @@ export function MusicPlayerPanel() {
   // Show message if no live session
   if (!liveSession) {
     return (
-      <div className="rounded-3xl shadow-2xl overflow-hidden bg-black/20 backdrop-blur-xl border border-white/10">
-        <div className="px-5 py-4 flex items-center gap-2 border-b border-white/10">
+      <div className="rounded-3xl shadow-2xl overflow-hidden bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20">
+        <div className="px-5 py-4 flex items-center gap-2 border-b border-border/20">
           <Radio className="h-5 w-5 text-muted-foreground" />
           <h2 className="text-base font-semibold text-foreground">The Quantum Club Radio</h2>
         </div>
@@ -169,7 +169,7 @@ export function MusicPlayerPanel() {
           <p className="text-sm text-muted-foreground mb-4">
             No DJs are currently broadcasting. Check back later!
           </p>
-          <Button onClick={handleViewFullPlayer} variant="outline" className="w-full">
+          <Button onClick={handleViewFullPlayer} variant="glass" className="w-full">
             View Radio Schedule
           </Button>
         </div>
@@ -178,9 +178,9 @@ export function MusicPlayerPanel() {
   }
 
   return (
-    <div className="rounded-3xl shadow-2xl overflow-hidden bg-black/20 backdrop-blur-xl border border-white/10">
+    <div className="rounded-3xl shadow-2xl overflow-hidden bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20">
       {/* Header with Live Indicator */}
-      <div className="px-5 py-4 flex items-center gap-2 border-b border-white/10">
+      <div className="px-5 py-4 flex items-center gap-2 border-b border-border/20">
         <div className="flex items-center gap-2">
           <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
           <Radio className="h-5 w-5 text-red-500" />
@@ -280,13 +280,14 @@ export function MusicPlayerPanel() {
       </div>
 
       {/* Divider */}
-      <div className="h-px bg-white/20 mx-5" />
+      <div className="h-px bg-border/20 mx-5" />
 
       {/* View Full Player */}
       <div className="p-5">
         <Button 
           onClick={handleViewFullPlayer}
-          className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
+          variant="glass"
+          className="w-full"
         >
           View Full Radio Player
         </Button>

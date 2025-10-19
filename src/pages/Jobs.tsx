@@ -241,7 +241,7 @@ const Jobs = () => {
               </div>
 
               {/* Club Sync Toggle */}
-              <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-card">
+              <div className="flex items-center gap-3 p-4 rounded-lg border border-border/20 bg-card/30 backdrop-blur-[var(--blur-glass)] shadow-[var(--shadow-glass-md)]">
                 <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-primary" : "text-muted-foreground"}`} />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
@@ -306,7 +306,7 @@ const Jobs = () => {
               </div>
 
               {/* Club Sync Toggle */}
-              <div className="flex items-center gap-3 p-4 rounded-lg border border-border bg-card">
+              <div className="flex items-center gap-3 p-4 rounded-lg border border-border/20 bg-card/30 backdrop-blur-[var(--blur-glass)] shadow-[var(--shadow-glass-md)]">
                 <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-primary" : "text-muted-foreground"}`} />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
