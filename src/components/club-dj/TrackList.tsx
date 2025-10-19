@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Music, Trash2, Play, ListPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useAudioManager } from "@/hooks/useAudioManager";
+import { useRef } from "react";
 
 export function TrackList() {
   const queryClient = useQueryClient();
+  const { play: managedPlay } = useAudioManager('preview');
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
 
   const { data: tracks, isLoading } = useQuery({
     queryKey: ['tracks'],
@@ -173,8 +177,15 @@ export function TrackList() {
                   variant="ghost"
                   size="icon"
                   onClick={() => {
+                    if (previewAudioRef.current) {
+                      previewAudioRef.current.pause();
+                    }
                     const audio = new Audio(track.file_url);
-                    audio.play();
+                    previewAudioRef.current = audio;
+                    managedPlay(audio).catch(err => {
+                      console.error('Preview play error:', err);
+                      toast.error('Failed to preview track');
+                    });
                   }}
                   title="Preview"
                 >

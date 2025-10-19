@@ -6,10 +6,12 @@ import { Slider } from "@/components/ui/slider";
 import { Play, Pause, SkipForward, Radio, Volume2, List } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAudioManager } from "@/hooks/useAudioManager";
 
 export function DJMixer() {
   const queryClient = useQueryClient();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { play: managedPlay, pause: managedPause } = useAudioManager('dj');
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<any>(null);
   const [volume, setVolume] = useState([75]);
@@ -150,26 +152,26 @@ export function DJMixer() {
       audio.load();
       
       if (isPlaying) {
-        audio.play().catch(err => {
+        managedPlay(audio).catch(err => {
           console.error('Play error:', err);
           toast.error('Failed to play track');
           setIsPlaying(false);
         });
       }
     }
-  }, [currentTrack]);
+  }, [currentTrack, managedPlay]);
 
   const togglePlay = async () => {
     if (!audioRef.current) return;
 
     if (isPlaying) {
-      audioRef.current.pause();
+      managedPause(audioRef.current);
     } else {
       if (!currentTrack && queue && queue.length > 0) {
         playNextMutation.mutate();
       } else if (audioRef.current.src) {
         try {
-          await audioRef.current.play();
+          await managedPlay(audioRef.current);
         } catch (err) {
           console.error('Play error:', err);
           toast.error('Failed to play track');
