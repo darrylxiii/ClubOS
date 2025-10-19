@@ -42,16 +42,20 @@ export function DJMixer() {
     refetchInterval: 5000,
   });
 
-  const { data: livePlaylist } = useQuery({
-    queryKey: ['live-playlist'],
+  const { data: liveSession } = useQuery({
+    queryKey: ['live-session'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('playlists')
-        .select('*')
-        .eq('is_live', true)
-        .single();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
       
-      if (error && error.code !== 'PGRST116') throw error;
+      const { data, error } = await supabase
+        .from('live_sessions')
+        .select('*')
+        .eq('dj_id', user.id)
+        .eq('is_active', true)
+        .maybeSingle();
+      
+      if (error) throw error;
       return data;
     },
   });
@@ -86,35 +90,70 @@ export function DJMixer() {
 
   const goLiveMutation = useMutation({
     mutationFn: async () => {
-      // Turn off any other live playlists
-      await supabase
-        .from('playlists')
-        .update({ is_live: false })
-        .neq('id', '00000000-0000-0000-0000-000000000000');
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
-        .from('playlists')
-        .update({ is_live: !isLive })
-        .eq('id', livePlaylist?.id || '');
+      if (!isLive) {
+        // Start live session
+        const { data, error } = await supabase
+          .from('live_sessions')
+          .insert({
+            dj_id: user.id,
+            current_track_id: currentTrack?.tracks?.id,
+            current_queue_item_id: currentTrack?.id,
+            is_active: true
+          })
+          .select()
+          .single();
 
-      if (error) throw error;
-      return !isLive;
+        if (error) throw error;
+        return { active: true, session: data };
+      } else {
+        // End live session
+        if (!liveSession?.id) throw new Error('No active session');
+        
+        const { error } = await supabase
+          .from('live_sessions')
+          .update({ 
+            is_active: false, 
+            ended_at: new Date().toISOString() 
+          })
+          .eq('id', liveSession.id);
+
+        if (error) throw error;
+        return { active: false, session: null };
+      }
     },
-    onSuccess: (newState) => {
-      setIsLive(newState);
-      toast.success(newState ? 'You are now LIVE!' : 'Stopped live broadcast');
-      queryClient.invalidateQueries({ queryKey: ['live-playlist'] });
+    onSuccess: (result) => {
+      setIsLive(result.active);
+      toast.success(result.active ? 'You are now LIVE! 🎵' : 'Stopped live broadcast');
+      queryClient.invalidateQueries({ queryKey: ['live-session'] });
     },
-    onError: () => {
-      toast.error('Failed to toggle live status');
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to toggle live status');
     },
   });
 
   useEffect(() => {
-    if (livePlaylist?.is_live) {
+    if (liveSession?.is_active) {
       setIsLive(true);
     }
-  }, [livePlaylist]);
+  }, [liveSession]);
+
+  // Update live session with current track
+  useEffect(() => {
+    if (isLive && liveSession?.id && currentTrack?.tracks) {
+      supabase
+        .from('live_sessions')
+        .update({
+          current_track_id: currentTrack.tracks.id,
+          current_queue_item_id: currentTrack.id,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', liveSession.id)
+        .then(() => console.log('Live session updated with current track'));
+    }
+  }, [isLive, liveSession, currentTrack]);
 
   useEffect(() => {
     if (audioRef.current) {

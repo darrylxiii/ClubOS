@@ -3712,6 +3712,60 @@ export type Database = {
           },
         ]
       }
+      live_sessions: {
+        Row: {
+          created_at: string | null
+          current_queue_item_id: string | null
+          current_track_id: string | null
+          dj_id: string
+          ended_at: string | null
+          id: string
+          is_active: boolean | null
+          listener_count: number | null
+          started_at: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_queue_item_id?: string | null
+          current_track_id?: string | null
+          dj_id: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          listener_count?: number | null
+          started_at?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_queue_item_id?: string | null
+          current_track_id?: string | null
+          dj_id?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          listener_count?: number | null
+          started_at?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_sessions_current_queue_item_id_fkey"
+            columns: ["current_queue_item_id"]
+            isOneToOne: false
+            referencedRelation: "dj_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_sessions_current_track_id_fkey"
+            columns: ["current_track_id"]
+            isOneToOne: false
+            referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_scores: {
         Row: {
           additional_factors: Json
