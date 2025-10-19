@@ -29,13 +29,7 @@ export const MusicPlayer = () => {
         <Button variant="ghost" size="icon" className="relative group">
           <Music className="h-5 w-5 transition-all group-hover:scale-110" />
           {hasLiveSession && (
-            <>
-              <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-background animate-pulse" />
-              <span className="absolute inset-0 rounded-full bg-red-500/20 blur-md opacity-100 animate-pulse" />
-            </>
-          )}
-          {!hasLiveSession && (
-            <span className="absolute inset-0 rounded-full bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity animate-pulse" />
+            <span className="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-red-500 border-2 border-background animate-pulse" />
           )}
         </Button>
       </PopoverTrigger>

@@ -109,8 +109,16 @@ export function DJMixer() {
         if (error) throw error;
         return { active: true, session: data };
       } else {
-        // End live session
-        if (!liveSession?.id) throw new Error('No active session');
+        // End live session - get fresh session data
+        const { data: sessions } = await supabase
+          .from('live_sessions')
+          .select('id')
+          .eq('dj_id', user.id)
+          .eq('is_active', true);
+        
+        if (!sessions || sessions.length === 0) {
+          throw new Error('No active session found');
+        }
         
         const { error } = await supabase
           .from('live_sessions')
@@ -118,7 +126,7 @@ export function DJMixer() {
             is_active: false, 
             ended_at: new Date().toISOString() 
           })
-          .eq('id', liveSession.id);
+          .eq('id', sessions[0].id);
 
         if (error) throw error;
         return { active: false, session: null };
@@ -128,6 +136,7 @@ export function DJMixer() {
       setIsLive(result.active);
       toast.success(result.active ? 'You are now LIVE! 🎵' : 'Stopped live broadcast');
       queryClient.invalidateQueries({ queryKey: ['live-session'] });
+      queryClient.invalidateQueries({ queryKey: ['has-live-session'] });
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to toggle live status');
