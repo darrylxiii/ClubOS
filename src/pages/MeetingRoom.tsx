@@ -85,30 +85,64 @@ export default function MeetingRoom() {
     // For authenticated users, join directly
     setJoining(true);
     try {
-      // Upsert to prevent duplicates
-      const { error } = await supabase
+      console.log('[MeetingRoom] 🚪 Authenticated user joining meeting:', user.id);
+      
+      // First, mark any existing active participant as left (in case of reconnection)
+      const { error: updateError } = await supabase
         .from('meeting_participants')
-        .upsert({
+        .update({ 
+          left_at: new Date().toISOString(),
+          status: 'left'
+        })
+        .eq('meeting_id', meeting.id)
+        .eq('user_id', user.id)
+        .is('left_at', null);
+
+      if (updateError) {
+        console.warn('[MeetingRoom] ⚠️ Could not mark old participant as left:', updateError);
+      }
+
+      // Now insert the new active participant entry
+      const { error: insertError } = await supabase
+        .from('meeting_participants')
+        .insert({
           meeting_id: meeting.id,
           user_id: user.id,
           status: 'accepted',
           joined_at: new Date().toISOString(),
           left_at: null
-        }, {
-          onConflict: 'meeting_id,user_id',
-          ignoreDuplicates: false
         });
 
-      if (error) {
-        console.error('[MeetingRoom] Error upserting participant:', error);
-        throw error;
+      if (insertError) {
+        // If it's a duplicate error, the user might already be in - that's okay
+        if (insertError.code === '23505') {
+          console.log('[MeetingRoom] ✅ User already in meeting, proceeding...');
+          toast.info('Rejoining meeting...');
+        } else {
+          console.error('[MeetingRoom] ❌ Error inserting participant:', insertError);
+          throw insertError;
+        }
+      } else {
+        console.log('[MeetingRoom] ✅ User joined meeting successfully');
       }
 
-      console.log('[MeetingRoom] User joined meeting successfully');
       setInCall(true);
     } catch (error: any) {
-      console.error('Error joining meeting:', error);
-      toast.error(error.message || 'Failed to join meeting');
+      console.error('[MeetingRoom] ❌ Error joining meeting:', error);
+      
+      // Show user-friendly error with retry option
+      if (error.code === '23505') {
+        toast.info('You are already in this meeting');
+        setInCall(true); // Allow them to proceed anyway
+      } else {
+        toast.error('Failed to join meeting', {
+          description: 'Please check your connection and try again',
+          action: {
+            label: 'Retry',
+            onClick: () => handleJoinMeeting()
+          }
+        });
+      }
     } finally {
       setJoining(false);
     }

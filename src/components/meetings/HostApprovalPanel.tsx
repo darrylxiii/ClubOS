@@ -101,7 +101,7 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
 
       // First, mark any existing participant with this session as left
       console.log('[HostApproval] 🔄 Marking old sessions as left...');
-      await supabase
+      const { error: updateError } = await supabase
         .from('meeting_participants')
         .update({ 
           left_at: new Date().toISOString(),
@@ -110,6 +110,10 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
         .eq('meeting_id', request.meeting_id)
         .eq('session_token', request.session_token)
         .is('left_at', null);
+
+      if (updateError) {
+        console.warn('[HostApproval] ⚠️ Could not mark old session as left:', updateError);
+      }
 
       // Create meeting participant entry for the guest
       console.log('[HostApproval] ➕ Creating new participant entry...');
@@ -129,11 +133,18 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
         .single();
 
       if (participantError) {
-        console.error('[HostApproval] ❌ Failed to create participant:', participantError);
-        throw participantError;
+        // If it's a duplicate error, the guest might already be admitted
+        if (participantError.code === '23505') {
+          console.log('[HostApproval] ✅ Guest already admitted, proceeding...');
+          toast.info(`${request.guest_name} is already in the meeting`);
+        } else {
+          console.error('[HostApproval] ❌ Failed to create participant:', participantError);
+          throw participantError;
+        }
+      } else {
+        console.log('[HostApproval] ✅ Participant created:', newParticipant);
+        toast.success(`${request.guest_name} has been admitted to the meeting`);
       }
-
-      console.log('[HostApproval] ✅ Participant created:', newParticipant);
 
       // Update the request status
       console.log('[HostApproval] 📝 Updating request status...');
@@ -150,11 +161,23 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
 
       console.log('[HostApproval] ✅ Guest approved and added to participants:', request.guest_name);
       console.log('[HostApproval] 🎯 Guest session token:', request.session_token);
-      toast.success(`${request.guest_name} has been admitted to the meeting`);
       setRequests(prev => prev.filter(r => r.id !== requestId));
-    } catch (error) {
+    } catch (error: any) {
       console.error('[HostApproval] ❌ Failed to approve:', error);
-      toast.error('Failed to approve guest');
+      
+      // Show user-friendly error with retry option
+      if (error.code === '23505') {
+        toast.info('Guest is already in the meeting');
+        setRequests(prev => prev.filter(r => r.id !== requestId));
+      } else {
+        toast.error('Failed to approve guest', {
+          description: 'Please try again',
+          action: {
+            label: 'Retry',
+            onClick: () => handleApprove(requestId)
+          }
+        });
+      }
     } finally {
       setProcessingIds(prev => {
         const next = new Set(prev);
