@@ -42,7 +42,21 @@ const Achievements = () => {
   if (currentRole === 'partner' && companyId) {
     return (
       <AppLayout>
-        <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+        {/* Background Video */}
+        <div className="fixed inset-0 z-0 overflow-hidden">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 w-full h-full object-cover opacity-40"
+          >
+            <source src="/videos/surreal-background.mp4" type="video/mp4" />
+          </video>
+          <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+        </div>
+
+        <div className="relative z-10 min-h-screen">
           {/* Hero Banner */}
           <AchievementHero />
 
@@ -106,7 +120,21 @@ const Achievements = () => {
   // Candidate/User view - personal achievements
   return (
     <AppLayout>
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+      {/* Background Video */}
+      <div className="fixed inset-0 z-0 overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
+        >
+          <source src="/videos/surreal-background.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
+      </div>
+
+      <div className="relative z-10 min-h-screen">
         {/* Hero Banner */}
         <AchievementHero />
 
