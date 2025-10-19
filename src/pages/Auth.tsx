@@ -16,21 +16,19 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import quantumLogoLight from "@/assets/quantum-club-logo.png";
 import quantumLogoDark from "@/assets/quantum-logo-dark.png";
-
 const emailSchema = z.string().email("Invalid email address");
-const passwordSchema = z.string()
-  .min(12, "Password must be at least 12 characters")
-  .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-  .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-  .regex(/[0-9]/, "Password must contain at least one number")
-  .regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
-
+const passwordSchema = z.string().min(12, "Password must be at least 12 characters").regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[a-z]/, "Password must contain at least one lowercase letter").regex(/[0-9]/, "Password must contain at least one number").regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 const Auth = () => {
-  const { user, loading, session } = useAuth();
-  const { resolvedTheme } = useTheme();
+  const {
+    user,
+    loading,
+    session
+  } = useAuth();
+  const {
+    resolvedTheme
+  } = useTheme();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
-  
   const [isLogin, setIsLogin] = useState(!inviteCode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,42 +45,40 @@ const Auth = () => {
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const navigate = useNavigate();
-
   useEffect(() => {
-    console.log("[Auth Page] State:", { loading, user: !!user, mfaRequired, session: !!session });
-    
+    console.log("[Auth Page] State:", {
+      loading,
+      user: !!user,
+      mfaRequired,
+      session: !!session
+    });
+
     // Only redirect for non-MFA scenarios (regular login completed or OAuth without MFA)
     if (!loading && user && session && !mfaRequired) {
       console.log("[Auth Page] User fully authenticated, redirecting to home");
       setTimeout(() => {
-        navigate("/home", { replace: true });
+        navigate("/home", {
+          replace: true
+        });
       }, 150);
     }
   }, [user, loading, navigate, mfaRequired, session]);
-
   useEffect(() => {
     if (inviteCode) {
       validateInviteCode(inviteCode);
     }
   }, [inviteCode]);
-
   const validateInviteCode = async (code: string) => {
     try {
-      const { data, error } = await supabase
-        .from("invite_codes")
-        .select("*, profiles!invite_codes_created_by_fkey(full_name)")
-        .eq("code", code)
-        .eq("is_active", true)
-        .is("used_by", null)
-        .gt("expires_at", new Date().toISOString())
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from("invite_codes").select("*, profiles!invite_codes_created_by_fkey(full_name)").eq("code", code).eq("is_active", true).is("used_by", null).gt("expires_at", new Date().toISOString()).single();
       if (error || !data) {
         setInviteValid(false);
         toast.error("Invalid or expired invite code");
         return;
       }
-
       setInviteValid(true);
       setInviteInfo(data);
       toast.success("Valid invite code! Please create your account.");
@@ -94,45 +90,45 @@ const Auth = () => {
 
   // Listen for MFA completion from OAuth flows
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, currentSession) => {
+    const {
+      data: authListener
+    } = supabase.auth.onAuthStateChange((event, currentSession) => {
       console.log("[Auth Page] Auth state change:", event, "Has session?", !!currentSession);
-      
+
       // When OAuth is successful with session, redirect
       if ((event === 'SIGNED_IN' || event === 'MFA_CHALLENGE_VERIFIED') && currentSession) {
         console.log("[Auth Page] OAuth/MFA completed, redirecting to home");
         setTimeout(() => {
-          navigate("/home", { replace: true });
+          navigate("/home", {
+            replace: true
+          });
         }, 100);
       }
     });
-
     return () => {
       authListener.subscription.unsubscribe();
     };
   }, [navigate]);
-
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-
     try {
       emailSchema.parse(email);
-      
       if (!isLogin) {
         passwordSchema.parse(password);
-        
         if (password !== confirmPassword) {
           toast.error("Passwords do not match");
           return;
         }
       }
-
       if (isLogin) {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const {
+          data,
+          error
+        } = await supabase.auth.signInWithPassword({
           email,
-          password,
+          password
         });
-
         if (error) {
           if (error.message.includes("Invalid login credentials")) {
             toast.error("Invalid email or password");
@@ -149,13 +145,14 @@ const Auth = () => {
         if (!data.session && data.user) {
           const factors = data.user.factors || [];
           const verifiedFactor = factors.find(f => f.status === 'verified');
-          
           if (verifiedFactor) {
             // Create MFA challenge
-            const { data: challengeData, error: challengeError } = await supabase.auth.mfa.challenge({
+            const {
+              data: challengeData,
+              error: challengeError
+            } = await supabase.auth.mfa.challenge({
               factorId: verifiedFactor.id
             });
-
             if (challengeError) {
               toast.error("Failed to initiate 2FA verification");
               console.error("MFA challenge error:", challengeError);
@@ -181,20 +178,20 @@ const Auth = () => {
           toast.error("Please enter your full name");
           return;
         }
-
         const redirectUrl = `${window.location.origin}/`;
-        
-        const { data: authData, error } = await supabase.auth.signUp({
+        const {
+          data: authData,
+          error
+        } = await supabase.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: redirectUrl,
             data: {
-              full_name: fullName,
-            },
-          },
+              full_name: fullName
+            }
+          }
         });
-
         if (error) {
           if (error.message.includes("already registered")) {
             toast.error("This email is already registered. Please sign in instead.");
@@ -203,17 +200,15 @@ const Auth = () => {
           }
           return;
         }
-
         if (inviteCode && inviteValid && authData.user) {
           try {
-            const { data: result, error: inviteError } = await supabase.rpc(
-              "use_invite_code",
-              {
-                _code: inviteCode,
-                _user_id: authData.user.id,
-              }
-            );
-
+            const {
+              data: result,
+              error: inviteError
+            } = await supabase.rpc("use_invite_code", {
+              _code: inviteCode,
+              _user_id: authData.user.id
+            });
             if (inviteError) {
               console.error("Error processing invite:", inviteError);
               toast.error("Account created but invite code processing failed");
@@ -224,15 +219,17 @@ const Auth = () => {
             console.error("Error using invite:", inviteError);
           }
         }
-
         toast.success("Account created! Please verify your email.");
         setNeedsEmailVerification(true);
-        
+
         // Send verification code
-        const { error: verifyError } = await supabase.functions.invoke('send-email-verification', {
-          body: { email }
+        const {
+          error: verifyError
+        } = await supabase.functions.invoke('send-email-verification', {
+          body: {
+            email
+          }
         });
-        
         if (verifyError) {
           console.error("Failed to send verification:", verifyError);
         }
@@ -247,22 +244,24 @@ const Auth = () => {
       setIsLoading(false);
     }
   };
-
   const handleVerifyEmail = async () => {
     if (emailVerificationCode.length !== 6) {
       toast.error("Please enter a valid 6-digit code");
       return;
     }
-
     setVerificationLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('verify-email-code', {
-        body: { email, code: emailVerificationCode }
+      const {
+        data,
+        error
+      } = await supabase.functions.invoke('verify-email-code', {
+        body: {
+          email,
+          code: emailVerificationCode
+        }
       });
-
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
-
       toast.success("Email verified! You can now sign in.");
       setNeedsEmailVerification(false);
       setEmailVerificationCode("");
@@ -273,30 +272,30 @@ const Auth = () => {
       setVerificationLoading(false);
     }
   };
-
   const handleVerifyMFA = async () => {
     if (mfaCode.length !== 6) {
       toast.error("Please enter a valid 6-digit code");
       return;
     }
-
     if (!mfaFactorId || !mfaChallengeId) {
       toast.error("No MFA challenge found. Please try signing in again.");
       setMfaRequired(false);
       return;
     }
-
     setVerificationLoading(true);
     try {
       // Use the correct factor ID and challenge ID
-      const { data, error } = await supabase.auth.mfa.verify({
-        factorId: mfaFactorId,      // The MFA factor ID
-        challengeId: mfaChallengeId, // The challenge ID
+      const {
+        data,
+        error
+      } = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        // The MFA factor ID
+        challengeId: mfaChallengeId,
+        // The challenge ID
         code: mfaCode
       });
-
       if (error) throw error;
-
       if (data) {
         toast.success("Welcome back!");
         setMfaRequired(false);
@@ -311,49 +310,35 @@ const Auth = () => {
       setVerificationLoading(false);
     }
   };
-
   if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+    return <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-2xl font-black uppercase tracking-tight animate-pulse">Loading...</div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
+  return <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <Card className="w-full max-w-lg relative z-10 bg-background/30 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[32px] animate-fade-in overflow-hidden">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           {/* Logo with glow */}
           <div className="flex items-center justify-center mb-2">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-accent blur-2xl opacity-30 rounded-full"></div>
-              <img 
-                src={resolvedTheme === 'light' ? quantumLogoLight : quantumLogoDark}
-                alt="The Quantum Club" 
-                className="relative w-32 h-32 drop-shadow-2xl"
-                loading="eager"
-                decoding="async"
-              />
+              <img src={resolvedTheme === 'light' ? quantumLogoLight : quantumLogoDark} alt="The Quantum Club" className="relative w-32 h-32 drop-shadow-2xl" loading="eager" decoding="async" />
             </div>
           </div>
 
           {/* Title */}
           <div className="space-y-3">
-            <h1 className="text-4xl font-semibold tracking-tight text-foreground">
+            <h1 className="text-4xl tracking-tight text-foreground text-center font-semibold">
               {isLogin ? "Welcome Back" : "Join The Quantum Club"}
             </h1>
             <div className="flex items-center justify-center gap-2">
               <Lock className="w-4 h-4 text-foreground/90" />
-              <p className="text-sm text-foreground/90 font-semibold tracking-wide">
-                INVITE ONLY • GEBRUIK JE PERSOONLIJKE CODE
-              </p>
+              <p className="text-sm text-foreground/90 font-semibold tracking-wide">INVITE ONLY </p>
             </div>
           </div>
 
           {/* Valid invite indicator */}
-          {inviteValid && inviteInfo && (
-            <div className="p-4 rounded-2xl bg-success/10 border border-success/20 backdrop-blur-sm space-y-2">
+          {inviteValid && inviteInfo && <div className="p-4 rounded-2xl bg-success/10 border border-success/20 backdrop-blur-sm space-y-2">
               <div className="flex items-center justify-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-success" />
                 <p className="text-sm font-bold text-success">Valid Invitation</p>
@@ -361,21 +346,17 @@ const Auth = () => {
               <p className="text-xs text-foreground/80">
                 Invited by {inviteInfo.profiles?.full_name || "a member"}
               </p>
-            </div>
-          )}
+            </div>}
 
-          {inviteValid === false && (
-            <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
+          {inviteValid === false && <Alert className="bg-destructive/10 border-destructive/20 backdrop-blur-sm rounded-2xl">
               <AlertDescription className="text-sm font-medium text-destructive text-center">
                 Invalid or expired invite code
               </AlertDescription>
-            </Alert>
-          )}
+            </Alert>}
         </CardHeader>
 
         <CardContent className="pt-2 px-8 pb-10">
-          {needsEmailVerification ? (
-            <div className="space-y-5">
+          {needsEmailVerification ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 backdrop-blur-sm space-y-2">
                 <p className="text-sm font-bold text-primary text-center">Verify Your Email</p>
                 <p className="text-xs text-foreground/80 text-center">
@@ -384,12 +365,7 @@ const Auth = () => {
               </div>
 
               <div className="flex justify-center">
-                <InputOTP
-                  maxLength={6}
-                  value={emailVerificationCode}
-                  onChange={setEmailVerificationCode}
-                  disabled={verificationLoading}
-                >
+                <InputOTP maxLength={6} value={emailVerificationCode} onChange={setEmailVerificationCode} disabled={verificationLoading}>
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
                     <InputOTPSlot index={1} />
@@ -401,27 +377,17 @@ const Auth = () => {
                 </InputOTP>
               </div>
 
-              <Button
-                onClick={handleVerifyEmail}
-                disabled={emailVerificationCode.length !== 6 || verificationLoading}
-                className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary/90 to-accent/90 hover:from-primary hover:to-accent text-white font-bold text-lg shadow-2xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02]"
-              >
+              <Button onClick={handleVerifyEmail} disabled={emailVerificationCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary/90 to-accent/90 hover:from-primary hover:to-accent text-white font-bold text-lg shadow-2xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02]">
                 {verificationLoading ? "Verifying..." : "Verify Email"}
               </Button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setNeedsEmailVerification(false);
-                  setEmailVerificationCode("");
-                }}
-                className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
-              >
+              <button type="button" onClick={() => {
+            setNeedsEmailVerification(false);
+            setEmailVerificationCode("");
+          }} className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center">
                 Back to sign in
               </button>
-            </div>
-          ) : mfaRequired ? (
-            <div className="space-y-5">
+            </div> : mfaRequired ? <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 backdrop-blur-sm space-y-2">
                 <p className="text-sm font-bold text-primary text-center">Two-Factor Authentication</p>
                 <p className="text-xs text-foreground/80 text-center">
@@ -430,12 +396,7 @@ const Auth = () => {
               </div>
 
               <div className="flex justify-center">
-                <InputOTP
-                  maxLength={6}
-                  value={mfaCode}
-                  onChange={setMfaCode}
-                  disabled={verificationLoading}
-                >
+                <InputOTP maxLength={6} value={mfaCode} onChange={setMfaCode} disabled={verificationLoading}>
                   <InputOTPGroup>
                     <InputOTPSlot index={0} />
                     <InputOTPSlot index={1} />
@@ -447,64 +408,30 @@ const Auth = () => {
                 </InputOTP>
               </div>
 
-              <Button
-                onClick={handleVerifyMFA}
-                disabled={mfaCode.length !== 6 || verificationLoading}
-                className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary/90 to-accent/90 hover:from-primary hover:to-accent text-white font-bold text-lg shadow-2xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02]"
-              >
+              <Button onClick={handleVerifyMFA} disabled={mfaCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl bg-gradient-to-r from-primary/90 to-accent/90 hover:from-primary hover:to-accent text-white font-bold text-lg shadow-2xl shadow-primary/20 transition-all duration-300 hover:scale-[1.02]">
                 {verificationLoading ? "Verifying..." : "Verify 2FA Code"}
               </Button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  setMfaRequired(false);
-                  setMfaCode("");
-                  setMfaFactorId(null);
-                  setMfaChallengeId(null);
-                }}
-                className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
-              >
+              <button type="button" onClick={() => {
+            setMfaRequired(false);
+            setMfaCode("");
+            setMfaFactorId(null);
+            setMfaChallengeId(null);
+          }} className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center">
                 Back to sign in
               </button>
-            </div>
-          ) : (
-            <form onSubmit={handleEmailAuth} className="space-y-5">
-            {!isLogin && (
-              <div>
-                <Input
-                  type="text"
-                  placeholder="Full Name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
-                  className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
-                />
-              </div>
-            )}
+            </div> : <form onSubmit={handleEmailAuth} className="space-y-5">
+            {!isLogin && <div>
+                <Input type="text" placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} required className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm" />
+              </div>}
 
             <div>
-              <Input
-                type="email"
-                placeholder="Email Address"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
-              />
+              <Input type="email" placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} required className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm" />
             </div>
 
-            {!isLogin ? (
-              <div className="space-y-3 animate-fade-in">
+            {!isLogin ? <div className="space-y-3 animate-fade-in">
                 {/* Password requirements - show until met */}
-                {password && !(
-                  password.length >= 12 &&
-                  /[A-Z]/.test(password) &&
-                  /[a-z]/.test(password) &&
-                  /[0-9]/.test(password) &&
-                  /[^A-Za-z0-9]/.test(password)
-                ) && (
-                  <div className="text-xs space-y-2 p-4 rounded-2xl bg-background/30 border border-border/50 backdrop-blur-sm">
+                {password && !(password.length >= 12 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) && <div className="text-xs space-y-2 p-4 rounded-2xl bg-background/30 border border-border/50 backdrop-blur-sm">
                     <p className={password.length >= 12 ? "text-success font-semibold" : "text-foreground/70"}>
                       {password.length >= 12 ? "✓" : "○"} At least 12 characters
                     </p>
@@ -520,56 +447,23 @@ const Auth = () => {
                     <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-foreground/70"}>
                       {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
                     </p>
-                  </div>
-                )}
+                  </div>}
 
                 {/* Enhanced password input - always shown from start */}
-                <AssistedPasswordConfirmation
-                  password={password}
-                  confirmPassword={confirmPassword}
-                  onConfirmPasswordChange={setConfirmPassword}
-                  onPasswordChange={setPassword}
-                  showPasswordInput={!(
-                    password.length >= 12 &&
-                    /[A-Z]/.test(password) &&
-                    /[a-z]/.test(password) &&
-                    /[0-9]/.test(password) &&
-                    /[^A-Za-z0-9]/.test(password)
-                  )}
-                />
-              </div>
-            ) : (
-              <div>
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm"
-                />
-              </div>
-            )}
+                <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onConfirmPasswordChange={setConfirmPassword} onPasswordChange={setPassword} showPasswordInput={!(password.length >= 12 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password))} />
+              </div> : <div>
+                <Input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm" />
+              </div>}
 
             {/* Main CTA Button */}
-            <RainbowButton
-              type="submit"
-              className="w-full h-16 rounded-2xl font-bold text-lg shadow-2xl shadow-primary/20 mt-8 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-              disabled={isLoading || (inviteCode && !isLogin && inviteValid === false)}
-            >
-              {isLoading ? (
-                <span className="flex items-center gap-3">
+            <RainbowButton type="submit" className="w-full h-16 rounded-2xl font-bold text-lg shadow-2xl shadow-primary/20 mt-8 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" disabled={isLoading || inviteCode && !isLogin && inviteValid === false}>
+              {isLoading ? <span className="flex items-center gap-3">
                   <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
                   Loading...
-                </span>
-              ) : isLogin ? (
-                "Sign In"
-              ) : (
-                <span className="flex items-center gap-2">
+                </span> : isLogin ? "Sign In" : <span className="flex items-center gap-2">
                   Get Started
                   <Sparkles className="w-5 h-5" />
-                </span>
-              )}
+                </span>}
             </RainbowButton>
 
             {/* Social Login Section */}
@@ -586,106 +480,89 @@ const Auth = () => {
 
             {/* Google Sign-in Button */}
             <div className="flex items-center justify-center">
-              <button
-                type="button"
-                onClick={async () => {
-                  console.log('[OAuth] Starting Google sign in...');
-                  try {
-                    const { data, error } = await supabase.auth.signInWithOAuth({
-                      provider: 'google',
-                      options: {
-                        redirectTo: `${window.location.origin}/auth`,
-                        queryParams: {
-                          access_type: 'offline',
-                          prompt: 'consent',
-                        }
-                      }
-                    });
-                    console.log('[OAuth] Google response:', { data, error });
-                    if (error) {
-                      console.error('[OAuth] Google error:', error);
-                      throw error;
+              <button type="button" onClick={async () => {
+              console.log('[OAuth] Starting Google sign in...');
+              try {
+                const {
+                  data,
+                  error
+                } = await supabase.auth.signInWithOAuth({
+                  provider: 'google',
+                  options: {
+                    redirectTo: `${window.location.origin}/auth`,
+                    queryParams: {
+                      access_type: 'offline',
+                      prompt: 'consent'
                     }
-                    console.log('[OAuth] Redirecting to Google...');
-                  } catch (error: any) {
-                    console.error('[OAuth] Caught error:', error);
-                    toast.error(error.message || 'Failed to sign in with Google');
                   }
-                }}
-                className="w-14 h-14 rounded-full bg-background/50 border border-border/50 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50"
-              >
+                });
+                console.log('[OAuth] Google response:', {
+                  data,
+                  error
+                });
+                if (error) {
+                  console.error('[OAuth] Google error:', error);
+                  throw error;
+                }
+                console.log('[OAuth] Redirecting to Google...');
+              } catch (error: any) {
+                console.error('[OAuth] Caught error:', error);
+                toast.error(error.message || 'Failed to sign in with Google');
+              }
+            }} className="w-14 h-14 rounded-full bg-background/50 border border-border/50 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50">
                 <FaGoogle className="w-5 h-5 text-foreground" />
               </button>
             </div>
-            </form>
-          )}
+            </form>}
 
-          {!inviteCode && !needsEmailVerification && !mfaRequired && (
-            <div className="text-center text-sm pt-8 pb-4">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLogin(!isLogin);
-                  setPassword("");
-                  setConfirmPassword("");
-                }}
-                className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline"
-              >
-                {isLogin
-                  ? "Need an account? Request invite"
-                  : "Already have an account? Sign in"}
+          {!inviteCode && !needsEmailVerification && !mfaRequired && <div className="text-center text-sm pt-8 pb-4">
+              <button type="button" onClick={() => {
+            setIsLogin(!isLogin);
+            setPassword("");
+            setConfirmPassword("");
+          }} className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline">
+                {isLogin ? "Need an account? Request invite" : "Already have an account? Sign in"}
               </button>
-            </div>
-          )}
+            </div>}
         </CardContent>
       </Card>
 
       {/* Gradient Background - render after content for better LCP */}
-      <div 
-        className="fixed inset-0 pointer-events-none" 
-        aria-hidden="true"
-        role="presentation"
-        style={{ 
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          transform: 'translateZ(0)', 
-          contain: 'strict', 
-          contentVisibility: 'auto',
-          willChange: 'auto',
-          zIndex: -1
-        }}
-      >
+      <div className="fixed inset-0 pointer-events-none" aria-hidden="true" role="presentation" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      transform: 'translateZ(0)',
+      contain: 'strict',
+      contentVisibility: 'auto',
+      willChange: 'auto',
+      zIndex: -1
+    }}>
         <div className="absolute inset-0 bg-gradient-to-br from-background via-background/95 to-primary/20" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/10 via-transparent to-transparent" />
         <div className="absolute inset-0 bg-background/20" />
       </div>
 
       {/* Floating ambient orbs - render after content for better LCP */}
-      <div 
-        className="fixed inset-0 overflow-hidden pointer-events-none" 
-        aria-hidden="true"
-        role="presentation"
-        style={{ 
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          transform: 'translateZ(0)', 
-          contain: 'strict',
-          contentVisibility: 'auto',
-          willChange: 'auto',
-          zIndex: -1
-        }}
-      >
+      <div className="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true" role="presentation" style={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      transform: 'translateZ(0)',
+      contain: 'strict',
+      contentVisibility: 'auto',
+      willChange: 'auto',
+      zIndex: -1
+    }}>
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1.5s" }} />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/5 rounded-full blur-3xl animate-pulse" style={{
+        animationDelay: "1.5s"
+      }} />
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
