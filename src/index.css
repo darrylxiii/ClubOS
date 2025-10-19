@@ -214,7 +214,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --muted: 35 20% 92%;
     --muted-foreground: 25 10% 45%;
 
-    --accent: 280 70% 62%;
+    --accent: 38 85% 58%;
     --accent-foreground: 0 0% 100%;
 
     --success: 142 65% 50%;
@@ -233,12 +233,12 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --radius: 1.25rem;
 
     /* QuantumClub Warm Gradients */
-    --gradient-hero: linear-gradient(135deg, hsl(220 85% 65%) 0%, hsl(280 70% 68%) 50%, hsl(35 60% 72%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(220 85% 65%) 0%, hsl(200 80% 68%) 50%, hsl(35 60% 72%) 100%);
     --gradient-mesh: radial-gradient(at 40% 20%, hsl(220 85% 65% / 0.15) 0px, transparent 50%),
-                     radial-gradient(at 80% 0%, hsl(280 70% 68% / 0.12) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(200 80% 68% / 0.12) 0px, transparent 50%),
                      radial-gradient(at 0% 50%, hsl(35 60% 72% / 0.1) 0px, transparent 50%);
     --gradient-card: linear-gradient(135deg, hsl(30 25% 98% / 0.9) 0%, hsl(35 20% 96% / 0.85) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(220 85% 62%) 0%, hsl(280 70% 65%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(220 85% 62%) 0%, hsl(38 85% 58%) 100%);
     --gradient-glass: linear-gradient(135deg, hsl(30 25% 98% / 0.75) 0%, hsl(35 20% 96% / 0.6) 100%);
     
     /* Premium Glassmorphic Shadows */
@@ -275,7 +275,7 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --muted: 25 15% 18%;
     --muted-foreground: 30 10% 58%;
 
-    --accent: 280 70% 65%;
+    --accent: 38 85% 62%;
     --accent-foreground: 0 0% 100%;
 
     --success: 142 65% 55%;
@@ -291,12 +291,12 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --input: 25 15% 24%;
     --ring: 220 85% 62%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(220 85% 55%) 0%, hsl(280 70% 60%) 50%, hsl(35 50% 60%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(220 85% 55%) 0%, hsl(200 80% 60%) 50%, hsl(35 50% 60%) 100%);
     --gradient-mesh: radial-gradient(at 40% 20%, hsl(220 85% 55% / 0.12) 0px, transparent 50%),
-                     radial-gradient(at 80% 0%, hsl(280 70% 60% / 0.1) 0px, transparent 50%),
+                     radial-gradient(at 80% 0%, hsl(200 80% 60% / 0.1) 0px, transparent 50%),
                      radial-gradient(at 0% 50%, hsl(35 50% 60% / 0.08) 0px, transparent 50%);
     --gradient-card: linear-gradient(135deg, hsl(25 18% 16% / 0.9) 0%, hsl(25 15% 14% / 0.85) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(220 85% 58%) 0%, hsl(280 70% 62%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(220 85% 58%) 0%, hsl(38 85% 62%) 100%);
     --gradient-glass: linear-gradient(135deg, hsl(25 18% 18% / 0.75) 0%, hsl(25 15% 14% / 0.6) 100%);
     
     --shadow-glass-sm: 0 2px 12px hsl(0 0% 0% / 0.4), 0 1px 3px hsl(0 0% 0% / 0.3);

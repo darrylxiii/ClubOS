@@ -54,7 +54,9 @@ export const JobCard = ({
     return "bg-muted";
   };
   return (
-    <Card className="hover:shadow-lg transition-all duration-300 border border-border bg-gradient-card">
+    <Card className="group relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-mesh opacity-50 transition-opacity group-hover:opacity-70" />
+      <div className="relative">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
@@ -168,6 +170,7 @@ export const JobCard = ({
           </div>
         </div>
       </CardContent>
+      </div>
     </Card>
   );
 };
