@@ -4,12 +4,7 @@ import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Switch } from "@/components/ui/switch";
 import { Search, SlidersHorizontal, Check, Zap } from "lucide-react";
 import { toast } from "sonner";
@@ -19,18 +14,25 @@ import { useAuth } from "@/contexts/AuthContext";
 import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyConversion";
 import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useUserRole } from "@/hooks/useUserRole";
-
 type SortOption = "match" | "newest" | "salary";
-
 const Jobs = () => {
-  const { user } = useAuth();
-  const { role, companyId: userCompanyId } = useUserRole();
+  const {
+    user
+  } = useAuth();
+  const {
+    role,
+    companyId: userCompanyId
+  } = useUserRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("match");
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [clubSyncEnabled, setClubSyncEnabled] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<{ id: string; title: string; company: string } | null>(null);
+  const [selectedJob, setSelectedJob] = useState<{
+    id: string;
+    title: string;
+    company: string;
+  } | null>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [userCurrency, setUserCurrency] = useState<Currency>('EUR');
@@ -39,18 +41,13 @@ const Jobs = () => {
   useEffect(() => {
     const fetchUserCurrency = async () => {
       if (!user) return;
-      
-      const { data } = await supabase
-        .from('profiles')
-        .select('preferred_currency')
-        .eq('id', user.id)
-        .single();
-      
+      const {
+        data
+      } = await supabase.from('profiles').select('preferred_currency').eq('id', user.id).single();
       if (data?.preferred_currency) {
         setUserCurrency(data.preferred_currency as Currency);
       }
     };
-    
     fetchUserCurrency();
   }, [user]);
 
@@ -59,9 +56,10 @@ const Jobs = () => {
     const fetchJobs = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('jobs')
-          .select(`
+        const {
+          data,
+          error
+        } = await supabase.from('jobs').select(`
             id,
             title,
             location,
@@ -75,10 +73,9 @@ const Jobs = () => {
               name,
               slug
             )
-          `)
-          .eq('status', 'published')
-          .order('created_at', { ascending: false });
-
+          `).eq('status', 'published').order('created_at', {
+          ascending: false
+        });
         if (error) throw error;
 
         // Transform data for display
@@ -91,14 +88,15 @@ const Jobs = () => {
           type: job.employment_type || 'fulltime',
           postedDate: new Date(job.created_at).toLocaleDateString(),
           postedDaysAgo: Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)),
-          tags: ['Leadership', 'Innovation'], // TODO: Add tags to jobs table
-          matchScore: Math.floor(Math.random() * 30) + 70, // TODO: Calculate real match score
+          tags: ['Leadership', 'Innovation'],
+          // TODO: Add tags to jobs table
+          matchScore: Math.floor(Math.random() * 30) + 70,
+          // TODO: Calculate real match score
           salary: job.salary_max || 0,
           salaryMin: job.salary_min || 0,
           salaryMax: job.salary_max || 0,
-          currency: job.currency as Currency,
+          currency: job.currency as Currency
         })) || [];
-
         setJobs(transformedJobs);
       } catch (error) {
         console.error('Error fetching jobs:', error);
@@ -107,10 +105,8 @@ const Jobs = () => {
         setLoading(false);
       }
     };
-
     fetchJobs();
   }, []);
-
   const sortedJobs = [...jobs].sort((a, b) => {
     switch (sortBy) {
       case "match":
@@ -123,33 +119,33 @@ const Jobs = () => {
         return 0;
     }
   });
-
   const handleApply = (jobTitle: string) => {
     toast.success(`Applied to ${jobTitle}!`, {
-      description: "Your application has been submitted successfully.",
+      description: "Your application has been submitted successfully."
     });
   };
-
   const handleRefer = (jobId: string, jobTitle: string, company: string) => {
-    setSelectedJob({ id: jobId, title: jobTitle, company });
+    setSelectedJob({
+      id: jobId,
+      title: jobTitle,
+      company
+    });
     setReferralDialogOpen(true);
   };
-
   const handleClubSync = (jobTitle: string) => {
     toast.success(`Club Sync activated for ${jobTitle}!`, {
-      description: "Elite auto-apply initiated. You'll be notified of next steps.",
+      description: "Elite auto-apply initiated. You'll be notified of next steps."
     });
   };
-
   const toggleSaveJob = (jobId: string, jobTitle: string) => {
-    setSavedJobIds((prev) => {
+    setSavedJobIds(prev => {
       const isSaved = prev.includes(jobId);
       if (isSaved) {
         toast.info(`Removed ${jobTitle} from saved jobs`);
-        return prev.filter((id) => id !== jobId);
+        return prev.filter(id => id !== jobId);
       } else {
         toast.success(`Saved ${jobTitle}!`, {
-          description: "You can view all saved jobs in the Saved tab.",
+          description: "You can view all saved jobs in the Saved tab."
         });
         return [...prev, jobId];
       }
@@ -159,42 +155,34 @@ const Jobs = () => {
   // Convert salary for display
   const getConvertedSalary = (job: any) => {
     if (!job.salaryMax) return null;
-    
     const convertedMin = convertCurrency(job.salaryMin || 0, job.currency, userCurrency);
     const convertedMax = convertCurrency(job.salaryMax, job.currency, userCurrency);
-    
     return {
       min: convertedMin,
       max: convertedMax,
-      formatted: `${formatCurrency(convertedMin, userCurrency, { compact: true })} - ${formatCurrency(convertedMax, userCurrency, { compact: true })}`
+      formatted: `${formatCurrency(convertedMin, userCurrency, {
+        compact: true
+      })} - ${formatCurrency(convertedMax, userCurrency, {
+        compact: true
+      })}`
     };
   };
-
-  const savedJobs = sortedJobs.filter((job) => savedJobIds.includes(job.id));
+  const savedJobs = sortedJobs.filter(job => savedJobIds.includes(job.id));
 
   // If user is Partner or Admin, show Partner-specific view
   if ((role === 'partner' || role === 'admin') && (userCompanyId || role === 'admin')) {
-    return (
-      <AppLayout>
+    return <AppLayout>
         <div className="container mx-auto px-4 py-8">
           <PartnerJobsHome companyId={userCompanyId || null} />
         </div>
-      </AppLayout>
-    );
+      </AppLayout>;
   }
 
   // Candidate view (default)
-  return (
-    <AppLayout>
+  return <AppLayout>
       {/* Background Video */}
       <div className="fixed inset-0 z-0 overflow-hidden">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
-        >
+        <video autoPlay loop muted playsInline className="absolute inset-0 w-full h-full object-cover opacity-40">
           <source src="/videos/ocean-background.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-background/60 backdrop-blur-sm" />
@@ -207,9 +195,7 @@ const Jobs = () => {
           <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
             Elite Opportunities
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">
-            Invite-only roles curated exclusively for visionary talent
-          </p>
+          <p className="text-lg text-muted-foreground max-w-2xl">Connecting only the 0.1% with each other</p>
         </div>
 
         {/* Search and Filters */}
@@ -228,13 +214,7 @@ const Jobs = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search jobs by title, company, or skills..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+                  <Input type="text" placeholder="Search jobs by title, company, or skills..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -244,24 +224,15 @@ const Jobs = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-background border-border z-50" align="end">
-                    <DropdownMenuItem 
-                      onClick={() => setSortBy("match")}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => setSortBy("match")} className="cursor-pointer">
                       <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
                       Match %
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => setSortBy("newest")}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => setSortBy("newest")} className="cursor-pointer">
                       <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
                       Newest
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => setSortBy("salary")}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => setSortBy("salary")} className="cursor-pointer">
                       <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
                       Salary (High to Low)
                     </DropdownMenuItem>
@@ -281,54 +252,26 @@ const Jobs = () => {
                     Automatically apply to all matches above 90%
                   </p>
                 </div>
-                <Switch
-                  checked={clubSyncEnabled}
-                  onCheckedChange={(checked) => {
-                    setClubSyncEnabled(checked);
-                    toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
-                      description: checked 
-                        ? "You'll automatically apply to roles with 90%+ match" 
-                        : "Auto-apply has been turned off"
-                    });
-                  }}
-                />
+                <Switch checked={clubSyncEnabled} onCheckedChange={checked => {
+                setClubSyncEnabled(checked);
+                toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
+                  description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
+                });
+              }} />
               </div>
             </div>
 
             {/* Job Listings */}
-            {loading ? (
-              <div className="text-center py-12">
+            {loading ? <div className="text-center py-12">
                 <p className="text-muted-foreground">Loading jobs...</p>
-              </div>
-            ) : sortedJobs.length === 0 ? (
-              <div className="text-center py-12">
+              </div> : sortedJobs.length === 0 ? <div className="text-center py-12">
                 <p className="text-muted-foreground">No jobs available</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {sortedJobs.map((job) => {
-                  const convertedSalary = getConvertedSalary(job);
-                  return (
-                    <JobCard
-                      key={job.id}
-                      title={job.title}
-                      company={job.company}
-                      location={job.location}
-                      type={job.type}
-                      postedDate={job.postedDate}
-                      tags={job.tags}
-                      salary={convertedSalary?.formatted}
-                      matchScore={job.matchScore}
-                      isSaved={savedJobIds.includes(job.id)}
-                      onApply={() => handleApply(job.title)}
-                      onRefer={() => handleRefer(job.id, job.title, job.company)}
-                      onClubSync={() => handleClubSync(job.title)}
-                      onToggleSave={() => toggleSaveJob(job.id, job.title)}
-                    />
-                  );
-                })}
-              </div>
-            )}
+              </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {sortedJobs.map(job => {
+              const convertedSalary = getConvertedSalary(job);
+              return <JobCard key={job.id} title={job.title} company={job.company} location={job.location} type={job.type} postedDate={job.postedDate} tags={job.tags} salary={convertedSalary?.formatted} matchScore={job.matchScore} isSaved={savedJobIds.includes(job.id)} onApply={() => handleApply(job.title)} onRefer={() => handleRefer(job.id, job.title, job.company)} onClubSync={() => handleClubSync(job.title)} onToggleSave={() => toggleSaveJob(job.id, job.title)} />;
+            })}
+              </div>}
           </TabsContent>
 
           <TabsContent value="saved" className="space-y-6">
@@ -336,13 +279,7 @@ const Jobs = () => {
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type="text"
-                    placeholder="Search saved jobs..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
-                  />
+                  <Input type="text" placeholder="Search saved jobs..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -352,24 +289,15 @@ const Jobs = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent className="bg-background border-border z-50" align="end">
-                    <DropdownMenuItem 
-                      onClick={() => setSortBy("match")}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => setSortBy("match")} className="cursor-pointer">
                       <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
                       Match %
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => setSortBy("newest")}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => setSortBy("newest")} className="cursor-pointer">
                       <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
                       Newest
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => setSortBy("salary")}
-                      className="cursor-pointer"
-                    >
+                    <DropdownMenuItem onClick={() => setSortBy("salary")} className="cursor-pointer">
                       <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
                       Salary (High to Low)
                     </DropdownMenuItem>
@@ -389,68 +317,32 @@ const Jobs = () => {
                     Automatically apply to all matches above 90%
                   </p>
                 </div>
-                <Switch
-                  checked={clubSyncEnabled}
-                  onCheckedChange={(checked) => {
-                    setClubSyncEnabled(checked);
-                    toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
-                      description: checked 
-                        ? "You'll automatically apply to roles with 90%+ match" 
-                        : "Auto-apply has been turned off"
-                    });
-                  }}
-                />
+                <Switch checked={clubSyncEnabled} onCheckedChange={checked => {
+                setClubSyncEnabled(checked);
+                toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
+                  description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
+                });
+              }} />
               </div>
             </div>
 
             {/* Saved Job Listings */}
-            {savedJobs.length === 0 ? (
-              <div className="text-center py-12">
+            {savedJobs.length === 0 ? <div className="text-center py-12">
                 <p className="text-muted-foreground">No saved jobs yet</p>
                 <p className="text-sm text-muted-foreground mt-2">
                   Click the bookmark icon on any job to save it here
                 </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {savedJobs.map((job) => {
-                  const convertedSalary = getConvertedSalary(job);
-                  return (
-                    <JobCard
-                      key={job.id}
-                      title={job.title}
-                      company={job.company}
-                      location={job.location}
-                      type={job.type}
-                      postedDate={job.postedDate}
-                      tags={job.tags}
-                      salary={convertedSalary?.formatted}
-                      matchScore={job.matchScore}
-                      isSaved={true}
-                      onApply={() => handleApply(job.title)}
-                      onRefer={() => handleRefer(job.id, job.title, job.company)}
-                      onClubSync={() => handleClubSync(job.title)}
-                      onToggleSave={() => toggleSaveJob(job.id, job.title)}
-                    />
-                  );
-                })}
-              </div>
-            )}
+              </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {savedJobs.map(job => {
+              const convertedSalary = getConvertedSalary(job);
+              return <JobCard key={job.id} title={job.title} company={job.company} location={job.location} type={job.type} postedDate={job.postedDate} tags={job.tags} salary={convertedSalary?.formatted} matchScore={job.matchScore} isSaved={true} onApply={() => handleApply(job.title)} onRefer={() => handleRefer(job.id, job.title, job.company)} onClubSync={() => handleClubSync(job.title)} onToggleSave={() => toggleSaveJob(job.id, job.title)} />;
+            })}
+              </div>}
           </TabsContent>
         </Tabs>
 
-        {selectedJob && (
-          <ReferralDialog
-            open={referralDialogOpen}
-            onOpenChange={setReferralDialogOpen}
-            jobId={selectedJob.id}
-            jobTitle={selectedJob.title}
-            companyName={selectedJob.company}
-          />
-        )}
+        {selectedJob && <ReferralDialog open={referralDialogOpen} onOpenChange={setReferralDialogOpen} jobId={selectedJob.id} jobTitle={selectedJob.title} companyName={selectedJob.company} />}
       </div>
-    </AppLayout>
-  );
+    </AppLayout>;
 };
-
 export default Jobs;
