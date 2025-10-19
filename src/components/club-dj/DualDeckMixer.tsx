@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Volume2, Headphones } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, Headphones, Zap, Waves } from "lucide-react";
 import { useAudioManager } from "@/hooks/useAudioManager";
+import { Label } from "@/components/ui/label";
 
 interface Track {
   id: string;
@@ -31,6 +32,8 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
   const [eqHighA, setEqHighA] = useState([50]);
   const [progressA, setProgressA] = useState(0);
   const [pitchA, setPitchA] = useState([0]);
+  const [filterA, setFilterA] = useState([0]);
+  const [echoA, setEchoA] = useState([0]);
 
   // Deck B
   const audioRefB = useRef<HTMLAudioElement>(null);
@@ -41,9 +44,12 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
   const [eqHighB, setEqHighB] = useState([50]);
   const [progressB, setProgressB] = useState(0);
   const [pitchB, setPitchB] = useState([0]);
+  const [filterB, setFilterB] = useState([0]);
+  const [echoB, setEchoB] = useState([0]);
 
   // Crossfader
   const [crossfader, setCrossfader] = useState([50]);
+  const [syncEnabled, setSyncEnabled] = useState(false);
 
   // Load tracks
   useEffect(() => {
@@ -111,8 +117,12 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
   };
 
   const syncDecks = () => {
-    if (audioRefA.current && audioRefB.current) {
+    if (audioRefA.current && audioRefB.current && isPlayingA) {
       audioRefB.current.currentTime = audioRefA.current.currentTime;
+      // Match tempo
+      setPitchB(pitchA);
+      setSyncEnabled(true);
+      setTimeout(() => setSyncEnabled(false), 2000);
     }
   };
 
@@ -131,51 +141,50 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
     setEqHigh: (val: number[]) => void,
     progress: number,
     pitch: number[],
-    setPitch: (val: number[]) => void
+    setPitch: (val: number[]) => void,
+    filter: number[],
+    setFilter: (val: number[]) => void,
+    echo: number[],
+    setEcho: (val: number[]) => void
   ) => (
-    <div className="flex-1 rounded-3xl bg-gradient-to-br from-black/40 to-black/20 backdrop-blur-xl border border-white/10 p-6 space-y-4">
+    <div className="flex-1 rounded-3xl bg-gradient-to-br from-black/40 to-black/20 backdrop-blur-xl border border-white/10 p-4 space-y-4">
       {/* Deck Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <div className={`h-8 w-8 rounded-lg flex items-center justify-center font-bold ${
+          <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-bold text-lg ${
             deck === 'A' ? 'bg-blue-500' : 'bg-orange-500'
           }`}>
             {deck}
           </div>
-          <div className="text-sm font-mono">
-            {track ? `${Math.floor(track.duration_seconds || 0 / 60)}:${String(Math.floor(track.duration_seconds || 0 % 60)).padStart(2, '0')}` : '--:--'}
-          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Headphones className="h-4 w-4" />
+          </Button>
         </div>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Headphones className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {/* Track Info */}
-      <div className="min-h-[80px]">
-        {track ? (
-          <div className="space-y-1">
-            <div className="font-bold truncate">{track.title}</div>
-            <div className="text-sm text-muted-foreground truncate">{track.artist}</div>
-          </div>
-        ) : (
-          <div className="text-muted-foreground text-sm">No track loaded</div>
-        )}
+        <div className="text-sm font-mono">
+          {track ? `${Math.floor((track.duration_seconds || 0) / 60)}:${String(Math.floor((track.duration_seconds || 0) % 60)).padStart(2, '0')}` : '--:--'}
+        </div>
       </div>
 
       {/* Waveform Progress */}
-      <div className="h-16 rounded-xl bg-black/40 border border-white/5 relative overflow-hidden">
+      <div className="h-20 rounded-xl bg-black/40 border border-white/5 relative overflow-hidden">
         <div 
-          className={`h-full transition-all ${deck === 'A' ? 'bg-blue-500/30' : 'bg-orange-500/30'}`}
+          className={`h-full transition-all ${deck === 'A' ? 'bg-blue-500/40' : 'bg-orange-500/40'}`}
           style={{ width: `${progress}%` }}
         />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-xs font-mono">{progress.toFixed(0)}%</div>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          {track ? (
+            <>
+              <div className="font-bold text-sm truncate max-w-[90%]">{track.title}</div>
+              <div className="text-xs text-muted-foreground truncate max-w-[90%]">{track.artist}</div>
+            </>
+          ) : (
+            <div className="text-muted-foreground text-xs">No track loaded</div>
+          )}
         </div>
       </div>
 
       {/* Play Controls */}
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex items-center justify-center gap-4">
         <Button
           size="icon"
           variant="outline"
@@ -188,6 +197,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
             }
           }}
           disabled={!track}
+          title="Cue"
         >
           <RotateCcw className="h-5 w-5" />
         </Button>
@@ -204,180 +214,247 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
         </Button>
       </div>
 
-      {/* Pitch Control */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">TEMPO</span>
-          <span className="font-mono">{pitch[0] > 0 ? '+' : ''}{pitch[0].toFixed(1)}%</span>
-        </div>
-        <Slider
-          value={pitch}
-          onValueChange={setPitch}
-          min={-8}
-          max={8}
-          step={0.1}
-          className="w-full"
-        />
-      </div>
-
-      {/* EQ Section */}
-      <div className="grid grid-cols-3 gap-3">
-        {/* Low */}
-        <div className="space-y-2">
-          <div className="text-xs text-center text-muted-foreground">LOW</div>
-          <div className="h-24 flex items-end justify-center">
-            <div className="w-full relative">
-              <Slider
-                value={eqLow}
-                onValueChange={setEqLow}
-                max={100}
-                step={1}
-                orientation="vertical"
-                className="h-20"
-              />
-            </div>
-          </div>
-          <div className="text-xs text-center font-mono">{eqLow[0]}</div>
-        </div>
-
-        {/* Mid */}
-        <div className="space-y-2">
-          <div className="text-xs text-center text-muted-foreground">MID</div>
-          <div className="h-24 flex items-end justify-center">
-            <div className="w-full relative">
-              <Slider
-                value={eqMid}
-                onValueChange={setEqMid}
-                max={100}
-                step={1}
-                orientation="vertical"
-                className="h-20"
-              />
-            </div>
-          </div>
-          <div className="text-xs text-center font-mono">{eqMid[0]}</div>
-        </div>
-
-        {/* High */}
-        <div className="space-y-2">
-          <div className="text-xs text-center text-muted-foreground">HIGH</div>
-          <div className="h-24 flex items-end justify-center">
-            <div className="w-full relative">
-              <Slider
-                value={eqHigh}
-                onValueChange={setEqHigh}
-                max={100}
-                step={1}
-                orientation="vertical"
-                className="h-20"
-              />
-            </div>
-          </div>
-          <div className="text-xs text-center font-mono">{eqHigh[0]}</div>
-        </div>
-      </div>
-
-      {/* Volume Fader */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Volume2 className="h-4 w-4 text-muted-foreground" />
+      {/* Tempo Slider */}
+      <div className="space-y-2 px-2">
+        <Label className="text-xs text-muted-foreground">TEMPO</Label>
+        <div className="flex items-center gap-3">
           <Slider
-            value={volume}
-            onValueChange={setVolume}
-            max={100}
-            step={1}
+            value={pitch}
+            onValueChange={setPitch}
+            min={-8}
+            max={8}
+            step={0.1}
             className="flex-1"
           />
-          <span className="text-xs font-mono w-10 text-right">{volume[0]}%</span>
+          <span className="text-xs font-mono w-12 text-right">
+            {pitch[0] > 0 ? '+' : ''}{pitch[0].toFixed(1)}%
+          </span>
+        </div>
+      </div>
+
+      {/* Effects Section */}
+      <div className="grid grid-cols-2 gap-3 px-2">
+        <div className="space-y-2">
+          <div className="flex items-center gap-1">
+            <Zap className="h-3 w-3 text-yellow-500" />
+            <Label className="text-xs text-muted-foreground">FILTER</Label>
+          </div>
+          <Slider
+            value={filter}
+            onValueChange={setFilter}
+            max={100}
+            step={1}
+            className="w-full"
+          />
+          <div className="text-xs font-mono text-center">{filter[0]}</div>
+        </div>
+        
+        <div className="space-y-2">
+          <div className="flex items-center gap-1">
+            <Waves className="h-3 w-3 text-cyan-500" />
+            <Label className="text-xs text-muted-foreground">ECHO</Label>
+          </div>
+          <Slider
+            value={echo}
+            onValueChange={setEcho}
+            max={100}
+            step={1}
+            className="w-full"
+          />
+          <div className="text-xs font-mono text-center">{echo[0]}</div>
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="space-y-6">
-      {/* Deck Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Deck A */}
-        {renderDeck(
-          'A',
-          trackA,
-          isPlayingA,
-          togglePlayA,
-          volumeA,
-          setVolumeA,
-          eqLowA,
-          setEqLowA,
-          eqMidA,
-          setEqMidA,
-          eqHighA,
-          setEqHighA,
-          progressA,
-          pitchA,
-          setPitchA
-        )}
+    <div className="space-y-4">
+      {/* Main Layout - DJAY Style */}
+      <div className="flex gap-4">
+        {/* Left Deck */}
+        <div className="flex-1">
+          {renderDeck(
+            'A',
+            trackA,
+            isPlayingA,
+            togglePlayA,
+            volumeA,
+            setVolumeA,
+            eqLowA,
+            setEqLowA,
+            eqMidA,
+            setEqMidA,
+            eqHighA,
+            setEqHighA,
+            progressA,
+            pitchA,
+            setPitchA,
+            filterA,
+            setFilterA,
+            echoA,
+            setEchoA
+          )}
+        </div>
 
-        {/* Deck B */}
-        {renderDeck(
-          'B',
-          trackB,
-          isPlayingB,
-          togglePlayB,
-          volumeB,
-          setVolumeB,
-          eqLowB,
-          setEqLowB,
-          eqMidB,
-          setEqMidB,
-          eqHighB,
-          setEqHighB,
-          progressB,
-          pitchB,
-          setPitchB
-        )}
-      </div>
+        {/* Center Mixer Section */}
+        <div className="w-80 rounded-3xl bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-xl border border-white/10 p-6 space-y-6">
+          {/* Sync Button */}
+          <Button
+            className={`w-full h-14 text-lg font-bold transition-all ${
+              syncEnabled 
+                ? 'bg-green-500 hover:bg-green-600 animate-pulse' 
+                : 'bg-gradient-to-r from-blue-500 to-orange-500 hover:from-blue-600 hover:to-orange-600'
+            }`}
+            onClick={syncDecks}
+            disabled={!trackA || !trackB || !isPlayingA}
+          >
+            {syncEnabled ? '✓ SYNCED' : 'SYNC'}
+          </Button>
 
-      {/* Crossfader Section */}
-      <div className="rounded-3xl bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-xl border border-white/10 p-8">
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+          {/* EQ & Volume Faders - Vertical */}
+          <div className="grid grid-cols-4 gap-3 h-72">
+            {/* Deck A EQ */}
+            <div className="space-y-2">
+              <Label className="text-xs text-blue-400 text-center block">A-LOW</Label>
+              <div className="h-full flex flex-col items-center justify-end">
+                <Slider
+                  value={eqLowA}
+                  onValueChange={setEqLowA}
+                  max={100}
+                  step={1}
+                  orientation="vertical"
+                  className="h-48"
+                />
+                <span className="text-xs font-mono mt-2">{eqLowA[0]}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-blue-400 text-center block">A-HIGH</Label>
+              <div className="h-full flex flex-col items-center justify-end">
+                <Slider
+                  value={eqHighA}
+                  onValueChange={setEqHighA}
+                  max={100}
+                  step={1}
+                  orientation="vertical"
+                  className="h-48"
+                />
+                <span className="text-xs font-mono mt-2">{eqHighA[0]}</span>
+              </div>
+            </div>
+
+            {/* Deck B EQ */}
+            <div className="space-y-2">
+              <Label className="text-xs text-orange-400 text-center block">B-LOW</Label>
+              <div className="h-full flex flex-col items-center justify-end">
+                <Slider
+                  value={eqLowB}
+                  onValueChange={setEqLowB}
+                  max={100}
+                  step={1}
+                  orientation="vertical"
+                  className="h-48"
+                />
+                <span className="text-xs font-mono mt-2">{eqLowB[0]}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-orange-400 text-center block">B-HIGH</Label>
+              <div className="h-full flex flex-col items-center justify-end">
+                <Slider
+                  value={eqHighB}
+                  onValueChange={setEqHighB}
+                  max={100}
+                  step={1}
+                  orientation="vertical"
+                  className="h-48"
+                />
+                <span className="text-xs font-mono mt-2">{eqHighB[0]}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Volume Faders */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs text-blue-400 flex items-center gap-1">
+                <Volume2 className="h-3 w-3" />
+                DECK A
+              </Label>
+              <Slider
+                value={volumeA}
+                onValueChange={setVolumeA}
+                max={100}
+                step={1}
+                className="w-full"
+              />
+              <span className="text-xs font-mono block text-center">{volumeA[0]}%</span>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-orange-400 flex items-center gap-1">
+                <Volume2 className="h-3 w-3" />
+                DECK B
+              </Label>
+              <Slider
+                value={volumeB}
+                onValueChange={setVolumeB}
+                max={100}
+                step={1}
+                className="w-full"
+              />
+              <span className="text-xs font-mono block text-center">{volumeB[0]}%</span>
+            </div>
+          </div>
+
+          {/* Crossfader */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
               <div className="h-6 w-6 rounded bg-blue-500 flex items-center justify-center text-xs font-bold">A</div>
-              <span className="text-sm font-medium">CROSSFADER</span>
+              <Label className="text-xs font-medium">CROSSFADER</Label>
               <div className="h-6 w-6 rounded bg-orange-500 flex items-center justify-center text-xs font-bold">B</div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={syncDecks}
-              disabled={!trackA || !trackB}
-            >
-              SYNC
-            </Button>
-          </div>
-          
-          <div className="relative">
+            
             <Slider
               value={crossfader}
               onValueChange={setCrossfader}
               max={100}
               step={1}
-              className="w-full h-12"
+              className="w-full"
             />
-            <div className="absolute inset-0 pointer-events-none flex items-center justify-between px-2">
-              <div className={`text-xs font-bold transition-opacity ${crossfader[0] <= 50 ? 'opacity-100' : 'opacity-30'}`}>
-                A
-              </div>
-              <div className={`text-xs font-bold transition-opacity ${crossfader[0] >= 50 ? 'opacity-100' : 'opacity-30'}`}>
-                B
-              </div>
+
+            <div className="flex justify-between text-xs text-muted-foreground font-mono">
+              <span>{crossfader[0] <= 50 ? 100 : ((100 - crossfader[0]) / 50 * 100).toFixed(0)}%</span>
+              <span>{crossfader[0] >= 50 ? 100 : (crossfader[0] / 50 * 100).toFixed(0)}%</span>
             </div>
           </div>
+        </div>
 
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>A: {crossfader[0] <= 50 ? 100 : ((100 - crossfader[0]) / 50 * 100).toFixed(0)}%</span>
-            <span>B: {crossfader[0] >= 50 ? 100 : (crossfader[0] / 50 * 100).toFixed(0)}%</span>
-          </div>
+        {/* Right Deck */}
+        <div className="flex-1">
+          {renderDeck(
+            'B',
+            trackB,
+            isPlayingB,
+            togglePlayB,
+            volumeB,
+            setVolumeB,
+            eqLowB,
+            setEqLowB,
+            eqMidB,
+            setEqMidB,
+            eqHighB,
+            setEqHighB,
+            progressB,
+            pitchB,
+            setPitchB,
+            filterB,
+            setFilterB,
+            echoB,
+            setEchoB
+          )}
         </div>
       </div>
 
