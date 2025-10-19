@@ -121,15 +121,45 @@ export function DJMixer() {
   }, [volume]);
 
   useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleError = (e: Event) => {
+      console.error('Audio error:', e);
+      toast.error('Failed to load audio track');
+      setIsPlaying(false);
+    };
+
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('error', handleError);
+
+    return () => {
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('error', handleError);
+    };
+  }, []);
+
+  useEffect(() => {
     if (currentTrack?.tracks && audioRef.current) {
-      audioRef.current.src = currentTrack.tracks.file_url;
+      const audio = audioRef.current;
+      audio.src = currentTrack.tracks.file_url;
+      audio.load();
+      
       if (isPlaying) {
-        audioRef.current.play();
+        audio.play().catch(err => {
+          console.error('Play error:', err);
+          toast.error('Failed to play track');
+          setIsPlaying(false);
+        });
       }
     }
   }, [currentTrack]);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (!audioRef.current) return;
 
     if (isPlaying) {
@@ -137,11 +167,15 @@ export function DJMixer() {
     } else {
       if (!currentTrack && queue && queue.length > 0) {
         playNextMutation.mutate();
-      } else {
-        audioRef.current.play();
+      } else if (audioRef.current.src) {
+        try {
+          await audioRef.current.play();
+        } catch (err) {
+          console.error('Play error:', err);
+          toast.error('Failed to play track');
+        }
       }
     }
-    setIsPlaying(!isPlaying);
   };
 
   const skipTrack = () => {

@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Music, Trash2, Play } from "lucide-react";
+import { Music, Trash2, Play, ListPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 
@@ -36,6 +36,38 @@ export function TrackList() {
     },
     onError: (error: any) => {
       toast.error(error.message || 'Failed to delete track');
+    },
+  });
+
+  const addToQueueMutation = useMutation({
+    mutationFn: async (trackId: string) => {
+      // Get current max position
+      const { data: queueData } = await supabase
+        .from('dj_queue')
+        .select('position')
+        .order('position', { ascending: false })
+        .limit(1);
+      
+      const nextPosition = queueData && queueData.length > 0 
+        ? (queueData[0].position || 0) + 1 
+        : 1;
+
+      const { error } = await supabase
+        .from('dj_queue')
+        .insert({
+          track_id: trackId,
+          position: nextPosition,
+          is_playing: false
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dj-queue'] });
+      toast.success('Track added to DJ queue');
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to add track to queue');
     },
   });
 
@@ -131,10 +163,20 @@ export function TrackList() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={() => addToQueueMutation.mutate(track.id)}
+                  disabled={addToQueueMutation.isPending}
+                  title="Add to DJ Queue"
+                >
+                  <ListPlus className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={() => {
                     const audio = new Audio(track.file_url);
                     audio.play();
                   }}
+                  title="Preview"
                 >
                   <Play className="h-4 w-4" />
                 </Button>
@@ -143,6 +185,7 @@ export function TrackList() {
                   size="icon"
                   onClick={() => deleteMutation.mutate(track.id)}
                   disabled={deleteMutation.isPending}
+                  title="Delete"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
