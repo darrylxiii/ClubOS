@@ -29,10 +29,10 @@ export function useMeetingWebRTC({
   const [connectionState, setConnectionState] = useState<string>('new');
   const [participants, setParticipants] = useState<string[]>([]);
   const [error, setError] = useState<{ message: string; recoverable: boolean } | null>(null);
-  const [hasJoined, setHasJoined] = useState(false);
   
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const signalChannel = useRef<RealtimeChannel | null>(null);
+  const hasJoinedRef = useRef(false);
   const { stats, getVideoConstraints } = useBandwidthMonitor();
 
   // Initialize local media with adaptive quality
@@ -68,10 +68,10 @@ export function useMeetingWebRTC({
       });
       
       // If channel is ready and we haven't joined yet, send join signal now
-      if (signalChannel.current?.state === 'joined' && !hasJoined) {
+      if (signalChannel.current?.state === 'joined' && !hasJoinedRef.current) {
         console.log('[WebRTC] 📢 Media ready, sending join signal now');
         
-        const sendSignal = async (signal: {
+        const sendSignalInline = async (signal: {
           type: string;
           receiverId?: string;
           data: any;
@@ -93,11 +93,11 @@ export function useMeetingWebRTC({
           }
         };
         
-        await sendSignal({
+        await sendSignalInline({
           type: 'join',
           data: { name: participantName }
         });
-        setHasJoined(true);
+        hasJoinedRef.current = true;
         console.log('[WebRTC] ✅ Join signal sent after media initialization');
       }
       
@@ -117,7 +117,7 @@ export function useMeetingWebRTC({
       
       throw error;
     }
-  }, [getVideoConstraints, stats.recommendedQuality, hasJoined, participantName, meetingId, participantId]);
+  }, [getVideoConstraints, stats.recommendedQuality, participantName, meetingId, participantId]);
 
   // Create peer connection
   const createPeerConnection = useCallback((targetParticipantId: string) => {
@@ -342,7 +342,7 @@ export function useMeetingWebRTC({
     }
   };
 
-  // Join meeting and set up signaling
+  // Join meeting and set up signaling - STABLE effect that doesn't re-run
   useEffect(() => {
     if (!meetingId) return;
 
@@ -428,13 +428,13 @@ export function useMeetingWebRTC({
 
       // If we have media already, send join signal immediately
       // Otherwise, initializeMedia will send it when ready
-      if (localStream && !hasJoined) {
+      if (localStream && !hasJoinedRef.current) {
         console.log('[WebRTC] 📢 Media already available, sending join signal');
         await sendSignal({
           type: 'join',
           data: { name: participantName }
         });
-        setHasJoined(true);
+        hasJoinedRef.current = true;
         console.log('[WebRTC] ✅ Join signal sent');
       } else {
         console.log('[WebRTC] ⏸️ Waiting for media to be initialized before sending join signal');
@@ -453,9 +453,9 @@ export function useMeetingWebRTC({
       
       channel.unsubscribe();
       signalChannel.current = null;
-      setHasJoined(false);
+      hasJoinedRef.current = false;
     };
-  }, [meetingId, participantId, participantName, localStream, hasJoined]);
+  }, [meetingId, participantId, participantName]);
 
   // Toggle video
   const toggleVideo = useCallback(async () => {
