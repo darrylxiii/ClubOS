@@ -78,19 +78,21 @@ export function MeetingVideoCallInterface({
     bandwidth,
     latency,
     error,
+    channelStatus,
     initializeMedia,
     toggleVideo,
     toggleAudio,
     toggleScreenShare,
     sendReaction,
     enablePictureInPicture,
-    cleanup
+    cleanup,
+    retryConnection
   } = useMeetingWebRTC({
     meetingId: meeting.id,
     participantId,
     participantName,
     onRemoteStream: async (remoteParticipantId, stream) => {
-      console.log('[Meeting] Remote stream received from:', remoteParticipantId);
+      console.log('[Meeting] 📹 Remote stream received from:', remoteParticipantId);
       
       // Fetch participant name from database
       const { data: participant } = await supabase
@@ -99,6 +101,8 @@ export function MeetingVideoCallInterface({
         .eq('meeting_id', meeting.id)
         .or(`user_id.eq.${remoteParticipantId},session_token.eq.${remoteParticipantId}`)
         .single();
+      
+      console.log('[Meeting] 👤 Found participant info:', participant);
       
       // Determine display name
       let displayName = `Participant ${remoteParticipantId.slice(0, 6)}`;
@@ -119,6 +123,8 @@ export function MeetingVideoCallInterface({
         }
       }
       
+      console.log('[Meeting] ✅ Setting display name:', displayName, 'for participant:', remoteParticipantId);
+      
       setRemoteStreams(prev => new Map(prev).set(remoteParticipantId, {
         stream,
         name: displayName
@@ -138,11 +144,11 @@ export function MeetingVideoCallInterface({
     setShowDiagnostics(false);
     
     try {
-      console.log('[Meeting] Initializing media for meeting:', meeting.title);
+      console.log('[Meeting] 🎬 Initializing media for meeting:', meeting.title, '| Participant ID:', participantId, '| Is Guest:', isGuest);
       await initializeMedia();
       toast.success('Joined meeting room');
     } catch (error: any) {
-      console.error('[Meeting] Failed to initialize media:', error);
+      console.error('[Meeting] ❌ Failed to initialize media:', error);
       
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         setPermissionDenied(true);
@@ -245,14 +251,20 @@ export function MeetingVideoCallInterface({
         .from('meeting_participants')
         .select('*', { count: 'exact' })
         .eq('meeting_id', meeting.id)
-        .eq('status', 'accepted');
+        .eq('status', 'accepted')
+        .is('left_at', null);
 
-      console.log('[Meeting] Total participants in DB:', count, 'WebRTC participants:', allParticipants.length);
+      console.log('[Meeting] 👥 Total participants in DB:', count);
+      console.log('[Meeting] 📊 Participant details:', data);
+      console.log('[Meeting] 🔗 WebRTC connected participants:', participants.length);
       setTotalParticipants(count || 0);
       
       // Auto-start meeting when 2+ participants are in
       if ((count || 0) >= 2 && !meetingStarted) {
+        console.log('[Meeting] ✅ Starting meeting with', count, 'participants');
         setMeetingStarted(true);
+      } else if ((count || 0) < 2) {
+        console.log('[Meeting] ⏸️ Waiting for more participants:', count, 'of 2 required');
       }
     };
 
@@ -269,7 +281,8 @@ export function MeetingVideoCallInterface({
           table: 'meeting_participants',
           filter: `meeting_id=eq.${meeting.id}`
         },
-        () => {
+        (payload) => {
+          console.log('[Meeting] 🔔 Participant change detected:', payload.eventType, payload.new);
           fetchParticipants();
         }
       )
@@ -417,28 +430,45 @@ export function MeetingVideoCallInterface({
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[10000] max-w-md">
           <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-4 py-3 rounded-lg shadow-xl">
             <div className="flex items-center gap-3">
-              <span className="text-yellow-500">⚠️</span>
+              <span className="text-yellow-500">
+                {channelStatus === 'error' ? '❌' : 
+                 channelStatus === 'disconnected' ? '📡' : '⚠️'}
+              </span>
               <div className="flex-1">
-                <p className="text-sm font-medium text-white">{error.message}</p>
+                <p className="text-sm font-medium text-white">
+                  {channelStatus === 'error' ? 'Connection Error' : 
+                   channelStatus === 'disconnected' ? 'Reconnecting...' : 
+                   error.message}
+                </p>
                 {error.recoverable && (
-                  <p className="text-xs text-gray-300">Attempting to reconnect...</p>
+                  <p className="text-xs text-gray-300">
+                    {channelStatus === 'disconnected' 
+                      ? 'Using fallback connection mode' 
+                      : 'Attempting to reconnect...'}
+                  </p>
                 )}
               </div>
               {error.recoverable && (
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    cleanup();
-                    initializeMedia();
-                  }}
-                  className="backdrop-blur-sm bg-white/10"
+                  onClick={retryConnection}
+                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs"
                 >
                   Retry
                 </Button>
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Channel Status Indicator (when no error but not connected) */}
+      {!error && channelStatus !== 'connected' && (
+        <div className="absolute top-4 right-4 z-[10000]">
+          <Badge className="backdrop-blur-sm bg-blue-500/80 text-white">
+            {channelStatus === 'connecting' ? '🔄 Connecting...' : '📡 Reconnecting...'}
+          </Badge>
         </div>
       )}
 
@@ -471,12 +501,15 @@ export function MeetingVideoCallInterface({
               <p className="text-muted-foreground">
                 Share the meeting link: <span className="font-mono text-primary">{meeting.meeting_code}</span>
               </p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Total participants: {totalParticipants} | Connected: {allParticipants.length}
+              </p>
             </div>
 
             <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span>Connected and ready</span>
+                <span>Your camera is ready</span>
               </div>
             </div>
 
@@ -491,6 +524,24 @@ export function MeetingVideoCallInterface({
                 Start Meeting Anyway
               </Button>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Connecting Overlay - Show when participants are joining but video not established */}
+      {meetingStarted && totalParticipants >= 2 && remoteStreams.size === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/60 to-gray-800/60 backdrop-blur-sm z-[999]">
+          <div className="text-center space-y-4 animate-fade-in">
+            <div className="w-16 h-16 rounded-full border-4 border-primary border-t-transparent animate-spin mx-auto" />
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-white">Connecting video...</h3>
+              <p className="text-muted-foreground text-sm">
+                {totalParticipants} participants detected | Establishing connection
+              </p>
+              <p className="text-xs text-gray-400">
+                Connection: {connectionState} | Channel: {channelStatus}
+              </p>
+            </div>
           </div>
         </div>
       )}
