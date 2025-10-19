@@ -312,11 +312,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     <div className="min-h-screen flex w-full bg-background">
       {/* Global Header - Smart scroll behavior */}
       <header className={cn(
-        "fixed top-0 left-0 right-0 h-16 bg-card/95 backdrop-blur-md border-b border-border z-[100] flex items-center justify-between px-4 gap-4 shadow-sm transition-transform duration-300",
+        "fixed top-0 left-0 right-0 h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[100] flex items-center justify-between px-4 gap-4 shadow-[var(--shadow-glass-md)] transition-transform duration-300",
         showHeader ? "translate-y-0" : "-translate-y-full"
       )}>
         <Button
-          variant="ghost"
+          variant="glass"
           size="icon"
           onClick={() => setSidebarOpen(!sidebarOpen)}
         >
@@ -346,7 +346,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       <aside
         className={cn(
-          "fixed bottom-0 left-0 z-40 w-64 bg-card border-r border-border transform transition-all duration-300 ease-in-out flex flex-col",
+          "fixed bottom-0 left-0 z-40 w-64 bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20 shadow-[var(--shadow-glass-lg)] transform transition-all duration-300 ease-in-out flex flex-col",
           showHeader ? "top-16" : "top-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
@@ -366,11 +366,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           </div>
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border/20">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="ghost"
+                variant="glass"
                 className="w-full justify-start gap-3 h-auto py-3 px-3"
               >
                 <Avatar className="h-9 w-9">
@@ -385,7 +385,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-card">
+            <DropdownMenuContent align="end" className="w-56 bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
               <DropdownMenuItem asChild>
                 <Link to={profilePath} className="cursor-pointer">
                   <User className="mr-2 h-4 w-4" />

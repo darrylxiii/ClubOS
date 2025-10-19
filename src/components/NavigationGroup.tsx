@@ -32,10 +32,10 @@ export const NavigationGroup = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-full flex items-center justify-between px-4 py-2 rounded-lg font-medium transition-colors",
+          "w-full flex items-center justify-between px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-[var(--blur-glass-subtle)]",
           hasActiveItem
-            ? "bg-primary/10 text-primary"
-            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            ? "bg-card/50 border border-border/30 text-primary shadow-[var(--shadow-glass-sm)]"
+            : "text-muted-foreground hover:bg-card/30 hover:border hover:border-border/20 hover:text-foreground"
         )}
       >
         <div className="flex items-center gap-3">
@@ -60,10 +60,10 @@ export const NavigationGroup = ({
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-colors",
+                  "flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-[var(--blur-glass-subtle)]",
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-card/60 border border-border/40 text-foreground shadow-[var(--shadow-glass-md)]"
+                    : "text-muted-foreground hover:bg-card/30 hover:border hover:border-border/20 hover:text-foreground hover:shadow-[var(--shadow-glass-sm)]"
                 )}
               >
                 <Icon className="h-4 w-4" />
