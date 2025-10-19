@@ -1,214 +1,157 @@
 import { useState } from 'react';
-import { Music, Play, Pause, SkipBack, SkipForward, Volume2, Users, Heart, Share2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Slider } from "@/components/ui/slider";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Play, Pause, SkipForward, Volume2, Radio } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
-export const MusicPlayerPanel = () => {
+export function MusicPlayerPanel() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState([75]);
 
-  // Mock data - will be replaced with real Spotify integration
+  // Mock data - replace with real Spotify integration
   const currentTrack = {
-    title: "Quantum Sync",
-    artist: "Club Anthem",
-    album: "The Quantum Club Vol. 1",
-    albumArt: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop",
-    duration: "3:45",
-    currentTime: "1:23"
+    title: "The Quantum Club Radio",
+    artist: "Curated Selection",
+    album: "Now Playing",
+    albumArt: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop",
+    duration: 240,
+    currentTime: 120,
   };
 
   const listeningNow = [
-    { name: "Alex M.", avatar: "AM" },
-    { name: "Sarah K.", avatar: "SK" },
-    { name: "John D.", avatar: "JD" }
-  ];
-
-  const queuedTracks = [
-    { title: "Victory Anthem", artist: "Achievement Unlocked", requestedBy: "Team Lead" },
-    { title: "Focus Flow", artist: "Deep Work", requestedBy: "Sarah K." },
-    { title: "Team Sync", artist: "Collaboration", requestedBy: "Alex M." }
+    {
+      id: '1',
+      name: 'Sarah Chen',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+      role: 'Senior Designer',
+    },
+    {
+      id: '2',
+      name: 'Marcus Johnson',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus',
+      role: 'Product Manager',
+    },
+    {
+      id: '3',
+      name: 'Elena Rodriguez',
+      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elena',
+      role: 'Tech Lead',
+    },
   ];
 
   return (
-    <div className="h-full flex flex-col bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="rounded-3xl shadow-2xl overflow-hidden bg-black/20 backdrop-blur-xl border border-white/10">
       {/* Header */}
-      <div className="p-6 border-b border-border/50">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <Music className="h-8 w-8 text-primary" />
-            <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-background animate-pulse" />
+      <div className="px-5 py-4 flex items-center gap-2 border-b border-white/10">
+        <Radio className="h-5 w-5 text-primary" />
+        <h2 className="text-base font-semibold text-foreground">The Quantum Club Radio</h2>
+      </div>
+
+      {/* Now Playing Section */}
+      <div className="p-5">
+        <div className="relative">
+          <img
+            src={currentTrack.albumArt}
+            alt={currentTrack.album}
+            className="w-full aspect-square rounded-2xl object-cover shadow-lg"
+          />
+          
+          <div className="mt-4">
+            <h3 className="font-semibold text-base truncate text-foreground">{currentTrack.title}</h3>
+            <p className="text-sm text-muted-foreground truncate">{currentTrack.artist}</p>
           </div>
-          <div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-              Quantum Radio
-            </h2>
-            <p className="text-sm text-muted-foreground">Club Soundtrack</p>
+
+          {/* Progress Bar */}
+          <div className="mt-3">
+            <Slider
+              value={[(currentTrack.currentTime / currentTrack.duration) * 100]}
+              max={100}
+              step={1}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>{Math.floor(currentTrack.currentTime / 60)}:{(currentTrack.currentTime % 60).toString().padStart(2, '0')}</span>
+              <span>{Math.floor(currentTrack.duration / 60)}:{(currentTrack.duration % 60).toString().padStart(2, '0')}</span>
+            </div>
+          </div>
+
+          {/* Playback Controls */}
+          <div className="flex items-center justify-center gap-4 mt-4">
+            <Button
+              size="icon"
+              className="h-12 w-12 rounded-full"
+              onClick={() => setIsPlaying(!isPlaying)}
+            >
+              {isPlaying ? (
+                <Pause className="h-6 w-6" />
+              ) : (
+                <Play className="h-6 w-6 ml-0.5" />
+              )}
+            </Button>
+            <Button variant="ghost" size="icon" className="text-foreground">
+              <SkipForward className="h-5 w-5" />
+            </Button>
+          </div>
+
+          {/* Volume Control */}
+          <div className="flex items-center gap-2 mt-4">
+            <Volume2 className="h-4 w-4 text-muted-foreground" />
+            <Slider
+              value={volume}
+              onValueChange={setVolume}
+              max={100}
+              step={1}
+              className="flex-1"
+            />
           </div>
         </div>
       </div>
 
-      {/* Scrollable Content */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Now Playing Card */}
-        <Card className="border-primary/20 bg-card/50 backdrop-blur-sm">
-          <CardContent className="p-6">
-            <div className="flex gap-4">
-              {/* Album Art with Quantum Effect */}
-              <div className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/50 to-accent/50 rounded-lg blur-xl opacity-50 group-hover:opacity-75 transition-opacity animate-pulse" />
-                <img 
-                  src={currentTrack.albumArt} 
-                  alt="Album Art"
-                  className="relative w-24 h-24 rounded-lg shadow-lg object-cover"
-                />
-                {isPlaying && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-16 h-16 border-4 border-primary/30 border-t-primary rounded-full animate-spin" />
-                  </div>
-                )}
-              </div>
+      {/* Divider */}
+      <div className="h-px bg-white/20 mx-5" />
 
-              {/* Track Info */}
+      {/* Listening Now - Stacked Avatars */}
+      <div className="p-5">
+        <p className="text-sm font-semibold text-foreground mb-3">Listening Now</p>
+        <div className="flex flex-col gap-2">
+          {listeningNow.map((user, index) => (
+            <div
+              key={user.id}
+              className={cn(
+                "flex items-center gap-3 p-3 rounded-xl transition-all duration-200",
+                "bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10"
+              )}
+              style={{
+                animationDelay: `${index * 100}ms`
+              }}
+            >
+              <Avatar className="h-10 w-10 border-2 border-primary/50">
+                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+              </Avatar>
               <div className="flex-1 min-w-0">
-                <h3 className="font-bold text-lg truncate">{currentTrack.title}</h3>
-                <p className="text-sm text-muted-foreground truncate">{currentTrack.artist}</p>
-                <p className="text-xs text-muted-foreground truncate mt-1">{currentTrack.album}</p>
-                
-                {/* Progress Bar */}
-                <div className="mt-3 space-y-1">
-                  <Slider 
-                    value={[40]} 
-                    max={100} 
-                    className="cursor-pointer"
-                  />
-                  <div className="flex justify-between text-xs text-muted-foreground">
-                    <span>{currentTrack.currentTime}</span>
-                    <span>{currentTrack.duration}</span>
-                  </div>
-                </div>
+                <p className="font-medium text-sm truncate text-foreground">{user.name}</p>
+                <p className="text-xs text-muted-foreground truncate">{user.role}</p>
               </div>
+              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
             </div>
+          ))}
+        </div>
+      </div>
 
-            {/* Playback Controls */}
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <SkipBack className="h-4 w-4" />
-              </Button>
-              
-              <Button 
-                size="icon" 
-                className="h-12 w-12 rounded-full shadow-lg hover:scale-105 transition-transform"
-                onClick={() => setIsPlaying(!isPlaying)}
-              >
-                {isPlaying ? (
-                  <Pause className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5 ml-0.5" />
-                )}
-              </Button>
-              
-              <Button variant="ghost" size="icon" className="h-8 w-8">
-                <SkipForward className="h-4 w-4" />
-              </Button>
-            </div>
+      {/* Divider */}
+      <div className="h-px bg-white/20 mx-5" />
 
-            {/* Volume & Actions */}
-            <div className="flex items-center gap-4 mt-4">
-              <Volume2 className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <Slider 
-                value={volume} 
-                onValueChange={setVolume}
-                max={100} 
-                className="flex-1"
-              />
-              <div className="flex gap-2">
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Heart className="h-4 w-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <Share2 className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tabs for Queue and Listening */}
-        <Tabs defaultValue="queue" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="queue">Queue</TabsTrigger>
-            <TabsTrigger value="listening">
-              <Users className="h-4 w-4 mr-2" />
-              Listening ({listeningNow.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="queue" className="space-y-3 mt-4">
-            {queuedTracks.map((track, index) => (
-              <Card key={index} className="border-border/50 hover:border-primary/50 transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-bold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{track.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{track.artist}</p>
-                    </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {track.requestedBy}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          <TabsContent value="listening" className="space-y-3 mt-4">
-            <Card className="border-border/50">
-              <CardHeader>
-                <CardDescription>Members syncing to this track</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {listeningNow.map((listener, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className="relative">
-                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground font-bold">
-                        {listener.avatar}
-                      </div>
-                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-background" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{listener.name}</p>
-                      <p className="text-xs text-muted-foreground">Listening now</p>
-                    </div>
-                    <Music className="h-4 w-4 text-primary animate-pulse" />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Connect Spotify CTA */}
-        <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
-          <CardContent className="p-6 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-[#1DB954] mb-3">
-              <Music className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="font-bold mb-2">Connect Your Spotify</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Sync your personal playlists and enjoy full playback control
-            </p>
-            <Button className="bg-[#1DB954] hover:bg-[#1ed760] text-white">
-              Connect Spotify
-            </Button>
-          </CardContent>
-        </Card>
+      {/* Connect Spotify CTA */}
+      <div className="p-5">
+        <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
+          <p className="text-sm font-medium mb-3 text-foreground">Want to listen to your own music?</p>
+          <Button className="w-full" variant="default">
+            Connect Spotify
+          </Button>
+        </div>
       </div>
     </div>
   );
-};
+}
