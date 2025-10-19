@@ -193,12 +193,14 @@ interface VoiceRecorderProps {
   onStartRecording: () => void;
   onStopRecording: (duration: number) => void;
   visualizerBars?: number;
+  audioLevels: number[];
 }
 const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
   isRecording,
   onStartRecording,
   onStopRecording,
   visualizerBars = 32,
+  audioLevels,
 }) => {
   const [time, setTime] = React.useState(0);
   const timerRef = React.useRef<NodeJS.Timeout | null>(null);
@@ -238,14 +240,12 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({
         <span className="font-mono text-sm text-muted-foreground">{formatTime(time)}</span>
       </div>
       <div className="w-full h-10 flex items-center justify-center gap-0.5 px-4">
-        {[...Array(visualizerBars)].map((_, i) => (
+        {audioLevels.map((level, i) => (
           <div
             key={i}
-            className="w-0.5 rounded-full bg-foreground/50 animate-pulse"
+            className="w-0.5 rounded-full bg-foreground/70 transition-all duration-75"
             style={{
-              height: `${Math.max(15, Math.random() * 100)}%`,
-              animationDelay: `${i * 0.05}s`,
-              animationDuration: `${0.5 + Math.random() * 0.5}s`,
+              height: `${Math.max(15, level * 100)}%`,
             }}
           />
         ))}
@@ -515,8 +515,14 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
   const [showCanvas, setShowCanvas] = React.useState(false);
   const [selectedModel, setSelectedModel] = React.useState<string>("quantum-0.1");
   const [modelPopoverOpen, setModelPopoverOpen] = React.useState(false);
+  const [audioLevels, setAudioLevels] = React.useState<number[]>(new Array(32).fill(0));
+  const [mediaRecorder, setMediaRecorder] = React.useState<MediaRecorder | null>(null);
+  const [audioChunks, setAudioChunks] = React.useState<Blob[]>([]);
   const uploadInputRef = React.useRef<HTMLInputElement>(null);
   const promptBoxRef = React.useRef<HTMLDivElement>(null);
+  const audioContextRef = React.useRef<AudioContext | null>(null);
+  const analyserRef = React.useRef<AnalyserNode | null>(null);
+  const animationFrameRef = React.useRef<number | null>(null);
 
   const handleToggleChange = (value: string) => {
     if (value === "search") {
@@ -619,12 +625,118 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
 
   const currentModel = AI_MODELS.find(m => m.id === selectedModel) || AI_MODELS[0];
 
-  const handleStartRecording = () => console.log("Started recording");
+  const startAudioVisualization = (stream: MediaStream) => {
+    const audioContext = new AudioContext();
+    const analyser = audioContext.createAnalyser();
+    const source = audioContext.createMediaStreamSource(stream);
+    
+    analyser.fftSize = 64;
+    source.connect(analyser);
+    
+    audioContextRef.current = audioContext;
+    analyserRef.current = analyser;
+    
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    
+    const updateLevels = () => {
+      if (!analyserRef.current) return;
+      
+      analyserRef.current.getByteFrequencyData(dataArray);
+      const levels = Array.from(dataArray).map(val => val / 255);
+      setAudioLevels(levels);
+      
+      animationFrameRef.current = requestAnimationFrame(updateLevels);
+    };
+    
+    updateLevels();
+  };
+
+  const stopAudioVisualization = () => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close();
+    }
+    setAudioLevels(new Array(32).fill(0));
+  };
+
+  const handleStartRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      startAudioVisualization(stream);
+      
+      const recorder = new MediaRecorder(stream);
+      const chunks: Blob[] = [];
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.push(e.data);
+        }
+      };
+      
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+        
+        // Convert to base64
+        const reader = new FileReader();
+        reader.readAsDataURL(audioBlob);
+        reader.onloadend = async () => {
+          const base64Audio = reader.result?.toString().split(',')[1];
+          
+          if (base64Audio) {
+            try {
+              // Call Supabase edge function for transcription
+              const response = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-to-text`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                  },
+                  body: JSON.stringify({ audio: base64Audio }),
+                }
+              );
+              
+              const data = await response.json();
+              
+              if (data.text) {
+                setInput(data.text);
+              } else {
+                console.error('Transcription failed:', data.error);
+              }
+            } catch (error) {
+              console.error('Error transcribing audio:', error);
+            }
+          }
+        };
+        
+        stream.getTracks().forEach(track => track.stop());
+        stopAudioVisualization();
+      };
+      
+      recorder.start();
+      setMediaRecorder(recorder);
+      setAudioChunks([]);
+      
+      console.log("Started recording");
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      setIsRecording(false);
+    }
+  };
 
   const handleStopRecording = (duration: number) => {
     console.log(`Stopped recording after ${duration} seconds`);
+    
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+    }
+    
     setIsRecording(false);
-    onSend(`[Voice message - ${duration} seconds]`, []);
   };
 
   const hasContent = input.trim() !== "" || files.length > 0;
@@ -702,6 +814,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
             isRecording={isRecording}
             onStartRecording={handleStartRecording}
             onStopRecording={handleStopRecording}
+            audioLevels={audioLevels}
           />
         )}
 
