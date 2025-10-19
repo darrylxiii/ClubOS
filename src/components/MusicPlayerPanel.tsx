@@ -1,96 +1,267 @@
-import { useState } from 'react';
-import { Play, Pause, SkipForward, Volume2, Radio } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Play, Pause, Volume2, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAudioManager } from '@/hooks/useAudioManager';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 export function MusicPlayerPanel() {
+  const navigate = useNavigate();
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const { play: managedPlay, pause: managedPause } = useAudioManager('preview');
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState([75]);
+  const [currentTrackUrl, setCurrentTrackUrl] = useState<string>("");
+  const [progress, setProgress] = useState(0);
 
-  // Mock data - replace with real Spotify integration
-  const currentTrack = {
-    title: "The Quantum Club Radio",
-    artist: "Curated Selection",
-    album: "Now Playing",
-    albumArt: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop",
-    duration: 240,
-    currentTime: 120,
+  // Fetch active live session
+  const { data: liveSession } = useQuery({
+    queryKey: ['active-live-session'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('live_sessions')
+        .select(`
+          *,
+          tracks:current_track_id (
+            id,
+            title,
+            artist,
+            file_url,
+            cover_image_url,
+            duration_seconds
+          )
+        `)
+        .eq('is_active', true)
+        .order('started_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (error) throw error;
+
+      // Get DJ profile if session exists
+      if (data) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .eq('id', data.dj_id)
+          .single();
+        
+        return { ...data, profile };
+      }
+      
+      return null;
+    },
+    refetchInterval: 3000,
+  });
+
+  // Subscribe to realtime updates for live sessions
+  useEffect(() => {
+    const channel = supabase
+      .channel('music-player-live-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'live_sessions'
+        },
+        () => {
+          // Refetch will happen automatically due to refetchInterval
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Update volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume[0] / 100;
+    }
+  }, [volume]);
+
+  // Handle track changes
+  useEffect(() => {
+    if (liveSession?.tracks?.file_url && liveSession.tracks.file_url !== currentTrackUrl) {
+      setCurrentTrackUrl(liveSession.tracks.file_url);
+      
+      if (audioRef.current) {
+        audioRef.current.src = liveSession.tracks.file_url;
+        audioRef.current.load();
+        
+        // Auto-play if already playing
+        if (isPlaying) {
+          managedPlay(audioRef.current).catch((err) => {
+            console.error('Play error:', err);
+            setIsPlaying(false);
+          });
+        }
+      }
+    }
+  }, [liveSession?.tracks?.file_url, currentTrackUrl, isPlaying, managedPlay]);
+
+  // Handle audio events
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleError = (e: Event) => {
+      console.error('Audio error:', e);
+      toast.error('Failed to load audio');
+      setIsPlaying(false);
+    };
+
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('error', handleError);
+
+    return () => {
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('error', handleError);
+    };
+  }, []);
+
+  const togglePlay = async () => {
+    if (!audioRef.current || !liveSession) return;
+
+    if (isPlaying) {
+      managedPause(audioRef.current);
+    } else {
+      try {
+        await managedPlay(audioRef.current);
+      } catch (err) {
+        console.error('Play error:', err);
+        toast.error('Failed to play audio');
+      }
+    }
   };
 
-  const listeningNow = [
-    {
-      id: '1',
-      name: 'Sarah Chen',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-      role: 'Senior Designer',
-    },
-    {
-      id: '2',
-      name: 'Marcus Johnson',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Marcus',
-      role: 'Product Manager',
-    },
-    {
-      id: '3',
-      name: 'Elena Rodriguez',
-      avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Elena',
-      role: 'Tech Lead',
-    },
-  ];
+  const handleViewFullPlayer = () => {
+    if (liveSession?.id) {
+      navigate(`/radio/${liveSession.id}`);
+    } else {
+      navigate('/radio');
+    }
+  };
+
+  // Show message if no live session
+  if (!liveSession) {
+    return (
+      <div className="rounded-3xl shadow-2xl overflow-hidden bg-black/20 backdrop-blur-xl border border-white/10">
+        <div className="px-5 py-4 flex items-center gap-2 border-b border-white/10">
+          <Radio className="h-5 w-5 text-muted-foreground" />
+          <h2 className="text-base font-semibold text-foreground">The Quantum Club Radio</h2>
+        </div>
+        <div className="p-8 text-center">
+          <Radio className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-lg font-semibold mb-2">No Live Broadcast</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            No DJs are currently broadcasting. Check back later!
+          </p>
+          <Button onClick={handleViewFullPlayer} variant="outline" className="w-full">
+            View Radio Schedule
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-3xl shadow-2xl overflow-hidden bg-black/20 backdrop-blur-xl border border-white/10">
-      {/* Header */}
+      {/* Header with Live Indicator */}
       <div className="px-5 py-4 flex items-center gap-2 border-b border-white/10">
-        <Radio className="h-5 w-5 text-primary" />
-        <h2 className="text-base font-semibold text-foreground">The Quantum Club Radio</h2>
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+          <Radio className="h-5 w-5 text-red-500" />
+        </div>
+        <h2 className="text-base font-semibold text-foreground">LIVE: The Quantum Club Radio</h2>
       </div>
 
       {/* Now Playing Section */}
       <div className="p-5">
         <div className="relative">
-          <img
-            src={currentTrack.albumArt}
-            alt={currentTrack.album}
-            className="w-full aspect-square rounded-2xl object-cover shadow-lg"
-          />
+          {/* DJ Profile */}
+          <div className="flex items-center gap-3 mb-4">
+            <Avatar className="h-12 w-12 ring-2 ring-red-500 ring-offset-2">
+              <AvatarImage src={liveSession.profile?.avatar_url} />
+              <AvatarFallback>
+                {liveSession.profile?.full_name?.[0] || 'DJ'}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="text-xs text-muted-foreground">DJ</p>
+              <p className="font-semibold text-sm">{liveSession.profile?.full_name || 'Anonymous DJ'}</p>
+            </div>
+          </div>
+
+          {/* Track Cover */}
+          <div className="relative">
+            {liveSession.tracks?.cover_image_url ? (
+              <img
+                src={liveSession.tracks.cover_image_url}
+                alt={liveSession.tracks.title}
+                className="w-full aspect-square rounded-2xl object-cover shadow-lg"
+              />
+            ) : (
+              <div className="w-full aspect-square rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                <Radio className="h-24 w-24 text-primary/40" />
+              </div>
+            )}
+          </div>
           
+          {/* Track Info */}
           <div className="mt-4">
-            <h3 className="font-semibold text-base truncate text-foreground">{currentTrack.title}</h3>
-            <p className="text-sm text-muted-foreground truncate">{currentTrack.artist}</p>
+            {liveSession.tracks ? (
+              <>
+                <h3 className="font-semibold text-base truncate text-foreground">
+                  {liveSession.tracks.title}
+                </h3>
+                {liveSession.tracks.artist && (
+                  <p className="text-sm text-muted-foreground truncate">
+                    {liveSession.tracks.artist}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">Waiting for track...</p>
+            )}
           </div>
 
           {/* Progress Bar */}
           <div className="mt-3">
             <Slider
-              value={[(currentTrack.currentTime / currentTrack.duration) * 100]}
+              value={[progress]}
               max={100}
               step={1}
               className="w-full"
+              disabled
             />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>{Math.floor(currentTrack.currentTime / 60)}:{(currentTrack.currentTime % 60).toString().padStart(2, '0')}</span>
-              <span>{Math.floor(currentTrack.duration / 60)}:{(currentTrack.duration % 60).toString().padStart(2, '0')}</span>
-            </div>
           </div>
 
           {/* Playback Controls */}
           <div className="flex items-center justify-center gap-4 mt-4">
             <Button
               size="icon"
-              className="h-12 w-12 rounded-full"
-              onClick={() => setIsPlaying(!isPlaying)}
+              className="h-12 w-12 rounded-full bg-red-500 hover:bg-red-600"
+              onClick={togglePlay}
+              disabled={!liveSession.tracks}
             >
               {isPlaying ? (
                 <Pause className="h-6 w-6" />
               ) : (
                 <Play className="h-6 w-6 ml-0.5" />
               )}
-            </Button>
-            <Button variant="ghost" size="icon" className="text-foreground">
-              <SkipForward className="h-5 w-5" />
             </Button>
           </div>
 
@@ -111,47 +282,26 @@ export function MusicPlayerPanel() {
       {/* Divider */}
       <div className="h-px bg-white/20 mx-5" />
 
-      {/* Listening Now - Stacked Avatars */}
+      {/* View Full Player */}
       <div className="p-5">
-        <p className="text-sm font-semibold text-foreground mb-3">Listening Now</p>
-        <div className="flex flex-col gap-2">
-          {listeningNow.map((user, index) => (
-            <div
-              key={user.id}
-              className={cn(
-                "flex items-center gap-3 p-3 rounded-xl transition-all duration-200",
-                "bg-white/5 hover:bg-white/10 backdrop-blur-sm border border-white/10"
-              )}
-              style={{
-                animationDelay: `${index * 100}ms`
-              }}
-            >
-              <Avatar className="h-10 w-10 border-2 border-primary/50">
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback>{user.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate text-foreground">{user.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{user.role}</p>
-              </div>
-              <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-            </div>
-          ))}
-        </div>
+        <Button 
+          onClick={handleViewFullPlayer}
+          className="w-full bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600"
+        >
+          View Full Radio Player
+        </Button>
       </div>
 
-      {/* Divider */}
-      <div className="h-px bg-white/20 mx-5" />
-
-      {/* Connect Spotify CTA */}
-      <div className="p-5">
-        <div className="text-center p-4 rounded-xl bg-white/5 border border-white/10">
-          <p className="text-sm font-medium mb-3 text-foreground">Want to listen to your own music?</p>
-          <Button className="w-full" variant="default">
-            Connect Spotify
-          </Button>
-        </div>
-      </div>
+      {/* Hidden Audio Element */}
+      <audio
+        ref={audioRef}
+        onTimeUpdate={(e) => {
+          const audio = e.currentTarget;
+          if (audio.duration) {
+            setProgress((audio.currentTime / audio.duration) * 100);
+          }
+        }}
+      />
     </div>
   );
 }
