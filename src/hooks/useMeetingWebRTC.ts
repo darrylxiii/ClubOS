@@ -38,6 +38,8 @@ export function useMeetingWebRTC({
   const maxReconnectAttempts = 5;
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
   const signalRetryQueue = useRef<Map<string, { signal: any; retries: number; timestamp: number }>>(new Map());
+  const mediaReadyRef = useRef(false);
+  const pendingJoinSignals = useRef<string[]>([]);
   const { stats, getVideoConstraints } = useBandwidthMonitor();
 
   // Initialize local media with adaptive quality
@@ -62,6 +64,7 @@ export function useMeetingWebRTC({
 
       console.log('[WebRTC] Local media initialized successfully with quality:', stats.recommendedQuality);
       setLocalStream(stream);
+      mediaReadyRef.current = true;
       
       // Add tracks to existing peer connections (if any were created before media was ready)
       console.log('[WebRTC] Adding tracks to existing peer connections...');
@@ -71,6 +74,15 @@ export function useMeetingWebRTC({
           pc.addTrack(track, stream);
         });
       });
+      
+      // Process any pending join signals that arrived before media was ready
+      if (pendingJoinSignals.current.length > 0) {
+        console.log('[WebRTC] 📋 Processing', pendingJoinSignals.current.length, 'pending join signals');
+        for (const senderId of pendingJoinSignals.current) {
+          await handleParticipantJoinInternal(senderId);
+        }
+        pendingJoinSignals.current = [];
+      }
       
       // If channel is ready and we haven't joined yet, send join signal now
       if (signalChannel.current?.state === 'joined' && !hasJoinedRef.current) {
@@ -124,7 +136,7 @@ export function useMeetingWebRTC({
     }
   }, [getVideoConstraints, stats.recommendedQuality, participantName, meetingId, participantId]);
 
-  // Create peer connection
+  // Create peer connection - ONLY call after media is ready
   const createPeerConnection = useCallback((targetParticipantId: string) => {
     // Check if connection already exists
     if (peerConnections.current.has(targetParticipantId)) {
@@ -132,23 +144,24 @@ export function useMeetingWebRTC({
       return peerConnections.current.get(targetParticipantId)!;
     }
     
-    console.log('[WebRTC] 🆕 Creating peer connection for:', targetParticipantId, '| Local stream available:', !!localStream);
+    if (!localStream || !mediaReadyRef.current) {
+      console.error('[WebRTC] ❌ Cannot create peer connection, media not ready!');
+      throw new Error('Media not initialized');
+    }
+    
+    console.log('[WebRTC] 🆕 Creating peer connection for:', targetParticipantId, '| Media ready:', mediaReadyRef.current);
     
     const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
 
     // Store the connection immediately to prevent duplicates
     peerConnections.current.set(targetParticipantId, pc);
 
-    // Add local stream tracks if available
-    if (localStream) {
-      console.log('[WebRTC] ✅ Adding local tracks to peer connection for:', targetParticipantId);
-      localStream.getTracks().forEach(track => {
-        console.log('[WebRTC] 📹 Adding track:', track.kind, 'enabled:', track.enabled);
-        pc.addTrack(track, localStream);
-      });
-    } else {
-      console.log('[WebRTC] ⚠️ No local stream yet, tracks will be added later for:', targetParticipantId);
-    }
+    // Add local stream tracks
+    console.log('[WebRTC] ✅ Adding local tracks to peer connection for:', targetParticipantId);
+    localStream.getTracks().forEach(track => {
+      console.log('[WebRTC] 📹 Adding track:', track.kind, 'enabled:', track.enabled);
+      pc.addTrack(track, localStream);
+    });
 
     // Handle remote stream
     pc.ontrack = (event) => {
@@ -339,6 +352,12 @@ export function useMeetingWebRTC({
 
   // Fallback polling for participants (when realtime fails)
   const pollParticipants = useCallback(async () => {
+    // Don't poll if media isn't ready
+    if (!mediaReadyRef.current) {
+      console.log('[WebRTC] ⏸️ Skipping participant poll, media not ready');
+      return;
+    }
+    
     try {
       const { data: participants, error } = await supabase
         .from('meeting_participants')
@@ -363,7 +382,6 @@ export function useMeetingWebRTC({
           const currentParticipants = Array.from(peerConnections.current.keys());
           if (!currentParticipants.includes(newId)) {
             console.log('[WebRTC] 🆕 New participant found via polling:', newId);
-            // Call handleParticipantJoin which is defined later
             if (newId === participantId) continue;
             
             // Check if we already have a connection
@@ -372,28 +390,7 @@ export function useMeetingWebRTC({
               continue;
             }
             
-            console.log('[WebRTC] ✅ New participant joined:', newId, '| Creating offer...');
-            setParticipants(prev => [...new Set([...prev, newId])]);
-
-            // Create peer connection and offer
-            const pc = createPeerConnection(newId);
-            
-            try {
-              const offer = await pc.createOffer();
-              await pc.setLocalDescription(offer);
-              
-              console.log('[WebRTC] ✅ Offer created for:', newId, '| Sending offer...');
-              
-              await sendSignal({
-                type: 'offer',
-                receiverId: newId,
-                data: offer
-              });
-              
-              console.log('[WebRTC] ✅ Offer sent to:', newId);
-            } catch (error) {
-              console.error('[WebRTC] ❌ Failed to create/send offer to:', newId, error);
-            }
+            await handleParticipantJoinInternal(newId);
           }
         }
         
@@ -402,10 +399,16 @@ export function useMeetingWebRTC({
     } catch (error) {
       console.error('[WebRTC] ❌ Participant polling error:', error);
     }
-  }, [meetingId, participantId, createPeerConnection, sendSignal]);
+  }, [meetingId, participantId]);
 
   // Fallback polling for signals (when realtime fails)
   const pollSignals = useCallback(async () => {
+    // Don't poll if media isn't ready
+    if (!mediaReadyRef.current) {
+      console.log('[WebRTC] ⏸️ Skipping signal poll, media not ready');
+      return;
+    }
+    
     try {
       const { data: signals, error } = await supabase
         .from('webrtc_signals')
@@ -477,7 +480,8 @@ export function useMeetingWebRTC({
       pollingInterval.current = null;
     }
   }, [channelStatus, pollParticipants, pollSignals]);
-  const handleParticipantJoin = async (newParticipantId: string) => {
+  // Internal handler that requires media to be ready
+  const handleParticipantJoinInternal = async (newParticipantId: string) => {
     if (newParticipantId === participantId) {
       console.log('[WebRTC] Ignoring own join signal');
       return;
@@ -489,13 +493,13 @@ export function useMeetingWebRTC({
       return;
     }
     
-    console.log('[WebRTC] ✅ New participant joined:', newParticipantId, '| Creating offer...');
+    console.log('[WebRTC] ✅ New participant joined:', newParticipantId, '| Creating offer with media ready');
     setParticipants(prev => [...new Set([...prev, newParticipantId])]);
 
-    // Create peer connection and offer
-    const pc = createPeerConnection(newParticipantId);
-    
     try {
+      // Create peer connection with media tracks
+      const pc = createPeerConnection(newParticipantId);
+      
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       
@@ -511,6 +515,19 @@ export function useMeetingWebRTC({
     } catch (error) {
       console.error('[WebRTC] ❌ Failed to create/send offer to:', newParticipantId, error);
     }
+  };
+
+  // External handler that queues join signals until media is ready
+  const handleParticipantJoin = async (newParticipantId: string) => {
+    if (!mediaReadyRef.current) {
+      console.log('[WebRTC] ⏸️ Media not ready, queueing join signal from:', newParticipantId);
+      if (!pendingJoinSignals.current.includes(newParticipantId)) {
+        pendingJoinSignals.current.push(newParticipantId);
+      }
+      return;
+    }
+    
+    await handleParticipantJoinInternal(newParticipantId);
   };
 
   // Join meeting and set up signaling - STABLE effect that doesn't re-run
