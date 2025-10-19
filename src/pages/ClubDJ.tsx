@@ -15,12 +15,13 @@ export default function ClubDJ() {
   const [activeTab, setActiveTab] = useState("playlists");
 
   useEffect(() => {
-    if (!loading && currentRole !== 'admin') {
+    if (!loading && currentRole && currentRole !== 'admin') {
+      console.log('[ClubDJ] Redirecting non-admin user:', currentRole);
       navigate('/home');
     }
   }, [currentRole, loading, navigate]);
 
-  if (loading) {
+  if (loading || !currentRole) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
@@ -31,6 +32,7 @@ export default function ClubDJ() {
   }
 
   if (currentRole !== 'admin') {
+    console.log('[ClubDJ] Non-admin role detected:', currentRole);
     return null;
   }
 
