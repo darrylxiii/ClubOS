@@ -64,6 +64,8 @@ export function useMeetingWebRTC({
 
       console.log('[WebRTC] Local media initialized successfully with quality:', stats.recommendedQuality);
       setLocalStream(stream);
+      
+      console.log('[WebRTC] ✅ Media ready flag set to true');
       mediaReadyRef.current = true;
       
       // Add tracks to existing peer connections (if any were created before media was ready)
@@ -390,7 +392,8 @@ export function useMeetingWebRTC({
               continue;
             }
             
-            await handleParticipantJoinInternal(newId);
+            // Use wrapper to respect media-ready check
+            await handleParticipantJoin(newId);
           }
         }
         
@@ -630,8 +633,19 @@ export function useMeetingWebRTC({
     };
 
     setupChannel();
+    
+    // Fallback: Send join signal after timeout if media init hangs
+    const mediaInitTimeout = setTimeout(() => {
+      if (!mediaReadyRef.current && channel.state === 'joined' && !hasJoinedRef.current) {
+        console.warn('[WebRTC] ⚠️ Media init timeout (5s) - sending join anyway');
+        sendSignal({ type: 'join', data: { name: participantName } });
+        hasJoinedRef.current = true;
+      }
+    }, 5000);
 
     return () => {
+      clearTimeout(mediaInitTimeout);
+      
       // Announce leave
       console.log('[WebRTC] 👋 Leaving meeting, sending leave signal');
       sendSignal({

@@ -256,7 +256,7 @@ export function MeetingVideoCallInterface({
 
       console.log('[Meeting] 👥 Total participants in DB:', count);
       console.log('[Meeting] 📊 Participant details:', data);
-      console.log('[Meeting] 🔗 WebRTC connected participants:', allParticipants.length);
+      console.log('[Meeting] 🔗 WebRTC connected participants:', participants.length);
       setTotalParticipants(count || 0);
       
       // Auto-start meeting when 2+ participants are in
