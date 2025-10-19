@@ -13,6 +13,9 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "next-themes";
+import quantumLogoLight from "@/assets/quantum-club-logo.png";
+import quantumLogoDark from "@/assets/quantum-logo-dark.png";
 
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string()
@@ -24,6 +27,7 @@ const passwordSchema = z.string()
 
 const Auth = () => {
   const { user, loading, session } = useAuth();
+  const { resolvedTheme } = useTheme();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
   
@@ -318,14 +322,14 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      <Card className="w-full max-w-lg relative z-10 bg-background/30 backdrop-blur-xl border border-white/10 shadow-2xl rounded-[32px] animate-fade-in overflow-hidden">
+      <Card className="w-full max-w-lg relative z-10 bg-background/30 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[32px] animate-fade-in overflow-hidden">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           {/* Logo with glow */}
           <div className="flex items-center justify-center mb-2">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-accent blur-2xl opacity-30 rounded-full"></div>
               <img 
-                src="/quantum-logo.svg" 
+                src={resolvedTheme === 'light' ? quantumLogoLight : quantumLogoDark}
                 alt="The Quantum Club" 
                 className="relative w-32 h-32 drop-shadow-2xl"
                 loading="eager"
@@ -336,12 +340,12 @@ const Auth = () => {
 
           {/* Title */}
           <div className="space-y-3">
-            <h1 className="text-4xl font-semibold tracking-tight text-white">
+            <h1 className="text-4xl font-semibold tracking-tight text-foreground">
               {isLogin ? "Welcome Back" : "Join The Quantum Club"}
             </h1>
             <div className="flex items-center justify-center gap-2">
-              <Lock className="w-4 h-4 text-white/90" />
-              <p className="text-sm text-white/90 font-semibold tracking-wide">
+              <Lock className="w-4 h-4 text-foreground/90" />
+              <p className="text-sm text-foreground/90 font-semibold tracking-wide">
                 INVITE ONLY • GEBRUIK JE PERSOONLIJKE CODE
               </p>
             </div>
@@ -354,7 +358,7 @@ const Auth = () => {
                 <CheckCircle2 className="w-5 h-5 text-success" />
                 <p className="text-sm font-bold text-success">Valid Invitation</p>
               </div>
-              <p className="text-xs text-white/80">
+              <p className="text-xs text-foreground/80">
                 Invited by {inviteInfo.profiles?.full_name || "a member"}
               </p>
             </div>
@@ -374,7 +378,7 @@ const Auth = () => {
             <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 backdrop-blur-sm space-y-2">
                 <p className="text-sm font-bold text-primary text-center">Verify Your Email</p>
-                <p className="text-xs text-white/80 text-center">
+                <p className="text-xs text-foreground/80 text-center">
                   We sent a 6-digit code to {email}
                 </p>
               </div>
@@ -411,7 +415,7 @@ const Auth = () => {
                   setNeedsEmailVerification(false);
                   setEmailVerificationCode("");
                 }}
-                className="text-white/80 hover:text-white font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
+                className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
               >
                 Back to sign in
               </button>
@@ -420,7 +424,7 @@ const Auth = () => {
             <div className="space-y-5">
               <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 backdrop-blur-sm space-y-2">
                 <p className="text-sm font-bold text-primary text-center">Two-Factor Authentication</p>
-                <p className="text-xs text-white/80 text-center">
+                <p className="text-xs text-foreground/80 text-center">
                   Enter the 6-digit code from your authenticator app
                 </p>
               </div>
@@ -459,7 +463,7 @@ const Auth = () => {
                   setMfaFactorId(null);
                   setMfaChallengeId(null);
                 }}
-                className="text-white/80 hover:text-white font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
+                className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline text-sm w-full text-center"
               >
                 Back to sign in
               </button>
@@ -500,20 +504,20 @@ const Auth = () => {
                   /[0-9]/.test(password) &&
                   /[^A-Za-z0-9]/.test(password)
                 ) && (
-                  <div className="text-xs space-y-2 p-4 rounded-2xl bg-background/30 border border-white/10 backdrop-blur-sm">
-                    <p className={password.length >= 12 ? "text-success font-semibold" : "text-white/70"}>
+                  <div className="text-xs space-y-2 p-4 rounded-2xl bg-background/30 border border-border/50 backdrop-blur-sm">
+                    <p className={password.length >= 12 ? "text-success font-semibold" : "text-foreground/70"}>
                       {password.length >= 12 ? "✓" : "○"} At least 12 characters
                     </p>
-                    <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
+                    <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-foreground/70"}>
                       {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
                     </p>
-                    <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
+                    <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-foreground/70"}>
                       {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
                     </p>
-                    <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
+                    <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-foreground/70"}>
                       {/[0-9]/.test(password) ? "✓" : "○"} One number
                     </p>
-                    <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-white/70"}>
+                    <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-foreground/70"}>
                       {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
                     </p>
                   </div>
@@ -571,10 +575,10 @@ const Auth = () => {
             {/* Social Login Section */}
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-white/10"></div>
+                <div className="w-full border-t border-border/50"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background/50 backdrop-blur-sm px-4 py-1 rounded-full text-white/70 font-semibold tracking-wider">
+                <span className="bg-background/50 backdrop-blur-sm px-4 py-1 rounded-full text-foreground/70 font-semibold tracking-wider">
                   Or continue with
                 </span>
               </div>
@@ -608,7 +612,7 @@ const Auth = () => {
                     toast.error(error.message || 'Failed to sign in with Google');
                   }
                 }}
-                className="w-14 h-14 rounded-full bg-background/50 border border-white/20 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50"
+                className="w-14 h-14 rounded-full bg-background/50 border border-border/50 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50"
               >
                 <FaGoogle className="w-5 h-5 text-foreground" />
               </button>
@@ -625,7 +629,7 @@ const Auth = () => {
                   setPassword("");
                   setConfirmPassword("");
                 }}
-                className="text-white/80 hover:text-white font-semibold transition-colors duration-300 underline-offset-4 hover:underline"
+                className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline"
               >
                 {isLogin
                   ? "Need an account? Request invite"
