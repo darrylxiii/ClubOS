@@ -170,10 +170,25 @@ export function useMeetingWebRTC({
 
     // Handle remote stream
     pc.ontrack = (event) => {
-      console.log('[WebRTC] 📨 Received remote track from:', targetParticipantId, 'Kind:', event.track.kind, 'Streams:', event.streams.length);
+      console.log('[WebRTC] 📨 Received remote track from:', targetParticipantId, 'Kind:', event.track.kind, 'Streams:', event.streams.length, 'Track ID:', event.track.id);
       const [remoteStream] = event.streams;
       if (remoteStream) {
-        console.log('[WebRTC] ✅ Remote stream has tracks:', remoteStream.getTracks().length);
+        const videoTracks = remoteStream.getVideoTracks();
+        const audioTracks = remoteStream.getAudioTracks();
+        console.log('[WebRTC] ✅ Remote stream details:', {
+          streamId: remoteStream.id,
+          videoTracks: videoTracks.length,
+          audioTracks: audioTracks.length,
+          videoEnabled: videoTracks[0]?.enabled,
+          audioEnabled: audioTracks[0]?.enabled
+        });
+        
+        // Log each track
+        remoteStream.getTracks().forEach(track => {
+          console.log('[WebRTC] 📹 Track:', track.kind, 'ID:', track.id, 'Enabled:', track.enabled, 'Ready:', track.readyState);
+        });
+        
+        console.log('[WebRTC] 🎥 Calling onRemoteStream for participant:', targetParticipantId);
         onRemoteStream(targetParticipantId, remoteStream);
       } else {
         console.warn('[WebRTC] ⚠️ No remote stream in track event');

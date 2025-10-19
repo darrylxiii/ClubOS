@@ -93,6 +93,12 @@ export function MeetingVideoCallInterface({
     participantName,
     onRemoteStream: async (remoteParticipantId, stream) => {
       console.log('[Meeting] 📹 Remote stream received from:', remoteParticipantId);
+      console.log('[Meeting] 📹 Stream details:', {
+        streamId: stream.id,
+        videoTracks: stream.getVideoTracks().length,
+        audioTracks: stream.getAudioTracks().length,
+        totalTracks: stream.getTracks().length
+      });
       
       // Fetch participant name from database
       const { data: participant } = await supabase
@@ -124,11 +130,21 @@ export function MeetingVideoCallInterface({
       }
       
       console.log('[Meeting] ✅ Setting display name:', displayName, 'for participant:', remoteParticipantId);
+      console.log('[Meeting] 🎥 About to update remoteStreams Map with:', {
+        participantId: remoteParticipantId,
+        displayName,
+        streamId: stream.id,
+        hasTracks: stream.getTracks().length > 0
+      });
       
-      setRemoteStreams(prev => new Map(prev).set(remoteParticipantId, {
-        stream,
-        name: displayName
-      }));
+      setRemoteStreams(prev => {
+        const newMap = new Map(prev).set(remoteParticipantId, {
+          stream,
+          name: displayName
+        });
+        console.log('[Meeting] 📊 Updated remoteStreams Map, now has', newMap.size, 'participants');
+        return newMap;
+      });
     },
     onParticipantLeft: (remoteParticipantId) => {
       console.log('[Meeting] Participant left:', remoteParticipantId);
@@ -299,6 +315,20 @@ export function MeetingVideoCallInterface({
     };
   }, []);
 
+  // Debug: Log remote streams when they change
+  useEffect(() => {
+    console.log('[Meeting] 🔍 Remote streams updated, Map size:', remoteStreams.size);
+    remoteStreams.forEach((value, key) => {
+      console.log('[Meeting] 📊 Remote stream entry:', {
+        participantId: key,
+        name: value.name,
+        streamId: value.stream.id,
+        videoTracks: value.stream.getVideoTracks().length,
+        audioTracks: value.stream.getAudioTracks().length
+      });
+    });
+  }, [remoteStreams]);
+
   // Show diagnostics first
   if (showDiagnostics) {
     return (
@@ -372,18 +402,41 @@ export function MeetingVideoCallInterface({
       stream: screenStream
     }] : []),
     // Remote participants
-    ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => ({
-      id,
-      display_name: name,
-      role: 'participant' as 'host' | 'participant',
-      is_muted: false,
-      is_video_off: false,
-      is_screen_sharing: false,
-      is_hand_raised: false,
-      is_speaking: false,
-      stream
-    }))
+    ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => {
+      console.log('[Meeting] 🎭 Mapping remote participant:', {
+        id,
+        name,
+        streamId: stream.id,
+        hasStream: !!stream,
+        videoTracks: stream.getVideoTracks().length,
+        audioTracks: stream.getAudioTracks().length
+      });
+      return {
+        id,
+        display_name: name,
+        role: 'participant' as 'host' | 'participant',
+        is_muted: false,
+        is_video_off: false,
+        is_screen_sharing: false,
+        is_hand_raised: false,
+        is_speaking: false,
+        stream
+      };
+    })
   ];
+
+  // Log the constructed allParticipants array
+  console.log('[Meeting] 🎬 All participants constructed:', {
+    total: allParticipants.length,
+    local: allParticipants[0]?.display_name,
+    remoteCount: allParticipants.length - 1,
+    participants: allParticipants.map(p => ({
+      id: p.id,
+      name: p.display_name,
+      hasStream: !!p.stream,
+      streamId: p.stream?.id
+    }))
+  });
 
   const content = (
     <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-900 to-black w-screen h-screen"

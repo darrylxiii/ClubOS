@@ -29,13 +29,34 @@ export function ParticipantTile({ participant, isLocal, isFocused, className, hi
 
   useEffect(() => {
     if (videoRef.current && participant.stream) {
-      console.log(`[ParticipantTile] Setting stream for ${participant.display_name}, video_off: ${participant.is_video_off}`);
+      console.log(`[ParticipantTile] 🎬 Setting stream for ${participant.display_name}`, {
+        streamId: participant.stream.id,
+        videoOff: participant.is_video_off,
+        videoTracks: participant.stream.getVideoTracks().length,
+        audioTracks: participant.stream.getAudioTracks().length,
+        hasVideoRef: !!videoRef.current
+      });
+      
       videoRef.current.srcObject = participant.stream;
+      
       videoRef.current.onloadedmetadata = () => {
-        console.log(`[ParticipantTile] Video loaded for ${participant.display_name}`);
+        console.log(`[ParticipantTile] ✅ Video metadata loaded for ${participant.display_name}`);
+        setIsLoading(false);
+      };
+      
+      videoRef.current.onloadeddata = () => {
+        console.log(`[ParticipantTile] ✅ Video data loaded for ${participant.display_name}`);
+      };
+      
+      videoRef.current.onerror = (e) => {
+        console.error(`[ParticipantTile] ❌ Video error for ${participant.display_name}:`, e);
         setIsLoading(false);
       };
     } else {
+      console.log(`[ParticipantTile] ⏸️ Not setting stream for ${participant.display_name}`, {
+        hasVideoRef: !!videoRef.current,
+        hasStream: !!participant.stream
+      });
       setIsLoading(false);
     }
   }, [participant.stream, participant.is_video_off, participant.display_name]);
