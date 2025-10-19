@@ -208,11 +208,16 @@ export const SocialActivityFeed = () => {
               <div className="text-center py-12 text-muted-foreground">
                 <MessageCircle className="w-12 h-12 mx-auto mb-4 opacity-20" />
                 <p>No posts yet</p>
+                <p className="text-xs mt-2">Share your first post in the feed!</p>
               </div>
             ) : (
               posts.map((post) => (
-                <div key={post.id} className="border rounded-lg p-4 space-y-3">
-                  <p className="text-sm">{post.content}</p>
+                <div key={post.id} className="glass-card rounded-lg p-4 space-y-3 hover:shadow-lg transition-shadow">
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-foreground whitespace-pre-wrap break-words">
+                      {post.content || "No content available"}
+                    </p>
+                  </div>
                   {post.media_url && (
                     <img
                       src={post.media_url}
@@ -220,15 +225,26 @@ export const SocialActivityFeed = () => {
                       className="rounded-lg w-full max-h-64 object-cover"
                     />
                   )}
-                  <div className="flex gap-4 text-sm text-muted-foreground">
-                    <span className="flex items-center gap-1">
-                      <Heart className="w-4 h-4" />
-                      {post.likes_count || 0}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <MessageCircle className="w-4 h-4" />
-                      {post.comments_count || 0}
-                    </span>
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="flex gap-4 text-sm text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Heart className="w-4 h-4" />
+                        {post.likes_count || 0}
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageCircle className="w-4 h-4" />
+                        {post.comments_count || 0}
+                      </span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/feed?highlight=${post.id}`)}
+                      className="gap-2"
+                    >
+                      View Full Post
+                      <Share2 className="w-3 h-3" />
+                    </Button>
                   </div>
                 </div>
               ))
@@ -239,7 +255,8 @@ export const SocialActivityFeed = () => {
             {stories.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Video className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>No stories in the last 24 hours</p>
+                <p>No active stories</p>
+                <p className="text-xs mt-2">Stories disappear after 24 hours</p>
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-4">
@@ -268,24 +285,40 @@ export const SocialActivityFeed = () => {
               <div className="text-center py-12 text-muted-foreground">
                 <Heart className="w-12 h-12 mx-auto mb-4 opacity-20" />
                 <p>No liked posts yet</p>
+                <p className="text-xs mt-2">Like posts in the feed to see them here</p>
               </div>
             ) : (
               likes.map((like) => (
-                <div key={like.id} className="border rounded-lg p-4 space-y-3">
+                <div key={like.id} className="glass-card rounded-lg p-4 space-y-3 hover:shadow-lg transition-shadow">
                   <div className="flex items-center gap-3">
                     <Avatar className="w-8 h-8">
                       <AvatarImage src={like.post?.user?.avatar_url} />
                       <AvatarFallback>{like.post?.user?.full_name?.[0]}</AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <p className="text-sm font-medium">{like.post?.user?.full_name}</p>
+                      <p className="text-sm font-medium">{like.post?.user?.full_name || "Unknown User"}</p>
                       <p className="text-xs text-muted-foreground">
                         {new Date(like.created_at).toLocaleDateString()}
                       </p>
                     </div>
                     <Heart className="w-5 h-5 fill-red-500 text-red-500" />
                   </div>
-                  <p className="text-sm">{like.post?.content}</p>
+                  <div className="prose prose-sm max-w-none">
+                    <p className="text-foreground whitespace-pre-wrap break-words">
+                      {like.post?.content || "Content unavailable"}
+                    </p>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate(`/feed?highlight=${like.post_id}`)}
+                      className="gap-2"
+                    >
+                      View Full Post
+                      <Share2 className="w-3 h-3" />
+                    </Button>
+                  </div>
                 </div>
               ))
             )}
