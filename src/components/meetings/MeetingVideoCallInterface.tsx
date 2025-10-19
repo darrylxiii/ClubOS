@@ -90,7 +90,7 @@ export function MeetingVideoCallInterface({
     participantId,
     participantName,
     onRemoteStream: async (remoteParticipantId, stream) => {
-      console.log('[Meeting] Remote stream received from:', remoteParticipantId);
+      console.log('[Meeting] 📹 Remote stream received from:', remoteParticipantId);
       
       // Fetch participant name from database
       const { data: participant } = await supabase
@@ -99,6 +99,8 @@ export function MeetingVideoCallInterface({
         .eq('meeting_id', meeting.id)
         .or(`user_id.eq.${remoteParticipantId},session_token.eq.${remoteParticipantId}`)
         .single();
+      
+      console.log('[Meeting] 👤 Found participant info:', participant);
       
       // Determine display name
       let displayName = `Participant ${remoteParticipantId.slice(0, 6)}`;
@@ -119,6 +121,8 @@ export function MeetingVideoCallInterface({
         }
       }
       
+      console.log('[Meeting] ✅ Setting display name:', displayName, 'for participant:', remoteParticipantId);
+      
       setRemoteStreams(prev => new Map(prev).set(remoteParticipantId, {
         stream,
         name: displayName
@@ -138,11 +142,11 @@ export function MeetingVideoCallInterface({
     setShowDiagnostics(false);
     
     try {
-      console.log('[Meeting] Initializing media for meeting:', meeting.title, 'Participant ID:', participantId);
+      console.log('[Meeting] 🎬 Initializing media for meeting:', meeting.title, '| Participant ID:', participantId, '| Is Guest:', isGuest);
       await initializeMedia();
       toast.success('Joined meeting room');
     } catch (error: any) {
-      console.error('[Meeting] Failed to initialize media:', error);
+      console.error('[Meeting] ❌ Failed to initialize media:', error);
       
       if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
         setPermissionDenied(true);
@@ -248,12 +252,17 @@ export function MeetingVideoCallInterface({
         .eq('status', 'accepted')
         .is('left_at', null);
 
-      console.log('[Meeting] Total participants in DB:', count, 'WebRTC participants:', allParticipants.length);
+      console.log('[Meeting] 👥 Total participants in DB:', count);
+      console.log('[Meeting] 📊 Participant details:', data);
+      console.log('[Meeting] 🔗 WebRTC connected participants:', allParticipants.length);
       setTotalParticipants(count || 0);
       
       // Auto-start meeting when 2+ participants are in
       if ((count || 0) >= 2 && !meetingStarted) {
+        console.log('[Meeting] ✅ Starting meeting with', count, 'participants');
         setMeetingStarted(true);
+      } else if ((count || 0) < 2) {
+        console.log('[Meeting] ⏸️ Waiting for more participants:', count, 'of 2 required');
       }
     };
 
@@ -270,7 +279,8 @@ export function MeetingVideoCallInterface({
           table: 'meeting_participants',
           filter: `meeting_id=eq.${meeting.id}`
         },
-        () => {
+        (payload) => {
+          console.log('[Meeting] 🔔 Participant change detected:', payload.eventType, payload.new);
           fetchParticipants();
         }
       )
