@@ -694,7 +694,209 @@ ${userContext}`;
       );
     }
 
-    return new Response(response.body, {
+    // Start background task to save conversation to database
+    const saveConversation = async () => {
+      try {
+        // Collect the full AI response by reading the stream
+        const reader = response.body?.getReader();
+        if (!reader) return;
+        
+        const decoder = new TextDecoder();
+        let fullResponse = "";
+        let toolCalls: any[] = [];
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim();
+              if (data === '[DONE]') continue;
+              
+              try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta;
+                
+                if (delta?.content) {
+                  fullResponse += delta.content;
+                }
+                
+                if (delta?.tool_calls) {
+                  toolCalls.push(...delta.tool_calls);
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+        
+        // Save to database
+        const newMessages = [
+          ...cleanedMessages,
+          {
+            role: "assistant",
+            content: fullResponse,
+            timestamp: new Date().toISOString(),
+            model: selectedModel,
+            mode: mode,
+            tool_calls: toolCalls.length > 0 ? toolCalls : undefined
+          }
+        ];
+        
+        if (conversationId) {
+          // Update existing conversation
+          await supabase
+            .from("ai_conversations")
+            .update({
+              messages: newMessages,
+              context: {
+                model: selectedModel,
+                mode: mode,
+                images_sent: images?.length || 0,
+                last_interaction: new Date().toISOString()
+              },
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", conversationId);
+        } else if (userId) {
+          // Create new conversation
+          await supabase
+            .from("ai_conversations")
+            .insert({
+              user_id: userId,
+              conversation_type: "club_ai",
+              messages: newMessages,
+              context: {
+                model: selectedModel,
+                mode: mode,
+                images_sent: images?.length || 0,
+                first_interaction: new Date().toISOString()
+              }
+            });
+        }
+        
+        console.log("Conversation saved successfully", {
+          userId,
+          conversationId,
+          messageCount: newMessages.length,
+          mode,
+          model: selectedModel
+        });
+      } catch (error) {
+        console.error("Error saving conversation:", error);
+        // Don't throw - this is a background task
+      }
+    };
+    
+    // Clone the response so we can both return it and read it for saving
+    const [streamForClient, streamForSaving] = response.body!.tee();
+    
+    // Start background save (Deno will keep function alive until this completes)
+    const savePromise = (async () => {
+      const reader = streamForSaving.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = "";
+      let toolCalls: any[] = [];
+      
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const data = line.slice(6).trim();
+              if (data === '[DONE]') continue;
+              
+              try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta;
+                
+                if (delta?.content) {
+                  fullResponse += delta.content;
+                }
+                
+                if (delta?.tool_calls) {
+                  toolCalls.push(...delta.tool_calls);
+                }
+              } catch (e) {
+                // Skip invalid JSON
+              }
+            }
+          }
+        }
+        
+        // Save to database
+        const newMessages = [
+          ...cleanedMessages,
+          {
+            role: "assistant",
+            content: fullResponse,
+            timestamp: new Date().toISOString(),
+            model: selectedModel,
+            mode: mode,
+            tool_calls: toolCalls.length > 0 ? toolCalls : undefined
+          }
+        ];
+        
+        if (conversationId) {
+          // Update existing conversation
+          await supabase
+            .from("ai_conversations")
+            .update({
+              messages: newMessages,
+              context: {
+                model: selectedModel,
+                mode: mode,
+                images_sent: images?.length || 0,
+                last_interaction: new Date().toISOString()
+              },
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", conversationId);
+        } else if (userId) {
+          // Create new conversation
+          await supabase
+            .from("ai_conversations")
+            .insert({
+              user_id: userId,
+              conversation_type: "club_ai",
+              messages: newMessages,
+              context: {
+                model: selectedModel,
+                mode: mode,
+                images_sent: images?.length || 0,
+                first_interaction: new Date().toISOString()
+              }
+            });
+        }
+        
+        console.log("✅ Conversation saved successfully", {
+          userId,
+          conversationId,
+          messageCount: newMessages.length,
+          mode,
+          model: selectedModel,
+          responseLength: fullResponse.length
+        });
+      } catch (error) {
+        console.error("❌ Error saving conversation:", error);
+        // Don't throw - this is a background task
+      }
+    })();
+    
+    // Don't await - let it run in background while we stream to client
+    savePromise.catch(err => console.error("Background save error:", err));
+    
+    return new Response(streamForClient, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
