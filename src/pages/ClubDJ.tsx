@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlaylistManager } from "@/components/club-dj/PlaylistManager";
 import { TrackUploader } from "@/components/club-dj/TrackUploader";
 import { DJMixer } from "@/components/club-dj/DJMixer";
+import { TrackList } from "@/components/club-dj/TrackList";
 
 export default function ClubDJ() {
   const { currentRole, loading } = useRole();
@@ -83,9 +84,10 @@ export default function ClubDJ() {
             <PlaylistManager />
           </TabsContent>
 
-          <TabsContent value="upload" className="mt-6">
-            <TrackUploader />
-          </TabsContent>
+            <TabsContent value="upload" className="mt-6 space-y-8">
+              <TrackUploader />
+              <TrackList />
+            </TabsContent>
 
           <TabsContent value="mixer" className="mt-6">
             <DJMixer />

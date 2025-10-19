@@ -45,9 +45,16 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!name.trim()) {
+      toast.error('Playlist name is required');
+      return;
+    }
+
     setLoading(true);
 
     try {
+      console.log('Starting playlist save...', { playlist, name, description });
       let coverUrl = playlist?.cover_image_url;
 
       // Upload cover image if new one selected
@@ -68,34 +75,45 @@ export function PlaylistDialog({ open, onOpenChange, playlist, onSuccess }: Play
       }
 
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        throw new Error('Not authenticated');
+      }
+
+      console.log('User authenticated:', user.id);
 
       const playlistData = {
-        name,
-        description,
-        cover_image_url: coverUrl,
+        name: name.trim(),
+        description: description.trim() || null,
+        cover_image_url: coverUrl || null,
         created_by: user.id,
       };
 
+      console.log('Saving playlist data:', playlistData);
+
       if (playlist) {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('playlists')
           .update(playlistData)
-          .eq('id', playlist.id);
+          .eq('id', playlist.id)
+          .select();
 
+        console.log('Update result:', { data, error });
         if (error) throw error;
         toast.success('Playlist updated');
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('playlists')
-          .insert([playlistData]);
+          .insert([playlistData])
+          .select();
 
+        console.log('Insert result:', { data, error });
         if (error) throw error;
         toast.success('Playlist created');
       }
 
       onSuccess();
     } catch (error: any) {
+      console.error('Playlist save error:', error);
       toast.error(error.message || 'Failed to save playlist');
     } finally {
       setLoading(false);
