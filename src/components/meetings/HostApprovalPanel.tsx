@@ -33,12 +33,24 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
       return;
     }
 
+    // Load initial requests
     loadRequests();
 
-    // Subscribe to new requests
-    console.log('[HostApproval] 📡 Subscribing to join requests...');
+    // Set up polling as fallback (every 3 seconds)
+    const pollInterval = setInterval(() => {
+      console.log('[HostApproval] 🔄 Polling for join requests...');
+      loadRequests();
+    }, 3000);
+
+    // Subscribe to new requests via realtime
+    console.log('[HostApproval] 📡 Setting up realtime subscription for join requests...');
     const channel = supabase
-      .channel(`meeting-requests-${meetingId}`)
+      .channel(`meeting-requests-${meetingId}`, {
+        config: {
+          broadcast: { self: false },
+          presence: { key: '' }
+        }
+      })
       .on(
         'postgres_changes',
         {
@@ -48,50 +60,77 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
           filter: `meeting_id=eq.${meetingId}`
         },
         (payload) => {
-          console.log('[HostApproval] 🔔 Join request change detected:', payload.eventType, payload.new);
-          loadRequests();
+          console.log('[HostApproval] 🔔 Realtime join request change:', payload.eventType, payload);
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            loadRequests();
+          }
         }
       )
-      .subscribe((status) => {
-        console.log('[HostApproval] 📡 Subscription status:', status);
+      .subscribe((status, err) => {
+        console.log('[HostApproval] 📡 Realtime subscription status:', status, err || '');
+        if (status === 'SUBSCRIBED') {
+          console.log('[HostApproval] ✅ Successfully subscribed to join requests');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.warn('[HostApproval] ⚠️ Realtime subscription failed, relying on polling');
+        }
       });
 
     return () => {
-      console.log('[HostApproval] 🔌 Unsubscribing from join requests');
-      channel.unsubscribe();
+      console.log('[HostApproval] 🔌 Cleaning up approval panel');
+      clearInterval(pollInterval);
+      supabase.removeChannel(channel);
     };
   }, [meetingId, isHost]);
 
   const loadRequests = async () => {
-    console.log('[HostApproval] 🔍 Loading join requests for meeting:', meetingId);
-    
-    const { data, error } = await supabase
-      .from('meeting_join_requests')
-      .select('*')
-      .eq('meeting_id', meetingId)
-      .eq('request_status', 'pending')
-      .order('requested_at', { ascending: true });
-
-    if (error) {
-      console.error('[HostApproval] ❌ Failed to load requests:', error);
-      return;
-    }
-
-    console.log('[HostApproval] 📊 Found', data?.length || 0, 'pending requests:', data);
-    setRequests(data || []);
-
-    // Show toast for new requests
-    if (data && data.length > 0) {
-      const latestRequest = data[data.length - 1];
-      const requestTime = new Date(latestRequest.requested_at).getTime();
-      const now = Date.now();
+    try {
+      console.log('[HostApproval] 🔍 Loading join requests for meeting:', meetingId);
       
-      // Only show toast if request is less than 5 seconds old
-      if (now - requestTime < 5000) {
-        toast.info(`${latestRequest.guest_name} wants to join the meeting`, {
-          duration: 5000
+      const { data, error } = await supabase
+        .from('meeting_join_requests')
+        .select('*')
+        .eq('meeting_id', meetingId)
+        .eq('request_status', 'pending')
+        .order('requested_at', { ascending: true });
+
+      if (error) {
+        console.error('[HostApproval] ❌ Failed to load requests:', error);
+        return;
+      }
+
+      console.log('[HostApproval] 📊 Found', data?.length || 0, 'pending requests');
+      if (data && data.length > 0) {
+        console.log('[HostApproval] 📋 Request details:', data.map(r => ({
+          id: r.id,
+          name: r.guest_name,
+          email: r.guest_email,
+          session: r.session_token,
+          requested_at: r.requested_at
+        })));
+      }
+
+      setRequests(data || []);
+
+      // Show toast for new requests (only if we don't already have them)
+      if (data && data.length > 0) {
+        const newRequests = data.filter(req => {
+          const wasAlreadyShown = requests.some(r => r.id === req.id);
+          return !wasAlreadyShown;
+        });
+
+        newRequests.forEach(request => {
+          console.log('[HostApproval] 🔔 New join request from:', request.guest_name);
+          toast.info(`${request.guest_name} wants to join the meeting`, {
+            duration: 8000,
+            action: {
+              label: 'View',
+              onClick: () => console.log('[HostApproval] Toast clicked for:', request.guest_name)
+            }
+          });
         });
       }
+    } catch (error) {
+      console.error('[HostApproval] ❌ Error loading requests:', error);
     }
   };
 

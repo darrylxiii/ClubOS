@@ -587,18 +587,15 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* Connecting Overlay - Show when participants are joining but video not established */}
-      {meetingStarted && totalParticipants >= 2 && remoteStreams.size === 0 && (
+      {/* Connecting Overlay - Only show when WebRTC is actively connecting AFTER participants are accepted */}
+      {meetingStarted && totalParticipants >= 2 && remoteStreams.size === 0 && connectionState === 'connecting' && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/60 to-gray-800/60 backdrop-blur-sm z-[999]">
           <div className="text-center space-y-4 animate-fade-in">
             <div className="w-16 h-16 rounded-full border-4 border-primary border-t-transparent animate-spin mx-auto" />
             <div className="space-y-2">
               <h3 className="text-xl font-bold text-white">Connecting video...</h3>
               <p className="text-muted-foreground text-sm">
-                {totalParticipants} participants detected | Establishing connection
-              </p>
-              <p className="text-xs text-gray-400">
-                Connection: {connectionState} | Channel: {channelStatus}
+                {totalParticipants} participants in call | Establishing video connection
               </p>
             </div>
           </div>

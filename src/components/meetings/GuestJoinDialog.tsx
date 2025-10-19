@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
-import { Loader2, Video, AlertCircle } from 'lucide-react';
+import { Loader2, Video, AlertCircle, Mic, VideoIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -18,6 +18,36 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isWaiting, setIsWaiting] = useState(false);
   const [sessionToken] = useState(() => crypto.randomUUID());
+  const [permissionsGranted, setPermissionsGranted] = useState(false);
+  const [isRequestingPermissions, setIsRequestingPermissions] = useState(false);
+
+  const requestPermissions = async () => {
+    if (!guestName.trim()) {
+      toast.error('Please enter your name first');
+      return;
+    }
+
+    setIsRequestingPermissions(true);
+
+    try {
+      // Request camera and microphone permissions
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      });
+
+      // Stop the stream immediately - we just needed to get permissions
+      stream.getTracks().forEach(track => track.stop());
+
+      setPermissionsGranted(true);
+      toast.success('Camera and microphone access granted!');
+    } catch (error) {
+      console.error('[GuestJoin] Permission denied:', error);
+      toast.error('Camera and microphone access required to join the meeting');
+    } finally {
+      setIsRequestingPermissions(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,7 +57,14 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
       return;
     }
 
+    if (!permissionsGranted) {
+      toast.error('Please grant camera and microphone permissions first');
+      return;
+    }
+
     setIsSubmitting(true);
+
+    console.log('[GuestJoin] 📝 Submitting join request | Name:', guestName, '| Session:', sessionToken);
 
     try {
       // Find meeting by code
@@ -43,6 +80,7 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
       }
 
       // Create join request
+      console.log('[GuestJoin] 📤 Creating join request in database...');
       const { error: requestError } = await supabase
         .from('meeting_join_requests')
         .insert({
@@ -54,15 +92,17 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
         });
 
       if (requestError) {
-        console.error('[GuestJoin] Failed to create request:', requestError);
+        console.error('[GuestJoin] ❌ Failed to create request:', requestError);
         toast.error('Failed to request access');
         return;
       }
 
+      console.log('[GuestJoin] ✅ Join request created successfully');
       setIsWaiting(true);
       toast.success('Join request sent! Waiting for host approval...');
 
       // Subscribe to approval status
+      console.log('[GuestJoin] 📡 Subscribing to approval updates...');
       const channel = supabase
         .channel(`guest-approval-${sessionToken}`)
         .on(
@@ -74,20 +114,25 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
             filter: `session_token=eq.${sessionToken}`
           },
           (payload: any) => {
+            console.log('[GuestJoin] 🔔 Received approval update:', payload);
             const status = payload.new.request_status;
             
             if (status === 'approved') {
+              console.log('[GuestJoin] ✅ Access approved! Joining meeting...');
               toast.success('Access granted! Joining meeting...');
               channel.unsubscribe();
               onJoinApproved(guestName.trim(), sessionToken);
             } else if (status === 'rejected') {
+              console.log('[GuestJoin] ❌ Access rejected by host');
               toast.error('Access denied by host');
               channel.unsubscribe();
               setIsWaiting(false);
             }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('[GuestJoin] 📡 Subscription status:', status);
+        });
 
     } catch (error) {
       console.error('[GuestJoin] Error:', error);
@@ -170,6 +215,24 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
             />
           </div>
 
+          {!permissionsGranted && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <AlertCircle className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-blue-200">
+                Please grant camera and microphone permissions before requesting to join.
+              </p>
+            </div>
+          )}
+
+          {permissionsGranted && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+              <Mic className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-green-200">
+                Camera and microphone access granted! You can now request to join.
+              </p>
+            </div>
+          )}
+
           <div className="flex items-start gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
             <AlertCircle className="h-5 w-5 text-yellow-500 flex-shrink-0 mt-0.5" />
             <p className="text-sm text-yellow-200">
@@ -177,30 +240,61 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
             </p>
           </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => window.history.back()}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting || !guestName.trim()}
-              className="flex-1"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Requesting...
-                </>
-              ) : (
-                'Request to Join'
-              )}
-            </Button>
-          </div>
+          {!permissionsGranted ? (
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => window.history.back()}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={requestPermissions}
+                disabled={isRequestingPermissions || !guestName.trim()}
+                className="flex-1"
+              >
+                {isRequestingPermissions ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Requesting...
+                  </>
+                ) : (
+                  <>
+                    <VideoIcon className="mr-2 h-4 w-4" />
+                    Grant Permissions
+                  </>
+                )}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => window.history.back()}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="flex-1"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Requesting...
+                  </>
+                ) : (
+                  'Request to Join'
+                )}
+              </Button>
+            </div>
+          )}
         </form>
       </Card>
     </div>
