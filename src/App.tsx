@@ -43,6 +43,7 @@ const PublicUserProfile = lazy(() => import("./pages/PublicUserProfile"));
 const CandidateProfile = lazy(() => import("./pages/CandidateProfile"));
 const Referrals = lazy(() => import("./pages/Referrals"));
 const InterviewPrep = lazy(() => import("./pages/InterviewPrep"));
+const InterviewPrepChat = lazy(() => import("./pages/InterviewPrepChat"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Applications = lazy(() => import("./pages/Applications"));
@@ -228,6 +229,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <InterviewPrep />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/interview-prep-chat/:applicationId"
+              element={
+                <ProtectedRoute>
+                  <InterviewPrepChat />
                 </ProtectedRoute>
               }
             />
