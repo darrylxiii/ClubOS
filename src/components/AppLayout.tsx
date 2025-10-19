@@ -1,19 +1,13 @@
-import { useState, useEffect, ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { ReactNode } from "react";
+import { useLocation } from "react-router-dom";
 import quantumClubLogo from "@/assets/quantum-club-logo.png";
 import quantumClubLogoDark from "@/assets/quantum-logo-dark.png";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  LayoutDashboard,
   Briefcase,
   Building2,
   Gift,
   FileText,
   Settings,
-  LogOut,
-  Menu,
-  X,
   Clock,
   User,
   ListTodo,
@@ -38,20 +32,18 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { NotificationBell } from "@/components/NotificationBell";
 import { MusicPlayer } from "@/components/MusicPlayer";
-import { NavigationGroup } from "@/components/NavigationGroup";
 import { CommandPalette } from "@/components/CommandPalette";
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MotionToggle } from "@/components/MotionToggle";
 import { useRole } from "@/contexts/RoleContext";
+import {
+  Sidebar,
+  SidebarGroup,
+  SidebarFooter,
+} from "@/components/AnimatedSidebar";
 
 // Grouped Candidate Navigation
 const candidateNavigationGroups = [
@@ -250,13 +242,9 @@ interface AppLayoutProps {
 }
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const location = useLocation();
   const { currentRole } = useRole();
-  const [userProfile, setUserProfile] = useState<{ id: string } | null>(null);
-  const [showHeader, setShowHeader] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
 
   // Determine navigation based on current role from context
   const navigationGroups = currentRole === 'admin'
@@ -264,35 +252,6 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     : currentRole === 'partner'
     ? partnerNavigationGroups
     : candidateNavigationGroups;
-
-  // Smart header visibility on scroll - works on main content area
-  useEffect(() => {
-    const mainElement = document.querySelector('main');
-    if (!mainElement) return;
-
-    const handleScroll = () => {
-      const currentScrollY = mainElement.scrollTop;
-      
-      // Show header immediately when scrolling up
-      if (currentScrollY < lastScrollY) {
-        setShowHeader(true);
-      } 
-      // Hide header when scrolling down (after 50px from top)
-      else if (currentScrollY > 50 && currentScrollY > lastScrollY) {
-        setShowHeader(false);
-      }
-      
-      // Always show at top
-      if (currentScrollY < 10) {
-        setShowHeader(true);
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    mainElement.addEventListener('scroll', handleScroll, { passive: true });
-    return () => mainElement.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -311,125 +270,34 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      {/* Global Header - Smart scroll behavior */}
-      <header className={cn(
-        "fixed top-0 left-0 right-0 h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[100] flex items-center justify-between px-4 gap-4 shadow-[var(--shadow-glass-md)] transition-transform duration-300",
-        showHeader ? "translate-y-0" : "-translate-y-full"
-      )}>
-        <Button
-          variant="glass"
-          size="icon"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
-        
-        <div className="absolute left-1/2 -translate-x-1/2">
-          <img 
-            src={quantumClubLogoDark} 
-            alt="Quantum Club" 
-            className="h-9 w-auto dark:block hidden" 
-          />
-          <img 
-            src={quantumClubLogo} 
-            alt="Quantum Club" 
-            className="h-9 w-auto dark:hidden block" 
-          />
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <GlobalRoleSwitcher />
-          <MotionToggle />
-          <MusicPlayer />
-          <NotificationBell />
-        </div>
+      {/* Global Header - Fixed Top */}
+      <header className="fixed top-0 left-0 right-0 h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[90] flex items-center justify-end px-4 gap-2 shadow-[var(--shadow-glass-md)] md:left-20">
+        <ThemeToggle />
+        <GlobalRoleSwitcher />
+        <MotionToggle />
+        <MusicPlayer />
+        <NotificationBell />
       </header>
 
-      <aside
-        className={cn(
-          "fixed left-0 z-40 w-64 bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20 shadow-[var(--shadow-glass-lg)] transform transition-all duration-300 ease-in-out",
-          showHeader ? "top-16 bottom-0" : "top-0 bottom-0",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        )}
+      {/* Animated Sidebar with Glass Effect */}
+      <Sidebar
+        logoLight={quantumClubLogo}
+        logoDark={quantumClubLogoDark}
       >
-        <div className="h-full flex flex-col">
-          {/* Scrollable Navigation Area */}
-          <nav className="flex-1 overflow-y-auto py-6 px-3 min-h-0">
-            <div className="space-y-3">
-              {navigationGroups.map((group) => (
-                <NavigationGroup
-                  key={group.title}
-                  title={group.title}
-                  icon={group.icon}
-                  items={group.items}
-                  defaultOpen={true}
-                />
-              ))}
-            </div>
-          </nav>
-
-          {/* Fixed User Profile Card at Bottom - Always Visible */}
-          <div className="flex-shrink-0 p-4 border-t border-border/20 bg-card/50 backdrop-blur-[var(--blur-glass)]">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="glass"
-                className="w-full justify-start gap-3 h-auto py-3 px-3"
-              >
-                <Avatar className="h-9 w-9">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {firstName[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 text-left">
-                  <p className="text-sm font-medium">{firstName}</p>
-                  <p className="text-xs text-muted-foreground">View profile</p>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
-              <DropdownMenuItem asChild>
-                <Link to={profilePath} className="cursor-pointer">
-                  <User className="mr-2 h-4 w-4" />
-                  <span>My Profile</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/user-settings" className="cursor-pointer">
-                  <Cog className="mr-2 h-4 w-4" />
-                  <span>Account Settings</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/settings" className="cursor-pointer">
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={handleSignOut}
-                className="cursor-pointer text-destructive"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        </div>
-      </aside>
-
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+        {navigationGroups.map((group) => (
+          <SidebarGroup key={group.title} group={group} />
+        ))}
+        <SidebarFooter
+          userName={firstName}
+          userInitial={firstName[0].toUpperCase()}
+          onSignOut={handleSignOut}
+          profilePath={profilePath}
         />
-      )}
+      </Sidebar>
 
+      {/* Main Content - Adjusted for sidebar */}
       <main className={cn(
-        "flex-1 w-full",
+        "flex-1 w-full md:ml-20",
         location.pathname === '/messages' ? 'overflow-hidden' : 'overflow-y-auto'
       )}>
         <div className={cn(
@@ -438,7 +306,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         )}>{children}</div>
       </main>
 
-      {/* Global Navigation Tools - Always Accessible */}
+      {/* Global Navigation Tools */}
       <CommandPalette />
     </div>
   );
