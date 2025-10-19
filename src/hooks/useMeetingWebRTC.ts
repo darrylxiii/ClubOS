@@ -528,6 +528,37 @@ export function useMeetingWebRTC({
       }
       return;
     }
+
+    // CRITICAL: Verify the participant is approved before establishing WebRTC connection
+    try {
+      console.log('[WebRTC] 🔍 Verifying participant approval status for:', newParticipantId);
+      const { data, error } = await supabase
+        .from('meeting_participants')
+        .select('status, session_token, user_id')
+        .eq('meeting_id', meetingId)
+        .or(`user_id.eq.${newParticipantId},session_token.eq.${newParticipantId}`)
+        .maybeSingle();
+
+      if (error) {
+        console.error('[WebRTC] ❌ Error checking participant approval:', error);
+        return;
+      }
+
+      if (!data) {
+        console.warn('[WebRTC] ⚠️ Participant not found in database, may not be approved yet:', newParticipantId);
+        return;
+      }
+
+      if (data.status !== 'accepted') {
+        console.warn('[WebRTC] ⚠️ Participant not yet accepted (status:', data.status, '), skipping WebRTC connection');
+        return;
+      }
+
+      console.log('[WebRTC] ✅ Participant verified as accepted, proceeding with WebRTC connection');
+    } catch (error) {
+      console.error('[WebRTC] ❌ Error verifying participant approval:', error);
+      return;
+    }
     
     const currentStream = localStreamRef.current;
     console.log('[WebRTC] ✅ Media confirmed ready | Stream tracks:', currentStream.getTracks().length);

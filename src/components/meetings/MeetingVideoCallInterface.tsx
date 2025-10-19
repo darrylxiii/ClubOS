@@ -53,6 +53,7 @@ export function MeetingVideoCallInterface({
   const [showMeetingDetails, setShowMeetingDetails] = useState(false);
   const [meetingStarted, setMeetingStarted] = useState(false);
   const [totalParticipants, setTotalParticipants] = useState(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [hostSettings, setHostSettings] = useState({
@@ -258,6 +259,49 @@ export function MeetingVideoCallInterface({
     };
   }, [meeting?.id]);
 
+  // Check for pending join requests (for hosts only)
+  useEffect(() => {
+    if (!meeting?.id || meeting.host_id !== participantId) return;
+
+    const checkPendingRequests = async () => {
+      const { count } = await supabase
+        .from('meeting_join_requests')
+        .select('*', { count: 'exact', head: true })
+        .eq('meeting_id', meeting.id)
+        .eq('request_status', 'pending');
+
+      console.log('[Meeting] 📋 Pending join requests:', count || 0);
+      setPendingRequestsCount(count || 0);
+    };
+
+    checkPendingRequests();
+    
+    // Poll and subscribe to changes
+    const pollInterval = setInterval(checkPendingRequests, 2000);
+    
+    const channel = supabase
+      .channel(`pending-requests-check-${meeting.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'meeting_join_requests',
+          filter: `meeting_id=eq.${meeting.id}`
+        },
+        () => {
+          console.log('[Meeting] 🔔 Join request change detected');
+          checkPendingRequests();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      clearInterval(pollInterval);
+      supabase.removeChannel(channel);
+    };
+  }, [meeting?.id, participantId]);
+
   // Track total participants including those not yet connected via WebRTC
   useEffect(() => {
     if (!meeting?.id) return;
@@ -282,9 +326,12 @@ export function MeetingVideoCallInterface({
       setTotalParticipants(activeParticipantCount);
       
       // Auto-start meeting when 2+ participants are actively connected via WebRTC
-      if (activeParticipantCount >= 2 && !meetingStarted) {
+      // BUT only if there are NO pending requests (host must approve first)
+      if (activeParticipantCount >= 2 && !meetingStarted && pendingRequestsCount === 0) {
         console.log('[Meeting] ✅ Starting meeting with', activeParticipantCount, 'active participants');
         setMeetingStarted(true);
+      } else if (pendingRequestsCount > 0) {
+        console.log('[Meeting] ⏸️ Waiting for host to approve', pendingRequestsCount, 'pending requests');
       } else if (activeParticipantCount < 2) {
         console.log('[Meeting] ⏸️ Waiting for more participants:', activeParticipantCount, 'of 2 required');
       }
@@ -556,12 +603,30 @@ export function MeetingVideoCallInterface({
             </div>
             
             <div className="space-y-2">
-              <h3 className="text-2xl font-bold text-white">Waiting for others to join</h3>
+              <h3 className="text-2xl font-bold text-white">
+                {pendingRequestsCount > 0 ? 'Guest Approval Required' : 'Waiting for others to join'}
+              </h3>
               <p className="text-muted-foreground">
-                Share the meeting link: <span className="font-mono text-primary">{meeting.meeting_code}</span>
+                {pendingRequestsCount > 0 ? (
+                  <>
+                    {pendingRequestsCount} guest{pendingRequestsCount > 1 ? 's' : ''} waiting for your approval
+                  </>
+                ) : (
+                  <>
+                    Share the meeting link: <span className="font-mono text-primary">{meeting.meeting_code}</span>
+                  </>
+                )}
               </p>
+              {pendingRequestsCount > 0 && (
+                <div className="mt-3 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                  <p className="text-sm text-yellow-400">
+                    ⚠️ Check the approval panel on the right to admit guests →
+                  </p>
+                </div>
+              )}
               <p className="text-xs text-muted-foreground mt-2">
                 Total participants: {totalParticipants} | Connected: {allParticipants.length}
+                {pendingRequestsCount > 0 && ` | Pending: ${pendingRequestsCount}`}
               </p>
             </div>
 
@@ -572,7 +637,7 @@ export function MeetingVideoCallInterface({
               </div>
             </div>
 
-            {meeting.host_id === participantId && (
+            {meeting.host_id === participantId && totalParticipants === 1 && pendingRequestsCount === 0 && (
               <Button
                 onClick={() => {
                   setMeetingStarted(true);
