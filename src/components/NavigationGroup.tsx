@@ -35,7 +35,7 @@ export const NavigationGroup = ({
           "w-full flex items-center justify-between px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-[var(--blur-glass-subtle)]",
           hasActiveItem
             ? "bg-card/50 border border-border/30 text-primary shadow-[var(--shadow-glass-sm)]"
-            : "text-muted-foreground hover:bg-card/30 hover:border hover:border-border/20 hover:text-foreground"
+            : "text-muted-foreground hover:text-foreground"
         )}
       >
         <div className="flex items-center gap-3">
@@ -60,10 +60,10 @@ export const NavigationGroup = ({
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-all backdrop-blur-[var(--blur-glass-subtle)]",
+                  "flex items-center gap-3 px-4 py-2 rounded-lg font-medium transition-all",
                   isActive
-                    ? "bg-card/60 border border-border/40 text-foreground shadow-[var(--shadow-glass-md)]"
-                    : "text-muted-foreground hover:bg-card/30 hover:border hover:border-border/20 hover:text-foreground hover:shadow-[var(--shadow-glass-sm)]"
+                    ? "text-foreground"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />
