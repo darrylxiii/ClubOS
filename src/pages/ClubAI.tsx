@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -17,12 +16,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Sparkles, Send, Loader2, Briefcase, TrendingUp, MessageSquare, Target, Plus, Clock, Trash2 } from "lucide-react";
+import { Sparkles, Loader2, Briefcase, TrendingUp, MessageSquare, Target, Plus, Clock, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { PromptInputBox } from "@/components/PromptInputBox";
 
 interface Message {
   role: "user" | "assistant";
@@ -40,7 +40,6 @@ const ClubAI = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -233,13 +232,11 @@ const ClubAI = () => {
   };
 
   const handleSuggestedPrompt = async (promptText: string) => {
-    setInput(promptText);
     await sendMessage(promptText);
   };
 
-  const sendMessage = async (messageText?: string) => {
-    const textToSend = messageText || input;
-    if (!textToSend.trim()) return;
+  const sendMessage = async (messageText: string) => {
+    if (!messageText.trim()) return;
     
     // Create conversation if none exists
     if (!currentConversationId) {
@@ -248,10 +245,9 @@ const ClubAI = () => {
       await new Promise(resolve => setTimeout(resolve, 500));
     }
 
-    const userMessage: Message = { role: "user", content: textToSend };
+    const userMessage: Message = { role: "user", content: messageText };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
-    setInput("");
     setIsLoading(true);
 
     let assistantContent = "";
@@ -463,13 +459,6 @@ const ClubAI = () => {
     onDone();
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-
   const suggestedPrompts = getSuggestedPrompts();
 
   return (
@@ -672,27 +661,11 @@ const ClubAI = () => {
             {/* Input area */}
             <div className="border-t border-border p-4">
               <div className="max-w-4xl mx-auto">
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="Ask me anything about your career..."
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    disabled={isLoading}
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={() => sendMessage()}
-                    disabled={isLoading || !input.trim()}
-                    size="icon"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : (
-                      <Send className="w-4 h-4" />
-                    )}
-                  </Button>
-                </div>
+                <PromptInputBox
+                  onSend={(message) => sendMessage(message)}
+                  isLoading={isLoading}
+                  placeholder="Ask me anything about your career..."
+                />
                 {isLoading && (
                   <p className="text-xs text-muted-foreground mt-2">
                     Club AI is thinking...
