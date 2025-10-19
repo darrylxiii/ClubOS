@@ -130,19 +130,19 @@ export const PartnerHome = () => {
             <CardDescription>Common tasks and shortcuts</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="glass" asChild>
               <Link to="/partner-dashboard">
                 <Briefcase className="h-4 w-4 mr-2" />
                 Post New Job
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="glass" asChild>
               <Link to="/partner-dashboard">
                 <Users className="h-4 w-4 mr-2" />
                 Review Applications
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="glass" asChild>
               <Link to="/companies">
                 <FileText className="h-4 w-4 mr-2" />
                 Update Company Profile

@@ -133,26 +133,26 @@ export const CandidateHome = () => {
             <CardDescription>Recommended actions to boost your profile</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center justify-between p-3 border border-border/20 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)]">
               <div className="flex items-center gap-3">
                 <FileText className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">Upload your resume</span>
               </div>
-              <Button size="sm" variant="outline">Add</Button>
+              <Button size="sm" variant="glass">Add</Button>
             </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center justify-between p-3 border border-border/20 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)]">
               <div className="flex items-center gap-3">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">Connect calendar</span>
               </div>
-              <Button size="sm" variant="outline">Connect</Button>
+              <Button size="sm" variant="glass">Connect</Button>
             </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div className="flex items-center justify-between p-3 border border-border/20 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)]">
               <div className="flex items-center gap-3">
                 <Target className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm">Apply to matched jobs</span>
               </div>
-              <Button size="sm" variant="outline" asChild>
+              <Button size="sm" variant="glass" asChild>
                 <Link to="/jobs">View</Link>
               </Button>
             </div>
@@ -175,7 +175,7 @@ export const CandidateHome = () => {
               </p>
             ) : (
               <div className="space-y-3">
-                <div className="p-3 border rounded-lg">
+                <div className="p-3 border border-border/20 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)]">
                   <div className="flex items-start justify-between mb-2">
                     <div>
                       <h4 className="font-medium text-sm">Senior Developer</h4>
@@ -183,7 +183,7 @@ export const CandidateHome = () => {
                     </div>
                     <Badge variant="secondary">85% Match</Badge>
                   </div>
-                  <Button size="sm" className="w-full mt-2" asChild>
+                  <Button size="sm" variant="glass" className="w-full mt-2" asChild>
                     <Link to="/jobs">View Details</Link>
                   </Button>
                 </div>

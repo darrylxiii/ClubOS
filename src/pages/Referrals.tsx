@@ -135,6 +135,7 @@ const Referrals = () => {
             <Button 
               onClick={() => navigate('/jobs')}
               className="gap-2"
+              variant="glass"
             >
               <Plus className="w-4 h-4" />
               New Referral

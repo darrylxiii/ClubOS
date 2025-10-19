@@ -126,25 +126,25 @@ export const AdminHome = () => {
             <CardDescription>Common admin tasks</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="glass" asChild>
               <Link to="/admin">
                 <Users className="h-4 w-4 mr-2" />
                 Manage Users & Roles
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="glass" asChild>
               <Link to="/admin">
                 <Building2 className="h-4 w-4 mr-2" />
                 Manage Companies
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="glass" asChild>
               <Link to="/admin">
                 <Shield className="h-4 w-4 mr-2" />
                 Security Settings
               </Link>
             </Button>
-            <Button className="w-full justify-start" variant="outline" asChild>
+            <Button className="w-full justify-start" variant="glass" asChild>
               <Link to="/admin">
                 <Activity className="h-4 w-4 mr-2" />
                 View System Logs
