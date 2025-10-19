@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Upload, Music, Image as ImageIcon, Loader2, Plus, X } from "lucide-react";
+import { Upload, Music, Image as ImageIcon, Loader2, Plus, X, Youtube } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export function TrackUploader() {
   const queryClient = useQueryClient();
@@ -27,6 +28,8 @@ export function TrackUploader() {
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [youtubeUrl, setYoutubeUrl] = useState("");
+  const [uploadMode, setUploadMode] = useState<"file" | "youtube">("file");
 
   const { data: playlists } = useQuery({
     queryKey: ['playlists'],
@@ -74,6 +77,58 @@ export function TrackUploader() {
 
   const removeTag = (tag: string) => {
     setTags(tags.filter(t => t !== tag));
+  };
+
+  const handleYoutubeDownload = async () => {
+    if (!youtubeUrl) {
+      toast.error('Please enter a YouTube URL');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('download-youtube-audio', {
+        body: { youtubeUrl }
+      });
+
+      if (error) throw error;
+      if (!data.success) throw new Error(data.error);
+
+      // Convert base64 to blob
+      const binaryString = atob(data.audioData);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: 'audio/mpeg' });
+      const file = new File([blob], data.metadata.filename, { type: 'audio/mpeg' });
+
+      // Set the file and metadata
+      setAudioFile(file);
+      setTitle(data.metadata.title);
+      setArtist(data.metadata.artist);
+
+      // Download thumbnail if available
+      if (data.metadata.thumbnailUrl) {
+        try {
+          const thumbnailResponse = await fetch(data.metadata.thumbnailUrl);
+          const thumbnailBlob = await thumbnailResponse.blob();
+          const thumbnailFile = new File([thumbnailBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
+          setCoverFile(thumbnailFile);
+          setCoverPreview(URL.createObjectURL(thumbnailBlob));
+        } catch (err) {
+          console.error('Failed to download thumbnail:', err);
+        }
+      }
+
+      toast.success('Audio downloaded from YouTube!');
+      setUploadMode('file'); // Switch to file mode to show the downloaded track
+    } catch (error: any) {
+      console.error('YouTube download error:', error);
+      toast.error(error.message || 'Failed to download from YouTube');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -192,11 +247,61 @@ export function TrackUploader() {
   return (
     <div className="max-w-2xl mx-auto">
       <div className="rounded-3xl bg-black/20 backdrop-blur-xl border border-white/10 p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Audio File Upload */}
-          <div className="space-y-2">
-            <Label>Audio File</Label>
-            <label className="flex flex-col items-center justify-center h-32 rounded-2xl border-2 border-dashed border-white/20 hover:border-primary/50 transition-colors cursor-pointer">
+        <Tabs value={uploadMode} onValueChange={(v) => setUploadMode(v as "file" | "youtube")} className="mb-6">
+          <TabsList className="grid w-full grid-cols-2 bg-black/20">
+            <TabsTrigger value="file" className="data-[state=active]:bg-primary">
+              <Upload className="h-4 w-4 mr-2" />
+              File Upload
+            </TabsTrigger>
+            <TabsTrigger value="youtube" className="data-[state=active]:bg-primary">
+              <Youtube className="h-4 w-4 mr-2" />
+              YouTube URL
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="youtube" className="mt-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="youtube-url">YouTube URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="youtube-url"
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    placeholder="https://youtube.com/watch?v=..."
+                    className="flex-1"
+                  />
+                  <Button 
+                    type="button" 
+                    onClick={handleYoutubeDownload}
+                    disabled={loading || !youtubeUrl}
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Downloading...
+                      </>
+                    ) : (
+                      <>
+                        <Youtube className="h-4 w-4 mr-2" />
+                        Download
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Download audio from YouTube. Please ensure you have rights to use the content.
+                </p>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="file" className="mt-0">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Audio File Upload */}
+              <div className="space-y-2">
+                <Label>Audio File</Label>
+                <label className="flex flex-col items-center justify-center h-32 rounded-2xl border-2 border-dashed border-white/20 hover:border-primary/50 transition-colors cursor-pointer">
               {audioFile ? (
                 <div className="text-center">
                   <Music className="h-8 w-8 mx-auto mb-2 text-primary" />
@@ -341,6 +446,8 @@ export function TrackUploader() {
             )}
           </Button>
         </form>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
