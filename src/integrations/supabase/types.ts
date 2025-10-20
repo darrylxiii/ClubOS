@@ -345,6 +345,220 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_memory: {
+        Row: {
+          content: string
+          context: Json | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          memory_type: string
+          relevance_score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          context?: Json | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          memory_type: string
+          relevance_score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          context?: Json | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          memory_type?: string
+          relevance_score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_persona_profiles: {
+        Row: {
+          characteristics: Json
+          communication_style: Json | null
+          company_id: string | null
+          created_at: string
+          evaluation_criteria: string[] | null
+          id: string
+          is_active: boolean | null
+          persona_name: string
+          persona_type: string
+          role_id: string | null
+          typical_questions: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          characteristics?: Json
+          communication_style?: Json | null
+          company_id?: string | null
+          created_at?: string
+          evaluation_criteria?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          persona_name: string
+          persona_type: string
+          role_id?: string | null
+          typical_questions?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          characteristics?: Json
+          communication_style?: Json | null
+          company_id?: string | null
+          created_at?: string
+          evaluation_criteria?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          persona_name?: string
+          persona_type?: string
+          role_id?: string | null
+          typical_questions?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_persona_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_persona_profiles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_session_feedback: {
+        Row: {
+          categories: string[] | null
+          conversation_id: string
+          created_at: string
+          feedback_text: string | null
+          feedback_type: string
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          rating: number | null
+          resolved: boolean | null
+          resolved_at: string | null
+          user_id: string
+        }
+        Insert: {
+          categories?: string[] | null
+          conversation_id: string
+          created_at?: string
+          feedback_text?: string | null
+          feedback_type: string
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          rating?: number | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          user_id: string
+        }
+        Update: {
+          categories?: string[] | null
+          conversation_id?: string
+          created_at?: string
+          feedback_text?: string | null
+          feedback_type?: string
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          rating?: number | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_session_feedback_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_session_scores: {
+        Row: {
+          actionability_score: number | null
+          context_accuracy_score: number | null
+          conversation_id: string
+          created_at: string
+          helpfulness_score: number | null
+          id: string
+          metadata: Json | null
+          outcomes_achieved: string[] | null
+          quality_score: number | null
+          response_time_ms: number | null
+          session_date: string
+          tokens_used: number | null
+          tools_invoked: string[] | null
+          user_id: string
+          user_sentiment: string | null
+        }
+        Insert: {
+          actionability_score?: number | null
+          context_accuracy_score?: number | null
+          conversation_id: string
+          created_at?: string
+          helpfulness_score?: number | null
+          id?: string
+          metadata?: Json | null
+          outcomes_achieved?: string[] | null
+          quality_score?: number | null
+          response_time_ms?: number | null
+          session_date?: string
+          tokens_used?: number | null
+          tools_invoked?: string[] | null
+          user_id: string
+          user_sentiment?: string | null
+        }
+        Update: {
+          actionability_score?: number | null
+          context_accuracy_score?: number | null
+          conversation_id?: string
+          created_at?: string
+          helpfulness_score?: number | null
+          id?: string
+          metadata?: Json | null
+          outcomes_achieved?: string[] | null
+          quality_score?: number | null
+          response_time_ms?: number | null
+          session_date?: string
+          tokens_used?: number | null
+          tools_invoked?: string[] | null
+          user_id?: string
+          user_sentiment?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_session_scores_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_insights: {
         Row: {
           confidence_score: number | null
@@ -1202,6 +1416,108 @@ export type Database = {
           strengths?: string | null
           technical_score?: number | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      career_context_snapshots: {
+        Row: {
+          active_applications: Json | null
+          career_goals: Json | null
+          created_at: string
+          id: string
+          market_position: Json | null
+          network_insights: Json | null
+          next_best_actions: string[] | null
+          pending_tasks: Json | null
+          skill_gaps: Json | null
+          snapshot_date: string
+          upcoming_interviews: Json | null
+          urgency_flags: Json | null
+          user_id: string
+        }
+        Insert: {
+          active_applications?: Json | null
+          career_goals?: Json | null
+          created_at?: string
+          id?: string
+          market_position?: Json | null
+          network_insights?: Json | null
+          next_best_actions?: string[] | null
+          pending_tasks?: Json | null
+          skill_gaps?: Json | null
+          snapshot_date?: string
+          upcoming_interviews?: Json | null
+          urgency_flags?: Json | null
+          user_id: string
+        }
+        Update: {
+          active_applications?: Json | null
+          career_goals?: Json | null
+          created_at?: string
+          id?: string
+          market_position?: Json | null
+          network_insights?: Json | null
+          next_best_actions?: string[] | null
+          pending_tasks?: Json | null
+          skill_gaps?: Json | null
+          snapshot_date?: string
+          upcoming_interviews?: Json | null
+          urgency_flags?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      career_trend_insights: {
+        Row: {
+          category: string
+          confidence_score: number | null
+          created_at: string
+          description: string | null
+          geographic_scope: string[] | null
+          id: string
+          impact_level: string | null
+          metadata: Json | null
+          relevant_industries: string[] | null
+          relevant_roles: string[] | null
+          source_url: string | null
+          title: string
+          trend_type: string
+          valid_from: string
+          valid_until: string | null
+        }
+        Insert: {
+          category: string
+          confidence_score?: number | null
+          created_at?: string
+          description?: string | null
+          geographic_scope?: string[] | null
+          id?: string
+          impact_level?: string | null
+          metadata?: Json | null
+          relevant_industries?: string[] | null
+          relevant_roles?: string[] | null
+          source_url?: string | null
+          title: string
+          trend_type: string
+          valid_from?: string
+          valid_until?: string | null
+        }
+        Update: {
+          category?: string
+          confidence_score?: number | null
+          created_at?: string
+          description?: string | null
+          geographic_scope?: string[] | null
+          id?: string
+          impact_level?: string | null
+          metadata?: Json | null
+          relevant_industries?: string[] | null
+          relevant_roles?: string[] | null
+          source_url?: string | null
+          title?: string
+          trend_type?: string
+          valid_from?: string
+          valid_until?: string | null
         }
         Relationships: []
       }
@@ -9082,6 +9398,44 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_trend_subscriptions: {
+        Row: {
+          alerted_at: string | null
+          id: string
+          is_relevant: boolean | null
+          subscribed_at: string
+          trend_id: string
+          user_id: string
+          user_notes: string | null
+        }
+        Insert: {
+          alerted_at?: string | null
+          id?: string
+          is_relevant?: boolean | null
+          subscribed_at?: string
+          trend_id: string
+          user_id: string
+          user_notes?: string | null
+        }
+        Update: {
+          alerted_at?: string | null
+          id?: string
+          is_relevant?: boolean | null
+          subscribed_at?: string
+          trend_id?: string
+          user_id?: string
+          user_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_trend_subscriptions_trend_id_fkey"
+            columns: ["trend_id"]
+            isOneToOne: false
+            referencedRelation: "career_trend_insights"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       verification_attempts: {
         Row: {

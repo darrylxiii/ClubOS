@@ -45,8 +45,39 @@ Based on this history, provide contextually aware responses that reference previ
 
     // Fetch comprehensive user data - EVERYTHING in the platform
     let userContext = "";
+    let careerBrainContext = "";
+    let upcomingInterviews: any[] = [];
+    let activeApplicationsWithStages: any[] = [];
+    let urgentTasks: any[] = [];
     
     if (userId) {
+      // === CAREER BRAIN: AI MEMORY ===
+      const { data: aiMemory } = await supabase
+        .from("ai_memory")
+        .select("*")
+        .eq("user_id", userId)
+        .or("expires_at.is.null,expires_at.gt.now()")
+        .order("relevance_score", { ascending: false })
+        .limit(20);
+
+      // === CAREER BRAIN: TREND INSIGHTS ===
+      const { data: trendInsights } = await supabase
+        .from("career_trend_insights")
+        .select("*")
+        .or("valid_until.is.null,valid_until.gt.now()")
+        .order("impact_level", { ascending: false })
+        .limit(10);
+
+      // Get user-specific trend subscriptions
+      const { data: userTrends } = await supabase
+        .from("user_trend_subscriptions")
+        .select(`
+          *,
+          career_trend_insights(*)
+        `)
+        .eq("user_id", userId)
+        .eq("is_relevant", true);
+
       // Get user profile
       const { data: profile } = await supabase
         .from("profiles")
@@ -299,6 +330,95 @@ Based on this history, provide contextually aware responses that reference previ
         .order("updated_at", { ascending: false })
         .limit(5);
 
+      // === BUILD CAREER CONTEXT SNAPSHOT ===
+      const now = new Date();
+      upcomingInterviews = bookings
+        ?.filter(b => {
+          const start = new Date(b.scheduled_start);
+          const daysUntil = (start.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+          return daysUntil >= 0 && daysUntil <= 7; // Next 7 days
+        })
+        .map(b => {
+          const linkData = Array.isArray(b.booking_links) ? b.booking_links[0] : b.booking_links;
+          return {
+            title: linkData?.title || "Interview",
+            date: b.scheduled_start,
+            daysUntil: Math.ceil((new Date(b.scheduled_start).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+          };
+        }) || [];
+
+      activeApplicationsWithStages = applications
+        ?.filter(app => app.status === "active")
+        .map(app => {
+          const jobData = Array.isArray(app.jobs) ? app.jobs[0] : app.jobs;
+          const currentStage = app.stages?.[app.current_stage_index];
+          return {
+            position: jobData?.title || app.position,
+            company: app.company_name,
+            stage: currentStage?.name || "Unknown",
+            stageIndex: app.current_stage_index,
+            totalStages: app.stages?.length || 0
+          };
+        }) || [];
+
+      urgentTasks = tasks
+        ?.filter(t => t.status !== "completed" && (t.priority === "high" || t.priority === "urgent"))
+        .map(t => ({
+          title: t.title,
+          priority: t.priority,
+          dueDate: t.due_date
+        })) || [];
+
+      // Build Career Brain Context (proactive insights)
+      careerBrainContext = `
+=== 🧠 CAREER BRAIN: DEEP CONTEXTUAL AWARENESS ===
+
+🎯 AI MEMORY & LEARNED PREFERENCES:
+${aiMemory && aiMemory.length > 0 ?
+  aiMemory.map(mem => `- [${mem.memory_type.toUpperCase()}] ${mem.content} (Relevance: ${mem.relevance_score})`).join("\n")
+  : "No learned preferences yet - this is a fresh start"}
+
+⚡ URGENT ITEMS REQUIRING ATTENTION:
+${upcomingInterviews.length > 0 ? `
+📅 UPCOMING INTERVIEWS (Next 7 days):
+${upcomingInterviews.map(int => `  • ${int.title} in ${int.daysUntil} day${int.daysUntil !== 1 ? 's' : ''} (${new Date(int.date).toLocaleDateString()})`).join("\n")}
+  ⚠️ PROACTIVE SUGGESTION: Offer interview prep, company research, or question practice.
+` : ""}
+${urgentTasks.length > 0 ? `
+🚨 HIGH-PRIORITY TASKS:
+${urgentTasks.map(t => `  • ${t.title} (${t.priority})`).join("\n")}
+  ⚠️ PROACTIVE SUGGESTION: Ask if they need help prioritizing or breaking down tasks.
+` : ""}
+${activeApplicationsWithStages.length > 0 ? `
+📊 ACTIVE APPLICATION PIPELINES:
+${activeApplicationsWithStages.map(app => `  • ${app.position} at ${app.company} - Stage ${app.stageIndex + 1}/${app.totalStages}: ${app.stage}`).join("\n")}
+  ⚠️ PROACTIVE SUGGESTION: Flag any stalled applications or suggest next steps.
+` : ""}
+
+🌐 MARKET & TREND INSIGHTS:
+${trendInsights && trendInsights.length > 0 ?
+  trendInsights.slice(0, 5).map(trend => `- [${trend.impact_level?.toUpperCase() || 'INFO'}] ${trend.title}: ${trend.description?.substring(0, 120) || ''}...`).join("\n")
+  : "No current trend data available"}
+
+${userTrends && userTrends.length > 0 ? `
+📌 YOUR TRACKED TRENDS:
+${userTrends.map(ut => {
+  const trend = Array.isArray(ut.career_trend_insights) ? ut.career_trend_insights[0] : ut.career_trend_insights;
+  return `- ${trend?.title || "Trend"} ${ut.user_notes ? `(Note: ${ut.user_notes})` : ''}`;
+}).join("\n")}
+` : ""}
+
+=== END CAREER BRAIN ===
+
+⚠️ PROACTIVE BEHAVIOR RULES:
+1. When you see upcoming interviews, PROACTIVELY offer prep help even if not asked
+2. When you see urgent tasks, FLAG them and ask if they need prioritization help
+3. When you see stalled applications (no recent activity), SUGGEST follow-up actions
+4. When you see relevant trends, CONNECT them to user's goals and applications
+5. Always consider TIME SENSITIVITY - deadlines matter more than general advice
+6. Use REAL DATA from above - reference specific interview dates, task names, companies
+`;
+
       // Build context string
       userContext = `
 
@@ -460,7 +580,9 @@ Recent AI Sessions: ${aiConversations?.length || 0} conversations
 
 You have complete access to ALL user data above. When users ask about their activity, posts, achievements, tasks, connections, or ANY aspect of their experience in The Quantum Club, you KNOW the answer. Reference specific data points naturally and confidently.
 
-Use this context to provide personalized, relevant guidance. Reference specific details when appropriate.`;
+Use this context to provide personalized, relevant guidance. Reference specific details when appropriate.
+
+${careerBrainContext}`;
     }
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -887,6 +1009,70 @@ ${userContext}`;
           model: selectedModel,
           responseLength: fullResponse.length
         });
+
+        // === CREATE SESSION SCORING ===
+        if (conversationId && userId) {
+          try {
+            const responseTime = Date.now() - new Date().getTime(); // Approximate
+            const usedTools = toolCalls.length > 0 ? toolCalls.map(tc => tc.function?.name).filter(Boolean) : [];
+            
+            // Calculate quality score based on response characteristics
+            const qualityScore = Math.min(10, 5 + (fullResponse.length > 200 ? 2 : 0) + (toolCalls.length > 0 ? 2 : 0) + (mode !== "normal" ? 1 : 0));
+            
+            await supabase
+              .from("ai_session_scores")
+              .insert({
+                conversation_id: conversationId,
+                user_id: userId,
+                quality_score: qualityScore,
+                helpfulness_score: null, // User feedback needed
+                actionability_score: toolCalls.length > 0 ? 8 : 5,
+                context_accuracy_score: null, // User feedback needed
+                response_time_ms: responseTime,
+                tokens_used: fullResponse.length, // Approximate
+                tools_invoked: usedTools,
+                outcomes_achieved: [],
+                user_sentiment: "neutral",
+                metadata: {
+                  mode,
+                  model: selectedModel,
+                  message_count: newMessages.length,
+                  images_sent: images?.length || 0
+                }
+              });
+            
+            console.log("✅ Session score recorded");
+          } catch (scoreError) {
+            console.error("⚠️ Failed to record session score:", scoreError);
+          }
+        }
+
+        // === CREATE CAREER CONTEXT SNAPSHOT ===
+        if (userId && activeApplicationsWithStages && upcomingInterviews) {
+          try {
+            await supabase
+              .from("career_context_snapshots")
+              .insert({
+                user_id: userId,
+                active_applications: activeApplicationsWithStages,
+                upcoming_interviews: upcomingInterviews,
+                pending_tasks: urgentTasks || [],
+                skill_gaps: [],
+                career_goals: [],
+                network_insights: {},
+                market_position: {},
+                next_best_actions: [],
+                urgency_flags: [
+                  ...(upcomingInterviews.length > 0 ? ["interviews_scheduled"] : []),
+                  ...(urgentTasks && urgentTasks.length > 0 ? ["urgent_tasks_pending"] : [])
+                ]
+              });
+            
+            console.log("✅ Career context snapshot created");
+          } catch (snapshotError) {
+            console.error("⚠️ Failed to create career snapshot:", snapshotError);
+          }
+        }
       } catch (error) {
         console.error("❌ Error saving conversation:", error);
         // Don't throw - this is a background task
