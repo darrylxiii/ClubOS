@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { validatePostMediaFile } from "@/lib/fileValidation";
+import { FileText, X, Download } from "lucide-react";
 
 interface EditJobDialogProps {
   open: boolean;
@@ -17,7 +19,12 @@ interface EditJobDialogProps {
 
 export const EditJobDialog = ({ open, onOpenChange, jobId, onJobUpdated }: EditJobDialogProps) => {
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
+  const [jobDescriptionFile, setJobDescriptionFile] = useState<File | null>(null);
+  const [currentJobDescUrl, setCurrentJobDescUrl] = useState<string>('');
+  const [supportingDocuments, setSupportingDocuments] = useState<File[]>([]);
+  const [existingSupportingDocs, setExistingSupportingDocs] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -56,6 +63,8 @@ export const EditJobDialog = ({ open, onOpenChange, jobId, onJobUpdated }: EditJ
         currency: data.currency || 'EUR',
         company_id: data.company_id || '',
       });
+      setCurrentJobDescUrl(data.job_description_url || '');
+      setExistingSupportingDocs(Array.isArray(data.supporting_documents) ? data.supporting_documents : []);
     } catch (error) {
       console.error('Error fetching job:', error);
       toast.error("Failed to load job data");
@@ -78,6 +87,103 @@ export const EditJobDialog = ({ open, onOpenChange, jobId, onJobUpdated }: EditJ
     }
   };
 
+  const handleJobDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const validation = validatePostMediaFile(file);
+      if (!validation.valid) {
+        toast.error(validation.error);
+        return;
+      }
+      setJobDescriptionFile(file);
+    }
+  };
+
+  const handleSupportingDocumentsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles: File[] = [];
+    
+    for (const file of files) {
+      const validation = validatePostMediaFile(file);
+      if (!validation.valid) {
+        toast.error(`${file.name}: ${validation.error}`);
+        continue;
+      }
+      validFiles.push(file);
+    }
+    
+    setSupportingDocuments(prev => [...prev, ...validFiles]);
+  };
+
+  const removeSupportingDocument = (index: number) => {
+    setSupportingDocuments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingDocument = (index: number) => {
+    setExistingSupportingDocs(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const downloadDocument = async (url: string, name: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('job-documents')
+        .download(url);
+      
+      if (error) throw error;
+      
+      const blob = new Blob([data]);
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = name;
+      link.click();
+    } catch (error) {
+      toast.error('Failed to download document');
+    }
+  };
+
+  const uploadFiles = async () => {
+    setUploading(true);
+    let jobDescriptionUrl = currentJobDescUrl;
+    const supportingDocsUrls = [...existingSupportingDocs];
+
+    try {
+      // Upload job description if new file selected
+      if (jobDescriptionFile) {
+        const fileExt = jobDescriptionFile.name.split('.').pop();
+        const fileName = `${jobId}/job-description.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('job-documents')
+          .upload(fileName, jobDescriptionFile, { upsert: true });
+
+        if (uploadError) throw uploadError;
+        jobDescriptionUrl = fileName;
+      }
+
+      // Upload new supporting documents
+      for (let i = 0; i < supportingDocuments.length; i++) {
+        const file = supportingDocuments[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${jobId}/supporting/${Date.now()}-${i}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('job-documents')
+          .upload(fileName, file);
+
+        if (uploadError) throw uploadError;
+        supportingDocsUrls.push({
+          url: fileName,
+          name: file.name,
+          uploaded_at: new Date().toISOString()
+        });
+      }
+
+      return { jobDescriptionUrl, supportingDocsUrls };
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -89,6 +195,9 @@ export const EditJobDialog = ({ open, onOpenChange, jobId, onJobUpdated }: EditJ
     setLoading(true);
 
     try {
+      // Upload files first
+      const fileData = await uploadFiles();
+
       const { error } = await supabase
         .from('jobs')
         .update({
@@ -100,6 +209,8 @@ export const EditJobDialog = ({ open, onOpenChange, jobId, onJobUpdated }: EditJ
           salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
           salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
           currency: formData.currency,
+          job_description_url: fileData.jobDescriptionUrl,
+          supporting_documents: fileData.supportingDocsUrls,
         })
         .eq('id', jobId);
 
@@ -234,12 +345,116 @@ export const EditJobDialog = ({ open, onOpenChange, jobId, onJobUpdated }: EditJ
             </div>
           </div>
 
+          {/* Job Description Upload */}
+          <div className="space-y-2">
+            <Label htmlFor="job-description">Job Description Document</Label>
+            <div className="space-y-2">
+              {currentJobDescUrl && !jobDescriptionFile && (
+                <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
+                  <FileText className="w-4 h-4" />
+                  <span className="text-sm flex-1">Current job description</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => downloadDocument(currentJobDescUrl, 'job-description.pdf')}
+                  >
+                    <Download className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Input
+                  id="job-description"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleJobDescriptionChange}
+                  className="flex-1"
+                />
+                {jobDescriptionFile && (
+                  <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
+                    <FileText className="w-4 h-4" />
+                    <span className="text-sm">{jobDescriptionFile.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setJobDescriptionFile(null)}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Supporting Documents Upload */}
+          <div className="space-y-2">
+            <Label htmlFor="supporting-docs">Supporting Documents</Label>
+            <div className="space-y-2">
+              {existingSupportingDocs.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">Existing documents:</p>
+                  {existingSupportingDocs.map((doc, index) => (
+                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
+                      <FileText className="w-4 h-4" />
+                      <span className="text-sm flex-1">{doc.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => downloadDocument(doc.url, doc.name)}
+                      >
+                        <Download className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeExistingDocument(index)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Input
+                id="supporting-docs"
+                type="file"
+                accept=".pdf,.doc,.docx"
+                multiple
+                onChange={handleSupportingDocumentsChange}
+              />
+              {supportingDocuments.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">New documents to upload:</p>
+                  {supportingDocuments.map((file, index) => (
+                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
+                      <FileText className="w-4 h-4" />
+                      <span className="text-sm flex-1">{file.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeSupportingDocument(index)}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Saving..." : "Save Changes"}
+            <Button type="submit" disabled={loading || uploading}>
+              {uploading ? "Uploading..." : loading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>

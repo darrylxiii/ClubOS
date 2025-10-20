@@ -3656,6 +3656,7 @@ export type Database = {
           description: string | null
           employment_type: string | null
           id: string
+          job_description_url: string | null
           location: string | null
           pipeline_stages: Json | null
           published_at: string | null
@@ -3664,6 +3665,7 @@ export type Database = {
           salary_max: number | null
           salary_min: number | null
           status: string | null
+          supporting_documents: Json | null
           title: string
           updated_at: string | null
         }
@@ -3677,6 +3679,7 @@ export type Database = {
           description?: string | null
           employment_type?: string | null
           id?: string
+          job_description_url?: string | null
           location?: string | null
           pipeline_stages?: Json | null
           published_at?: string | null
@@ -3685,6 +3688,7 @@ export type Database = {
           salary_max?: number | null
           salary_min?: number | null
           status?: string | null
+          supporting_documents?: Json | null
           title: string
           updated_at?: string | null
         }
@@ -3698,6 +3702,7 @@ export type Database = {
           description?: string | null
           employment_type?: string | null
           id?: string
+          job_description_url?: string | null
           location?: string | null
           pipeline_stages?: Json | null
           published_at?: string | null
@@ -3706,6 +3711,7 @@ export type Database = {
           salary_max?: number | null
           salary_min?: number | null
           status?: string | null
+          supporting_documents?: Json | null
           title?: string
           updated_at?: string | null
         }
