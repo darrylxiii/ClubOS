@@ -24,6 +24,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerUrl, setViewerUrl] = useState<string>('');
   const [viewerTitle, setViewerTitle] = useState<string>('');
+  const [viewerType, setViewerType] = useState<'pdf' | 'docx' | 'other'>('pdf');
 
   useEffect(() => {
     fetchDocuments();
@@ -129,30 +130,43 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
 
   const viewDocument = async (url: string, name: string) => {
     try {
-      // Download the file as blob
-      const { data: fileData, error: downloadError } = await supabase.storage
-        .from('job-documents')
-        .download(url);
-      
-      if (downloadError) throw downloadError;
-      
-      // Determine MIME type from file extension
+      // Determine file type from extension
       const fileExt = url.split('.').pop()?.toLowerCase();
-      let mimeType = 'application/pdf';
       
-      if (fileExt === 'doc') {
-        mimeType = 'application/msword';
-      } else if (fileExt === 'docx') {
-        mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      if (fileExt === 'docx' || fileExt === 'doc') {
+        // For Word documents, use Google Docs Viewer
+        // First get a signed URL that's publicly accessible for a short time
+        const { data: signedData, error: signedError } = await supabase.storage
+          .from('job-documents')
+          .createSignedUrl(url, 3600); // 1 hour expiry
+        
+        if (signedError) throw signedError;
+        
+        if (signedData?.signedUrl) {
+          // Use Google Docs Viewer for DOCX files
+          const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(signedData.signedUrl)}&embedded=true`;
+          setViewerUrl(googleDocsUrl);
+          setViewerType('docx');
+          setViewerTitle(name);
+          setViewerOpen(true);
+        }
+      } else {
+        // For PDFs, download and create blob URL
+        const { data: fileData, error: downloadError } = await supabase.storage
+          .from('job-documents')
+          .download(url);
+        
+        if (downloadError) throw downloadError;
+        
+        // Create blob with PDF MIME type
+        const blob = new Blob([fileData], { type: 'application/pdf' });
+        const blobUrl = URL.createObjectURL(blob);
+        
+        setViewerUrl(blobUrl);
+        setViewerType('pdf');
+        setViewerTitle(name);
+        setViewerOpen(true);
       }
-      
-      // Create blob with proper MIME type for inline viewing
-      const blob = new Blob([fileData], { type: mimeType });
-      const blobUrl = URL.createObjectURL(blob);
-      
-      setViewerUrl(blobUrl);
-      setViewerTitle(name);
-      setViewerOpen(true);
     } catch (error) {
       console.error('Error viewing document:', error);
       toast.error('Failed to open document viewer');
@@ -420,8 +434,8 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       {/* Document Viewer Dialog */}
       <Dialog open={viewerOpen} onOpenChange={(open) => {
         setViewerOpen(open);
-        // Clean up blob URL when dialog closes
-        if (!open && viewerUrl) {
+        // Clean up blob URL when dialog closes (only for PDF blobs, not Google Docs URLs)
+        if (!open && viewerUrl && viewerType === 'pdf') {
           URL.revokeObjectURL(viewerUrl);
           setViewerUrl('');
         }
@@ -430,61 +444,33 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           <DialogHeader>
             <DialogTitle className="flex items-center justify-between">
               <span>{viewerTitle}</span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  if (viewerUrl) {
-                    const link = document.createElement('a');
-                    link.href = viewerUrl;
-                    link.download = viewerTitle;
-                    link.click();
-                  }
-                }}
-                className="gap-2"
-              >
-                <Download className="w-4 h-4" />
-                Download
-              </Button>
             </DialogTitle>
           </DialogHeader>
           <div className="flex-1 w-full bg-background/50 rounded-lg overflow-hidden border border-border">
-            {viewerUrl && (
-              <object
-                data={viewerUrl}
-                type="application/pdf"
-                className="w-full h-full"
+            {viewerUrl && viewerType === 'docx' && (
+              <iframe
+                src={viewerUrl}
+                className="w-full h-full border-0"
+                title={viewerTitle}
                 style={{ minHeight: '70vh' }}
-              >
-                <iframe
-                  src={`${viewerUrl}#view=FitH`}
-                  className="w-full h-full border-0"
-                  title={viewerTitle}
-                  style={{ minHeight: '70vh' }}
-                >
-                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                    <FileText className="w-16 h-16 text-muted-foreground mb-4" />
-                    <p className="text-lg font-semibold mb-2">Unable to display document</p>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Your browser doesn't support inline document viewing.
-                    </p>
-                    <Button
-                      onClick={() => {
-                        if (viewerUrl) {
-                          const link = document.createElement('a');
-                          link.href = viewerUrl;
-                          link.download = viewerTitle;
-                          link.click();
-                        }
-                      }}
-                      className="gap-2"
-                    >
-                      <Download className="w-4 h-4" />
-                      Download Document
-                    </Button>
-                  </div>
-                </iframe>
-              </object>
+                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+              />
+            )}
+            
+            {viewerUrl && viewerType === 'pdf' && (
+              <iframe
+                src={viewerUrl}
+                className="w-full h-full border-0"
+                title={viewerTitle}
+                style={{ minHeight: '70vh' }}
+              />
+            )}
+            
+            {!viewerUrl && (
+              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                <FileText className="w-16 h-16 text-muted-foreground mb-4" />
+                <p className="text-lg font-semibold mb-2">Loading document...</p>
+              </div>
             )}
           </div>
         </DialogContent>
