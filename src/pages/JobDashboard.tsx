@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AddStageDialog } from "@/components/partner/AddStageDialog";
 import { AdminJobTools } from "@/components/partner/AdminJobTools";
 import { EditJobDialog } from "@/components/partner/EditJobDialog";
+import { JobDocuments } from "@/components/partner/JobDocuments";
 import {
   DndContext,
   closestCenter,
@@ -666,12 +667,15 @@ export default function JobDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="candidates" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border border-accent/20">
+          <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border border-accent/20">
             <TabsTrigger value="candidates" className="data-[state=active]:bg-accent/20">
               Candidates
             </TabsTrigger>
             <TabsTrigger value="overview" className="data-[state=active]:bg-primary/20">
               Overview
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="data-[state=active]:bg-blue-500/20">
+              Documents
             </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-secondary/20">
               Analytics
@@ -716,6 +720,10 @@ export default function JobDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="documents">
+            <JobDocuments jobId={job.id} onUpdate={fetchJobDetails} />
           </TabsContent>
 
           <TabsContent value="analytics">
