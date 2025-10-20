@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,7 @@ import {
 
 export default function CourseDetail() {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
   
@@ -172,7 +173,11 @@ export default function CourseDetail() {
                   >
                     {course.is_published ? "Unpublish" : "Publish"}
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate(`/academy/courses/${course.id}/edit`)}
+                  >
                     Edit Course
                   </Button>
                 </div>
