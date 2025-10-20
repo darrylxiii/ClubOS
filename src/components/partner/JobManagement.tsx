@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Briefcase, MapPin, DollarSign, LayoutDashboard, Edit, Trash2 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
+import { EditJobDialog } from "./EditJobDialog";
 
 interface JobManagementProps {
   companyId: string;
@@ -17,6 +18,8 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedJobId, setSelectedJobId] = useState<string>("");
 
   useEffect(() => {
     fetchJobs();
@@ -182,7 +185,14 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
                         Close
                       </Button>
                     )}
-                    <Button size="sm" variant="outline">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setSelectedJobId(job.id);
+                        setEditDialogOpen(true);
+                      }}
+                    >
                       <Edit className="w-4 h-4" />
                     </Button>
                     <Button
@@ -213,6 +223,15 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
         companyId={companyId}
         onJobCreated={fetchJobs}
       />
+      
+      {selectedJobId && (
+        <EditJobDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          jobId={selectedJobId}
+          onJobUpdated={fetchJobs}
+        />
+      )}
     </>
   );
 };

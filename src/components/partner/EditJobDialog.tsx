@@ -6,18 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-interface CreateJobDialogProps {
+interface EditJobDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  companyId?: string;
-  onJobCreated: () => void;
+  jobId: string;
+  onJobUpdated: () => void;
 }
 
-export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }: CreateJobDialogProps) => {
-  const { user } = useAuth();
+export const EditJobDialog = ({ open, onOpenChange, jobId, onJobUpdated }: EditJobDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [formData, setFormData] = useState({
@@ -28,14 +26,41 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
     salary_min: '',
     salary_max: '',
     currency: 'EUR',
-    company_id: companyId || '',
+    company_id: '',
   });
 
   useEffect(() => {
-    if (open) {
+    if (open && jobId) {
+      fetchJobData();
       fetchCompanies();
     }
-  }, [open]);
+  }, [open, jobId]);
+
+  const fetchJobData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('jobs')
+        .select('*')
+        .eq('id', jobId)
+        .single();
+
+      if (error) throw error;
+      
+      setFormData({
+        title: data.title || '',
+        description: data.description || '',
+        location: data.location || '',
+        employment_type: data.employment_type || 'fulltime',
+        salary_min: data.salary_min?.toString() || '',
+        salary_max: data.salary_max?.toString() || '',
+        currency: data.currency || 'EUR',
+        company_id: data.company_id || '',
+      });
+    } catch (error) {
+      console.error('Error fetching job:', error);
+      toast.error("Failed to load job data");
+    }
+  };
 
   const fetchCompanies = async () => {
     try {
@@ -56,8 +81,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const targetCompanyId = companyId || formData.company_id;
-    if (!targetCompanyId) {
+    if (!formData.company_id) {
       toast.error("Please select a company");
       return;
     }
@@ -67,9 +91,8 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
     try {
       const { error } = await supabase
         .from('jobs')
-        .insert({
-          company_id: targetCompanyId,
-          created_by: user!.id,
+        .update({
+          company_id: formData.company_id,
           title: formData.title,
           description: formData.description,
           location: formData.location,
@@ -77,27 +100,17 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
           salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
           salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
           currency: formData.currency,
-          status: 'draft',
-        });
+        })
+        .eq('id', jobId);
 
       if (error) throw error;
 
-      toast.success("Job created successfully");
-      onJobCreated();
+      toast.success("Job updated successfully");
+      onJobUpdated();
       onOpenChange(false);
-      setFormData({
-        title: '',
-        description: '',
-        location: '',
-        employment_type: 'fulltime',
-        salary_min: '',
-        salary_max: '',
-        currency: 'EUR',
-        company_id: companyId || '',
-      });
     } catch (error) {
-      console.error('Error creating job:', error);
-      toast.error("Failed to create job");
+      console.error('Error updating job:', error);
+      toast.error("Failed to update job");
     } finally {
       setLoading(false);
     }
@@ -107,7 +120,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase">Create New Job</DialogTitle>
+          <DialogTitle className="text-2xl font-black uppercase">Edit Job</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
@@ -226,7 +239,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Job"}
+              {loading ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
