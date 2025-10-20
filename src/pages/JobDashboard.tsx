@@ -19,6 +19,7 @@ import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AddStageDialog } from "@/components/partner/AddStageDialog";
 import { AdminJobTools } from "@/components/partner/AdminJobTools";
+import { EditJobDialog } from "@/components/partner/EditJobDialog";
 import {
   DndContext,
   closestCenter,
@@ -57,6 +58,7 @@ export default function JobDashboard() {
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(defaultSettings);
   const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<any>(null);
   const [selectedCandidateForAction, setSelectedCandidateForAction] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -371,12 +373,23 @@ export default function JobDashboard() {
                 </div>
               </div>
             </div>
-            <Badge 
-              variant={job.status === 'published' ? 'default' : 'secondary'}
-              className="h-8 px-4 text-sm font-bold animate-pulse"
-            >
-              {job.status}
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditDialogOpen(true)}
+                className="h-9 gap-2 border-accent/30 hover:border-accent hover:bg-accent/10 transition-all"
+              >
+                <Edit className="w-4 h-4" />
+                Edit Job
+              </Button>
+              <Badge 
+                variant={job.status === 'published' ? 'default' : 'secondary'}
+                className="h-8 px-4 text-sm font-bold animate-pulse"
+              >
+                {job.status}
+              </Badge>
+            </div>
           </div>
         </div>
 
@@ -812,6 +825,14 @@ export default function JobDashboard() {
           }}
         />
       )}
+
+      {/* Edit Job Dialog */}
+      <EditJobDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        jobId={jobId!}
+        onJobUpdated={fetchJobDetails}
+      />
     </AppLayout>
   );
 }
