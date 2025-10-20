@@ -35,6 +35,7 @@ const Academy = lazy(() => import("./pages/Academy"));
 const AcademyCreatorHub = lazy(() => import("./pages/AcademyCreatorHub"));
 const ModuleDetail = lazy(() => import("./pages/ModuleDetail"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
+const CourseEdit = lazy(() => import("./pages/CourseEdit"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
 const UserSettings = lazy(() => import("./pages/UserSettings"));
@@ -373,6 +374,7 @@ const App = () => (
             <Route path="/academy/:slug" element={<Academy />} />
             <Route path="/academy/creator" element={<AcademyCreatorHub />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
+            <Route path="/academy/courses/:id/edit" element={<ProtectedRoute><CourseEdit /></ProtectedRoute>} />
             <Route path="/academy/modules/:slug" element={<ModuleDetail />} />
             <Route path="/module/:moduleId" element={<ModuleDetail />} />
             <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
