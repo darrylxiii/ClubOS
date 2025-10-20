@@ -237,7 +237,7 @@ const ClubAI = () => {
   };
 
   const sendMessage = async (messageText: string, uploadedFiles?: File[], selectedModel?: string) => {
-    if (!messageText.trim()) return;
+    if (!messageText.trim() && (!uploadedFiles || uploadedFiles.length === 0)) return;
     
     // Create conversation if none exists
     if (!currentConversationId) {
@@ -252,28 +252,67 @@ const ClubAI = () => {
     else if (messageText.startsWith("[Think:")) mode = "think";
     else if (messageText.startsWith("[Canvas:")) mode = "canvas";
 
-    // Convert uploaded files to base64 if provided
+    // Process uploaded files
     let imageDataUrls: string[] = [];
+    let documentData: Array<{ name: string; type: string; content: string }> = [];
+    
     if (uploadedFiles && uploadedFiles.length > 0) {
-      const imagePromises = uploadedFiles.map(file => {
-        return new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target?.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      });
+      const imageFiles = uploadedFiles.filter(f => f.type.startsWith('image/'));
+      const docFiles = uploadedFiles.filter(f => !f.type.startsWith('image/'));
       
-      try {
-        imageDataUrls = await Promise.all(imagePromises);
-      } catch (error) {
-        console.error("Error converting files to base64:", error);
-        toast({
-          title: "Error",
-          description: "Failed to process uploaded files",
-          variant: "destructive"
+      // Convert images to base64
+      if (imageFiles.length > 0) {
+        const imagePromises = imageFiles.map(file => {
+          return new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target?.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
         });
-        return;
+        
+        try {
+          imageDataUrls = await Promise.all(imagePromises);
+        } catch (error) {
+          console.error("Error converting images to base64:", error);
+          toast({
+            title: "Error",
+            description: "Failed to process uploaded images",
+            variant: "destructive"
+          });
+          return;
+        }
+      }
+      
+      // Process documents
+      if (docFiles.length > 0) {
+        const docPromises = docFiles.map(async (file) => {
+          return new Promise<{ name: string; type: string; content: string }>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const base64 = e.target?.result as string;
+              resolve({
+                name: file.name,
+                type: file.type,
+                content: base64
+              });
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        });
+        
+        try {
+          documentData = await Promise.all(docPromises);
+        } catch (error) {
+          console.error("Error processing documents:", error);
+          toast({
+            title: "Error",
+            description: "Failed to process uploaded documents",
+            variant: "destructive"
+          });
+          return;
+        }
       }
     }
 
@@ -359,6 +398,7 @@ const ClubAI = () => {
         userId: user?.id,
         conversationId: currentConversationId,
         images: imageDataUrls.length > 0 ? imageDataUrls : undefined,
+        documents: documentData.length > 0 ? documentData : undefined,
         selectedModel,
         onDelta: updateAssistant,
         onDone: async () => {
@@ -392,6 +432,7 @@ const ClubAI = () => {
     userId,
     conversationId,
     images,
+    documents,
     selectedModel,
     onDelta,
     onDone,
@@ -400,6 +441,7 @@ const ClubAI = () => {
     userId?: string;
     conversationId?: string | null;
     images?: string[];
+    documents?: Array<{ name: string; type: string; content: string }>;
     selectedModel?: string;
     onDelta: (chunk: string, toolCall?: any) => void;
     onDone: () => void;
@@ -412,7 +454,7 @@ const ClubAI = () => {
         "Content-Type": "application/json",
         Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
       },
-      body: JSON.stringify({ messages, userId, conversationId, images, selectedModel }),
+      body: JSON.stringify({ messages, userId, conversationId, images, documents, selectedModel }),
     });
 
     if (!resp.ok) {

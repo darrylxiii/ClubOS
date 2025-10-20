@@ -12,7 +12,14 @@ serve(async (req) => {
   }
 
   try {
-    const { messages, userId, conversationId, images, selectedModel: clientSelectedModel } = await req.json();
+    const { messages, userId, conversationId, images, documents, selectedModel: clientSelectedModel } = await req.json() as {
+      messages: any[];
+      userId?: string;
+      conversationId?: string;
+      images?: string[];
+      documents?: Array<{ name: string; type: string; content: string }>;
+      selectedModel?: string;
+    };
     
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -732,8 +739,18 @@ ${userContext}`;
       systemPrompt += `\n\n🎨 CANVAS MODE ACTIVE: The user is working on a creative, design, or code project. Focus on helping them build, design, or visualize things. Provide structured, actionable guidance for creating layouts, writing code, designing workflows, or planning visual elements. Think like a creative collaborator and technical architect combined.`;
     }
 
-    // Prepare messages with image support if provided
+    // Prepare messages with image and document support
     let formattedMessages: any[] = cleanedMessages;
+    let documentContext = "";
+    
+    // If documents are provided, add them as context
+    if (documents && documents.length > 0) {
+      documentContext = "\n\n**Attached Documents:**\n";
+      documents.forEach((doc) => {
+        documentContext += `\n- **${doc.name}** (${doc.type})\n`;
+      });
+      documentContext += "\nThe user has attached these documents for analysis. Please reference them in your response as needed.";
+    }
     
     if (images && images.length > 0) {
       // If images are provided, format the last user message to include them
@@ -765,6 +782,19 @@ ${userContext}`;
         return msg;
       });
     }
+    
+    // If documents exist but no images, add doc context to last user message
+    if (documents && documents.length > 0 && (!images || images.length === 0)) {
+      formattedMessages = cleanedMessages.map((msg: any, idx: number) => {
+        if (idx === cleanedMessages.length - 1 && msg.role === "user") {
+          return {
+            ...msg,
+            content: msg.content + documentContext
+          };
+        }
+        return msg;
+      });
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -777,7 +807,7 @@ ${userContext}`;
         messages: [
           {
             role: "system",
-            content: systemPrompt
+            content: systemPrompt + (documentContext || "")
           },
           ...formattedMessages,
         ],
@@ -880,6 +910,7 @@ ${userContext}`;
                 model: selectedModel,
                 mode: mode,
                 images_sent: images?.length || 0,
+                documents_sent: documents?.length || 0,
                 last_interaction: new Date().toISOString()
               },
               updated_at: new Date().toISOString()
@@ -897,6 +928,7 @@ ${userContext}`;
                 model: selectedModel,
                 mode: mode,
                 images_sent: images?.length || 0,
+                documents_sent: documents?.length || 0,
                 first_interaction: new Date().toISOString()
               }
             });

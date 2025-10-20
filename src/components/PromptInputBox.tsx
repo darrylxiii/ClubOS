@@ -2,7 +2,7 @@ import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
-import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode, Sparkles, Lock } from "lucide-react";
+import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode, Sparkles, Lock, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 // Utility function for className merging
@@ -537,20 +537,41 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
   const handleCanvasToggle = () => setShowCanvas((prev) => !prev);
 
   const isImageFile = (file: File) => file.type.startsWith("image/");
+  
+  const isDocumentFile = (file: File) => {
+    const docTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    ];
+    return docTypes.includes(file.type);
+  };
 
   const processFile = (file: File) => {
-    if (!isImageFile(file)) {
-      console.log("Only image files are allowed");
+    // Check if file type is supported
+    if (!isImageFile(file) && !isDocumentFile(file)) {
+      console.log("File type not supported. Please upload images or documents (PDF, DOCX, TXT, etc.)");
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      console.log("File too large (max 10MB)");
+    
+    if (file.size > 20 * 1024 * 1024) {
+      console.log("File too large (max 20MB)");
       return;
     }
-    setFiles([file]);
-    const reader = new FileReader();
-    reader.onload = (e) => setFilePreviews({ [file.name]: e.target?.result as string });
-    reader.readAsDataURL(file);
+    
+    setFiles((prev) => [...prev, file]);
+    
+    // Create preview for images only
+    if (isImageFile(file)) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setFilePreviews((prev) => ({ ...prev, [file.name]: e.target?.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleDragOver = React.useCallback((e: React.DragEvent) => {
@@ -567,14 +588,17 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
     e.preventDefault();
     e.stopPropagation();
     const files = Array.from(e.dataTransfer.files);
-    const imageFiles = files.filter((file) => isImageFile(file));
-    if (imageFiles.length > 0) processFile(imageFiles[0]);
+    files.forEach((file) => processFile(file));
   }, []);
 
   const handleRemoveFile = (index: number) => {
     const fileToRemove = files[index];
-    if (fileToRemove && filePreviews[fileToRemove.name]) setFilePreviews({});
-    setFiles([]);
+    if (fileToRemove && filePreviews[fileToRemove.name]) {
+      const newPreviews = { ...filePreviews };
+      delete newPreviews[fileToRemove.name];
+      setFilePreviews(newPreviews);
+    }
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const openImageModal = (imageUrl: string) => setSelectedImage(imageUrl);
@@ -763,7 +787,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
           <div className="flex flex-wrap gap-2 p-0 pb-1 transition-all duration-300">
             {files.map((file, index) => (
               <div key={index} className="relative group">
-                {file.type.startsWith("image/") && filePreviews[file.name] && (
+                {file.type.startsWith("image/") && filePreviews[file.name] ? (
                   <div
                     className="w-16 h-16 rounded-xl overflow-hidden cursor-pointer transition-all duration-300"
                     onClick={() => openImageModal(filePreviews[file.name])}
@@ -781,6 +805,20 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                       className="absolute top-1 right-1 rounded-full bg-black/70 dark:bg-white/70 p-0.5 opacity-100 transition-opacity"
                     >
                       <X className="h-3 w-3 text-white dark:text-black" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-auto min-w-[120px] max-w-[200px] h-12 rounded-xl bg-muted border border-border flex items-center gap-2 px-3 transition-all duration-300">
+                    <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                    <span className="text-sm text-foreground truncate flex-1">{file.name}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFile(index);
+                      }}
+                      className="rounded-full bg-muted-foreground/20 hover:bg-muted-foreground/30 p-0.5 transition-colors flex-shrink-0"
+                    >
+                      <X className="h-3 w-3 text-foreground" />
                     </button>
                   </div>
                 )}
