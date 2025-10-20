@@ -129,15 +129,25 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
 
   const viewDocument = async (url: string, name: string) => {
     try {
-      // Get the file as a blob first
+      // Download the file as blob
       const { data: fileData, error: downloadError } = await supabase.storage
         .from('job-documents')
         .download(url);
       
       if (downloadError) throw downloadError;
       
-      // Create a blob URL with the correct MIME type
-      const blob = new Blob([fileData], { type: fileData.type || 'application/pdf' });
+      // Determine MIME type from file extension
+      const fileExt = url.split('.').pop()?.toLowerCase();
+      let mimeType = 'application/pdf';
+      
+      if (fileExt === 'doc') {
+        mimeType = 'application/msword';
+      } else if (fileExt === 'docx') {
+        mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+      }
+      
+      // Create blob with proper MIME type for inline viewing
+      const blob = new Blob([fileData], { type: mimeType });
       const blobUrl = URL.createObjectURL(blob);
       
       setViewerUrl(blobUrl);
@@ -407,6 +417,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       </Card>
 
       {/* Document Viewer Dialog */}
+      {/* Document Viewer Dialog */}
       <Dialog open={viewerOpen} onOpenChange={(open) => {
         setViewerOpen(open);
         // Clean up blob URL when dialog closes
@@ -415,17 +426,65 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           setViewerUrl('');
         }
       }}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
           <DialogHeader>
-            <DialogTitle>{viewerTitle}</DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
+              <span>{viewerTitle}</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  if (viewerUrl) {
+                    const link = document.createElement('a');
+                    link.href = viewerUrl;
+                    link.download = viewerTitle;
+                    link.click();
+                  }
+                }}
+                className="gap-2"
+              >
+                <Download className="w-4 h-4" />
+                Download
+              </Button>
+            </DialogTitle>
           </DialogHeader>
-          <div className="w-full h-[70vh] bg-muted rounded-lg overflow-hidden">
+          <div className="flex-1 w-full bg-background/50 rounded-lg overflow-hidden border border-border">
             {viewerUrl && (
-              <iframe
-                src={`${viewerUrl}#toolbar=1&navpanes=0&scrollbar=1`}
-                className="w-full h-full border-0"
-                title={viewerTitle}
-              />
+              <object
+                data={viewerUrl}
+                type="application/pdf"
+                className="w-full h-full"
+                style={{ minHeight: '70vh' }}
+              >
+                <iframe
+                  src={`${viewerUrl}#view=FitH`}
+                  className="w-full h-full border-0"
+                  title={viewerTitle}
+                  style={{ minHeight: '70vh' }}
+                >
+                  <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                    <FileText className="w-16 h-16 text-muted-foreground mb-4" />
+                    <p className="text-lg font-semibold mb-2">Unable to display document</p>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Your browser doesn't support inline document viewing.
+                    </p>
+                    <Button
+                      onClick={() => {
+                        if (viewerUrl) {
+                          const link = document.createElement('a');
+                          link.href = viewerUrl;
+                          link.download = viewerTitle;
+                          link.click();
+                        }
+                      }}
+                      className="gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download Document
+                    </Button>
+                  </div>
+                </iframe>
+              </object>
             )}
           </div>
         </DialogContent>
