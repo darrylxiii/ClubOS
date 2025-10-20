@@ -129,15 +129,20 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
 
   const viewDocument = async (url: string, name: string) => {
     try {
-      const { data } = await supabase.storage
+      // Get the file as a blob first
+      const { data: fileData, error: downloadError } = await supabase.storage
         .from('job-documents')
-        .createSignedUrl(url, 3600);
-
-      if (data?.signedUrl) {
-        setViewerUrl(data.signedUrl);
-        setViewerTitle(name);
-        setViewerOpen(true);
-      }
+        .download(url);
+      
+      if (downloadError) throw downloadError;
+      
+      // Create a blob URL with the correct MIME type
+      const blob = new Blob([fileData], { type: fileData.type || 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+      
+      setViewerUrl(blobUrl);
+      setViewerTitle(name);
+      setViewerOpen(true);
     } catch (error) {
       console.error('Error viewing document:', error);
       toast.error('Failed to open document viewer');
@@ -402,7 +407,14 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       </Card>
 
       {/* Document Viewer Dialog */}
-      <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
+      <Dialog open={viewerOpen} onOpenChange={(open) => {
+        setViewerOpen(open);
+        // Clean up blob URL when dialog closes
+        if (!open && viewerUrl) {
+          URL.revokeObjectURL(viewerUrl);
+          setViewerUrl('');
+        }
+      }}>
         <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>{viewerTitle}</DialogTitle>
@@ -410,7 +422,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           <div className="w-full h-[70vh] bg-muted rounded-lg overflow-hidden">
             {viewerUrl && (
               <iframe
-                src={viewerUrl}
+                src={`${viewerUrl}#toolbar=1&navpanes=0&scrollbar=1`}
                 className="w-full h-full border-0"
                 title={viewerTitle}
               />
