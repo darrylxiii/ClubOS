@@ -25,17 +25,17 @@ export function SocialLinkPreview({ platform, url, className }: SocialLinkPrevie
         return {
           name: 'LinkedIn',
           icon: Linkedin,
-          color: 'text-blue-600',
-          bgColor: 'bg-blue-500/5',
-          borderColor: 'border-blue-500/20',
+          color: 'text-foreground',
+          bgColor: 'bg-muted/50',
+          borderColor: 'border-muted-foreground/20',
         };
       case 'instagram':
         return {
           name: 'Instagram',
           icon: Instagram,
-          color: 'text-pink-600',
-          bgColor: 'bg-pink-500/5',
-          borderColor: 'border-pink-500/20',
+          color: 'text-foreground',
+          bgColor: 'bg-muted/50',
+          borderColor: 'border-muted-foreground/20',
         };
       default:
         return {

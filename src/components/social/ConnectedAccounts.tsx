@@ -96,15 +96,7 @@ export const ConnectedAccounts = () => {
   };
 
   const getPlatformColor = (platform: string) => {
-    const colors: Record<string, string> = {
-      instagram: "from-purple-500 to-pink-500",
-      twitter: "from-blue-400 to-blue-600",
-      tiktok: "from-black to-gray-800",
-      youtube: "from-red-500 to-red-700",
-      linkedin: "from-blue-600 to-blue-800",
-      facebook: "from-blue-500 to-blue-700"
-    };
-    return colors[platform] || "from-gray-500 to-gray-700";
+    return "bg-foreground";
   };
 
   const platforms = ["instagram", "twitter", "tiktok", "youtube", "linkedin", "facebook"];
@@ -132,7 +124,7 @@ export const ConnectedAccounts = () => {
               <Card key={account.id} className="p-6 hover:bg-card/80 transition-colors">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className={`bg-gradient-to-br ${getPlatformColor(account.platform)} p-3 rounded-lg text-white`}>
+                    <div className={`${getPlatformColor(account.platform)} p-3 rounded-lg text-background`}>
                       {getPlatformIcon(account.platform)}
                     </div>
                     <div>
@@ -208,7 +200,7 @@ export const ConnectedAccounts = () => {
                 }`}
                 onClick={() => !isConnected && handleConnect(platform)}
               >
-                <div className={`bg-gradient-to-br ${getPlatformColor(platform)} p-4 rounded-lg text-white mx-auto w-fit mb-3`}>
+                <div className={`${getPlatformColor(platform)} p-4 rounded-lg text-background mx-auto w-fit mb-3`}>
                   {getPlatformIcon(platform)}
                 </div>
                 <p className="font-medium capitalize">{platform}</p>
