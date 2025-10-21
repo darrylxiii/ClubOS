@@ -92,11 +92,11 @@ export const ConnectedAccounts = () => {
       facebook: Facebook
     };
     const Icon = icons[platform] || Facebook;
-    return <Icon className="h-5 w-5" />;
+    return <Icon className="w-full h-full" />;
   };
 
   const getPlatformColor = (platform: string) => {
-    return "bg-foreground";
+    return "";
   };
 
   const platforms = ["instagram", "twitter", "tiktok", "youtube", "linkedin", "facebook"];
@@ -124,7 +124,7 @@ export const ConnectedAccounts = () => {
               <Card key={account.id} className="p-6 hover:bg-card/80 transition-colors">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className={`${getPlatformColor(account.platform)} p-3 rounded-lg text-background`}>
+                    <div className="w-8 h-8 text-foreground">
                       {getPlatformIcon(account.platform)}
                     </div>
                     <div>
@@ -200,7 +200,7 @@ export const ConnectedAccounts = () => {
                 }`}
                 onClick={() => !isConnected && handleConnect(platform)}
               >
-                <div className={`${getPlatformColor(platform)} p-4 rounded-lg text-background mx-auto w-fit mb-3`}>
+                <div className="w-8 h-8 text-foreground mx-auto mb-3">
                   {getPlatformIcon(platform)}
                 </div>
                 <p className="font-medium capitalize">{platform}</p>
