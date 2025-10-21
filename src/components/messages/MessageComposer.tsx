@@ -101,12 +101,13 @@ export const MessageComposer = ({
     }
   };
 
-  const handleVoiceSend = async (audioUrl: string, duration: number) => {
+  const handleVoiceSend = async (audioUrl: string, duration: number, transcript?: string) => {
     try {
       await onSend("", undefined, { 
         media_type: 'audio', 
         media_url: audioUrl, 
-        media_duration: duration 
+        media_duration: duration,
+        transcript: transcript || undefined
       });
     } catch (error) {
       console.error("Error sending voice message:", error);

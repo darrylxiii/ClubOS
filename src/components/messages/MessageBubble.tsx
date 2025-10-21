@@ -131,13 +131,28 @@ export const MessageBubble = ({
     }
 
     if (message.media_type === 'audio' && message.media_url) {
+      const metadata = message.metadata as any;
+      const transcript = metadata?.transcript;
+      
       return (
-        <div className="flex items-center gap-2">
-          <Volume2 className="h-4 w-4" />
-          <audio controls src={message.media_url} className="max-w-xs" />
-          <span className="text-xs opacity-70">
-            {message.media_duration ? `${Math.floor(message.media_duration / 60)}:${(message.media_duration % 60).toString().padStart(2, '0')}` : ''}
-          </span>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Volume2 className="h-4 w-4" />
+            <audio controls src={message.media_url} className="max-w-xs" />
+            <span className="text-xs opacity-70">
+              {message.media_duration ? `${Math.floor(message.media_duration / 60)}:${(message.media_duration % 60).toString().padStart(2, '0')}` : ''}
+            </span>
+          </div>
+          {transcript && (
+            <div className={cn(
+              "text-xs italic p-2 rounded-lg border",
+              isCurrentUser 
+                ? "bg-white/10 border-white/20 text-white/90" 
+                : "bg-muted/30 border-border/30 text-muted-foreground"
+            )}>
+              "{transcript}"
+            </div>
+          )}
         </div>
       );
     }
