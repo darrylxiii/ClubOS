@@ -1,21 +1,18 @@
 import { AppLayout } from "@/components/AppLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
-import { Settings as SettingsIcon, Bell, Lock, User, Globe, Sparkles } from "lucide-react";
+import { Settings as SettingsIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { AvatarUpload } from "@/components/AvatarUpload";
 import { useLocation, useNavigate } from "react-router-dom";
-import { TwoFactorSettings } from "@/components/TwoFactorSettings";
 import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
+import { ProfileSettings } from "@/components/settings/ProfileSettings";
+import { CompensationSettings } from "@/components/settings/CompensationSettings";
+import { SecuritySettings } from "@/components/settings/SecuritySettings";
+import { ConnectionsSettings } from "@/components/settings/ConnectionsSettings";
+import { PrivacySettings } from "@/components/settings/PrivacySettings";
+import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -24,29 +21,76 @@ const Settings = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
   
-  // Form states
+  // Profile states
   const [fullName, setFullName] = useState("");
   const [currentTitle, setCurrentTitle] = useState("");
   const [bio, setBio] = useState("");
   const [locationCity, setLocationCity] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
-  
-  // Notification states
-  const [emailNotifications, setEmailNotifications] = useState(true);
-  const [pushNotifications, setPushNotifications] = useState(true);
-  const [jobAlerts, setJobAlerts] = useState(true);
-  const [messageNotifications, setMessageNotifications] = useState(true);
-  
-  // Privacy states
-  const [profileVisibility, setProfileVisibility] = useState(true);
-  const [employerShield, setEmployerShield] = useState(false);
-  const [showContact, setShowContact] = useState(true);
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [preferredWorkLocations, setPreferredWorkLocations] = useState<string[]>([]);
+  const [remoteWorkPreference, setRemoteWorkPreference] = useState(false);
+  const [cities, setCities] = useState<Array<{ id: string; name: string; country: string }>>([]);
 
-  // Get active tab from URL hash or default to 'account'
+  // Compensation states
+  const [employmentType, setEmploymentType] = useState<'fulltime' | 'freelance' | 'both'>('fulltime');
+  const [currentSalaryRange, setCurrentSalaryRange] = useState<[number, number]>([150000, 180000]);
+  const [desiredSalaryRange, setDesiredSalaryRange] = useState<[number, number]>([200000, 250000]);
+  const [freelanceHourlyRate, setFreelanceHourlyRate] = useState<[number, number]>([100, 200]);
+  const [fulltimeHoursPerWeek, setFulltimeHoursPerWeek] = useState<[number, number]>([35, 45]);
+  const [freelanceHoursPerWeek, setFreelanceHoursPerWeek] = useState<[number, number]>([15, 25]);
+  const [noticePeriod, setNoticePeriod] = useState("2_weeks");
+  const [contractEndDate, setContractEndDate] = useState<Date | null>(null);
+  const [hasIndefiniteContract, setHasIndefiniteContract] = useState(false);
+
+  // Privacy states
+  const [blockedCompanies, setBlockedCompanies] = useState<string[]>([]);
+  const [companySearchQuery, setCompanySearchQuery] = useState("");
+  const [stealthModeEnabled, setStealthModeEnabled] = useState(false);
+  const [stealthModeLevel, setStealthModeLevel] = useState(1);
+  const [allowStealthColdOutreach, setAllowStealthColdOutreach] = useState(true);
+  const [privacySettings, setPrivacySettings] = useState({
+    share_full_name: true,
+    share_email: true,
+    share_phone: true,
+    share_location: true,
+    share_current_title: true,
+    share_linkedin_url: true,
+    share_career_preferences: true,
+    share_resume: true,
+    share_salary_expectations: true,
+    share_notice_period: true,
+  });
+
+  // Social connections
+  const [socialConnections, setSocialConnections] = useState({
+    linkedin: false,
+    instagram: false,
+    twitter: false,
+    github: false,
+    instagramUsername: '',
+    twitterUsername: '',
+    githubUsername: '',
+  });
+
+  const [musicConnections, setMusicConnections] = useState({
+    spotifyConnected: false,
+    appleMusicConnected: false,
+    spotifyPlaylists: [] as any[],
+    appleMusicPlaylists: [] as any[],
+  });
+
+  // Preferences
+  const [preferredCurrency, setPreferredCurrency] = useState<'EUR' | 'USD' | 'GBP' | 'AED'>('EUR');
+
+  // Get active tab from URL hash or default to 'profile'
   const getActiveTab = () => {
     const hash = location.hash.replace('#', '');
-    return hash || 'account';
+    return hash || 'profile';
   };
 
   const [activeTab, setActiveTab] = useState(getActiveTab());
@@ -62,9 +106,21 @@ const Settings = () => {
     navigate(`/settings#${value}`, { replace: true });
   };
 
+  // Debounced save function
+  const debouncedSave = useCallback(() => {
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      saveProfile();
+    }, 1000);
+  }, []);
+
   // Load profile data
   useEffect(() => {
     loadProfile();
+    loadCities();
   }, [user]);
 
   const loadProfile = async () => {
@@ -85,7 +141,83 @@ const Settings = () => {
         setCurrentTitle(data.current_title || '');
         setBio(data.career_preferences || '');
         setLocationCity(data.location || '');
-        setPhoneNumber(data.email || '');
+        setPhoneNumber(data.phone || '');
+        setPhoneVerified(data.phone_verified || false);
+        setEmailVerified(data.email_verified || false);
+        setLinkedinUrl(data.linkedin_url || '');
+        setPreferredWorkLocations((data.preferred_work_locations as string[]) || []);
+        setRemoteWorkPreference(data.remote_work_preference || false);
+        
+        // Compensation
+        setEmploymentType((data.employment_type_preference as 'fulltime' | 'freelance' | 'both') || 'fulltime');
+        setCurrentSalaryRange([
+          data.current_salary_min || 150000,
+          data.current_salary_max || 180000
+        ]);
+        setDesiredSalaryRange([
+          data.desired_salary_min || 200000,
+          data.desired_salary_max || 250000
+        ]);
+        setFreelanceHourlyRate([
+          data.freelance_hourly_rate_min || 100,
+          data.freelance_hourly_rate_max || 200
+        ]);
+        setFulltimeHoursPerWeek([
+          data.fulltime_hours_per_week_min || 35,
+          data.fulltime_hours_per_week_max || 45
+        ]);
+        setFreelanceHoursPerWeek([
+          data.freelance_hours_per_week_min || 15,
+          data.freelance_hours_per_week_max || 25
+        ]);
+        setNoticePeriod(data.notice_period || '2_weeks');
+        setContractEndDate((data as any).contract_end_date ? new Date((data as any).contract_end_date) : null);
+        setHasIndefiniteContract((data as any).has_indefinite_contract || false);
+
+        // Privacy
+        setBlockedCompanies((data.blocked_companies as string[]) || []);
+        setStealthModeEnabled(data.stealth_mode_enabled || false);
+        setStealthModeLevel(data.stealth_mode_level || 1);
+        setAllowStealthColdOutreach(data.allow_stealth_cold_outreach !== false);
+        if (data.privacy_settings) {
+          setPrivacySettings(data.privacy_settings as any);
+        }
+
+        // Currency
+        setPreferredCurrency((data.preferred_currency as 'EUR' | 'USD' | 'GBP' | 'AED') || 'EUR');
+
+        // Social connections
+        if (data.linkedin_connected) {
+          setSocialConnections(prev => ({ ...prev, linkedin: true }));
+        }
+        if (data.instagram_connected && data.instagram_username) {
+          setSocialConnections(prev => ({ 
+            ...prev, 
+            instagram: true,
+            instagramUsername: data.instagram_username 
+          }));
+        }
+        if (data.twitter_connected && data.twitter_username) {
+          setSocialConnections(prev => ({ 
+            ...prev, 
+            twitter: true,
+            twitterUsername: data.twitter_username 
+          }));
+        }
+        if (data.github_connected && data.github_username) {
+          setSocialConnections(prev => ({ 
+            ...prev, 
+            github: true,
+            githubUsername: data.github_username 
+          }));
+        }
+
+        setMusicConnections({
+          spotifyConnected: (data as any).spotify_connected || false,
+          appleMusicConnected: (data as any).apple_music_connected || false,
+          spotifyPlaylists: (data as any).spotify_playlists || [],
+          appleMusicPlaylists: (data as any).apple_music_playlists || [],
+        });
       }
     } catch (error: any) {
       console.error('Error loading profile:', error);
@@ -95,67 +227,78 @@ const Settings = () => {
     }
   };
 
-  const handleSaveAccount = async () => {
-    if (!user) return;
-    
-    setSaving(true);
+  const loadCities = async () => {
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: fullName,
-          current_title: currentTitle,
-          career_preferences: bio,
-          location: locationCity,
-          updated_at: new Date().toISOString()
-        });
+      const { data, error } = await supabase
+        .from('cities')
+        .select('id, name, country')
+        .eq('is_active', true)
+        .order('name');
 
       if (error) throw error;
-      
-      toast.success('Profile updated successfully');
-      await loadProfile();
-    } catch (error: any) {
-      console.error('Error saving profile:', error);
-      toast.error('Failed to update profile');
-    } finally {
-      setSaving(false);
+      if (data) {
+        setCities(data);
+      }
+    } catch (error) {
+      console.error('Error loading cities:', error);
     }
   };
 
-  const handleSaveNotifications = () => {
-    // Save notification preferences
-    localStorage.setItem('emailNotifications', emailNotifications.toString());
-    localStorage.setItem('pushNotifications', pushNotifications.toString());
-    localStorage.setItem('jobAlerts', jobAlerts.toString());
-    localStorage.setItem('messageNotifications', messageNotifications.toString());
-    toast.success('Notification preferences saved');
-  };
-
-  const handleSavePrivacy = async () => {
+  const saveProfile = async () => {
     if (!user) return;
-    
+
     setSaving(true);
     try {
       const { error } = await supabase
         .from('profiles')
         .update({
-          profile_visibility: profileVisibility,
-          employer_shield: employerShield,
-          show_contact: showContact,
+          full_name: fullName,
+          current_title: currentTitle,
+          career_preferences: bio,
+          location: locationCity,
+          phone: phoneNumber,
+          phone_verified: phoneVerified,
+          email_verified: emailVerified,
+          linkedin_url: linkedinUrl,
+          preferred_work_locations: preferredWorkLocations,
+          remote_work_preference: remoteWorkPreference,
+          employment_type_preference: employmentType,
+          current_salary_min: currentSalaryRange[0],
+          current_salary_max: currentSalaryRange[1],
+          desired_salary_min: desiredSalaryRange[0],
+          desired_salary_max: desiredSalaryRange[1],
+          freelance_hourly_rate_min: freelanceHourlyRate[0],
+          freelance_hourly_rate_max: freelanceHourlyRate[1],
+          fulltime_hours_per_week_min: fulltimeHoursPerWeek[0],
+          fulltime_hours_per_week_max: fulltimeHoursPerWeek[1],
+          freelance_hours_per_week_min: freelanceHoursPerWeek[0],
+          freelance_hours_per_week_max: freelanceHoursPerWeek[1],
+          notice_period: noticePeriod,
+          contract_end_date: contractEndDate?.toISOString(),
+          has_indefinite_contract: hasIndefiniteContract,
+          blocked_companies: blockedCompanies,
+          stealth_mode_enabled: stealthModeEnabled,
+          stealth_mode_level: stealthModeLevel,
+          allow_stealth_cold_outreach: allowStealthColdOutreach,
+          privacy_settings: privacySettings,
+          preferred_currency: preferredCurrency,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .eq('id', user.id);
 
       if (error) throw error;
       
-      toast.success('Privacy settings saved');
+      toast.success('Settings saved successfully');
     } catch (error: any) {
-      console.error('Error saving privacy:', error);
-      toast.error('Failed to save privacy settings');
+      console.error('Error saving profile:', error);
+      toast.error('Failed to save settings');
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSavePrivacy = async () => {
+    await saveProfile();
   };
 
   const handleExportData = async () => {
@@ -180,6 +323,123 @@ const Settings = () => {
     }
   };
 
+  const handlePrivacyToggle = (setting: string) => {
+    setPrivacySettings({
+      ...privacySettings,
+      [setting]: !(privacySettings as any)[setting],
+    });
+    debouncedSave();
+  };
+
+  const handleStealthModeChange = (enabled: boolean) => {
+    setStealthModeEnabled(enabled);
+    debouncedSave();
+  };
+
+  const handleStealthLevelChange = (level: number) => {
+    setStealthModeLevel(level);
+    debouncedSave();
+  };
+
+  const handleColdOutreachChange = (allowed: boolean) => {
+    setAllowStealthColdOutreach(allowed);
+    debouncedSave();
+  };
+
+  const handleConnectSocial = async (provider: 'linkedin_oidc' | 'twitter' | 'instagram' | 'github') => {
+    try {
+      const redirectTo = `${window.location.origin}/settings`;
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: provider as any,
+        options: {
+          redirectTo,
+          scopes: provider === 'linkedin_oidc' ? 'openid profile email' : 
+                  provider === 'github' ? 'read:user user:email' : undefined,
+        }
+      });
+
+      if (error) throw error;
+      
+      toast.success(`Redirecting to ${provider} login...`);
+    } catch (error) {
+      console.error(`${provider} connection error:`, error);
+      toast.error(`Failed to connect ${provider}`);
+    }
+  };
+
+  const handleDisconnectSocial = async (platform: 'linkedin' | 'instagram' | 'twitter' | 'github') => {
+    try {
+      const updates: any = {};
+      
+      if (platform === 'linkedin') {
+        updates.linkedin_connected = false;
+        updates.linkedin_profile_data = null;
+      } else if (platform === 'instagram') {
+        updates.instagram_connected = false;
+        updates.instagram_username = null;
+      } else if (platform === 'twitter') {
+        updates.twitter_connected = false;
+        updates.twitter_username = null;
+      } else if (platform === 'github') {
+        updates.github_connected = false;
+        updates.github_username = null;
+        updates.github_profile_data = null;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', user?.id);
+
+      if (error) throw error;
+
+      setSocialConnections(prev => ({
+        ...prev,
+        [platform]: false,
+        [`${platform}Username`]: '',
+      }));
+
+      toast.success(`${platform} disconnected`);
+    } catch (error) {
+      console.error(`Error disconnecting ${platform}:`, error);
+      toast.error(`Failed to disconnect ${platform}`);
+    }
+  };
+
+  const handleSocialUpdate = async () => {
+    await loadProfile();
+  };
+
+  const handleCurrencyChange = async (currency: 'EUR' | 'USD' | 'GBP' | 'AED') => {
+    setPreferredCurrency(currency);
+    
+    if (!user) return;
+    
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ preferred_currency: currency })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      toast.success(`Currency preference updated to ${currency}`);
+    } catch (error) {
+      console.error('Error updating currency:', error);
+      toast.error('Failed to update currency preference');
+    }
+  };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
   if (loading) {
     return (
       <AppLayout>
@@ -197,154 +457,85 @@ const Settings = () => {
           <SettingsIcon className="w-8 h-8 text-foreground" />
           <div>
             <h1 className="text-4xl font-semibold uppercase tracking-tight text-foreground">Settings</h1>
-            <p className="text-muted-foreground">Your club profile is your calling card – only visible to invite-only members</p>
+            <p className="text-muted-foreground">Manage your profile and preferences</p>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="account">Account</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-7">
+            <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsTrigger value="compensation">Compensation</TabsTrigger>
+            <TabsTrigger value="connections">Connections</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="account" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Profile Picture
-                </CardTitle>
-                <CardDescription>
-                  Add a professional photo to complete your profile
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {user && (
-                  <AvatarUpload
-                    avatarUrl={profile?.avatar_url}
-                    onAvatarChange={(url) => setProfile({ ...profile, avatar_url: url })}
-                    userId={user.id}
-                    required={true}
-                  />
-                )}
-              </CardContent>
-            </Card>
+          <TabsContent value="profile" className="space-y-4">
+            <ProfileSettings
+              user={user}
+              profile={profile}
+              fullName={fullName}
+              setFullName={setFullName}
+              currentTitle={currentTitle}
+              setCurrentTitle={setCurrentTitle}
+              bio={bio}
+              setBio={setBio}
+              locationCity={locationCity}
+              setLocationCity={setLocationCity}
+              phoneNumber={phoneNumber}
+              setPhoneNumber={setPhoneNumber}
+              phoneVerified={phoneVerified}
+              setPhoneVerified={setPhoneVerified}
+              emailVerified={emailVerified}
+              setEmailVerified={setEmailVerified}
+              linkedinUrl={linkedinUrl}
+              setLinkedinUrl={setLinkedinUrl}
+              preferredWorkLocations={preferredWorkLocations}
+              setPreferredWorkLocations={setPreferredWorkLocations}
+              remoteWorkPreference={remoteWorkPreference}
+              setRemoteWorkPreference={setRemoteWorkPreference}
+              cities={cities}
+              onSave={saveProfile}
+              onAvatarChange={(url) => setProfile({ ...profile, avatar_url: url })}
+              saving={saving}
+            />
+          </TabsContent>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Personal Information
-                </CardTitle>
-                <CardDescription>
-                  Complete your profile to get the best matches
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullname">Full Name *</Label>
-                  <Input 
-                    id="fullname" 
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Your full name"
-                  />
-                </div>
+          <TabsContent value="compensation" className="space-y-4">
+            <CompensationSettings
+              employmentType={employmentType}
+              setEmploymentType={setEmploymentType}
+              currentSalaryRange={currentSalaryRange}
+              setCurrentSalaryRange={setCurrentSalaryRange}
+              desiredSalaryRange={desiredSalaryRange}
+              setDesiredSalaryRange={setDesiredSalaryRange}
+              freelanceHourlyRate={freelanceHourlyRate}
+              setFreelanceHourlyRate={setFreelanceHourlyRate}
+              fulltimeHoursPerWeek={fulltimeHoursPerWeek}
+              setFulltimeHoursPerWeek={setFulltimeHoursPerWeek}
+              freelanceHoursPerWeek={freelanceHoursPerWeek}
+              setFreelanceHoursPerWeek={setFreelanceHoursPerWeek}
+              noticePeriod={noticePeriod}
+              setNoticePeriod={setNoticePeriod}
+              contractEndDate={contractEndDate}
+              setContractEndDate={setContractEndDate}
+              hasIndefiniteContract={hasIndefiniteContract}
+              setHasIndefiniteContract={setHasIndefiniteContract}
+              onSave={saveProfile}
+              saving={saving}
+            />
+          </TabsContent>
 
-                <div className="space-y-2">
-                  <Label htmlFor="title">Current Title</Label>
-                  <Input 
-                    id="title" 
-                    value={currentTitle}
-                    onChange={(e) => setCurrentTitle(e.target.value)}
-                    placeholder="e.g., Senior Software Engineer"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="bio">Professional Bio</Label>
-                  <Textarea 
-                    id="bio"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    placeholder="Tell us about your experience and what you're looking for..."
-                    className="min-h-[100px]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
-                    <Input 
-                      id="location" 
-                      value={locationCity}
-                      onChange={(e) => setLocationCity(e.target.value)}
-                      placeholder="City, Country"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <Input 
-                      id="phone" 
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      placeholder="+31 6 12345678"
-                    />
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input 
-                    id="email" 
-                    type="email" 
-                    value={user?.email || ""} 
-                    disabled
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Contact support to change your email address
-                  </p>
-                </div>
-
-                <Button 
-                  onClick={handleSaveAccount}
-                  disabled={saving}
-                  className="w-full"
-                >
-                  {saving ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </CardContent>
-            </Card>
-
-            <TwoFactorSettings />
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  Password
-                </CardTitle>
-                <CardDescription>
-                  Update your password regularly to keep your account secure
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Change Password</Label>
-                  <p className="text-sm text-muted-foreground">
-                    You'll be signed out of all devices after changing your password
-                  </p>
-                  <Button variant="outline">
-                    Change Password
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="connections" className="space-y-4">
+            <ConnectionsSettings
+              socialConnections={socialConnections}
+              musicConnections={musicConnections}
+              onConnectSocial={handleConnectSocial}
+              onDisconnectSocial={handleDisconnectSocial}
+              onUpdate={handleSocialUpdate}
+            />
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-4">
@@ -352,203 +543,34 @@ const Settings = () => {
           </TabsContent>
 
           <TabsContent value="privacy" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  Privacy Settings
-                </CardTitle>
-                <CardDescription>
-                  Control who can see your information – settings are private to members only
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Profile Visibility</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Make your profile visible to companies
-                    </p>
-                  </div>
-                  <Switch 
-                    checked={profileVisibility}
-                    onCheckedChange={setProfileVisibility}
-                  />
-                </div>
+            <PrivacySettings
+              blockedCompanies={blockedCompanies}
+              setBlockedCompanies={setBlockedCompanies}
+              companySearchQuery={companySearchQuery}
+              setCompanySearchQuery={setCompanySearchQuery}
+              stealthModeEnabled={stealthModeEnabled}
+              stealthModeLevel={stealthModeLevel}
+              allowStealthColdOutreach={allowStealthColdOutreach}
+              onStealthModeChange={handleStealthModeChange}
+              onStealthLevelChange={handleStealthLevelChange}
+              onColdOutreachChange={handleColdOutreachChange}
+              privacySettings={privacySettings}
+              onPrivacyToggle={handlePrivacyToggle}
+              onSave={handleSavePrivacy}
+              onExportData={handleExportData}
+              saving={saving}
+            />
+          </TabsContent>
 
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Current Employer Shield</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Hide your profile from your current employer
-                    </p>
-                  </div>
-                  <Switch 
-                    checked={employerShield}
-                    onCheckedChange={setEmployerShield}
-                  />
-                </div>
-
-                <Separator />
-
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label>Show Contact Information</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Allow companies to see your contact details
-                    </p>
-                  </div>
-                  <Switch 
-                    checked={showContact}
-                    onCheckedChange={setShowContact}
-                  />
-                </div>
-
-                <Button 
-                  onClick={handleSavePrivacy}
-                  disabled={saving}
-                  className="w-full"
-                >
-                  {saving ? 'Saving...' : 'Save Privacy Settings'}
-                </Button>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label>Data Export (GDPR)</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Download all your data in a portable format
-                  </p>
-                  <Button 
-                    variant="outline" 
-                    onClick={handleExportData}
-                  >
-                    Request Data Export
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label className="text-destructive">Delete Account</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Permanently delete your account and all data
-                  </p>
-                  <Button variant="ghost" size="sm">
-                    Delete Account
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+          <TabsContent value="security" className="space-y-4">
+            <SecuritySettings />
           </TabsContent>
 
           <TabsContent value="preferences" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Globe className="w-5 h-5" />
-                  Display Preferences
-                </CardTitle>
-                <CardDescription>
-                  Customize how the platform looks for you
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label>Language</Label>
-                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
-                    <option>English</option>
-                    <option>Nederlands</option>
-                  </select>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label>Timezone</Label>
-                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
-                    <option>Europe/Amsterdam</option>
-                    <option>America/New_York</option>
-                    <option>Asia/Tokyo</option>
-                  </select>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label>Currency</Label>
-                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
-                    <option>EUR (€)</option>
-                    <option>USD ($)</option>
-                    <option>GBP (£)</option>
-                  </select>
-                </div>
-
-                <Button 
-                  onClick={() => toast.success("Preferences saved")}
-                  className="w-full"
-                >
-                  Save Preferences
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                  Career Preferences
-                </CardTitle>
-                <CardDescription>
-                  Set your salary expectations and career goals
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Expected Salary Range</Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input 
-                      placeholder="Min (€)"
-                    />
-                    <Input 
-                      placeholder="Max (€)"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Preferred Job Type</Label>
-                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
-                    <option>Full-time</option>
-                    <option>Part-time</option>
-                    <option>Contract</option>
-                    <option>Freelance</option>
-                  </select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Work Location Preference</Label>
-                  <select className="w-full p-2 border rounded-md bg-background text-foreground">
-                    <option>Remote</option>
-                    <option>Hybrid</option>
-                    <option>On-site</option>
-                  </select>
-                </div>
-
-                <Button 
-                  onClick={() => {
-                    localStorage.setItem('salary_set', 'true');
-                    localStorage.setItem('preferences_set', 'true');
-                    toast.success("Career preferences saved");
-                  }}
-                  className="w-full"
-                >
-                  Save Career Preferences
-                </Button>
-              </CardContent>
-            </Card>
+            <PreferencesSettings
+              preferredCurrency={preferredCurrency}
+              onCurrencyChange={handleCurrencyChange}
+            />
           </TabsContent>
         </Tabs>
       </div>
