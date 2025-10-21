@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 interface AudioCallInterfaceProps {
   conversationId: string;
   participantName: string;
-  onEnd: () => void;
+  onEnd: (duration: number) => void;
 }
 
 export function AudioCallInterface({ conversationId, participantName, onEnd }: AudioCallInterfaceProps) {
@@ -72,7 +72,7 @@ export function AudioCallInterface({ conversationId, participantName, onEnd }: A
 
   const handleEndCall = () => {
     cleanup();
-    onEnd();
+    onEnd(callDuration);
   };
 
   const formatDuration = (seconds: number) => {

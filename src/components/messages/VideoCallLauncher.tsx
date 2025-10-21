@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Video } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { VideoCallInterface } from "./VideoCallInterface";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,12 +8,15 @@ import { useAuth } from "@/contexts/AuthContext";
 interface VideoCallLauncherProps {
   conversationId: string;
   participantName: string;
+  onSendMessage: (content: string, metadata?: Record<string, any>) => Promise<void>;
 }
 
-export function VideoCallLauncher({ conversationId, participantName }: VideoCallLauncherProps) {
+export function VideoCallLauncher({ conversationId, participantName, onSendMessage }: VideoCallLauncherProps) {
   const { user } = useAuth();
   const [callActive, setCallActive] = useState(false);
   const [participantAvatar, setParticipantAvatar] = useState<string>();
+  const callStartTimeRef = useRef<number>(0);
+  const sessionIdRef = useRef<string>();
 
   useEffect(() => {
     const loadParticipantAvatar = async () => {
@@ -42,11 +45,46 @@ export function VideoCallLauncher({ conversationId, participantName }: VideoCall
   }, [conversationId, user?.id]);
 
   const handleStartCall = () => {
+    callStartTimeRef.current = Date.now();
     setCallActive(true);
   };
 
-  const handleEndCall = () => {
+  const handleEndCall = async (sessionId?: string) => {
     setCallActive(false);
+    
+    // Calculate duration
+    const durationSeconds = Math.floor((Date.now() - callStartTimeRef.current) / 1000);
+    const minutes = Math.floor(durationSeconds / 60);
+    const seconds = durationSeconds % 60;
+    const durationText = minutes > 0 
+      ? `${minutes}m ${seconds}s` 
+      : `${seconds}s`;
+    
+    // Get participant count from session
+    let participantCount = 1; // At least the caller
+    if (sessionId) {
+      const { data: participants } = await supabase
+        .from('video_call_participants')
+        .select('id')
+        .eq('session_id', sessionId)
+        .is('left_at', null);
+      
+      if (participants) {
+        participantCount = participants.length;
+      }
+    }
+    
+    // Send system message with call log
+    await onSendMessage(
+      `📹 Video call ended • Duration: ${durationText} • ${participantCount} participant${participantCount !== 1 ? 's' : ''}`,
+      { 
+        type: 'call_log',
+        call_type: 'video',
+        duration_seconds: durationSeconds,
+        participant_count: participantCount,
+        timestamp: new Date().toISOString()
+      }
+    );
   };
 
   return (
@@ -67,6 +105,7 @@ export function VideoCallLauncher({ conversationId, participantName }: VideoCall
           participantName={participantName}
           participantAvatar={participantAvatar}
           onEnd={handleEndCall}
+          onSessionCreated={(sessionId) => sessionIdRef.current = sessionId}
         />
       )}
     </>

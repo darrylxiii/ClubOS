@@ -226,10 +226,12 @@ export default function Messages() {
                 <AudioCallLauncher 
                   conversationId={selectedConversationId}
                   participantName={selectedConversation.title}
+                  onSendMessage={sendMessage}
                 />
                 <VideoCallLauncher 
                   conversationId={selectedConversationId}
                   participantName={selectedConversation.title}
+                  onSendMessage={sendMessage}
                 />
                 <Button 
                   variant={showGroupInfo ? "default" : "ghost"}

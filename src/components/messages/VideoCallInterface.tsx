@@ -23,10 +23,11 @@ interface VideoCallInterfaceProps {
   conversationId: string;
   participantName: string;
   participantAvatar?: string;
-  onEnd: () => void;
+  onEnd: (sessionId?: string) => void;
+  onSessionCreated?: (sessionId: string) => void;
 }
 
-export function VideoCallInterface({ conversationId, participantName, participantAvatar, onEnd }: VideoCallInterfaceProps) {
+export function VideoCallInterface({ conversationId, participantName, participantAvatar, onEnd, onSessionCreated }: VideoCallInterfaceProps) {
   const [showDiagnostics, setShowDiagnostics] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isCalling, setIsCalling] = useState(true);
@@ -77,6 +78,11 @@ export function VideoCallInterface({ conversationId, participantName, participan
       
       console.log('Session started successfully:', newSession.id);
       toast.success('Joined meeting room');
+      
+      // Notify parent of session creation
+      if (onSessionCreated) {
+        onSessionCreated(newSession.id);
+      }
 
       // Try to initialize media, but don't fail if it doesn't work
       try {
@@ -152,7 +158,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
   const handleEndCall = async () => {
     await endSession();
     cleanup();
-    onEnd();
+    onEnd(session?.id);
   };
 
   useEffect(() => {
