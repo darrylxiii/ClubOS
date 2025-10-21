@@ -10179,6 +10179,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_module_course_id: {
+        Args: { _module_id: string }
+        Returns: string
+      }
       has_company_role: {
         Args: { _company_id: string; _role: string; _user_id: string }
         Returns: boolean
@@ -10194,8 +10198,16 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      is_course_owner: {
+        Args: { _course_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_meeting_participant: {
         Args: { _meeting_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_module_expert: {
+        Args: { _module_id: string; _user_id: string }
         Returns: boolean
       }
       log_achievement_event: {
