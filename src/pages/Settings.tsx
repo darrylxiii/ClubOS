@@ -13,6 +13,7 @@ import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { ConnectionsSettings } from "@/components/settings/ConnectionsSettings";
 import { PrivacySettings } from "@/components/settings/PrivacySettings";
 import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
+import { useExchangeRates } from "@/hooks/useExchangeRates";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -85,7 +86,10 @@ const Settings = () => {
   });
 
   // Preferences
-  const [preferredCurrency, setPreferredCurrency] = useState<'EUR' | 'USD' | 'GBP' | 'AED'>('EUR');
+  const [preferredCurrency, setPreferredCurrency] = useState<'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH'>('EUR');
+
+  // Initialize exchange rate tracking
+  useExchangeRates();
 
   // Get active tab from URL hash or default to 'profile'
   const getActiveTab = () => {
@@ -184,7 +188,7 @@ const Settings = () => {
         }
 
         // Currency
-        setPreferredCurrency((data.preferred_currency as 'EUR' | 'USD' | 'GBP' | 'AED') || 'EUR');
+        setPreferredCurrency((data.preferred_currency as 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') || 'EUR');
 
         // Social connections
         if (data.linkedin_connected) {
@@ -411,7 +415,7 @@ const Settings = () => {
     await loadProfile();
   };
 
-  const handleCurrencyChange = async (currency: 'EUR' | 'USD' | 'GBP' | 'AED') => {
+  const handleCurrencyChange = async (currency: 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') => {
     setPreferredCurrency(currency);
     
     if (!user) return;

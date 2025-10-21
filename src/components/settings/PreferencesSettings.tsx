@@ -7,8 +7,8 @@ import { Globe } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface PreferencesSettingsProps {
-  preferredCurrency: 'EUR' | 'USD' | 'GBP' | 'AED';
-  onCurrencyChange: (currency: 'EUR' | 'USD' | 'GBP' | 'AED') => void;
+  preferredCurrency: 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH';
+  onCurrencyChange: (currency: 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') => void;
 }
 
 export const PreferencesSettings = ({
@@ -72,6 +72,8 @@ export const PreferencesSettings = ({
                 <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
                 <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
                 <SelectItem value="AED">AED (د.إ) - UAE Dirham</SelectItem>
+                <SelectItem value="BTC">BTC (₿) - Bitcoin</SelectItem>
+                <SelectItem value="ETH">ETH (Ξ) - Ethereum</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
