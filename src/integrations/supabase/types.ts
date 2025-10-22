@@ -3180,7 +3180,7 @@ export type Database = {
           email: string
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           user_agent: string | null
           user_id: string
           verified_at: string | null
@@ -3191,7 +3191,7 @@ export type Database = {
           email: string
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id: string
           verified_at?: string | null
@@ -3202,7 +3202,7 @@ export type Database = {
           email?: string
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           user_agent?: string | null
           user_id?: string
           verified_at?: string | null
@@ -5642,7 +5642,7 @@ export type Database = {
           created_at: string | null
           expires_at: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           phone: string
           user_agent: string | null
           user_id: string
@@ -5653,7 +5653,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           phone: string
           user_agent?: string | null
           user_id: string
@@ -5664,7 +5664,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           phone?: string
           user_agent?: string | null
           user_id?: string
@@ -9450,7 +9450,7 @@ export type Database = {
           email: string | null
           error_message: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           phone: string | null
           success: boolean
           user_agent: string | null
@@ -9463,7 +9463,7 @@ export type Database = {
           email?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           phone?: string | null
           success: boolean
           user_agent?: string | null
@@ -9476,7 +9476,7 @@ export type Database = {
           email?: string | null
           error_message?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           phone?: string | null
           success?: boolean
           user_agent?: string | null
@@ -10137,10 +10137,7 @@ export type Database = {
         Args: { _action: string; _user_id: string; _verification_type: string }
         Returns: Json
       }
-      cleanup_expired_verifications: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_expired_verifications: { Args: never; Returns: undefined }
       evaluate_user_achievements: {
         Args: { _user_id: string }
         Returns: {
@@ -10151,38 +10148,14 @@ export type Database = {
           unlocked: boolean
         }[]
       }
-      generate_invite_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_meeting_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_profile_slug: {
-        Args: { name: string }
-        Returns: string
-      }
-      generate_referral_code: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_share_token: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_task_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      generate_unified_task_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_module_course_id: {
-        Args: { _module_id: string }
-        Returns: string
-      }
+      generate_invite_code: { Args: never; Returns: string }
+      generate_meeting_code: { Args: never; Returns: string }
+      generate_profile_slug: { Args: { name: string }; Returns: string }
+      generate_referral_code: { Args: never; Returns: string }
+      generate_share_token: { Args: never; Returns: string }
+      generate_task_number: { Args: never; Returns: string }
+      generate_unified_task_number: { Args: never; Returns: string }
+      get_module_course_id: { Args: { _module_id: string }; Returns: string }
       has_company_role: {
         Args: { _company_id: string; _role: string; _user_id: string }
         Returns: boolean
@@ -10218,10 +10191,7 @@ export type Database = {
         Args: { _file_path: string }
         Returns: boolean
       }
-      track_share_link_view: {
-        Args: { _token: string }
-        Returns: string
-      }
+      track_share_link_view: { Args: { _token: string }; Returns: string }
       update_relationship_score: {
         Args: { p_related_user_id: string; p_user_id: string }
         Returns: undefined
