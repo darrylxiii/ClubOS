@@ -234,7 +234,9 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
     <Link
       to={item.path}
       className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out",
+        "flex items-center gap-3 px-4 rounded-xl",
+        "min-h-[44px] h-[44px]", // Fixed height to prevent shifting
+        "transition-all duration-300 ease-in-out",
         "border border-transparent",
         "hover:bg-primary/10 hover:scale-[1.02] hover:shadow-[var(--shadow-glass-sm)]",
         isActive && "bg-primary/15 shadow-[var(--shadow-glass-sm)] border-primary/20",
@@ -251,7 +253,7 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
       {open && (
         <span
           className={cn(
-            "text-sm font-medium whitespace-nowrap transition-colors duration-300",
+            "text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis transition-colors duration-300",
             isActive ? "text-foreground" : "text-muted-foreground"
           )}
         >
@@ -283,22 +285,24 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
       <button
         onClick={() => setGroupOpen(!groupOpen)}
         className={cn(
-          "flex items-center gap-3 w-full px-4 py-2 mb-2 rounded-lg",
+          "flex items-center gap-3 w-full px-4 rounded-lg",
+          "min-h-[40px] h-[40px]", // Fixed height to prevent shifting
           "transition-all duration-300 ease-in-out",
           "hover:bg-muted/50 hover:scale-[1.01]",
+          "mb-2",
           hasActiveItem && "text-primary"
         )}
       >
         <group.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-300" />
         {open && (
-          <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wide transition-colors duration-300">
+          <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wide transition-colors duration-300 whitespace-nowrap overflow-hidden text-ellipsis">
             {group.title}
           </span>
         )}
         {open && (
           <ChevronDown 
             className={cn(
-              "h-3 w-3 transition-transform duration-300",
+              "h-3 w-3 flex-shrink-0 transition-transform duration-300",
               groupOpen ? "rotate-0" : "-rotate-90"
             )}
           />
@@ -341,13 +345,15 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
           <Button
             variant="ghost"
             className={cn(
-              "w-full h-auto py-3 transition-all duration-300 ease-in-out",
+              "w-full h-auto rounded-lg",
+              "min-h-[52px]", // Fixed height to prevent shifting
+              "transition-all duration-300 ease-in-out",
               "hover:bg-muted/50 hover:scale-[1.02]",
-              open ? "justify-start gap-3 px-3" : "justify-center px-2"
+              open ? "justify-start gap-3 px-3 py-3" : "justify-center px-2 py-3"
             )}
           >
-            <div className="relative">
-              <Avatar className="h-9 w-9 flex-shrink-0 transition-transform duration-300 hover:scale-110">
+            <div className="relative flex-shrink-0">
+              <Avatar className="h-9 w-9 transition-transform duration-300 hover:scale-110">
                 <AvatarImage src={userAvatarUrl || ""} />
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   {userInitial}
@@ -355,9 +361,9 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
               </Avatar>
             </div>
             {open && (
-              <div className="flex-1 text-left transition-all duration-300">
-                <p className="text-sm font-medium">{userName}</p>
-                <p className="text-xs text-muted-foreground">View profile</p>
+              <div className="flex-1 text-left transition-all duration-300 overflow-hidden">
+                <p className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
+                <p className="text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
               </div>
             )}
           </Button>
