@@ -341,12 +341,12 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
 
   return (
     <div className="flex-shrink-0 p-4">
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             className={cn(
-              "w-full h-auto py-3 transition-all hover:bg-transparent",
+              "w-full h-auto py-3 transition-all hover:bg-muted/50",
               open ? "justify-start gap-3 px-3" : "justify-center px-2"
             )}
           >
@@ -356,19 +356,19 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
                 {userInitial}
               </AvatarFallback>
             </Avatar>
-            <motion.div
-              animate={{
-                opacity: open ? 1 : 0,
-                display: open ? "block" : "none",
-              }}
-              className="flex-1 text-left"
-            >
-              <p className="text-sm font-medium">{userName}</p>
-              <p className="text-xs text-muted-foreground">View profile</p>
-            </motion.div>
+            {open && (
+              <div className="flex-1 text-left">
+                <p className="text-sm font-medium">{userName}</p>
+                <p className="text-xs text-muted-foreground">View profile</p>
+              </div>
+            )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56 bg-card/95 backdrop-blur-[var(--blur-glass)] border-border/20">
+        <DropdownMenuContent 
+          align="end" 
+          className="w-56 bg-card border-border z-[100]"
+          sideOffset={5}
+        >
           <DropdownMenuItem asChild>
             <Link to={profilePath} className="cursor-pointer">
               <span>My Profile</span>
