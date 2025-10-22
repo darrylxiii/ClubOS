@@ -23,17 +23,17 @@ export function NextStepHelper({
   const completedTasks = 0; // This would come from actual data
   
   return (
-    <div className="p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 h-full flex flex-col">
+    <div className="p-4 rounded-xl bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20 h-full flex flex-col">
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
-          <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">Next Step</div>
-          <h3 className="text-base font-semibold">{stageName}</h3>
+          <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-1">Next Step</div>
+          <h3 className="text-base font-medium">{stageName}</h3>
         </div>
-        <Badge variant="outline" className="bg-background/50 text-xs">Active</Badge>
+        <Badge variant="outline" className="bg-muted/30 text-xs border-border/30">Active</Badge>
       </div>
 
       {hasScheduledDate && (
-        <div className="flex items-center gap-2 mb-3 p-2 rounded-lg bg-background/50">
+        <div className="flex items-center gap-2 mb-3 p-2 rounded-lg bg-muted/30">
           <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
           <div className="flex-1">
             <div className="text-xs font-medium">
@@ -56,7 +56,7 @@ export function NextStepHelper({
       )}
 
       {prepTasks.length > 0 && (
-        <div className="mb-3 p-2 rounded-lg bg-background/50">
+        <div className="mb-3 p-2 rounded-lg bg-muted/30">
           <div className="flex items-center gap-2 mb-2">
             <CheckSquare className="w-3.5 h-3.5 text-muted-foreground flex-shrink-0" />
             <span className="text-xs font-medium">Prep Checklist</span>

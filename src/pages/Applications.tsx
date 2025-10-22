@@ -259,38 +259,38 @@ function ApplicationCard({ application }: { application: Application }) {
   
   return (
     <Card 
-      className="border-border/50 bg-card transition-all hover:shadow-lg hover:border-border group"
+      className="border-border/20 bg-card/30 backdrop-blur-[var(--blur-glass)] transition-all hover:bg-card/40 group"
     >
       {/* Header with quick actions */}
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-4">
           <div 
             className="flex items-start gap-4 flex-1 cursor-pointer"
             onClick={() => navigate(`/applications/${application.id}`)}
           >
             {application.job?.companies?.logo_url && (
-              <Avatar className="w-16 h-16 ring-2 ring-border/50">
+              <Avatar className="w-14 h-14 border border-border/30">
                 <AvatarImage src={application.job.companies.logo_url} />
-                <AvatarFallback>{application.job?.companies?.name?.[0]}</AvatarFallback>
+                <AvatarFallback className="bg-muted">{application.job?.companies?.name?.[0]}</AvatarFallback>
               </Avatar>
             )}
-            <div className="space-y-2 flex-1">
-              <CardTitle className="text-2xl flex items-center gap-2">
+            <div className="space-y-1 flex-1">
+              <CardTitle className="text-xl flex items-center gap-2">
                 {application.job?.title || application.position}
               </CardTitle>
-              <div className="flex flex-col gap-1.5 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2 font-medium">
+              <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
                   {application.job?.companies?.name || application.company_name}
                 </div>
                 {application.job?.location && (
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3" />
                     {application.job.location}
                   </div>
                 )}
                 {formatSalaryRange() && (
-                  <div className="flex items-center gap-2">
-                    <DollarSign className="w-3.5 h-3.5" />
+                  <div className="flex items-center gap-1.5">
+                    <DollarSign className="w-3 h-3" />
                     {formatSalaryRange()}
                   </div>
                 )}
@@ -325,7 +325,7 @@ function ApplicationCard({ application }: { application: Application }) {
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         {/* Top Row: 2 Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Strategist Contact Card */}
@@ -375,8 +375,8 @@ function ApplicationCard({ application }: { application: Application }) {
         </div>
 
         {/* Pipeline Stages */}
-        <div>
-          <h3 className="text-xs font-semibold mb-3 text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+        <div className="mt-2">
+          <h3 className="text-xs font-medium mb-3 text-muted-foreground uppercase tracking-wide flex items-center gap-2">
             Pipeline Progress
             <span className="text-[10px] font-normal normal-case opacity-60">(Swipe to see all stages →)</span>
           </h3>

@@ -331,11 +331,12 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
 interface SidebarFooterProps {
   userName: string;
   userInitial: string;
+  userAvatarUrl: string | null;
   onSignOut: () => void;
   profilePath: string;
 }
 
-export const SidebarFooter = ({ userName, userInitial, onSignOut, profilePath }: SidebarFooterProps) => {
+export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut, profilePath }: SidebarFooterProps) => {
   const { open } = useSidebar();
 
   return (
@@ -350,7 +351,7 @@ export const SidebarFooter = ({ userName, userInitial, onSignOut, profilePath }:
             )}
           >
             <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarImage src="" />
+              <AvatarImage src={userAvatarUrl || ""} />
               <AvatarFallback className="bg-primary text-primary-foreground">
                 {userInitial}
               </AvatarFallback>

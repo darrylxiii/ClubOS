@@ -19,8 +19,8 @@ export function StrategistContactCard({ strategist, lastContact }: StrategistCon
 
   if (!strategist) {
     return (
-      <div className="p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 h-full">
-        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Talent Strategist</div>
+      <div className="p-4 rounded-xl bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20 h-full">
+        <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Talent Strategist</div>
         <div className="flex items-center gap-3">
           <Avatar className="w-12 h-12">
             <AvatarFallback className="bg-muted">?</AvatarFallback>
@@ -34,14 +34,14 @@ export function StrategistContactCard({ strategist, lastContact }: StrategistCon
   }
 
   return (
-    <div className="p-4 rounded-xl bg-card/50 backdrop-blur-sm border border-border/50 h-full flex flex-col">
-      <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3">Talent Strategist</div>
+    <div className="p-4 rounded-xl bg-card/30 backdrop-blur-[var(--blur-glass)] border border-border/20 h-full flex flex-col">
+      <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-3">Talent Strategist</div>
       
       <div className="flex items-center gap-3 mb-3">
         <div className="relative">
-          <Avatar className="w-12 h-12 ring-2 ring-primary/20">
+          <Avatar className="w-12 h-12 border border-border/30">
             <AvatarImage src={strategist.avatar_url || ''} />
-            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+            <AvatarFallback className="bg-muted">
               {strategist.full_name?.[0] || 'T'}
             </AvatarFallback>
           </Avatar>
@@ -50,7 +50,7 @@ export function StrategistContactCard({ strategist, lastContact }: StrategistCon
           </div>
         </div>
         <div className="flex-1">
-          <div className="text-base font-semibold">{strategist.full_name}</div>
+          <div className="text-base font-medium">{strategist.full_name}</div>
           {lastContact && (
             <div className="text-xs text-muted-foreground mt-0.5">
               Last contact: {lastContact}

@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import quantumClubLogo from "@/assets/quantum-club-logo.png";
 import quantumClubLogoDark from "@/assets/quantum-logo-dark.png";
@@ -245,6 +245,26 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const { user } = useAuth();
   const location = useLocation();
   const { currentRole } = useRole();
+  const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
+
+  // Fetch user profile data including avatar
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user?.id) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .single();
+      
+      if (!error && data) {
+        setUserProfile(data);
+      }
+    };
+    
+    fetchUserProfile();
+  }, [user?.id]);
 
   // Determine navigation based on current role from context
   const navigationGroups = currentRole === 'admin'
@@ -259,6 +279,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   };
 
   const getFirstName = () => {
+    if (userProfile?.full_name) {
+      return userProfile.full_name.split(" ")[0];
+    }
     if (user?.email) {
       return user.email.split("@")[0];
     }
@@ -290,6 +313,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         <SidebarFooter
           userName={firstName}
           userInitial={firstName[0].toUpperCase()}
+          userAvatarUrl={userProfile?.avatar_url || null}
           onSignOut={handleSignOut}
           profilePath={profilePath}
         />
