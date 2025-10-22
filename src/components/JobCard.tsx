@@ -10,6 +10,7 @@ import { MatchScoreDialog } from "./MatchScoreDialog";
 interface JobCardProps {
   title: string;
   company: string;
+  companyLogo?: string;
   location: string;
   type: string;
   postedDate: string;
@@ -27,6 +28,7 @@ interface JobCardProps {
 export const JobCard = ({
   title,
   company,
+  companyLogo,
   location,
   type,
   postedDate,
@@ -59,16 +61,26 @@ export const JobCard = ({
       <div className="relative">
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <CardTitle className="text-lg mb-2">{title}</CardTitle>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <Building2 className="w-4 h-4" />
-                <span>{company}</span>
+          <div className="flex items-center gap-3 flex-1">
+            {companyLogo ? (
+              <img 
+                src={companyLogo} 
+                alt={`${company} logo`}
+                className="w-12 h-12 rounded-lg object-cover border border-border/30"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-lg bg-muted/30 flex items-center justify-center border border-border/30">
+                <Building2 className="w-6 h-6 text-muted-foreground" />
               </div>
-              <div className="flex items-center gap-1">
-                <MapPin className="w-4 h-4" />
-                <span>{location}</span>
+            )}
+            <div className="flex-1">
+              <CardTitle className="text-lg mb-2">{title}</CardTitle>
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                <span>{company}</span>
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  <span>{location}</span>
+                </div>
               </div>
             </div>
           </div>
