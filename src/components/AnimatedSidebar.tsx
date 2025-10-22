@@ -234,31 +234,30 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
     <Link
       to={item.path}
       className={cn(
-        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200",
-        "hover:bg-primary/10 hover:shadow-[var(--shadow-glass-sm)]",
-        isActive && "bg-primary/15 shadow-[var(--shadow-glass-sm)] border border-primary/20",
+        "flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ease-in-out",
+        "border border-transparent",
+        "hover:bg-primary/10 hover:scale-[1.02] hover:shadow-[var(--shadow-glass-sm)]",
+        isActive && "bg-primary/15 shadow-[var(--shadow-glass-sm)] border-primary/20",
         className
       )}
     >
       <item.icon
         className={cn(
-          "h-5 w-5 flex-shrink-0 transition-colors",
-          isActive ? "text-primary" : "text-muted-foreground"
+          "h-5 w-5 flex-shrink-0 transition-all duration-300 ease-in-out",
+          isActive ? "text-primary scale-110" : "text-muted-foreground",
+          "group-hover:scale-110"
         )}
       />
-      <motion.span
-        animate={{
-          opacity: open ? 1 : 0,
-          display: open ? "block" : "none",
-        }}
-        transition={{ duration: 0.2 }}
-        className={cn(
-          "text-sm font-medium whitespace-nowrap",
-          isActive ? "text-foreground" : "text-muted-foreground"
-        )}
-      >
-        {item.name}
-      </motion.span>
+      {open && (
+        <span
+          className={cn(
+            "text-sm font-medium whitespace-nowrap transition-colors duration-300",
+            isActive ? "text-foreground" : "text-muted-foreground"
+          )}
+        >
+          {item.name}
+        </span>
+      )}
     </Link>
   );
 };
@@ -285,29 +284,25 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
         onClick={() => setGroupOpen(!groupOpen)}
         className={cn(
           "flex items-center gap-3 w-full px-4 py-2 mb-2 rounded-lg",
-          "hover:bg-muted/50 transition-colors",
+          "transition-all duration-300 ease-in-out",
+          "hover:bg-muted/50 hover:scale-[1.01]",
           hasActiveItem && "text-primary"
         )}
       >
-        <group.icon className="h-4 w-4 flex-shrink-0" />
-        <motion.span
-          animate={{
-            opacity: open ? 1 : 0,
-            display: open ? "flex" : "none",
-          }}
-          className="flex-1 text-left text-xs font-semibold uppercase tracking-wide"
-        >
-          {group.title}
-        </motion.span>
-        <motion.div
-          animate={{
-            opacity: open ? 1 : 0,
-            display: open ? "block" : "none",
-            rotate: groupOpen ? 0 : -90,
-          }}
-        >
-          <ChevronDown className="h-3 w-3" />
-        </motion.div>
+        <group.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-300" />
+        {open && (
+          <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wide transition-colors duration-300">
+            {group.title}
+          </span>
+        )}
+        {open && (
+          <ChevronDown 
+            className={cn(
+              "h-3 w-3 transition-transform duration-300",
+              groupOpen ? "rotate-0" : "-rotate-90"
+            )}
+          />
+        )}
       </button>
       <AnimatePresence>
         {groupOpen && (
@@ -315,7 +310,7 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="space-y-1 overflow-hidden"
           >
             {group.items.map((item) => (
@@ -346,18 +341,21 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
           <Button
             variant="ghost"
             className={cn(
-              "w-full h-auto py-3 transition-all hover:bg-muted/50",
+              "w-full h-auto py-3 transition-all duration-300 ease-in-out",
+              "hover:bg-muted/50 hover:scale-[1.02]",
               open ? "justify-start gap-3 px-3" : "justify-center px-2"
             )}
           >
-            <Avatar className="h-9 w-9 flex-shrink-0">
-              <AvatarImage src={userAvatarUrl || ""} />
-              <AvatarFallback className="bg-primary text-primary-foreground">
-                {userInitial}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-9 w-9 flex-shrink-0 transition-transform duration-300 hover:scale-110">
+                <AvatarImage src={userAvatarUrl || ""} />
+                <AvatarFallback className="bg-primary text-primary-foreground">
+                  {userInitial}
+                </AvatarFallback>
+              </Avatar>
+            </div>
             {open && (
-              <div className="flex-1 text-left">
+              <div className="flex-1 text-left transition-all duration-300">
                 <p className="text-sm font-medium">{userName}</p>
                 <p className="text-xs text-muted-foreground">View profile</p>
               </div>
