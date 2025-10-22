@@ -340,13 +340,13 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
   const { open } = useSidebar();
 
   return (
-    <div className="flex-shrink-0 p-4 border-t border-border/20 bg-card/50 backdrop-blur-[var(--blur-glass)]">
+    <div className="flex-shrink-0 p-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            variant="glass"
+            variant="ghost"
             className={cn(
-              "w-full h-auto py-3 transition-all",
+              "w-full h-auto py-3 transition-all hover:bg-transparent",
               open ? "justify-start gap-3 px-3" : "justify-center px-2"
             )}
           >
