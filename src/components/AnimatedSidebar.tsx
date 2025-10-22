@@ -345,27 +345,29 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
           <Button
             variant="ghost"
             className={cn(
-              "w-full h-auto rounded-lg",
-              "min-h-[52px]", // Fixed height to prevent shifting
+              "w-full rounded-lg relative",
+              "min-h-[52px] h-[52px]", // Fixed height
               "transition-all duration-300 ease-in-out",
               "hover:bg-muted/50 hover:scale-[1.02]",
-              open ? "justify-start gap-3 px-3 py-3" : "justify-center px-2 py-3"
+              "px-3 py-3" // Consistent padding
             )}
           >
-            <div className="relative flex-shrink-0">
-              <Avatar className="h-9 w-9 transition-transform duration-300 hover:scale-110">
-                <AvatarImage src={userAvatarUrl || ""} />
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {userInitial}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-            {open && (
-              <div className="flex-1 text-left transition-all duration-300 overflow-hidden">
-                <p className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
-                <p className="text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
+            <div className="flex items-center gap-3 w-full">
+              <div className="flex-shrink-0">
+                <Avatar className="h-9 w-9 transition-transform duration-300 hover:scale-110">
+                  <AvatarImage src={userAvatarUrl || ""} />
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {userInitial}
+                  </AvatarFallback>
+                </Avatar>
               </div>
-            )}
+              {open && (
+                <div className="flex-1 text-left overflow-hidden min-w-0">
+                  <p className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
+                  <p className="text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
+                </div>
+              )}
+            </div>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
