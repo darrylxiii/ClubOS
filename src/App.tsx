@@ -68,6 +68,8 @@ const FunnelAnalytics = lazy(() => import("./pages/FunnelAnalytics"));
 const ClubDJ = lazy(() => import("./pages/ClubDJ"));
 const Radio = lazy(() => import("./pages/Radio"));
 const RadioListen = lazy(() => import("./pages/RadioListen"));
+const Assessments = lazy(() => import("./pages/Assessments"));
+const SwipeGame = lazy(() => import("./pages/SwipeGame"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -389,6 +391,22 @@ const App = () => (
             />
             <Route path="/radio" element={<Radio />} />
             <Route path="/radio/:sessionId" element={<RadioListen />} />
+            <Route
+              path="/assessments"
+              element={
+                <ProtectedRoute>
+                  <Assessments />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessments/swipe-game"
+              element={
+                <ProtectedRoute>
+                  <SwipeGame />
+                </ProtectedRoute>
+              }
+            />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
                 </Routes>

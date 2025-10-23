@@ -28,6 +28,7 @@ import {
   Trophy,
   MessagesSquare,
   GraduationCap,
+  ClipboardCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,6 +65,7 @@ const candidateNavigationGroups = [
       { name: "Applications", icon: FileText, path: "/applications" },
       { name: "Companies", icon: Building2, path: "/companies" },
       { name: "Referrals", icon: Gift, path: "/referrals" },
+      { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
     ],
   },
   {
@@ -127,6 +129,7 @@ const partnerNavigationGroups = [
       { name: "Jobs", icon: Briefcase, path: "/jobs" },
       { name: "Applicants", icon: FileText, path: "/applications" },
       { name: "Companies", icon: Building, path: "/companies" },
+      { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
     ],
   },
   {
@@ -191,6 +194,7 @@ const adminNavigationGroups = [
       { name: "Companies", icon: Building, path: "/companies" },
       { name: "Jobs", icon: Briefcase, path: "/jobs" },
       { name: "Applications", icon: FileText, path: "/applications" },
+      { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
       { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
     ],
   },
