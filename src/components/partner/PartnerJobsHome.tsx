@@ -82,8 +82,11 @@ interface JobWithMetrics {
   candidate_count: number;
   active_stage_count: number;
   last_activity: string | null;
-  avg_time_to_hire_days: number | null;
+  last_activity_user: { name: string; avatar: string | null } | null;
+  days_since_opened: number;
   conversion_rate: number | null;
+  company_name: string;
+  company_logo: string | null;
 }
 
 interface CompanyMetrics {
@@ -130,10 +133,21 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
   const fetchJobsWithMetrics = async () => {
     try {
-      // Fetch jobs - admins see all jobs, partners see only their company's jobs
+      // Fetch jobs with company info - admins see all jobs, partners see only their company's jobs
       let query = supabase
         .from('jobs')
-        .select('id, title, status, location, created_at');
+        .select(`
+          id, 
+          title, 
+          status, 
+          location, 
+          created_at,
+          company_id,
+          companies (
+            name,
+            logo_url
+          )
+        `);
       
       if (role !== 'admin' && companyId) {
         query = query.eq('company_id', companyId);
@@ -144,11 +158,22 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
       if (jobsError) throw jobsError;
 
-      // Fetch all applications for these jobs
+      // Fetch all applications for these jobs with user info
       const jobIds = (jobsData || []).map(j => j.id.toString());
       const { data: applicationsData } = await supabase
         .from('applications')
-        .select('id, job_id, current_stage_index, stages, updated_at')
+        .select(`
+          id, 
+          job_id, 
+          current_stage_index, 
+          stages, 
+          updated_at,
+          user_id,
+          profiles (
+            full_name,
+            avatar_url
+          )
+        `)
         .in('job_id', jobIds);
 
       // Group applications by job_id
@@ -170,31 +195,32 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           return currentStage && !['rejected', 'withdrawn'].includes(currentStage.status?.toLowerCase());
         }).length;
 
-        // Get most recent activity
-        const lastActivity = applications.length > 0
-          ? applications.reduce((latest: string | null, app: any) => {
-              const appDate = app.updated_at;
-              return !latest || appDate > latest ? appDate : latest;
-            }, null)
-          : null;
+        // Get most recent activity with user info
+        let lastActivity = null;
+        let lastActivityUser = null;
+        
+        if (applications.length > 0) {
+          const mostRecentApp = applications.reduce((latest: any, app: any) => {
+            return !latest || app.updated_at > latest.updated_at ? app : latest;
+          }, null);
+          
+          lastActivity = mostRecentApp.updated_at;
+          lastActivityUser = mostRecentApp.profiles ? {
+            name: mostRecentApp.profiles.full_name || 'Unknown User',
+            avatar: mostRecentApp.profiles.avatar_url || null
+          } : null;
+        }
 
-        // Calculate average time to hire (simplified - in days since creation)
+        // Calculate days since job was opened
+        const daysSinceOpened = Math.floor(
+          (new Date().getTime() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        // Calculate conversion rate (hired / total applied)
         const hiredApps = applications.filter((app: any) => {
           const stages = app.stages || [];
           return stages.some((s: any) => s.status?.toLowerCase() === 'hired');
         });
-        const avgTimeToHire = hiredApps.length > 0
-          ? Math.round(
-              hiredApps.reduce((sum: number, app: any) => {
-                const daysSinceCreated = Math.floor(
-                  (new Date(app.updated_at).getTime() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)
-                );
-                return sum + daysSinceCreated;
-              }, 0) / hiredApps.length
-            )
-          : null;
-
-        // Calculate conversion rate (hired / total applied)
         const conversionRate = candidateCount > 0
           ? Math.round((hiredApps.length / candidateCount) * 100)
           : null;
@@ -209,8 +235,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           candidate_count: candidateCount,
           active_stage_count: activeStageCount,
           last_activity: lastActivity,
-          avg_time_to_hire_days: avgTimeToHire,
+          last_activity_user: lastActivityUser,
+          days_since_opened: daysSinceOpened,
           conversion_rate: conversionRate,
+          company_name: job.companies?.name || 'Unknown Company',
+          company_logo: job.companies?.logo_url || null,
         };
       });
 
@@ -221,11 +250,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       const totalCandidates = jobsWithMetrics.reduce((sum, j) => sum + j.candidate_count, 0);
       const clubSyncCount = jobsWithMetrics.filter(j => j.club_sync_status === 'accepted').length;
       
-      const allTimeToHire = jobsWithMetrics
-        .map(j => j.avg_time_to_hire_days)
-        .filter(t => t !== null) as number[];
-      const avgCompanyTimeToHire = allTimeToHire.length > 0
-        ? Math.round(allTimeToHire.reduce((sum, t) => sum + t, 0) / allTimeToHire.length)
+      const allDaysOpen = jobsWithMetrics.map(j => j.days_since_opened);
+      const avgCompanyTimeToHire = allDaysOpen.length > 0
+        ? Math.round(allDaysOpen.reduce((sum, t) => sum + t, 0) / allDaysOpen.length)
         : null;
 
       const allConversions = jobsWithMetrics
@@ -831,15 +858,24 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
             >
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex-1">
-                    <CardTitle className="text-xl font-black uppercase mb-2">
-                      {job.title}
-                    </CardTitle>
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant={job.status === 'published' ? 'default' : 'secondary'}>
-                        {job.status}
-                      </Badge>
-                      {getClubSyncBadge(job.club_sync_status)}
+                  <div className="flex items-center gap-3 flex-1">
+                    <Avatar className="h-12 w-12 border-2 border-border/20">
+                      <AvatarImage src={job.company_logo || undefined} alt={job.company_name} />
+                      <AvatarFallback className="bg-card/40 text-white font-bold">
+                        {job.company_name.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <CardTitle className="text-xl font-black uppercase mb-1">
+                        {job.title}
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground mb-2">{job.company_name}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge variant={job.status === 'published' ? 'default' : 'secondary'}>
+                          {job.status}
+                        </Badge>
+                        {getClubSyncBadge(job.club_sync_status)}
+                      </div>
                     </div>
                   </div>
                   <DropdownMenu>
@@ -933,12 +969,16 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                   <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
                     <div className="flex items-center gap-2 mb-1">
                       <Clock className="w-4 h-4 text-white" />
-                      <span className="text-xs text-muted-foreground">Avg. Time</span>
+                      <span className="text-xs text-muted-foreground">Days Open</span>
                     </div>
-                    <p className="text-2xl font-bold text-white">
-                      {job.avg_time_to_hire_days !== null ? `${job.avg_time_to_hire_days}d` : '—'}
+                    <p className={`text-2xl font-bold ${
+                      job.days_since_opened <= 30 ? 'text-green-400' : 
+                      job.days_since_opened <= 60 ? 'text-yellow-400' : 
+                      'text-red-400'
+                    }`}>
+                      {job.days_since_opened}d
                     </p>
-                    <p className="text-xs text-muted-foreground">to hire</p>
+                    <p className="text-xs text-muted-foreground">since opened</p>
                   </div>
 
                   <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
@@ -957,7 +997,22 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                       <BarChart3 className="w-4 h-4 text-white" />
                       <span className="text-xs text-muted-foreground">Last Activity</span>
                     </div>
-                    <p className="text-sm font-bold text-white">{formatLastActivity(job.last_activity)}</p>
+                    {job.last_activity_user ? (
+                      <div className="flex items-center gap-2 mt-1">
+                        <Avatar className="h-6 w-6 border border-border/20">
+                          <AvatarImage src={job.last_activity_user.avatar || undefined} alt={job.last_activity_user.name} />
+                          <AvatarFallback className="bg-card/40 text-white text-xs">
+                            {job.last_activity_user.name.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-white truncate">{job.last_activity_user.name}</p>
+                          <p className="text-xs text-muted-foreground">{formatLastActivity(job.last_activity)}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm font-bold text-white">{formatLastActivity(job.last_activity)}</p>
+                    )}
                   </div>
                 </div>
 
