@@ -55,11 +55,11 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 max-w-3xl">
-            <TabsTrigger value="companies">Companies</TabsTrigger>
-            <TabsTrigger value="users">Users & Roles</TabsTrigger>
-            <TabsTrigger value="achievements">Achievements</TabsTrigger>
-            <TabsTrigger value="system">System Health</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 max-w-3xl sticky top-4 z-20">
+            <TabsTrigger value="companies" onClick={(e) => e.currentTarget.blur()}>Companies</TabsTrigger>
+            <TabsTrigger value="users" onClick={(e) => e.currentTarget.blur()}>Users & Roles</TabsTrigger>
+            <TabsTrigger value="achievements" onClick={(e) => e.currentTarget.blur()}>Achievements</TabsTrigger>
+            <TabsTrigger value="system" onClick={(e) => e.currentTarget.blur()}>System Health</TabsTrigger>
           </TabsList>
 
           <TabsContent value="companies" className="space-y-4">
