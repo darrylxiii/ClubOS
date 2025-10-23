@@ -297,11 +297,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const getClubSyncBadge = (status: string | null) => {
     switch (status) {
       case 'accepted':
-        return <Badge className="bg-accent/20 text-accent border-accent"><CheckCircle className="w-3 h-3 mr-1" />Club Sync Active</Badge>;
+        return <Badge variant="outline"><CheckCircle className="w-3 h-3 mr-1" />Club Sync Active</Badge>;
       case 'pending':
-        return <Badge variant="outline" className="border-primary text-primary"><AlertCircle className="w-3 h-3 mr-1" />Pending Approval</Badge>;
+        return <Badge variant="outline"><AlertCircle className="w-3 h-3 mr-1" />Pending Approval</Badge>;
       case 'not_offered':
-        return <Badge variant="outline" className="border-muted-foreground/50"><XCircle className="w-3 h-3 mr-1" />Not Active</Badge>;
+        return <Badge variant="outline"><XCircle className="w-3 h-3 mr-1" />Not Active</Badge>;
       default:
         return null;
     }
@@ -396,32 +396,30 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       <div className="relative z-10">
         <TooltipProvider>
           {/* Welcome Modal */}
-          <Dialog open={welcomeModalOpen} onOpenChange={setWelcomeModalOpen}>
+      <Dialog open={welcomeModalOpen} onOpenChange={setWelcomeModalOpen}>
         <DialogContent className="sm:max-w-lg glass-card">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 rounded-full bg-gradient-accent">
-                <Sparkles className="w-6 h-6 text-primary-foreground" />
-              </div>
+              <Sparkles className="w-6 h-6 text-white" />
               <DialogTitle className="text-2xl">Welcome to Your Hiring HQ</DialogTitle>
             </div>
             <DialogDescription className="text-base space-y-4 pt-4">
               <p>Your exclusive command center for world-class hiring. Here's what you can do:</p>
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
                   <span><strong>Track live metrics</strong> across all your searches</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
                   <span><strong>Activate Club Sync</strong> for vetted, premium candidates 3x faster</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
                   <span><strong>Manage your pipeline</strong> with advanced analytics and insights</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <CheckCircle className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
                   <span><strong>Get white-glove support</strong> from the Quantum Club team</span>
                 </li>
               </ul>
@@ -450,30 +448,28 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         <DialogContent className="sm:max-w-md glass-card">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-3 rounded-full bg-accent/20">
-                <Zap className="w-6 h-6 text-accent" />
-              </div>
+              <Zap className="w-6 h-6 text-white" />
               <DialogTitle className="text-xl">What's Club Sync?</DialogTitle>
             </div>
             <DialogDescription className="text-base space-y-4 pt-4">
               <p className="font-semibold text-foreground">Your premium hiring accelerator.</p>
               <div className="space-y-3">
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border border-accent/20">
-                  <TrendingUp className="w-5 h-5 text-accent mt-0.5" />
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
+                  <TrendingUp className="w-5 h-5 text-white mt-0.5" />
                   <div>
                     <p className="font-semibold text-sm">3x Faster Hiring</p>
                     <p className="text-sm text-muted-foreground">Get vetted candidates in days, not weeks</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border border-accent/20">
-                  <Award className="w-5 h-5 text-accent mt-0.5" />
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
+                  <Award className="w-5 h-5 text-white mt-0.5" />
                   <div>
                     <p className="font-semibold text-sm">Pre-Vetted Talent</p>
                     <p className="text-sm text-muted-foreground">Every candidate is Club-verified for quality</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg bg-accent/5 border border-accent/20">
-                  <HeadphonesIcon className="w-5 h-5 text-accent mt-0.5" />
+                <div className="flex items-start gap-3 p-3 rounded-lg bg-background/20 border border-border/20">
+                  <HeadphonesIcon className="w-5 h-5 text-white mt-0.5" />
                   <div>
                     <p className="font-semibold text-sm">Dedicated Support</p>
                     <p className="text-sm text-muted-foreground">Personal recruiter assistance included</p>
@@ -545,48 +541,42 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         {/* Bento KPI Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Active Searches - Larger emphasis */}
-          <Card className="border border-border/20 bg-gradient-to-br from-accent/5 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-3 rounded-xl bg-gradient-accent">
-                  <Briefcase className="w-6 h-6 text-primary-foreground" />
-                </div>
-                <Badge className="text-xs bg-success/20 backdrop-blur-[var(--blur-glass-subtle)] border border-success/40 text-success-foreground">Live</Badge>
+                <Briefcase className="w-6 h-6 text-white" />
+                <Badge variant="outline" className="text-xs">Live</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-4xl font-black">{companyMetrics.activeSearches}</p>
+                <p className="text-4xl font-black text-white">{companyMetrics.activeSearches}</p>
                 <p className="text-sm font-medium text-muted-foreground">Active Searches</p>
               </div>
             </CardContent>
           </Card>
 
           {/* Total Candidates */}
-          <Card className="border border-border/20 bg-gradient-to-br from-accent/3 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-accent/10">
-                  <Users className="w-5 h-5 text-accent" />
-                </div>
+                <Users className="w-5 h-5 text-white" />
                 <Badge variant="outline" className="text-xs">Pipeline</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black">{companyMetrics.totalCandidates}</p>
+                <p className="text-3xl font-black text-white">{companyMetrics.totalCandidates}</p>
                 <p className="text-sm text-muted-foreground">Candidates in Pipeline</p>
               </div>
             </CardContent>
           </Card>
 
           {/* Avg Time to Hire */}
-          <Card className="border border-border/20 bg-gradient-to-br from-card/20 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Clock className="w-5 h-5 text-primary" />
-                </div>
+                <Clock className="w-5 h-5 text-white" />
                 <Badge variant="outline" className="text-xs">Speed</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black">
+                <p className="text-3xl font-black text-white">
                   {companyMetrics.avgTimeToHire !== null ? `${companyMetrics.avgTimeToHire}d` : '—'}
                 </p>
                 <p className="text-sm text-muted-foreground">Avg. Time-to-Hire</p>
@@ -595,16 +585,14 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </Card>
 
           {/* Conversion Rate */}
-          <Card className="border border-border/20 bg-gradient-to-br from-accent/3 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-accent/10">
-                  <TrendingUp className="w-5 h-5 text-accent" />
-                </div>
+                <TrendingUp className="w-5 h-5 text-white" />
                 <Badge variant="outline" className="text-xs">Success</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black">
+                <p className="text-3xl font-black text-white">
                   {companyMetrics.conversionRate !== null ? `${companyMetrics.conversionRate}%` : '—'}
                 </p>
                 <p className="text-sm text-muted-foreground">Conversion Rate</p>
@@ -613,13 +601,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </Card>
 
           {/* Club Sync Status - Larger emphasis */}
-          <Card className="border border-accent/20 bg-gradient-to-br from-accent/5 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-accent/40 transition-all sm:col-span-2 lg:col-span-1">
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="p-3 rounded-xl bg-accent/20">
-                    <Zap className="w-6 h-6 text-accent" />
-                  </div>
+                  <Zap className="w-6 h-6 text-white" />
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
@@ -636,17 +622,17 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                     </TooltipContent>
                   </Tooltip>
                 </div>
-                <Badge className="text-xs bg-accent/20 backdrop-blur-[var(--blur-glass-subtle)] border border-accent/40 text-accent-foreground">Premium</Badge>
+                <Badge variant="outline" className="text-xs">Premium</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-4xl font-black text-accent">{companyMetrics.clubSyncActive}</p>
+                <p className="text-4xl font-black text-white">{companyMetrics.clubSyncActive}</p>
                 <p className="text-sm font-medium text-muted-foreground">Club Sync Active</p>
               </div>
               {companyMetrics.clubSyncActive < companyMetrics.activeSearches && (
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="w-full mt-3 text-xs gap-2 hover:bg-accent/10 hover:border-accent"
+                  className="w-full mt-3 text-xs gap-2"
                   onClick={() => toast.info("Contact your Quantum Club rep to activate Club Sync")}
                 >
                   <Sparkles className="w-3 h-3" />
@@ -657,16 +643,14 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </Card>
 
           {/* Pending Actions */}
-          <Card className="border border-border/20 bg-gradient-to-br from-card/20 via-card/20 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
+          <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Bell className="w-5 h-5 text-primary" />
-                </div>
+                <Bell className="w-5 h-5 text-white" />
                 <Badge variant="outline" className="text-xs">Action</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black">{companyMetrics.pendingActions}</p>
+                <p className="text-3xl font-black text-white">{companyMetrics.pendingActions}</p>
                 <p className="text-sm text-muted-foreground">Pending Actions</p>
               </div>
             </CardContent>
@@ -678,7 +662,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <Award className="w-5 h-5 text-accent" />
+                <Award className="w-5 h-5 text-white" />
                 <span className="font-semibold">Quick Actions</span>
               </div>
               <div className="flex items-center gap-2 flex-wrap overflow-x-auto pb-2 sm:pb-0">
@@ -686,7 +670,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                   <Calendar className="w-4 h-4" />
                   <span className="hidden sm:inline">Interviews</span>
                   {companyMetrics.pendingActions > 0 && (
-                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-destructive text-destructive-foreground text-xs">
+                    <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-background/40 text-white text-xs border border-border/20">
                       {companyMetrics.pendingActions}
                     </Badge>
                   )}
@@ -702,7 +686,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                 <Button variant="outline" size="sm" className="gap-2 relative">
                   <Target className="w-4 h-4" />
                   <span className="hidden sm:inline">Vetted Talent</span>
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-accent text-accent-foreground text-xs">
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center bg-background/40 text-white text-xs border border-border/20">
                     12
                   </Badge>
                 </Button>
@@ -722,11 +706,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
       {/* Jobs Grid */}
       {jobs.length === 0 ? (
-        <Card className="border-2 border-dashed border-border/40 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-accent/40 transition-colors">
+        <Card className="border-2 border-dashed border-border/40 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-border/60 transition-colors">
           <CardContent className="flex flex-col items-center justify-center py-16 px-6">
-            <div className="p-4 rounded-full bg-accent/10 mb-4">
-              <Briefcase className="w-12 h-12 text-accent" />
-            </div>
+            <Briefcase className="w-12 h-12 text-white mb-4" />
             <h3 className="text-2xl font-bold mb-2">Welcome to Your Hiring HQ</h3>
             <p className="text-muted-foreground mb-6 text-center max-w-md">
               Create your first job to unlock Club Sync, premium candidate matching, and world-class analytics
@@ -771,7 +753,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       {job.status === 'draft' && (
-                        <DropdownMenuItem onClick={() => handlePublishJob(job.id, job.title)} className="text-accent">
+                        <DropdownMenuItem onClick={() => handlePublishJob(job.id, job.title)}>
                           <Flag className="w-4 h-4 mr-2" />
                           Publish Job
                         </DropdownMenuItem>
@@ -798,8 +780,8 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
                 {/* Club Sync Action */}
                 {job.club_sync_status === 'pending' && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/30 animate-fade-in">
-                    <Zap className="w-4 h-4 text-primary" />
+                  <div className="flex items-center gap-2 p-3 rounded-lg bg-background/20 border border-border/20 animate-fade-in">
+                    <Zap className="w-4 h-4 text-white" />
                     <span className="text-sm font-medium flex-1">Club Sync Invitation</span>
                     <div className="flex gap-2">
                       <Button
@@ -812,7 +794,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                       <Button
                         size="sm"
                         variant="glass"
-                        className="font-semibold border-accent/40"
+                        className="font-semibold"
                         onClick={() => handleClubSyncAction(job.id, 'accept')}
                       >
                         Accept
@@ -824,7 +806,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                 {job.club_sync_status === 'not_offered' && (
                   <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
                     <div className="flex items-start gap-3">
-                      <Zap className="w-5 h-5 text-accent mt-0.5" />
+                      <Zap className="w-5 h-5 text-white mt-0.5" />
                       <div className="flex-1">
                         <p className="text-sm font-medium mb-1">Activate Club Sync</p>
                         <p className="text-xs text-muted-foreground mb-2">
@@ -844,19 +826,19 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
                     <div className="flex items-center gap-2 mb-1">
-                      <Users className="w-4 h-4 text-primary" />
+                      <Users className="w-4 h-4 text-white" />
                       <span className="text-xs text-muted-foreground">Candidates</span>
                     </div>
-                    <p className="text-2xl font-bold">{job.candidate_count}</p>
+                    <p className="text-2xl font-bold text-white">{job.candidate_count}</p>
                     <p className="text-xs text-muted-foreground">{job.active_stage_count} active</p>
                   </div>
 
                   <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
                     <div className="flex items-center gap-2 mb-1">
-                      <Clock className="w-4 h-4 text-accent" />
+                      <Clock className="w-4 h-4 text-white" />
                       <span className="text-xs text-muted-foreground">Avg. Time</span>
                     </div>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-white">
                       {job.avg_time_to_hire_days !== null ? `${job.avg_time_to_hire_days}d` : '—'}
                     </p>
                     <p className="text-xs text-muted-foreground">to hire</p>
@@ -864,10 +846,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
                   <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
                     <div className="flex items-center gap-2 mb-1">
-                      <TrendingUp className="w-4 h-4 text-accent" />
+                      <TrendingUp className="w-4 h-4 text-white" />
                       <span className="text-xs text-muted-foreground">Conversion</span>
                     </div>
-                    <p className="text-2xl font-bold">
+                    <p className="text-2xl font-bold text-white">
                       {job.conversion_rate !== null ? `${job.conversion_rate}%` : '—'}
                     </p>
                     <p className="text-xs text-muted-foreground">hired rate</p>
@@ -875,10 +857,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
                   <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
                     <div className="flex items-center gap-2 mb-1">
-                      <BarChart3 className="w-4 h-4 text-primary" />
+                      <BarChart3 className="w-4 h-4 text-white" />
                       <span className="text-xs text-muted-foreground">Last Activity</span>
                     </div>
-                    <p className="text-sm font-bold">{formatLastActivity(job.last_activity)}</p>
+                    <p className="text-sm font-bold text-white">{formatLastActivity(job.last_activity)}</p>
                   </div>
                 </div>
 
