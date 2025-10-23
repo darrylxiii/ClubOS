@@ -237,6 +237,9 @@ export const ResultsDashboard = memo(({ profile, outcome, jobMatches }: ResultsD
           transition={{ delay: 0.6 }}
           className="flex flex-wrap gap-4 justify-center"
         >
+          <Button variant="outline" onClick={() => navigate('/assessments')} className="gap-2">
+            Back to Assessments
+          </Button>
           <Button variant="outline" onClick={handleDownload} className="gap-2">
             <Download className="w-4 h-4" />
             Download Report

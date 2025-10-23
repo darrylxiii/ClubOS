@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX } from 'lucide-react';
 import { soundManager } from '@/lib/miljoenenjacht/soundManager';
 
-const ROUNDS_STRUCTURE = [6, 5, 4, 3, 2, 1, 1, 1];
+const ROUNDS_STRUCTURE = [6, 5, 4, 3, 2, 2];
 
 const Miljoenenjacht = memo(() => {
   const [gameState, setGameState] = useState<GameState>({
