@@ -140,8 +140,8 @@ export default function CourseEdit() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!user || !id) return;
 
     if (!formData.title.trim()) {
@@ -173,7 +173,8 @@ export default function CourseEdit() {
           course_video_url: formData.course_video_url || null,
           updated_at: new Date().toISOString(),
         })
-        .eq("id", id);
+        .eq("id", id)
+        .eq("created_by", user.id);
 
       if (error) throw error;
 
@@ -182,7 +183,8 @@ export default function CourseEdit() {
         description: "Your changes have been saved successfully",
       });
 
-      navigate(`/courses/${slug}`);
+      // Reload the course data to show updated values
+      await loadCourseData();
     } catch (error: any) {
       toast({
         title: "Error saving course",
@@ -417,7 +419,7 @@ export default function CourseEdit() {
             </div>
             <Button
               variant="outline"
-              onClick={() => navigate(`/courses/${course.slug}`)}
+              onClick={() => navigate(`/courses/manage-modules/${id}`)}
             >
               Manage Modules
             </Button>
