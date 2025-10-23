@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,6 +67,13 @@ import {
 import { CreateJobDialog } from "./CreateJobDialog";
 import { useUserRole } from "@/hooks/useUserRole";
 import confetti from "canvas-confetti";
+import { JobCardMetrics } from "./job-card/JobCardMetrics";
+import { JobCardLastActivity } from "./job-card/JobCardLastActivity";
+import { JobCardActions } from "./job-card/JobCardActions";
+import { JobCardHeader } from "./job-card/JobCardHeader";
+import { JobsAnalyticsWidget } from "./JobsAnalyticsWidget";
+import { JobFilterBar, JobFilterType } from "./JobFilterBar";
+import { formatLastActivity } from "@/lib/jobUtils";
 
 interface PartnerJobsHomeProps {
   companyId: string | null;
@@ -115,6 +122,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [clubSyncInfoOpen, setClubSyncInfoOpen] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const [currentFilter, setCurrentFilter] = useState<JobFilterType>('all');
   const isAdmin = role === 'admin';
 
   useEffect(() => {
@@ -129,9 +137,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
   useEffect(() => {
     fetchJobsWithMetrics();
-  }, [companyId]);
+  }, [companyId, role]);
 
-  const fetchJobsWithMetrics = async () => {
+  const fetchJobsWithMetrics = useCallback(async () => {
     try {
       // Fetch jobs with company info - admins see all jobs, partners see only their company's jobs
       let query = supabase
@@ -279,7 +287,72 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [companyId, role]);
+
+  // Filter and sort jobs
+  const filteredJobs = useMemo(() => {
+    let filtered = [...jobs];
+    
+    switch (currentFilter) {
+      case 'expiring-soon':
+        // Jobs open for 45+ days
+        filtered = filtered.filter(job => job.days_since_opened >= 45);
+        filtered.sort((a, b) => b.days_since_opened - a.days_since_opened);
+        break;
+      case 'recent-activity':
+        // Jobs with activity in last 7 days
+        filtered = filtered.filter(job => {
+          if (!job.last_activity) return false;
+          const daysSince = Math.floor(
+            (new Date().getTime() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24)
+          );
+          return daysSince <= 7;
+        });
+        filtered.sort((a, b) => {
+          const dateA = a.last_activity ? new Date(a.last_activity).getTime() : 0;
+          const dateB = b.last_activity ? new Date(b.last_activity).getTime() : 0;
+          return dateB - dateA;
+        });
+        break;
+      case 'high-engagement':
+        // Jobs with conversion rate >= 15% or many candidates
+        filtered = filtered.filter(job => 
+          (job.conversion_rate && job.conversion_rate >= 15) || 
+          job.candidate_count >= 10
+        );
+        filtered.sort((a, b) => (b.conversion_rate || 0) - (a.conversion_rate || 0));
+        break;
+      default:
+        // All jobs, sorted by most recent first
+        filtered.sort((a, b) => 
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+    }
+    
+    return filtered;
+  }, [jobs, currentFilter]);
+
+  // Calculate filter counts
+  const jobCounts = useMemo(() => {
+    const expiringSoon = jobs.filter(job => job.days_since_opened >= 45).length;
+    const recentActivity = jobs.filter(job => {
+      if (!job.last_activity) return false;
+      const daysSince = Math.floor(
+        (new Date().getTime() - new Date(job.last_activity).getTime()) / (1000 * 60 * 60 * 24)
+      );
+      return daysSince <= 7;
+    }).length;
+    const highEngagement = jobs.filter(job => 
+      (job.conversion_rate && job.conversion_rate >= 15) || job.candidate_count >= 10
+    ).length;
+    
+    return {
+      all: jobs.length,
+      expiringSoon,
+      recentActivity,
+      highEngagement
+    };
+  }, [jobs]);
 
   const handlePublishJob = async (jobId: string, jobTitle: string) => {
     try {
@@ -780,8 +853,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
             </CardContent>
           </Card>
         </div>
+        */}
 
-        {/* Quick Actions Bar with Notifications */}
+        {/* Quick Actions Bar - Hidden */}
+        {/*
         <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:border-border/40 transition-all">
           <CardContent className="p-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -822,10 +897,8 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
             </div>
           </CardContent>
         </Card>
-
-        <p className="text-muted-foreground">
-          Manage your hiring pipeline, track candidate progress, and leverage Club Sync for premium vetting
-        </p>
+        </div>
+        */}
       </div>
 
       {/* Jobs Grid */}
@@ -850,183 +923,17 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {jobs.map((job) => (
-            <Card
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          {filteredJobs.map((job) => (
+            <MemoizedJobCard 
               key={job.id}
-              className="border border-border/20 bg-gradient-to-br from-card/20 via-card/25 to-card/30 backdrop-blur-[var(--blur-glass)] hover:shadow-2xl hover:border-border/40 transition-all duration-300"
-            >
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div className="flex items-center gap-3 flex-1">
-                    <Avatar className="h-12 w-12 border-2 border-border/20">
-                      <AvatarImage src={job.company_logo || undefined} alt={job.company_name} />
-                      <AvatarFallback className="bg-card/40 text-white font-bold">
-                        {job.company_name.substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1">
-                      <CardTitle className="text-xl font-black uppercase mb-1">
-                        {job.title}
-                      </CardTitle>
-                      <p className="text-xs text-muted-foreground mb-2">{job.company_name}</p>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <Badge variant={job.status === 'published' ? 'default' : 'secondary'}>
-                          {job.status}
-                        </Badge>
-                        {getClubSyncBadge(job.club_sync_status)}
-                      </div>
-                    </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="shrink-0">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      {job.status === 'draft' && (
-                        <DropdownMenuItem onClick={() => handlePublishJob(job.id, job.title)}>
-                          <Flag className="w-4 h-4 mr-2" />
-                          Publish Job
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem onClick={() => handleQuickAction('invite', job.id, job.title)}>
-                        <UserPlus className="w-4 h-4 mr-2" />
-                        Invite Candidate
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleQuickAction('export', job.id, job.title)}>
-                        <Download className="w-4 h-4 mr-2" />
-                        Export Pipeline
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleQuickAction('support', job.id, job.title)}>
-                        <HeadphonesIcon className="w-4 h-4 mr-2" />
-                        Request Club Support
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleQuickAction('analytics', job.id, job.title)}>
-                        <BarChart3 className="w-4 h-4 mr-2" />
-                        Pipeline Health Check
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Club Sync Action */}
-                {job.club_sync_status === 'pending' && (
-                  <div className="flex items-center gap-2 p-3 rounded-lg bg-background/20 border border-border/20 animate-fade-in">
-                    <Zap className="w-4 h-4 text-white" />
-                    <span className="text-sm font-medium flex-1">Club Sync Invitation</span>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleClubSyncAction(job.id, 'decline')}
-                      >
-                        Decline
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="glass"
-                        className="font-semibold"
-                        onClick={() => handleClubSyncAction(job.id, 'accept')}
-                      >
-                        Accept
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {job.club_sync_status === 'not_offered' && (
-                  <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
-                    <div className="flex items-start gap-3">
-                      <Zap className="w-5 h-5 text-white mt-0.5" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium mb-1">Activate Club Sync</p>
-                        <p className="text-xs text-muted-foreground mb-2">
-                          Get white-glove hiring service: vetted candidates, faster matches, better outcomes
-                        </p>
-                        <Button size="sm" variant="outline" className="text-xs">
-                          Learn More
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardHeader>
-
-              <CardContent className="space-y-4">
-                {/* Key Metrics Grid */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Users className="w-4 h-4 text-white" />
-                      <span className="text-xs text-muted-foreground">Candidates</span>
-                    </div>
-                    <p className="text-2xl font-bold text-white">{job.candidate_count}</p>
-                    <p className="text-xs text-muted-foreground">{job.active_stage_count} active</p>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Clock className="w-4 h-4 text-white" />
-                      <span className="text-xs text-muted-foreground">Days Open</span>
-                    </div>
-                    <p className={`text-2xl font-bold ${
-                      job.days_since_opened <= 30 ? 'text-green-400' : 
-                      job.days_since_opened <= 60 ? 'text-yellow-400' : 
-                      'text-red-400'
-                    }`}>
-                      {job.days_since_opened}d
-                    </p>
-                    <p className="text-xs text-muted-foreground">since opened</p>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
-                    <div className="flex items-center gap-2 mb-1">
-                      <TrendingUp className="w-4 h-4 text-white" />
-                      <span className="text-xs text-muted-foreground">Conversion</span>
-                    </div>
-                    <p className="text-2xl font-bold text-white">
-                      {job.conversion_rate !== null ? `${job.conversion_rate}%` : '—'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">hired rate</p>
-                  </div>
-
-                  <div className="p-3 rounded-lg bg-gradient-card border border-border/50">
-                    <div className="flex items-center gap-2 mb-1">
-                      <BarChart3 className="w-4 h-4 text-white" />
-                      <span className="text-xs text-muted-foreground">Last Activity</span>
-                    </div>
-                    {job.last_activity_user ? (
-                      <div className="flex items-center gap-2 mt-1">
-                        <Avatar className="h-6 w-6 border border-border/20">
-                          <AvatarImage src={job.last_activity_user.avatar || undefined} alt={job.last_activity_user.name} />
-                          <AvatarFallback className="bg-card/40 text-white text-xs">
-                            {job.last_activity_user.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-white truncate">{job.last_activity_user.name}</p>
-                          <p className="text-xs text-muted-foreground">{formatLastActivity(job.last_activity)}</p>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm font-bold text-white">{formatLastActivity(job.last_activity)}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Primary CTA */}
-                <Button
-                  variant="glass"
-                  className="w-full font-semibold"
-                  onClick={() => navigate(`/jobs/${job.id}/dashboard`)}
-                >
-                  <LayoutDashboard className="w-4 h-4 mr-2" />
-                  Open Job Dashboard
-                </Button>
-              </CardContent>
-            </Card>
+              job={job}
+              onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
+              onPublish={handlePublishJob}
+              onQuickAction={handleQuickAction}
+              onClubSync={handleClubSyncAction}
+              getClubSyncBadge={getClubSyncBadge}
+            />
           ))}
         </div>
       )}
@@ -1042,3 +949,124 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     </div>
   );
 };
+
+// Memoized Job Card Component for Performance
+const MemoizedJobCard = memo(({ 
+  job, 
+  onNavigate, 
+  onPublish, 
+  onQuickAction, 
+  onClubSync,
+  getClubSyncBadge 
+}: any) => {
+  return (
+    <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all duration-300">
+      <CardHeader className="pb-4">
+        <div className="flex items-start justify-between gap-3 sm:gap-4 mb-3">
+          <JobCardHeader
+            companyLogo={job.company_logo}
+            companyName={job.company_name}
+            title={job.title}
+            status={job.status}
+            clubSyncBadge={getClubSyncBadge(job.club_sync_status)}
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="shrink-0 h-8 w-8 sm:h-10 sm:w-10">
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {job.status === 'draft' && (
+                <DropdownMenuItem onClick={() => onPublish(job.id, job.title)}>
+                  <Flag className="w-4 h-4 mr-2" />
+                  Publish Job
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem onClick={() => onQuickAction('invite', job.id, job.title)}>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Invite Candidate
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onQuickAction('export', job.id, job.title)}>
+                <Download className="w-4 h-4 mr-2" />
+                Export Pipeline
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onQuickAction('support', job.id, job.title)}>
+                <HeadphonesIcon className="w-4 h-4 mr-2" />
+                Request Club Support
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onQuickAction('analytics', job.id, job.title)}>
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Pipeline Health Check
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Club Sync Action */}
+        {job.club_sync_status === 'pending' && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20 animate-fade-in">
+            <Zap className="w-4 h-4 text-white" />
+            <span className="text-sm font-medium flex-1">Club Sync Invitation</span>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onClubSync(job.id, 'decline')}
+                className="flex-1 sm:flex-initial"
+              >
+                Decline
+              </Button>
+              <Button
+                size="sm"
+                variant="glass"
+                className="font-semibold flex-1 sm:flex-initial"
+                onClick={() => onClubSync(job.id, 'accept')}
+              >
+                Accept
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {job.club_sync_status === 'not_offered' && (
+          <div className="p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20">
+            <div className="flex items-start gap-3">
+              <Zap className="w-5 h-5 text-white mt-0.5 shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm font-medium mb-1">Activate Club Sync</p>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Get white-glove hiring service: vetted candidates, faster matches, better outcomes
+                </p>
+                <Button size="sm" variant="outline" className="text-xs">
+                  Learn More
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardHeader>
+
+      <CardContent className="space-y-4">
+        {/* Key Metrics */}
+        <JobCardMetrics
+          candidateCount={job.candidate_count}
+          activeStageCount={job.active_stage_count}
+          daysSinceOpened={job.days_since_opened}
+          conversionRate={job.conversion_rate}
+        />
+
+        {/* Last Activity */}
+        <JobCardLastActivity
+          lastActivity={job.last_activity}
+          lastActivityUser={job.last_activity_user}
+        />
+
+        {/* Primary CTA */}
+        <JobCardActions onOpenDashboard={() => onNavigate(job.id)} />
+      </CardContent>
+    </Card>
+  );
+});
+
+MemoizedJobCard.displayName = 'MemoizedJobCard';
