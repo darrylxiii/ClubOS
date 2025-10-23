@@ -741,11 +741,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all sm:col-span-2 lg:col-span-1">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <Briefcase className="w-6 h-6 text-white" />
+                <Briefcase className="w-6 h-6 text-foreground" />
                 <Badge variant="outline" className="text-xs">Live</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-4xl font-black text-white">{companyMetrics.activeSearches}</p>
+                <p className="text-4xl font-black text-foreground">{companyMetrics.activeSearches}</p>
                 <p className="text-sm font-medium text-muted-foreground">Active Searches</p>
               </div>
             </CardContent>
@@ -755,11 +755,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <Users className="w-5 h-5 text-white" />
+                <Users className="w-5 h-5 text-foreground" />
                 <Badge variant="outline" className="text-xs">Pipeline</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black text-white">{companyMetrics.totalCandidates}</p>
+                <p className="text-3xl font-black text-foreground">{companyMetrics.totalCandidates}</p>
                 <p className="text-sm text-muted-foreground">Candidates in Pipeline</p>
               </div>
             </CardContent>
@@ -769,11 +769,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <Clock className="w-5 h-5 text-white" />
+                <Clock className="w-5 h-5 text-foreground" />
                 <Badge variant="outline" className="text-xs">Speed</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black text-white">
+                <p className="text-3xl font-black text-foreground">
                   {companyMetrics.avgTimeToHire !== null ? `${companyMetrics.avgTimeToHire}d` : '—'}
                 </p>
                 <p className="text-sm text-muted-foreground">Avg. Time-to-Hire</p>
@@ -785,11 +785,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <TrendingUp className="w-5 h-5 text-white" />
+                <TrendingUp className="w-5 h-5 text-foreground" />
                 <Badge variant="outline" className="text-xs">Success</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black text-white">
+                <p className="text-3xl font-black text-foreground">
                   {companyMetrics.conversionRate !== null ? `${companyMetrics.conversionRate}%` : '—'}
                 </p>
                 <p className="text-sm text-muted-foreground">Conversion Rate</p>
@@ -802,7 +802,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <Zap className="w-6 h-6 text-white" />
+                  <Zap className="w-6 h-6 text-foreground" />
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button 
@@ -822,7 +822,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                 <Badge variant="outline" className="text-xs">Premium</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-4xl font-black text-white">{companyMetrics.clubSyncActive}</p>
+                <p className="text-4xl font-black text-foreground">{companyMetrics.clubSyncActive}</p>
                 <p className="text-sm font-medium text-muted-foreground">Club Sync Active</p>
               </div>
               {companyMetrics.clubSyncActive < companyMetrics.activeSearches && (
@@ -843,11 +843,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           <Card className="border border-border/20 bg-card/20 backdrop-blur-[var(--blur-glass)] hover:shadow-xl hover:border-border/40 transition-all">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-3">
-                <Bell className="w-5 h-5 text-white" />
+                <Bell className="w-5 h-5 text-foreground" />
                 <Badge variant="outline" className="text-xs">Action</Badge>
               </div>
               <div className="space-y-1">
-                <p className="text-3xl font-black text-white">{companyMetrics.pendingActions}</p>
+                <p className="text-3xl font-black text-foreground">{companyMetrics.pendingActions}</p>
                 <p className="text-sm text-muted-foreground">Pending Actions</p>
               </div>
             </CardContent>
