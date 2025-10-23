@@ -3784,6 +3784,10 @@ export type Database = {
           time_spent_minutes: number | null
           updated_at: string | null
           user_id: string
+          video_completed_at: string | null
+          video_last_position_seconds: number | null
+          video_watch_time_seconds: number | null
+          video_watched_percentage: number | null
         }
         Insert: {
           completed_at?: string | null
@@ -3801,6 +3805,10 @@ export type Database = {
           time_spent_minutes?: number | null
           updated_at?: string | null
           user_id: string
+          video_completed_at?: string | null
+          video_last_position_seconds?: number | null
+          video_watch_time_seconds?: number | null
+          video_watched_percentage?: number | null
         }
         Update: {
           completed_at?: string | null
@@ -3818,6 +3826,10 @@ export type Database = {
           time_spent_minutes?: number | null
           updated_at?: string | null
           user_id?: string
+          video_completed_at?: string | null
+          video_last_position_seconds?: number | null
+          video_watch_time_seconds?: number | null
+          video_watched_percentage?: number | null
         }
         Relationships: [
           {

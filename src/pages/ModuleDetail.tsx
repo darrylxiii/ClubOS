@@ -50,7 +50,10 @@ export default function ModuleDetail() {
   const [courseModules, setCourseModules] = useState<CourseModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [progress, setProgress] = useState(0);
+  const [videoWatchedPercentage, setVideoWatchedPercentage] = useState(0);
   const [currentModuleIndex, setCurrentModuleIndex] = useState(0);
+  const [videoRef, setVideoRef] = useState<HTMLVideoElement | null>(null);
+  const [lastSavedPosition, setLastSavedPosition] = useState(0);
 
   useEffect(() => {
     fetchModule();
@@ -93,13 +96,15 @@ export default function ModuleDetail() {
       if (user && moduleData.id) {
         const { data: progressData } = await supabase
           .from('learner_progress')
-          .select('progress_percentage')
+          .select('progress_percentage, video_watched_percentage, video_last_position_seconds')
           .eq('module_id', moduleData.id)
           .eq('user_id', user.id)
           .maybeSingle();
 
         if (progressData) {
           setProgress(progressData.progress_percentage);
+          setVideoWatchedPercentage(progressData.video_watched_percentage || 0);
+          setLastSavedPosition(progressData.video_last_position_seconds || 0);
         }
       }
     } catch (error: any) {
@@ -156,6 +161,90 @@ export default function ModuleDetail() {
       navigate(`/academy/modules/${prevModule.slug}`);
     }
   };
+
+  const saveVideoProgress = async (currentTime: number, duration: number, watchTime: number) => {
+    if (!module || !user) return;
+
+    const watchedPercentage = Math.round((currentTime / duration) * 100);
+    const isCompleted = watchedPercentage >= 90; // Consider 90% as completed
+
+    try {
+      await supabase
+        .from('learner_progress')
+        .upsert({
+          user_id: user.id,
+          module_id: module.id,
+          video_watched_percentage: watchedPercentage,
+          video_last_position_seconds: Math.floor(currentTime),
+          video_watch_time_seconds: Math.floor(watchTime),
+          video_completed_at: isCompleted ? new Date().toISOString() : null,
+        });
+
+      setVideoWatchedPercentage(watchedPercentage);
+    } catch (error: any) {
+      console.error('Error saving video progress:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (!videoRef || !user || !module) return;
+
+    let watchStartTime = Date.now();
+    let totalWatchTime = 0;
+    let lastUpdateTime = 0;
+
+    const handleTimeUpdate = () => {
+      const currentTime = videoRef.currentTime;
+      const duration = videoRef.duration;
+
+      if (duration && !isNaN(duration)) {
+        const now = Date.now();
+        const timeSinceLastUpdate = (now - lastUpdateTime) / 1000;
+
+        // Track watch time (only when actually playing)
+        if (!videoRef.paused) {
+          totalWatchTime += timeSinceLastUpdate;
+        }
+
+        lastUpdateTime = now;
+
+        // Save progress every 5 seconds
+        if (Math.abs(currentTime - lastSavedPosition) >= 5) {
+          saveVideoProgress(currentTime, duration, totalWatchTime);
+          setLastSavedPosition(currentTime);
+        }
+      }
+    };
+
+    const handleEnded = () => {
+      const duration = videoRef.duration;
+      if (duration) {
+        saveVideoProgress(duration, duration, totalWatchTime);
+        // Auto-mark as complete when video ends
+        if (progress < 100) {
+          markComplete();
+        }
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      // Restore last position if exists
+      if (lastSavedPosition > 0 && videoRef.duration) {
+        videoRef.currentTime = lastSavedPosition;
+      }
+      lastUpdateTime = Date.now();
+    };
+
+    videoRef.addEventListener('timeupdate', handleTimeUpdate);
+    videoRef.addEventListener('ended', handleEnded);
+    videoRef.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    return () => {
+      videoRef.removeEventListener('timeupdate', handleTimeUpdate);
+      videoRef.removeEventListener('ended', handleEnded);
+      videoRef.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [videoRef, user, module, lastSavedPosition]);
 
   if (loading) {
     return (
@@ -237,6 +326,7 @@ export default function ModuleDetail() {
                   />
                 ) : (
                   <video 
+                    ref={setVideoRef}
                     src={module.video_url} 
                     controls 
                     className="w-full h-full"
@@ -290,6 +380,16 @@ export default function ModuleDetail() {
                   <span className="text-sm font-semibold">{Math.round(progress)}%</span>
                 </div>
                 <Progress value={progress} className="h-2" />
+                
+                {module?.video_url && !module.video_url.includes('youtube.com') && !module.video_url.includes('youtu.be') && (
+                  <div className="pt-2 border-t">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Video Watched</span>
+                      <span className="font-semibold">{videoWatchedPercentage}%</span>
+                    </div>
+                    <Progress value={videoWatchedPercentage} className="h-1 mt-2" />
+                  </div>
+                )}
                 
                 <div className="flex gap-3 pt-2">
                   <Button
