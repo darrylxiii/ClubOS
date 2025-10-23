@@ -206,7 +206,7 @@ export function SocialConnections({
   };
 
   return (
-    <Card className="border-0 shadow-glow bg-card/30 backdrop-blur-md scroll-mt-8">
+    <Card className="border-0 bg-card/30 backdrop-blur-md scroll-mt-8">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="w-5 h-5 text-foreground" />

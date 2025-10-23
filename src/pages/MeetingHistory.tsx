@@ -318,7 +318,7 @@ const MeetingHistory = () => {
         )}
 
         {/* Filters and Search */}
-        <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm mb-6">
+        <Card className="border-0 bg-card/30 backdrop-blur-md mb-6">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-2">
@@ -497,7 +497,7 @@ const MeetingHistory = () => {
             <p className="text-muted-foreground">Loading recordings...</p>
           </div>
         ) : filteredRecordings.length === 0 ? (
-          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+          <Card className="border-0 bg-card/30 backdrop-blur-md">
             <CardContent className="text-center py-12">
               <Video className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-lg font-semibold mb-2">No Recordings Yet</h3>
@@ -515,7 +515,7 @@ const MeetingHistory = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRecordings.map((recording) => (
-              <Card key={recording.id} className="border-0 shadow-glow bg-card/50 backdrop-blur-sm overflow-hidden">
+              <Card key={recording.id} className="border-0 bg-card/30 backdrop-blur-md overflow-hidden">
                 <div className="aspect-video bg-muted relative">
                   {recording.thumbnail_url ? (
                     <img src={recording.thumbnail_url} alt={recording.title} className="w-full h-full object-cover" />

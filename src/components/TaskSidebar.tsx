@@ -168,7 +168,7 @@ export function TaskSidebar() {
   const unscheduledTasks = tasks.filter(task => !task.scheduled_start);
 
   return (
-    <Card className="h-full flex flex-col border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+    <Card className="h-full flex flex-col border-0 bg-card/30 backdrop-blur-md">
       <CardHeader className="pb-3">
         <div className="space-y-3">
           <div className="flex items-center justify-between">

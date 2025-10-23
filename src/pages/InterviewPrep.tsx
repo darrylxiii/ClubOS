@@ -198,7 +198,7 @@ const InterviewPrep = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Job Info */}
           <div className="lg:col-span-1 space-y-4">
-            <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+            <Card className="border-0 bg-card/30 backdrop-blur-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-accent" />
@@ -238,7 +238,7 @@ const InterviewPrep = () => {
             </Card>
 
             {conversationStarted && (
-              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+              <Card className="border-0 bg-card/30 backdrop-blur-md">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Clock className="w-5 h-5 text-accent" />
@@ -255,7 +255,7 @@ const InterviewPrep = () => {
           {/* Middle Column - Interview Interface */}
           <div className="lg:col-span-2 space-y-4">
             {!conversationStarted && !scoringResult && (
-              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+              <Card className="border-0 bg-card/30 backdrop-blur-md">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Target className="w-5 h-5 text-accent" />
@@ -296,7 +296,7 @@ const InterviewPrep = () => {
             )}
 
             {conversationStarted && (
-              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+              <Card className="border-0 bg-card/30 backdrop-blur-md">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="w-5 h-5 text-accent" />
@@ -349,7 +349,7 @@ const InterviewPrep = () => {
             )}
 
             {isAnalyzing && (
-              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+              <Card className="border-0 bg-card/30 backdrop-blur-md">
                 <CardHeader>
                   <CardTitle>Analyzing Interview...</CardTitle>
                 </CardHeader>
@@ -366,7 +366,7 @@ const InterviewPrep = () => {
 
             {scoringResult && (
               <div className="space-y-4">
-                <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+                <Card className="border-0 bg-card/30 backdrop-blur-md">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Trophy className="w-5 h-5 text-accent" />

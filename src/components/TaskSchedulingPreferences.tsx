@@ -107,7 +107,7 @@ export function TaskSchedulingPreferences() {
   }
 
   return (
-    <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+    <Card className="border-0 bg-card/30 backdrop-blur-md">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-accent" />
