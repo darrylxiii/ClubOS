@@ -88,11 +88,11 @@ export const CaseGrid = memo(({ cases, playerCase, onSelectCase, disabled }: Cas
                 {revealingCase === briefCase.id ? (
                   <motion.div
                     key="revealing"
-                    initial={{ rotateY: 0 }}
-                    animate={{ rotateY: 180 }}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="absolute inset-0 flex flex-col items-center justify-center bg-primary/10"
+                    className="absolute inset-0 flex flex-col items-center justify-center bg-primary/10 rounded-lg"
                   >
                     <div className="text-xs md:text-sm font-bold text-primary">
                       {formatCurrency(briefCase.amount)}

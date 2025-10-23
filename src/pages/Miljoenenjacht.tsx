@@ -15,6 +15,9 @@ import { calculatePsychologicalProfile } from '@/lib/miljoenenjacht/psychology';
 import { calculateJobMatches } from '@/lib/miljoenenjacht/jobMatching';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Volume2, VolumeX } from 'lucide-react';
+import { soundManager } from '@/lib/miljoenenjacht/soundManager';
 
 const ROUNDS_STRUCTURE = [6, 5, 4, 3, 2, 1, 1, 1];
 
@@ -33,6 +36,12 @@ const Miljoenenjacht = memo(() => {
   const [currentRoundData, setCurrentRoundData] = useState<Partial<RoundDecision>>({});
   const [hesitationCount, setHesitationCount] = useState(0);
   const [showTutorial, setShowTutorial] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(soundManager.isEnabled());
+
+  const toggleSound = useCallback(() => {
+    const enabled = soundManager.toggle();
+    setSoundEnabled(enabled);
+  }, []);
 
   const initializeGame = useCallback(() => {
     const shuffledAmounts = shuffleArray(PRIZE_AMOUNTS);
@@ -300,6 +309,17 @@ const Miljoenenjacht = memo(() => {
 
   return (
     <div className="min-h-screen p-4 md:p-8 bg-gradient-to-br from-background via-background/95 to-primary/5">
+      {/* Sound Toggle Button */}
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={toggleSound}
+        className="fixed top-4 right-4 z-10"
+        aria-label={soundEnabled ? "Mute sound" : "Enable sound"}
+      >
+        {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+      </Button>
+
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
