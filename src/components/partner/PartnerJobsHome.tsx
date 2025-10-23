@@ -130,11 +130,16 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 
   const fetchJobsWithMetrics = async () => {
     try {
-      // Fetch jobs
-      const { data: jobsData, error: jobsError } = await supabase
+      // Fetch jobs - admins see all jobs, partners see only their company's jobs
+      let query = supabase
         .from('jobs')
-        .select('id, title, status, location, created_at')
-        .eq('company_id', companyId)
+        .select('id, title, status, location, created_at');
+      
+      if (role !== 'admin' && companyId) {
+        query = query.eq('company_id', companyId);
+      }
+      
+      const { data: jobsData, error: jobsError } = await query
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
