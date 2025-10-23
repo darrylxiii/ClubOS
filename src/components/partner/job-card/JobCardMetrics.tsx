@@ -20,17 +20,17 @@ export const JobCardMetrics = memo(({
       {/* Candidates */}
       <div className="p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20 hover:border-border/40 transition-all">
         <div className="flex items-center gap-2 mb-1">
-          <Users className="w-4 h-4 text-white" />
+          <Users className="w-4 h-4 text-foreground" />
           <span className="text-xs text-muted-foreground">Candidates</span>
         </div>
-        <p className="text-2xl font-bold text-white">{candidateCount}</p>
+        <p className="text-2xl font-bold text-foreground">{candidateCount}</p>
         <p className="text-xs text-muted-foreground">{activeStageCount} active</p>
       </div>
 
       {/* Days Open */}
       <div className="p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20 hover:border-border/40 transition-all">
         <div className="flex items-center gap-2 mb-1">
-          <Clock className="w-4 h-4 text-white" />
+          <Clock className="w-4 h-4 text-foreground" />
           <span className="text-xs text-muted-foreground">Days Open</span>
         </div>
         <p className={`text-2xl font-bold ${getDaysOpenColor(daysSinceOpened)}`}>
@@ -42,7 +42,7 @@ export const JobCardMetrics = memo(({
       {/* Conversion */}
       <div className="p-3 rounded-lg bg-card/20 backdrop-blur-sm border border-border/20 hover:border-border/40 transition-all col-span-2">
         <div className="flex items-center gap-2 mb-1">
-          <TrendingUp className="w-4 h-4 text-white" />
+          <TrendingUp className="w-4 h-4 text-foreground" />
           <span className="text-xs text-muted-foreground">Conversion Rate</span>
         </div>
         <p className={`text-2xl font-bold ${getConversionColor(conversionRate)}`}>

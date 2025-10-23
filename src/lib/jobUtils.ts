@@ -35,7 +35,7 @@ export const formatLastActivity = (date: string | null): string => {
 };
 
 export const getConversionColor = (rate: number | null): string => {
-  if (rate === null) return 'text-white';
+  if (rate === null) return 'text-foreground';
   if (rate >= 20) return 'text-green-400';
   if (rate >= 10) return 'text-yellow-400';
   return 'text-red-400';

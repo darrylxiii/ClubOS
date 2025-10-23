@@ -22,7 +22,7 @@ export const JobCardHeader = memo(({
     <div className="flex items-center gap-3 flex-1">
       <Avatar className="h-12 w-12 border-2 border-border/20 shrink-0">
         <AvatarImage src={companyLogo || undefined} alt={companyName} />
-        <AvatarFallback className="bg-card/40 text-white font-bold">
+        <AvatarFallback className="bg-card/40 text-foreground font-bold">
           {companyName.substring(0, 2).toUpperCase()}
         </AvatarFallback>
       </Avatar>
@@ -34,7 +34,7 @@ export const JobCardHeader = memo(({
         <div className="flex items-center gap-2 flex-wrap">
           <Badge 
             variant="outline" 
-            className="border-border/20 text-white bg-card/20"
+            className="border-border/20 text-foreground bg-card/20"
           >
             {status}
           </Badge>
