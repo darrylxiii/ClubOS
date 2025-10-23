@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/miljoenenjacht/utils';
-import { Phone } from 'lucide-react';
+import { Phone, Volume2, VolumeX } from 'lucide-react';
+import { soundManager } from '@/lib/miljoenenjacht/soundManager';
 
 interface BankerOfferProps {
   offer: number;
@@ -17,9 +18,14 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
   const [showOffer, setShowOffer] = useState(false);
   const [startTime] = useState(Date.now());
   const [hasHovered, setHasHovered] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(soundManager.isEnabled());
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowOffer(true), 2000);
+    soundManager.bankerCall();
+    const timer = setTimeout(() => {
+      setShowOffer(true);
+      soundManager.offerReveal();
+    }, 2000);
     return () => clearTimeout(timer);
   }, []);
 
@@ -30,14 +36,41 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
     }
   };
 
+  const handleDeal = () => {
+    soundManager.dealAccepted();
+    onDeal();
+  };
+
+  const handleNoDeal = () => {
+    soundManager.noDeal();
+    onNoDeal();
+  };
+
+  const toggleSound = () => {
+    const enabled = soundManager.toggle();
+    setSoundEnabled(enabled);
+  };
+
   const percentage = Math.round((offer / expectedValue) * 100);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-background/95 to-accent/10">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={toggleSound}
+        className="fixed top-4 right-4 z-10"
+        aria-label={soundEnabled ? "Mute sound" : "Enable sound"}
+      >
+        {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+      </Button>
+
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-2xl w-full space-y-8"
+        role="dialog"
+        aria-labelledby="banker-offer-title"
       >
         {!showOffer ? (
           <Card className="backdrop-blur-xl bg-card/80 border-border/50">
@@ -50,7 +83,9 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
                 📞
               </motion.div>
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold">The Banker is Calling...</h2>
+                <h2 className="text-3xl font-bold" role="status" aria-live="polite">
+                  The Banker is Calling...
+                </h2>
                 <p className="text-muted-foreground">Preparing your offer</p>
               </div>
             </CardContent>
@@ -59,14 +94,22 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
           <Card className="backdrop-blur-xl bg-card/80 border-primary/30 shadow-xl shadow-primary/20">
             <CardContent className="p-8 md:p-12 space-y-8">
               <div className="text-center space-y-4">
-                <Phone className="w-16 h-16 mx-auto text-primary" />
-                <h2 className="text-2xl md:text-3xl font-bold">Banker's Offer</h2>
+                <Phone className="w-16 h-16 mx-auto text-primary" aria-hidden="true" />
+                <h2 
+                  id="banker-offer-title" 
+                  className="text-2xl md:text-3xl font-bold"
+                >
+                  Banker's Offer
+                </h2>
                 
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ type: "spring", delay: 0.3 }}
                   className="text-5xl md:text-7xl font-bold text-primary py-6"
+                  role="status"
+                  aria-live="assertive"
+                  aria-label={`Banker offers ${formatCurrency(offer)}`}
                 >
                   {formatCurrency(offer)}
                 </motion.div>
@@ -90,17 +133,19 @@ export const BankerOffer = memo(({ offer, expectedValue, onDeal, onNoDeal, onHes
                 <Button
                   size="lg"
                   variant="outline"
-                  onClick={onNoDeal}
+                  onClick={handleNoDeal}
                   onMouseEnter={handleButtonHover}
                   className="h-16 text-lg border-2"
+                  aria-label="Reject offer and continue playing"
                 >
                   NO DEAL
                 </Button>
                 <Button
                   size="lg"
-                  onClick={onDeal}
+                  onClick={handleDeal}
                   onMouseEnter={handleButtonHover}
                   className="h-16 text-lg bg-gradient-to-r from-primary to-primary/80"
+                  aria-label="Accept offer and end game"
                 >
                   DEAL! 💰
                 </Button>

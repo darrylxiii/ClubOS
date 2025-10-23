@@ -5,6 +5,8 @@ import { CaseGrid } from '@/components/miljoenenjacht/CaseGrid';
 import { GameBoard } from '@/components/miljoenenjacht/GameBoard';
 import { BankerOffer } from '@/components/miljoenenjacht/BankerOffer';
 import { ResultsDashboard } from '@/components/miljoenenjacht/ResultsDashboard';
+import { TutorialOverlay } from '@/components/miljoenenjacht/TutorialOverlay';
+import { InsightPanel } from '@/components/miljoenenjacht/InsightPanel';
 import { GameState, BriefCase, RoundDecision, GameOutcome } from '@/types/miljoenenjacht';
 import { PRIZE_AMOUNTS } from '@/types/miljoenenjacht';
 import { shuffleArray } from '@/lib/miljoenenjacht/utils';
@@ -30,6 +32,7 @@ const Miljoenenjacht = memo(() => {
 
   const [currentRoundData, setCurrentRoundData] = useState<Partial<RoundDecision>>({});
   const [hesitationCount, setHesitationCount] = useState(0);
+  const [showTutorial, setShowTutorial] = useState(true);
 
   const initializeGame = useCallback(() => {
     const shuffledAmounts = shuffleArray(PRIZE_AMOUNTS);
@@ -227,9 +230,34 @@ const Miljoenenjacht = memo(() => {
     setHesitationCount(prev => prev + 1);
   }, []);
 
+  // Calculate live insights
+  const avgDecisionTime = gameState.decisions.length > 0
+    ? gameState.decisions.reduce((sum, d) => sum + d.decisionTimeMs, 0) / gameState.decisions.length
+    : 10000;
+
+  const riskTrend = gameState.decisions.length >= 2
+    ? gameState.decisions[gameState.decisions.length - 1].decision === 'no_deal' &&
+      gameState.decisions[gameState.decisions.length - 1].offerVsEvPercentage > 80
+      ? 'increasing'
+      : gameState.decisions[gameState.decisions.length - 1].decision === 'deal'
+      ? 'decreasing'
+      : 'stable'
+    : 'stable';
+
+  const recentBehavior = gameState.decisions.length > 0
+    ? gameState.decisions[gameState.decisions.length - 1].decision === 'no_deal'
+      ? "Confident decision to continue"
+      : "Taking the safe route"
+    : "";
+
   // Render based on stage
   if (gameState.stage === 'intro') {
-    return <IntroScreen onStart={initializeGame} />;
+    return (
+      <>
+        {showTutorial && <TutorialOverlay onComplete={() => setShowTutorial(false)} />}
+        <IntroScreen onStart={initializeGame} />
+      </>
+    );
   }
 
   if (gameState.stage === 'case-selection') {
@@ -290,17 +318,27 @@ const Miljoenenjacht = memo(() => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Prize Board */}
-          <Card className="lg:col-span-1">
-            <CardContent className="p-4">
-              <h3 className="font-semibold mb-4 text-center">Prize Board</h3>
-              <GameBoard
-                cases={gameState.cases}
-                playerCase={gameState.playerCase || 0}
-                onSelectCase={() => {}}
-                selectableCases={false}
-              />
-            </CardContent>
-          </Card>
+          <div className="lg:col-span-1 space-y-4">
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="font-semibold mb-4 text-center">Prize Board</h3>
+                <GameBoard
+                  cases={gameState.cases}
+                  playerCase={gameState.playerCase || 0}
+                  onSelectCase={() => {}}
+                  selectableCases={false}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Live Insights */}
+            <InsightPanel
+              currentRound={gameState.currentRound}
+              avgDecisionTime={avgDecisionTime}
+              riskTrend={riskTrend}
+              recentBehavior={recentBehavior}
+            />
+          </div>
 
           {/* Case Grid */}
           <div className="lg:col-span-2">

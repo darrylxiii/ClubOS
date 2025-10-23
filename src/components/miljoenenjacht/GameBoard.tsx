@@ -15,31 +15,62 @@ export const GameBoard = memo(({ cases, playerCase, onSelectCase, selectableCase
   const sortedCases = [...cases].sort((a, b) => a.amount - b.amount);
   
   return (
-    <div className="grid grid-cols-2 gap-2 md:gap-3">
+    <div 
+      className="grid grid-cols-2 gap-2 md:gap-3"
+      role="list"
+      aria-label="Prize amounts board"
+    >
       <AnimatePresence>
         {sortedCases.map((briefCase) => (
           <motion.div
             key={briefCase.id}
             layout
             initial={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3 }}
+            animate={briefCase.opened ? {
+              opacity: 0.4,
+              scale: 0.95,
+              x: [-2, 2, -2, 0]
+            } : {
+              opacity: 1,
+              scale: 1
+            }}
+            transition={briefCase.opened ? {
+              duration: 0.5,
+              x: { duration: 0.3 }
+            } : {
+              duration: 0.3
+            }}
+            role="listitem"
           >
             <Card
-              className={`${
+              className={`transition-all ${
                 briefCase.opened
-                  ? 'opacity-40 bg-muted/50'
+                  ? 'opacity-40 bg-muted/50 border-muted'
                   : briefCase.id === playerCase
                   ? 'ring-2 ring-primary bg-primary/10'
                   : 'bg-card/80'
               }`}
             >
-              <CardContent className="p-2 md:p-3 text-center">
-                <div className={`text-sm md:text-base font-bold ${
-                  briefCase.opened ? 'line-through text-muted-foreground' : 'text-foreground'
-                }`}>
+              <CardContent className="p-2 md:p-3 text-center relative">
+                <motion.div 
+                  className={`text-sm md:text-base font-bold ${
+                    briefCase.opened ? 'line-through text-muted-foreground' : 'text-foreground'
+                  }`}
+                  animate={briefCase.opened ? {
+                    color: ['hsl(var(--foreground))', 'hsl(var(--muted-foreground))']
+                  } : {}}
+                >
                   {formatCurrency(briefCase.amount)}
-                </div>
+                </motion.div>
+                {briefCase.opened && (
+                  <motion.div
+                    initial={{ scale: 0, rotate: -180 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    className="absolute inset-0 flex items-center justify-center text-2xl opacity-20"
+                  >
+                    ❌
+                  </motion.div>
+                )}
               </CardContent>
             </Card>
           </motion.div>
