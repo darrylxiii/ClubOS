@@ -7,6 +7,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -54,9 +56,15 @@ import {
   Flag,
   PlayCircle,
   Settings,
+  Shield,
+  Globe,
+  Brain,
+  Activity,
+  Lock,
+  Building2,
+  RefreshCw,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
-import { AdminBoardTools } from "./AdminBoardTools";
 import { useUserRole } from "@/hooks/useUserRole";
 import confetti from "canvas-confetti";
 
@@ -484,17 +492,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Admin Board Tools - Only for Admins */}
-      {isAdmin && (
-        <AdminBoardTools 
-          companyId={companyId} 
-          onRefresh={fetchJobsWithMetrics}
-        />
-      )}
 
       {/* Header */}
       <div className="space-y-6 mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col gap-6">
           <div>
             <p className="text-caps text-muted-foreground mb-2">
               {isAdmin ? "Platform Overview" : "Your Hiring HQ"}
@@ -508,32 +509,123 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
               </p>
             )}
           </div>
-          <div className="flex gap-3">
+          
+          {/* Action Buttons - Responsive Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Button 
-              variant="outline" 
-              size="lg" 
-              className="gap-2"
+              variant="glass"
+              className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
               onClick={() => navigate('/company-applications')}
             >
-              <LayoutDashboard className="w-4 h-4" />
-              <span className="hidden sm:inline">Applications Hub</span>
+              <LayoutDashboard className="w-5 h-5 mb-1" />
+              <span className="text-sm font-semibold">Applications Hub</span>
             </Button>
+            
             <Button 
-              variant="outline" 
-              size="lg" 
-              className="gap-2"
+              variant="glass"
+              className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
               onClick={() => navigate('/company-jobs')}
             >
-              <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Company Settings</span>
+              <Settings className="w-5 h-5 mb-1" />
+              <span className="text-sm font-semibold">Company Settings</span>
             </Button>
-            <Button variant="outline" size="lg" className="gap-2">
-              <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">{isAdmin ? "Manage Companies" : "Invite Team"}</span>
-            </Button>
-            <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="gap-2">
-              <Plus className="w-5 h-5" />
-              New Job
+            
+            {isAdmin ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="glass"
+                    className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
+                  >
+                    <Shield className="w-5 h-5 mb-1" />
+                    <span className="text-sm font-semibold">Admin Tools</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-72 bg-card/95 backdrop-blur-xl border-border/20">
+                  <DropdownMenuLabel className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-white" />
+                    Platform Administration
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem className="gap-2">
+                    <Building2 className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Company Management</p>
+                      <p className="text-xs text-muted-foreground">View & manage all partners</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="gap-2">
+                    <Globe className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Bulk Operations</p>
+                      <p className="text-xs text-muted-foreground">Cross-job actions at scale</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="gap-2">
+                    <Brain className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">AI Model Config</p>
+                      <p className="text-xs text-muted-foreground">Tune matching algorithms</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem className="gap-2">
+                    <Activity className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">System Health</p>
+                      <p className="text-xs text-muted-foreground">Platform status & uptime</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="gap-2">
+                    <Lock className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Access Control</p>
+                      <p className="text-xs text-muted-foreground">Roles & permissions</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem className="gap-2">
+                    <BarChart3 className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Global Analytics</p>
+                      <p className="text-xs text-muted-foreground">Cross-company insights</p>
+                    </div>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={fetchJobsWithMetrics} className="gap-2">
+                    <RefreshCw className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Refresh Metrics</p>
+                      <p className="text-xs text-muted-foreground">Recalculate everything</p>
+                    </div>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button 
+                variant="glass"
+                className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
+              >
+                <Users className="w-5 h-5 mb-1" />
+                <span className="text-sm font-semibold">Invite Team</span>
+              </Button>
+            )}
+            
+            <Button 
+              onClick={() => setCreateDialogOpen(true)}
+              variant="glass"
+              className="gap-2 h-auto py-4 px-4 flex-col items-start justify-start text-left"
+            >
+              <Plus className="w-5 h-5 mb-1" />
+              <span className="text-sm font-semibold">New Job</span>
             </Button>
           </div>
         </div>
