@@ -238,23 +238,30 @@ const Jobs = () => {
               </div>
 
               {/* Club Sync Toggle */}
-              <div className="flex items-center gap-3 p-4 rounded-lg border border-border/20 bg-card/30 backdrop-blur-[var(--blur-glass)] shadow-[var(--shadow-glass-md)]">
-                <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-primary" : "text-muted-foreground"}`} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Club Sync</span>
-                    <span className="text-xs text-muted-foreground">AUTO-APPLY</span>
+              <div className="flex items-center gap-4 p-5 rounded-xl border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300">
+                <div className="p-3 rounded-xl bg-background/30 border border-border/10">
+                  <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-accent" : "text-muted-foreground/60"}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold tracking-tight">Club Sync</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 bg-background/30 px-2 py-0.5 rounded">
+                      AUTO-APPLY
+                    </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground/70">
                     Automatically apply to all matches above 90%
                   </p>
                 </div>
-                <Switch checked={clubSyncEnabled} onCheckedChange={checked => {
-                setClubSyncEnabled(checked);
-                toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
-                  description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
-                });
-              }} />
+                <Switch 
+                  checked={clubSyncEnabled} 
+                  onCheckedChange={checked => {
+                    setClubSyncEnabled(checked);
+                    toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
+                      description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
+                    });
+                  }} 
+                />
               </div>
             </div>
 
@@ -303,23 +310,30 @@ const Jobs = () => {
               </div>
 
               {/* Club Sync Toggle */}
-              <div className="flex items-center gap-3 p-4 rounded-lg border border-border/20 bg-card/30 backdrop-blur-[var(--blur-glass)] shadow-[var(--shadow-glass-md)]">
-                <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-primary" : "text-muted-foreground"}`} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">Club Sync</span>
-                    <span className="text-xs text-muted-foreground">AUTO-APPLY</span>
+              <div className="flex items-center gap-4 p-5 rounded-xl border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300">
+                <div className="p-3 rounded-xl bg-background/30 border border-border/10">
+                  <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-accent" : "text-muted-foreground/60"}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold tracking-tight">Club Sync</span>
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 bg-background/30 px-2 py-0.5 rounded">
+                      AUTO-APPLY
+                    </span>
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground/70">
                     Automatically apply to all matches above 90%
                   </p>
                 </div>
-                <Switch checked={clubSyncEnabled} onCheckedChange={checked => {
-                setClubSyncEnabled(checked);
-                toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
-                  description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
-                });
-              }} />
+                <Switch 
+                  checked={clubSyncEnabled} 
+                  onCheckedChange={checked => {
+                    setClubSyncEnabled(checked);
+                    toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
+                      description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
+                    });
+                  }} 
+                />
               </div>
             </div>
 

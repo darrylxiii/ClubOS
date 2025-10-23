@@ -56,29 +56,27 @@ export const JobCard = ({
     return "bg-muted";
   };
   return (
-    <Card className="group relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-mesh opacity-50 transition-opacity group-hover:opacity-70" />
-      <div className="relative">
-      <CardHeader>
+    <Card className="group relative overflow-hidden border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3 flex-1">
+          <div className="flex items-start gap-4 flex-1">
             {companyLogo ? (
               <img 
                 src={companyLogo} 
                 alt={`${company} logo`}
-                className="w-12 h-12 rounded-lg object-cover border border-border/30"
+                className="w-14 h-14 rounded-xl object-cover border border-border/20"
               />
             ) : (
-              <div className="w-12 h-12 rounded-lg bg-muted/30 flex items-center justify-center border border-border/30">
-                <Building2 className="w-6 h-6 text-muted-foreground" />
+              <div className="w-14 h-14 rounded-xl bg-muted/10 flex items-center justify-center border border-border/20">
+                <Building2 className="w-7 h-7 text-muted-foreground/60" />
               </div>
             )}
-            <div className="flex-1">
-              <CardTitle className="text-lg mb-2">{title}</CardTitle>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>{company}</span>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-xl font-bold mb-1 tracking-tight">{title}</CardTitle>
+              <div className="flex flex-col gap-1.5 text-sm text-muted-foreground/80">
+                <span className="font-medium">{company}</span>
                 <div className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
+                  <MapPin className="w-3.5 h-3.5" />
                   <span>{location}</span>
                 </div>
               </div>
@@ -87,47 +85,56 @@ export const JobCard = ({
           <Button 
             variant="ghost" 
             size="icon" 
-            className="shrink-0"
+            className="shrink-0 hover:bg-accent/10"
             onClick={onToggleSave}
           >
-            <Bookmark className={`w-4 h-4 ${isSaved ? "fill-accent text-accent" : ""}`} />
+            <Bookmark className={`w-4 h-4 ${isSaved ? "fill-accent text-accent" : "text-muted-foreground"}`} />
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="flex flex-wrap gap-2 mb-4">
+      <CardContent className="pt-0 space-y-4">
+        {/* Tags & Salary Section */}
+        <div className="flex flex-wrap gap-2">
           {tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="text-xs bg-card/30 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30">
+            <Badge 
+              key={tag} 
+              variant="secondary" 
+              className="text-xs font-medium bg-background/40 backdrop-blur-sm border-0 px-3 py-1"
+            >
               {tag}
             </Badge>
           ))}
           {salary && (
-            <Badge variant="outline" className="text-xs font-semibold bg-card/20 backdrop-blur-[var(--blur-glass-subtle)] border-border/30">
+            <Badge 
+              variant="outline" 
+              className="text-xs font-semibold bg-accent/5 backdrop-blur-sm border border-accent/20 px-3 py-1"
+            >
               {salary}
             </Badge>
           )}
         </div>
 
+        {/* Match Score Section */}
         {matchScore !== undefined && (
           <>
             <div 
-              className="mb-4 p-4 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)] border border-border/30 cursor-pointer hover:border-border/50 hover:bg-card/30 transition-all"
+              className="p-4 rounded-xl bg-background/30 backdrop-blur-sm border border-border/10 cursor-pointer hover:bg-background/40 transition-all duration-300"
               onClick={() => setShowBreakdown(true)}
             >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Match Score</span>
-                <span className={`text-lg font-bold ${getScoreColor(matchScore)}`}>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Match Score</span>
+                <span className={`text-2xl font-bold tracking-tight ${getScoreColor(matchScore)}`}>
                   {matchScore}%
                 </span>
               </div>
-              <Progress value={matchScore} className="h-2" />
+              <Progress value={matchScore} className="h-1.5 bg-background/50" />
               {matchScore >= 90 && (
-                <div className="mt-2 flex items-center gap-1 text-xs text-accent">
-                  <Zap className="w-3 h-3" />
-                  <span className="font-medium">Elite Match - Auto-apply eligible</span>
+                <div className="mt-3 flex items-center gap-1.5 text-xs text-accent font-medium">
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Elite Match - Auto-apply eligible</span>
                 </div>
               )}
-              <p className="mt-2 text-xs text-muted-foreground">Click to see detailed breakdown</p>
+              <p className="mt-2 text-xs text-muted-foreground/60">Tap for detailed breakdown</p>
             </div>
 
             <MatchScoreDialog
@@ -142,13 +149,15 @@ export const JobCard = ({
           </>
         )}
         
-        <div className="flex items-center justify-between gap-4 pt-4 border-t border-border">
-          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span>{postedDate}</span>
+        {/* Footer with Actions */}
+        <div className="flex items-center justify-between gap-4 pt-2">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground/70">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="font-medium">{postedDate}</span>
             </div>
-            <Badge variant="outline" className="text-xs">
+            <span className="text-muted-foreground/40">•</span>
+            <Badge variant="outline" className="text-xs border-0 bg-background/30 px-2 py-0.5">
               {type}
             </Badge>
           </div>
@@ -162,20 +171,28 @@ export const JobCard = ({
                   <Button 
                     onClick={onClubSync} 
                     size="sm" 
-                    variant="glass"
-                    className="font-semibold border-accent/40 hover:border-accent/60"
+                    className="bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 hover:border-accent/50 font-semibold backdrop-blur-sm"
                   >
-                    <Zap className="w-4 h-4 mr-1" />
+                    <Zap className="w-3.5 h-3.5 mr-1.5" />
                     Club Sync
                   </Button>
                 ) : (
-                  <Button onClick={onApply} size="sm" variant="glass" className="font-semibold">
+                  <Button 
+                    onClick={onApply} 
+                    size="sm" 
+                    className="bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 hover:border-primary/50 font-semibold backdrop-blur-sm"
+                  >
                     Apply Now
                   </Button>
                 )}
                 {onRefer && (
-                  <Button onClick={onRefer} size="sm" variant="outline">
-                    Refer a Friend
+                  <Button 
+                    onClick={onRefer} 
+                    size="sm" 
+                    variant="outline"
+                    className="bg-background/20 border-border/20 hover:bg-background/30 hover:border-border/30 backdrop-blur-sm"
+                  >
+                    Refer
                   </Button>
                 )}
               </>
@@ -183,7 +200,6 @@ export const JobCard = ({
           </div>
         </div>
       </CardContent>
-      </div>
     </Card>
   );
 };
