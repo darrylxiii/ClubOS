@@ -70,6 +70,7 @@ const Radio = lazy(() => import("./pages/Radio"));
 const RadioListen = lazy(() => import("./pages/RadioListen"));
 const Assessments = lazy(() => import("./pages/Assessments"));
 const SwipeGame = lazy(() => import("./pages/SwipeGame"));
+const Miljoenenjacht = lazy(() => import("./pages/Miljoenenjacht"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -404,6 +405,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <SwipeGame />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessments/miljoenenjacht"
+              element={
+                <ProtectedRoute>
+                  <Miljoenenjacht />
                 </ProtectedRoute>
               }
             />

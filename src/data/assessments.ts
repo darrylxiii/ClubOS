@@ -31,6 +31,16 @@ export const ASSESSMENTS: Assessment[] = [
     estimatedTime: 20,
     isActive: false,
   },
+  {
+    id: 'miljoenenjacht',
+    name: 'Miljoenenjacht',
+    description: 'Discover your risk profile and decision-making style through this engaging Deal or No Deal experience.',
+    icon: '🎁',
+    route: '/assessments/miljoenenjacht',
+    category: 'personality',
+    estimatedTime: 10,
+    isActive: true,
+  },
 ];
 
 export const SWIPE_SCENARIOS: SwipeScenario[] = [
