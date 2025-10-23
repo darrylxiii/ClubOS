@@ -853,7 +853,6 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
             </CardContent>
           </Card>
         </div>
-        */}
 
         {/* Quick Actions Bar - Hidden */}
         {/*
