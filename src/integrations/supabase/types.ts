@@ -5318,6 +5318,7 @@ export type Database = {
           display_order: number | null
           estimated_minutes: number | null
           id: string
+          image_url: string | null
           is_free: boolean | null
           is_published: boolean | null
           module_type: string | null
@@ -5337,6 +5338,7 @@ export type Database = {
           display_order?: number | null
           estimated_minutes?: number | null
           id?: string
+          image_url?: string | null
           is_free?: boolean | null
           is_published?: boolean | null
           module_type?: string | null
@@ -5356,6 +5358,7 @@ export type Database = {
           display_order?: number | null
           estimated_minutes?: number | null
           id?: string
+          image_url?: string | null
           is_free?: boolean | null
           is_published?: boolean | null
           module_type?: string | null

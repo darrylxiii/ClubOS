@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ChevronLeft, Save, BookOpen } from "lucide-react";
+import { Loader2, ChevronLeft, Save, BookOpen, Upload, X, Link2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ModuleEdit() {
   const { id } = useParams();
@@ -24,7 +25,11 @@ export default function ModuleEdit() {
     title: "",
     description: "",
     estimated_minutes: "",
+    video_url: "",
+    image_url: "",
   });
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>("");
 
   useEffect(() => {
     loadModuleData();
@@ -60,6 +65,8 @@ export default function ModuleEdit() {
         title: moduleData.title || "",
         description: moduleData.description || "",
         estimated_minutes: moduleData.estimated_minutes?.toString() || "",
+        video_url: moduleData.video_url || "",
+        image_url: moduleData.image_url || "",
       });
     } catch (error: any) {
       toast({
@@ -71,6 +78,70 @@ export default function ModuleEdit() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileUpload = async (file: File, type: 'image' | 'video') => {
+    if (!user || !id) return;
+
+    setUploading(true);
+    setUploadProgress(`Uploading ${type}...`);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}/${id}-${type}-${Date.now()}.${fileExt}`;
+
+      const { data, error: uploadError } = await supabase.storage
+        .from('module-media')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('module-media')
+        .getPublicUrl(fileName);
+
+      if (type === 'image') {
+        setFormData({ ...formData, image_url: publicUrl });
+      } else {
+        setFormData({ ...formData, video_url: publicUrl });
+      }
+
+      toast({
+        title: "Upload successful",
+        description: `${type} has been uploaded successfully`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+      setUploadProgress("");
+    }
+  };
+
+  const convertYouTubeUrl = (url: string): string => {
+    if (!url) return "";
+    
+    // Extract video ID from various YouTube URL formats
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    
+    if (match && match[2].length === 11) {
+      return `https://www.youtube.com/embed/${match[2]}`;
+    }
+    
+    return url;
+  };
+
+  const handleYouTubeUrl = (url: string) => {
+    const embedUrl = convertYouTubeUrl(url);
+    setFormData({ ...formData, video_url: embedUrl });
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -102,6 +173,8 @@ export default function ModuleEdit() {
           estimated_minutes: formData.estimated_minutes
             ? parseInt(formData.estimated_minutes)
             : null,
+          video_url: formData.video_url || null,
+          image_url: formData.image_url || null,
           updated_at: new Date().toISOString(),
         })
         .eq("id", id);
@@ -200,50 +273,210 @@ export default function ModuleEdit() {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Module Title *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) =>
-                  setFormData({ ...formData, title: e.target.value })
-                }
-                placeholder="e.g., Introduction to React Hooks"
-                required
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <Tabs defaultValue="basic" className="w-full">
+              <TabsList className="squircle mb-6">
+                <TabsTrigger value="basic">Basic Info</TabsTrigger>
+                <TabsTrigger value="media">Media</TabsTrigger>
+              </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                placeholder="What will students learn in this module?"
-                rows={6}
-                required
-              />
-            </div>
+              <TabsContent value="basic" className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="title">Module Title *</Label>
+                  <Input
+                    id="title"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    placeholder="e.g., Introduction to React Hooks"
+                    required
+                  />
+                </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="estimated_minutes">Estimated Time (minutes)</Label>
-              <Input
-                id="estimated_minutes"
-                type="number"
-                min="1"
-                value={formData.estimated_minutes}
-                onChange={(e) =>
-                  setFormData({ ...formData, estimated_minutes: e.target.value })
-                }
-                placeholder="e.g., 45"
-              />
-              <p className="text-xs text-muted-foreground">
-                Approximate time to complete the module
-              </p>
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description *</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    placeholder="What will students learn in this module?"
+                    rows={6}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="estimated_minutes">Estimated Time (minutes)</Label>
+                  <Input
+                    id="estimated_minutes"
+                    type="number"
+                    min="1"
+                    value={formData.estimated_minutes}
+                    onChange={(e) =>
+                      setFormData({ ...formData, estimated_minutes: e.target.value })
+                    }
+                    placeholder="e.g., 45"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Approximate time to complete the module
+                  </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="media" className="space-y-6">
+                {/* Video Section */}
+                <div className="space-y-4">
+                  <Label>Video Content</Label>
+                  
+                  {/* YouTube URL Input */}
+                  <div className="space-y-2">
+                    <Label htmlFor="youtube_url" className="text-sm text-muted-foreground">
+                      YouTube URL
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="youtube_url"
+                        placeholder="https://youtube.com/watch?v=..."
+                        onBlur={(e) => handleYouTubeUrl(e.target.value)}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const input = document.getElementById('youtube_url') as HTMLInputElement;
+                          if (input) handleYouTubeUrl(input.value);
+                        }}
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* OR Divider */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">Or</span>
+                    </div>
+                  </div>
+
+                  {/* Video Upload */}
+                  <div className="space-y-2">
+                    <Label htmlFor="video_upload" className="text-sm text-muted-foreground">
+                      Upload Video
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        id="video_upload"
+                        type="file"
+                        accept="video/mp4,video/webm,video/quicktime"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file, 'video');
+                        }}
+                        disabled={uploading}
+                        className="cursor-pointer"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        disabled
+                      >
+                        <Upload className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Video Preview */}
+                  {formData.video_url && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Current Video</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFormData({ ...formData, video_url: "" })}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      {formData.video_url.includes('youtube.com') || formData.video_url.includes('youtu.be') ? (
+                        <div className="aspect-video w-full rounded-lg overflow-hidden border">
+                          <iframe
+                            src={formData.video_url}
+                            className="w-full h-full"
+                            allowFullScreen
+                            title="Video preview"
+                          />
+                        </div>
+                      ) : (
+                        <video
+                          src={formData.video_url}
+                          controls
+                          className="w-full aspect-video rounded-lg border"
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Image Section */}
+                <div className="space-y-4">
+                  <Label>Module Image</Label>
+                  
+                  <div className="space-y-2">
+                    <Input
+                      id="image_upload"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleFileUpload(file, 'image');
+                      }}
+                      disabled={uploading}
+                      className="cursor-pointer"
+                    />
+                  </div>
+
+                  {/* Image Preview */}
+                  {formData.image_url && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm">Current Image</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setFormData({ ...formData, image_url: "" })}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <img
+                        src={formData.image_url}
+                        alt="Module"
+                        className="w-full aspect-video object-cover rounded-lg border"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {uploading && (
+                  <div className="p-4 bg-muted rounded-lg text-center">
+                    <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">{uploadProgress}</p>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
           </form>
         </Card>
       </div>

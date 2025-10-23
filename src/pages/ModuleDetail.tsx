@@ -24,6 +24,7 @@ interface Module {
   estimated_minutes: number;
   display_order: number;
   video_url?: string;
+  image_url?: string;
   is_published: boolean;
   course_id: string;
   course: {
@@ -209,23 +210,54 @@ export default function ModuleDetail() {
             <p className="text-muted-foreground">{module.description}</p>
           </div>
 
-          {/* Video Player */}
-          <Card className="overflow-hidden">
-            <div className="aspect-video bg-muted flex items-center justify-center">
-              {module.video_url ? (
-                <video 
-                  src={module.video_url} 
-                  controls 
-                  className="w-full h-full"
+          {/* Module Image (if no video) */}
+          {!module.video_url && module.image_url && (
+            <Card className="overflow-hidden">
+              <div className="aspect-video relative">
+                <img 
+                  src={module.image_url} 
+                  alt={module.title}
+                  className="w-full h-full object-cover"
                 />
-              ) : (
+              </div>
+            </Card>
+          )}
+
+          {/* Video Player */}
+          {module.video_url && (
+            <Card className="overflow-hidden">
+              <div className="aspect-video bg-muted flex items-center justify-center">
+                {module.video_url.includes('youtube.com') || module.video_url.includes('youtu.be') ? (
+                  <iframe
+                    src={module.video_url}
+                    className="w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    title={module.title}
+                  />
+                ) : (
+                  <video 
+                    src={module.video_url} 
+                    controls 
+                    className="w-full h-full"
+                    poster={module.image_url}
+                  />
+                )}
+              </div>
+            </Card>
+          )}
+
+          {/* No media placeholder */}
+          {!module.video_url && !module.image_url && (
+            <Card className="overflow-hidden">
+              <div className="aspect-video bg-muted flex items-center justify-center">
                 <div className="text-center p-12">
                   <PlayCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-muted-foreground">Video content coming soon</p>
+                  <p className="text-muted-foreground">Media content coming soon</p>
                 </div>
-              )}
-            </div>
-          </Card>
+              </div>
+            </Card>
+          )}
 
           {/* Content Area */}
           <Card className="p-8">

@@ -29,7 +29,10 @@ export const CreateModuleDialog = ({
     title: "",
     description: "",
     estimated_minutes: "",
+    video_url: "",
+    image_url: "",
   });
+  const [uploading, setUploading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,6 +57,8 @@ export const CreateModuleDialog = ({
           estimated_minutes: formData.estimated_minutes 
             ? parseInt(formData.estimated_minutes) 
             : null,
+          video_url: formData.video_url || null,
+          image_url: formData.image_url || null,
           display_order: nextDisplayOrder,
           created_by: user.id,
           is_published: false,
@@ -72,6 +77,8 @@ export const CreateModuleDialog = ({
         title: "",
         description: "",
         estimated_minutes: "",
+        video_url: "",
+        image_url: "",
       });
     } catch (error: any) {
       toast({
