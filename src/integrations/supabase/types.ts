@@ -645,6 +645,45 @@ export type Database = {
           },
         ]
       }
+      assessment_results: {
+        Row: {
+          assessment_id: string
+          assessment_name: string
+          assessment_type: string
+          completed_at: string
+          created_at: string
+          id: string
+          results_data: Json
+          score: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assessment_id: string
+          assessment_name: string
+          assessment_type: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          results_data?: Json
+          score?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assessment_id?: string
+          assessment_name?: string
+          assessment_type?: string
+          completed_at?: string
+          created_at?: string
+          id?: string
+          results_data?: Json
+          score?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_analytics: {
         Row: {
           avg_booking_time_minutes: number | null
