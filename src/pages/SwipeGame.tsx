@@ -1,4 +1,5 @@
 import { memo, useState, useCallback } from 'react';
+import { AppLayout } from '@/components/AppLayout';
 import { InstructionsPage } from '@/components/swipe-game/InstructionsPage';
 import { SwipeInterface } from '@/components/swipe-game/SwipeInterface';
 import { LoadingScreen } from '@/components/swipe-game/LoadingScreen';
@@ -85,14 +86,14 @@ const SwipeGame = memo(() => {
   }, []);
 
   return (
-    <>
+    <AppLayout>
       {stage === 'instructions' && <InstructionsPage onStart={handleStart} />}
       {stage === 'swiping' && (
         <SwipeInterface scenarios={SWIPE_SCENARIOS} onComplete={handleComplete} />
       )}
       {stage === 'loading' && <LoadingScreen onComplete={handleLoadingComplete} />}
       {stage === 'results' && result && <ResultsDashboard result={result} />}
-    </>
+    </AppLayout>
   );
 });
 
