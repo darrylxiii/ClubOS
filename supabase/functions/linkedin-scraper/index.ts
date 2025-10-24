@@ -45,56 +45,57 @@ Deno.serve(async (req) => {
 
     console.log('Scraping LinkedIn profile:', linkedinUrl);
 
-    // For demo/MVP: Return mock enriched data
+    // For demo/MVP: Return mock enriched data with realistic extraction
     // In production, integrate with LinkedIn API or scraping service like:
     // - RapidAPI LinkedIn Profile Scraper
     // - Proxycurl
     // - ScraperAPI
     // - Or official LinkedIn API (requires partnership)
 
+    const extractedName = extractNameFromUrl(linkedinUrl);
+    
+    // Create more realistic mock data that varies based on the profile
     const mockProfile: LinkedInProfile = {
-      fullName: extractNameFromUrl(linkedinUrl),
+      fullName: extractedName,
       email: '', // Would be enriched via email finding service
-      headline: 'Senior Software Engineer',
+      headline: 'Senior Professional', // Generic placeholder - in real scraping this would be actual headline
       location: 'Amsterdam, Netherlands',
       profileUrl: linkedinUrl,
       imageUrl: '',
-      summary: 'Experienced software engineer with 8+ years in full-stack development. Specialized in React, TypeScript, and cloud infrastructure.',
+      summary: `Experienced professional with a strong background in their field. Currently working in a senior role with demonstrated expertise and track record of success.`,
       experience: [
         {
-          title: 'Senior Software Engineer',
-          company: 'Tech Company',
+          title: 'Senior Role', // Placeholder - would be scraped
+          company: 'Current Company', // Placeholder - would be scraped
           location: 'Amsterdam',
-          startDate: '2020-01',
-          description: 'Leading development of enterprise SaaS platform'
+          startDate: new Date(Date.now() - (3 * 365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 7), // 3 years ago
+          description: 'Leading key initiatives and driving business results'
         },
         {
-          title: 'Software Engineer',
-          company: 'Startup Inc',
+          title: 'Mid-Level Role',
+          company: 'Previous Company',
           location: 'Amsterdam',
-          startDate: '2016-06',
-          endDate: '2020-01',
-          description: 'Full-stack development and architecture'
+          startDate: new Date(Date.now() - (7 * 365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 7), // 7 years ago
+          endDate: new Date(Date.now() - (3 * 365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 7), // 3 years ago
+          description: 'Contributed to team success and professional development'
         }
       ],
       education: [
         {
-          school: 'University of Technology',
-          degree: 'Master of Science',
-          field: 'Computer Science',
-          startYear: '2012',
-          endYear: '2016'
+          school: 'University',
+          degree: 'Bachelor/Master Degree',
+          field: 'Related Field',
+          startYear: new Date(Date.now() - (11 * 365 * 24 * 60 * 60 * 1000)).getFullYear().toString(),
+          endYear: new Date(Date.now() - (7 * 365 * 24 * 60 * 60 * 1000)).getFullYear().toString()
         }
       ],
       skills: [
-        'JavaScript',
-        'TypeScript',
-        'React',
-        'Node.js',
-        'PostgreSQL',
-        'AWS',
-        'Docker',
-        'CI/CD'
+        'Leadership',
+        'Project Management',
+        'Strategic Planning',
+        'Team Collaboration',
+        'Communication',
+        'Problem Solving'
       ]
     };
 
@@ -149,8 +150,13 @@ Deno.serve(async (req) => {
 function extractNameFromUrl(url: string): string {
   const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
   if (match && match[1]) {
-    return match[1]
+    // Remove trailing numeric IDs (like /192381298)
+    const namePart = match[1].replace(/\/\d+$/, '').split('/')[0];
+    
+    // Convert kebab-case to Title Case and remove any remaining numbers
+    return namePart
       .split('-')
+      .filter(word => !/^\d+$/.test(word)) // Remove pure numeric parts
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
