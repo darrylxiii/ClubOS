@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -17,10 +18,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap } from "lucide-react";
+import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Award } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AddCandidateDialogProps {
   open: boolean;
@@ -41,6 +55,10 @@ export const AddCandidateDialog = ({
   const [scrapingLinkedIn, setScrapingLinkedIn] = useState(false);
   const [addMode, setAddMode] = useState<"manual" | "linkedin">("manual");
   const [linkedinUrlForScrape, setLinkedinUrlForScrape] = useState("");
+  const [linkedinImported, setLinkedinImported] = useState(false);
+  const [creditTo, setCreditTo] = useState<string[]>([]);
+  const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; email: string }>>([]);
+  const [creditPopoverOpen, setCreditPopoverOpen] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -51,6 +69,35 @@ export const AddCandidateDialog = ({
     notes: "",
     startStageIndex: "0",
   });
+
+  // Load current user and team members
+  useEffect(() => {
+    const loadTeamMembers = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Auto-assign to current user
+      setCreditTo([user.id]);
+
+      // Load team members (admin and partner roles)
+      const { data: members } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .neq("id", user.id)
+        .order("full_name");
+
+      if (members) {
+        setTeamMembers([
+          { id: user.id, name: "Me", email: user.email || "" },
+          ...members.map(m => ({ id: m.id, name: m.full_name || m.email || "Unknown", email: m.email || "" }))
+        ]);
+      }
+    };
+
+    if (open) {
+      loadTeamMembers();
+    }
+  }, [open]);
 
   const handleLinkedInScrape = async () => {
     if (!linkedinUrlForScrape) {
@@ -67,20 +114,21 @@ export const AddCandidateDialog = ({
       if (error) throw error;
 
       if (data.success) {
-        // Auto-fill form with scraped data (only name and URL, rest must be manual)
+        // Auto-fill form with scraped data
         setFormData({
           fullName: data.data.full_name || "",
           email: data.data.email || "",
           phone: "",
           linkedinUrl: data.data.linkedin_url || linkedinUrlForScrape,
-          currentCompany: data.data.current_company || "", // Will be empty from scraper
-          currentTitle: data.data.current_title || "", // Will be empty from scraper
-          notes: data.data.ai_summary || "",
+          currentCompany: data.data.current_company || "",
+          currentTitle: data.data.current_title || "",
+          notes: data.data.ai_summary || `LinkedIn import\n\nSkills: ${(data.data.skills || []).join(", ")}`,
           startStageIndex: "0",
         });
+        setLinkedinImported(true);
         setAddMode("manual");
         toast.success("Name extracted from LinkedIn", {
-          description: "Please manually fill in their Current Company and Title from their LinkedIn profile"
+          description: "Please verify and fill in missing details from their profile"
         });
       }
     } catch (error) {
@@ -211,7 +259,7 @@ export const AddCandidateDialog = ({
           interaction_type: 'status_change',
           interaction_direction: 'internal',
           title: 'Candidate Added to Pipeline',
-          content: `🎯 **Admin-Added Candidate**${matchingUser ? ' 🔗 **Linked to User Account**' : ''}
+          content: `🎯 **Admin-Added Candidate**${matchingUser ? ' 🔗 **Linked to User Account**' : ''}${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
 
 **Name:** ${formData.fullName}
 **Email:** ${formData.email}
@@ -219,12 +267,16 @@ export const AddCandidateDialog = ({
 **LinkedIn:** ${formData.linkedinUrl || "N/A"}
 **Current Position:** ${formData.currentTitle || "N/A"} at ${formData.currentCompany || "N/A"}
 ${matchingUser ? `\n**User Profile:** Linked to existing platform user\n**Profile Match:** ${matchingUser.email === formData.email ? 'Email' : matchingUser.phone === formData.phone ? 'Phone' : 'Name'}` : ''}
+${linkedinImported ? '\n**Source:** LinkedIn profile imported' : ''}
+${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.length > 1 ? 's' : ''}` : ''}
 
 **Notes:** ${formData.notes || "No additional notes"}`,
           metadata: {
             job_id: jobId,
             job_title: jobTitle,
-            starting_stage: formData.startStageIndex
+            starting_stage: formData.startStageIndex,
+            linkedin_imported: linkedinImported,
+            credit_to: creditTo
           },
           created_by: adminUser.id,
           is_internal: true,
@@ -263,6 +315,9 @@ ${matchingUser ? `\n**User Profile:** Linked to existing platform user\n**Profil
         notes: "",
         startStageIndex: "0",
       });
+      setLinkedinImported(false);
+      setCreditTo([]);
+      setLinkedinUrlForScrape("");
     } catch (error) {
       console.error("Error adding candidate:", error);
       toast.error("Failed to add candidate. Please try again.");
@@ -481,6 +536,76 @@ ${matchingUser ? `\n**User Profile:** Linked to existing platform user\n**Profil
               rows={4}
               placeholder="Why this candidate? Source? Special considerations?"
             />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="linkedinImported"
+              checked={linkedinImported}
+              onCheckedChange={(checked) => setLinkedinImported(checked as boolean)}
+            />
+            <Label
+              htmlFor="linkedinImported"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2"
+            >
+              <Linkedin className="w-4 h-4 text-accent" />
+              LinkedIn profile imported
+            </Label>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Award className="w-4 h-4 text-accent" />
+              Credit Assignment
+            </Label>
+            <Popover open={creditPopoverOpen} onOpenChange={setCreditPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className="w-full justify-between"
+                >
+                  {creditTo.length === 0
+                    ? "Select team members..."
+                    : `${creditTo.length} selected`}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-full p-0">
+                <Command>
+                  <CommandInput placeholder="Search team members..." />
+                  <CommandEmpty>No team member found.</CommandEmpty>
+                  <CommandGroup className="max-h-64 overflow-auto">
+                    {teamMembers.map((member) => (
+                      <CommandItem
+                        key={member.id}
+                        onSelect={() => {
+                          setCreditTo(
+                            creditTo.includes(member.id)
+                              ? creditTo.filter((id) => id !== member.id)
+                              : [...creditTo, member.id]
+                          );
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-4 w-4",
+                            creditTo.includes(member.id) ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <div className="flex flex-col">
+                          <span>{member.name}</span>
+                          <span className="text-xs text-muted-foreground">{member.email}</span>
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            <p className="text-xs text-muted-foreground">
+              Select team members who should receive credit for this candidate
+            </p>
           </div>
 
           <div className="flex justify-end gap-2 pt-4 border-t">

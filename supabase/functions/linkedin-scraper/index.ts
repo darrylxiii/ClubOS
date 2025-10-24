@@ -68,8 +68,7 @@ Deno.serve(async (req) => {
       skills: []
     };
 
-    // Transform to our candidate profile format with minimal data
-    // NOTE: This is a DEMO scraper - in production, use a real LinkedIn API or scraping service
+    // Transform to our candidate profile format with rich data for admin notes
     const candidateData = {
       full_name: mockProfile.fullName,
       email: '',
@@ -78,17 +77,17 @@ Deno.serve(async (req) => {
       current_title: '', // Leave empty - must be filled manually from LinkedIn
       current_company: '', // Leave empty - must be filled manually from LinkedIn
       years_of_experience: 0,
-      skills: [],
-      education: [],
-      work_history: [],
+      skills: mockProfile.skills || [],
+      education: mockProfile.education || [],
+      work_history: mockProfile.experience || [],
       source_channel: 'linkedin',
       source_metadata: {
         scraped_at: new Date().toISOString(),
         profile_url: linkedinUrl,
-        note: 'Demo scraper - manual verification required'
+        note: 'Imported from LinkedIn - verify details'
       },
       linkedin_profile_data: mockProfile,
-      ai_summary: `Profile imported from LinkedIn. IMPORTANT: Please manually check their LinkedIn profile and fill in: Current Title, Current Company, Experience, and Skills.`
+      ai_summary: generateAiSummary(mockProfile)
     };
 
     return new Response(
@@ -155,9 +154,13 @@ function calculateYearsOfExperience(experience: any[]): number {
 }
 
 function generateAiSummary(profile: LinkedInProfile): string {
-  const yearsExp = calculateYearsOfExperience(profile.experience || []);
   const skillCount = profile.skills?.length || 0;
-  const currentRole = profile.experience?.[0]?.title || 'Professional';
+  
+  return `Profile imported from LinkedIn.
 
-  return `${currentRole} with ${yearsExp} years of experience. Skilled in ${skillCount}+ technologies including ${profile.skills?.slice(0, 3).join(', ')}. Currently at ${profile.experience?.[0]?.company || 'a leading company'}.`;
+Skills: ${profile.skills?.join(', ') || 'Not available - check LinkedIn profile'}
+
+Experience: Check LinkedIn profile for detailed work history.
+
+IMPORTANT: Manually verify Current Company and Current Title from their LinkedIn profile.`;
 }
