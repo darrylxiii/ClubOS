@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
     console.log('Scraping LinkedIn profile:', linkedinUrl);
 
-    // For demo/MVP: Return mock enriched data with realistic extraction
+    // For demo/MVP: Return basic extracted data only
     // In production, integrate with LinkedIn API or scraping service like:
     // - RapidAPI LinkedIn Profile Scraper
     // - Proxycurl
@@ -54,74 +54,39 @@ Deno.serve(async (req) => {
 
     const extractedName = extractNameFromUrl(linkedinUrl);
     
-    // Create more realistic mock data that varies based on the profile
+    // Return minimal mock data - user should manually fill in the rest
     const mockProfile: LinkedInProfile = {
       fullName: extractedName,
-      email: '', // Would be enriched via email finding service
-      headline: 'Senior Professional', // Generic placeholder - in real scraping this would be actual headline
-      location: 'Amsterdam, Netherlands',
+      email: '', // To be filled manually
+      headline: '', // To be filled manually - check LinkedIn profile
+      location: '',
       profileUrl: linkedinUrl,
       imageUrl: '',
-      summary: `Experienced professional with a strong background in their field. Currently working in a senior role with demonstrated expertise and track record of success.`,
-      experience: [
-        {
-          title: 'Senior Role', // Placeholder - would be scraped
-          company: 'Current Company', // Placeholder - would be scraped
-          location: 'Amsterdam',
-          startDate: new Date(Date.now() - (3 * 365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 7), // 3 years ago
-          description: 'Leading key initiatives and driving business results'
-        },
-        {
-          title: 'Mid-Level Role',
-          company: 'Previous Company',
-          location: 'Amsterdam',
-          startDate: new Date(Date.now() - (7 * 365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 7), // 7 years ago
-          endDate: new Date(Date.now() - (3 * 365 * 24 * 60 * 60 * 1000)).toISOString().slice(0, 7), // 3 years ago
-          description: 'Contributed to team success and professional development'
-        }
-      ],
-      education: [
-        {
-          school: 'University',
-          degree: 'Bachelor/Master Degree',
-          field: 'Related Field',
-          startYear: new Date(Date.now() - (11 * 365 * 24 * 60 * 60 * 1000)).getFullYear().toString(),
-          endYear: new Date(Date.now() - (7 * 365 * 24 * 60 * 60 * 1000)).getFullYear().toString()
-        }
-      ],
-      skills: [
-        'Leadership',
-        'Project Management',
-        'Strategic Planning',
-        'Team Collaboration',
-        'Communication',
-        'Problem Solving'
-      ]
+      summary: '',
+      experience: [],
+      education: [],
+      skills: []
     };
 
-    // Calculate years of experience
-    const yearsOfExperience = calculateYearsOfExperience(mockProfile.experience || []);
-
-    // Transform to our candidate profile format
+    // Transform to our candidate profile format with minimal data
     const candidateData = {
       full_name: mockProfile.fullName,
-      email: mockProfile.email || '',
+      email: '',
       linkedin_url: mockProfile.profileUrl,
-      avatar_url: mockProfile.imageUrl,
-      current_title: mockProfile.headline,
-      current_company: mockProfile.experience?.[0]?.company,
-      years_of_experience: yearsOfExperience,
-      skills: mockProfile.skills || [],
-      education: mockProfile.education || [],
-      work_history: mockProfile.experience || [],
+      avatar_url: '',
+      current_title: '',
+      current_company: '',
+      years_of_experience: 0,
+      skills: [],
+      education: [],
+      work_history: [],
       source_channel: 'linkedin',
       source_metadata: {
         scraped_at: new Date().toISOString(),
-        profile_url: linkedinUrl,
-        location: mockProfile.location
+        profile_url: linkedinUrl
       },
       linkedin_profile_data: mockProfile,
-      ai_summary: generateAiSummary(mockProfile)
+      ai_summary: `LinkedIn profile imported for ${mockProfile.fullName}. Please verify and manually fill in Current Title, Current Company, and other details by checking their LinkedIn profile.`
     };
 
     return new Response(
@@ -150,13 +115,18 @@ Deno.serve(async (req) => {
 function extractNameFromUrl(url: string): string {
   const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/);
   if (match && match[1]) {
-    // Remove trailing numeric IDs (like /192381298)
-    const namePart = match[1].replace(/\/\d+$/, '').split('/')[0];
+    // Remove trailing numeric IDs (like /192381298) and any path segments
+    let namePart = match[1].replace(/\/\d+$/, '').split('/')[0];
     
-    // Convert kebab-case to Title Case and remove any remaining numbers
+    // Remove trailing alphanumeric IDs that are part of the slug (like -13963a15b)
+    // LinkedIn slugs sometimes end with random alphanumeric IDs
+    namePart = namePart.replace(/-[a-f0-9]{8,}$/i, '');
+    
+    // Convert kebab-case to Title Case and remove any remaining pure numeric segments
     return namePart
       .split('-')
       .filter(word => !/^\d+$/.test(word)) // Remove pure numeric parts
+      .filter(word => word.length > 0) // Remove empty parts
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }
