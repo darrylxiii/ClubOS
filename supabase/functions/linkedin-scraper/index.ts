@@ -154,13 +154,35 @@ function calculateYearsOfExperience(experience: any[]): number {
 }
 
 function generateAiSummary(profile: LinkedInProfile): string {
-  const skillCount = profile.skills?.length || 0;
+  const parts: string[] = ['📎 LinkedIn Profile Imported'];
   
-  return `Profile imported from LinkedIn.
-
-Skills: ${profile.skills?.join(', ') || 'Not available - check LinkedIn profile'}
-
-Experience: Check LinkedIn profile for detailed work history.
-
-IMPORTANT: Manually verify Current Company and Current Title from their LinkedIn profile.`;
+  if (profile.headline) {
+    parts.push(`\n**Headline:** ${profile.headline}`);
+  }
+  
+  if (profile.location) {
+    parts.push(`**Location:** ${profile.location}`);
+  }
+  
+  if (profile.skills && profile.skills.length > 0) {
+    parts.push(`\n**Skills:** ${profile.skills.join(', ')}`);
+  }
+  
+  if (profile.experience && profile.experience.length > 0) {
+    parts.push(`\n**Recent Experience:**`);
+    profile.experience.slice(0, 3).forEach(exp => {
+      parts.push(`• ${exp.title} at ${exp.company}${exp.startDate ? ` (${exp.startDate}${exp.endDate ? ` - ${exp.endDate}` : ' - Present'})` : ''}`);
+    });
+  }
+  
+  if (profile.education && profile.education.length > 0) {
+    parts.push(`\n**Education:**`);
+    profile.education.slice(0, 2).forEach(edu => {
+      parts.push(`• ${edu.degree || 'Degree'} ${edu.field ? `in ${edu.field}` : ''} - ${edu.school}`);
+    });
+  }
+  
+  parts.push(`\n⚠️ **Action Required:** Manually verify Current Title and Current Company from their LinkedIn profile.`);
+  
+  return parts.join('\n');
 }

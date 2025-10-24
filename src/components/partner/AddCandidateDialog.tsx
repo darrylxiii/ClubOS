@@ -59,6 +59,7 @@ export const AddCandidateDialog = ({
   const [creditTo, setCreditTo] = useState<string[]>([]);
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; email: string }>>([]);
   const [creditPopoverOpen, setCreditPopoverOpen] = useState(false);
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -317,6 +318,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       });
       setLinkedinImported(false);
       setCreditTo([]);
+      setResumeFile(null);
       setLinkedinUrlForScrape("");
     } catch (error) {
       console.error("Error adding candidate:", error);
@@ -429,7 +431,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-accent" />
-                Email *
+                Email
               </Label>
               <Input
                 id="email"
@@ -438,7 +440,6 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                required
                 placeholder="john@example.com"
               />
             </div>
@@ -536,6 +537,25 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
               rows={4}
               placeholder="Why this candidate? Source? Special considerations?"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="resume" className="flex items-center gap-2">
+              <FileText className="w-4 h-4 text-accent" />
+              Resume / CV
+            </Label>
+            <Input
+              id="resume"
+              type="file"
+              accept=".pdf,.doc,.docx"
+              onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
+              className="cursor-pointer"
+            />
+            {resumeFile && (
+              <p className="text-xs text-muted-foreground">
+                Selected: {resumeFile.name}
+              </p>
+            )}
           </div>
 
           <div className="flex items-center space-x-2">
