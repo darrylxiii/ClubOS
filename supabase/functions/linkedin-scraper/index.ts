@@ -69,13 +69,14 @@ Deno.serve(async (req) => {
     };
 
     // Transform to our candidate profile format with minimal data
+    // NOTE: This is a DEMO scraper - in production, use a real LinkedIn API or scraping service
     const candidateData = {
       full_name: mockProfile.fullName,
       email: '',
       linkedin_url: mockProfile.profileUrl,
       avatar_url: '',
-      current_title: '',
-      current_company: '',
+      current_title: '', // Leave empty - must be filled manually from LinkedIn
+      current_company: '', // Leave empty - must be filled manually from LinkedIn
       years_of_experience: 0,
       skills: [],
       education: [],
@@ -83,10 +84,11 @@ Deno.serve(async (req) => {
       source_channel: 'linkedin',
       source_metadata: {
         scraped_at: new Date().toISOString(),
-        profile_url: linkedinUrl
+        profile_url: linkedinUrl,
+        note: 'Demo scraper - manual verification required'
       },
       linkedin_profile_data: mockProfile,
-      ai_summary: `LinkedIn profile imported for ${mockProfile.fullName}. Please verify and manually fill in Current Title, Current Company, and other details by checking their LinkedIn profile.`
+      ai_summary: `Profile imported from LinkedIn. IMPORTANT: Please manually check their LinkedIn profile and fill in: Current Title, Current Company, Experience, and Skills.`
     };
 
     return new Response(
@@ -118,15 +120,20 @@ function extractNameFromUrl(url: string): string {
     // Remove trailing numeric IDs (like /192381298) and any path segments
     let namePart = match[1].replace(/\/\d+$/, '').split('/')[0];
     
-    // Remove trailing alphanumeric IDs that are part of the slug (like -13963a15b)
-    // LinkedIn slugs sometimes end with random alphanumeric IDs
-    namePart = namePart.replace(/-[a-f0-9]{8,}$/i, '');
+    // Remove trailing alphanumeric IDs - LinkedIn uses various patterns:
+    // -13963a15b, -a1b2c3d4, etc. (8+ alphanumeric chars after last dash)
+    namePart = namePart.replace(/-[a-z0-9]{6,}$/i, '');
     
-    // Convert kebab-case to Title Case and remove any remaining pure numeric segments
-    return namePart
-      .split('-')
-      .filter(word => !/^\d+$/.test(word)) // Remove pure numeric parts
-      .filter(word => word.length > 0) // Remove empty parts
+    // Also remove any segment that's primarily numbers after splitting
+    const parts = namePart.split('-').filter(word => {
+      // Keep if it's not mostly numbers (e.g., keep "pfeiffer" but not "13963a15b")
+      const digitCount = (word.match(/\d/g) || []).length;
+      return digitCount < word.length / 2; // Less than half digits = keep it
+    });
+    
+    // Convert kebab-case to Title Case
+    return parts
+      .filter(word => word.length > 0)
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   }

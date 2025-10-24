@@ -67,20 +67,20 @@ export const AddCandidateDialog = ({
       if (error) throw error;
 
       if (data.success) {
-        // Auto-fill form with scraped data
+        // Auto-fill form with scraped data (only name and URL, rest must be manual)
         setFormData({
           fullName: data.data.full_name || "",
           email: data.data.email || "",
           phone: "",
           linkedinUrl: data.data.linkedin_url || linkedinUrlForScrape,
-          currentCompany: data.data.current_company || "",
-          currentTitle: data.data.current_title || "",
-          notes: `LinkedIn import: ${data.data.ai_summary || ""}\n\nSkills: ${(data.data.skills || []).join(", ")}`,
+          currentCompany: data.data.current_company || "", // Will be empty from scraper
+          currentTitle: data.data.current_title || "", // Will be empty from scraper
+          notes: data.data.ai_summary || "",
           startStageIndex: "0",
         });
         setAddMode("manual");
-        toast.success("LinkedIn profile imported successfully!", {
-          description: "Review and submit the candidate details"
+        toast.success("Name extracted from LinkedIn", {
+          description: "Please manually fill in their Current Company and Title from their LinkedIn profile"
         });
       }
     } catch (error) {
