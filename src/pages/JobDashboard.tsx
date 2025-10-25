@@ -119,7 +119,7 @@ export default function JobDashboard() {
   useEffect(() => {
     if (!roleLoading && !isAuthorized) {
       toast.error("You don't have permission to access this page");
-      navigate('/dashboard');
+      navigate('/home');
       return;
     }
 
@@ -151,7 +151,7 @@ export default function JobDashboard() {
     } catch (error) {
       console.error('Error fetching job:', error);
       toast.error("Failed to load job details");
-      navigate('/partner-dashboard');
+      navigate('/company-jobs');
     } finally {
       setLoading(false);
     }
@@ -349,11 +349,11 @@ export default function JobDashboard() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate('/partner-dashboard')}
+                onClick={() => navigate('/company-jobs')}
                 className="mb-2 hover:bg-accent/20 transition-all duration-300"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
+                Back to Jobs Dashboard
               </Button>
               <div className="flex items-center gap-4">
                 {job.companies?.logo_url && (

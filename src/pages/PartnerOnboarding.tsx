@@ -85,7 +85,7 @@ const PartnerOnboarding = () => {
       if (memberError) throw memberError;
 
       toast.success("Company profile created successfully!");
-      navigate('/partner-dashboard');
+      navigate('/company-jobs');
     } catch (error: any) {
       console.error('Error creating company:', error);
       toast.error(error.message || "Failed to create company profile");
