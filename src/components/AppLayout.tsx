@@ -1,9 +1,11 @@
 import { ReactNode, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import quantumClubLogo from "@/assets/quantum-club-logo.png";
-import quantumClubLogoDark from "@/assets/quantum-logo-dark.png";
-import quantumClubLogoShort from "@/assets/quantum-logo-light-transparent.png";
-import quantumClubLogoDarkShort from "@/assets/quantum-logo-dark-transparent.png";
+// Full logos
+import quantumClubLogoLight from "@/assets/quantum-club-logo.png"; // Full logo for light theme (black)
+import quantumClubLogoDark from "@/assets/quantum-logo-dark.png"; // Full logo for dark theme (white)
+// Short QC icons
+import quantumClubLogoLightShort from "@/assets/quantum-logo-light-transparent.png"; // QC icon for light theme (black)
+import quantumClubLogoDarkShort from "@/assets/quantum-logo-dark-transparent.png"; // QC icon for dark theme (white)
 import {
   Briefcase,
   Building2,
@@ -310,9 +312,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
       {/* Animated Sidebar with Glass Effect */}
       <Sidebar
-        logoLight={quantumClubLogo}
+        logoLight={quantumClubLogoLight}
         logoDark={quantumClubLogoDark}
-        logoLightShort={quantumClubLogoShort}
+        logoLightShort={quantumClubLogoLightShort}
         logoDarkShort={quantumClubLogoDarkShort}
       >
         {navigationGroups.map((group) => (
