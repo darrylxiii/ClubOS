@@ -102,7 +102,7 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
       <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-[100]">
         <motion.div
           animate={{
-            scale: open ? 1 : 0.9,
+            scale: 1,
           }}
           transition={{ duration: 0.3 }}
           className="flex items-center justify-center"
@@ -113,12 +113,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
               <img
                 src={logoLightShort}
                 alt="The Quantum Club"
-                className="hidden dark:block h-10 transition-all"
+                className="hidden dark:block h-12 transition-all"
               />
               <img
                 src={logoDarkShort}
                 alt="The Quantum Club"
-                className="dark:hidden block h-10 transition-all"
+                className="dark:hidden block h-12 transition-all"
               />
             </>
           ) : (
@@ -127,12 +127,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
               <img
                 src={logoLight}
                 alt="QC"
-                className="hidden dark:block h-8 transition-all"
+                className="hidden dark:block h-12 transition-all"
               />
               <img
                 src={logoDark}
                 alt="QC"
-                className="dark:hidden block h-8 transition-all"
+                className="dark:hidden block h-12 transition-all"
               />
             </>
           )}
