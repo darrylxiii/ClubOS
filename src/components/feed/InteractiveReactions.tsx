@@ -53,7 +53,7 @@ export function InteractiveReactions({ postId, postAuthorId, initialReactions = 
       .select('reaction_type')
       .eq('post_id', postId)
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (data) setUserReaction(data.reaction_type);
   };
