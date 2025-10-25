@@ -19,6 +19,7 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/h
 import { UserProfilePreview } from "@/components/UserProfilePreview";
 import { CompanyProfilePreview } from "@/components/CompanyProfilePreview";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { FollowButton } from "@/components/profile/FollowButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +38,7 @@ import { EditPostDialog } from "./EditPostDialog";
 import { YouTubeEmbed } from "@/components/messages/YouTubeEmbed";
 import { SocialEmbed } from "./SocialEmbed";
 import { SpotifyEmbed } from './SpotifyEmbed';
+import { ShareDialog } from './ShareDialog';
 
 interface PostCardProps {
   post: any;
@@ -53,7 +55,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
   const [pollTotalVotes, setPollTotalVotes] = useState(0);
   const [showSummary, setShowSummary] = useState(false);
   const [userStreak, setUserStreak] = useState<number | null>(null);
-  const [shareMenuOpen, setShareMenuOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [showFullPost, setShowFullPost] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
@@ -204,34 +206,8 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
     return `${baseUrl}/post/${post.id}`;
   };
 
-  const handleShare = async (platform?: 'twitter' | 'linkedin' | 'whatsapp') => {
-    const shareUrl = getShareUrl();
-    const shareText = post.content.substring(0, 100) + (post.content.length > 100 ? '...' : '');
-
-    if (platform === 'twitter') {
-      window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-      trackSharePlatform('twitter');
-    } else if (platform === 'linkedin') {
-      window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
-      trackSharePlatform('linkedin');
-    } else if (platform === 'whatsapp') {
-      window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`, '_blank');
-      trackSharePlatform('whatsapp');
-    } else {
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        toast({
-          title: "Link copied",
-          description: "Share this post with others"
-        });
-        trackSharePlatform('copy');
-      } catch (error) {
-        toast({
-          title: "Failed to copy",
-          variant: "destructive"
-        });
-      }
-    }
+  const handleShare = async (platform?: string) => {
+    trackSharePlatform(platform || 'copy');
   };
 
   const trackSharePlatform = async (platform: string) => {
@@ -319,6 +295,9 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             </HoverCard>
             
             <div className="flex items-center gap-2">
+              {!isOwnPost && user && (
+                <FollowButton userId={post.user_id} variant="outline" size="sm" />
+              )}
               {user?.id === post.user_id && (
                 <LiveViewerCounter postId={post.id} />
               )}
@@ -603,33 +582,14 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 </Button>
               )}
               
-              <DropdownMenu open={shareMenuOpen} onOpenChange={setShareMenuOpen}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <Share2 className="w-4 h-4 mr-2" />
-                    <span className="text-sm">Share</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare('twitter'); }}>
-                    <Twitter className="w-4 h-4 mr-2" />
-                    Share on Twitter
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare('linkedin'); }}>
-                    <Linkedin className="w-4 h-4 mr-2" />
-                    Share on LinkedIn
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare('whatsapp'); }}>
-                    <Send className="w-4 h-4 mr-2" />
-                    Share on WhatsApp
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={(e) => { e.preventDefault(); handleShare(); }}>
-                    <Copy className="w-4 h-4 mr-2" />
-                    Copy link
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShareDialogOpen(true)}
+              >
+                <Share2 className="w-4 h-4 mr-2" />
+                <span className="text-sm">Share</span>
+              </Button>
             </div>
             
             <div className="flex items-center gap-1">
@@ -671,6 +631,14 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         onUpdate={onUpdate}
+      />
+
+      <ShareDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        shareUrl={getShareUrl()}
+        shareText={post.content.substring(0, 100) + (post.content.length > 100 ? '...' : '')}
+        onShare={handleShare}
       />
     </Card>
   );

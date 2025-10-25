@@ -132,11 +132,18 @@ export function useAlgorithmicFeed() {
           return bEngagement - aEngagement;
         });
       } else if (feedType === 'following') {
-        // TODO: Filter by followed users
-        // For now, just show all posts in chronological order
-        enrichedPosts.sort((a, b) => 
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
+        // Filter to only show posts from users the current user follows
+        if (!user) {
+          enrichedPosts = [];
+        } else {
+          const { data: followingData } = await supabase
+            .from('user_follows')
+            .select('following_id')
+            .eq('follower_id', user.id);
+          
+          const followingIds = followingData?.map(f => f.following_id) || [];
+          enrichedPosts = enrichedPosts.filter(post => followingIds.includes(post.user_id));
+        }
       }
 
       setPosts(enrichedPosts);
