@@ -39,6 +39,7 @@ import { YouTubeEmbed } from "@/components/messages/YouTubeEmbed";
 import { SocialEmbed } from "./SocialEmbed";
 import { SpotifyEmbed } from './SpotifyEmbed';
 import { ShareDialog } from './ShareDialog';
+import { RepostedPostCard } from './RepostedPostCard';
 
 interface PostCardProps {
   post: any;
@@ -392,6 +393,13 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             )}
           </div>
 
+          {/* Reposted Original Post */}
+          {post.repost_of && post.original_post && (
+            <div className="mt-4">
+              <RepostedPostCard originalPost={post.original_post} />
+            </div>
+          )}
+
           {/* AI Summary */}
           {post.ai_summary && (
             <Collapsible open={showSummary} onOpenChange={setShowSummary} className="mt-3">
@@ -561,6 +569,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
               <RepostButton 
                 postId={post.id}
                 repostCount={repostCount}
+                post={post}
                 onUpdate={() => {
                   fetchRepostCount();
                   onUpdate();

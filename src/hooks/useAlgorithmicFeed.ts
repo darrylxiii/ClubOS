@@ -74,11 +74,43 @@ export function useAlgorithmicFeed() {
         .select('id, post_id')
         .in('post_id', postsData.map(p => p.id));
 
+      // Fetch original posts for reposts
+      const repostIds = postsData.filter(p => p.repost_of).map(p => p.repost_of).filter(Boolean);
+      let originalPostsData: any[] = [];
+      
+      if (repostIds.length > 0) {
+        const { data: originals } = await supabase
+          .from('posts')
+          .select('*, profiles(*), companies(*)')
+          .in('id', repostIds);
+        
+        if (originals) {
+          // Fetch likes and comments for original posts
+          const { data: originalLikes } = await supabase
+            .from('post_likes')
+            .select('post_id, user_id')
+            .in('post_id', originals.map(p => p.id));
+          
+          const { data: originalComments } = await supabase
+            .from('post_comments')
+            .select('id, post_id')
+            .in('post_id', originals.map(p => p.id));
+          
+          // Enrich original posts with engagement data
+          originalPostsData = originals.map(orig => ({
+            ...orig,
+            post_likes: originalLikes?.filter(l => l.post_id === orig.id) || [],
+            post_comments: originalComments?.filter(c => c.post_id === orig.id) || [],
+          }));
+        }
+      }
+
       // Create lookup maps
       const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || []);
       const companiesMap = new Map(companiesData?.map(c => [c.id, c]) || []);
       const likesMap = new Map<string, any[]>();
       const commentsMap = new Map<string, any[]>();
+      const originalPostsMap = new Map(originalPostsData.map(p => [p.id, p]));
 
       likesData?.forEach(like => {
         const existing = likesMap.get(like.post_id) || [];
@@ -97,6 +129,7 @@ export function useAlgorithmicFeed() {
         companies: post.company_id ? companiesMap.get(post.company_id) : null,
         post_likes: likesMap.get(post.id) || [],
         post_comments: commentsMap.get(post.id) || [],
+        original_post: post.repost_of ? originalPostsMap.get(post.repost_of) : null,
         algorithmScore: 0,
       }));
 
