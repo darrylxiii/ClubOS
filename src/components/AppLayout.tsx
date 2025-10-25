@@ -2,6 +2,8 @@ import { ReactNode, useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import quantumClubLogo from "@/assets/quantum-club-logo.png";
 import quantumClubLogoDark from "@/assets/quantum-logo-dark.png";
+import quantumClubLogoShort from "@/assets/quantum-logo-light-transparent.png";
+import quantumClubLogoDarkShort from "@/assets/quantum-logo-dark-transparent.png";
 import {
   Briefcase,
   Building2,
@@ -310,6 +312,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       <Sidebar
         logoLight={quantumClubLogo}
         logoDark={quantumClubLogoDark}
+        logoLightShort={quantumClubLogoShort}
+        logoDarkShort={quantumClubLogoDarkShort}
       >
         {navigationGroups.map((group) => (
           <SidebarGroup key={group.title} group={group} />

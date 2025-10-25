@@ -51,12 +51,14 @@ interface SidebarProps {
   className?: string;
   logoLight: string;
   logoDark: string;
+  logoLightShort: string;
+  logoDarkShort: string;
 }
 
-export const Sidebar = ({ children, className, logoLight, logoDark }: SidebarProps) => {
+export const Sidebar = ({ children, className, logoLight, logoDark, logoLightShort, logoDarkShort }: SidebarProps) => {
   return (
     <SidebarProvider>
-      <DesktopSidebar className={className} logoLight={logoLight} logoDark={logoDark}>
+      <DesktopSidebar className={className} logoLight={logoLight} logoDark={logoDark} logoLightShort={logoLightShort} logoDarkShort={logoDarkShort}>
         {children}
       </DesktopSidebar>
       <MobileSidebar logoLight={logoLight} logoDark={logoDark}>
@@ -71,9 +73,11 @@ interface DesktopSidebarProps {
   className?: string;
   logoLight: string;
   logoDark: string;
+  logoLightShort: string;
+  logoDarkShort: string;
 }
 
-const DesktopSidebar = ({ children, className, logoLight, logoDark }: DesktopSidebarProps) => {
+const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightShort, logoDarkShort }: DesktopSidebarProps) => {
   const { open, setOpen } = useSidebar();
 
   return (
@@ -98,19 +102,37 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark }: DesktopSid
       <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-[100]">
         <motion.div
           animate={{
-            opacity: open ? 1 : 1,
+            scale: open ? 1 : 0.9,
           }}
           transition={{ duration: 0.3 }}
           className="flex items-center justify-center"
         >
           {open ? (
-            <span className="text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
-              The Quantum Club
-            </span>
+            <>
+              <img
+                src={logoDark}
+                alt="The Quantum Club"
+                className="dark:block hidden h-10 transition-all"
+              />
+              <img
+                src={logoLight}
+                alt="The Quantum Club"
+                className="dark:hidden block h-10 transition-all"
+              />
+            </>
           ) : (
-            <span className="text-2xl font-bold tracking-tight text-foreground">
-              QC
-            </span>
+            <>
+              <img
+                src={logoDarkShort}
+                alt="QC"
+                className="dark:block hidden h-10 transition-all"
+              />
+              <img
+                src={logoLightShort}
+                alt="QC"
+                className="dark:hidden block h-10 transition-all"
+              />
+            </>
           )}
         </motion.div>
       </div>
@@ -136,9 +158,16 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
     <>
       {/* Mobile Header */}
       <div className="h-16 px-4 flex md:hidden items-center justify-between bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 fixed top-0 left-0 right-0 z-[100]">
-        <span className="text-xl font-bold tracking-tight text-foreground">
-          The Quantum Club
-        </span>
+        <img
+          src={logoDark}
+          alt="The Quantum Club"
+          className="h-9 dark:block hidden"
+        />
+        <img
+          src={logoLight}
+          alt="The Quantum Club"
+          className="h-9 dark:hidden block"
+        />
         <Button
           variant="ghost"
           size="icon"
@@ -172,9 +201,16 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
               className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-[101] md:hidden flex flex-col shadow-[var(--shadow-glass-xl)]"
             >
               <div className="h-16 flex items-center justify-between px-4 border-b border-border/20">
-                <span className="text-xl font-bold tracking-tight text-foreground">
-                  The Quantum Club
-                </span>
+                <img
+                  src={logoDark}
+                  alt="The Quantum Club"
+                  className="h-9 dark:block hidden"
+                />
+                <img
+                  src={logoLight}
+                  alt="The Quantum Club"
+                  className="h-9 dark:hidden block"
+                />
                 <Button
                   variant="ghost"
                   size="icon"
