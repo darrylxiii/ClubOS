@@ -113,12 +113,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
               <img
                 src={logoLightShort}
                 alt="The Quantum Club"
-                className="hidden dark:block h-[54px] transition-all"
+                className="hidden dark:block h-20 transition-all"
               />
               <img
                 src={logoDarkShort}
                 alt="The Quantum Club"
-                className="dark:hidden block h-[54px] transition-all"
+                className="dark:hidden block h-20 transition-all"
               />
             </>
           ) : (
