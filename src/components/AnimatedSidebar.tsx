@@ -100,43 +100,67 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
     >
       {/* Logo */}
       <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-[100]">
-        <motion.div
-          animate={{
-            scale: 1,
-          }}
-          transition={{ duration: 0.3 }}
-          className="flex items-center justify-center"
-        >
-          {open ? (
-            <>
-              {/* Full "Quantum CLUB" text logo when EXPANDED (wide sidebar) */}
-              <img
-                src={logoLightShort}
-                alt="The Quantum Club"
-                className="hidden dark:block h-20 transition-all"
-              />
-              <img
-                src={logoDarkShort}
-                alt="The Quantum Club"
-                className="dark:hidden block h-20 transition-all"
-              />
-            </>
-          ) : (
-            <>
-              {/* Small QC icon when COLLAPSED (slim sidebar) */}
-              <img
-                src={logoLight}
-                alt="QC"
-                className="hidden dark:block h-12 transition-all"
-              />
-              <img
-                src={logoDark}
-                alt="QC"
-                className="dark:hidden block h-12 transition-all"
-              />
-            </>
-          )}
-        </motion.div>
+        <div className="relative flex items-center justify-center">
+          {/* Full "Quantum CLUB" text logo when EXPANDED (wide sidebar) */}
+          <motion.img
+            src={logoLightShort}
+            alt="The Quantum Club"
+            className="hidden dark:block h-20 absolute"
+            initial={false}
+            animate={{
+              opacity: open ? 1 : 0,
+              scale: open ? 1 : 0.6,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+          />
+          <motion.img
+            src={logoDarkShort}
+            alt="The Quantum Club"
+            className="dark:hidden block h-20 absolute"
+            initial={false}
+            animate={{
+              opacity: open ? 1 : 0,
+              scale: open ? 1 : 0.6,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+          />
+          
+          {/* Small QC icon when COLLAPSED (slim sidebar) */}
+          <motion.img
+            src={logoLight}
+            alt="QC"
+            className="hidden dark:block h-12"
+            initial={false}
+            animate={{
+              opacity: open ? 0 : 1,
+              scale: open ? 1.67 : 1,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+          />
+          <motion.img
+            src={logoDark}
+            alt="QC"
+            className="dark:hidden block h-12"
+            initial={false}
+            animate={{
+              opacity: open ? 0 : 1,
+              scale: open ? 1.67 : 1,
+            }}
+            transition={{
+              duration: 0.3,
+              ease: [0.4, 0, 0.2, 1],
+            }}
+          />
+        </div>
       </div>
 
       {/* Content */}
