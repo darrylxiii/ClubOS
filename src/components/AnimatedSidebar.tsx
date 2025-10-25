@@ -83,7 +83,7 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
   return (
     <motion.aside
       className={cn(
-        "hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-40",
+        "hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-[95]",
         "bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20",
         "shadow-[var(--shadow-glass-lg)]",
         className
@@ -111,12 +111,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
             <>
               {/* Full logo when expanded - white for dark theme, black for light theme */}
               <img
-                src={logoDark}
+                src={logoLight}
                 alt="The Quantum Club"
-                className="dark:block hidden h-10 transition-all"
+                className="hidden dark:block h-10 transition-all"
               />
               <img
-                src={logoLight}
+                src={logoDark}
                 alt="The Quantum Club"
                 className="dark:hidden block h-10 transition-all"
               />
@@ -125,12 +125,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
             <>
               {/* Short QC icon when collapsed - white for dark theme, black for light theme */}
               <img
-                src={logoDarkShort}
+                src={logoLightShort}
                 alt="QC"
-                className="dark:block hidden h-8 transition-all"
+                className="hidden dark:block h-8 transition-all"
               />
               <img
-                src={logoLightShort}
+                src={logoDarkShort}
                 alt="QC"
                 className="dark:hidden block h-8 transition-all"
               />
