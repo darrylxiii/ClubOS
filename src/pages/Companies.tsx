@@ -307,7 +307,7 @@ export default function Companies() {
                 <CardDescription className="text-xs uppercase tracking-wide flex items-center gap-1">
                   <Briefcase className="w-3 h-3" /> Open Roles
                 </CardDescription>
-                <CardTitle className="text-4xl font-black text-slate-50">{overallMetrics.total_jobs}</CardTitle>
+                <CardTitle className="text-4xl font-black text-foreground">{overallMetrics.total_jobs}</CardTitle>
               </CardHeader>
             </Card>
 
@@ -316,7 +316,7 @@ export default function Companies() {
                 <CardDescription className="text-xs uppercase tracking-wide flex items-center gap-1">
                   <TrendingUp className="w-3 h-3" /> Applications
                 </CardDescription>
-                <CardTitle className="text-4xl font-black text-slate-50">{overallMetrics.total_applications}</CardTitle>
+                <CardTitle className="text-4xl font-black text-foreground">{overallMetrics.total_applications}</CardTitle>
               </CardHeader>
             </Card>
 
