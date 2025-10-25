@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import DOMPurify from "dompurify";
 
 interface RepostedPostCardProps {
   originalPost: any;
@@ -159,9 +160,16 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
 
         {/* Content Preview (collapsed to 4 lines) */}
         {originalPost.content && (
-          <p className="text-sm line-clamp-4 whitespace-pre-wrap break-words">
-            {originalPost.content}
-          </p>
+          <div 
+            className="text-sm line-clamp-4 whitespace-pre-wrap break-words prose prose-sm max-w-none [&_a]:text-primary [&_a]:underline"
+            dangerouslySetInnerHTML={{ 
+              __html: DOMPurify.sanitize(originalPost.content, {
+                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i', 'div'],
+                ALLOWED_ATTR: ['href', 'target', 'rel'],
+                ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+              })
+            }}
+          />
         )}
 
         {/* AI Summary */}

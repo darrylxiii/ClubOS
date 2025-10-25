@@ -102,6 +102,18 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
           repost_post_id: newPost.id
         });
 
+      // Generate combined AI summary for repost with commentary
+      if (comment.trim() && post?.content) {
+        const combinedContent = `Original post: ${post.content}\n\nRepost commentary: ${comment}`;
+        supabase.functions.invoke('generate-ai-summary', {
+          body: { 
+            postId: newPost.id,
+            content: combinedContent,
+            type: 'repost_with_commentary'
+          }
+        }).catch(err => console.error('Failed to generate AI summary:', err));
+      }
+
       toast.success("Reposted with your thoughts");
       setOpen(false);
       setComment("");
@@ -134,12 +146,12 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
           <span className="text-xs">{repostCount > 0 ? repostCount : 'Repost'}</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg glass-card">
+      <DialogContent className="w-[95vw] sm:w-full max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto glass-card">
         <DialogHeader>
           <DialogTitle className="text-xl">Repost to your feed</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-4 pb-2">
           {/* Original Post Preview */}
           {post && (
             <div className="space-y-2">

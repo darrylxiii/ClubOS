@@ -429,7 +429,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
                 <CollapsibleTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
                     <Sparkles className="w-4 h-4" />
-                    AI Summary
+                    {post.repost_of ? 'AI Summary (Original + Your Thoughts)' : 'AI Summary'}
                     <ChevronDown className={`w-4 h-4 transition-transform ${showSummary ? 'rotate-180' : ''}`} />
                   </Button>
                 </CollapsibleTrigger>
