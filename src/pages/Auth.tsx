@@ -422,11 +422,11 @@ const Auth = () => {
               </button>
             </div> : <form onSubmit={handleEmailAuth} className="space-y-5">
             {!isLogin && <div>
-                <Input type="text" placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} required className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm" />
+                <Input type="text" placeholder="Full Name" value={fullName} onChange={e => setFullName(e.target.value)} required className="h-14 bg-background text-foreground rounded-2xl font-semibold text-base placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all" />
               </div>}
 
             <div>
-              <Input type="email" placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} required className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm" />
+              <Input type="email" placeholder="Email Address" value={email} onChange={e => setEmail(e.target.value)} required className="h-14 bg-background text-foreground rounded-2xl font-semibold text-base placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all" />
             </div>
 
             {!isLogin ? <div className="space-y-3 animate-fade-in">
@@ -452,7 +452,7 @@ const Auth = () => {
                 {/* Enhanced password input - always shown from start */}
                 <AssistedPasswordConfirmation password={password} confirmPassword={confirmPassword} onConfirmPasswordChange={setConfirmPassword} onPasswordChange={setPassword} showPasswordInput={!(password.length >= 12 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password))} />
               </div> : <div>
-                <Input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="h-14 bg-white/90 text-gray-900 border-white/20 rounded-2xl font-semibold text-base placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all backdrop-blur-sm" />
+                <Input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} required className="h-14 bg-background text-foreground rounded-2xl font-semibold text-base placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all" />
               </div>}
 
             {/* Main CTA Button */}
@@ -472,7 +472,7 @@ const Auth = () => {
                 <div className="w-full border-t border-border/50"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background/50 backdrop-blur-sm px-4 py-1 rounded-full text-foreground/70 font-semibold tracking-wider">
+                <span className="bg-background px-4 py-1 rounded-full text-muted-foreground font-semibold tracking-wider">
                   Or continue with
                 </span>
               </div>
@@ -509,7 +509,7 @@ const Auth = () => {
                 console.error('[OAuth] Caught error:', error);
                 toast.error(error.message || 'Failed to sign in with Google');
               }
-            }} className="w-14 h-14 rounded-full bg-background/50 border border-border/50 flex items-center justify-center transition-all hover:bg-background/70 backdrop-blur-sm hover:scale-105 hover:border-primary/50">
+            }} className="w-14 h-14 rounded-full bg-background border border-border flex items-center justify-center transition-all hover:bg-muted hover:scale-105 hover:border-primary/50">
                 <FaGoogle className="w-5 h-5 text-foreground" />
               </button>
             </div>

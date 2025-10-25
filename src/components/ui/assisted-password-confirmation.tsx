@@ -67,7 +67,7 @@ export function AssistedPasswordConfirmation({
     <div className="space-y-3">
       {/* Box 1: Enhanced Password Input - ALWAYS shown, ALWAYS editable */}
       <motion.div
-        className="relative h-14 w-full rounded-2xl border-2 bg-white/90 overflow-hidden"
+        className="relative h-14 w-full rounded-2xl border-2 bg-background overflow-hidden"
         animate={{
           ...bounceAnimation,
           borderColor: showPasswordInput ? 'hsl(var(--border))' : (passwordsMatch && confirmPassword ? 'hsl(var(--primary))' : 'hsl(var(--border))'),
@@ -100,7 +100,7 @@ export function AssistedPasswordConfirmation({
           value={password}
           onChange={(e) => onPasswordChange?.(e.target.value)}
           required
-          className="relative z-10 h-full w-full bg-transparent px-3.5 py-3 tracking-[0.4em] text-gray-900 outline-none placeholder:tracking-normal placeholder:text-gray-500 focus:border-primary/50 focus:ring-primary/20 font-semibold text-base"
+          className="relative z-10 h-full w-full bg-transparent px-3.5 py-3 tracking-[0.4em] text-foreground outline-none placeholder:tracking-normal placeholder:text-muted-foreground focus:border-primary/50 focus:ring-primary/20 font-semibold text-base"
         />
       </motion.div>
 
@@ -110,7 +110,7 @@ export function AssistedPasswordConfirmation({
         animate={matchAnimation}
       >
         <motion.input
-          className="h-full w-full rounded-2xl border-2 bg-white/90 px-3.5 py-3 tracking-[0.4em] text-gray-900 outline-none placeholder:tracking-normal placeholder:text-gray-500 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 font-semibold text-base transition-all"
+          className="h-full w-full rounded-2xl border-2 bg-background px-3.5 py-3 tracking-[0.4em] text-foreground outline-none placeholder:tracking-normal placeholder:text-muted-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20 font-semibold text-base transition-all"
           type="password"
           placeholder="Confirm Password"
           value={confirmPassword}

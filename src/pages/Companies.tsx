@@ -276,7 +276,7 @@ export default function Companies() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
-            <h1 className="text-5xl font-black uppercase tracking-tight bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-slate-50">
+            <h1 className="text-5xl font-black uppercase tracking-tight text-foreground">
               Partner Companies
             </h1>
             <p className="text-lg text-muted-foreground">
