@@ -92,6 +92,28 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
       checkIfPinned();
       fetchRepostCount();
     }
+
+    // Real-time comments count
+    const commentsChannel = supabase
+      .channel(`post-comments-${post.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'post_comments',
+          filter: `post_id=eq.${post.id}`
+        },
+        () => {
+          // Refetch post data to get updated comments count
+          onUpdate();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(commentsChannel);
+    };
   }, [post.id, user]);
 
   const checkIfPinned = async () => {

@@ -29,6 +29,28 @@ export function InteractiveReactions({ postId, postAuthorId, initialReactions = 
   useEffect(() => {
     fetchReactions();
     fetchUserReaction();
+    
+    // Real-time updates for reactions
+    const channel = supabase
+      .channel(`post-reactions-${postId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'post_reactions',
+          filter: `post_id=eq.${postId}`
+        },
+        () => {
+          fetchReactions();
+          fetchUserReaction();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [postId]);
 
   const fetchReactions = async () => {

@@ -2,18 +2,34 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, MessageCircle, ExternalLink } from "lucide-react";
+import { Heart, MessageCircle, ExternalLink, Sparkles, ChevronDown, ThumbsUp, Trophy, Smile, Flame } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { LazyMedia } from "./LazyMedia";
 import { cn } from "@/lib/utils";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface RepostedPostCardProps {
   originalPost: any;
 }
 
+const REACTIONS = [
+  { type: 'like', icon: ThumbsUp, label: 'Like', color: 'text-blue-500' },
+  { type: 'love', icon: Heart, label: 'Love', color: 'text-red-500' },
+  { type: 'celebrate', icon: Trophy, label: 'Celebrate', color: 'text-yellow-500' },
+  { type: 'insightful', icon: Sparkles, label: 'Insightful', color: 'text-purple-500' },
+  { type: 'funny', icon: Smile, label: 'Funny', color: 'text-orange-500' },
+  { type: 'fire', icon: Flame, label: 'Fire', color: 'text-red-600' },
+];
+
 export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
   const navigate = useNavigate();
+  const [showSummary, setShowSummary] = useState(false);
+  const [liveLikesCount, setLiveLikesCount] = useState(originalPost.post_likes?.length || 0);
+  const [liveCommentsCount, setLiveCommentsCount] = useState(originalPost.post_comments?.length || 0);
+  const [reactionBreakdown, setReactionBreakdown] = useState<Record<string, number>>({});
 
   const author = originalPost.profiles || originalPost.companies;
   const authorName = author?.full_name || author?.name || "Unknown";
@@ -24,8 +40,69 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
   const firstMedia = mediaUrls[0];
   const additionalMediaCount = mediaUrls.length - 1;
 
-  const likesCount = originalPost.post_likes?.length || 0;
-  const commentsCount = originalPost.post_comments?.length || 0;
+  const fetchReactionBreakdown = async () => {
+    const { data } = await supabase
+      .from('post_reactions')
+      .select('reaction_type')
+      .eq('post_id', originalPost.id);
+    
+    if (data) {
+      const counts: Record<string, number> = {};
+      data.forEach(r => {
+        counts[r.reaction_type] = (counts[r.reaction_type] || 0) + 1;
+      });
+      setReactionBreakdown(counts);
+      setLiveLikesCount(data.length);
+    }
+  };
+
+  useEffect(() => {
+    // Initial fetch of reaction breakdown
+    fetchReactionBreakdown();
+    
+    // Subscribe to reactions changes
+    const reactionsChannel = supabase
+      .channel(`reactions-${originalPost.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'post_reactions',
+          filter: `post_id=eq.${originalPost.id}`
+        },
+        () => {
+          fetchReactionBreakdown();
+        }
+      )
+      .subscribe();
+
+    // Subscribe to comments changes
+    const commentsChannel = supabase
+      .channel(`comments-${originalPost.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'post_comments',
+          filter: `post_id=eq.${originalPost.id}`
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setLiveCommentsCount(prev => prev + 1);
+          } else if (payload.eventType === 'DELETE') {
+            setLiveCommentsCount(prev => Math.max(0, prev - 1));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(reactionsChannel);
+      supabase.removeChannel(commentsChannel);
+    };
+  }, [originalPost.id]);
 
   const handleViewOriginal = () => {
     navigate(`/post/${originalPost.id}`);
@@ -87,6 +164,24 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
           </p>
         )}
 
+        {/* AI Summary */}
+        {originalPost.ai_summary && (
+          <Collapsible open={showSummary} onOpenChange={setShowSummary}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" size="sm" className="gap-2 w-full justify-start">
+                <Sparkles className="w-4 h-4" />
+                AI Summary
+                <ChevronDown className={cn("w-4 h-4 transition-transform", showSummary && "rotate-180")} />
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2">
+              <div className="p-3 bg-muted/50 rounded-lg border border-border/50">
+                <p className="text-sm text-muted-foreground italic">{originalPost.ai_summary}</p>
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+
         {/* Media Preview */}
         {firstMedia && (
           <div className="relative rounded-lg overflow-hidden">
@@ -115,15 +210,37 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
           </div>
         )}
 
-        {/* Original Post Stats (Read-only) */}
+        {/* Original Post Stats (Read-only with Reaction Breakdown) */}
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Heart className="w-4 h-4" />
-            <span>{likesCount}</span>
-          </div>
+          {liveLikesCount > 0 && (
+            <div className="flex items-center gap-2">
+              <Heart className="w-4 h-4" />
+              <span>{liveLikesCount}</span>
+              {/* Show top 3 reaction types */}
+              {Object.keys(reactionBreakdown).length > 0 && (
+                <div className="flex gap-1 ml-2">
+                  {Object.entries(reactionBreakdown)
+                    .filter(([_, count]) => count > 0)
+                    .sort(([_, a], [__, b]) => b - a)
+                    .slice(0, 3)
+                    .map(([type, count]) => {
+                      const reaction = REACTIONS.find(r => r.type === type);
+                      if (!reaction) return null;
+                      const Icon = reaction.icon;
+                      return (
+                        <div key={type} className="flex items-center gap-1">
+                          <Icon className={cn("w-3 h-3", reaction.color)} />
+                          <span>{count}</span>
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-1">
             <MessageCircle className="w-4 h-4" />
-            <span>{commentsCount}</span>
+            <span>{liveCommentsCount}</span>
           </div>
         </div>
 
