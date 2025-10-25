@@ -79,12 +79,21 @@ export function useAlgorithmicFeed() {
       let originalPostsData: any[] = [];
       
       if (repostIds.length > 0) {
-        const { data: originals } = await supabase
+        const { data: originals, error: originalsError } = await supabase
           .from('posts')
-          .select('*, profiles(*), companies(*)')
+          .select(`
+            *,
+            profiles:user_id(id, full_name, avatar_url, current_title),
+            companies:company_id(id, name, logo_url, slug)
+          `)
           .in('id', repostIds);
         
+        if (originalsError) {
+          console.error('Error fetching original posts:', originalsError);
+        }
+        
         if (originals) {
+          console.log('Original posts fetched:', originals.length > 0 ? originals[0] : 'none');
           // Fetch likes and comments for original posts
           const { data: originalLikes } = await supabase
             .from('post_likes')
