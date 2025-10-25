@@ -51,6 +51,149 @@ export const ConnectionsSettings = ({
     loadConnectedCalendars();
   }, [user]);
 
+  useEffect(() => {
+    // Handle OAuth callback
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('code');
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    // Handle OAuth errors
+    if (error) {
+      const pendingConnection = localStorage.getItem('pending_calendar_connection');
+      if (pendingConnection) {
+        const { provider } = JSON.parse(pendingConnection);
+        const providerName = provider === 'google' ? 'Google' : 'Microsoft';
+        
+        let errorMessage = `${providerName} Calendar connection failed`;
+        if (error === 'access_denied') {
+          errorMessage = `You denied access to ${providerName} Calendar`;
+        } else if (errorDescription) {
+          errorMessage = `${providerName} Calendar: ${errorDescription}`;
+        }
+        
+        toast.error(errorMessage);
+        localStorage.removeItem('pending_calendar_connection');
+        window.history.replaceState({}, document.title, '/settings');
+      }
+      return;
+    }
+    
+    if (code) {
+      (async () => {
+        try {
+          const pendingConnection = localStorage.getItem('pending_calendar_connection');
+          if (pendingConnection) {
+            const { provider, label } = JSON.parse(pendingConnection);
+            const redirectUri = `${window.location.origin}/settings`;
+            
+            let token: string;
+            let email: string = 'Calendar Account';
+
+            if (provider === 'google') {
+              // Get current session token
+              const { data: { session } } = await supabase.auth.getSession();
+              
+              const { data, error: invocationError } = await supabase.functions.invoke('google-calendar-auth', {
+                body: { action: 'exchangeCode', code, redirectUri },
+                headers: {
+                  Authorization: `Bearer ${session?.access_token}`
+                }
+              });
+
+              if (invocationError) {
+                console.error('Google Calendar auth error:', invocationError);
+                throw new Error(invocationError.message || 'Failed to authenticate with Google Calendar');
+              }
+              
+              if (data?.error) {
+                console.error('Google Calendar response error:', data);
+                
+                // Show detailed error with instructions
+                let errorMsg = data.error;
+                if (data.redirectUri && errorMsg.includes('redirect URI')) {
+                  errorMsg += `\n\nPlease ensure this URL is added to your Google Cloud Console:\n${data.redirectUri}\n\nGo to: APIs & Services → Credentials → Your OAuth 2.0 Client → Authorized redirect URIs`;
+                }
+                
+                throw new Error(errorMsg);
+              }
+              
+              token = data.tokens.access_token;
+              
+              // Try to get user email from Google
+              try {
+                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                const userInfo = await userInfoResponse.json();
+                email = userInfo.email || email;
+              } catch (e) {
+                console.log('Could not fetch user email');
+              }
+            } else {
+              // Get current session token
+              const { data: { session } } = await supabase.auth.getSession();
+              
+              const { data, error: invocationError } = await supabase.functions.invoke('microsoft-calendar-auth', {
+                body: { action: 'exchangeCode', code, redirectUri },
+                headers: {
+                  Authorization: `Bearer ${session?.access_token}`
+                }
+              });
+
+              if (invocationError) {
+                console.error('Microsoft Calendar auth error:', invocationError);
+                throw new Error(invocationError.message || 'Failed to authenticate with Microsoft Calendar');
+              }
+              
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              
+              token = data.access_token;
+              
+              // Try to get user email from Microsoft
+              try {
+                const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+                  headers: { Authorization: `Bearer ${token}` }
+                });
+                const userInfo = await userInfoResponse.json();
+                email = userInfo.mail || userInfo.userPrincipalName || email;
+              } catch (e) {
+                console.log('Could not fetch user email');
+              }
+            }
+
+            // Create new calendar connection
+            const newConnection: CalendarConnection = {
+              id: `${provider}-${Date.now()}`,
+              provider,
+              email,
+              label,
+              token,
+              connectedAt: new Date().toISOString(),
+            };
+
+            const updatedCalendars = [...connectedCalendars, newConnection];
+            setConnectedCalendars(updatedCalendars);
+            localStorage.setItem('connected_calendars', JSON.stringify(updatedCalendars));
+            localStorage.removeItem('pending_calendar_connection');
+            
+            // Clean up URL
+            window.history.replaceState({}, document.title, '/settings');
+            
+            toast.success(`${provider === 'google' ? 'Google' : 'Microsoft'} Calendar "${label}" connected successfully!`);
+          }
+        } catch (error) {
+          console.error('Calendar OAuth error:', error);
+          toast.error(error instanceof Error ? error.message : 'Failed to connect calendar');
+          localStorage.removeItem('pending_calendar_connection');
+          window.history.replaceState({}, document.title, '/settings');
+        }
+      })();
+    }
+  }, [connectedCalendars]);
+
   const loadUserResumes = async () => {
     if (!user) return;
     
@@ -227,12 +370,197 @@ export const ConnectionsSettings = ({
     }
   };
 
-  const handleConnectCalendar = (provider: 'google' | 'microsoft' | 'apple') => {
+  const handleConnectCalendar = async (provider: 'google' | 'microsoft' | 'apple') => {
+    // Apple Calendar support coming soon
     if (provider === 'apple') {
-      toast.info('Apple Calendar integration coming soon');
+      toast.info('Apple Calendar integration coming soon', {
+        description: 'We\'re working on adding Apple Calendar support. Use Google or Microsoft Calendar for now.'
+      });
       return;
     }
-    toast.info(`${provider} Calendar connection coming soon`);
+
+    // Show setup instructions for Google Calendar
+    if (provider === 'google') {
+      const showInstructions = await new Promise<boolean>((resolve) => {
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4';
+        modal.innerHTML = `
+          <div class="bg-background border rounded-lg p-6 max-w-2xl w-full shadow-xl max-h-[90vh] overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-3">Google Calendar Setup Required</h3>
+            <div class="text-sm space-y-3 mb-4">
+              <p class="text-muted-foreground">Before connecting, ensure your Google Cloud Console is configured:</p>
+              
+              <div class="bg-accent/50 p-4 rounded-md space-y-2">
+                <p class="font-medium">1. OAuth Consent Screen</p>
+                <ul class="list-disc list-inside space-y-1 text-muted-foreground ml-2 text-xs">
+                  <li><strong>User Type:</strong> External (for testing) or Internal (for organization)</li>
+                  <li><strong>Test Users:</strong> Add your email if app is in testing mode</li>
+                  <li><strong>Publishing Status:</strong> Must be "Testing" or "Published"</li>
+                </ul>
+              </div>
+
+              <div class="bg-accent/50 p-4 rounded-md space-y-2">
+                <p class="font-medium">2. Authorized Redirect URI</p>
+                <p class="text-muted-foreground text-xs">Add this exact URL to your OAuth 2.0 Client:</p>
+                <code class="block bg-background p-2 rounded text-xs mt-2 break-all font-mono">${window.location.origin}/settings</code>
+              </div>
+
+              <div class="bg-accent/50 p-4 rounded-md space-y-2">
+                <p class="font-medium">3. Required Scopes</p>
+                <ul class="list-disc list-inside space-y-1 text-muted-foreground ml-2 text-xs">
+                  <li>https://www.googleapis.com/auth/calendar</li>
+                  <li>https://www.googleapis.com/auth/calendar.events</li>
+                </ul>
+              </div>
+
+              <div class="bg-amber-500/10 border border-amber-500/20 p-3 rounded-md">
+                <p class="text-sm font-medium text-amber-600 dark:text-amber-400">⚠️ Common 403 Errors:</p>
+                <ul class="list-disc list-inside text-xs text-muted-foreground ml-2 mt-1 space-y-1">
+                  <li>App in testing mode but your email not added to test users</li>
+                  <li>Redirect URI not added to authorized URIs list</li>
+                  <li>OAuth consent screen not configured properly</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div class="flex gap-2 justify-end">
+              <button id="cancel-setup-btn" class="px-4 py-2 rounded-md border hover:bg-accent text-sm">Cancel</button>
+              <button id="continue-setup-btn" class="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 text-sm">I've Configured This</button>
+            </div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        const cancelBtn = modal.querySelector('#cancel-setup-btn') as HTMLButtonElement;
+        const continueBtn = modal.querySelector('#continue-setup-btn') as HTMLButtonElement;
+
+        const cleanup = () => {
+          document.body.removeChild(modal);
+        };
+
+        cancelBtn.onclick = () => {
+          cleanup();
+          resolve(false);
+        };
+
+        continueBtn.onclick = () => {
+          cleanup();
+          resolve(true);
+        };
+      });
+
+      if (!showInstructions) {
+        return;
+      }
+    }
+    
+    // Use a custom input dialog
+    const label = await new Promise<string | null>((resolve) => {
+      const dialog = document.createElement('div');
+      dialog.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+      dialog.innerHTML = `
+        <div class="bg-background border rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+          <h3 class="text-lg font-semibold mb-2">Name Your Calendar</h3>
+          <p class="text-sm text-muted-foreground mb-4">Choose a name for this ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar connection</p>
+          <input 
+            type="text" 
+            id="calendar-label-input"
+            placeholder="e.g., Personal Calendar, Work Calendar"
+            class="w-full px-3 py-2 border rounded-md mb-4"
+          />
+          <div class="flex gap-2 justify-end">
+            <button id="cancel-btn" class="px-4 py-2 border rounded-md hover:bg-accent">Cancel</button>
+            <button id="connect-btn" class="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90">Connect</button>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(dialog);
+      const input = dialog.querySelector('#calendar-label-input') as HTMLInputElement;
+      const cancelBtn = dialog.querySelector('#cancel-btn') as HTMLButtonElement;
+      const connectBtn = dialog.querySelector('#connect-btn') as HTMLButtonElement;
+      
+      input.focus();
+      
+      const cleanup = () => document.body.removeChild(dialog);
+      
+      cancelBtn.onclick = () => {
+        cleanup();
+        resolve(null);
+      };
+      
+      connectBtn.onclick = () => {
+        const value = input.value.trim();
+        cleanup();
+        resolve(value || null);
+      };
+      
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+          const value = input.value.trim();
+          cleanup();
+          resolve(value || null);
+        } else if (e.key === 'Escape') {
+          cleanup();
+          resolve(null);
+        }
+      };
+    });
+    
+    if (!label) {
+      toast.error('Calendar connection cancelled');
+      return;
+    }
+
+    try {
+      setCalendarLoading(true);
+      
+      const redirectUri = `${window.location.origin}/settings`;
+      console.log(`[Calendar] Connecting ${provider} with redirect URI:`, redirectUri);
+      
+      const functionName = provider === 'google' ? 'google-calendar-auth' : 'microsoft-calendar-auth';
+      
+      // Store the label and provider for after OAuth redirect
+      localStorage.setItem('pending_calendar_connection', JSON.stringify({ 
+        provider, 
+        label: label.trim() 
+      }));
+      
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: { action: 'getAuthUrl', redirectUri }
+      });
+
+      if (error) {
+        console.error(`[Calendar] ${provider} auth error:`, error);
+        throw error;
+      }
+      
+      if (!data || !data.authUrl) {
+        console.error(`[Calendar] No auth URL returned from ${provider}`);
+        throw new Error('No authentication URL received');
+      }
+
+      console.log(`[Calendar] Redirecting to ${provider} OAuth...`);
+      // Redirect to OAuth
+      window.location.href = data.authUrl;
+    } catch (error) {
+      console.error(`[Calendar] ${provider} Calendar connection error:`, error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      
+      // Show detailed error with better formatting
+      const isRedirectError = errorMessage.includes('redirect URI');
+      toast.error(
+        `Failed to connect ${provider === 'google' ? 'Google' : 'Microsoft'} Calendar`,
+        {
+          description: errorMessage,
+          duration: isRedirectError ? 10000 : 5000
+        }
+      );
+      localStorage.removeItem('pending_calendar_connection');
+    } finally {
+      setCalendarLoading(false);
+    }
   };
 
   const handleDisconnectCalendar = (calendarId: string) => {
