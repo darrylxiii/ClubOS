@@ -79,22 +79,33 @@ export function useAlgorithmicFeed() {
       let originalPostsData: any[] = [];
       
       if (repostIds.length > 0) {
+        // 1. Fetch raw original posts
         const { data: originals, error: originalsError } = await supabase
           .from('posts')
-          .select(`
-            *,
-            profiles:user_id(id, full_name, avatar_url, current_title),
-            companies:company_id(id, name, logo_url, slug)
-          `)
+          .select('*')
           .in('id', repostIds);
         
         if (originalsError) {
           console.error('Error fetching original posts:', originalsError);
         }
         
-        if (originals) {
-          console.log('Original posts fetched:', originals.length > 0 ? originals[0] : 'none');
-          // Fetch likes and comments for original posts
+        if (originals && originals.length > 0) {
+          // 2. Extract unique IDs
+          const originalUserIds = [...new Set(originals.map(p => p.user_id).filter(Boolean))];
+          const originalCompanyIds = [...new Set(originals.map(p => p.company_id).filter(Boolean))];
+          
+          // 3. Fetch profiles and companies separately
+          const { data: originalProfiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, avatar_url, current_title')
+            .in('id', originalUserIds);
+          
+          const { data: originalCompanies } = await supabase
+            .from('companies')
+            .select('id, name, logo_url, slug')
+            .in('id', originalCompanyIds);
+          
+          // 4. Fetch likes and comments for original posts
           const { data: originalLikes } = await supabase
             .from('post_likes')
             .select('post_id, user_id')
@@ -105,12 +116,21 @@ export function useAlgorithmicFeed() {
             .select('id, post_id')
             .in('post_id', originals.map(p => p.id));
           
-          // Enrich original posts with engagement data
+          // 5. Create lookup maps
+          const originalProfilesMap = new Map(originalProfiles?.map(p => [p.id, p]) || []);
+          const originalCompaniesMap = new Map(originalCompanies?.map(c => [c.id, c]) || []);
+          
+          // 6. Enrich original posts with relations
           originalPostsData = originals.map(orig => ({
             ...orig,
+            profiles: orig.user_id ? originalProfilesMap.get(orig.user_id) : null,
+            companies: orig.company_id ? originalCompaniesMap.get(orig.company_id) : null,
             post_likes: originalLikes?.filter(l => l.post_id === orig.id) || [],
             post_comments: originalComments?.filter(c => c.post_id === orig.id) || [],
           }));
+          
+          console.log('✅ Original posts enriched:', originalPostsData.length, 'posts');
+          console.log('📊 Sample original post:', originalPostsData[0]);
         }
       }
 
