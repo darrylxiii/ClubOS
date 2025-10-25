@@ -6280,18 +6280,21 @@ export type Database = {
         Row: {
           id: string
           original_post_id: string
+          repost_post_id: string | null
           reposted_at: string
           reposted_by: string
         }
         Insert: {
           id?: string
           original_post_id: string
+          repost_post_id?: string | null
           reposted_at?: string
           reposted_by: string
         }
         Update: {
           id?: string
           original_post_id?: string
+          repost_post_id?: string | null
           reposted_at?: string
           reposted_by?: string
         }
@@ -6299,6 +6302,13 @@ export type Database = {
           {
             foreignKeyName: "post_reposts_original_post_id_fkey"
             columns: ["original_post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_reposts_repost_post_id_fkey"
+            columns: ["repost_post_id"]
             isOneToOne: false
             referencedRelation: "posts"
             referencedColumns: ["id"]
