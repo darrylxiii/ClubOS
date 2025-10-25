@@ -95,29 +95,23 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark }: DesktopSid
       onMouseLeave={() => setOpen(false)}
     >
       {/* Logo */}
-      <div className="h-16 flex items-center justify-center px-4 border-b border-border/20">
+      <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-[100]">
         <motion.div
           animate={{
-            scale: open ? 1 : 0.8,
+            opacity: open ? 1 : 1,
           }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.3 }}
+          className="flex items-center justify-center"
         >
-          <img
-            src={logoDark}
-            alt="Quantum Club"
-            className={cn(
-              "dark:block hidden transition-all",
-              open ? "h-9" : "h-8"
-            )}
-          />
-          <img
-            src={logoLight}
-            alt="Quantum Club"
-            className={cn(
-              "dark:hidden block transition-all",
-              open ? "h-9" : "h-8"
-            )}
-          />
+          {open ? (
+            <span className="text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
+              The Quantum Club
+            </span>
+          ) : (
+            <span className="text-2xl font-bold tracking-tight text-foreground">
+              QC
+            </span>
+          )}
         </motion.div>
       </div>
 
@@ -141,17 +135,10 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
   return (
     <>
       {/* Mobile Header */}
-      <div className="h-16 px-4 flex md:hidden items-center justify-between bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 fixed top-0 left-0 right-0 z-50">
-        <img
-          src={logoDark}
-          alt="Quantum Club"
-          className="h-9 dark:block hidden"
-        />
-        <img
-          src={logoLight}
-          alt="Quantum Club"
-          className="h-9 dark:hidden block"
-        />
+      <div className="h-16 px-4 flex md:hidden items-center justify-between bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 fixed top-0 left-0 right-0 z-[100]">
+        <span className="text-xl font-bold tracking-tight text-foreground">
+          The Quantum Club
+        </span>
         <Button
           variant="ghost"
           size="icon"
@@ -185,16 +172,9 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
               className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-[101] md:hidden flex flex-col shadow-[var(--shadow-glass-xl)]"
             >
               <div className="h-16 flex items-center justify-between px-4 border-b border-border/20">
-                <img
-                  src={logoDark}
-                  alt="Quantum Club"
-                  className="h-9 dark:block hidden"
-                />
-                <img
-                  src={logoLight}
-                  alt="Quantum Club"
-                  className="h-9 dark:hidden block"
-                />
+                <span className="text-xl font-bold tracking-tight text-foreground">
+                  The Quantum Club
+                </span>
                 <Button
                   variant="ghost"
                   size="icon"
