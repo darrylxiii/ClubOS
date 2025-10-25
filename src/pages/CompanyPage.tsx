@@ -626,8 +626,13 @@ export default function CompanyPage() {
               )}
             </div>
 
-            {/* Full Team Management */}
-            <TeamManagement companyId={company.id} canManage={isAdmin || isCompanyMember} />
+            {/* Team Grid View */}
+            <Card>
+              <CardContent className="p-6">
+                <h3 className="text-lg font-bold mb-4">All Team Members</h3>
+                <CompanyMembersStack companyId={company.id} showFull />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="culture" className="space-y-6 mt-6">
