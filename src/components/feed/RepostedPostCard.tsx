@@ -159,18 +159,18 @@ export function RepostedPostCard({ originalPost }: RepostedPostCardProps) {
         </div>
 
         {/* Content Preview (collapsed to 4 lines) */}
-        {originalPost.content && (
-          <div 
-            className="text-sm line-clamp-4 whitespace-pre-wrap break-words prose prose-sm max-w-none [&_a]:text-primary [&_a]:underline"
-            dangerouslySetInnerHTML={{ 
-              __html: DOMPurify.sanitize(originalPost.content, {
-                ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i', 'div'],
-                ALLOWED_ATTR: ['href', 'target', 'rel'],
-                ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
-              })
-            }}
-          />
-        )}
+          {originalPost.content && (
+            <div 
+              className="text-sm line-clamp-4 break-all overflow-hidden prose prose-sm max-w-none [&_a]:text-primary [&_a]:underline"
+              dangerouslySetInnerHTML={{ 
+                __html: DOMPurify.sanitize(originalPost.content, {
+                  ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'u', 'a', 'ul', 'ol', 'li', 'b', 'i', 'div'],
+                  ALLOWED_ATTR: ['href', 'target', 'rel'],
+                  ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i
+                })
+              }}
+            />
+          )}
 
         {/* AI Summary */}
         {originalPost.ai_summary && (
