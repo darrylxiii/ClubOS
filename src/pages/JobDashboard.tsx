@@ -429,34 +429,34 @@ export default function JobDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-amber-500/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-amber-500/40 transition-all duration-300 group">
+            <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-accent/40 transition-all duration-300 group">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-amber-500/20 group-hover:bg-amber-500/30 transition-colors">
-                    <Sparkles className="w-4 h-4 text-amber-500" />
+                  <div className="p-1.5 rounded-lg bg-accent/20 group-hover:bg-accent/30 transition-colors">
+                    <Sparkles className="w-4 h-4 text-accent" />
                   </div>
                   Club Check Needed
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-4xl font-black text-amber-500">
+                <div className="text-4xl font-black">
                   {metrics?.needsClubCheck || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Candidates awaiting review</p>
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-blue-500/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-blue-500/40 transition-all duration-300 group">
+            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-border/60 transition-all duration-300 group">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-blue-500/20 group-hover:bg-blue-500/30 transition-colors">
-                    <Clock className="w-4 h-4 text-blue-500" />
+                  <div className="p-1.5 rounded-lg bg-muted/50 group-hover:bg-muted/70 transition-colors">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
                   </div>
                   Recent Activity
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-black text-blue-500">
+                <div className="text-2xl font-black">
                   {metrics?.lastActivity || 'N/A'}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">Last candidate action</p>
@@ -510,22 +510,22 @@ export default function JobDashboard() {
                     <span>Quantum Club Elite</span>
                   </div>
                   <div className="h-4 w-px bg-border" />
-                  <div className="flex items-center gap-2">
-                    <Video className="w-4 h-4 text-green-500" />
-                    <span>Online</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-blue-500" />
-                    <span>In-Person</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-amber-500" />
-                    <span>Hybrid</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ClipboardList className="w-4 h-4 text-purple-500" />
-                    <span>Assessment</span>
-                  </div>
+            <div className="flex items-center gap-2">
+              <Video className="w-4 h-4" />
+              <span>Online</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4" />
+              <span>In-Person</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span>Hybrid</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <ClipboardList className="w-4 h-4" />
+              <span>Assessment</span>
+            </div>
                 </div>
               </div>
             </CardHeader>
@@ -674,7 +674,7 @@ export default function JobDashboard() {
             <TabsTrigger value="overview" className="data-[state=active]:bg-primary/20">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="documents" className="data-[state=active]:bg-blue-500/20">
+            <TabsTrigger value="documents" className="data-[state=active]:bg-accent/20">
               Documents
             </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-secondary/20">

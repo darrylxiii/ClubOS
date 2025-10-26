@@ -78,10 +78,10 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
 
   return (
     <>
-      <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl border-2 border-purple-500/30 bg-gradient-to-r from-purple-500/10 via-accent/10 to-purple-500/10 backdrop-blur-sm">
+      <div className="flex flex-wrap items-center gap-3 p-4 rounded-xl border border-border/40 bg-card/50 backdrop-blur-sm">
         <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-purple-500" />
-          <Badge variant="outline" className="border-purple-500 text-purple-500 font-bold">
+          <Shield className="w-5 h-5 text-muted-foreground" />
+          <Badge variant="outline" className="border-accent/50 text-foreground font-bold">
             ADMIN JOB TOOLS
           </Badge>
           <span className="text-xs text-muted-foreground">Job-level operations</span>
@@ -91,7 +91,7 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
         
         <Button
           onClick={() => setShowAddCandidate(true)}
-          className="gap-2 bg-gradient-to-r from-accent to-purple-500 hover:from-accent/90 hover:to-purple-500/90"
+          className="gap-2 bg-accent hover:bg-accent/90"
         >
           <UserPlus className="w-4 h-4" />
           Add Candidate
@@ -100,7 +100,7 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
         <Button
           onClick={handleAIRecommendations}
           variant="outline"
-          className="gap-2 border-purple-500/50 text-purple-500 hover:bg-purple-500/10"
+          className="gap-2 border-accent/50 hover:bg-accent/10"
         >
           <Brain className="w-4 h-4" />
           AI Match
@@ -147,7 +147,7 @@ export const AdminJobTools = ({ jobId, jobTitle, onRefresh }: AdminJobToolsProps
               Set Priority Override
             </DropdownMenuItem>
             
-            <DropdownMenuItem className="gap-2 text-purple-500">
+            <DropdownMenuItem className="gap-2">
               <Award className="w-4 h-4" />
               Assign Strategist
             </DropdownMenuItem>

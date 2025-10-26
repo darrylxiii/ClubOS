@@ -113,17 +113,15 @@ export function StageDetailCard({
   };
 
   const getFormatColor = () => {
+    // Unified dark theme with subtle variations
     switch (stage.format) {
       case 'online':
-        return 'from-green-500/10 to-emerald-500/5 border-green-500/20';
       case 'in_person':
-        return 'from-blue-500/10 to-cyan-500/5 border-blue-500/20';
       case 'hybrid':
-        return 'from-amber-500/10 to-yellow-500/5 border-amber-500/20';
       case 'assessment':
-        return 'from-purple-500/10 to-violet-500/5 border-purple-500/20';
+        return 'from-card/90 to-card/60 border-border/40';
       default:
-        return 'from-primary/10 to-secondary/5 border-primary/20';
+        return 'from-card/90 to-card/60 border-border/40';
     }
   };
 
