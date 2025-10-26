@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Volume2, Headphones, Zap, Waves, Mic, Drum, Music2, Guitar } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, Headphones, Zap, Waves, Mic, Drum, Music2, Guitar, Disc3 } from "lucide-react";
 import { useAudioManager } from "@/hooks/useAudioManager";
 import { Label } from "@/components/ui/label";
 
@@ -38,6 +38,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
   const [stemDrumsA, setStemDrumsA] = useState([100]);
   const [stemBassA, setStemBassA] = useState([100]);
   const [stemOtherA, setStemOtherA] = useState([100]);
+  const [rotationA, setRotationA] = useState(0);
 
   // Deck B
   const audioRefB = useRef<HTMLAudioElement>(null);
@@ -54,6 +55,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
   const [stemDrumsB, setStemDrumsB] = useState([100]);
   const [stemBassB, setStemBassB] = useState([100]);
   const [stemOtherB, setStemOtherB] = useState([100]);
+  const [rotationB, setRotationB] = useState(0);
 
   // Crossfader
   const [crossfader, setCrossfader] = useState([50]);
@@ -83,6 +85,18 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
     }
   }, [volumeA, crossfader, pitchA]);
 
+  // Animate turntable rotation for Deck A
+  useEffect(() => {
+    if (!isPlayingA) return;
+    
+    const animate = () => {
+      setRotationA(prev => (prev + (1 + pitchA[0] / 100) * 2) % 360);
+    };
+    
+    const interval = setInterval(animate, 16); // ~60fps
+    return () => clearInterval(interval);
+  }, [isPlayingA, pitchA]);
+
   // Apply volume and pitch to Deck B
   useEffect(() => {
     if (audioRefB.current) {
@@ -91,6 +105,18 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
       audioRefB.current.playbackRate = 1 + (pitchB[0] / 100) * 0.16;
     }
   }, [volumeB, crossfader, pitchB]);
+
+  // Animate turntable rotation for Deck B
+  useEffect(() => {
+    if (!isPlayingB) return;
+    
+    const animate = () => {
+      setRotationB(prev => (prev + (1 + pitchB[0] / 100) * 2) % 360);
+    };
+    
+    const interval = setInterval(animate, 16); // ~60fps
+    return () => clearInterval(interval);
+  }, [isPlayingB, pitchB]);
 
   const togglePlayA = async () => {
     if (!audioRefA.current || !trackA) return;
@@ -161,7 +187,8 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
     stemBass: number[],
     setStemBass: (val: number[]) => void,
     stemOther: number[],
-    setStemOther: (val: number[]) => void
+    setStemOther: (val: number[]) => void,
+    rotation: number
   ) => (
     <div className="flex-1 rounded-3xl bg-gradient-to-br from-black/40 to-black/20 backdrop-blur-xl border border-white/10 p-4 space-y-4">
       {/* Deck Header */}
@@ -181,21 +208,127 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
         </div>
       </div>
 
-      {/* Waveform Progress */}
-      <div className="h-20 rounded-xl bg-black/40 border border-white/5 relative overflow-hidden">
+      {/* CDJ Spinning Turntable */}
+      <div className="relative flex items-center justify-center mb-4">
+        {/* Turntable Platter */}
+        <div className="relative w-56 h-56">
+          {/* Outer Ring */}
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gray-800 to-black border-4 border-gray-700 shadow-2xl">
+            {/* Rotating vinyl with cover art */}
+            <div 
+              className="absolute inset-2 rounded-full overflow-hidden transition-transform"
+              style={{ transform: `rotate(${rotation}deg)` }}
+            >
+              {/* Vinyl texture background */}
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800" />
+              
+              {/* Grooves effect */}
+              {[...Array(12)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute inset-0 rounded-full border border-white/5"
+                  style={{ 
+                    margin: `${i * 8}px`,
+                  }}
+                />
+              ))}
+              
+              {/* Center label with cover art */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-black border-2 border-gray-600 shadow-xl">
+                  {track?.cover_image_url ? (
+                    <img 
+                      src={track.cover_image_url} 
+                      alt={track.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                      <Disc3 className="w-10 h-10 text-gray-600" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Center spindle */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-gray-600 border-2 border-gray-500 shadow-inner" />
+          </div>
+          
+          {/* Tonearm indicator */}
+          <div 
+            className={`absolute top-8 right-8 w-16 h-1 rounded-full origin-right transition-transform ${
+              deck === 'A' ? 'bg-blue-500' : 'bg-orange-500'
+            }`}
+            style={{ 
+              transform: `rotate(${progress * 0.45}deg)`,
+              boxShadow: '0 0 10px currentColor'
+            }}
+          />
+        </div>
+      </div>
+
+      {/* CDJ Display Screen - Waveform */}
+      <div className="h-24 rounded-lg bg-gradient-to-b from-cyan-950/60 to-black border border-cyan-500/20 relative overflow-hidden mb-3 shadow-inner">
+        {/* Grid background */}
+        <div className="absolute inset-0 opacity-20">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="absolute w-full h-px bg-cyan-400" style={{ top: `${i * 12.5}%` }} />
+          ))}
+        </div>
+        
+        {/* Waveform bars */}
+        <div className="absolute inset-0 flex items-end justify-start px-2 pb-2 gap-px">
+          {[...Array(80)].map((_, i) => {
+            const barProgress = (i / 80) * 100;
+            const isPlayed = barProgress <= progress;
+            const height = Math.random() * 60 + 20;
+            return (
+              <div
+                key={i}
+                className={`flex-1 rounded-t transition-all ${
+                  isPlayed 
+                    ? deck === 'A' ? 'bg-blue-400' : 'bg-orange-400'
+                    : 'bg-cyan-400/40'
+                }`}
+                style={{ 
+                  height: `${height}%`,
+                  boxShadow: isPlayed ? '0 0 4px currentColor' : 'none'
+                }}
+              />
+            );
+          })}
+        </div>
+        
+        {/* Playhead */}
         <div 
-          className={`h-full transition-all ${deck === 'A' ? 'bg-blue-500/40' : 'bg-orange-500/40'}`}
-          style={{ width: `${progress}%` }}
+          className={`absolute top-0 bottom-0 w-0.5 ${deck === 'A' ? 'bg-blue-500' : 'bg-orange-500'}`}
+          style={{ 
+            left: `${progress}%`,
+            boxShadow: '0 0 8px currentColor'
+          }}
         />
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          {track ? (
-            <>
-              <div className="font-bold text-sm truncate max-w-[90%]">{track.title}</div>
-              <div className="text-xs text-muted-foreground truncate max-w-[90%]">{track.artist}</div>
-            </>
-          ) : (
-            <div className="text-muted-foreground text-xs">No track loaded</div>
-          )}
+        
+        {/* Display Info Overlay */}
+        <div className="absolute top-1 left-2 right-2 flex justify-between items-start">
+          <div className="text-cyan-300 text-[10px] font-mono tracking-wider">
+            {track ? (
+              <div className="space-y-0.5">
+                <div className="font-bold truncate max-w-[200px]">{track.title}</div>
+                <div className="text-cyan-400/70 truncate max-w-[200px]">{track.artist}</div>
+              </div>
+            ) : (
+              <div className="text-cyan-500/50">NO TRACK LOADED</div>
+            )}
+          </div>
+          <div className="text-cyan-300 text-xs font-mono">
+            {track ? `${Math.floor((track.duration_seconds || 0) / 60)}:${String(Math.floor((track.duration_seconds || 0) % 60)).padStart(2, '0')}` : '--:--'}
+          </div>
+        </div>
+        
+        {/* BPM Display */}
+        <div className="absolute bottom-1 right-2 text-cyan-300 text-xs font-mono">
+          BPM: {track ? Math.round(128 * (1 + pitch[0] / 100)) : '--'}
         </div>
       </div>
 
@@ -386,7 +519,8 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
             stemBassA,
             setStemBassA,
             stemOtherA,
-            setStemOtherA
+            setStemOtherA,
+            rotationA
           )}
         </div>
 
@@ -555,7 +689,8 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
             stemBassB,
             setStemBassB,
             stemOtherB,
-            setStemOtherB
+            setStemOtherB,
+            rotationB
           )}
         </div>
       </div>
