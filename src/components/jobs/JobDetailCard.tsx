@@ -1,13 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
-import { JobQuickStats } from "./JobQuickStats";
-import { JobMetricsGrid } from "./JobMetricsGrid";
+import { Button } from "@/components/ui/button";
+import { Eye, Share2, Briefcase, MapPin, Users, Globe } from "lucide-react";
 import { JobActionButtons } from "./JobActionButtons";
-import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 interface JobDetailCardProps {
   job: {
@@ -25,6 +20,7 @@ interface JobDetailCardProps {
     slug?: string;
     logo_url?: string;
     cover_image_url?: string;
+    website_url?: string;
   };
   matchScore?: number;
   isSaved: boolean;
@@ -50,131 +46,118 @@ export function JobDetailCard({
   onShare,
   metrics = { applicants: 0, views: 0, timeToHire: "~2 weeks" }
 }: JobDetailCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-
   // Calculate days open
   const daysOpen = job.created_at
     ? Math.floor((new Date().getTime() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
 
   return (
-    <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <Card className="border-2 hover:border-primary transition-all hover-scale relative overflow-hidden group">
-        {/* Cover Image Header - Optional */}
-        {company.cover_image_url && (
-          <div
-            className="absolute top-0 left-0 right-0 h-32 opacity-20 group-hover:opacity-30 transition-opacity"
-            style={{
-              backgroundImage: `url(${company.cover_image_url})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
+    <Card className="border-2 hover:border-primary transition-all hover-scale relative overflow-hidden group">
+      {/* Hero Cover Image */}
+      <div className="relative h-48 md:h-64 overflow-hidden bg-muted">
+        {company.cover_image_url ? (
+          <img
+            src={company.cover_image_url}
+            alt={company.name}
+            className="w-full h-full object-cover"
           />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-accent/10" />
+        )}
+        
+        {/* Logo Overlay */}
+        <div className="absolute bottom-4 left-6">
+          <Avatar className="w-20 h-20 md:w-24 md:h-24 border-4 border-background shadow-xl">
+            <AvatarImage src={company.logo_url} alt={company.name} />
+            <AvatarFallback className="text-2xl font-black bg-gradient-to-br from-primary to-accent text-white">
+              {company.name.substring(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
+
+        {/* Top-Right Actions */}
+        <div className="absolute top-4 right-4 flex gap-2">
+          <Button variant="secondary" size="sm" className="gap-2">
+            <Eye className="w-4 h-4" />
+            <span className="hidden sm:inline">Preview</span>
+          </Button>
+          <Button variant="secondary" size="sm" onClick={onShare} className="gap-2">
+            <Share2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Share</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Content Section */}
+      <CardContent className="p-6 space-y-6">
+        {/* Title + Subtitle */}
+        <div>
+          <h1 className="text-2xl md:text-3xl font-black text-foreground group-hover:text-primary transition-colors">
+            {job.title}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">at {company.name}</p>
+        </div>
+
+        {/* Full Description */}
+        {job.description && (
+          <p className="text-foreground leading-relaxed">
+            {job.description}
+          </p>
         )}
 
-        {/* Card Header - Always Visible (CollapsibleTrigger) */}
-        <CollapsibleTrigger className="w-full text-left">
-          <CardContent className="p-6 space-y-4 relative z-10">
-            <div className="flex items-start gap-4">
-              {/* Company Logo */}
-              <Avatar className="w-20 h-20 border-2 border-primary shadow-lg flex-shrink-0">
-                <AvatarImage src={company.logo_url} alt={company.name} />
-                <AvatarFallback className="text-2xl font-black bg-gradient-to-br from-primary to-accent text-white">
-                  {company.name.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+        {/* Icon Stats Row */}
+        <div className="flex flex-wrap items-center gap-4 md:gap-6 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <Briefcase className="w-4 h-4" />
+            <span>{job.employment_type}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <MapPin className="w-4 h-4" />
+            <span>{job.location}</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Users className="w-4 h-4" />
+            <span>{metrics.applicants} applicants</span>
+          </div>
+        </div>
 
-              {/* Job Title & Company Info */}
-              <div className="flex-1 min-w-0 space-y-2">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h1 className="text-2xl font-black text-foreground group-hover:text-primary transition-colors">
-                      {job.title}
-                    </h1>
-                    <p className="text-sm text-muted-foreground">{company.name}</p>
-                  </div>
+        {/* Action Buttons Row */}
+        <div className="flex flex-wrap items-center gap-3">
+          {company.website_url && (
+            <Button variant="outline" size="sm" asChild>
+              <a href={company.website_url} target="_blank" rel="noopener noreferrer" className="gap-2">
+                <Globe className="w-4 h-4" />
+                Website
+              </a>
+            </Button>
+          )}
+          <JobActionButtons
+            isApplied={isApplied}
+            isSaved={isSaved}
+            onApply={onApply}
+            onSave={onSave}
+            onShare={onShare}
+          />
+        </div>
 
-                  {/* Chevron Icon */}
-                  <ChevronDown
-                    className={cn(
-                      "w-6 h-6 text-muted-foreground transition-transform flex-shrink-0",
-                      isExpanded && "rotate-180"
-                    )}
-                  />
-                </div>
-
-                {/* Quick Stats Bar */}
-                <JobQuickStats
-                  location={job.location}
-                  salaryMin={job.salary_min}
-                  salaryMax={job.salary_max}
-                  currency={job.currency}
-                  employmentType={job.employment_type}
-                  daysOpen={daysOpen}
-                />
-
-                {/* Metrics Preview */}
-                <div className="flex flex-wrap items-center gap-3">
-                  {matchScore && (
-                    <Badge className="bg-gradient-to-r from-green-500/20 to-green-600/20 border-green-500">
-                      {matchScore}% Match
-                    </Badge>
-                  )}
-                  <span className="text-xs text-muted-foreground">
-                    👥 {metrics.applicants} applied
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    👀 {metrics.views} views
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    ⏰ {metrics.timeToHire}
-                  </span>
-                </div>
-              </div>
+        {/* Bottom Metrics */}
+        <div className="flex items-center justify-between text-sm border-t pt-4 gap-4">
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-black text-foreground">{metrics.applicants}</span>
+            <span className="text-muted-foreground">applied</span>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl font-black text-foreground">{daysOpen}</span>
+            <span className="text-muted-foreground">days open</span>
+          </div>
+          {matchScore && (
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl font-black text-green-500">{matchScore}%</span>
+              <span className="text-muted-foreground">Match</span>
             </div>
-          </CardContent>
-        </CollapsibleTrigger>
-
-        {/* Collapsible Content - Expanded Details */}
-        <CollapsibleContent>
-          <CardContent className="px-6 pb-6 space-y-6 border-t border-border/50">
-            {/* Detailed Metrics Grid */}
-            <JobMetricsGrid
-              applicants={metrics.applicants}
-              views={metrics.views}
-              daysOpen={daysOpen}
-              timeToHire={metrics.timeToHire || "~2 weeks"}
-              matchScore={matchScore}
-            />
-
-            {/* About the Role - Editorial excerpt */}
-            {job.description && (
-              <div>
-                <h3 className="text-lg font-bold mb-3">About the Role</h3>
-                <p className="text-foreground/90 leading-relaxed line-clamp-3">
-                  {job.description}
-                </p>
-              </div>
-            )}
-
-            {/* Action Buttons */}
-            <JobActionButtons
-              isApplied={isApplied}
-              isSaved={isSaved}
-              onApply={onApply}
-              onSave={onSave}
-              onShare={onShare}
-            />
-
-            {/* View Full Details hint */}
-            <div className="text-center pt-2 border-t border-border/50">
-              <p className="text-sm text-muted-foreground">
-                Scroll down for full job details ↓
-              </p>
-            </div>
-          </CardContent>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

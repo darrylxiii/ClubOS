@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bookmark, Share2 } from "lucide-react";
+import { Bookmark, Send } from "lucide-react";
 
 interface JobActionButtonsProps {
   isApplied: boolean;
@@ -17,35 +17,26 @@ export function JobActionButtons({
   onShare
 }: JobActionButtonsProps) {
   return (
-    <div className="flex flex-wrap gap-3">
+    <>
       <Button
         onClick={onApply}
         disabled={isApplied}
-        size="lg"
-        className="flex-1 min-w-[200px]"
+        size="sm"
+        className="gap-2"
       >
-        {isApplied ? '✓ Applied' : 'Apply Now'}
+        <Send className="w-4 h-4" />
+        {isApplied ? 'Applied' : 'Apply'}
       </Button>
       
       <Button
         onClick={onSave}
         variant="outline"
-        size="lg"
+        size="sm"
         className="gap-2"
       >
         <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
         {isSaved ? 'Saved' : 'Save'}
       </Button>
-      
-      <Button
-        onClick={onShare}
-        variant="outline"
-        size="lg"
-        className="gap-2"
-      >
-        <Share2 className="w-4 h-4" />
-        Share
-      </Button>
-    </div>
+    </>
   );
 }

@@ -252,6 +252,7 @@ export default function JobDetail() {
               slug: job.companies?.slug,
               logo_url: job.companies?.logo_url,
               cover_image_url: job.companies?.cover_image_url,
+              website_url: job.companies?.website_url,
             }}
             matchScore={job.match_score}
             isSaved={isSaved}
