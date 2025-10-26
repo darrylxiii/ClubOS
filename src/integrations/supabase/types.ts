@@ -1295,6 +1295,159 @@ export type Database = {
           },
         ]
       }
+      candidate_invitations: {
+        Row: {
+          accepted_at: string | null
+          candidate_id: string
+          created_at: string | null
+          created_user_id: string | null
+          email: string
+          expires_at: string
+          id: string
+          invitation_token: string
+          invited_by: string
+          job_context: Json | null
+          message_template: string | null
+          metadata: Json | null
+          sent_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          candidate_id: string
+          created_at?: string | null
+          created_user_id?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          invitation_token: string
+          invited_by: string
+          job_context?: Json | null
+          message_template?: string | null
+          metadata?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          candidate_id?: string
+          created_at?: string | null
+          created_user_id?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_by?: string
+          job_context?: Json | null
+          message_template?: string | null
+          metadata?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_invitations_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_notes: {
+        Row: {
+          candidate_id: string
+          content: string
+          created_at: string | null
+          created_by: string
+          id: string
+          metadata: Json | null
+          note_type: string
+          pinned: boolean | null
+          related_job_id: string | null
+          tags: string[] | null
+          title: string | null
+          updated_at: string | null
+          visibility: string | null
+        }
+        Insert: {
+          candidate_id: string
+          content: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          metadata?: Json | null
+          note_type: string
+          pinned?: boolean | null
+          related_job_id?: string | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          candidate_id?: string
+          content?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          metadata?: Json | null
+          note_type?: string
+          pinned?: boolean | null
+          related_job_id?: string | null
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_notes_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_notes_related_job_id_fkey"
+            columns: ["related_job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_profile_views: {
         Row: {
           candidate_id: string
@@ -1380,11 +1533,15 @@ export type Database = {
           header_media_url: string | null
           id: string
           internal_rating: number | null
+          invitation_status: string | null
           languages: Json | null
           last_activity_at: string | null
+          last_invite_sent_at: string | null
           last_profile_update: string | null
           linkedin_profile_data: Json | null
           linkedin_url: string | null
+          merged_at: string | null
+          merged_from_user_id: string | null
           notice_period: string | null
           personality_insights: Json | null
           phone: string | null
@@ -1432,11 +1589,15 @@ export type Database = {
           header_media_url?: string | null
           id?: string
           internal_rating?: number | null
+          invitation_status?: string | null
           languages?: Json | null
           last_activity_at?: string | null
+          last_invite_sent_at?: string | null
           last_profile_update?: string | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
+          merged_at?: string | null
+          merged_from_user_id?: string | null
           notice_period?: string | null
           personality_insights?: Json | null
           phone?: string | null
@@ -1484,11 +1645,15 @@ export type Database = {
           header_media_url?: string | null
           id?: string
           internal_rating?: number | null
+          invitation_status?: string | null
           languages?: Json | null
           last_activity_at?: string | null
+          last_invite_sent_at?: string | null
           last_profile_update?: string | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
+          merged_at?: string | null
+          merged_from_user_id?: string | null
           notice_period?: string | null
           personality_insights?: Json | null
           phone?: string | null

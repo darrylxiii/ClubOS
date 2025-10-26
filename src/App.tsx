@@ -27,6 +27,8 @@ import MeetingRoom from "./pages/MeetingRoom";
 
 // Lazy load protected routes to reduce initial bundle size
 const ClubHome = lazy(() => import("./pages/ClubHome"));
+const InviteAcceptance = lazy(() => import("./pages/InviteAcceptance"));
+const InviteComplete = lazy(() => import("./pages/InviteComplete"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
 const ObjectiveWorkspace = lazy(() => import("./pages/ObjectiveWorkspace"));
@@ -226,6 +228,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/invite/:token" element={<InviteAcceptance />} />
+            <Route path="/invite/:token/complete" element={<InviteComplete />} />
             <Route
               path="/referrals"
               element={

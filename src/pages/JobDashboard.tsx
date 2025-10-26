@@ -812,7 +812,9 @@ export default function JobDashboard() {
                 setSelectedStageForCandidates(null);
               }}
               onViewDetails={(candidate) => {
-                setSelectedCandidateForAction(candidate);
+                const candidateId = (candidate as any).candidate_id || (candidate as any).user_id || (candidate as any).id;
+                navigate(`/candidates/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(selectedStageForCandidates.name)}&stageIndex=${selectedStageForCandidates.order || 0}`);
+                setSelectedStageForCandidates(null);
               }}
             />
           </DialogContent>

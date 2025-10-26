@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,10 +26,14 @@ import { CandidateDecisionDashboard } from "@/components/partner/CandidateDecisi
 import { CandidateDocumentsViewer } from "@/components/partner/CandidateDocumentsViewer";
 import { CandidateWorkAuthCard } from "@/components/partner/CandidateWorkAuthCard";
 import { CandidateInternalRatingCard } from "@/components/partner/CandidateInternalRatingCard";
+import { CandidateNotesManager } from "@/components/partner/CandidateNotesManager";
 
 export default function CandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromJobId = searchParams.get('fromJob');
+  const fromStage = searchParams.get('stage');
   const { user } = useAuth();
   const { role } = useUserRole();
   const [candidate, setCandidate] = useState<any>(null);
@@ -116,6 +120,19 @@ export default function CandidateProfile() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
+        {/* Breadcrumb Navigation */}
+        {fromJobId && fromStage && (
+          <div className="container mx-auto px-4 py-4">
+            <Link 
+              to={`/jobs/${fromJobId}/dashboard`}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Job Dashboard • Stage: {fromStage}
+            </Link>
+          </div>
+        )}
+
         {/* Enhanced Header with Media Support */}
         <Card className="border-0 rounded-none border-b">
           <Button
@@ -160,6 +177,7 @@ export default function CandidateProfile() {
                 <CandidateQuickActions 
                   candidateId={candidateId!} 
                   candidateEmail={candidate.email}
+                  candidateName={candidate.full_name || 'Candidate'}
                   onRefresh={loadCandidate}
                 />
               </div>
@@ -298,6 +316,7 @@ export default function CandidateProfile() {
               {isTeamView && (
                 <>
                   <TabsTrigger value="logistics">Work Auth</TabsTrigger>
+                  <TabsTrigger value="notes">Notes</TabsTrigger>
                   <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
                   <TabsTrigger value="jobs">Jobs</TabsTrigger>
                   <TabsTrigger value="activity">Activity</TabsTrigger>
@@ -526,6 +545,16 @@ export default function CandidateProfile() {
             {isTeamView && (
               <TabsContent value="logistics" className="space-y-6">
                 <CandidateWorkAuthCard candidate={candidate} />
+              </TabsContent>
+            )}
+
+            {/* Notes Tab - Admin Only */}
+            {isTeamView && (
+              <TabsContent value="notes" className="space-y-6">
+                <CandidateNotesManager 
+                  candidateId={candidateId!}
+                  userRole={role as any}
+                />
               </TabsContent>
             )}
 

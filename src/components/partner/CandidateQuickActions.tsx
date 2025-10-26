@@ -12,22 +12,26 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Linkedin, Mail, Phone, Calendar, UserPlus, Download } from "lucide-react";
+import { Linkedin, Mail, Download, UserPlus } from "lucide-react";
+import { CandidateInvitationDialog } from "./CandidateInvitationDialog";
 
 interface CandidateQuickActionsProps {
   candidateId: string;
   candidateEmail: string;
+  candidateName: string;
   onRefresh: () => void;
 }
 
 export const CandidateQuickActions = ({ 
   candidateId, 
-  candidateEmail, 
+  candidateEmail,
+  candidateName,
   onRefresh 
 }: CandidateQuickActionsProps) => {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [scraping, setScraping] = useState(false);
   const [linkedinDialogOpen, setLinkedinDialogOpen] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   const handleLinkedInScrape = async () => {
     if (!linkedinUrl.trim()) {
@@ -153,6 +157,20 @@ export const CandidateQuickActions = ({
         <Download className="w-4 h-4 mr-2" />
         Export
       </Button>
+
+      <Button variant="outline" size="sm" onClick={() => setInviteDialogOpen(true)}>
+        <UserPlus className="w-4 h-4 mr-2" />
+        Invite to Platform
+      </Button>
+
+      <CandidateInvitationDialog
+        open={inviteDialogOpen}
+        onOpenChange={setInviteDialogOpen}
+        candidateId={candidateId}
+        candidateEmail={candidateEmail}
+        candidateName={candidateName}
+        suggestedJobs={[]}
+      />
     </div>
   );
 };
