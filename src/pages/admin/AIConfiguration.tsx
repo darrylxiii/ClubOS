@@ -47,9 +47,10 @@ const AIConfiguration = () => {
   const [loadingData, setLoadingData] = useState(false);
 
   useEffect(() => {
-    // In a real implementation, load config from database
-    // For now, we'll use local state
-  }, []);
+    if (testMode === 'real' && candidates.length === 0 && jobs.length === 0 && !loadingData) {
+      fetchRealData();
+    }
+  }, [testMode]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -84,10 +85,18 @@ const AIConfiguration = () => {
       
       if (candidatesError) throw candidatesError;
 
-      // Fetch jobs (all statuses for testing)
+      // Fetch jobs with company information
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
-        .select('id, title, company_id, location, employment_type, status')
+        .select(`
+          id, 
+          title, 
+          company_id, 
+          location, 
+          employment_type, 
+          status,
+          companies (name)
+        `)
         .order('created_at', { ascending: false })
         .limit(50);
       
@@ -334,12 +343,10 @@ const AIConfiguration = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <Tabs value={testMode} onValueChange={(v) => setTestMode(v as 'hypothetical' | 'real')}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="hypothetical">Hypothetical Test</TabsTrigger>
-                <TabsTrigger value="real" onClick={fetchRealData}>
-                  Real Data Test
-                </TabsTrigger>
-              </TabsList>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="hypothetical">Hypothetical Test</TabsTrigger>
+              <TabsTrigger value="real">Real Data Test</TabsTrigger>
+            </TabsList>
               
               {/* Hypothetical Tab */}
               <TabsContent value="hypothetical" className="space-y-4">
@@ -365,55 +372,66 @@ const AIConfiguration = () => {
               </TabsContent>
               
               {/* Real Data Tab */}
-              <TabsContent value="real" className="space-y-4">
-                {loadingData ? (
-                  <p className="text-sm text-muted-foreground">Loading data...</p>
-                ) : (
-                  <>
-                    <div className="space-y-2">
-                      <Label>Select Candidate</Label>
-                      <Select value={selectedCandidateId} onValueChange={setSelectedCandidateId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a candidate..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {candidates.map(c => (
-                            <SelectItem key={c.id} value={c.id}>
-                              {c.full_name} {c.current_title ? `- ${c.current_title}` : ''} 
-                              {c.location ? ` (${c.location})` : ''}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        {candidates.length} candidates available
-                      </p>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label>Select Job</Label>
-                      <Select value={selectedJobId} onValueChange={setSelectedJobId}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Choose a job..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {jobs.map(j => (
-                            <SelectItem key={j.id} value={j.id}>
-                              {j.title} {j.location ? `- ${j.location}` : ''} 
-                              <span className="text-xs text-muted-foreground ml-2">
-                                ({j.status})
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        {jobs.length} jobs available
-                      </p>
-                    </div>
-                  </>
-                )}
-              </TabsContent>
+            <TabsContent value="real" className="space-y-4">
+              <div className="flex justify-between items-center mb-4">
+                <p className="text-sm text-muted-foreground">
+                  {candidates.length} candidates, {jobs.length} jobs loaded
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={fetchRealData}
+                  disabled={loadingData}
+                >
+                  {loadingData ? 'Loading...' : 'Refresh Data'}
+                </Button>
+              </div>
+
+              {loadingData ? (
+                <p className="text-sm text-muted-foreground">Loading data...</p>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label>Select Candidate</Label>
+                    <Select value={selectedCandidateId} onValueChange={setSelectedCandidateId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a candidate..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {candidates.map(c => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.full_name}
+                            {c.current_title && ` • ${c.current_title}`}
+                            {c.location && ` • ${c.location}`}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Select Job</Label>
+                    <Select value={selectedJobId} onValueChange={setSelectedJobId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a job..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {jobs.map(j => (
+                          <SelectItem key={j.id} value={j.id}>
+                            {j.title}
+                            {j.companies?.name && ` • ${j.companies.name}`}
+                            {j.location && ` • ${j.location}`}
+                            <span className="text-xs text-muted-foreground ml-2">
+                              ({j.status})
+                            </span>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
+            </TabsContent>
             </Tabs>
             
             <Button onClick={handleTest} disabled={testing || (testMode === 'real' && loadingData)} className="w-full">
