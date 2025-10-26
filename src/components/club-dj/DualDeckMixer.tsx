@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, Volume2, Headphones, Zap, Waves } from "lucide-react";
+import { Play, Pause, RotateCcw, Volume2, Headphones, Zap, Waves, Mic, Drum, Music2, Guitar } from "lucide-react";
 import { useAudioManager } from "@/hooks/useAudioManager";
 import { Label } from "@/components/ui/label";
 
@@ -34,6 +34,10 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
   const [pitchA, setPitchA] = useState([0]);
   const [filterA, setFilterA] = useState([0]);
   const [echoA, setEchoA] = useState([0]);
+  const [stemVocalsA, setStemVocalsA] = useState([100]);
+  const [stemDrumsA, setStemDrumsA] = useState([100]);
+  const [stemBassA, setStemBassA] = useState([100]);
+  const [stemOtherA, setStemOtherA] = useState([100]);
 
   // Deck B
   const audioRefB = useRef<HTMLAudioElement>(null);
@@ -46,6 +50,10 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
   const [pitchB, setPitchB] = useState([0]);
   const [filterB, setFilterB] = useState([0]);
   const [echoB, setEchoB] = useState([0]);
+  const [stemVocalsB, setStemVocalsB] = useState([100]);
+  const [stemDrumsB, setStemDrumsB] = useState([100]);
+  const [stemBassB, setStemBassB] = useState([100]);
+  const [stemOtherB, setStemOtherB] = useState([100]);
 
   // Crossfader
   const [crossfader, setCrossfader] = useState([50]);
@@ -145,7 +153,15 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
     filter: number[],
     setFilter: (val: number[]) => void,
     echo: number[],
-    setEcho: (val: number[]) => void
+    setEcho: (val: number[]) => void,
+    stemVocals: number[],
+    setStemVocals: (val: number[]) => void,
+    stemDrums: number[],
+    setStemDrums: (val: number[]) => void,
+    stemBass: number[],
+    setStemBass: (val: number[]) => void,
+    stemOther: number[],
+    setStemOther: (val: number[]) => void
   ) => (
     <div className="flex-1 rounded-3xl bg-gradient-to-br from-black/40 to-black/20 backdrop-blur-xl border border-white/10 p-4 space-y-4">
       {/* Deck Header */}
@@ -264,6 +280,76 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
           <div className="text-xs font-mono text-center">{echo[0]}</div>
         </div>
       </div>
+
+      {/* STEMS Section */}
+      <div className="px-2 pt-2 border-t border-white/10">
+        <Label className="text-xs text-muted-foreground mb-3 block text-center">STEMS CONTROL</Label>
+        <div className="grid grid-cols-4 gap-2">
+          <div className="space-y-1">
+            <div className="flex flex-col items-center gap-1">
+              <Mic className="h-3 w-3 text-purple-400" />
+              <Label className="text-[10px] text-muted-foreground">VOX</Label>
+            </div>
+            <Slider
+              value={stemVocals}
+              onValueChange={setStemVocals}
+              max={100}
+              step={1}
+              orientation="vertical"
+              className="h-16 mx-auto"
+            />
+            <div className="text-[10px] font-mono text-center">{stemVocals[0]}</div>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex flex-col items-center gap-1">
+              <Drum className="h-3 w-3 text-red-400" />
+              <Label className="text-[10px] text-muted-foreground">DRM</Label>
+            </div>
+            <Slider
+              value={stemDrums}
+              onValueChange={setStemDrums}
+              max={100}
+              step={1}
+              orientation="vertical"
+              className="h-16 mx-auto"
+            />
+            <div className="text-[10px] font-mono text-center">{stemDrums[0]}</div>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex flex-col items-center gap-1">
+              <Music2 className="h-3 w-3 text-green-400" />
+              <Label className="text-[10px] text-muted-foreground">BASS</Label>
+            </div>
+            <Slider
+              value={stemBass}
+              onValueChange={setStemBass}
+              max={100}
+              step={1}
+              orientation="vertical"
+              className="h-16 mx-auto"
+            />
+            <div className="text-[10px] font-mono text-center">{stemBass[0]}</div>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex flex-col items-center gap-1">
+              <Guitar className="h-3 w-3 text-blue-400" />
+              <Label className="text-[10px] text-muted-foreground">INST</Label>
+            </div>
+            <Slider
+              value={stemOther}
+              onValueChange={setStemOther}
+              max={100}
+              step={1}
+              orientation="vertical"
+              className="h-16 mx-auto"
+            />
+            <div className="text-[10px] font-mono text-center">{stemOther[0]}</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -292,7 +378,15 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
             filterA,
             setFilterA,
             echoA,
-            setEchoA
+            setEchoA,
+            stemVocalsA,
+            setStemVocalsA,
+            stemDrumsA,
+            setStemDrumsA,
+            stemBassA,
+            setStemBassA,
+            stemOtherA,
+            setStemOtherA
           )}
         </div>
 
@@ -453,7 +547,15 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
             filterB,
             setFilterB,
             echoB,
-            setEchoB
+            setEchoB,
+            stemVocalsB,
+            setStemVocalsB,
+            stemDrumsB,
+            setStemDrumsB,
+            stemBassB,
+            setStemBassB,
+            stemOtherB,
+            setStemOtherB
           )}
         </div>
       </div>
