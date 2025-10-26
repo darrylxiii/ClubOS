@@ -4,6 +4,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { JobHeroParallax } from "@/components/jobs/JobHeroParallax";
 import { JobDetailsSection } from "@/components/jobs/JobDetailsSection";
 import { StickyProgressBar } from "@/components/jobs/StickyProgressBar";
+import { FloatingActionMenu } from "@/components/jobs/FloatingActionMenu";
 import { Button } from "@/components/ui/button";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { supabase } from "@/integrations/supabase/client";
@@ -188,6 +189,26 @@ export default function JobDetail() {
     }
   };
 
+  const handleDownload = () => {
+    toast.success('PDF download started');
+    // In real app, generate and download PDF
+  };
+
+  const handleRefer = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('Referral link copied! Share with friends.');
+    } catch (error) {
+      toast.error('Failed to copy referral link');
+    }
+  };
+
+  const handleReport = () => {
+    toast.success('Thank you for reporting. We will review this shortly.');
+    // In real app, open report modal or send to backend
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -295,6 +316,13 @@ export default function JobDetail() {
             />
           </div>
         </div>
+
+        {/* Floating Action Menu */}
+        <FloatingActionMenu
+          onDownload={handleDownload}
+          onRefer={handleRefer}
+          onReport={handleReport}
+        />
 
         {/* Enhanced Sticky Bottom CTA */}
         <AnimatePresence>

@@ -1,12 +1,11 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Building2, MapPin, Users, Globe } from "lucide-react";
 import { AboutRoleSection } from "./AboutRoleSection";
 import { ResponsibilityGrid } from "./ResponsibilityGrid";
 import { SkillMatrix } from "./SkillMatrix";
 import { BenefitsShowcase } from "./BenefitsShowcase";
 import { TagCloud } from "./TagCloud";
 import { ApplicationTimeline } from "./ApplicationTimeline";
+import { CompanyShowcase } from "./CompanyShowcase";
 
 interface JobDetailsSectionProps {
   job: {
@@ -52,79 +51,13 @@ export function JobDetailsSection({ job, company, showCompanyInfo = true }: JobD
       {/* Skills & Technologies - Tag cloud */}
       <TagCloud tags={job.tags} />
 
-      {/* Company Info */}
+      {/* Company Showcase - Enhanced company section */}
       {showCompanyInfo && company && (
         <>
-          <Separator className="my-8" />
-          <Card className="glass backdrop-blur-xl border-accent/30">
-            <CardHeader>
-              <CardTitle>About {company.name}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {company.description && (
-                <p className="text-muted-foreground leading-relaxed">
-                  {company.description}
-                </p>
-              )}
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                {company.industry && (
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-background/30">
-                      <Building2 className="w-4 h-4 text-accent" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Industry</div>
-                      <div className="text-sm font-medium">{company.industry}</div>
-                    </div>
-                  </div>
-                )}
-
-                {company.company_size && (
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-background/30">
-                      <Users className="w-4 h-4 text-accent" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Company Size</div>
-                      <div className="text-sm font-medium">{company.company_size}</div>
-                    </div>
-                  </div>
-                )}
-
-                {company.headquarters_location && (
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-background/30">
-                      <MapPin className="w-4 h-4 text-accent" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Location</div>
-                      <div className="text-sm font-medium">{company.headquarters_location}</div>
-                    </div>
-                  </div>
-                )}
-
-                {company.website_url && (
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-background/30">
-                      <Globe className="w-4 h-4 text-accent" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-muted-foreground">Website</div>
-                      <a 
-                        href={company.website_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-medium text-accent hover:underline"
-                      >
-                        Visit Website
-                      </a>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <Separator className="my-12" />
+          <div id="company">
+            <CompanyShowcase company={company} />
+          </div>
         </>
       )}
     </div>
