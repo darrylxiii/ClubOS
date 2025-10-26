@@ -114,7 +114,7 @@ export const ProfileCompletion = () => {
                 {completedCount} of {totalCount} completed
               </p>
             </div>
-            <div className="text-3xl font-black text-primary">
+            <div className="text-3xl font-black">
               {Math.round(stats.completion_percentage)}%
             </div>
           </div>
@@ -135,7 +135,7 @@ export const ProfileCompletion = () => {
                   {isCompleted ? (
                     <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
                   ) : (
-                    <Circle className="w-4 h-4 text-muted-foreground group-hover:text-primary flex-shrink-0 transition-colors" />
+                    <Circle className="w-4 h-4 text-muted-foreground group-hover:text-foreground flex-shrink-0 transition-colors" />
                   )}
                   <span className={`text-sm flex-1 ${isCompleted ? 'line-through text-muted-foreground' : 'font-medium text-foreground'}`}>
                     {task.title}

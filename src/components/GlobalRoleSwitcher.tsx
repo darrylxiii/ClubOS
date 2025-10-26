@@ -15,11 +15,11 @@ import { toast } from "sonner";
 
 const roleConfig: Record<string, { icon: any; label: string; color: string }> = {
   admin: { icon: Shield, label: 'Admin', color: 'bg-red-500' },
-  strategist: { icon: Users, label: 'Strategist', color: 'bg-purple-500' },
-  partner: { icon: Building2, label: 'Partner', color: 'bg-blue-500' },
+  strategist: { icon: Users, label: 'Strategist', color: 'bg-muted' },
+  partner: { icon: Building2, label: 'Partner', color: 'bg-muted' },
   user: { icon: User, label: 'Candidate', color: 'bg-green-500' },
-  company_admin: { icon: Building2, label: 'Company Admin', color: 'bg-orange-500' },
-  recruiter: { icon: Users, label: 'Recruiter', color: 'bg-teal-500' }
+  company_admin: { icon: Building2, label: 'Company Admin', color: 'bg-muted' },
+  recruiter: { icon: Users, label: 'Recruiter', color: 'bg-muted' }
 };
 
 export const GlobalRoleSwitcher = () => {

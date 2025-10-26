@@ -264,15 +264,15 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
         "min-h-[44px] h-[44px]", // Fixed height to prevent shifting
         "transition-all duration-300 ease-in-out",
         "border border-transparent",
-        "hover:bg-primary/10 hover:scale-[1.02] hover:shadow-[var(--shadow-glass-sm)]",
-        isActive && "bg-primary/15 shadow-[var(--shadow-glass-sm)] border-primary/20",
+        "hover:bg-muted/10 hover:scale-[1.02] hover:shadow-[var(--shadow-glass-sm)]",
+        isActive && "bg-muted/15 shadow-[var(--shadow-glass-sm)] border-border/20",
         className
       )}
     >
       <item.icon
         className={cn(
           "h-5 w-5 flex-shrink-0 transition-all duration-300 ease-in-out",
-          isActive ? "text-primary scale-110" : "text-muted-foreground",
+          isActive ? "text-foreground scale-110" : "text-muted-foreground",
           "group-hover:scale-110"
         )}
       />
@@ -316,7 +316,7 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
           "transition-all duration-300 ease-in-out",
           "hover:bg-muted/50 hover:scale-[1.01]",
           "mb-2",
-          hasActiveItem && "text-primary"
+          hasActiveItem && "text-foreground"
         )}
       >
         <group.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-300" />
@@ -382,7 +382,7 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
               <div className="flex-shrink-0">
                 <Avatar className="h-9 w-9 transition-transform duration-300 hover:scale-110">
                   <AvatarImage src={userAvatarUrl || ""} />
-                  <AvatarFallback className="bg-primary text-primary-foreground">
+                  <AvatarFallback className="bg-muted text-foreground">
                     {userInitial}
                   </AvatarFallback>
                 </Avatar>

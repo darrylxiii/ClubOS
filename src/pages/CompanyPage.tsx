@@ -529,7 +529,7 @@ export default function CompanyPage() {
                   {company.vision && (
                     <div>
                       <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-accent" />
+                        <Sparkles className="w-5 h-5 text-muted-foreground" />
                         Our Vision
                       </h3>
                       <p className="text-muted-foreground">{company.vision}</p>
@@ -547,7 +547,7 @@ export default function CompanyPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {company.values.map((value, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <Star className="w-4 h-4 text-accent flex-shrink-0" />
+                        <Star className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                         <span className="text-sm">{value}</span>
                       </div>
                     ))}

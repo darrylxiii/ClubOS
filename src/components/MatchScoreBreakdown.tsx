@@ -41,7 +41,7 @@ export const MatchScoreBreakdown = ({
     <div className="space-y-6">
       {/* Overall Score */}
       <div className="text-center">
-        <div className="text-5xl font-bold text-primary mb-2">{overallScore}%</div>
+        <div className="text-5xl font-bold mb-2">{overallScore}%</div>
         <p className="text-sm text-muted-foreground">Overall Match Score</p>
       </div>
 
@@ -51,7 +51,7 @@ export const MatchScoreBreakdown = ({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-primary" />
+            <CheckCircle2 className="w-5 h-5 text-muted-foreground" />
             Required Criteria
           </h3>
           <span className="text-sm font-medium">{requiredMetCount}/{requiredCriteriaTotal} ({requiredPercentage}%)</span>
@@ -61,7 +61,7 @@ export const MatchScoreBreakdown = ({
           {requiredCriteriaMet.map((criterion, idx) => (
             <div key={idx} className="flex items-start gap-2 text-sm">
               {criterion.met ? (
-                <CheckCircle2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
               ) : (
                 <XCircle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
               )}
@@ -77,7 +77,7 @@ export const MatchScoreBreakdown = ({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-primary" />
+            <TrendingUp className="w-5 h-5 text-muted-foreground" />
             Preferred Criteria
           </h3>
           <span className="text-sm font-medium">{preferredMetCount}/{preferredCriteriaTotal} ({preferredPercentage}%)</span>
@@ -87,7 +87,7 @@ export const MatchScoreBreakdown = ({
           {preferredCriteriaMet.map((criterion, idx) => (
             <div key={idx} className="flex items-start gap-2 text-sm">
               {criterion.met ? (
-                <CheckCircle2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
               ) : (
                 <XCircle className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
               )}
@@ -173,20 +173,20 @@ export const MatchScoreBreakdown = ({
         <>
           <Separator />
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold flex items-center gap-2 text-accent">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
               <Zap className="w-5 h-5" />
               Quick Wins
             </h3>
             <div className="space-y-3">
               {quickWins.map((win, idx) => (
-                <div key={idx} className="rounded-lg bg-accent/10 p-3 space-y-2">
+                <div key={idx} className="rounded-lg bg-muted/20 p-3 space-y-2">
                   <p className="text-sm font-medium">{win.action}</p>
                   <div className="flex items-center gap-3 text-xs">
                     <Badge variant="secondary" className="gap-1">
                       <Clock className="w-3 h-3" />
                       {win.timeframe}
                     </Badge>
-                    <span className="text-accent font-medium">{win.impact}</span>
+                    <span className="font-medium">{win.impact}</span>
                   </div>
                 </div>
               ))}
@@ -199,20 +199,20 @@ export const MatchScoreBreakdown = ({
         <>
           <Separator />
           <div className="space-y-3">
-            <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
               Longer-term Actions
             </h3>
             <div className="space-y-3">
               {longerTermActions.map((action, idx) => (
-                <div key={idx} className="rounded-lg bg-primary/10 p-3 space-y-2">
+                <div key={idx} className="rounded-lg bg-muted/20 p-3 space-y-2">
                   <p className="text-sm font-medium">{action.action}</p>
                   <div className="flex items-center gap-3 text-xs">
                     <Badge variant="outline" className="gap-1">
                       <Clock className="w-3 h-3" />
                       {action.timeframe}
                     </Badge>
-                    <span className="text-primary font-medium">{action.impact}</span>
+                    <span className="font-medium">{action.impact}</span>
                   </div>
                 </div>
               ))}

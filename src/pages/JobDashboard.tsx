@@ -341,8 +341,8 @@ export default function JobDashboard() {
         )}
 
         {/* Premium Header with Glass Morphism */}
-        <div className="relative overflow-hidden rounded-2xl border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl p-8 shadow-xl">
-          <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-transparent to-primary/10" />
+        <div className="relative overflow-hidden rounded-2xl border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl p-8 shadow-xl">
+          <div className="absolute inset-0 bg-gradient-to-r from-muted/10 via-transparent to-muted/10" />
           
           <div className="relative flex items-start justify-between">
             <div className="space-y-4">
@@ -350,7 +350,7 @@ export default function JobDashboard() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate('/company-jobs')}
-                className="mb-2 hover:bg-accent/20 transition-all duration-300"
+                className="mb-2 hover:bg-muted/20 transition-all duration-300"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Jobs Dashboard
@@ -358,11 +358,11 @@ export default function JobDashboard() {
               <div className="flex items-center gap-4">
                 {job.companies?.logo_url && (
                   <div className="relative group">
-                    <div className="absolute inset-0 bg-accent/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300" />
+                    <div className="absolute inset-0 bg-muted/20 rounded-xl blur-xl group-hover:blur-2xl transition-all duration-300" />
                     <img
                       src={job.companies.logo_url}
                       alt={job.companies.name}
-                      className="relative w-16 h-16 rounded-xl object-cover border-2 border-accent/30 shadow-lg"
+                      className="relative w-16 h-16 rounded-xl object-cover border-2 border-border/30 shadow-lg"
                     />
                   </div>
                 )}
@@ -379,7 +379,7 @@ export default function JobDashboard() {
                 variant="outline"
                 size="sm"
                 onClick={() => setEditDialogOpen(true)}
-                className="h-9 gap-2 border-accent/30 hover:border-accent hover:bg-accent/10 transition-all"
+                className="h-9 gap-2 border-border/30 hover:border-border/50 hover:bg-muted/10 transition-all"
               >
                 <Edit className="w-4 h-4" />
                 Edit Job
@@ -398,11 +398,11 @@ export default function JobDashboard() {
         <div className="space-y-6">
           {/* Top KPIs */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-accent/40 transition-all duration-300 group">
+            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-border/60 transition-all duration-300 group">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-accent/20 group-hover:bg-accent/30 transition-colors">
-                    <Users className="w-4 h-4 text-accent" />
+                  <div className="p-1.5 rounded-lg bg-muted/50 group-hover:bg-muted/70 transition-colors">
+                    <Users className="w-4 h-4 text-muted-foreground" />
                   </div>
                   Total Applicants
                 </CardTitle>
@@ -465,7 +465,7 @@ export default function JobDashboard() {
           </div>
 
           {/* Enhanced Pipeline Breakdown */}
-          <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
+          <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
             <CardHeader>
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
@@ -500,13 +500,13 @@ export default function JobDashboard() {
                 </div>
 
                 {/* Icon Legend */}
-                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-background/40 backdrop-blur-sm rounded-lg p-3 border border-accent/10">
+                <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground bg-background/40 backdrop-blur-sm rounded-lg p-3 border border-border/20">
                   <div className="flex items-center gap-2">
                     <Building2 className="w-4 h-4" />
                     <span>Your Company</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-primary" />
+                    <Sparkles className="w-4 h-4" />
                     <span>Quantum Club Elite</span>
                   </div>
                   <div className="h-4 w-px bg-border" />
@@ -643,17 +643,17 @@ export default function JobDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
+            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle className="font-black uppercase text-sm flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 text-amber-500" />
+                  <AlertCircle className="w-4 h-4 text-muted-foreground" />
                   Next Actions Required
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-sm">
                   {metrics?.needsClubCheck ? (
-                    <span className="font-bold text-amber-500">
+                    <span className="font-bold">
                       {metrics.needsClubCheck} candidate{metrics.needsClubCheck !== 1 ? 's' : ''} need Club Check
                     </span>
                   ) : (
@@ -667,20 +667,20 @@ export default function JobDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="candidates" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border border-accent/20">
-            <TabsTrigger value="candidates" className="data-[state=active]:bg-accent/20">
+          <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border border-border/20">
+            <TabsTrigger value="candidates" className="data-[state=active]:bg-muted/50">
               Candidates
             </TabsTrigger>
-            <TabsTrigger value="overview" className="data-[state=active]:bg-primary/20">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-muted/50">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="documents" className="data-[state=active]:bg-accent/20">
+            <TabsTrigger value="documents" className="data-[state=active]:bg-muted/50">
               Documents
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-secondary/20">
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-muted/50">
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="audit" className="data-[state=active]:bg-accent/20">
+            <TabsTrigger value="audit" className="data-[state=active]:bg-muted/50">
               Audit Log
             </TabsTrigger>
           </TabsList>

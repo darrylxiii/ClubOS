@@ -468,7 +468,7 @@ export default function Companies() {
                                   <span className="text-xs text-muted-foreground">open roles</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <TrendingUp className="w-4 h-4 text-accent" />
+                                  <TrendingUp className="w-4 h-4 text-muted-foreground" />
                                   <span className="font-bold">{metrics.total_applications}</span>
                                   <span className="text-xs text-muted-foreground">applications</span>
                                 </div>

@@ -24,12 +24,12 @@ const eventIcons = {
 };
 
 const eventColors = {
-  interview_scheduled: "bg-blue-500/10 text-blue-500",
+  interview_scheduled: "bg-muted/20 text-foreground",
   job_applied: "bg-green-500/10 text-green-500",
-  offer_received: "bg-purple-500/10 text-purple-500",
-  job_published: "bg-orange-500/10 text-orange-500",
-  company_milestone: "bg-pink-500/10 text-pink-500",
-  profile_view: "bg-cyan-500/10 text-cyan-500",
+  offer_received: "bg-muted/20 text-foreground",
+  job_published: "bg-muted/20 text-foreground",
+  company_milestone: "bg-muted/20 text-foreground",
+  profile_view: "bg-muted/20 text-foreground",
 };
 
 export const LivePulse = () => {

@@ -166,15 +166,15 @@ export const FeedbackButton = () => {
 
   const getRatingColor = (value: number) => {
     if (value <= 3) return 'text-destructive';
-    if (value <= 5) return 'text-orange-500';
-    if (value <= 7) return 'text-yellow-500';
+    if (value <= 5) return 'text-muted-foreground';
+    if (value <= 7) return 'text-muted-foreground';
     return 'text-green-500';
   };
 
   const getRatingBgColor = (value: number) => {
     if (value <= 3) return 'bg-destructive/10 border-destructive';
-    if (value <= 5) return 'bg-orange-500/10 border-orange-500';
-    if (value <= 7) return 'bg-yellow-500/10 border-yellow-500';
+    if (value <= 5) return 'bg-muted/20 border-border';
+    if (value <= 7) return 'bg-muted/20 border-border';
     return 'bg-green-500/10 border-green-500';
   };
 
@@ -258,7 +258,7 @@ export const FeedbackButton = () => {
                           ? `${getRatingColor(value)} ${getRatingBgColor(value)}`
                           : hoveredRating && value <= hoveredRating
                           ? `${getRatingColor(value)} ${getRatingBgColor(value)}`
-                          : 'border-border hover:border-primary/50'
+                          : 'border-border hover:border-border/50'
                       }
                     `}
                   >

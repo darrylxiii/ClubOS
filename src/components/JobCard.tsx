@@ -45,15 +45,15 @@ export const JobCard = ({
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   const getScoreColor = (score: number) => {
-    if (score >= 90) return "text-accent";
-    if (score >= 70) return "text-primary";
+    if (score >= 90) return "text-foreground";
+    if (score >= 70) return "text-foreground";
     return "text-muted-foreground";
   };
 
   const getScoreBgColor = (score: number) => {
-    if (score >= 90) return "bg-accent/10";
-    if (score >= 70) return "bg-primary/10";
-    return "bg-muted";
+    if (score >= 90) return "bg-muted/20";
+    if (score >= 70) return "bg-muted/20";
+    return "bg-muted/10";
   };
   return (
     <Card className="group relative overflow-hidden border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300">
@@ -88,7 +88,7 @@ export const JobCard = ({
             className="shrink-0 hover:bg-accent/10"
             onClick={onToggleSave}
           >
-            <Bookmark className={`w-4 h-4 ${isSaved ? "fill-accent text-accent" : "text-muted-foreground"}`} />
+            <Bookmark className={`w-4 h-4 ${isSaved ? "fill-foreground text-foreground" : "text-muted-foreground"}`} />
           </Button>
         </div>
       </CardHeader>
@@ -107,7 +107,7 @@ export const JobCard = ({
           {salary && (
             <Badge 
               variant="outline" 
-              className="text-xs font-semibold bg-accent/5 backdrop-blur-sm border border-accent/20 px-3 py-1"
+              className="text-xs font-semibold bg-muted/10 backdrop-blur-sm border border-border/20 px-3 py-1"
             >
               {salary}
             </Badge>
@@ -129,7 +129,7 @@ export const JobCard = ({
               </div>
               <Progress value={matchScore} className="h-1.5 bg-background/50" />
               {matchScore >= 90 && (
-                <div className="mt-3 flex items-center gap-1.5 text-xs text-accent font-medium">
+                <div className="mt-3 flex items-center gap-1.5 text-xs text-foreground font-medium">
                   <Zap className="w-3.5 h-3.5" />
                   <span>Elite Match - Auto-apply eligible</span>
                 </div>
@@ -171,7 +171,7 @@ export const JobCard = ({
                   <Button 
                     onClick={onClubSync} 
                     size="sm" 
-                    className="bg-accent/10 text-accent border border-accent/30 hover:bg-accent/20 hover:border-accent/50 font-semibold backdrop-blur-sm"
+                    className="bg-muted/20 text-foreground border border-border/30 hover:bg-muted/30 hover:border-border/50 font-semibold backdrop-blur-sm"
                   >
                     <Zap className="w-3.5 h-3.5 mr-1.5" />
                     Club Sync
@@ -180,7 +180,7 @@ export const JobCard = ({
                   <Button 
                     onClick={onApply} 
                     size="sm" 
-                    className="bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20 hover:border-primary/50 font-semibold backdrop-blur-sm"
+                    className="bg-muted/20 text-foreground border border-border/30 hover:bg-muted/30 hover:border-border/50 font-semibold backdrop-blur-sm"
                   >
                     Apply Now
                   </Button>
