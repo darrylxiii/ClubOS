@@ -512,11 +512,19 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
 
   /* Gradient text utilities */
   .text-gradient {
-    @apply bg-gradient-to-br from-foreground via-foreground to-muted-foreground bg-clip-text text-transparent;
+    background: linear-gradient(to bottom right, hsl(var(--foreground)), hsl(var(--foreground)), hsl(var(--muted-foreground)));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
   }
 
   .text-gradient-accent {
-    @apply bg-gradient-to-br from-primary via-accent to-chart-2 bg-clip-text text-transparent;
+    background: linear-gradient(to bottom right, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--chart-2)));
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
   }
 
   /* Progress ring animation */
