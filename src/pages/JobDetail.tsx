@@ -1,26 +1,53 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { JobHero } from "@/components/jobs/JobHero";
+import { JobHeroParallax } from "@/components/jobs/JobHeroParallax";
 import { JobDetailsSection } from "@/components/jobs/JobDetailsSection";
+import { StickyProgressBar } from "@/components/jobs/StickyProgressBar";
 import { Button } from "@/components/ui/button";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { canManageJob } from "@/utils/jobNavigation";
+import { useScrollTrigger } from "@/hooks/useScrollTrigger";
 import { toast } from "sonner";
-import { ArrowLeft, Settings, Loader2 } from "lucide-react";
+import { ArrowLeft, Settings, Loader2, Bookmark } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function JobDetail() {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { role } = useUserRole();
+  const { scrollDirection, isScrolled } = useScrollTrigger();
   const [loading, setLoading] = useState(true);
   const [job, setJob] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('about');
+
+  // Define sections for sticky progress bar
+  const sections = [
+    { id: 'about', label: 'About' },
+    { id: 'timeline', label: 'Process' },
+    { id: 'responsibilities', label: 'Responsibilities' },
+    { id: 'skills', label: 'Skills' },
+    { id: 'benefits', label: 'Benefits' },
+    { id: 'company', label: 'Company' },
+  ];
+
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const offset = 100;
+      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({
+        top: elementPosition - offset,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   useEffect(() => {
     if (jobId) {
@@ -186,34 +213,51 @@ export default function JobDetail() {
     <AppLayout>
       <OceanBackgroundVideo />
       
-      <div className="relative z-10 min-h-screen pb-16">
+      {/* Sticky Progress Bar */}
+      <StickyProgressBar 
+        sections={sections}
+        activeSection={activeSection}
+        onSectionClick={scrollToSection}
+      />
+      
+      <div className="relative z-10 min-h-screen pb-32">
         {/* Navigation Header */}
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              onClick={() => navigate('/jobs')}
-              className="gap-2"
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
             >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Jobs
-            </Button>
-
-            {canManageJob(role) && (
               <Button
-                variant="outline"
-                onClick={() => navigate(`/jobs/${jobId}/dashboard`)}
+                variant="ghost"
+                onClick={() => navigate('/jobs')}
                 className="gap-2"
               >
-                <Settings className="w-4 h-4" />
-                Manage Job
+                <ArrowLeft className="w-4 h-4" />
+                Back to Jobs
               </Button>
+            </motion.div>
+
+            {canManageJob(role) && (
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+              >
+                <Button
+                  variant="outline"
+                  onClick={() => navigate(`/jobs/${jobId}/dashboard`)}
+                  className="gap-2"
+                >
+                  <Settings className="w-4 h-4" />
+                  Manage Job
+                </Button>
+              </motion.div>
             )}
           </div>
         </div>
 
         {/* Hero Section */}
-        <JobHero
+        <JobHeroParallax
           title={job.title}
           company={{
             name: job.companies?.name || 'Unknown Company',
@@ -234,47 +278,77 @@ export default function JobDetail() {
           onShare={handleShare}
         />
 
-        {/* Job Details */}
-        <div className="container mx-auto px-4 py-8">
-          <JobDetailsSection
-            job={{
-              description: job.description,
-              requirements: job.requirements,
-              nice_to_have: job.nice_to_have,
-              benefits: job.benefits,
-              responsibilities: job.responsibilities,
-              tags: job.tags,
-            }}
-            company={job.companies}
-            showCompanyInfo={true}
-          />
-        </div>
-
-        {/* Sticky Bottom CTA */}
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border/50 p-4">
-          <div className="container mx-auto flex items-center justify-between gap-4">
-            <div className="hidden sm:block">
-              <h3 className="font-bold">{job.title}</h3>
-              <p className="text-sm text-muted-foreground">{job.companies?.name}</p>
-            </div>
-            <div className="flex gap-2 ml-auto">
-              <Button
-                onClick={handleSave}
-                variant="outline"
-                className="gap-2"
-              >
-                {isSaved ? 'Saved' : 'Save'}
-              </Button>
-              <Button
-                onClick={handleApply}
-                disabled={isApplied}
-                className="gap-2"
-              >
-                {isApplied ? 'Applied' : 'Apply Now'}
-              </Button>
-            </div>
+        {/* Job Details with Section IDs */}
+        <div className="container mx-auto px-4 py-16 max-w-5xl">
+          <div id="about">
+            <JobDetailsSection
+              job={{
+                description: job.description,
+                requirements: job.requirements,
+                nice_to_have: job.nice_to_have,
+                benefits: job.benefits,
+                responsibilities: job.responsibilities,
+                tags: job.tags,
+              }}
+              company={job.companies}
+              showCompanyInfo={true}
+            />
           </div>
         </div>
+
+        {/* Enhanced Sticky Bottom CTA */}
+        <AnimatePresence>
+          <motion.div
+            className="fixed bottom-0 left-0 right-0 z-50 frosted-glass border-t border-border/50 p-4"
+            initial={{ y: 100 }}
+            animate={{ 
+              y: scrollDirection === 'down' && isScrolled ? 100 : 0 
+            }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="container mx-auto flex items-center justify-between gap-4">
+              {/* Job info with logo */}
+              <div className="hidden sm:flex items-center gap-3">
+                {job.companies?.logo_url && (
+                  <div className="w-10 h-10 rounded-lg overflow-hidden border border-border/50">
+                    <img
+                      src={job.companies.logo_url}
+                      alt={job.companies.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div>
+                  <h3 className="font-bold text-sm">{job.title}</h3>
+                  <p className="text-xs text-muted-foreground">{job.companies?.name}</p>
+                </div>
+              </div>
+
+              {/* CTA Buttons */}
+              <div className="flex gap-2 ml-auto">
+                <Button
+                  onClick={handleSave}
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 glass-subtle"
+                >
+                  <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+                  <span className="hidden sm:inline">
+                    {isSaved ? 'Saved' : 'Save'}
+                  </span>
+                </Button>
+                <Button
+                  onClick={handleApply}
+                  disabled={isApplied}
+                  size="lg"
+                  className="gap-2 relative overflow-hidden"
+                >
+                  {isApplied ? 'Applied' : 'Apply Now'}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </AnimatePresence>
       </div>
     </AppLayout>
   );

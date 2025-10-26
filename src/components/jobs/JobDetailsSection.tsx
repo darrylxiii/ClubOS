@@ -1,7 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, Circle, Building2, MapPin, Users, Globe } from "lucide-react";
+import { Building2, MapPin, Users, Globe } from "lucide-react";
+import { AboutRoleSection } from "./AboutRoleSection";
+import { ResponsibilityGrid } from "./ResponsibilityGrid";
+import { SkillMatrix } from "./SkillMatrix";
+import { BenefitsShowcase } from "./BenefitsShowcase";
+import { TagCloud } from "./TagCloud";
+import { ApplicationTimeline } from "./ApplicationTimeline";
 
 interface JobDetailsSectionProps {
   job: {
@@ -25,117 +30,27 @@ interface JobDetailsSectionProps {
 
 export function JobDetailsSection({ job, company, showCompanyInfo = true }: JobDetailsSectionProps) {
   return (
-    <div className="space-y-6">
-      {/* Job Description */}
-      {job.description && (
-        <Card className="glass backdrop-blur-xl border-accent/30">
-          <CardHeader>
-            <CardTitle>About the Role</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose prose-invert max-w-none">
-              <p className="whitespace-pre-wrap text-muted-foreground leading-relaxed">
-                {job.description}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+    <div className="space-y-12">
+      {/* About the Role - Editorial style */}
+      <AboutRoleSection description={job.description} />
 
-      {/* Responsibilities */}
-      {job.responsibilities && job.responsibilities.length > 0 && (
-        <Card className="glass backdrop-blur-xl border-accent/30">
-          <CardHeader>
-            <CardTitle>Key Responsibilities</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {job.responsibilities.map((resp, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-accent mt-0.5 flex-shrink-0" />
-                  <span className="text-muted-foreground">{resp}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+      {/* Application Timeline */}
+      <ApplicationTimeline />
 
-      {/* Requirements */}
-      <div className="grid md:grid-cols-2 gap-6">
-        {job.requirements && job.requirements.length > 0 && (
-          <Card className="glass backdrop-blur-xl border-accent/30">
-            <CardHeader>
-              <CardTitle className="text-lg">Must-Have Skills</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {job.requirements.map((req, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground">{req}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
+      {/* Key Responsibilities - Grid layout */}
+      <ResponsibilityGrid responsibilities={job.responsibilities} />
 
-        {job.nice_to_have && job.nice_to_have.length > 0 && (
-          <Card className="glass backdrop-blur-xl border-accent/30">
-            <CardHeader>
-              <CardTitle className="text-lg">Nice-to-Have Skills</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2">
-                {job.nice_to_have.map((skill, idx) => (
-                  <li key={idx} className="flex items-start gap-2">
-                    <Circle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground">{skill}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
-      </div>
+      {/* Skills Matrix - Must-have and Nice-to-have */}
+      <SkillMatrix 
+        mustHaveSkills={job.requirements}
+        niceToHaveSkills={job.nice_to_have}
+      />
 
-      {/* Benefits */}
-      {job.benefits && job.benefits.length > 0 && (
-        <Card className="glass backdrop-blur-xl border-accent/30">
-          <CardHeader>
-            <CardTitle>Benefits & Perks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid sm:grid-cols-2 gap-3">
-              {job.benefits.map((benefit, idx) => (
-                <div key={idx} className="flex items-center gap-2 p-3 rounded-lg bg-background/30 border border-border/10">
-                  <CheckCircle2 className="w-4 h-4 text-accent flex-shrink-0" />
-                  <span className="text-sm">{benefit}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Benefits Showcase - Lifestyle grid */}
+      <BenefitsShowcase benefits={job.benefits} />
 
-      {/* Skills Tags */}
-      {job.tags && job.tags.length > 0 && (
-        <Card className="glass backdrop-blur-xl border-accent/30">
-          <CardHeader>
-            <CardTitle>Skills & Technologies</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {job.tags.map((tag, idx) => (
-                <Badge key={idx} variant="secondary">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Skills & Technologies - Tag cloud */}
+      <TagCloud tags={job.tags} />
 
       {/* Company Info */}
       {showCompanyInfo && company && (
