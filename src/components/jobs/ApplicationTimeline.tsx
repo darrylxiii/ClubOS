@@ -52,16 +52,16 @@ export function ApplicationTimeline({
   currentStage 
 }: ApplicationTimelineProps) {
   return (
-    <div className="space-y-6">
-      <motion.h3 
-        className="text-2xl font-bold flex items-center gap-2"
-        initial={{ opacity: 0, x: -20 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-      >
+    <motion.div
+      className="glass-card p-6 rounded-xl border-2 border-border/50 hover:border-primary transition-all space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+    >
+      <h3 className="text-2xl font-bold flex items-center gap-2">
         <span className="w-2 h-8 bg-gradient-to-b from-primary to-accent rounded-full" />
         Application Process
-      </motion.h3>
+      </h3>
 
       <div className="relative">
         {/* Vertical connecting line */}
@@ -75,24 +75,19 @@ export function ApplicationTimeline({
             const isFuture = currentStage !== undefined && index > currentStage;
 
             return (
-              <motion.div
+              <div
                 key={stage.name}
                 className="relative flex gap-6"
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.1 }}
               >
                 {/* Icon circle */}
-                <motion.div
+                <div
                   className={cn(
                     "relative z-10 flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center border-2",
                     "transition-all duration-300",
-                    isPast && "bg-chart-2 border-chart-2 shadow-[0_0_20px_hsl(var(--chart-2)/0.4)]",
-                    isCurrent && "bg-accent border-accent shadow-[0_0_20px_hsl(var(--accent)/0.4)] animate-pulse",
+                    isPast && "bg-chart-2 border-chart-2",
+                    isCurrent && "bg-accent border-accent",
                     isFuture && "bg-muted border-border"
                   )}
-                  whileHover={{ scale: 1.1 }}
                 >
                   <Icon className={cn(
                     "w-6 h-6",
@@ -100,20 +95,20 @@ export function ApplicationTimeline({
                     isCurrent && "text-accent-foreground",
                     isFuture && "text-muted-foreground"
                   )} />
-                </motion.div>
+                </div>
 
                 {/* Content */}
                 <div className="flex-1 pb-6">
-                  <div className="glass-card p-5 rounded-xl border border-border/50">
-                    <div className="flex items-start justify-between mb-3">
+                  <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                    <div className="flex items-start justify-between mb-2">
                       <h4 className={cn(
-                        "text-lg font-semibold",
+                        "text-base font-semibold",
                         isCurrent && "text-accent"
                       )}>
                         {stage.name}
                         {isCurrent && (
                           <span className="ml-2 px-2 py-0.5 text-xs bg-accent/20 text-accent rounded-full">
-                            You are here
+                            Current
                           </span>
                         )}
                       </h4>
@@ -122,39 +117,27 @@ export function ApplicationTimeline({
                       </span>
                     </div>
 
-                    {/* QUIN Tip */}
-                    <motion.div
-                      className="flex items-start gap-2 p-3 rounded-lg bg-accent/5 border border-accent/20"
-                      initial={{ opacity: 0, height: 0 }}
-                      whileInView={{ opacity: 1, height: "auto" }}
-                      viewport={{ once: true }}
-                      transition={{ delay: index * 0.1 + 0.2 }}
-                    >
+                    {/* Tip */}
+                    <div className="flex items-start gap-2 p-2 rounded bg-accent/5 border border-accent/20">
                       <Lightbulb className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-muted-foreground">
-                        <span className="font-medium text-accent">QUIN Tip:</span>{" "}
-                        {stage.tip}
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-accent">Tip:</span> {stage.tip}
                       </p>
-                    </motion.div>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             );
           })}
         </div>
       </div>
 
       {/* Average time estimate */}
-      <motion.div
-        className="p-4 rounded-lg bg-muted/30 border border-border/50"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-      >
+      <div className="p-3 rounded-lg bg-muted/30 border border-border/50">
         <p className="text-sm text-muted-foreground">
           <span className="font-medium text-foreground">Average time to hire:</span> 2-3 weeks
         </p>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }

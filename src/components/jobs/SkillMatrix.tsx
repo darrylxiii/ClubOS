@@ -14,60 +14,27 @@ export function SkillMatrix({ mustHaveSkills = [], niceToHaveSkills = [] }: Skil
   }
 
   return (
-    <div className="space-y-8">
+    <InteractiveCard className="space-y-6">
+      <h3 className="text-2xl font-bold flex items-center gap-2">
+        <span className="w-2 h-8 bg-gradient-to-b from-chart-2 to-chart-1 rounded-full" />
+        Skills & Requirements
+      </h3>
+
       {/* Must-Have Skills */}
       {mustHaveSkills.length > 0 && (
-        <div>
-          <motion.h3 
-            className="text-2xl font-bold mb-6 flex items-center gap-2"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            <span className="w-2 h-8 bg-gradient-to-b from-chart-2 to-chart-2/50 rounded-full" />
-            Must-Have Skills
-          </motion.h3>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mustHaveSkills.map((skill, index) => (
-              <InteractiveCard
+        <div className="space-y-3">
+          <h4 className="text-lg font-semibold text-chart-2">Must-Have Skills</h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {mustHaveSkills.map((skill) => (
+              <div
                 key={skill}
-                delay={index * 0.05}
-                className="relative overflow-hidden group"
+                className="flex items-center gap-3 p-3 rounded-lg bg-chart-2/10 border border-chart-2/20 hover:border-chart-2/40 transition-all"
               >
-                <div className="flex items-start gap-3">
-                  <motion.div
-                    className="flex-shrink-0 w-10 h-10 rounded-full bg-chart-2/20 flex items-center justify-center"
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <Check className="w-5 h-5 text-chart-2" />
-                  </motion.div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-foreground mb-1 group-hover:text-chart-2 transition-colors">
-                      {skill}
-                    </h4>
-                    
-                    {/* Proficiency meter */}
-                    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-chart-2 to-chart-1"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "100%" }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: index * 0.05 + 0.2 }}
-                      />
-                    </div>
-                  </div>
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-chart-2/20 flex items-center justify-center">
+                  <Check className="w-4 h-4 text-chart-2" />
                 </div>
-                
-                {/* Hover glow effect */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-chart-2/0 via-chart-2/5 to-chart-2/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                  initial={false}
-                />
-              </InteractiveCard>
+                <span className="font-medium text-foreground">{skill}</span>
+              </div>
             ))}
           </div>
         </div>
@@ -75,64 +42,28 @@ export function SkillMatrix({ mustHaveSkills = [], niceToHaveSkills = [] }: Skil
 
       {/* Nice-to-Have Skills */}
       {niceToHaveSkills.length > 0 && (
-        <div>
-          <motion.h3 
-            className="text-2xl font-bold mb-6 flex items-center gap-2"
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            <span className="w-2 h-8 bg-gradient-to-b from-accent to-accent/50 rounded-full" />
-            Nice-to-Have Skills
-            <span className="ml-2 px-3 py-1 text-xs font-medium bg-accent/20 text-accent rounded-full">
-              Bonus Points
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <h4 className="text-lg font-semibold text-accent">Nice-to-Have Skills</h4>
+            <span className="px-2 py-0.5 text-xs font-medium bg-accent/20 text-accent rounded-full">
+              Bonus
             </span>
-          </motion.h3>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {niceToHaveSkills.map((skill, index) => (
-              <InteractiveCard
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {niceToHaveSkills.map((skill) => (
+              <div
                 key={skill}
-                delay={index * 0.05}
-                className="relative overflow-hidden group"
+                className="flex items-center gap-3 p-3 rounded-lg bg-accent/10 border border-accent/20 hover:border-accent/40 transition-all"
               >
-                <div className="flex items-start gap-3">
-                  <motion.div
-                    className="flex-shrink-0 w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center"
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.5 }}
-                  >
-                    <Star className="w-5 h-5 text-accent" />
-                  </motion.div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-foreground mb-1 group-hover:text-accent transition-colors">
-                      {skill}
-                    </h4>
-                    
-                    {/* Proficiency meter */}
-                    <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
-                      <motion.div
-                        className="h-full bg-gradient-to-r from-accent to-accent/70"
-                        initial={{ width: 0 }}
-                        whileInView={{ width: "75%" }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, delay: index * 0.05 + 0.2 }}
-                      />
-                    </div>
-                  </div>
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
+                  <Star className="w-4 h-4 text-accent" />
                 </div>
-                
-                {/* Hover glow effect */}
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-accent/0 via-accent/5 to-accent/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
-                  initial={false}
-                />
-              </InteractiveCard>
+                <span className="font-medium text-foreground">{skill}</span>
+              </div>
             ))}
           </div>
         </div>
       )}
-    </div>
+    </InteractiveCard>
   );
 }

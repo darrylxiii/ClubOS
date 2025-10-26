@@ -78,53 +78,33 @@ export function BenefitsShowcase({ benefits = [] }: BenefitsShowcaseProps) {
   if (benefits.length === 0) return null;
 
   return (
-    <div className="space-y-6">
-      <motion.h3 
-        className="text-2xl font-bold flex items-center gap-2"
-        initial={{ opacity: 0, x: -20 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-      >
+    <InteractiveCard className="space-y-6">
+      <h3 className="text-2xl font-bold flex items-center gap-2">
         <span className="w-2 h-8 bg-gradient-to-b from-accent to-primary rounded-full" />
         Benefits & Perks
-      </motion.h3>
+      </h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {benefits.map((benefit, index) => {
+        {benefits.map((benefit) => {
           const Icon = getBenefitIcon(benefit);
           const category = getBenefitCategory(benefit);
           
           return (
-            <InteractiveCard
+            <div
               key={benefit}
-              delay={index * 0.05}
-              className="relative overflow-hidden group"
+              className={`flex items-start gap-3 p-4 rounded-lg border-2 ${category.border} bg-gradient-to-br ${category.color} hover:border-primary transition-all`}
             >
-              <div className="flex items-start gap-4">
-                <motion.div
-                  className={`flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br ${category.color} border ${category.border} flex items-center justify-center`}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Icon className="w-6 h-6 text-foreground" />
-                </motion.div>
-                
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-foreground mb-1 group-hover:text-accent transition-colors">
-                    {benefit}
-                  </h4>
-                </div>
+              <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${category.color} border ${category.border} flex items-center justify-center`}>
+                <Icon className="w-5 h-5 text-foreground" />
               </div>
-
-              {/* Animated gradient overlay on hover */}
-              <motion.div
-                className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none`}
-                initial={false}
-              />
-            </InteractiveCard>
+              
+              <span className="flex-1 font-medium text-foreground">
+                {benefit}
+              </span>
+            </div>
           );
         })}
       </div>
-    </div>
+    </InteractiveCard>
   );
 }

@@ -3,7 +3,6 @@ import { AboutRoleSection } from "./AboutRoleSection";
 import { ResponsibilityGrid } from "./ResponsibilityGrid";
 import { SkillMatrix } from "./SkillMatrix";
 import { BenefitsShowcase } from "./BenefitsShowcase";
-import { TagCloud } from "./TagCloud";
 import { ApplicationTimeline } from "./ApplicationTimeline";
 import { CompanyShowcase } from "./CompanyShowcase";
 
@@ -29,36 +28,28 @@ interface JobDetailsSectionProps {
 
 export function JobDetailsSection({ job, company, showCompanyInfo = true }: JobDetailsSectionProps) {
   return (
-    <div className="space-y-12">
-      {/* About the Role - Editorial style */}
+    <div className="space-y-6">
+      {/* About the Role */}
       <AboutRoleSection description={job.description} />
 
       {/* Application Timeline */}
       <ApplicationTimeline />
 
-      {/* Key Responsibilities - Grid layout */}
+      {/* Key Responsibilities */}
       <ResponsibilityGrid responsibilities={job.responsibilities} />
 
-      {/* Skills Matrix - Must-have and Nice-to-have */}
+      {/* Skills Matrix */}
       <SkillMatrix 
         mustHaveSkills={job.requirements}
         niceToHaveSkills={job.nice_to_have}
       />
 
-      {/* Benefits Showcase - Lifestyle grid */}
+      {/* Benefits Showcase */}
       <BenefitsShowcase benefits={job.benefits} />
 
-      {/* Skills & Technologies - Tag cloud */}
-      <TagCloud tags={job.tags} />
-
-      {/* Company Showcase - Enhanced company section */}
+      {/* Company Showcase */}
       {showCompanyInfo && company && (
-        <>
-          <Separator className="my-12" />
-          <div id="company">
-            <CompanyShowcase company={company} />
-          </div>
-        </>
+        <CompanyShowcase company={company} />
       )}
     </div>
   );

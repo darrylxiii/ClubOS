@@ -451,63 +451,19 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
-  /* Shimmer gradient animation */
-  .shimmer {
-    background-size: 200% 100%;
-    animation: shimmer 3s ease-in-out infinite;
-  }
-
-  @keyframes shimmer {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
-  /* Ken Burns zoom effect */
-  .ken-burns {
-    animation: ken-burns 20s ease-in-out infinite alternate;
-  }
-
-  @keyframes ken-burns {
-    0% { transform: scale(1); }
-    100% { transform: scale(1.1); }
-  }
-
-  /* Ripple effect utility */
-  .ripple {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .ripple::after {
-    content: '';
-    position: absolute;
-    inset: 50%;
-    width: 0;
-    height: 0;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.5);
-    transform: translate(-50%, -50%);
-    transition: width 0.6s, height 0.6s;
-  }
-
-  .ripple:active::after {
-    width: 300%;
-    height: 300%;
-  }
-
-  /* Magnetic cursor effect */
-  .magnetic {
-    transition: transform 0.2s ease-out;
-  }
-
-  .magnetic:hover {
-    transform: scale(1.02);
-  }
-
   /* Enhanced frosted glass */
   .frosted-glass {
     @apply bg-background/60 backdrop-blur-2xl border border-border/30;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
+  /* Hover scale animation for cards */
+  .hover-scale {
+    @apply transition-transform duration-300 ease-out;
+  }
+
+  .hover-scale:hover {
+    @apply scale-[1.02];
   }
 
   /* Gradient text utilities */

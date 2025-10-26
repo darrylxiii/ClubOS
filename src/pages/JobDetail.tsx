@@ -1,17 +1,14 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { JobHeroParallax } from "@/components/jobs/JobHeroParallax";
+import { JobDetailCard } from "@/components/jobs/JobDetailCard";
 import { JobDetailsSection } from "@/components/jobs/JobDetailsSection";
-import { StickyProgressBar } from "@/components/jobs/StickyProgressBar";
-import { FloatingActionMenu } from "@/components/jobs/FloatingActionMenu";
 import { Button } from "@/components/ui/button";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { canManageJob } from "@/utils/jobNavigation";
-import { useScrollTrigger } from "@/hooks/useScrollTrigger";
 import { toast } from "sonner";
 import { ArrowLeft, Settings, Loader2, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,34 +18,19 @@ export default function JobDetail() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { role } = useUserRole();
-  const { scrollDirection, isScrolled } = useScrollTrigger();
   const [loading, setLoading] = useState(true);
   const [job, setJob] = useState<any>(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
-  const [activeSection, setActiveSection] = useState<string>('about');
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  // Define sections for sticky progress bar
-  const sections = [
-    { id: 'about', label: 'About' },
-    { id: 'timeline', label: 'Process' },
-    { id: 'responsibilities', label: 'Responsibilities' },
-    { id: 'skills', label: 'Skills' },
-    { id: 'benefits', label: 'Benefits' },
-    { id: 'company', label: 'Company' },
-  ];
-
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      const offset = 100;
-      const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-      window.scrollTo({
-        top: elementPosition - offset,
-        behavior: 'smooth'
-      });
-    }
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 300);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     if (jobId) {
@@ -189,25 +171,6 @@ export default function JobDetail() {
     }
   };
 
-  const handleDownload = () => {
-    toast.success('PDF download started');
-    // In real app, generate and download PDF
-  };
-
-  const handleRefer = async () => {
-    const url = window.location.href;
-    try {
-      await navigator.clipboard.writeText(url);
-      toast.success('Referral link copied! Share with friends.');
-    } catch (error) {
-      toast.error('Failed to copy referral link');
-    }
-  };
-
-  const handleReport = () => {
-    toast.success('Thank you for reporting. We will review this shortly.');
-    // In real app, open report modal or send to backend
-  };
 
   if (loading) {
     return (
@@ -233,13 +196,6 @@ export default function JobDetail() {
   return (
     <AppLayout>
       <OceanBackgroundVideo />
-      
-      {/* Sticky Progress Bar */}
-      <StickyProgressBar 
-        sections={sections}
-        activeSection={activeSection}
-        onSectionClick={scrollToSection}
-      />
       
       <div className="relative z-10 min-h-screen pb-32">
         {/* Navigation Header */}
@@ -277,105 +233,106 @@ export default function JobDetail() {
           </div>
         </div>
 
-        {/* Hero Section */}
-        <JobHeroParallax
-          title={job.title}
-          company={{
-            name: job.companies?.name || 'Unknown Company',
-            slug: job.companies?.slug,
-            logo_url: job.companies?.logo_url,
-            cover_image_url: job.companies?.cover_image_url,
-          }}
-          location={job.location}
-          employment_type={job.employment_type}
-          salary_min={job.salary_min}
-          salary_max={job.salary_max}
-          currency={job.currency}
-          matchScore={job.match_score}
-          isSaved={isSaved}
-          isApplied={isApplied}
-          onApply={handleApply}
-          onSave={handleSave}
-          onShare={handleShare}
-        />
+        {/* Main Content */}
+        <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
+          {/* Job Detail Card - Matches Companies design */}
+          <JobDetailCard
+            job={{
+              title: job.title,
+              location: job.location,
+              employment_type: job.employment_type,
+              salary_min: job.salary_min,
+              salary_max: job.salary_max,
+              currency: job.currency,
+              created_at: job.created_at,
+              description: job.description,
+            }}
+            company={{
+              name: job.companies?.name || 'Unknown Company',
+              slug: job.companies?.slug,
+              logo_url: job.companies?.logo_url,
+              cover_image_url: job.companies?.cover_image_url,
+            }}
+            matchScore={job.match_score}
+            isSaved={isSaved}
+            isApplied={isApplied}
+            onApply={handleApply}
+            onSave={handleSave}
+            onShare={handleShare}
+            metrics={{
+              applicants: 24,
+              views: 156,
+              timeToHire: "~2 weeks"
+            }}
+          />
 
-        {/* Job Details with Section IDs */}
-        <div className="container mx-auto px-4 py-16 max-w-5xl">
-          <div id="about">
-            <JobDetailsSection
-              job={{
-                description: job.description,
-                requirements: job.requirements,
-                nice_to_have: job.nice_to_have,
-                benefits: job.benefits,
-                responsibilities: job.responsibilities,
-                tags: job.tags,
-              }}
-              company={job.companies}
-              showCompanyInfo={true}
-            />
-          </div>
+          {/* Job Details Sections - All as clean cards */}
+          <JobDetailsSection
+            job={{
+              description: job.description,
+              requirements: job.requirements,
+              nice_to_have: job.nice_to_have,
+              benefits: job.benefits,
+              responsibilities: job.responsibilities,
+              tags: job.tags,
+            }}
+            company={job.companies}
+            showCompanyInfo={true}
+          />
         </div>
 
-        {/* Floating Action Menu */}
-        <FloatingActionMenu
-          onDownload={handleDownload}
-          onRefer={handleRefer}
-          onReport={handleReport}
-        />
-
-        {/* Enhanced Sticky Bottom CTA */}
+        {/* Simplified Sticky Bottom CTA */}
         <AnimatePresence>
-          <motion.div
-            className="fixed bottom-0 left-0 right-0 z-50 frosted-glass border-t border-border/50 p-4"
-            initial={{ y: 100 }}
-            animate={{ 
-              y: scrollDirection === 'down' && isScrolled ? 100 : 0 
-            }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="container mx-auto flex items-center justify-between gap-4">
-              {/* Job info with logo */}
-              <div className="hidden sm:flex items-center gap-3">
-                {job.companies?.logo_url && (
-                  <div className="w-10 h-10 rounded-lg overflow-hidden border border-border/50">
-                    <img
-                      src={job.companies.logo_url}
-                      alt={job.companies.name}
-                      className="w-full h-full object-cover"
-                    />
+          {isScrolled && (
+            <motion.div
+              className="fixed bottom-0 left-0 right-0 z-50 frosted-glass border-t border-border/50 p-4"
+              initial={{ y: 100 }}
+              animate={{ y: 0 }}
+              exit={{ y: 100 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="container mx-auto flex items-center justify-between gap-4">
+                {/* Job info with logo */}
+                <div className="hidden sm:flex items-center gap-3">
+                  {job.companies?.logo_url && (
+                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-border/50">
+                      <img
+                        src={job.companies.logo_url}
+                        alt={job.companies.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-bold text-sm">{job.title}</h3>
+                    <p className="text-xs text-muted-foreground">{job.companies?.name}</p>
                   </div>
-                )}
-                <div>
-                  <h3 className="font-bold text-sm">{job.title}</h3>
-                  <p className="text-xs text-muted-foreground">{job.companies?.name}</p>
+                </div>
+
+                {/* CTA Buttons */}
+                <div className="flex gap-2 ml-auto">
+                  <Button
+                    onClick={handleSave}
+                    variant="outline"
+                    size="lg"
+                    className="gap-2"
+                  >
+                    <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
+                    <span className="hidden sm:inline">
+                      {isSaved ? 'Saved' : 'Save'}
+                    </span>
+                  </Button>
+                  <Button
+                    onClick={handleApply}
+                    disabled={isApplied}
+                    size="lg"
+                  >
+                    {isApplied ? 'Applied' : 'Apply Now'}
+                  </Button>
                 </div>
               </div>
-
-              {/* CTA Buttons */}
-              <div className="flex gap-2 ml-auto">
-                <Button
-                  onClick={handleSave}
-                  variant="outline"
-                  size="lg"
-                  className="gap-2 glass-subtle"
-                >
-                  <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-                  <span className="hidden sm:inline">
-                    {isSaved ? 'Saved' : 'Save'}
-                  </span>
-                </Button>
-                <Button
-                  onClick={handleApply}
-                  disabled={isApplied}
-                  size="lg"
-                  className="gap-2 relative overflow-hidden"
-                >
-                  {isApplied ? 'Applied' : 'Apply Now'}
-                </Button>
-              </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </AppLayout>

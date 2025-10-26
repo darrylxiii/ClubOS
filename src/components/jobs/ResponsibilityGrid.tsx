@@ -26,79 +26,40 @@ export function ResponsibilityGrid({ responsibilities = [] }: ResponsibilityGrid
   if (responsibilities.length === 0) return null;
 
   return (
-    <div className="space-y-6">
-      <motion.h3 
-        className="text-2xl font-bold flex items-center gap-2"
-        initial={{ opacity: 0, x: -20 }}
-        whileInView={{ opacity: 1, x: 0 }}
-        viewport={{ once: true }}
-      >
+    <InteractiveCard className="space-y-6">
+      <h3 className="text-2xl font-bold flex items-center gap-2">
         <span className="w-2 h-8 bg-gradient-to-b from-primary to-accent rounded-full" />
         Key Responsibilities
-      </motion.h3>
+      </h3>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="space-y-3">
         {responsibilities.map((responsibility, index) => {
           const category = getCategoryForResponsibility(responsibility);
           const Icon = category.icon;
 
           return (
-            <InteractiveCard
+            <div
               key={index}
-              delay={index * 0.05}
-              className="relative overflow-hidden group"
+              className={`flex items-start gap-4 p-4 rounded-lg border-2 ${category.border} bg-gradient-to-r ${category.color} hover:border-primary transition-all group`}
             >
-              <div className="flex items-start gap-4">
-                {/* Number indicator */}
-                <motion.div
-                  className={`flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br ${category.color} border ${category.border} flex items-center justify-center`}
-                  initial={{ scale: 0 }}
-                  whileInView={{ scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ 
-                    type: "spring", 
-                    stiffness: 200, 
-                    delay: index * 0.05 
-                  }}
-                >
-                  <span className="text-sm font-bold text-foreground">
-                    {index + 1}
-                  </span>
-                </motion.div>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-foreground leading-relaxed group-hover:text-accent transition-colors">
-                    {responsibility}
-                  </p>
-                </div>
-
-                {/* Category icon */}
-                <motion.div
-                  className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  initial={{ rotate: -90, scale: 0 }}
-                  whileInView={{ rotate: 0, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 + 0.2 }}
-                >
-                  <Icon className="w-5 h-5 text-muted-foreground" />
-                </motion.div>
+              {/* Number indicator */}
+              <div className={`flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br ${category.color} border ${category.border} flex items-center justify-center`}>
+                <span className="text-sm font-bold text-foreground">
+                  {index + 1}
+                </span>
               </div>
 
-              {/* Connecting line (decorative) */}
-              {index < responsibilities.length - 1 && (
-                <motion.div
-                  className="absolute -bottom-2 left-5 w-0.5 h-4 bg-gradient-to-b from-border to-transparent"
-                  initial={{ scaleY: 0 }}
-                  whileInView={{ scaleY: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 + 0.3 }}
-                />
-              )}
-            </InteractiveCard>
+              {/* Content */}
+              <p className="flex-1 text-foreground leading-relaxed">
+                {responsibility}
+              </p>
+
+              {/* Category icon */}
+              <Icon className="flex-shrink-0 w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
           );
         })}
       </div>
-    </div>
+    </InteractiveCard>
   );
 }
