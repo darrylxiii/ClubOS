@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, Send, Loader2, Sparkles } from "lucide-react";
+import { Bot, Send, Loader2, Sparkles, Lock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 
 interface Message {
@@ -26,8 +29,12 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [guestMessageCount, setGuestMessageCount] = useState(0);
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -41,13 +48,17 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
     setIsLoading(true);
 
     try {
+      // Get auth token for authenticated users
+      const { data: { session } } = await supabase.auth.getSession();
+      const authToken = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/module-ai-assistant`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'Authorization': `Bearer ${authToken}`,
           },
           body: JSON.stringify({
             messages: newMessages,
@@ -123,6 +134,11 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
       }
 
       setIsLoading(false);
+      
+      // Show auth prompt after guest's first AI response
+      if (!user && guestMessageCount === 1) {
+        setTimeout(() => setShowAuthPrompt(true), 2000);
+      }
     } catch (error) {
       console.error('AI chat error:', error);
       toast({
@@ -136,6 +152,16 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
+
+    // Guest users: allow 1 demo message only
+    if (!user) {
+      if (guestMessageCount >= 1) {
+        setShowAuthPrompt(true);
+        return;
+      }
+      setGuestMessageCount(prev => prev + 1);
+    }
+
     const userMessage = input.trim();
     setInput('');
     await streamChat(userMessage);
@@ -149,15 +175,22 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
   };
 
   return (
-    <Card className="squircle p-6 h-[600px] flex flex-col">
+    <Card className="squircle p-6 h-[600px] flex flex-col relative">
       <div className="flex items-center gap-3 mb-4">
         <div className="p-2 rounded-lg bg-primary/10">
           <Bot className="h-5 w-5 text-primary" />
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="font-semibold">AI Learning Assistant</h3>
-          <p className="text-xs text-muted-foreground">Ask anything about this module</p>
+          <p className="text-xs text-muted-foreground">
+            {!user ? 'Try 1 free demo question' : 'Ask anything about this module'}
+          </p>
         </div>
+        {!user && (
+          <div className="text-xs text-muted-foreground">
+            Demo: {guestMessageCount}/1
+          </div>
+        )}
       </div>
 
       <ScrollArea className="flex-1 pr-4 mb-4" ref={scrollRef}>
@@ -219,24 +252,51 @@ export function AIModuleAssistant({ moduleContext }: AIModuleAssistantProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Ask a question about this module..."
+          placeholder={!user && guestMessageCount >= 1 ? "Sign in to continue..." : "Ask a question about this module..."}
           className="resize-none"
           rows={2}
-          disabled={isLoading}
+          disabled={isLoading || (!user && guestMessageCount >= 1)}
         />
         <Button
           onClick={handleSend}
-          disabled={!input.trim() || isLoading}
+          disabled={!input.trim() || isLoading || (!user && guestMessageCount >= 1)}
           size="icon"
           className="h-auto"
         >
           {isLoading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (!user && guestMessageCount >= 1) ? (
+            <Lock className="h-4 w-4" />
           ) : (
             <Send className="h-4 w-4" />
           )}
         </Button>
       </div>
+
+      {/* Auth Prompt Overlay - Option C */}
+      {showAuthPrompt && !user && (
+        <div className="absolute inset-0 bg-background/95 backdrop-blur-sm flex items-center justify-center p-4 rounded-lg z-10">
+          <Card className="p-6 text-center max-w-sm">
+            <Sparkles className="w-12 h-12 mx-auto mb-4 text-primary" />
+            <h3 className="text-xl font-semibold mb-2">Continue with AI Assistant</h3>
+            <p className="text-muted-foreground mb-4">
+              Sign in to unlock unlimited AI conversations and full learning capabilities
+            </p>
+            <div className="flex flex-col gap-2">
+              <Button onClick={() => navigate('/auth')} size="lg" className="w-full">
+                Sign In to Continue
+              </Button>
+              <Button 
+                onClick={() => setShowAuthPrompt(false)} 
+                variant="ghost" 
+                size="sm"
+              >
+                Close
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </Card>
   );
 }
