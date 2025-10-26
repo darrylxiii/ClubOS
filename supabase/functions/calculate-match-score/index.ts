@@ -8,11 +8,21 @@ const corsHeaders = {
 
 // Input validation schema
 const requestSchema = z.object({
-  jobId: z.string().uuid('Invalid job ID format'),
-  userId: z.string().uuid('Invalid user ID format'),
+  jobId: z.string().min(1),
+  userId: z.string().min(1),
   jobTitle: z.string().min(1, 'Job title is required').max(500),
   company: z.string().min(1, 'Company is required').max(500),
   tags: z.array(z.string()).optional().default([]),
+  test_mode: z.boolean().optional().default(false),
+  test_profile: z.object({
+    current_title: z.string().optional(),
+    location: z.string().optional(),
+    career_preferences: z.string().optional(),
+    employment_type_preference: z.string().optional(),
+    remote_work_preference: z.boolean().optional(),
+    desired_salary_min: z.number().optional(),
+    desired_salary_max: z.number().optional(),
+  }).optional(),
 });
 
 Deno.serve(async (req) => {
@@ -36,7 +46,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { jobId, jobTitle, company, tags, userId } = validationResult.data;
+    const { jobId, jobTitle, company, tags, userId, test_mode, test_profile } = validationResult.data;
     console.log('Calculating match score for:', { jobId, jobTitle, company, userId });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -49,16 +59,33 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Fetch user profile
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    // Fetch user profile or use test data
+    let profile;
+    if (test_mode) {
+      // Use mock profile data in test mode
+      profile = test_profile || {
+        current_title: 'Test Candidate',
+        location: 'Not specified',
+        career_preferences: 'Not specified',
+        employment_type_preference: 'Not specified',
+        remote_work_preference: false,
+        desired_salary_min: null,
+        desired_salary_max: null,
+      };
+      console.log('[Test Mode] Using mock profile data');
+    } else {
+      // Fetch real profile from database
+      const { data: fetchedProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    if (profileError) {
-      console.error('Error fetching profile:', profileError);
-      throw new Error('Failed to fetch user profile');
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        throw new Error('Failed to fetch user profile');
+      }
+      profile = fetchedProfile;
     }
 
     // Construct AI prompt
@@ -146,29 +173,33 @@ Be specific and realistic. Timeframes should match the actual effort needed (e.g
 
     console.log('AI analysis complete:', analysis);
 
-    // Store in database
-    const { error: insertError } = await supabase
-      .from('match_scores')
-      .upsert({
-        user_id: userId,
-        job_id: jobId,
-        overall_score: analysis.overall_score,
-        required_criteria_met: analysis.required_criteria_met,
-        required_criteria_total: analysis.required_criteria_total,
-        preferred_criteria_met: analysis.preferred_criteria_met,
-        preferred_criteria_total: analysis.preferred_criteria_total,
-        club_match_factors: analysis.club_match_factors,
-        club_match_score: analysis.club_match_score,
-        additional_factors: analysis.additional_factors,
-        gaps: analysis.gaps,
-        hard_stops: analysis.hard_stops,
-        quick_wins: analysis.quick_wins,
-        longer_term_actions: analysis.longer_term_actions,
-      });
+    // Store in database (skip in test mode)
+    if (!test_mode) {
+      const { error: insertError } = await supabase
+        .from('match_scores')
+        .upsert({
+          user_id: userId,
+          job_id: jobId,
+          overall_score: analysis.overall_score,
+          required_criteria_met: analysis.required_criteria_met,
+          required_criteria_total: analysis.required_criteria_total,
+          preferred_criteria_met: analysis.preferred_criteria_met,
+          preferred_criteria_total: analysis.preferred_criteria_total,
+          club_match_factors: analysis.club_match_factors,
+          club_match_score: analysis.club_match_score,
+          additional_factors: analysis.additional_factors,
+          gaps: analysis.gaps,
+          hard_stops: analysis.hard_stops,
+          quick_wins: analysis.quick_wins,
+          longer_term_actions: analysis.longer_term_actions,
+        });
 
-    if (insertError) {
-      console.error('Error storing match score:', insertError);
-      throw new Error('Failed to store match score');
+      if (insertError) {
+        console.error('Error storing match score:', insertError);
+        throw new Error('Failed to store match score');
+      }
+    } else {
+      console.log('[Test Mode] Skipping database storage');
     }
 
     return new Response(

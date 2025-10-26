@@ -69,14 +69,26 @@ const AIConfiguration = () => {
 
     setTesting(true);
     try {
-      // Call calculate-match-score edge function with test data
+      // Parse test profile to extract structured data
+      const profileData = {
+        current_title: testProfile.includes('Developer') || testProfile.includes('Engineer') 
+          ? testProfile.split('\n')[0] : 'Professional',
+        location: testProfile.match(/in ([A-Za-z\s]+)/)?.[1] || 'Not specified',
+        career_preferences: testProfile,
+        employment_type_preference: testProfile.toLowerCase().includes('remote') ? 'remote' : 'hybrid',
+        remote_work_preference: testProfile.toLowerCase().includes('remote'),
+      };
+
+      // Call calculate-match-score edge function with test mode
       const { data, error } = await supabase.functions.invoke('calculate-match-score', {
         body: {
-          jobId: 'test-job-id',
-          userId: 'test-user-id',
+          test_mode: true,
+          jobId: 'test-job',
+          userId: 'test-user',
           jobTitle: testJob,
           company: 'Test Company',
           tags: [],
+          test_profile: profileData,
         },
       });
 
