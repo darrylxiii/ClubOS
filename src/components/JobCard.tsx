@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Building2, MapPin, Clock, Bookmark, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,9 +9,11 @@ import { StatusBadge } from "./StatusBadge";
 import { MatchScoreDialog } from "./MatchScoreDialog";
 
 interface JobCardProps {
+  id?: string;
   title: string;
   company: string;
   companyLogo?: string;
+  companySlug?: string;
   location: string;
   type: string;
   postedDate: string;
@@ -26,9 +29,11 @@ interface JobCardProps {
 }
 
 export const JobCard = ({
+  id,
   title,
   company,
   companyLogo,
+  companySlug,
   location,
   type,
   postedDate,
@@ -42,7 +47,17 @@ export const JobCard = ({
   onClubSync,
   onToggleSave,
 }: JobCardProps) => {
+  const navigate = useNavigate();
   const [showBreakdown, setShowBreakdown] = useState(false);
+
+  const handleCardClick = () => {
+    if (id) navigate(`/jobs/${id}`);
+  };
+
+  const handleButtonClick = (e: React.MouseEvent, callback?: () => void) => {
+    e.stopPropagation();
+    callback?.();
+  };
 
   const getScoreColor = (score: number) => {
     if (score >= 90) return "text-foreground";
@@ -56,7 +71,10 @@ export const JobCard = ({
     return "bg-muted/10";
   };
   return (
-    <Card className="group relative overflow-hidden border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300">
+    <Card 
+      className="group relative overflow-hidden border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300 cursor-pointer" 
+      onClick={handleCardClick}
+    >
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4 flex-1">
@@ -86,7 +104,7 @@ export const JobCard = ({
             variant="ghost" 
             size="icon" 
             className="shrink-0 hover:bg-accent/10"
-            onClick={onToggleSave}
+            onClick={(e) => handleButtonClick(e, onToggleSave)}
           >
             <Bookmark className={`w-4 h-4 ${isSaved ? "fill-foreground text-foreground" : "text-muted-foreground"}`} />
           </Button>
@@ -169,7 +187,7 @@ export const JobCard = ({
               <>
                 {matchScore !== undefined && matchScore > 90 && onClubSync ? (
                   <Button 
-                    onClick={onClubSync} 
+                    onClick={(e) => handleButtonClick(e, onClubSync)}
                     size="sm" 
                     className="bg-muted/20 text-foreground border border-border/30 hover:bg-muted/30 hover:border-border/50 font-semibold backdrop-blur-sm"
                   >
@@ -178,7 +196,7 @@ export const JobCard = ({
                   </Button>
                 ) : (
                   <Button 
-                    onClick={onApply} 
+                    onClick={(e) => handleButtonClick(e, onApply)}
                     size="sm" 
                     className="bg-muted/20 text-foreground border border-border/30 hover:bg-muted/30 hover:border-border/50 font-semibold backdrop-blur-sm"
                   >
@@ -187,7 +205,7 @@ export const JobCard = ({
                 )}
                 {onRefer && (
                   <Button 
-                    onClick={onRefer} 
+                    onClick={(e) => handleButtonClick(e, onRefer)}
                     size="sm" 
                     variant="outline"
                     className="bg-background/20 border-border/20 hover:bg-background/30 hover:border-border/30 backdrop-blur-sm"

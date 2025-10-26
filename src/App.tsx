@@ -32,6 +32,7 @@ const ClubHome = lazy(() => import("./pages/ClubHome"));
 const InviteAcceptance = lazy(() => import("./pages/InviteAcceptance"));
 const InviteComplete = lazy(() => import("./pages/InviteComplete"));
 const Jobs = lazy(() => import("./pages/Jobs"));
+const JobDetail = lazy(() => import("./pages/JobDetail"));
 const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
 const ObjectiveWorkspace = lazy(() => import("./pages/ObjectiveWorkspace"));
 const ClubAI = lazy(() => import("./pages/ClubAI"));
@@ -149,6 +150,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Jobs />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/:jobId"
+              element={
+                <ProtectedRoute>
+                  <JobDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/jobs/:jobId/dashboard"
+              element={
+                <ProtectedRoute>
+                  <JobDashboard />
                 </ProtectedRoute>
               }
             />

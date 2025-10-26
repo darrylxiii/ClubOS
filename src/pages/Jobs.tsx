@@ -272,7 +272,25 @@ const Jobs = () => {
               </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {sortedJobs.map(job => {
               const convertedSalary = getConvertedSalary(job);
-              return <JobCard key={job.id} title={job.title} company={job.company} companyLogo={job.companyLogo} location={job.location} type={job.type} postedDate={job.postedDate} tags={job.tags} salary={convertedSalary?.formatted} matchScore={job.matchScore} isSaved={savedJobIds.includes(job.id)} onApply={() => handleApply(job.title)} onRefer={() => handleRefer(job.id, job.title, job.company)} onClubSync={() => handleClubSync(job.title)} onToggleSave={() => toggleSaveJob(job.id, job.title)} />;
+              return <JobCard 
+                key={job.id} 
+                id={job.id}
+                title={job.title} 
+                company={job.company} 
+                companyLogo={job.companyLogo}
+                companySlug={job.companySlug}
+                location={job.location} 
+                type={job.type} 
+                postedDate={job.postedDate} 
+                tags={job.tags} 
+                salary={convertedSalary?.formatted} 
+                matchScore={job.matchScore} 
+                isSaved={savedJobIds.includes(job.id)} 
+                onApply={() => handleApply(job.title)} 
+                onRefer={() => handleRefer(job.id, job.title, job.company)} 
+                onClubSync={() => handleClubSync(job.title)} 
+                onToggleSave={() => toggleSaveJob(job.id, job.title)} 
+              />;
             })}
               </div>}
           </TabsContent>
@@ -345,7 +363,25 @@ const Jobs = () => {
               </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {savedJobs.map(job => {
               const convertedSalary = getConvertedSalary(job);
-              return <JobCard key={job.id} title={job.title} company={job.company} companyLogo={job.companyLogo} location={job.location} type={job.type} postedDate={job.postedDate} tags={job.tags} salary={convertedSalary?.formatted} matchScore={job.matchScore} isSaved={true} onApply={() => handleApply(job.title)} onRefer={() => handleRefer(job.id, job.title, job.company)} onClubSync={() => handleClubSync(job.title)} onToggleSave={() => toggleSaveJob(job.id, job.title)} />;
+              return <JobCard 
+                key={job.id} 
+                id={job.id}
+                title={job.title} 
+                company={job.company} 
+                companyLogo={job.companyLogo}
+                companySlug={job.companySlug}
+                location={job.location} 
+                type={job.type} 
+                postedDate={job.postedDate} 
+                tags={job.tags} 
+                salary={convertedSalary?.formatted} 
+                matchScore={job.matchScore} 
+                isSaved={true} 
+                onApply={() => handleApply(job.title)} 
+                onRefer={() => handleRefer(job.id, job.title, job.company)} 
+                onClubSync={() => handleClubSync(job.title)} 
+                onToggleSave={() => toggleSaveJob(job.id, job.title)} 
+              />;
             })}
               </div>}
           </TabsContent>
