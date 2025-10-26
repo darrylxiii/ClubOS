@@ -1,4 +1,3 @@
-import { Separator } from "@/components/ui/separator";
 import { AboutRoleSection } from "./AboutRoleSection";
 import { ResponsibilityGrid } from "./ResponsibilityGrid";
 import { SkillMatrix } from "./SkillMatrix";
@@ -28,26 +27,26 @@ interface JobDetailsSectionProps {
 
 export function JobDetailsSection({ job, company, showCompanyInfo = true }: JobDetailsSectionProps) {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* About the Role */}
       <AboutRoleSection description={job.description} />
 
-      {/* Application Timeline */}
-      <ApplicationTimeline />
-
-      {/* Key Responsibilities */}
-      <ResponsibilityGrid responsibilities={job.responsibilities} />
-
-      {/* Skills Matrix */}
+      {/* Skills & Requirements */}
       <SkillMatrix 
         mustHaveSkills={job.requirements}
         niceToHaveSkills={job.nice_to_have}
       />
 
-      {/* Benefits Showcase */}
+      {/* Key Responsibilities */}
+      <ResponsibilityGrid responsibilities={job.responsibilities} />
+
+      {/* Benefits & Perks */}
       <BenefitsShowcase benefits={job.benefits} />
 
-      {/* Company Showcase */}
+      {/* Application Process */}
+      <ApplicationTimeline />
+
+      {/* About Company */}
       {showCompanyInfo && company && (
         <CompanyShowcase company={company} />
       )}

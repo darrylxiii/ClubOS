@@ -1,4 +1,3 @@
-import { motion } from "framer-motion";
 import { 
   Heart, 
   TrendingUp, 
@@ -9,9 +8,14 @@ import {
   Users,
   Home,
   Bike,
-  GraduationCap
+  GraduationCap,
+  Gift,
+  ChevronDown
 } from "lucide-react";
-import { InteractiveCard } from "./InteractiveCard";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface BenefitsShowcaseProps {
   benefits?: string[];
@@ -75,36 +79,61 @@ const getBenefitCategory = (benefit: string) => {
 };
 
 export function BenefitsShowcase({ benefits = [] }: BenefitsShowcaseProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  
   if (benefits.length === 0) return null;
 
   return (
-    <InteractiveCard className="space-y-6">
-      <h3 className="text-2xl font-bold flex items-center gap-2">
-        <span className="w-2 h-8 bg-gradient-to-b from-accent to-primary rounded-full" />
-        Benefits & Perks
-      </h3>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {benefits.map((benefit) => {
-          const Icon = getBenefitIcon(benefit);
-          const category = getBenefitCategory(benefit);
-          
-          return (
-            <div
-              key={benefit}
-              className={`flex items-start gap-3 p-4 rounded-lg border-2 ${category.border} bg-gradient-to-br ${category.color} hover:border-primary transition-all`}
-            >
-              <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${category.color} border ${category.border} flex items-center justify-center`}>
-                <Icon className="w-5 h-5 text-foreground" />
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="border-2 hover:border-primary transition-all hover-scale">
+        <CollapsibleTrigger className="w-full">
+          <CardHeader>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3 text-left">
+                <Gift className="w-6 h-6 text-primary flex-shrink-0" />
+                <div>
+                  <h3 className="text-xl font-black">Benefits & Perks</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {benefits.length} benefits included
+                  </p>
+                </div>
               </div>
-              
-              <span className="flex-1 font-medium text-foreground">
-                {benefit}
-              </span>
+              <ChevronDown
+                className={cn(
+                  "w-6 h-6 transition-transform flex-shrink-0",
+                  isOpen && "rotate-180"
+                )}
+              />
             </div>
-          );
-        })}
-      </div>
-    </InteractiveCard>
+          </CardHeader>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <CardContent className="border-t pt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {benefits.map((benefit) => {
+                const Icon = getBenefitIcon(benefit);
+                const category = getBenefitCategory(benefit);
+                
+                return (
+                  <div
+                    key={benefit}
+                    className={`flex items-start gap-3 p-4 rounded-lg border-2 ${category.border} bg-gradient-to-br ${category.color} hover:border-primary transition-all`}
+                  >
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-lg bg-gradient-to-br ${category.color} border ${category.border} flex items-center justify-center`}>
+                      <Icon className="w-5 h-5 text-foreground" />
+                    </div>
+                    
+                    <span className="flex-1 font-medium text-foreground">
+                      {benefit}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
