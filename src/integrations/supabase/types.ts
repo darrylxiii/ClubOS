@@ -597,12 +597,17 @@ export type Database = {
       }
       applications: {
         Row: {
+          application_source:
+            | Database["public"]["Enums"]["application_source_enum"]
+            | null
           applied_at: string
           company_name: string
           created_at: string
           current_stage_index: number
           id: string
           job_id: string
+          match_factors: Json | null
+          match_score: number | null
           position: string
           stages: Json
           status: string
@@ -610,12 +615,17 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          application_source?:
+            | Database["public"]["Enums"]["application_source_enum"]
+            | null
           applied_at?: string
           company_name: string
           created_at?: string
           current_stage_index?: number
           id?: string
           job_id: string
+          match_factors?: Json | null
+          match_score?: number | null
           position: string
           stages?: Json
           status?: string
@@ -623,12 +633,17 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          application_source?:
+            | Database["public"]["Enums"]["application_source_enum"]
+            | null
           applied_at?: string
           company_name?: string
           created_at?: string
           current_stage_index?: number
           id?: string
           job_id?: string
+          match_factors?: Json | null
+          match_score?: number | null
           position?: string
           stages?: Json
           status?: string
@@ -3688,6 +3703,10 @@ export type Database = {
         Row: {
           benefits: Json | null
           closed_at: string | null
+          club_sync_activated_at: string | null
+          club_sync_status:
+            | Database["public"]["Enums"]["club_sync_status_enum"]
+            | null
           company_id: string
           created_at: string | null
           created_by: string
@@ -3705,12 +3724,17 @@ export type Database = {
           salary_min: number | null
           status: string | null
           supporting_documents: Json | null
+          tags: Json | null
           title: string
           updated_at: string | null
         }
         Insert: {
           benefits?: Json | null
           closed_at?: string | null
+          club_sync_activated_at?: string | null
+          club_sync_status?:
+            | Database["public"]["Enums"]["club_sync_status_enum"]
+            | null
           company_id: string
           created_at?: string | null
           created_by: string
@@ -3728,12 +3752,17 @@ export type Database = {
           salary_min?: number | null
           status?: string | null
           supporting_documents?: Json | null
+          tags?: Json | null
           title: string
           updated_at?: string | null
         }
         Update: {
           benefits?: Json | null
           closed_at?: string | null
+          club_sync_activated_at?: string | null
+          club_sync_status?:
+            | Database["public"]["Enums"]["club_sync_status_enum"]
+            | null
           company_id?: string
           created_at?: string | null
           created_by?: string
@@ -3751,6 +3780,7 @@ export type Database = {
           salary_min?: number | null
           status?: string | null
           supporting_documents?: Json | null
+          tags?: Json | null
           title?: string
           updated_at?: string | null
         }
@@ -10309,6 +10339,14 @@ export type Database = {
         | "partner"
         | "company_admin"
         | "recruiter"
+      application_source_enum:
+        | "direct"
+        | "club_sync"
+        | "referral"
+        | "linkedin"
+        | "careers_page"
+        | "other"
+      club_sync_status_enum: "not_offered" | "pending" | "accepted" | "declined"
       company_achievement_type: "custom" | "platform_generated"
     }
     CompositeTypes: {
@@ -10457,6 +10495,15 @@ export const Constants = {
         "company_admin",
         "recruiter",
       ],
+      application_source_enum: [
+        "direct",
+        "club_sync",
+        "referral",
+        "linkedin",
+        "careers_page",
+        "other",
+      ],
+      club_sync_status_enum: ["not_offered", "pending", "accepted", "declined"],
       company_achievement_type: ["custom", "platform_generated"],
     },
   },

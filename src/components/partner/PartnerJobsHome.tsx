@@ -151,6 +151,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           location, 
           created_at,
           company_id,
+          club_sync_status,
           companies (
             name,
             logo_url
@@ -239,7 +240,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           status: job.status,
           location: job.location || 'Remote',
           created_at: job.created_at,
-          club_sync_status: Math.random() > 0.5 ? 'accepted' : Math.random() > 0.5 ? 'pending' : 'not_offered', // TODO: Add real Club Sync table
+          club_sync_status: job.club_sync_status || 'not_offered',
           candidate_count: candidateCount,
           active_stage_count: activeStageCount,
           last_activity: lastActivity,

@@ -70,6 +70,7 @@ const Jobs = () => {
             currency,
             created_at,
             company_id,
+            tags,
             companies (
               name,
               slug,
@@ -91,10 +92,8 @@ const Jobs = () => {
           type: job.employment_type || 'fulltime',
           postedDate: new Date(job.created_at).toLocaleDateString(),
           postedDaysAgo: Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)),
-          tags: ['Leadership', 'Innovation'],
-          // TODO: Add tags to jobs table
-          matchScore: Math.floor(Math.random() * 30) + 70,
-          // TODO: Calculate real match score
+          tags: Array.isArray(job.tags) ? job.tags : [],
+          matchScore: job.match_score || null,
           salary: job.salary_max || 0,
           salaryMin: job.salary_min || 0,
           salaryMax: job.salary_max || 0,
