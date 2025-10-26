@@ -220,6 +220,7 @@ export default function JobDashboard() {
         
         return {
           ...app,
+          candidate_id: interaction?.candidate_id || null, // Add candidate_id from interactions
           full_name: profileData?.full_name || 'Candidate',
           email: profileData?.email,
           phone: profileData?.phone,
@@ -812,7 +813,12 @@ export default function JobDashboard() {
                 setSelectedStageForCandidates(null);
               }}
               onViewDetails={(candidate) => {
-                const candidateId = (candidate as any).candidate_id || (candidate as any).user_id || (candidate as any).id;
+                // Use candidate_id from the enriched data if available, otherwise try fallbacks
+                const candidateId = (candidate as any).candidate_id || (candidate as any).user_id;
+                if (!candidateId) {
+                  toast.error('Unable to load candidate profile');
+                  return;
+                }
                 navigate(`/candidates/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(selectedStageForCandidates.name)}&stageIndex=${selectedStageForCandidates.order || 0}`);
                 setSelectedStageForCandidates(null);
               }}

@@ -16,6 +16,7 @@ import { formatDistanceToNow } from "date-fns";
 
 interface Candidate {
   id: string;
+  candidate_id?: string; // Add candidate_id field
   user_id: string;
   full_name?: string;
   email?: string;
