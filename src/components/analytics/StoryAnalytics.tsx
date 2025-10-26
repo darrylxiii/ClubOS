@@ -56,13 +56,20 @@ export function StoryAnalytics() {
 
     const storyIds = stories.map(s => s.id);
 
-    // Fetch analytics for all stories
-    const supabaseAny = supabase as any;
+    // Fetch analytics for all stories - only required columns
     const [views, reactions, shares, saves] = await Promise.all([
-      supabaseAny.from('story_views').select('*').in('story_id', storyIds),
-      supabaseAny.from('story_reactions').select('*').in('story_id', storyIds),
-      supabaseAny.from('story_shares').select('*').in('story_id', storyIds),
-      supabaseAny.from('story_saves').select('*').in('story_id', storyIds),
+      supabase.from('story_views' as any)
+        .select('id, story_id, completed, watch_duration_seconds, viewed_at')
+        .in('story_id', storyIds) as any,
+      supabase.from('story_reactions' as any)
+        .select('id, story_id, emoji, created_at')
+        .in('story_id', storyIds) as any,
+      supabase.from('story_shares' as any)
+        .select('id, story_id, created_at')
+        .in('story_id', storyIds) as any,
+      supabase.from('story_saves' as any)
+        .select('id, story_id, created_at')
+        .in('story_id', storyIds) as any,
     ]);
 
     // Calculate overall stats

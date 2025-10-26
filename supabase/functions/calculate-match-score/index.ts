@@ -31,6 +31,39 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Validate authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Create auth client to verify user
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      console.error('[Auth] Invalid token:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      );
+    }
+
     // Parse and validate request body
     const rawBody = await req.json();
     const validationResult = requestSchema.safeParse(rawBody);
@@ -47,17 +80,30 @@ Deno.serve(async (req) => {
     }
 
     const { jobId, jobTitle, company, tags, userId, test_mode, test_profile } = validationResult.data;
+    
+    // Verify userId matches authenticated user (unless admin)
+    if (userId !== user.id && !test_mode) {
+      console.error('[Auth] User ID mismatch:', { requested: userId, authenticated: user.id });
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: Cannot calculate score for another user' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403 
+        }
+      );
+    }
+
+    console.log('[Auth] Authenticated user:', user.id);
     console.log('Calculating match score for:', { jobId, jobTitle, company, userId });
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
 
     if (!lovableApiKey) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use service client only for privileged writes
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Fetch user profile or use test data
     let profile;

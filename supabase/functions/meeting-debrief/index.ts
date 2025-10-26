@@ -19,6 +19,41 @@ serve(async (req) => {
   }
 
   try {
+    // Validate authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      );
+    }
+
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Create auth client to verify user
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      console.error('[Auth] Invalid token:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 401 
+        }
+      );
+    }
+
+    console.log('[Auth] Authenticated user:', user.id);
+
     // Parse and validate request body
     const rawBody = await req.json();
     const validationResult = requestSchema.safeParse(rawBody);
@@ -38,10 +73,8 @@ serve(async (req) => {
 
     console.log('Processing recording:', recordingId);
 
-    // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use service client for privileged operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get recording details
     const { data: recording, error: fetchError } = await supabase
@@ -53,6 +86,23 @@ serve(async (req) => {
     if (fetchError || !recording) {
       throw new Error('Recording not found');
     }
+
+    // Verify ownership
+    if (recording.user_id !== user.id) {
+      console.error('[Auth] Ownership verification failed:', { 
+        recording_owner: recording.user_id, 
+        authenticated_user: user.id 
+      });
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized: You do not own this recording' }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 403 
+        }
+      );
+    }
+
+    console.log('[Auth] Ownership verified');
 
     // Update status to processing
     await supabase
