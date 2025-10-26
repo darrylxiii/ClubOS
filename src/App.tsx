@@ -59,6 +59,9 @@ const Scheduling = lazy(() => import("./pages/Scheduling"));
 const JobDashboard = lazy(() => import("./pages/JobDashboard"));
 const Admin = lazy(() => import("./pages/Admin"));
 const ClubSyncRequestsPage = lazy(() => import("./pages/admin/ClubSyncRequestsPage"));
+const CompanyManagement = lazy(() => import("./pages/admin/CompanyManagement"));
+const GlobalAnalytics = lazy(() => import("./pages/admin/GlobalAnalytics"));
+const AIConfiguration = lazy(() => import("./pages/admin/AIConfiguration"));
 const Feed = lazy(() => import("./pages/Feed"));
 const Post = lazy(() => import("./pages/Post"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -324,6 +327,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ClubSyncRequestsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/companies"
+              element={
+                <ProtectedRoute>
+                  <CompanyManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/analytics"
+              element={
+                <ProtectedRoute>
+                  <GlobalAnalytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/ai-config"
+              element={
+                <ProtectedRoute>
+                  <AIConfiguration />
                 </ProtectedRoute>
               }
             />

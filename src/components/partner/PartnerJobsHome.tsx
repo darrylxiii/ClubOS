@@ -702,7 +702,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   
-                  <DropdownMenuItem className="gap-2">
+                  <DropdownMenuItem onClick={() => navigate('/admin/companies')} className="gap-2">
                     <Building2 className="w-4 h-4" />
                     <div className="flex-1">
                       <p className="font-medium">Company Management</p>
@@ -718,7 +718,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                     </div>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="gap-2">
+                  <DropdownMenuItem onClick={() => navigate('/admin/ai-config')} className="gap-2">
                     <Brain className="w-4 h-4" />
                     <div className="flex-1">
                       <p className="font-medium">AI Model Config</p>
@@ -727,6 +727,14 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                   </DropdownMenuItem>
                   
                   <DropdownMenuSeparator />
+                  
+                  <DropdownMenuItem onClick={() => navigate('/admin/club-sync-requests')} className="gap-2">
+                    <Zap className="w-4 h-4" />
+                    <div className="flex-1">
+                      <p className="font-medium">Club Sync Requests</p>
+                      <p className="text-xs text-muted-foreground">Review partner requests</p>
+                    </div>
+                  </DropdownMenuItem>
                   
                   <DropdownMenuItem className="gap-2">
                     <Activity className="w-4 h-4" />
@@ -744,7 +752,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
                     </div>
                   </DropdownMenuItem>
                   
-                  <DropdownMenuItem className="gap-2">
+                  <DropdownMenuItem onClick={() => navigate('/admin/analytics')} className="gap-2">
                     <BarChart3 className="w-4 h-4" />
                     <div className="flex-1">
                       <p className="font-medium">Global Analytics</p>
