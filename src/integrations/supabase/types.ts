@@ -1140,6 +1140,74 @@ export type Database = {
         }
         Relationships: []
       }
+      candidate_documents: {
+        Row: {
+          candidate_id: string
+          created_at: string | null
+          document_type: string
+          file_name: string
+          file_size_kb: number | null
+          file_url: string
+          id: string
+          is_verified: boolean | null
+          metadata: Json | null
+          mime_type: string | null
+          parsing_results: Json | null
+          updated_at: string | null
+          uploaded_at: string | null
+          uploaded_by: string | null
+          verification_notes: string | null
+          version_number: number | null
+          visible_to_candidate: boolean | null
+        }
+        Insert: {
+          candidate_id: string
+          created_at?: string | null
+          document_type: string
+          file_name: string
+          file_size_kb?: number | null
+          file_url: string
+          id?: string
+          is_verified?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          parsing_results?: Json | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          verification_notes?: string | null
+          version_number?: number | null
+          visible_to_candidate?: boolean | null
+        }
+        Update: {
+          candidate_id?: string
+          created_at?: string | null
+          document_type?: string
+          file_name?: string
+          file_size_kb?: number | null
+          file_url?: string
+          id?: string
+          is_verified?: boolean | null
+          metadata?: Json | null
+          mime_type?: string | null
+          parsing_results?: Json | null
+          updated_at?: string | null
+          uploaded_at?: string | null
+          uploaded_by?: string | null
+          verification_notes?: string | null
+          version_number?: number | null
+          visible_to_candidate?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_documents_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_interactions: {
         Row: {
           ai_action_items: Json | null
@@ -1293,6 +1361,7 @@ export type Database = {
           created_by: string | null
           current_company: string | null
           current_title: string | null
+          cv_parsed_at: string | null
           data_retention_date: string | null
           desired_locations: Json | null
           desired_salary_max: number | null
@@ -1301,15 +1370,19 @@ export type Database = {
           email: string
           engagement_score: number | null
           enrichment_data: Json | null
+          enrichment_last_run: string | null
           fit_score: number | null
           full_name: string
           gdpr_consent: boolean | null
           gdpr_consent_date: string | null
           github_url: string | null
+          header_media_type: string | null
+          header_media_url: string | null
           id: string
           internal_rating: number | null
           languages: Json | null
           last_activity_at: string | null
+          last_profile_update: string | null
           linkedin_profile_data: Json | null
           linkedin_url: string | null
           notice_period: string | null
@@ -1317,6 +1390,7 @@ export type Database = {
           phone: string | null
           portfolio_url: string | null
           preferred_currency: string | null
+          profile_completeness: number | null
           remote_preference: string | null
           skills: Json | null
           source_channel: string | null
@@ -1339,6 +1413,7 @@ export type Database = {
           created_by?: string | null
           current_company?: string | null
           current_title?: string | null
+          cv_parsed_at?: string | null
           data_retention_date?: string | null
           desired_locations?: Json | null
           desired_salary_max?: number | null
@@ -1347,15 +1422,19 @@ export type Database = {
           email: string
           engagement_score?: number | null
           enrichment_data?: Json | null
+          enrichment_last_run?: string | null
           fit_score?: number | null
           full_name: string
           gdpr_consent?: boolean | null
           gdpr_consent_date?: string | null
           github_url?: string | null
+          header_media_type?: string | null
+          header_media_url?: string | null
           id?: string
           internal_rating?: number | null
           languages?: Json | null
           last_activity_at?: string | null
+          last_profile_update?: string | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
           notice_period?: string | null
@@ -1363,6 +1442,7 @@ export type Database = {
           phone?: string | null
           portfolio_url?: string | null
           preferred_currency?: string | null
+          profile_completeness?: number | null
           remote_preference?: string | null
           skills?: Json | null
           source_channel?: string | null
@@ -1385,6 +1465,7 @@ export type Database = {
           created_by?: string | null
           current_company?: string | null
           current_title?: string | null
+          cv_parsed_at?: string | null
           data_retention_date?: string | null
           desired_locations?: Json | null
           desired_salary_max?: number | null
@@ -1393,15 +1474,19 @@ export type Database = {
           email?: string
           engagement_score?: number | null
           enrichment_data?: Json | null
+          enrichment_last_run?: string | null
           fit_score?: number | null
           full_name?: string
           gdpr_consent?: boolean | null
           gdpr_consent_date?: string | null
           github_url?: string | null
+          header_media_type?: string | null
+          header_media_url?: string | null
           id?: string
           internal_rating?: number | null
           languages?: Json | null
           last_activity_at?: string | null
+          last_profile_update?: string | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
           notice_period?: string | null
@@ -1409,6 +1494,7 @@ export type Database = {
           phone?: string | null
           portfolio_url?: string | null
           preferred_currency?: string | null
+          profile_completeness?: number | null
           remote_preference?: string | null
           skills?: Json | null
           source_channel?: string | null

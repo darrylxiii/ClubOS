@@ -9,7 +9,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { 
   ArrowLeft, User, Briefcase, MapPin, Mail, Phone, Linkedin, 
-  Github, Globe, Calendar, Target, TrendingUp, Eye, Activity
+  Github, Globe, Calendar, Target, TrendingUp, Eye, Activity, 
+  Star, Clock, FileText
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -21,6 +22,10 @@ import { CandidateInteractionLog } from "@/components/partner/CandidateInteracti
 import { CandidateAnalytics } from "@/components/partner/CandidateAnalytics";
 import { CandidateQuickActions } from "@/components/partner/CandidateQuickActions";
 import { MusicSection } from "@/components/profile/MusicSection";
+import { CandidateDecisionDashboard } from "@/components/partner/CandidateDecisionDashboard";
+import { CandidateDocumentsViewer } from "@/components/partner/CandidateDocumentsViewer";
+import { CandidateWorkAuthCard } from "@/components/partner/CandidateWorkAuthCard";
+import { CandidateInternalRatingCard } from "@/components/partner/CandidateInternalRatingCard";
 
 export default function CandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -111,120 +116,203 @@ export default function CandidateProfile() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="border-b bg-card">
-          <div className="container mx-auto px-4 py-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="mb-4"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
+        {/* Enhanced Header with Media Support */}
+        <Card className="border-0 rounded-none border-b">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="absolute top-4 left-4 z-20"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
 
-            <div className="flex flex-col md:flex-row gap-6 items-start">
-              <Avatar className="w-24 h-24 border-2 border-border">
-                <AvatarImage src={candidate.avatar_url || userProfile?.avatar_url} />
-                <AvatarFallback className="text-2xl">
-                  {candidate.full_name?.substring(0, 2).toUpperCase() || "?"}
-                </AvatarFallback>
-              </Avatar>
-
-              <div className="flex-1 space-y-3">
-                <div>
-                  <h1 className="text-3xl font-bold">{candidate.full_name}</h1>
-                  {candidate.current_title && (
-                    <p className="text-lg text-muted-foreground flex items-center gap-2 mt-1">
-                      <Briefcase className="w-4 h-4" />
-                      {candidate.current_title}
-                      {candidate.current_company && ` at ${candidate.current_company}`}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                  {candidate.email && (
-                    <div className="flex items-center gap-1">
-                      <Mail className="w-4 h-4" />
-                      {candidate.email}
-                    </div>
-                  )}
-                  {candidate.phone && (
-                    <div className="flex items-center gap-1">
-                      <Phone className="w-4 h-4" />
-                      {candidate.phone}
-                    </div>
-                  )}
-                  {candidate.desired_locations?.[0] && (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {candidate.desired_locations[0]}
-                    </div>
-                  )}
-                  {candidate.years_of_experience && (
-                    <Badge variant="secondary">
-                      {candidate.years_of_experience} years experience
-                    </Badge>
-                  )}
-                </div>
-
-                <div className="flex gap-2">
-                  {candidate.linkedin_url && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer">
-                        <Linkedin className="w-4 h-4 mr-1" />
-                        LinkedIn
-                      </a>
-                    </Button>
-                  )}
-                  {candidate.github_url && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={candidate.github_url} target="_blank" rel="noopener noreferrer">
-                        <Github className="w-4 h-4 mr-1" />
-                        GitHub
-                      </a>
-                    </Button>
-                  )}
-                  {candidate.portfolio_url && (
-                    <Button variant="outline" size="sm" asChild>
-                      <a href={candidate.portfolio_url} target="_blank" rel="noopener noreferrer">
-                        <Globe className="w-4 h-4 mr-1" />
-                        Portfolio
-                      </a>
-                    </Button>
-                  )}
-                </div>
-              </div>
-
-              {isTeamView && (
+          {/* Header Media - Optional wallpaper */}
+          <div className="relative w-full h-64 overflow-hidden bg-muted">
+            {candidate.header_media_url ? (
+              <>
+                {candidate.header_media_type === 'video' ? (
+                  <video 
+                    src={candidate.header_media_url} 
+                    autoPlay 
+                    loop 
+                    muted 
+                    playsInline 
+                    className="w-full h-full object-cover" 
+                  />
+                ) : (
+                  <img 
+                    src={candidate.header_media_url} 
+                    alt="Profile header" 
+                    className="w-full h-full object-cover" 
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+              </>
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-card/90 to-card/60" />
+            )}
+            
+            {/* Admin Actions - Top Right */}
+            {isTeamView && (
+              <div className="absolute top-4 right-4 z-10">
                 <CandidateQuickActions 
                   candidateId={candidateId!} 
                   candidateEmail={candidate.email}
                   onRefresh={loadCandidate}
                 />
+              </div>
+            )}
+          </div>
+
+          {/* Avatar - Overlapping */}
+          <div className="absolute top-64 left-6 transform -translate-y-1/2 z-10">
+            <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
+              <AvatarImage src={candidate.avatar_url || userProfile?.avatar_url} />
+              <AvatarFallback className="text-3xl font-bold">
+                {candidate.full_name?.substring(0, 2).toUpperCase() || "?"}
+              </AvatarFallback>
+            </Avatar>
+          </div>
+
+          {/* Profile Info with Metrics */}
+          <CardContent className="pt-20">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h1 className="text-4xl font-bold tracking-tight">{candidate.full_name}</h1>
+                {candidate.current_title && (
+                  <p className="text-lg text-muted-foreground flex items-center gap-2 mt-2">
+                    <Briefcase className="w-5 h-5" />
+                    {candidate.current_title}
+                    {candidate.current_company && ` at ${candidate.current_company}`}
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            {/* Score Badges - Admin View Only */}
+            {isTeamView && (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {candidate.profile_completeness !== null && candidate.profile_completeness !== undefined && (
+                  <Badge variant="outline" className="gap-1">
+                    <Target className="w-3 h-3" />
+                    {candidate.profile_completeness}% Complete
+                  </Badge>
+                )}
+                {candidate.engagement_score !== null && candidate.engagement_score !== undefined && (
+                  <Badge variant="outline" className="gap-1">
+                    <Activity className="w-3 h-3" />
+                    Engagement: {candidate.engagement_score}/10
+                  </Badge>
+                )}
+                {candidate.fit_score !== null && candidate.fit_score !== undefined && (
+                  <Badge variant="outline" className="gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    Fit: {candidate.fit_score}/10
+                  </Badge>
+                )}
+                {candidate.internal_rating !== null && candidate.internal_rating !== undefined && (
+                  <Badge variant="outline" className="gap-1">
+                    <Star className="w-3 h-3" />
+                    Rating: {candidate.internal_rating}/10
+                  </Badge>
+                )}
+              </div>
+            )}
+            
+            {/* Contact & Location Info */}
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+              {candidate.email && (
+                <div className="flex items-center gap-1">
+                  <Mail className="w-4 h-4" />
+                  {candidate.email}
+                </div>
+              )}
+              {candidate.phone && (
+                <div className="flex items-center gap-1">
+                  <Phone className="w-4 h-4" />
+                  {candidate.phone}
+                </div>
+              )}
+              {candidate.desired_locations?.[0] && (
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4" />
+                  {candidate.desired_locations[0]}
+                </div>
+              )}
+              {candidate.years_of_experience && (
+                <Badge variant="secondary">
+                  {candidate.years_of_experience} years experience
+                </Badge>
               )}
             </div>
-          </div>
-        </div>
+
+            {/* Social Links */}
+            <div className="flex gap-2">
+              {candidate.linkedin_url && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer">
+                    <Linkedin className="w-4 h-4 mr-1" />
+                    LinkedIn
+                  </a>
+                </Button>
+              )}
+              {candidate.github_url && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={candidate.github_url} target="_blank" rel="noopener noreferrer">
+                    <Github className="w-4 h-4 mr-1" />
+                    GitHub
+                  </a>
+                </Button>
+              )}
+              {candidate.portfolio_url && (
+                <Button variant="outline" size="sm" asChild>
+                  <a href={candidate.portfolio_url} target="_blank" rel="noopener noreferrer">
+                    <Globe className="w-4 h-4 mr-1" />
+                    Portfolio
+                  </a>
+                </Button>
+              )}
+            </div>
+            
+            {/* Last Updated Timestamp - Admin Only */}
+            {isTeamView && candidate.last_profile_update && (
+              <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                Last updated: {new Date(candidate.last_profile_update).toLocaleDateString()}
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-6">
-          <Tabs defaultValue={isTeamView ? "pipeline" : "overview"} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-7">
+          <Tabs defaultValue={isTeamView ? "decision" : "overview"} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
+              {isTeamView && <TabsTrigger value="decision">Decision</TabsTrigger>}
               <TabsTrigger value="overview">Overview</TabsTrigger>
+              {isTeamView && <TabsTrigger value="documents">Documents</TabsTrigger>}
               <TabsTrigger value="experience">Experience</TabsTrigger>
               <TabsTrigger value="social">Social</TabsTrigger>
               {isTeamView && (
                 <>
+                  <TabsTrigger value="logistics">Work Auth</TabsTrigger>
                   <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
                   <TabsTrigger value="jobs">Jobs</TabsTrigger>
                   <TabsTrigger value="activity">Activity</TabsTrigger>
                   <TabsTrigger value="analytics">Analytics</TabsTrigger>
+                  <TabsTrigger value="internal">Internal</TabsTrigger>
                 </>
               )}
             </TabsList>
+
+            {/* Decision Dashboard Tab - Admin Only */}
+            {isTeamView && (
+              <TabsContent value="decision" className="space-y-6">
+                <CandidateDecisionDashboard candidate={candidate} />
+              </TabsContent>
+            )}
 
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6">
@@ -310,6 +398,16 @@ export default function CandidateProfile() {
                 </CardContent>
               </Card>
             </TabsContent>
+
+            {/* Documents Tab - Admin Only */}
+            {isTeamView && (
+              <TabsContent value="documents" className="space-y-6">
+                <CandidateDocumentsViewer 
+                  candidateId={candidateId!} 
+                  canUpload={isTeamView}
+                />
+              </TabsContent>
+            )}
 
             {/* Experience Tab */}
             <TabsContent value="experience" className="space-y-6">
@@ -424,6 +522,13 @@ export default function CandidateProfile() {
               </Card>
             </TabsContent>
 
+            {/* Work Authorization & Logistics Tab - Admin Only */}
+            {isTeamView && (
+              <TabsContent value="logistics" className="space-y-6">
+                <CandidateWorkAuthCard candidate={candidate} />
+              </TabsContent>
+            )}
+
             {/* Team-Only Tabs */}
             {isTeamView && (
               <>
@@ -449,6 +554,14 @@ export default function CandidateProfile() {
 
                 <TabsContent value="analytics" className="space-y-6">
                   <CandidateAnalytics candidateId={candidateId!} />
+                </TabsContent>
+
+                <TabsContent value="internal" className="space-y-6">
+                  <CandidateInternalRatingCard 
+                    candidateId={candidateId!} 
+                    candidate={candidate}
+                    onUpdate={loadCandidate}
+                  />
                 </TabsContent>
               </>
             )}
