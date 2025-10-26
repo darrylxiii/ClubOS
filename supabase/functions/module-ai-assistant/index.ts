@@ -1,4 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { verifyRecaptcha, createRecaptchaErrorResponse } from '../_shared/recaptcha-verifier.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,11 +18,20 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
+
   try {
     // Authentication check
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      console.error('Module AI assistant: No authorization header');
+      await logAIUsage({
+        functionName: 'module-ai-assistant',
+        ...clientInfo,
+        success: false,
+        errorMessage: 'No authorization header'
+      });
       return new Response(
         JSON.stringify({ error: 'Authentication required' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -35,15 +47,35 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
     
     if (authError || !user) {
-      console.error('Module AI assistant: Authentication failed:', authError);
+      await logAIUsage({
+        functionName: 'module-ai-assistant',
+        ...clientInfo,
+        success: false,
+        errorMessage: 'Authentication failed'
+      });
       return new Response(
         JSON.stringify({ error: 'Invalid authentication' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Module AI assistant: Authenticated user:', user.id);
-    const { messages, moduleContext } = await req.json() as {
+    userId = user.id;
+    console.log('Module AI assistant: Authenticated user:', userId);
+
+    // Rate limiting check: 20 requests per hour
+    const rateLimit = await checkUserRateLimit(userId, 'module-ai-assistant', 20);
+    if (!rateLimit.allowed) {
+      await logAIUsage({
+        userId,
+        functionName: 'module-ai-assistant',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
+    }
+    const body = await req.json() as {
       messages: Message[];
       moduleContext?: {
         title: string;
@@ -52,7 +84,27 @@ Deno.serve(async (req) => {
         courseTitle?: string;
         learningPathTitle?: string;
       };
+      recaptchaToken?: string;
     };
+
+    const { messages, moduleContext, recaptchaToken } = body;
+
+    // reCAPTCHA verification
+    if (recaptchaToken) {
+      const recaptchaResult = await verifyRecaptcha(recaptchaToken, 'module_ai', 0.5);
+      if (!recaptchaResult.success) {
+        await logAIUsage({
+          userId,
+          functionName: 'module-ai-assistant',
+          ...clientInfo,
+          recaptchaScore: recaptchaResult.score,
+          recaptchaPassed: false,
+          success: false,
+          errorMessage: 'reCAPTCHA verification failed'
+        });
+        return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
+      }
+    }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -96,6 +148,18 @@ Keep responses focused, practical, and encouraging. Use markdown formatting for 
     });
 
     if (!response.ok) {
+      const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
+                          response.status === 402 ? 'AI credits exhausted' :
+                          'AI service error';
+      await logAIUsage({
+        userId,
+        functionName: 'module-ai-assistant',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage
+      });
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
@@ -116,11 +180,28 @@ Keep responses focused, practical, and encouraging. Use markdown formatting for 
       );
     }
 
+    // Log successful usage
+    await logAIUsage({
+      userId,
+      functionName: 'module-ai-assistant',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
+
     return new Response(response.body, {
       headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
     });
   } catch (error) {
     console.error('Module AI assistant error:', error);
+    await logAIUsage({
+      userId,
+      functionName: 'module-ai-assistant',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

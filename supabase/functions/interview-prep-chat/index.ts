@@ -1,4 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { verifyRecaptcha, createRecaptchaErrorResponse } from '../_shared/recaptcha-verifier.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,8 +14,80 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
+
   try {
-    const { messages, companyInfo, roleInfo, stage } = await req.json();
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      await logAIUsage({
+        functionName: 'interview-prep-chat',
+        ...clientInfo,
+        success: false,
+        errorMessage: 'No authorization header'
+      });
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    
+    if (authError || !user) {
+      await logAIUsage({
+        functionName: 'interview-prep-chat',
+        ...clientInfo,
+        success: false,
+        errorMessage: 'Authentication failed'
+      });
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    userId = user.id;
+
+    // Rate limiting: 12 requests per hour
+    const rateLimit = await checkUserRateLimit(userId, 'interview-prep-chat', 12);
+    if (!rateLimit.allowed) {
+      await logAIUsage({
+        userId,
+        functionName: 'interview-prep-chat',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
+    }
+    const { messages, companyInfo, roleInfo, stage, recaptchaToken } = await req.json();
+
+    // reCAPTCHA verification
+    if (recaptchaToken) {
+      const recaptchaResult = await verifyRecaptcha(recaptchaToken, 'interview_prep', 0.5);
+      if (!recaptchaResult.success) {
+        await logAIUsage({
+          userId,
+          functionName: 'interview-prep-chat',
+          ...clientInfo,
+          recaptchaScore: recaptchaResult.score,
+          recaptchaPassed: false,
+          success: false,
+          errorMessage: 'reCAPTCHA verification failed'
+        });
+        return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
+      }
+    }
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -72,6 +148,18 @@ Keep responses concise and focused. Ask one question at a time. Begin by introdu
     });
 
     if (!response.ok) {
+      const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
+                          response.status === 402 ? 'AI credits exhausted' :
+                          'AI service error';
+      await logAIUsage({
+        userId,
+        functionName: 'interview-prep-chat',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage
+      });
+
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }), {
           status: 429,
@@ -89,12 +177,28 @@ Keep responses concise and focused. Ask one question at a time. Begin by introdu
       throw new Error('AI gateway error');
     }
 
+    await logAIUsage({
+      userId,
+      functionName: 'interview-prep-chat',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
+
     return new Response(response.body, {
       headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
     });
 
   } catch (error) {
     console.error('Error in interview-prep-chat:', error);
+    await logAIUsage({
+      userId,
+      functionName: 'interview-prep-chat',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Internal server error' }),
       {

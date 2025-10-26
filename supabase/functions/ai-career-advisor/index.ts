@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { verifyRecaptcha, createRecaptchaErrorResponse } from '../_shared/recaptcha-verifier.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +15,62 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
+
   try {
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      await logAIUsage({
+        functionName: 'ai-career-advisor',
+        ...clientInfo,
+        success: false,
+        errorMessage: 'No authorization header'
+      });
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    
+    if (authError || !user) {
+      await logAIUsage({
+        functionName: 'ai-career-advisor',
+        ...clientInfo,
+        success: false,
+        errorMessage: 'Authentication failed'
+      });
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    userId = user.id;
+
+    // Rate limiting: 10 requests per hour
+    const rateLimit = await checkUserRateLimit(userId, 'ai-career-advisor', 10);
+    if (!rateLimit.allowed) {
+      await logAIUsage({
+        userId,
+        functionName: 'ai-career-advisor',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
+    }
     // Validate input
     const requestSchema = z.object({
       messages: z.array(z.object({
@@ -20,10 +78,28 @@ serve(async (req) => {
         content: z.string().min(1).max(10000)
       })).min(1).max(50),
       conversationId: z.string().uuid().optional(),
-      userId: z.string().uuid()
+      userId: z.string().uuid(),
+      recaptchaToken: z.string().optional()
     });
 
-    const { messages, conversationId, userId } = requestSchema.parse(await req.json());
+    const { messages, conversationId, recaptchaToken } = requestSchema.parse(await req.json());
+
+    // reCAPTCHA verification
+    if (recaptchaToken) {
+      const recaptchaResult = await verifyRecaptcha(recaptchaToken, 'career_advisor', 0.5);
+      if (!recaptchaResult.success) {
+        await logAIUsage({
+          userId,
+          functionName: 'ai-career-advisor',
+          ...clientInfo,
+          recaptchaScore: recaptchaResult.score,
+          recaptchaPassed: false,
+          success: false,
+          errorMessage: 'reCAPTCHA verification failed'
+        });
+        return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
+      }
+    }
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -73,6 +149,18 @@ Keep responses concise (under 200 words), actionable, and encouraging. Always su
     });
 
     if (!response.ok) {
+      const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
+                          response.status === 402 ? 'AI credits exhausted' :
+                          'AI service error';
+      await logAIUsage({
+        userId,
+        functionName: 'ai-career-advisor',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage
+      });
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
@@ -87,6 +175,15 @@ Keep responses concise (under 200 words), actionable, and encouraging. Always su
       }
       throw new Error(`AI API error: ${response.status}`);
     }
+
+    // Log successful usage
+    await logAIUsage({
+      userId,
+      functionName: 'ai-career-advisor',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
 
     // Save conversation
     if (conversationId) {
@@ -105,6 +202,14 @@ Keep responses concise (under 200 words), actionable, and encouraging. Always su
 
   } catch (error) {
     console.error('Error in ai-career-advisor:', error);
+    await logAIUsage({
+      userId,
+      functionName: 'ai-career-advisor',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    });
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to process request' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

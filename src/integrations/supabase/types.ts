@@ -559,6 +559,57 @@ export type Database = {
           },
         ]
       }
+      ai_usage_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          function_name: string
+          id: string
+          ip_address: string | null
+          rate_limit_hit: boolean | null
+          recaptcha_passed: boolean | null
+          recaptcha_score: number | null
+          request_payload: Json | null
+          response_time_ms: number | null
+          success: boolean | null
+          tokens_used: number | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          function_name: string
+          id?: string
+          ip_address?: string | null
+          rate_limit_hit?: boolean | null
+          recaptcha_passed?: boolean | null
+          recaptcha_score?: number | null
+          request_payload?: Json | null
+          response_time_ms?: number | null
+          success?: boolean | null
+          tokens_used?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          function_name?: string
+          id?: string
+          ip_address?: string | null
+          rate_limit_hit?: boolean | null
+          recaptcha_passed?: boolean | null
+          recaptcha_score?: number | null
+          request_payload?: Json | null
+          response_time_ms?: number | null
+          success?: boolean | null
+          tokens_used?: number | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       analytics_insights: {
         Row: {
           confidence_score: number | null

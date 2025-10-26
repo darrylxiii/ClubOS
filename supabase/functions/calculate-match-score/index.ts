@@ -1,5 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { verifyRecaptcha, createRecaptchaErrorResponse } from '../_shared/recaptcha-verifier.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -29,6 +32,10 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
 
   try {
     // Validate authorization header
@@ -79,11 +86,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    const { jobId, jobTitle, company, tags, userId, test_mode, test_profile } = validationResult.data;
+    const { jobId, jobTitle, company, tags, userId: requestUserId, test_mode, test_profile } = validationResult.data;
     
     // Verify userId matches authenticated user (unless admin)
-    if (userId !== user.id && !test_mode) {
-      console.error('[Auth] User ID mismatch:', { requested: userId, authenticated: user.id });
+    if (requestUserId !== user.id && !test_mode) {
+      console.error('[Auth] User ID mismatch:', { requested: requestUserId, authenticated: user.id });
       return new Response(
         JSON.stringify({ error: 'Unauthorized: Cannot calculate score for another user' }),
         { 
@@ -93,7 +100,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('[Auth] Authenticated user:', user.id);
+    userId = user.id;
+    console.log('[Auth] Authenticated user:', userId);
+
+    // Rate limiting: 7 requests per hour
+    const rateLimit = await checkUserRateLimit(userId, 'calculate-match-score', 7);
+    if (!rateLimit.allowed) {
+      await logAIUsage({
+        userId,
+        functionName: 'calculate-match-score',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
+    }
+
     console.log('Calculating match score for:', { jobId, jobTitle, company, userId });
 
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
@@ -248,6 +271,14 @@ Be specific and realistic. Timeframes should match the actual effort needed (e.g
       console.log('[Test Mode] Skipping database storage');
     }
 
+    await logAIUsage({
+      userId,
+      functionName: 'calculate-match-score',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
+
     return new Response(
       JSON.stringify({ success: true, analysis }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -255,6 +286,14 @@ Be specific and realistic. Timeframes should match the actual effort needed (e.g
 
   } catch (error) {
     console.error('[Internal] Error in calculate-match-score:', error);
+    await logAIUsage({
+      userId,
+      functionName: 'calculate-match-score',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    });
     return new Response(
       JSON.stringify({ error: 'Unable to calculate match score. Please try again.' }),
       { 
