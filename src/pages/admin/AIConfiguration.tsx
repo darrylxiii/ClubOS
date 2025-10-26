@@ -9,8 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Brain, Zap, TestTube, Save, RotateCcw } from "lucide-react";
+import { Brain, Zap, TestTube, Save, RotateCcw, Loader2, ChevronDown, CheckCircle2, AlertCircle, XCircle, TrendingUp, Clock } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 interface AIConfig {
   skillsWeight: number;
@@ -45,6 +48,7 @@ const AIConfiguration = () => {
   const [candidates, setCandidates] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+  const [showReasoningDetails, setShowReasoningDetails] = useState(false);
 
   useEffect(() => {
     if (testMode === 'real' && candidates.length === 0 && jobs.length === 0 && !loadingData) {
@@ -434,25 +438,200 @@ const AIConfiguration = () => {
             </TabsContent>
             </Tabs>
             
-            <Button onClick={handleTest} disabled={testing || (testMode === 'real' && loadingData)} className="w-full">
-              {testing ? 'Calculating...' : 'Calculate Match Score'}
+            <Button 
+              onClick={handleTest} 
+              disabled={testing || (testMode === 'real' && loadingData)} 
+              className="w-full relative"
+            >
+              {testing ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Analyzing match factors...
+                </>
+              ) : (
+                'Calculate Match Score'
+              )}
             </Button>
             
             {testResult && (
-              <div className="p-4 border rounded-lg bg-muted/50 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-semibold">Match Score:</span>
-                  <span className="text-2xl font-bold">{testResult.overall_score}%</span>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  {testResult.overall_score >= config.matchThreshold ? '✅ High Match' : '⚠️ Below Threshold'}
-                </p>
-                {testMode === 'real' && (
-                  <p className="text-xs text-muted-foreground italic">
-                    Tested with real database records
-                  </p>
-                )}
-              </div>
+              <Card className="border-2">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">Match Analysis</CardTitle>
+                    <Badge variant={testMode === 'real' ? 'default' : 'secondary'}>
+                      {testMode === 'real' ? 'Real Data' : 'Hypothetical'}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                
+                <CardContent className="space-y-4">
+                  {/* Overall Score Display */}
+                  <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">Overall Match Score</p>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-4xl font-bold ${
+                          testResult.overall_score >= 85 ? 'text-green-600' :
+                          testResult.overall_score >= 70 ? 'text-yellow-600' :
+                          testResult.overall_score >= 50 ? 'text-orange-600' :
+                          'text-red-600'
+                        }`}>
+                          {testResult.overall_score}%
+                        </span>
+                        {testResult.overall_score >= config.matchThreshold ? (
+                          <CheckCircle2 className="h-6 w-6 text-green-600" />
+                        ) : (
+                          <AlertCircle className="h-6 w-6 text-orange-600" />
+                        )}
+                      </div>
+                      <p className="text-sm mt-1">
+                        {testResult.overall_score >= config.matchThreshold 
+                          ? '✅ High Match' 
+                          : `⚠️ Below ${config.matchThreshold}% threshold`
+                        }
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Expandable Detailed Reasoning */}
+                  <Collapsible 
+                    open={showReasoningDetails} 
+                    onOpenChange={setShowReasoningDetails}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        <span>View Detailed Reasoning</span>
+                        <ChevronDown className={`h-4 w-4 transition-transform ${
+                          showReasoningDetails ? 'rotate-180' : ''
+                        }`} />
+                      </Button>
+                    </CollapsibleTrigger>
+                    
+                    <CollapsibleContent className="space-y-4 mt-4">
+                      {/* Club Match Factors */}
+                      {testResult.club_match_factors?.length > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <TrendingUp className="h-4 w-4" />
+                            Match Factors Breakdown
+                          </h4>
+                          {testResult.club_match_factors.map((factor: any, i: number) => (
+                            <div key={i} className="p-3 border rounded-lg space-y-2">
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium text-sm">{factor.factor}</span>
+                                <Badge variant={
+                                  factor.score >= 8 ? 'default' :
+                                  factor.score >= 5 ? 'secondary' :
+                                  'destructive'
+                                }>
+                                  {factor.score}/10
+                                </Badge>
+                              </div>
+                              <Progress value={factor.score * 10} className="h-2" />
+                              <p className="text-sm text-muted-foreground">{factor.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Gaps */}
+                      {testResult.gaps?.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <AlertCircle className="h-4 w-4" />
+                            Gaps & Missing Information
+                          </h4>
+                          {testResult.gaps.map((gap: any, i: number) => (
+                            <div key={i} className="p-3 border rounded-lg bg-orange-50 dark:bg-orange-950/20">
+                              <p className="font-medium text-sm">{gap.gap}</p>
+                              <p className="text-sm text-muted-foreground">{gap.impact}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Hard Stops */}
+                      {testResult.hard_stops?.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-semibold flex items-center gap-2 text-red-600">
+                            <XCircle className="h-4 w-4" />
+                            Critical Issues
+                          </h4>
+                          {testResult.hard_stops.map((stop: any, i: number) => (
+                            <div key={i} className="p-3 border-2 border-red-300 rounded-lg bg-red-50 dark:bg-red-950/20">
+                              <p className="font-medium text-sm text-red-900 dark:text-red-100">{stop.issue}</p>
+                              <p className="text-sm text-red-700 dark:text-red-300">{stop.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Quick Wins */}
+                      {testResult.quick_wins?.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-semibold flex items-center gap-2 text-green-600">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Quick Wins
+                          </h4>
+                          {testResult.quick_wins.map((win: any, i: number) => (
+                            <div key={i} className="p-3 border rounded-lg bg-green-50 dark:bg-green-950/20">
+                              <div className="flex justify-between items-start">
+                                <p className="font-medium text-sm">{win.action}</p>
+                                <Badge variant="outline" className="ml-2">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {win.timeframe}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                                {win.impact}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Long-term Actions */}
+                      {testResult.longer_term_actions?.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-semibold flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            Strategic Improvements
+                          </h4>
+                          {testResult.longer_term_actions.map((action: any, i: number) => (
+                            <div key={i} className="p-3 border rounded-lg">
+                              <div className="flex justify-between items-start">
+                                <p className="font-medium text-sm">{action.action}</p>
+                                <Badge variant="secondary" className="ml-2">
+                                  {action.timeframe}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground mt-1">{action.impact}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Additional Factors */}
+                      {testResult.additional_factors?.length > 0 && (
+                        <div className="space-y-2">
+                          <h4 className="font-semibold text-sm">Additional Considerations</h4>
+                          {testResult.additional_factors.map((factor: any, i: number) => (
+                            <div key={i} className="p-2 border rounded text-sm">
+                              <div className="flex items-center gap-2">
+                                {factor.impact === 'positive' && <CheckCircle2 className="h-4 w-4 text-green-600" />}
+                                {factor.impact === 'negative' && <XCircle className="h-4 w-4 text-red-600" />}
+                                {factor.impact === 'neutral' && <AlertCircle className="h-4 w-4 text-gray-600" />}
+                                <span className="font-medium">{factor.factor}</span>
+                              </div>
+                              <p className="text-muted-foreground mt-1">{factor.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </CollapsibleContent>
+                  </Collapsible>
+                </CardContent>
+              </Card>
             )}
           </CardContent>
         </Card>
