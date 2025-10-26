@@ -27,6 +27,8 @@ import { CandidateDocumentsViewer } from "@/components/partner/CandidateDocument
 import { CandidateWorkAuthCard } from "@/components/partner/CandidateWorkAuthCard";
 import { CandidateInternalRatingCard } from "@/components/partner/CandidateInternalRatingCard";
 import { CandidateNotesManager } from "@/components/partner/CandidateNotesManager";
+import { CandidatePipelineContextBanner } from "@/components/partner/CandidatePipelineContextBanner";
+import { SourceInformationCard } from "@/components/partner/SourceInformationCard";
 
 export default function CandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -34,6 +36,7 @@ export default function CandidateProfile() {
   const [searchParams] = useSearchParams();
   const fromJobId = searchParams.get('fromJob');
   const fromStage = searchParams.get('stage');
+  const fromStageIndex = searchParams.get('stageIndex');
   const { user } = useAuth();
   const { role } = useUserRole();
   const [candidate, setCandidate] = useState<any>(null);
@@ -120,16 +123,16 @@ export default function CandidateProfile() {
   return (
     <AppLayout>
       <div className="min-h-screen bg-background">
-        {/* Breadcrumb Navigation */}
-        {fromJobId && fromStage && (
-          <div className="container mx-auto px-4 py-4">
-            <Link 
-              to={`/jobs/${fromJobId}/dashboard`}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Job Dashboard • Stage: {fromStage}
-            </Link>
+        {/* Pipeline Context Banner */}
+        {fromJobId && (
+          <div className="container mx-auto px-4 pt-6">
+            <CandidatePipelineContextBanner
+              candidateId={candidateId!}
+              candidateName={candidate.full_name}
+              jobId={fromJobId}
+              currentStage={fromStage || undefined}
+              stageIndex={fromStageIndex ? parseInt(fromStageIndex) : undefined}
+            />
           </div>
         )}
 
@@ -435,6 +438,11 @@ export default function CandidateProfile() {
                   )}
                 </CardContent>
               </Card>
+
+              {/* Source Information - For Team Only */}
+              {isTeamView && (
+                <SourceInformationCard candidateId={candidateId!} />
+              )}
             </TabsContent>
 
             {/* Experience Tab - Combines Experience, Education, Social */}

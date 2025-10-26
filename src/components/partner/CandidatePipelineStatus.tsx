@@ -3,9 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { TrendingUp, Clock, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { TrendingUp, Clock, CheckCircle2, XCircle, AlertCircle, User, ArrowRight } from "lucide-react";
+import { EnhancedCandidateActionDialog } from "./EnhancedCandidateActionDialog";
 
 interface CandidatePipelineStatusProps {
   candidateId: string;
@@ -15,6 +17,9 @@ interface CandidatePipelineStatusProps {
 export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: CandidatePipelineStatusProps) => {
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionDialogOpen, setActionDialogOpen] = useState(false);
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
+  const [actionType, setActionType] = useState<'advance' | 'decline'>('advance');
 
   useEffect(() => {
     loadApplications();
@@ -34,29 +39,66 @@ export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: Candida
         return;
       }
 
-      // Load all applications for this candidate
+      // Load all applications for this candidate with sourcer info
       const { data: appsData, error } = await supabase
         .from("applications")
         .select(`
           *,
+          sourced_by,
           jobs:job_id (
             id,
             title,
             company_id,
+            pipeline_stages,
             companies:company_id (name, logo_url)
           )
         `)
-        .eq("profiles.email", candidateEmail)
+        .or(`user_id.eq.${candidateId},candidate_id.eq.${candidate.id}`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setApplications(appsData || []);
+      
+      // Fetch sourcer profiles for all applications
+      const sourcerIds = appsData?.filter(app => app.sourced_by).map(app => app.sourced_by) || [];
+      let sourcerProfiles: any = {};
+      
+      if (sourcerIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', sourcerIds);
+        
+        sourcerProfiles = profiles?.reduce((acc: any, profile: any) => {
+          acc[profile.id] = profile;
+          return acc;
+        }, {}) || {};
+      }
+
+      // Attach sourcer info to applications
+      const enrichedApps = appsData?.map(app => ({
+        ...app,
+        sourcerProfile: app.sourced_by ? sourcerProfiles[app.sourced_by] : null
+      }));
+
+      setApplications(enrichedApps || []);
     } catch (error) {
       console.error("Error loading applications:", error);
       toast.error("Failed to load pipeline status");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleAction = (app: any, type: 'advance' | 'decline') => {
+    setSelectedApplication(app);
+    setActionType(type);
+    setActionDialogOpen(true);
+  };
+
+  const handleActionComplete = () => {
+    setActionDialogOpen(false);
+    setSelectedApplication(null);
+    loadApplications();
   };
 
   const getStatusBadge = (status: string, currentStage: any) => {
@@ -132,8 +174,11 @@ export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: Candida
       </Card>
 
       {applications.map((app) => {
-        const currentStage = app.stages?.[app.current_stage_index];
+        const stages = (app.jobs?.pipeline_stages || app.stages || []) as any[];
+        const currentStage = stages[app.current_stage_index];
         const company = app.jobs?.companies;
+        const nextStage = stages[app.current_stage_index + 1];
+        const daysInStage = Math.floor((new Date().getTime() - new Date(app.updated_at).getTime()) / (1000 * 60 * 60 * 24));
 
         return (
           <Card key={app.id}>
@@ -151,8 +196,21 @@ export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: Candida
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="w-4 h-4" />
-                    Applied {new Date(app.applied_at).toLocaleDateString()}
+                    Applied {new Date(app.applied_at).toLocaleDateString()} • {daysInStage} days in stage
                   </div>
+                  
+                  {/* Sourcer Info */}
+                  {app.sourcerProfile && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <User className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Sourced by:</span>
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={app.sourcerProfile.avatar_url} />
+                        <AvatarFallback>{app.sourcerProfile.full_name?.[0] || 'U'}</AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium">{app.sourcerProfile.full_name || 'Unknown'}</span>
+                    </div>
+                  )}
                 </div>
                 {getStatusBadge(app.status, currentStage)}
               </div>
@@ -173,7 +231,7 @@ export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: Candida
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {app.stages?.map((stage: any, index: number) => (
+                        {stages.map((stage: any, index: number) => (
                           <SelectItem key={index} value={index.toString()}>
                             {stage.name}
                           </SelectItem>
@@ -182,37 +240,46 @@ export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: Candida
                     </Select>
                   </div>
 
-                  {/* Progress Bar */}
                   <div className="space-y-2">
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Progress</span>
-                      <span>
-                        {app.current_stage_index + 1} / {app.stages?.length || 0} stages
-                      </span>
+                      <span>{app.current_stage_index + 1} / {stages.length} stages</span>
                     </div>
                     <div className="w-full bg-muted rounded-full h-2">
                       <div
                         className="bg-primary h-2 rounded-full transition-all"
-                        style={{
-                          width: `${((app.current_stage_index + 1) / (app.stages?.length || 1)) * 100}%`,
-                        }}
+                        style={{ width: `${((app.current_stage_index + 1) / stages.length) * 100}%` }}
                       />
                     </div>
                   </div>
 
-                  {/* All Stages Timeline */}
                   <div className="flex gap-1 mt-4">
-                    {app.stages?.map((stage: any, index: number) => (
+                    {stages.map((stage: any, index: number) => (
                       <div
                         key={index}
                         className={`flex-1 h-2 rounded-full transition-all ${
-                          index <= app.current_stage_index
-                            ? "bg-primary"
-                            : "bg-muted"
+                          index <= app.current_stage_index ? "bg-primary" : "bg-muted"
                         }`}
                         title={stage.name}
                       />
                     ))}
+                  </div>
+
+                  <div className="flex gap-2 pt-3 border-t">
+                    {nextStage && (
+                      <Button size="sm" onClick={() => handleAction(app, 'advance')} className="gap-2">
+                        Advance to {nextStage.name}
+                        <ArrowRight className="h-3 w-3" />
+                      </Button>
+                    )}
+                    <Button 
+                      size="sm" variant="outline"
+                      onClick={() => handleAction(app, 'decline')}
+                      className="gap-2 border-destructive text-destructive hover:bg-destructive/10"
+                    >
+                      <XCircle className="h-3 w-3" />
+                      Decline
+                    </Button>
                   </div>
                 </div>
               )}
@@ -220,6 +287,24 @@ export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: Candida
           </Card>
         );
       })}
+
+      {/* Enhanced Action Dialog */}
+      {selectedApplication && (
+        <EnhancedCandidateActionDialog
+          open={actionDialogOpen}
+          onOpenChange={setActionDialogOpen}
+          candidateId={candidateId}
+          candidateName={candidateEmail}
+          applicationId={selectedApplication.id}
+          jobId={selectedApplication.job_id}
+          jobTitle={selectedApplication.jobs?.title || selectedApplication.position}
+          companyName={selectedApplication.jobs?.companies?.name || selectedApplication.company_name}
+          currentStage={selectedApplication.stages?.[selectedApplication.current_stage_index]?.name || 'Applied'}
+          nextStage={selectedApplication.stages?.[selectedApplication.current_stage_index + 1]?.name}
+          actionType={actionType}
+          onComplete={handleActionComplete}
+        />
+      )}
     </div>
   );
 };

@@ -601,6 +601,7 @@ export type Database = {
             | Database["public"]["Enums"]["application_source_enum"]
             | null
           applied_at: string
+          candidate_id: string | null
           company_name: string
           created_at: string
           current_stage_index: number
@@ -609,6 +610,8 @@ export type Database = {
           match_factors: Json | null
           match_score: number | null
           position: string
+          source_context: Json | null
+          sourced_by: string | null
           stages: Json
           status: string
           updated_at: string
@@ -619,6 +622,7 @@ export type Database = {
             | Database["public"]["Enums"]["application_source_enum"]
             | null
           applied_at?: string
+          candidate_id?: string | null
           company_name: string
           created_at?: string
           current_stage_index?: number
@@ -627,6 +631,8 @@ export type Database = {
           match_factors?: Json | null
           match_score?: number | null
           position: string
+          source_context?: Json | null
+          sourced_by?: string | null
           stages?: Json
           status?: string
           updated_at?: string
@@ -637,6 +643,7 @@ export type Database = {
             | Database["public"]["Enums"]["application_source_enum"]
             | null
           applied_at?: string
+          candidate_id?: string | null
           company_name?: string
           created_at?: string
           current_stage_index?: number
@@ -645,6 +652,8 @@ export type Database = {
           match_factors?: Json | null
           match_score?: number | null
           position?: string
+          source_context?: Json | null
+          sourced_by?: string | null
           stages?: Json
           status?: string
           updated_at?: string
@@ -652,10 +661,31 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "applications_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_sourced_by_fkey"
+            columns: ["sourced_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_sourced_by_fkey"
+            columns: ["sourced_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2444,6 +2474,112 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: true
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_candidate_feedback: {
+        Row: {
+          application_id: string | null
+          candidate_id: string | null
+          company_id: string
+          created_at: string | null
+          culture_fit_issues: string[] | null
+          feedback_text: string | null
+          feedback_type: string
+          id: string
+          job_id: string | null
+          location_mismatch: boolean | null
+          metadata: Json | null
+          provided_by: string
+          rating: number | null
+          rejection_reason: string | null
+          salary_mismatch: boolean | null
+          seniority_mismatch: string | null
+          skills_mismatch: string[] | null
+          stage_name: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          candidate_id?: string | null
+          company_id: string
+          created_at?: string | null
+          culture_fit_issues?: string[] | null
+          feedback_text?: string | null
+          feedback_type: string
+          id?: string
+          job_id?: string | null
+          location_mismatch?: boolean | null
+          metadata?: Json | null
+          provided_by: string
+          rating?: number | null
+          rejection_reason?: string | null
+          salary_mismatch?: boolean | null
+          seniority_mismatch?: string | null
+          skills_mismatch?: string[] | null
+          stage_name?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          candidate_id?: string | null
+          company_id?: string
+          created_at?: string | null
+          culture_fit_issues?: string[] | null
+          feedback_text?: string | null
+          feedback_type?: string
+          id?: string
+          job_id?: string | null
+          location_mismatch?: boolean | null
+          metadata?: Json | null
+          provided_by?: string
+          rating?: number | null
+          rejection_reason?: string | null
+          salary_mismatch?: boolean | null
+          seniority_mismatch?: string | null
+          skills_mismatch?: string[] | null
+          stage_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_candidate_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_candidate_feedback_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_candidate_feedback_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_candidate_feedback_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_candidate_feedback_provided_by_fkey"
+            columns: ["provided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_candidate_feedback_provided_by_fkey"
+            columns: ["provided_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -7959,6 +8095,96 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "invite_codes"
             referencedColumns: ["code"]
+          },
+        ]
+      }
+      role_candidate_feedback: {
+        Row: {
+          application_id: string | null
+          candidate_id: string | null
+          created_at: string | null
+          experience_match_score: number | null
+          feedback_text: string | null
+          feedback_type: string
+          id: string
+          job_id: string
+          metadata: Json | null
+          provided_by: string
+          rejection_reason: string | null
+          skills_match_score: number | null
+          specific_gaps: string[] | null
+          stage_name: string | null
+          strong_points: string[] | null
+        }
+        Insert: {
+          application_id?: string | null
+          candidate_id?: string | null
+          created_at?: string | null
+          experience_match_score?: number | null
+          feedback_text?: string | null
+          feedback_type: string
+          id?: string
+          job_id: string
+          metadata?: Json | null
+          provided_by: string
+          rejection_reason?: string | null
+          skills_match_score?: number | null
+          specific_gaps?: string[] | null
+          stage_name?: string | null
+          strong_points?: string[] | null
+        }
+        Update: {
+          application_id?: string | null
+          candidate_id?: string | null
+          created_at?: string | null
+          experience_match_score?: number | null
+          feedback_text?: string | null
+          feedback_type?: string
+          id?: string
+          job_id?: string
+          metadata?: Json | null
+          provided_by?: string
+          rejection_reason?: string | null
+          skills_match_score?: number | null
+          specific_gaps?: string[] | null
+          stage_name?: string | null
+          strong_points?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_candidate_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_candidate_feedback_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_candidate_feedback_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_candidate_feedback_provided_by_fkey"
+            columns: ["provided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_candidate_feedback_provided_by_fkey"
+            columns: ["provided_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
