@@ -379,13 +379,61 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   };
 
   const handleClubSyncAction = async (jobId: string, action: 'accept' | 'decline') => {
-    // TODO: Implement Club Sync API call
-    toast.success(`Club Sync ${action === 'accept' ? 'accepted' : 'declined'} for this role`, {
-      description: action === 'accept' 
-        ? "The Quantum Club will now source and vet candidates for you"
-        : "Club Sync has been declined for this role"
-    });
-    fetchJobsWithMetrics();
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      if (action === 'accept') {
+        // Create Club Sync request
+        const { data: request, error: requestError } = await supabase
+          .from('club_sync_requests')
+          .insert({
+            job_id: jobId,
+            requested_by: user.id,
+            status: 'pending',
+            notes: 'Partner requested Club Sync activation',
+          })
+          .select()
+          .single();
+
+        if (requestError) throw requestError;
+
+        // Update job status to pending
+        const { error: jobError } = await supabase
+          .from('jobs')
+          .update({ club_sync_status: 'pending' })
+          .eq('id', jobId);
+
+        if (jobError) throw jobError;
+
+        // Send notification to admins
+        await supabase.functions.invoke('notify-club-sync-request', {
+          body: {
+            requestId: request.id,
+            action: 'created',
+          },
+        });
+
+        toast.success('Club Sync requested', {
+          description: 'Your request has been sent to The Quantum Club team for review',
+        });
+      } else {
+        // Decline Club Sync
+        const { error } = await supabase
+          .from('jobs')
+          .update({ club_sync_status: 'declined' })
+          .eq('id', jobId);
+
+        if (error) throw error;
+
+        toast.success('Club Sync declined for this role');
+      }
+
+      fetchJobsWithMetrics();
+    } catch (error) {
+      console.error('Error handling Club Sync action:', error);
+      toast.error('Failed to process Club Sync request');
+    }
   };
 
   const handleQuickAction = (action: string, jobId: string, jobTitle: string) => {

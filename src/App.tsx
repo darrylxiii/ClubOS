@@ -58,6 +58,7 @@ const CompanyPage = lazy(() => import("./pages/CompanyPage"));
 const Scheduling = lazy(() => import("./pages/Scheduling"));
 const JobDashboard = lazy(() => import("./pages/JobDashboard"));
 const Admin = lazy(() => import("./pages/Admin"));
+const ClubSyncRequestsPage = lazy(() => import("./pages/admin/ClubSyncRequestsPage"));
 const Feed = lazy(() => import("./pages/Feed"));
 const Post = lazy(() => import("./pages/Post"));
 const Settings = lazy(() => import("./pages/Settings"));
@@ -315,6 +316,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/club-sync-requests"
+              element={
+                <ProtectedRoute>
+                  <ClubSyncRequestsPage />
                 </ProtectedRoute>
               }
             />
