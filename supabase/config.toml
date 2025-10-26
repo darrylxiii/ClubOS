@@ -1,5 +1,14 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
+[functions.linkedin-scraper-proxycurl]
+verify_jwt = true
+
+[functions.send-candidate-invitation]
+verify_jwt = true
+
+[functions.merge-candidate-profile]
+verify_jwt = true
+
 [functions.chat-ollama]
 verify_jwt = true
 

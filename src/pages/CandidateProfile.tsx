@@ -306,30 +306,49 @@ export default function CandidateProfile() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-6">
-          <Tabs defaultValue={isTeamView ? "decision" : "overview"} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9">
-              {isTeamView && <TabsTrigger value="decision">Decision</TabsTrigger>}
+          <Tabs defaultValue={isTeamView ? "assessment" : "overview"} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              {isTeamView && <TabsTrigger value="documents">Documents</TabsTrigger>}
+              {isTeamView && <TabsTrigger value="assessment">Assessment</TabsTrigger>}
               <TabsTrigger value="experience">Experience</TabsTrigger>
-              <TabsTrigger value="social">Social</TabsTrigger>
-              {isTeamView && (
-                <>
-                  <TabsTrigger value="logistics">Work Auth</TabsTrigger>
-                  <TabsTrigger value="notes">Notes</TabsTrigger>
-                  <TabsTrigger value="pipeline">Pipeline</TabsTrigger>
-                  <TabsTrigger value="jobs">Jobs</TabsTrigger>
-                  <TabsTrigger value="activity">Activity</TabsTrigger>
-                  <TabsTrigger value="analytics">Analytics</TabsTrigger>
-                  <TabsTrigger value="internal">Internal</TabsTrigger>
-                </>
-              )}
+              {isTeamView && <TabsTrigger value="workauth">Work Auth</TabsTrigger>}
+              {isTeamView && <TabsTrigger value="pipeline">Pipeline</TabsTrigger>}
+              {isTeamView && <TabsTrigger value="activity">Activity</TabsTrigger>}
             </TabsList>
 
-            {/* Decision Dashboard Tab - Admin Only */}
+            {/* Assessment Tab - Combines Decision, Documents, Notes, Internal - Admin Only */}
             {isTeamView && (
-              <TabsContent value="decision" className="space-y-6">
+              <TabsContent value="assessment" className="space-y-6">
                 <CandidateDecisionDashboard candidate={candidate} />
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Documents</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <CandidateDocumentsViewer 
+                      candidateId={candidateId!} 
+                      canUpload={isTeamView}
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Internal Notes & Rating</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <CandidateNotesManager 
+                      candidateId={candidateId!}
+                      userRole={role as any}
+                    />
+                    <CandidateInternalRatingCard 
+                      candidateId={candidateId!}
+                      candidate={candidate}
+                      onUpdate={loadCandidate}
+                    />
+                  </CardContent>
+                </Card>
               </TabsContent>
             )}
 
@@ -418,17 +437,7 @@ export default function CandidateProfile() {
               </Card>
             </TabsContent>
 
-            {/* Documents Tab - Admin Only */}
-            {isTeamView && (
-              <TabsContent value="documents" className="space-y-6">
-                <CandidateDocumentsViewer 
-                  candidateId={candidateId!} 
-                  canUpload={isTeamView}
-                />
-              </TabsContent>
-            )}
-
-            {/* Experience Tab */}
+            {/* Experience Tab - Combines Experience, Education, Social */}
             <TabsContent value="experience" className="space-y-6">
               {/* Work History */}
               {candidate.work_history && candidate.work_history.length > 0 && (
@@ -498,101 +507,69 @@ export default function CandidateProfile() {
                   </CardContent>
                 </Card>
               )}
-            </TabsContent>
 
-            {/* Social Tab */}
-            <TabsContent value="social" className="space-y-6">
-              {userProfile && (
-                <MusicSection
-                  spotifyConnected={userProfile.spotify_connected}
-                  appleMusicConnected={userProfile.apple_music_connected}
-                  spotifyPlaylists={userProfile.spotify_playlists || []}
-                  appleMusicPlaylists={userProfile.apple_music_playlists || []}
-                />
+              {/* Social Links Section */}
+              {(candidate.linkedin_url || candidate.github_url || candidate.portfolio_url) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Social Profiles</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {candidate.linkedin_url && (
+                      <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer" 
+                         className="flex items-center gap-2 text-sm hover:underline">
+                        <Linkedin className="w-4 h-4" />
+                        LinkedIn Profile
+                      </a>
+                    )}
+                    {candidate.github_url && (
+                      <a href={candidate.github_url} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center gap-2 text-sm hover:underline">
+                        <Github className="w-4 h-4" />
+                        GitHub Profile
+                      </a>
+                    )}
+                    {candidate.portfolio_url && (
+                      <a href={candidate.portfolio_url} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center gap-2 text-sm hover:underline">
+                        <Globe className="w-4 h-4" />
+                        Portfolio Website
+                      </a>
+                    )}
+                  </CardContent>
+                </Card>
               )}
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Social Links</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {candidate.linkedin_url && (
-                    <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer" 
-                       className="flex items-center gap-2 text-sm hover:underline">
-                      <Linkedin className="w-4 h-4" />
-                      LinkedIn Profile
-                    </a>
-                  )}
-                  {candidate.github_url && (
-                    <a href={candidate.github_url} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-2 text-sm hover:underline">
-                      <Github className="w-4 h-4" />
-                      GitHub Profile
-                    </a>
-                  )}
-                  {candidate.portfolio_url && (
-                    <a href={candidate.portfolio_url} target="_blank" rel="noopener noreferrer"
-                       className="flex items-center gap-2 text-sm hover:underline">
-                      <Globe className="w-4 h-4" />
-                      Portfolio Website
-                    </a>
-                  )}
-                </CardContent>
-              </Card>
             </TabsContent>
 
-            {/* Work Authorization & Logistics Tab - Admin Only */}
+            {/* Work Authorization Tab - Admin Only */}
             {isTeamView && (
-              <TabsContent value="logistics" className="space-y-6">
+              <TabsContent value="workauth" className="space-y-6">
                 <CandidateWorkAuthCard candidate={candidate} />
               </TabsContent>
             )}
 
-            {/* Notes Tab - Admin Only */}
+            {/* Pipeline Tab - Combines Pipeline & Jobs - Admin Only */}
             {isTeamView && (
-              <TabsContent value="notes" className="space-y-6">
-                <CandidateNotesManager 
-                  candidateId={candidateId!}
-                  userRole={role as any}
+              <TabsContent value="pipeline" className="space-y-6">
+                <CandidatePipelineStatus 
+                  candidateId={candidateId!} 
+                  candidateEmail={candidate.email}
+                />
+                <CandidateLinkedJobs 
+                  candidateId={candidateId!} 
+                  candidateEmail={candidate.email}
                 />
               </TabsContent>
             )}
 
-            {/* Team-Only Tabs */}
+            {/* Activity Tab - Combines Analytics & Activity - Admin Only */}
             {isTeamView && (
-              <>
-                <TabsContent value="pipeline" className="space-y-6">
-                  <CandidatePipelineStatus 
-                    candidateId={candidateId!} 
-                    candidateEmail={candidate.email}
-                  />
-                </TabsContent>
-
-                <TabsContent value="jobs" className="space-y-6">
-                  <CandidateLinkedJobs 
-                    candidateId={candidateId!} 
-                    candidateEmail={candidate.email}
-                  />
-                </TabsContent>
-
-                <TabsContent value="activity" className="space-y-6">
-                  <CandidateInteractionLog 
-                    candidateEmail={candidate.email}
-                  />
-                </TabsContent>
-
-                <TabsContent value="analytics" className="space-y-6">
-                  <CandidateAnalytics candidateId={candidateId!} />
-                </TabsContent>
-
-                <TabsContent value="internal" className="space-y-6">
-                  <CandidateInternalRatingCard 
-                    candidateId={candidateId!} 
-                    candidate={candidate}
-                    onUpdate={loadCandidate}
-                  />
-                </TabsContent>
-              </>
+              <TabsContent value="activity" className="space-y-6">
+                <CandidateInteractionLog 
+                  candidateEmail={candidate.email}
+                />
+                <CandidateAnalytics candidateId={candidateId!} />
+              </TabsContent>
             )}
           </Tabs>
         </div>

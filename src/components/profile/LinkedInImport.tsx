@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { LinkedinIcon, Download, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { LinkedinIcon, AlertCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -14,108 +14,89 @@ export const LinkedInImport = () => {
   const { user } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [selectedSections, setSelectedSections] = useState({
-    experience: true,
-    education: true,
-    skills: true,
-    certifications: true,
-    projects: false
-  });
-
-  const handleConnect = async () => {
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'linkedin_oidc',
-        options: {
-          redirectTo: `${window.location.origin}/profile`,
-          scopes: 'openid profile email'
-        }
-      });
-
-      if (error) throw error;
-      toast.success('Redirecting to LinkedIn...');
-    } catch (error) {
-      console.error('LinkedIn connection error:', error);
-      toast.error('Failed to connect to LinkedIn');
-    }
-  };
+  const [linkedinUrl, setLinkedinUrl] = useState('');
 
   const handleImport = async () => {
-    if (!user) return;
+    if (!user || !linkedinUrl) {
+      toast.error('Please enter a LinkedIn profile URL');
+      return;
+    }
     
     setImporting(true);
     try {
-      // Get LinkedIn profile data from the user's auth metadata
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      // Call the Proxycurl scraper edge function
+      const { data, error } = await supabase.functions.invoke('linkedin-scraper-proxycurl', {
+        body: { linkedinUrl }
+      });
+
+      if (error) throw error;
       
-      if (!authUser?.user_metadata?.linkedin_profile_data) {
-        toast.error('No LinkedIn data found. Please connect your LinkedIn account first.');
+      if (!data || data.error) {
+        toast.error(data?.error || 'Failed to scrape LinkedIn profile');
         return;
       }
 
-      const linkedInData = authUser.user_metadata.linkedin_profile_data;
-      
-      // Import selected sections
-      const sectionsToImport = Object.entries(selectedSections)
-        .filter(([_, selected]) => selected)
-        .map(([section, _]) => section);
+      const profileData = data;
 
-      // Log the import
-      const { error: logError } = await supabase
-        .from('linkedin_imports')
-        .insert({
-          user_id: user.id,
-          import_type: 'oauth',
-          imported_data: linkedInData,
-          sections_imported: sectionsToImport,
-          import_status: 'success'
-        });
+      // Update candidate profile with scraped data
+      const updates: any = {
+        linkedin_url: linkedinUrl,
+        last_profile_update: new Date().toISOString()
+      };
 
-      if (logError) console.error('Error logging import:', logError);
+      if (profileData.fullName) updates.full_name = profileData.fullName;
+      if (profileData.headline) updates.current_title = profileData.headline;
+      if (profileData.location) updates.desired_locations = [profileData.location];
+      if (profileData.summary) updates.ai_summary = profileData.summary;
+      if (profileData.yearsExperience) updates.years_of_experience = profileData.yearsExperience;
+      if (profileData.skills?.length) updates.skills = profileData.skills;
 
-      // Import experience
-      if (selectedSections.experience && linkedInData.experience) {
-        for (const exp of linkedInData.experience) {
+      // Update candidate_profiles table
+      const { error: updateError } = await supabase
+        .from('candidate_profiles')
+        .update(updates)
+        .eq('user_id', user.id);
+
+      if (updateError) throw updateError;
+
+      // Import work experience
+      if (profileData.experience?.length) {
+        for (const exp of profileData.experience) {
           await supabase.from('profile_experience').insert({
             user_id: user.id,
             company_name: exp.company,
             position_title: exp.title,
-            location: exp.location,
             start_date: exp.startDate,
             end_date: exp.endDate,
-            is_current: exp.isCurrent || false,
+            is_current: !exp.endDate,
             description: exp.description
           });
         }
       }
 
       // Import education
-      if (selectedSections.education && linkedInData.education) {
-        for (const edu of linkedInData.education) {
+      if (profileData.education?.length) {
+        for (const edu of profileData.education) {
           await supabase.from('profile_education').insert({
             user_id: user.id,
             institution_name: edu.school,
             degree_type: edu.degree,
-            field_of_study: edu.fieldOfStudy,
+            field_of_study: edu.field,
             start_date: edu.startDate,
             end_date: edu.endDate
           });
         }
       }
 
-      // Import skills
-      if (selectedSections.skills && linkedInData.skills) {
-        for (const skill of linkedInData.skills) {
-          await supabase.from('profile_skills').insert({
-            user_id: user.id,
-            skill_name: skill.name,
-            category: 'technical',
-            endorsement_count: skill.endorsementCount || 0
-          });
-        }
-      }
+      // Log the import
+      await supabase.from('linkedin_imports').insert({
+        user_id: user.id,
+        import_type: 'proxycurl',
+        imported_data: profileData,
+        import_status: 'success'
+      });
 
-      toast.success('LinkedIn data imported successfully!');
+      toast.success('LinkedIn profile imported successfully!');
       setIsDialogOpen(false);
     } catch (error) {
       console.error('Import error:', error);
@@ -145,96 +126,43 @@ export const LinkedInImport = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Connect your LinkedIn account to automatically import your professional information. 
-              We'll only access publicly available data.
+              Enter your LinkedIn profile URL to automatically import your professional information. 
+              We'll scrape publicly available data using Proxycurl.
             </AlertDescription>
           </Alert>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm">Select Sections to Import</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="experience"
-                  checked={selectedSections.experience}
-                  onCheckedChange={(checked) => setSelectedSections({...selectedSections, experience: !!checked})}
-                />
-                <Label htmlFor="experience" className="font-normal cursor-pointer">
-                  Work Experience
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="education"
-                  checked={selectedSections.education}
-                  onCheckedChange={(checked) => setSelectedSections({...selectedSections, education: !!checked})}
-                />
-                <Label htmlFor="education" className="font-normal cursor-pointer">
-                  Education
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="skills"
-                  checked={selectedSections.skills}
-                  onCheckedChange={(checked) => setSelectedSections({...selectedSections, skills: !!checked})}
-                />
-                <Label htmlFor="skills" className="font-normal cursor-pointer">
-                  Skills & Endorsements
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="certifications"
-                  checked={selectedSections.certifications}
-                  onCheckedChange={(checked) => setSelectedSections({...selectedSections, certifications: !!checked})}
-                />
-                <Label htmlFor="certifications" className="font-normal cursor-pointer">
-                  Certifications
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox 
-                  id="projects"
-                  checked={selectedSections.projects}
-                  onCheckedChange={(checked) => setSelectedSections({...selectedSections, projects: !!checked})}
-                />
-                <Label htmlFor="projects" className="font-normal cursor-pointer">
-                  Projects
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="flex flex-col gap-2">
-            <Button onClick={handleConnect} className="w-full">
-              <LinkedinIcon className="w-4 h-4 mr-2" />
-              Connect LinkedIn
-            </Button>
-            <Button 
-              onClick={handleImport} 
-              variant="secondary" 
+          <div className="space-y-2">
+            <Label htmlFor="linkedin-url">LinkedIn Profile URL</Label>
+            <Input
+              id="linkedin-url"
+              type="url"
+              placeholder="https://www.linkedin.com/in/yourprofile"
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
               disabled={importing}
-              className="w-full"
-            >
-              {importing ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Importing...
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4 mr-2" />
-                  Import Data
-                </>
-              )}
-            </Button>
+            />
           </div>
 
+          <Button 
+            onClick={handleImport} 
+            disabled={importing || !linkedinUrl}
+            className="w-full"
+          >
+            {importing ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Importing from LinkedIn...
+              </>
+            ) : (
+              <>
+                <LinkedinIcon className="w-4 h-4 mr-2" />
+                Import Profile
+              </>
+            )}
+          </Button>
+
           <p className="text-xs text-muted-foreground text-center">
-            Your data is imported securely and you can review before saving.
+            This will import your experience, education, skills, and profile information.
           </p>
         </div>
       </DialogContent>
