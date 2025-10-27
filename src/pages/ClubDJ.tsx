@@ -83,23 +83,14 @@ export default function ClubDJ() {
         return { active: true, session: data };
       } else {
         // End live session
-        const { data: sessions } = await supabase
-          .from('live_sessions')
-          .select('id')
-          .eq('dj_id', user.id)
-          .eq('is_active', true);
-        
-        if (!sessions || sessions.length === 0) {
-          throw new Error('No active session found');
-        }
-        
         const { error } = await supabase
           .from('live_sessions')
           .update({ 
             is_active: false, 
             ended_at: new Date().toISOString() 
           })
-          .eq('id', sessions[0].id);
+          .eq('dj_id', user.id)
+          .eq('is_active', true);
 
         if (error) throw error;
         return { active: false, session: null };
