@@ -37,6 +37,10 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
 
     setCreating(true);
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       const documentTitle = title.trim();
       
       const fileName = `${jobId}/supporting/${Date.now()}-${documentTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
@@ -62,13 +66,14 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
         ? jobData.supporting_documents 
         : [];
 
-      // Add new document
+      // Add new document with uploader info
       const updatedDocs = [
         ...currentDocs,
         {
           url: fileName,
           name: `${documentTitle}.txt`,
-          uploaded_at: new Date().toISOString()
+          uploaded_at: new Date().toISOString(),
+          uploaded_by: user.id
         }
       ];
 

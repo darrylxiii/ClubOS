@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -76,6 +76,25 @@ export function EnhancedCandidateActionDialog({
   const [seniorityMismatch, setSeniorityMismatch] = useState<string>("");
   const [salaryMismatch, setSalaryMismatch] = useState(false);
   const [locationMismatch, setLocationMismatch] = useState(false);
+
+  const resetForm = () => {
+    setFeedbackText("");
+    setSkillsMatch([7]);
+    setCultureFit([7]);
+    setCommunication([7]);
+    setRejectionReason("");
+    setSpecificGaps([]);
+    setSeniorityMismatch("");
+    setSalaryMismatch(false);
+    setLocationMismatch(false);
+  };
+
+  // Reset form when dialog opens or actionType changes
+  useEffect(() => {
+    if (open) {
+      resetForm();
+    }
+  }, [open, actionType]);
 
   const handleSubmit = async () => {
     if (actionType === 'decline' && !rejectionReason) {
@@ -220,18 +239,6 @@ export function EnhancedCandidateActionDialog({
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const resetForm = () => {
-    setFeedbackText("");
-    setSkillsMatch([7]);
-    setCultureFit([7]);
-    setCommunication([7]);
-    setRejectionReason("");
-    setSpecificGaps([]);
-    setSeniorityMismatch("");
-    setSalaryMismatch(false);
-    setLocationMismatch(false);
   };
 
   const toggleSkillTag = (tag: string) => {

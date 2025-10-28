@@ -15,11 +15,19 @@ interface JobDocumentsProps {
   onUpdate?: () => void;
 }
 
+interface DocumentWithUploader {
+  url: string;
+  name: string;
+  uploaded_at: string;
+  uploaded_by?: string;
+  uploader_name?: string;
+}
+
 export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [jobDescriptionUrl, setJobDescriptionUrl] = useState<string>('');
-  const [supportingDocs, setSupportingDocs] = useState<any[]>([]);
+  const [supportingDocs, setSupportingDocs] = useState<DocumentWithUploader[]>([]);
   const [newJobDescFile, setNewJobDescFile] = useState<File | null>(null);
   const [newSupportingFiles, setNewSupportingFiles] = useState<File[]>([]);
   const [viewerOpen, setViewerOpen] = useState(false);
@@ -43,7 +51,27 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       if (error) throw error;
 
       setJobDescriptionUrl(data.job_description_url || '');
-      setSupportingDocs(Array.isArray(data.supporting_documents) ? data.supporting_documents : []);
+      
+      const docs = (Array.isArray(data.supporting_documents) ? data.supporting_documents : []) as any[];
+      
+      // Enrich documents with uploader names
+      const enrichedDocs = await Promise.all(docs.map(async (doc: any) => {
+        if (doc.uploaded_by) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', doc.uploaded_by)
+            .maybeSingle();
+          
+          return {
+            ...doc,
+            uploader_name: profile?.full_name || 'Unknown'
+          } as DocumentWithUploader;
+        }
+        return doc as DocumentWithUploader;
+      }));
+      
+      setSupportingDocs(enrichedDocs);
     } catch (error) {
       console.error('Error fetching documents:', error);
       toast.error('Failed to load documents');
@@ -90,7 +118,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       
       const { error } = await supabase
         .from('jobs')
-        .update({ supporting_documents: updatedDocs })
+        .update({ supporting_documents: updatedDocs as any })
         .eq('id', jobId);
 
       if (error) throw error;
@@ -177,6 +205,10 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
   const uploadDocuments = async () => {
     setUploading(true);
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
       let updatedJobDescUrl = jobDescriptionUrl;
       const updatedSupportingDocs = [...supportingDocs];
 
@@ -214,7 +246,8 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
         updatedSupportingDocs.push({
           url: fileName,
           name: file.name,
-          uploaded_at: new Date().toISOString()
+          uploaded_at: new Date().toISOString(),
+          uploaded_by: user.id
         });
       }
       
@@ -227,7 +260,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
         .from('jobs')
         .update({
           job_description_url: updatedJobDescUrl,
-          supporting_documents: updatedSupportingDocs
+          supporting_documents: updatedSupportingDocs as any
         })
         .eq('id', jobId)
         .select();
@@ -370,6 +403,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                         <p className="font-medium text-sm">{doc.name}</p>
                         <p className="text-xs text-muted-foreground">
                           Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
+                          {doc.uploader_name && ` by ${doc.uploader_name}`}
                         </p>
                       </div>
                     </div>
