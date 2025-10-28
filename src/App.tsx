@@ -4,8 +4,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
-import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 import { RoleProvider } from "@/contexts/RoleContext";
 import { VideoPlayerProvider } from "@/contexts/VideoPlayerContext";
 import { NavigationHistoryProvider } from "@/contexts/NavigationHistoryContext";
@@ -96,8 +94,7 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
-          <TooltipProvider>
+        <TooltipProvider>
             <Toaster />
             <Sonner />
             <BrowserRouter>
@@ -494,7 +491,6 @@ const App = () => (
         </AuthProvider>
         </BrowserRouter>
           </TooltipProvider>
-        </GoogleReCaptchaProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>

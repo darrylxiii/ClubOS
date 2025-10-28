@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { Button } from "@/components/ui/button";
 import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +27,6 @@ const Auth = () => {
   const {
     resolvedTheme
   } = useTheme();
-  const { executeRecaptcha } = useGoogleReCaptcha();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
   const [isLogin, setIsLogin] = useState(!inviteCode);
@@ -115,32 +113,6 @@ const Auth = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Get reCAPTCHA token
-      if (!executeRecaptcha) {
-        toast.error('Security check not ready. Please refresh the page.');
-        setIsLoading(false);
-        return;
-      }
-
-      const recaptchaToken = await executeRecaptcha('auth');
-      
-      // Verify reCAPTCHA token with backend
-      const { data: verifyData, error: verifyError } = await supabase.functions.invoke('verify-recaptcha', {
-        body: { token: recaptchaToken }
-      });
-
-      if (verifyError || !verifyData?.success) {
-        toast.error('Security verification failed. Please try again.');
-        setIsLoading(false);
-        return;
-      }
-
-      if (verifyData.score && verifyData.score < 0.5) {
-        toast.error('Security check failed. Please try again later.');
-        setIsLoading(false);
-        return;
-      }
-
       emailSchema.parse(email);
       if (!isLogin) {
         passwordSchema.parse(password);
