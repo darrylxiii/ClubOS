@@ -181,6 +181,30 @@ export function EnhancedCandidateActionDialog({
           }
         });
 
+        // Log advancement action in interaction log
+        await supabase.from('candidate_interactions').insert({
+          candidate_id: candidateProfileId,
+          application_id: applicationId,
+          interaction_type: 'status_change',
+          interaction_direction: 'internal',
+          title: `Advanced to ${nextStage}`,
+          content: feedbackText || `Candidate advanced from ${currentStage} to ${nextStage} for ${jobTitle}`,
+          metadata: {
+            action: 'advance',
+            previous_stage: currentStage,
+            new_stage: nextStage,
+            job_id: jobId,
+            job_title: jobTitle,
+            company_name: companyName,
+            skills_match: skillsMatch[0],
+            culture_fit: cultureFit[0],
+            communication: communication[0]
+          },
+          created_by: user.id,
+          is_internal: true,
+          visible_to_candidate: false,
+        });
+
       } else if (actionType === 'decline') {
         // Update application status
         const { error: updateError } = await supabase
@@ -228,6 +252,34 @@ export function EnhancedCandidateActionDialog({
           feedback_text: feedbackText,
           specific_gaps: specificGaps,
           provided_by: user.id
+        });
+
+        // Log rejection action in interaction log
+        const rejectionLabel = REJECTION_REASONS.find(r => r.value === rejectionReason)?.label || rejectionReason;
+        await supabase.from('candidate_interactions').insert({
+          candidate_id: candidateProfileId,
+          application_id: applicationId,
+          interaction_type: 'status_change',
+          interaction_direction: 'internal',
+          title: `Candidate Rejected - ${rejectionLabel}`,
+          content: feedbackText || `Candidate declined for ${jobTitle}. Reason: ${rejectionLabel}`,
+          metadata: {
+            action: 'reject',
+            status: 'rejected',
+            rejection_reason: rejectionReason,
+            rejection_label: rejectionLabel,
+            stage: currentStage,
+            job_id: jobId,
+            job_title: jobTitle,
+            company_name: companyName,
+            specific_gaps: specificGaps,
+            seniority_mismatch: seniorityValue,
+            salary_mismatch: salaryMismatch || rejectionReason === 'salary_high',
+            location_mismatch: locationMismatch || rejectionReason === 'location'
+          },
+          created_by: user.id,
+          is_internal: true,
+          visible_to_candidate: false,
         });
       }
 

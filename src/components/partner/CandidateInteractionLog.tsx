@@ -62,6 +62,9 @@ const interactionIcons = {
   job_view: Target,
   status_change: TrendingUp,
   document: FileText,
+  rejection: TrendingUp,
+  reconsider: TrendingUp,
+  advance: TrendingUp,
 };
 
 const interactionColors = {
@@ -74,6 +77,9 @@ const interactionColors = {
   job_view: "text-indigo-500",
   status_change: "text-orange-500",
   document: "text-cyan-500",
+  rejection: "text-red-500",
+  reconsider: "text-green-500",
+  advance: "text-blue-500",
 };
 
 export const CandidateInteractionLog = ({
@@ -318,9 +324,51 @@ export const CandidateInteractionLog = ({
                         </div>
 
                         {interaction.content && (
-                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap mb-2">
                             {interaction.content}
                           </p>
+                        )}
+
+                        {/* Display metadata for status changes */}
+                        {interaction.metadata && interaction.interaction_type === 'status_change' && (
+                          <div className="mt-2 p-2 bg-muted/30 rounded-md border border-border">
+                            {interaction.metadata.action === 'reject' && (
+                              <div className="space-y-1 text-xs">
+                                <div className="font-semibold text-destructive">Rejection Details:</div>
+                                {interaction.metadata.rejection_label && (
+                                  <div>Reason: {interaction.metadata.rejection_label}</div>
+                                )}
+                                {interaction.metadata.stage && (
+                                  <div>Stage: {interaction.metadata.stage}</div>
+                                )}
+                                {interaction.metadata.specific_gaps && interaction.metadata.specific_gaps.length > 0 && (
+                                  <div>Gaps: {interaction.metadata.specific_gaps.join(', ')}</div>
+                                )}
+                              </div>
+                            )}
+                            {interaction.metadata.action === 'advance' && (
+                              <div className="space-y-1 text-xs">
+                                <div className="font-semibold text-primary">Advancement Details:</div>
+                                <div>From: {interaction.metadata.previous_stage} → To: {interaction.metadata.new_stage}</div>
+                                {interaction.metadata.skills_match && (
+                                  <div className="flex gap-2 mt-1">
+                                    <Badge variant="secondary" className="text-xs">Skills: {interaction.metadata.skills_match}/10</Badge>
+                                    <Badge variant="secondary" className="text-xs">Culture: {interaction.metadata.culture_fit}/10</Badge>
+                                    <Badge variant="secondary" className="text-xs">Comm: {interaction.metadata.communication}/10</Badge>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {interaction.metadata.action === 'reconsider' && (
+                              <div className="space-y-1 text-xs">
+                                <div className="font-semibold text-green-500">Reconsideration Details:</div>
+                                <div>Status: {interaction.metadata.previous_status} → {interaction.metadata.new_status}</div>
+                                {interaction.metadata.previous_rejection_reason && (
+                                  <div>Previous reason: {interaction.metadata.previous_rejection_reason}</div>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
 
                         {interaction.ai_sentiment && (
@@ -329,7 +377,7 @@ export const CandidateInteractionLog = ({
                           </Badge>
                         )}
 
-                        {interaction.metadata && Object.keys(interaction.metadata).length > 0 && (
+                        {interaction.metadata && interaction.interaction_type !== 'status_change' && Object.keys(interaction.metadata).length > 0 && (
                           <div className="mt-2 text-xs text-muted-foreground">
                             {JSON.stringify(interaction.metadata, null, 2)}
                           </div>

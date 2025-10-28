@@ -70,7 +70,11 @@ export function RejectedCandidateDetailDialog({
   const handleReconsider = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Update application status
+      const { error: updateError } = await supabase
         .from('applications')
         .update({ 
           status: 'active',
@@ -78,7 +82,31 @@ export function RejectedCandidateDetailDialog({
         })
         .eq('id', candidate.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
+
+      // Log the reconsideration action in interaction log
+      const { error: logError } = await supabase
+        .from('candidate_interactions')
+        .insert({
+          candidate_id: candidate.candidate_id,
+          application_id: candidate.id,
+          interaction_type: 'status_change',
+          interaction_direction: 'internal',
+          title: 'Candidate Reconsidered',
+          content: `Candidate moved back to active pipeline from rejected status. Previous rejection reason: ${REJECTION_LABELS[candidate.rejection_reason] || 'Unknown'}`,
+          metadata: {
+            action: 'reconsider',
+            previous_status: 'rejected',
+            new_status: 'active',
+            previous_rejection_reason: candidate.rejection_reason,
+            stage: candidate.stage_name
+          },
+          created_by: user.id,
+          is_internal: true,
+          visible_to_candidate: false,
+        });
+
+      if (logError) console.error('Failed to log reconsideration:', logError);
 
       toast.success("Candidate moved back to active pipeline");
       onRefresh();
