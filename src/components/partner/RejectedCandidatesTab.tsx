@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { Eye, TrendingDown, FileDown } from "lucide-react";
+import { Eye, TrendingDown, FileDown, RotateCcw, Loader2 } from "lucide-react";
 import { RejectedCandidateDetailDialog } from "./RejectedCandidateDetailDialog";
 import { RejectionInsights } from "./RejectionInsights";
 import { RejectionFilters } from "./RejectionFilters";
@@ -28,6 +28,7 @@ interface RejectedCandidate {
   location_mismatch?: boolean;
   seniority_mismatch?: string;
   reviewer_name?: string;
+  reviewer_avatar?: string;
 }
 
 interface Props {
@@ -63,6 +64,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
   const [filteredCandidates, setFilteredCandidates] = useState<RejectedCandidate[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<RejectedCandidate | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [reconsideringId, setReconsideringId] = useState<string | null>(null);
 
   // Filter states
   const [reasonFilter, setReasonFilter] = useState<string>('all');
@@ -142,7 +144,8 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
             location_mismatch,
             seniority_mismatch,
             profiles!company_candidate_feedback_provided_by_fkey (
-              full_name
+              full_name,
+              avatar_url
             )
           `)
           .eq('application_id', app.id)
@@ -167,6 +170,7 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
           location_mismatch: feedback?.location_mismatch || false,
           seniority_mismatch: feedback?.seniority_mismatch,
           reviewer_name: feedback?.profiles?.full_name,
+          reviewer_avatar: feedback?.profiles?.avatar_url,
         };
       }));
 
@@ -237,6 +241,59 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
   const handleViewDetails = (candidate: RejectedCandidate) => {
     setSelectedCandidate(candidate);
     setDetailDialogOpen(true);
+  };
+
+  const handleReconsider = async (candidate: RejectedCandidate, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setReconsideringId(candidate.id);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Update application status
+      const { error: updateError } = await supabase
+        .from('applications')
+        .update({ 
+          status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', candidate.id);
+
+      if (updateError) throw updateError;
+
+      // Log the reconsideration action
+      const { error: logError } = await supabase
+        .from('candidate_interactions')
+        .insert({
+          candidate_id: candidate.candidate_id,
+          application_id: candidate.id,
+          interaction_type: 'status_change',
+          interaction_direction: 'internal',
+          title: 'Candidate Reconsidered',
+          content: `Candidate moved back to active pipeline from rejected status. Previous rejection reason: ${REJECTION_LABELS[candidate.rejection_reason || ''] || 'Unknown'}`,
+          metadata: {
+            action: 'reconsider',
+            previous_status: 'rejected',
+            new_status: 'active',
+            previous_rejection_reason: candidate.rejection_reason,
+            stage: candidate.stage_name
+          },
+          created_by: user.id,
+          is_internal: true,
+          visible_to_candidate: false,
+        });
+
+      if (logError) console.error('Failed to log reconsideration:', logError);
+
+      toast.success(`${candidate.full_name} moved back to active pipeline`);
+      fetchRejectedCandidates();
+    } catch (error) {
+      console.error('Error reconsidering candidate:', error);
+      toast.error("Failed to reconsider candidate");
+    } finally {
+      setReconsideringId(null);
+    }
   };
 
   if (loading) {
@@ -314,15 +371,31 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                         <h3 className="font-semibold">{candidate.full_name}</h3>
                         <p className="text-sm text-muted-foreground">{candidate.email}</p>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(candidate)}
-                        className="gap-2"
-                      >
-                        <Eye className="w-4 h-4" />
-                        View Details
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => handleReconsider(candidate, e)}
+                          disabled={reconsideringId === candidate.id}
+                          className="gap-2"
+                        >
+                          {reconsideringId === candidate.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <RotateCcw className="w-4 h-4" />
+                          )}
+                          Reconsider
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewDetails(candidate)}
+                          className="gap-2"
+                        >
+                          <Eye className="w-4 h-4" />
+                          View Details
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Pipeline Progress */}
@@ -359,9 +432,16 @@ export function RejectedCandidatesTab({ jobId, stages }: Props) {
                         {new Date(candidate.rejected_at).toLocaleDateString()}
                       </span>
                       {candidate.reviewer_name && (
-                        <span className="text-xs text-muted-foreground">
-                          by {candidate.reviewer_name}
-                        </span>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span>Rejected by:</span>
+                          <Avatar className="w-5 h-5">
+                            <AvatarImage src={candidate.reviewer_avatar} />
+                            <AvatarFallback className="text-[10px]">
+                              {candidate.reviewer_name.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{candidate.reviewer_name}</span>
+                        </div>
                       )}
                     </div>
 
