@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { FileText, Download, Upload, X, Eye, Loader2 } from "lucide-react";
 import { validatePostMediaFile } from "@/lib/fileValidation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { TextDocumentCreator } from "./TextDocumentCreator";
 
 interface JobDocumentsProps {
   jobId: string;
@@ -345,10 +346,16 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       {/* Supporting Documents Section */}
       <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
         <CardHeader>
-          <CardTitle className="font-black uppercase flex items-center gap-2">
-            <FileText className="w-5 h-5" />
-            Supporting Documents
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="font-black uppercase flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              Supporting Documents
+            </CardTitle>
+            <TextDocumentCreator 
+              jobId={jobId} 
+              onDocumentCreated={fetchDocuments}
+            />
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Existing Documents */}
