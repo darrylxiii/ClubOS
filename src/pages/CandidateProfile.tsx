@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { 
   ArrowLeft, User, Briefcase, MapPin, Mail, Phone, Linkedin, 
   Github, Globe, Calendar, Target, TrendingUp, Eye, Activity, 
-  Star, Clock, FileText
+  Star, Clock, FileText, Edit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -29,6 +29,7 @@ import { CandidateInternalRatingCard } from "@/components/partner/CandidateInter
 import { CandidateNotesManager } from "@/components/partner/CandidateNotesManager";
 import { CandidatePipelineContextBanner } from "@/components/partner/CandidatePipelineContextBanner";
 import { SourceInformationCard } from "@/components/partner/SourceInformationCard";
+import { EditCandidateDialog } from "@/components/partner/EditCandidateDialog";
 
 export default function CandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -42,6 +43,7 @@ export default function CandidateProfile() {
   const [candidate, setCandidate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   
   const isTeamView = role === 'admin' || role === 'partner';
 
@@ -176,7 +178,16 @@ export default function CandidateProfile() {
             
             {/* Admin Actions - Top Right */}
             {isTeamView && (
-              <div className="absolute top-4 right-4 z-10">
+              <div className="absolute top-4 right-4 z-10 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditDialogOpen(true)}
+                  className="gap-2 bg-background/80 backdrop-blur-sm"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Profile
+                </Button>
                 <CandidateQuickActions 
                   candidateId={candidateId!} 
                   candidateEmail={candidate.email}
@@ -582,6 +593,16 @@ export default function CandidateProfile() {
           </Tabs>
         </div>
       </div>
+
+      {/* Edit Dialog */}
+      {candidate && (
+        <EditCandidateDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          candidate={candidate}
+          onSave={loadCandidate}
+        />
+      )}
     </AppLayout>
   );
 }
