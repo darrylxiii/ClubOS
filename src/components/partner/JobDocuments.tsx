@@ -346,16 +346,10 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       {/* Supporting Documents Section */}
       <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="font-black uppercase flex items-center gap-2">
-              <FileText className="w-5 h-5" />
-              Supporting Documents
-            </CardTitle>
-            <TextDocumentCreator 
-              jobId={jobId} 
-              onDocumentCreated={fetchDocuments}
-            />
-          </div>
+          <CardTitle className="font-black uppercase flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Supporting Documents
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Existing Documents */}
@@ -419,13 +413,20 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           {/* Upload New Documents */}
           <div className="space-y-2">
             <Label htmlFor="supporting-docs-upload">Add More Documents</Label>
-            <Input
-              id="supporting-docs-upload"
-              type="file"
-              accept=".pdf,.doc,.docx"
-              multiple
-              onChange={handleSupportingDocsChange}
-            />
+            <div className="flex gap-2">
+              <Input
+                id="supporting-docs-upload"
+                type="file"
+                accept=".pdf,.doc,.docx"
+                multiple
+                onChange={handleSupportingDocsChange}
+                className="flex-1"
+              />
+              <TextDocumentCreator 
+                jobId={jobId} 
+                onDocumentCreated={fetchDocuments}
+              />
+            </div>
             {newSupportingFiles.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">New files to upload:</p>

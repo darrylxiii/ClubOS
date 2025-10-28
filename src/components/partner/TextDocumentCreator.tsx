@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { FileText, Zap, Loader2 } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -14,7 +14,6 @@ interface TextDocumentCreatorProps {
 }
 
 export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCreatorProps) => {
-  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [detailedCreateOpen, setDetailedCreateOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -25,23 +24,20 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
     setContent("");
   };
 
-  const createTextDocument = async (isQuick: boolean) => {
+  const createTextDocument = async () => {
     if (!content.trim()) {
       toast.error("Please enter some content");
       return;
     }
 
-    if (!isQuick && !title.trim()) {
+    if (!title.trim()) {
       toast.error("Please enter a document title");
       return;
     }
 
     setCreating(true);
     try {
-      // Create a text file with the content
-      const documentTitle = isQuick 
-        ? `Quick Doc ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`
-        : title.trim();
+      const documentTitle = title.trim();
       
       const fileName = `${jobId}/supporting/${Date.now()}-${documentTitle.replace(/[^a-z0-9]/gi, '-').toLowerCase()}.txt`;
       const textBlob = new Blob([content], { type: 'text/plain' });
@@ -86,7 +82,6 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
 
       toast.success(`Text document "${documentTitle}" created successfully!`);
       resetForm();
-      setQuickCreateOpen(false);
       setDetailedCreateOpen(false);
       onDocumentCreated();
     } catch (error: any) {
@@ -99,87 +94,16 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
 
   return (
     <>
-      {/* Action Buttons */}
-      <div className="flex gap-2">
-        <Button
-          onClick={() => setQuickCreateOpen(true)}
-          variant="outline"
-          className="gap-2 border-primary/20 hover:bg-primary/10"
-        >
-          <Zap className="w-4 h-4" />
-          Quick Text Doc
-        </Button>
-        <Button
-          onClick={() => setDetailedCreateOpen(true)}
-          variant="default"
-          className="gap-2"
-        >
-          <FileText className="w-4 h-4" />
-          Create Text Doc
-        </Button>
-      </div>
-
-      {/* Quick Create Dialog */}
-      <Dialog open={quickCreateOpen} onOpenChange={(open) => {
-        setQuickCreateOpen(open);
-        if (!open) resetForm();
-      }}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-primary" />
-              Quick Text Document
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="quick-content">Document Content</Label>
-              <Textarea
-                id="quick-content"
-                placeholder="Type or paste your content here..."
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={12}
-                className="font-mono text-sm resize-none"
-              />
-              <p className="text-xs text-muted-foreground">
-                Auto-titled with date and time. Perfect for quick notes.
-              </p>
-            </div>
-
-            <div className="flex gap-2 justify-end pt-4 border-t">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setQuickCreateOpen(false);
-                  resetForm();
-                }}
-                disabled={creating}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={() => createTextDocument(true)}
-                disabled={creating || !content.trim()}
-                className="gap-2"
-              >
-                {creating ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4" />
-                    Create Now
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Create Button */}
+      <Button
+        onClick={() => setDetailedCreateOpen(true)}
+        variant="outline"
+        className="gap-2"
+        type="button"
+      >
+        <FileText className="w-4 h-4" />
+        Create Text Doc
+      </Button>
 
       {/* Detailed Create Dialog */}
       <Dialog open={detailedCreateOpen} onOpenChange={(open) => {
@@ -237,7 +161,7 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
                 Cancel
               </Button>
               <Button
-                onClick={() => createTextDocument(false)}
+                onClick={createTextDocument}
                 disabled={creating || !content.trim() || !title.trim()}
                 className="gap-2"
               >
@@ -260,3 +184,4 @@ export const TextDocumentCreator = ({ jobId, onDocumentCreated }: TextDocumentCr
     </>
   );
 };
+
