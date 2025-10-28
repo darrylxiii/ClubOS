@@ -11,6 +11,7 @@ import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Buil
 import { useUserRole } from "@/hooks/useUserRole";
 import { JobDashboardCandidates } from "@/components/partner/JobDashboardCandidates";
 import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
+import { RejectedCandidatesTab } from "@/components/partner/RejectedCandidatesTab";
 import { StageDetailCard } from "@/components/partner/StageDetailCard";
 import { StageCandidatesList } from "@/components/partner/StageCandidatesList";
 import { CandidateActionDialog } from "@/components/partner/CandidateActionDialog";
@@ -60,6 +61,7 @@ export default function JobDashboard() {
   const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<any>(null);
   const [selectedCandidateForAction, setSelectedCandidateForAction] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [rejectedCount, setRejectedCount] = useState(0);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -148,6 +150,15 @@ export default function JobDashboard() {
       // Fetch applications for metrics
       const stages = Array.isArray(data.pipeline_stages) ? data.pipeline_stages : [];
       await fetchApplicationsForMetrics(stages);
+      
+      // Fetch rejected count
+      const { count } = await supabase
+        .from('applications')
+        .select('*', { count: 'exact', head: true })
+        .eq('job_id', jobId)
+        .eq('status', 'rejected');
+      
+      setRejectedCount(count || 0);
     } catch (error) {
       console.error('Error fetching job:', error);
       toast.error("Failed to load job details");
@@ -668,9 +679,12 @@ export default function JobDashboard() {
 
         {/* Main Content */}
         <Tabs defaultValue="candidates" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border border-border/20">
+          <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border border-border/20">
             <TabsTrigger value="candidates" className="data-[state=active]:bg-muted/50">
               Candidates
+            </TabsTrigger>
+            <TabsTrigger value="rejected" className="data-[state=active]:bg-muted/50">
+              Rejected ({rejectedCount})
             </TabsTrigger>
             <TabsTrigger value="overview" className="data-[state=active]:bg-muted/50">
               Overview
@@ -694,6 +708,13 @@ export default function JobDashboard() {
                 fetchJobDetails();
               }}
               needsClubCheck={metrics?.needsClubCheck || 0}
+            />
+          </TabsContent>
+
+          <TabsContent value="rejected" className="space-y-4">
+            <RejectedCandidatesTab
+              jobId={job.id}
+              stages={stages}
             />
           </TabsContent>
 
