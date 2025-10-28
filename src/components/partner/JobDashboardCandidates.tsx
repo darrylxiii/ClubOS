@@ -77,11 +77,31 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
 
       if (error) throw error;
 
-      // Enrich with profiles data
+      // Enrich with candidate profile data through candidate_interactions first, then profiles
       const enrichedData = await Promise.all((data || []).map(async (app) => {
-        // Get profile data
         let profileData = null;
-        if (app.user_id) {
+        
+        // First try to get candidate_profile through candidate_interactions
+        const { data: interaction } = await supabase
+          .from('candidate_interactions')
+          .select(`
+            candidate_id,
+            candidate_profiles!candidate_interactions_candidate_id_fkey (
+              id,
+              user_id,
+              full_name,
+              email,
+              phone,
+              avatar_url
+            )
+          `)
+          .eq('application_id', app.id)
+          .maybeSingle();
+        
+        if (interaction?.candidate_profiles) {
+          profileData = interaction.candidate_profiles;
+        } else if (app.user_id) {
+          // Fallback to user profile if no candidate_profile found
           const { data: userProfile } = await supabase
             .from("profiles")
             .select("*")
