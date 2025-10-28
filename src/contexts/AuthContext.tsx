@@ -27,15 +27,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!mounted) return;
         
         console.log("[Auth] Auth state changed:", event, session?.user?.id);
-        
-        // Ignore refresh token errors - they're expected when tokens expire
-        if (event === 'SIGNED_OUT' && !session) {
-          setSession(null);
-          setUser(null);
-        } else {
-          setSession(session);
-          setUser(session?.user ?? null);
-        }
+        setSession(session);
+        setUser(session?.user ?? null);
         
         // Set loading to false for all auth state changes
         setLoading(false);

@@ -263,13 +263,10 @@ const Auth = () => {
         }
       }
     } catch (error) {
-      console.error("[Auth] Error during authentication:", error);
       if (error instanceof z.ZodError) {
         toast.error(error.errors[0].message);
-      } else if (error instanceof Error) {
-        toast.error(error.message);
       } else {
-        toast.error("An unexpected error occurred. Please try again.");
+        toast.error("An unexpected error occurred");
       }
     } finally {
       setIsLoading(false);

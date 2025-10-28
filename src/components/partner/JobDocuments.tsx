@@ -188,12 +188,8 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           .from('job-documents')
           .upload(fileName, newJobDescFile, { upsert: true });
 
-        if (uploadError) {
-          console.error('Storage upload error:', uploadError);
-          throw new Error(`Failed to upload job description: ${uploadError.message}`);
-        }
+        if (uploadError) throw uploadError;
         updatedJobDescUrl = fileName;
-        toast.success('Job description uploaded to storage');
       }
 
       // Upload supporting documents
@@ -206,49 +202,34 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           .from('job-documents')
           .upload(fileName, file);
 
-        if (uploadError) {
-          console.error('Storage upload error for supporting doc:', uploadError);
-          throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
-        }
+        if (uploadError) throw uploadError;
         updatedSupportingDocs.push({
           url: fileName,
           name: file.name,
           uploaded_at: new Date().toISOString()
         });
       }
-      
-      if (newSupportingFiles.length > 0) {
-        toast.success(`${newSupportingFiles.length} supporting document(s) uploaded to storage`);
-      }
 
       // Update job in database
-      const { error: updateError, data: updateData } = await supabase
+      const { error: updateError } = await supabase
         .from('jobs')
         .update({
           job_description_url: updatedJobDescUrl,
           supporting_documents: updatedSupportingDocs
         })
-        .eq('id', jobId)
-        .select();
+        .eq('id', jobId);
 
-      if (updateError) {
-        console.error('Database update error:', updateError);
-        throw new Error(`Failed to save to database: ${updateError.message}`);
-      }
-      
-      if (!updateData || updateData.length === 0) {
-        throw new Error('No rows updated. You may not have permission to edit this job.');
-      }
+      if (updateError) throw updateError;
 
       setJobDescriptionUrl(updatedJobDescUrl);
       setSupportingDocs(updatedSupportingDocs);
       setNewJobDescFile(null);
       setNewSupportingFiles([]);
-      toast.success('All documents saved successfully!');
+      toast.success('Documents uploaded successfully');
       onUpdate?.();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error uploading documents:', error);
-      toast.error(error.message || 'Failed to upload documents. Check console for details.');
+      toast.error('Failed to upload documents');
     } finally {
       setUploading(false);
     }
@@ -274,14 +255,14 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           {jobDescriptionUrl && !newJobDescFile && (
-            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border-2 border-accent/20">
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-accent/20">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10">
                   <FileText className="w-5 h-5 text-primary" />
                 </div>
                 <div>
                   <p className="font-semibold">Current Job Description</p>
-                  <p className="text-xs text-muted-foreground">Uploaded document ready to view</p>
+                  <p className="text-xs text-muted-foreground">Click to view or download</p>
                 </div>
               </div>
               <div className="flex gap-2">
@@ -289,10 +270,10 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                   variant="outline"
                   size="sm"
                   onClick={() => viewDocument(jobDescriptionUrl, 'Job Description')}
-                  className="gap-2 border-primary/20 hover:bg-primary/10"
+                  className="gap-2"
                 >
                   <Eye className="w-4 h-4" />
-                  Preview
+                  View
                 </Button>
                 <Button
                   variant="outline"
@@ -304,13 +285,6 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                   Download
                 </Button>
               </div>
-            </div>
-          )}
-          
-          {!jobDescriptionUrl && !newJobDescFile && (
-            <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
-              <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">No job description uploaded yet</p>
             </div>
           )}
 
@@ -325,7 +299,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
               onChange={handleJobDescChange}
             />
             {newJobDescFile && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-md border border-primary/20">
+              <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-md">
                 <FileText className="w-4 h-4" />
                 <span className="text-sm flex-1">{newJobDescFile.name}</span>
                 <Button
@@ -352,14 +326,14 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Existing Documents */}
-          {supportingDocs.length > 0 ? (
+          {supportingDocs.length > 0 && (
             <div className="space-y-2">
               <Label>Existing Documents</Label>
               <div className="space-y-2">
                 {supportingDocs.map((doc, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border-2 border-accent/20"
+                    className="flex items-center justify-between p-3 bg-muted/50 rounded-lg border border-accent/20"
                   >
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-accent/10">
@@ -368,7 +342,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                       <div>
                         <p className="font-medium text-sm">{doc.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          Uploaded {new Date(doc.uploaded_at).toLocaleDateString()}
+                          {new Date(doc.uploaded_at).toLocaleDateString()}
                         </p>
                       </div>
                     </div>
@@ -377,7 +351,6 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                         variant="outline"
                         size="sm"
                         onClick={() => viewDocument(doc.url, doc.name)}
-                        className="gap-2 border-primary/20 hover:bg-primary/10"
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
@@ -385,7 +358,6 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                         variant="outline"
                         size="sm"
                         onClick={() => downloadDocument(doc.url, doc.name)}
-                        className="gap-2"
                       >
                         <Download className="w-4 h-4" />
                       </Button>
@@ -393,7 +365,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                         variant="outline"
                         size="sm"
                         onClick={() => removeExistingDocument(doc.url)}
-                        className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        className="text-destructive hover:text-destructive"
                       >
                         <X className="w-4 h-4" />
                       </Button>
@@ -401,11 +373,6 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
                   </div>
                 ))}
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
-              <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">No supporting documents uploaded yet</p>
             </div>
           )}
 
@@ -423,7 +390,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">New files to upload:</p>
                 {newSupportingFiles.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 px-3 py-2 bg-accent/10 rounded-md border border-accent/20">
+                  <div key={index} className="flex items-center gap-2 px-3 py-2 bg-accent/10 rounded-md">
                     <FileText className="w-4 h-4" />
                     <span className="text-sm flex-1">{file.name}</span>
                     <Button
@@ -440,32 +407,26 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
             )}
           </div>
 
-          {/* Save Button - Always visible to make it clear */}
-          <div className="pt-4 border-t border-border/20">
+          {/* Upload Button */}
+          {(newJobDescFile || newSupportingFiles.length > 0) && (
             <Button
               onClick={uploadDocuments}
-              disabled={uploading || (!newJobDescFile && newSupportingFiles.length === 0)}
-              className="w-full gap-2 h-12 text-base font-bold"
-              size="lg"
+              disabled={uploading}
+              className="w-full gap-2"
             >
               {uploading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving Documents...
+                  Uploading...
                 </>
               ) : (
                 <>
-                  <Upload className="w-5 h-5" />
-                  Save All Documents
+                  <Upload className="w-4 h-4" />
+                  Upload Documents
                 </>
               )}
             </Button>
-            {!newJobDescFile && newSupportingFiles.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Select files above to save them
-              </p>
-            )}
-          </div>
+          )}
         </CardContent>
       </Card>
 
