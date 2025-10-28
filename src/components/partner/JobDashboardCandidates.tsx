@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Eye, UserCheck, UserX, MessageSquare, AlertCircle } from "lucide-react";
 import { CandidateDetailDialog } from "./CandidateDetailDialog";
-import { CandidateActionDialog } from "./CandidateActionDialog";
+import { EnhancedCandidateActionDialog } from "./EnhancedCandidateActionDialog";
 
 interface JobDashboardCandidatesProps {
   jobId: string;
@@ -22,7 +22,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
   const [actionDialog, setActionDialog] = useState<{
     open: boolean;
     application: any;
-    action: 'advance' | 'reject' | null;
+    action: 'advance' | 'decline' | null;
   }>({
     open: false,
     application: null,
@@ -73,6 +73,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
           )
         `)
         .eq('job_id', jobId)
+        .neq('status', 'rejected')
         .order('applied_at', { ascending: false });
 
       if (error) throw error;
@@ -112,6 +113,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
         
         return {
           ...app,
+          candidate_id: interaction?.candidate_id,
           profiles: profileData
         };
       }));
@@ -143,7 +145,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
     return applications.filter(app => app.current_stage_index === stageIndex);
   };
 
-  const handleOpenActionDialog = (application: any, action: 'advance' | 'reject') => {
+  const handleOpenActionDialog = (application: any, action: 'advance' | 'decline') => {
     setActionDialog({
       open: true,
       application,
@@ -282,7 +284,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => handleOpenActionDialog(app, 'reject')}
+                            onClick={() => handleOpenActionDialog(app, 'decline')}
                           >
                             <UserX className="w-4 h-4 mr-2" />
                             Reject
@@ -308,12 +310,18 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
       )}
 
       {actionDialog.application && actionDialog.action && (
-        <CandidateActionDialog
+        <EnhancedCandidateActionDialog
           open={actionDialog.open}
           onOpenChange={handleCloseActionDialog}
-          application={actionDialog.application}
-          action={actionDialog.action}
-          stages={stages}
+          candidateId={actionDialog.application.candidate_id || actionDialog.application.user_id}
+          candidateName={actionDialog.application.profiles?.full_name || 'Candidate'}
+          applicationId={actionDialog.application.id}
+          jobId={actionDialog.application.jobs?.id || jobId}
+          jobTitle={actionDialog.application.jobs?.title || ''}
+          companyName={actionDialog.application.jobs?.companies?.name || ''}
+          currentStage={stages[actionDialog.application.current_stage_index]?.name || ''}
+          nextStage={stages[actionDialog.application.current_stage_index + 1]?.name}
+          actionType={actionDialog.action}
           onComplete={handleActionComplete}
         />
       )}

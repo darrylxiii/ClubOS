@@ -12,6 +12,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { JobDashboardCandidates } from "@/components/partner/JobDashboardCandidates";
 import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
 import { RejectedCandidatesTab } from "@/components/partner/RejectedCandidatesTab";
+import { EnhancedCandidateActionDialog } from "@/components/partner/EnhancedCandidateActionDialog";
 import { StageDetailCard } from "@/components/partner/StageDetailCard";
 import { StageCandidatesList } from "@/components/partner/StageCandidatesList";
 import { CandidateActionDialog } from "@/components/partner/CandidateActionDialog";
@@ -59,7 +60,10 @@ export default function JobDashboard() {
   const [applications, setApplications] = useState<any[]>([]);
   const [displaySettings, setDisplaySettings] = useState<DisplaySettings>(defaultSettings);
   const [selectedStageForCandidates, setSelectedStageForCandidates] = useState<any>(null);
-  const [selectedCandidateForAction, setSelectedCandidateForAction] = useState<any>(null);
+  const [selectedCandidateForAction, setSelectedCandidateForAction] = useState<{
+    candidate: any;
+    action: 'advance' | 'decline';
+  } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [rejectedCount, setRejectedCount] = useState(0);
 
@@ -826,11 +830,11 @@ export default function JobDashboard() {
               stageName={selectedStageForCandidates.name}
               totalStages={job?.pipeline_stages?.length || 0}
               onAdvance={(candidate) => {
-                setSelectedCandidateForAction(candidate);
+                setSelectedCandidateForAction({ candidate, action: 'advance' });
                 setSelectedStageForCandidates(null);
               }}
               onReject={(candidate) => {
-                setSelectedCandidateForAction(candidate);
+                setSelectedCandidateForAction({ candidate, action: 'decline' });
                 setSelectedStageForCandidates(null);
               }}
               onViewDetails={(candidate) => {
@@ -850,15 +854,21 @@ export default function JobDashboard() {
 
       {/* Candidate Action Dialog */}
       {selectedCandidateForAction && (
-        <CandidateActionDialog
+        <EnhancedCandidateActionDialog
           open={!!selectedCandidateForAction}
           onOpenChange={(open) => !open && setSelectedCandidateForAction(null)}
-          application={selectedCandidateForAction}
-          action="advance"
-          stages={job?.pipeline_stages || []}
+          candidateId={selectedCandidateForAction.candidate.candidate_id || selectedCandidateForAction.candidate.user_id}
+          candidateName={selectedCandidateForAction.candidate.full_name || 'Candidate'}
+          applicationId={selectedCandidateForAction.candidate.id}
+          jobId={job.id}
+          jobTitle={job.title}
+          companyName={job.companies?.name || ''}
+          currentStage={stages[selectedCandidateForAction.candidate.current_stage_index]?.name || ''}
+          nextStage={stages[selectedCandidateForAction.candidate.current_stage_index + 1]?.name}
+          actionType={selectedCandidateForAction.action}
           onComplete={() => {
             setSelectedCandidateForAction(null);
-            fetchApplicationsForMetrics(job?.pipeline_stages || []);
+            fetchJobDetails(); // This will refresh both metrics and rejected count
           }}
         />
       )}
