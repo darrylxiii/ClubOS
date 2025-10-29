@@ -38,6 +38,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
   const [showParticipants, setShowParticipants] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
+  const [callStartTime, setCallStartTime] = useState<number | null>(null);
   
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const callingAudioRef = useRef<HTMLAudioElement>(null);
@@ -78,11 +79,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
       
       console.log('Session started successfully:', newSession.id);
       toast.success('Joined meeting room');
-      
-      // Notify parent of session creation
-      if (onSessionCreated) {
-        onSessionCreated(newSession.id);
-      }
+      setCallStartTime(Date.now());
 
       // Try to initialize media, but don't fail if it doesn't work
       try {
@@ -158,7 +155,10 @@ export function VideoCallInterface({ conversationId, participantName, participan
   const handleEndCall = async () => {
     await endSession();
     cleanup();
-    onEnd(session?.id);
+    
+    const duration = callStartTime ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
+    const participantCount = participants.length + 1; // +1 for local user
+    onEnd(duration, participantCount);
   };
 
   useEffect(() => {
@@ -173,7 +173,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
     return (
       <PreCallDiagnostics
         onComplete={handleDiagnosticsComplete}
-        onCancel={onEnd}
+        onCancel={() => onEnd(0, 0)}
       />
     );
   }
@@ -201,7 +201,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
           </div>
         </div>
         <div className="flex gap-3">
-          <Button onClick={handleEndCall} variant="outline" className="flex-1">
+          <Button onClick={() => onEnd(0, 0)} variant="outline" className="flex-1">
             Cancel
           </Button>
           <Button onClick={handleRetry} className="flex-1">
