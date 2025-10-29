@@ -29,16 +29,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      throw new Error('Unauthorized');
+    
+    // Support both authenticated and unauthenticated (public) requests
+    let user = null;
+    if (authHeader) {
+      const { data: { user: authUser } } = await supabase.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
+      user = authUser;
     }
 
     const { phone } = await req.json();
@@ -47,29 +45,31 @@ const handler = async (req: Request): Promise<Response> => {
     const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
-    // Check rate limiting
-    const { data: rateLimitCheck } = await supabase.rpc('check_verification_rate_limit', {
-      _user_id: user.id,
-      _verification_type: 'phone',
-      _action: 'send'
-    });
-
-    if (rateLimitCheck && !rateLimitCheck.allowed) {
-      await supabase.from('verification_attempts').insert({
-        user_id: user.id,
-        verification_type: 'phone',
-        action: 'send',
-        success: false,
-        phone,
-        error_message: rateLimitCheck.message,
-        ip_address: ipAddress,
-        user_agent: userAgent
+    // Check rate limiting only for authenticated users
+    if (user) {
+      const { data: rateLimitCheck } = await supabase.rpc('check_verification_rate_limit', {
+        _user_id: user.id,
+        _verification_type: 'phone',
+        _action: 'send'
       });
 
-      return new Response(
-        JSON.stringify({ error: rateLimitCheck.message }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (rateLimitCheck && !rateLimitCheck.allowed) {
+        await supabase.from('verification_attempts').insert({
+          user_id: user.id,
+          verification_type: 'phone',
+          action: 'send',
+          success: false,
+          phone,
+          error_message: rateLimitCheck.message,
+          ip_address: ipAddress,
+          user_agent: userAgent
+        });
+
+        return new Response(
+          JSON.stringify({ error: rateLimitCheck.message }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Generate new code
@@ -80,7 +80,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { error: dbError } = await supabase
       .from('phone_verifications')
       .insert({
-        user_id: user.id,
+        user_id: user?.id || null,
         phone,
         code,
         expires_at: expiresAt.toISOString(),
@@ -113,16 +113,18 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Twilio API error: ${errorText}`);
     }
 
-    // Log successful attempt
-    await supabase.from('verification_attempts').insert({
-      user_id: user.id,
-      verification_type: 'phone',
-      action: 'send',
-      success: true,
-      phone,
-      ip_address: ipAddress,
-      user_agent: userAgent
-    });
+    // Log successful attempt (only for authenticated users)
+    if (user) {
+      await supabase.from('verification_attempts').insert({
+        user_id: user.id,
+        verification_type: 'phone',
+        action: 'send',
+        success: true,
+        phone,
+        ip_address: ipAddress,
+        user_agent: userAgent
+      });
+    }
 
     const result = await twilioResponse.json();
     console.log("SMS sent successfully:", result.sid);

@@ -20,16 +20,12 @@ export const useEmailVerification = (): VerificationHookReturn => {
     setIsSendingOtp(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('Please log in first');
-        return false;
-      }
 
       const { data, error } = await supabase.functions.invoke('send-email-verification', {
         body: { email },
-        headers: {
+        headers: session ? {
           Authorization: `Bearer ${session.access_token}`
-        }
+        } : {}
       });
 
       if (error) throw error;
@@ -80,16 +76,12 @@ export const useEmailVerification = (): VerificationHookReturn => {
     setIsVerifying(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('Please log in first');
-        return false;
-      }
 
       const { data, error } = await supabase.functions.invoke('verify-email-code', {
         body: { email, code: token },
-        headers: {
+        headers: session ? {
           Authorization: `Bearer ${session.access_token}`
-        }
+        } : {}
       });
 
       if (error) throw error;

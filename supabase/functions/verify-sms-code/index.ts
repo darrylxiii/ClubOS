@@ -25,22 +25,14 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    
+    // Support both authenticated and unauthenticated (public) requests
+    let user = null;
+    if (authHeader) {
+      const { data: { user: authUser } } = await supabase.auth.getUser(
+        authHeader.replace('Bearer ', '')
       );
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      user = authUser;
     }
 
     // Parse and validate request body
@@ -58,56 +50,83 @@ const handler = async (req: Request): Promise<Response> => {
     const ipAddress = req.headers.get('x-forwarded-for') || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
-    // Check rate limiting
-    const { data: rateLimitCheck } = await supabase.rpc('check_verification_rate_limit', {
-      _user_id: user.id,
-      _verification_type: 'phone',
-      _action: 'verify'
-    });
-
-    if (rateLimitCheck && !rateLimitCheck.allowed) {
-      await supabase.from('verification_attempts').insert({
-        user_id: user.id,
-        verification_type: 'phone',
-        action: 'verify',
-        success: false,
-        phone,
-        error_message: rateLimitCheck.message,
-        ip_address: ipAddress,
-        user_agent: userAgent
+    // Check rate limiting only for authenticated users
+    if (user) {
+      const { data: rateLimitCheck } = await supabase.rpc('check_verification_rate_limit', {
+        _user_id: user.id,
+        _verification_type: 'phone',
+        _action: 'verify'
       });
 
-      return new Response(
-        JSON.stringify({ error: rateLimitCheck.message }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (rateLimitCheck && !rateLimitCheck.allowed) {
+        await supabase.from('verification_attempts').insert({
+          user_id: user.id,
+          verification_type: 'phone',
+          action: 'verify',
+          success: false,
+          phone,
+          error_message: rateLimitCheck.message,
+          ip_address: ipAddress,
+          user_agent: userAgent
+        });
+
+        return new Response(
+          JSON.stringify({ error: rateLimitCheck.message }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Find valid verification code
-    const { data: verification, error: verifyError } = await supabase
-      .from('phone_verifications')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('phone', phone)
-      .eq('code', code)
-      .is('verified_at', null)
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+    let verification;
+    let verifyError;
+    
+    if (user) {
+      // For authenticated users, match by user_id
+      const result = await supabase
+        .from('phone_verifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('phone', phone)
+        .eq('code', code)
+        .is('verified_at', null)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      verification = result.data;
+      verifyError = result.error;
+    } else {
+      // For unauthenticated users (public/partner funnel), match by phone only
+      const result = await supabase
+        .from('phone_verifications')
+        .select('*')
+        .eq('phone', phone)
+        .eq('code', code)
+        .is('verified_at', null)
+        .is('user_id', null)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      verification = result.data;
+      verifyError = result.error;
+    }
 
     if (verifyError || !verification) {
-      // Log failed attempt
-      await supabase.from('verification_attempts').insert({
-        user_id: user.id,
-        verification_type: 'phone',
-        action: 'verify',
-        success: false,
-        phone,
-        error_message: 'Invalid or expired code',
-        ip_address: ipAddress,
-        user_agent: userAgent
-      });
+      // Log failed attempt (only for authenticated users)
+      if (user) {
+        await supabase.from('verification_attempts').insert({
+          user_id: user.id,
+          verification_type: 'phone',
+          action: 'verify',
+          success: false,
+          phone,
+          error_message: 'Invalid or expired code',
+          ip_address: ipAddress,
+          user_agent: userAgent
+        });
+      }
 
       return new Response(
         JSON.stringify({ error: 'Invalid or expired verification code' }),
@@ -121,27 +140,31 @@ const handler = async (req: Request): Promise<Response> => {
       .update({ verified_at: new Date().toISOString() })
       .eq('id', verification.id);
 
-    // Update profile
-    await supabase
-      .from('profiles')
-      .update({ 
-        phone: phone,
-        phone_verified: true 
-      })
-      .eq('id', user.id);
+    // Update profile only for authenticated users
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({ 
+          phone: phone,
+          phone_verified: true 
+        })
+        .eq('id', user.id);
+    }
 
-    // Log successful attempt
-    await supabase.from('verification_attempts').insert({
-      user_id: user.id,
-      verification_type: 'phone',
-      action: 'verify',
-      success: true,
-      phone,
-      ip_address: ipAddress,
-      user_agent: userAgent
-    });
+    // Log successful attempt (only for authenticated users)
+    if (user) {
+      await supabase.from('verification_attempts').insert({
+        user_id: user.id,
+        verification_type: 'phone',
+        action: 'verify',
+        success: true,
+        phone,
+        ip_address: ipAddress,
+        user_agent: userAgent
+      });
+    }
 
-    console.log("Phone verified successfully for user:", user.id);
+    console.log("Phone verified successfully:", user ? `user: ${user.id}` : `phone: ${phone}`);
 
     return new Response(
       JSON.stringify({ success: true, message: 'Phone verified successfully' }),

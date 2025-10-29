@@ -20,16 +20,12 @@ export const usePhoneVerification = (): VerificationHookReturn => {
     setIsSendingOtp(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('Please log in first');
-        return false;
-      }
 
       const { data, error } = await supabase.functions.invoke('send-sms-verification', {
         body: { phone: phoneNumber },
-        headers: {
+        headers: session ? {
           Authorization: `Bearer ${session.access_token}`
-        }
+        } : {}
       });
 
       if (error) throw error;
@@ -80,16 +76,12 @@ export const usePhoneVerification = (): VerificationHookReturn => {
     setIsVerifying(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        toast.error('Please log in first');
-        return false;
-      }
 
       const { data, error } = await supabase.functions.invoke('verify-sms-code', {
         body: { phone: phoneNumber, code: token },
-        headers: {
+        headers: session ? {
           Authorization: `Bearer ${session.access_token}`
-        }
+        } : {}
       });
 
       if (error) throw error;

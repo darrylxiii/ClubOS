@@ -23,16 +23,14 @@ const handler = async (req: Request): Promise<Response> => {
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('No authorization header');
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    );
-
-    if (authError || !user) {
-      throw new Error('Unauthorized');
+    
+    // Support both authenticated and unauthenticated (public) requests
+    let user = null;
+    if (authHeader) {
+      const { data: { user: authUser } } = await supabase.auth.getUser(
+        authHeader.replace('Bearer ', '')
+      );
+      user = authUser;
     }
 
     const { email } = await req.json();
@@ -41,29 +39,31 @@ const handler = async (req: Request): Promise<Response> => {
     const ipAddress = forwardedFor.split(',')[0].trim();
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
-    // Check rate limiting
-    const { data: rateLimitCheck } = await supabase.rpc('check_verification_rate_limit', {
-      _user_id: user.id,
-      _verification_type: 'email',
-      _action: 'send'
-    });
-
-    if (rateLimitCheck && !rateLimitCheck.allowed) {
-      await supabase.from('verification_attempts').insert({
-        user_id: user.id,
-        verification_type: 'email',
-        action: 'send',
-        success: false,
-        email,
-        error_message: rateLimitCheck.message,
-        ip_address: ipAddress,
-        user_agent: userAgent
+    // Check rate limiting only for authenticated users
+    if (user) {
+      const { data: rateLimitCheck } = await supabase.rpc('check_verification_rate_limit', {
+        _user_id: user.id,
+        _verification_type: 'email',
+        _action: 'send'
       });
 
-      return new Response(
-        JSON.stringify({ error: rateLimitCheck.message }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      if (rateLimitCheck && !rateLimitCheck.allowed) {
+        await supabase.from('verification_attempts').insert({
+          user_id: user.id,
+          verification_type: 'email',
+          action: 'send',
+          success: false,
+          email,
+          error_message: rateLimitCheck.message,
+          ip_address: ipAddress,
+          user_agent: userAgent
+        });
+
+        return new Response(
+          JSON.stringify({ error: rateLimitCheck.message }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     // Generate new code
@@ -74,7 +74,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { error: dbError } = await supabase
       .from('email_verifications')
       .insert({
-        user_id: user.id,
+        user_id: user?.id || null,
         email,
         code,
         expires_at: expiresAt.toISOString(),
@@ -145,16 +145,18 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error(`Resend API error: ${errorText}`);
     }
 
-    // Log successful attempt
-    await supabase.from('verification_attempts').insert({
-      user_id: user.id,
-      verification_type: 'email',
-      action: 'send',
-      success: true,
-      email,
-      ip_address: ipAddress,
-      user_agent: userAgent
-    });
+    // Log successful attempt (only for authenticated users)
+    if (user) {
+      await supabase.from('verification_attempts').insert({
+        user_id: user.id,
+        verification_type: 'email',
+        action: 'send',
+        success: true,
+        email,
+        ip_address: ipAddress,
+        user_agent: userAgent
+      });
+    }
 
     const result = await emailResponse.json();
     console.log("Verification email sent successfully:", result);
