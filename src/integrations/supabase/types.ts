@@ -6025,6 +6025,81 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_applications: boolean | null
+          email_digest: boolean | null
+          email_digest_frequency: string | null
+          email_enabled: boolean | null
+          email_interviews: boolean | null
+          email_job_matches: boolean | null
+          email_messages: boolean | null
+          email_system: boolean | null
+          id: string
+          inapp_applications: boolean | null
+          inapp_enabled: boolean | null
+          inapp_interviews: boolean | null
+          inapp_job_matches: boolean | null
+          inapp_messages: boolean | null
+          inapp_system: boolean | null
+          quiet_hours_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          quiet_hours_timezone: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_applications?: boolean | null
+          email_digest?: boolean | null
+          email_digest_frequency?: string | null
+          email_enabled?: boolean | null
+          email_interviews?: boolean | null
+          email_job_matches?: boolean | null
+          email_messages?: boolean | null
+          email_system?: boolean | null
+          id?: string
+          inapp_applications?: boolean | null
+          inapp_enabled?: boolean | null
+          inapp_interviews?: boolean | null
+          inapp_job_matches?: boolean | null
+          inapp_messages?: boolean | null
+          inapp_system?: boolean | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          quiet_hours_timezone?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_applications?: boolean | null
+          email_digest?: boolean | null
+          email_digest_frequency?: string | null
+          email_enabled?: boolean | null
+          email_interviews?: boolean | null
+          email_job_matches?: boolean | null
+          email_messages?: boolean | null
+          email_system?: boolean | null
+          id?: string
+          inapp_applications?: boolean | null
+          inapp_enabled?: boolean | null
+          inapp_interviews?: boolean | null
+          inapp_job_matches?: boolean | null
+          inapp_messages?: boolean | null
+          inapp_system?: boolean | null
+          quiet_hours_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          quiet_hours_timezone?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           action_url: string | null
