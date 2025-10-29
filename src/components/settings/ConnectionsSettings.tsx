@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Upload, Calendar, CheckCircle2, FileText, Download, Eye, X, Sparkles } from 'lucide-react';
 import { SocialConnections } from '@/components/SocialConnections';
+import { EmailConnections } from '@/components/settings/EmailConnections';
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,6 +29,18 @@ interface CalendarConnection {
   connectedAt: string;
 }
 
+interface EmailConnection {
+  id: string;
+  provider: 'gmail' | 'outlook' | 'private';
+  email: string;
+  label: string;
+  is_active: boolean;
+  sync_enabled: boolean;
+  last_sync_at: string | null;
+  created_at: string;
+  scopes?: string[];
+}
+
 export const ConnectionsSettings = ({
   socialConnections,
   musicConnections,
@@ -48,10 +61,16 @@ export const ConnectionsSettings = ({
   const [connectedCalendars, setConnectedCalendars] = useState<CalendarConnection[]>([]);
   const [calendarLoading, setCalendarLoading] = useState(false);
   const [oauthProcessing, setOauthProcessing] = useState(false);
+  const [emailConnections, setEmailConnections] = useState<EmailConnection[]>([]);
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [showEmailLabelDialog, setShowEmailLabelDialog] = useState(false);
+  const [pendingEmailProvider, setPendingEmailProvider] = useState<'gmail' | 'outlook' | null>(null);
+  const [emailLabel, setEmailLabel] = useState('');
 
   useEffect(() => {
     loadUserResumes();
     loadConnectedCalendars();
+    loadConnectedEmails();
     
     // Handle OAuth callback immediately on mount if code is present
     const urlParams = new URLSearchParams(window.location.search);
@@ -71,11 +90,14 @@ export const ConnectionsSettings = ({
       url: window.location.href
     });
     
+    // Check which type of connection is pending
+    const pendingCalendar = localStorage.getItem('pending_calendar_connection');
+    const pendingEmail = localStorage.getItem('pending_email_connection');
+    
     // Handle OAuth errors
     if (error) {
-      const pendingConnection = localStorage.getItem('pending_calendar_connection');
-      if (pendingConnection) {
-        const { provider } = JSON.parse(pendingConnection);
+      if (pendingCalendar) {
+        const { provider } = JSON.parse(pendingCalendar);
         const providerName = provider === 'google' ? 'Google' : 'Microsoft';
         
         let errorMessage = `${providerName} Calendar connection failed`;
@@ -87,10 +109,22 @@ export const ConnectionsSettings = ({
         
         toast.error(errorMessage);
         localStorage.removeItem('pending_calendar_connection');
-        localStorage.removeItem('oauth_return_tab');
+      } else if (pendingEmail) {
+        const { provider } = JSON.parse(pendingEmail);
+        const providerName = provider === 'gmail' ? 'Gmail' : 'Outlook';
+        
+        let errorMessage = `${providerName} connection failed`;
+        if (error === 'access_denied') {
+          errorMessage = `You denied access to ${providerName}`;
+        } else if (errorDescription) {
+          errorMessage = `${providerName}: ${errorDescription}`;
+        }
+        
+        toast.error(errorMessage);
+        localStorage.removeItem('pending_email_connection');
       }
       
-      // Clean URL and switch to connections tab
+      localStorage.removeItem('oauth_return_tab');
       window.history.replaceState({}, document.title, '/settings');
       return;
     }
@@ -105,98 +139,181 @@ export const ConnectionsSettings = ({
     console.log('🔄 Starting OAuth processing...');
     
     try {
-      const pendingConnection = localStorage.getItem('pending_calendar_connection');
-      if (!pendingConnection) {
-        console.warn('⚠️ No pending connection in localStorage');
-        window.history.replaceState({}, document.title, '/settings');
-        return;
-      }
-      
-      const { provider, label } = JSON.parse(pendingConnection);
-      console.log('📋 Processing connection:', { provider, label, code: code.substring(0, 20) + '...' });
-      
       const redirectUri = `${window.location.origin}/settings`;
       
-      if (provider === 'google') {
-        console.log('🔵 Exchanging Google code for tokens via Edge Function...');
+      // Handle Calendar OAuth
+      if (pendingCalendar) {
+        const { provider, label } = JSON.parse(pendingCalendar);
+        console.log('📋 Processing calendar connection:', { provider, label });
         
-        // Supabase client automatically handles authentication
-        // No need to manually pass Authorization header
-        const { data, error: funcError } = await supabase.functions.invoke('google-calendar-auth', {
-          body: { action: 'exchangeCode', code, redirectUri },
-        });
+        if (provider === 'google') {
+          console.log('🔵 Exchanging Google Calendar code...');
+          
+          const { data, error: funcError } = await supabase.functions.invoke('google-calendar-auth', {
+            body: { action: 'exchangeCode', code, redirectUri },
+          });
 
-        console.log('📥 Edge Function response:', { hasError: !!funcError, hasData: !!data });
+          if (funcError || !data?.tokens) {
+            throw new Error('Failed to receive authentication tokens from Google');
+          }
+
+          const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${data.tokens.access_token}` },
+          });
+
+          if (!userInfoResponse.ok) {
+            throw new Error('Failed to fetch user info from Google');
+          }
+
+          const userInfo = await userInfoResponse.json();
+
+          const { error: dbError } = await supabase
+            .from('calendar_connections')
+            .insert({
+              user_id: user.id,
+              provider: 'google',
+              email: userInfo.email,
+              label: label.trim(),
+              access_token: data.tokens.access_token,
+              refresh_token: data.tokens.refresh_token || null,
+              token_expires_at: data.tokens.expires_at,
+              is_active: true,
+            });
+
+          if (dbError) throw new Error(`Failed to save connection: ${dbError.message}`);
+
+          await loadConnectedCalendars();
+          toast.success(`Google Calendar "${label}" connected!`);
+        }
         
-        if (funcError) {
-          console.error('❌ Edge Function error:', funcError);
-          throw new Error(`Authentication failed: ${funcError.message}`);
-        }
-
-        if (!data?.tokens) {
-          console.error('❌ No tokens in response:', data);
-          throw new Error('Failed to receive authentication tokens from Google');
-        }
-
-        console.log('✅ Tokens received successfully');
-
-        // Get user email from Google
-        console.log('📧 Fetching user email from Google...');
-        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-          headers: { Authorization: `Bearer ${data.tokens.access_token}` },
-        });
-
-        if (!userInfoResponse.ok) {
-          console.error('❌ Failed to fetch user info, status:', userInfoResponse.status);
-          throw new Error('Failed to fetch user info from Google');
-        }
-
-        const userInfo = await userInfoResponse.json();
-        console.log('✅ User email:', userInfo.email);
-
-        // Save to database
-        console.log('💾 Saving connection to database...');
-
-        const connectionData = {
-          user_id: user.id,
-          provider: 'google',
-          email: userInfo.email,
-          label: label.trim(),
-          access_token: data.tokens.access_token,
-          refresh_token: data.tokens.refresh_token || null,
-          token_expires_at: data.tokens.expires_at,
-          is_active: true,
-        };
-
-        console.log('📝 Inserting connection data...');
-        const { error: dbError } = await supabase
-          .from('calendar_connections')
-          .insert(connectionData);
-
-        if (dbError) {
-          console.error('❌ Database error:', dbError);
-          throw new Error(`Failed to save connection: ${dbError.message}`);
-        }
-
-        console.log('✅ Calendar connected and saved successfully');
+        localStorage.removeItem('pending_calendar_connection');
+      }
+      
+      // Handle Email OAuth
+      else if (pendingEmail) {
+        const { provider, label } = JSON.parse(pendingEmail);
+        console.log('📧 Processing email connection:', { provider, label });
         
-        // Reload calendars
-        await loadConnectedCalendars();
+        if (provider === 'gmail') {
+          console.log('📧 Exchanging Gmail code...');
+          
+          const { data, error: funcError } = await supabase.functions.invoke('gmail-oauth', {
+            body: { action: 'exchangeCode', code, redirectUri },
+          });
+
+          console.log('📥 Gmail OAuth response:', { hasError: !!funcError, hasData: !!data });
+
+          if (funcError || !data?.access_token) {
+            console.error('❌ Gmail OAuth error:', funcError);
+            throw new Error('Failed to receive authentication tokens from Gmail');
+          }
+
+          // Get user email from Google
+          const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${data.access_token}` },
+          });
+
+          if (!userInfoResponse.ok) {
+            throw new Error('Failed to fetch user info from Gmail');
+          }
+
+          const userInfo = await userInfoResponse.json();
+          console.log('✅ Gmail user email:', userInfo.email);
+
+          // Calculate token expiry
+          const expiresAt = new Date(Date.now() + (data.expires_in * 1000)).toISOString();
+
+          const { error: dbError } = await supabase
+            .from('email_connections')
+            .insert({
+              user_id: user.id,
+              provider: 'gmail',
+              email: userInfo.email,
+              label: label.trim(),
+              access_token: data.access_token,
+              refresh_token: data.refresh_token || null,
+              token_expires_at: expiresAt,
+              scopes: data.scope ? data.scope.split(' ') : [],
+              is_active: true,
+              sync_enabled: true,
+            });
+
+          if (dbError) {
+            console.error('❌ Database error:', dbError);
+            throw new Error(`Failed to save Gmail connection: ${dbError.message}`);
+          }
+
+          await loadConnectedEmails();
+          toast.success(`Gmail "${label}" connected!`);
+        }
         
-        toast.success(`Google Calendar "${label}" connected!`);
+        else if (provider === 'outlook') {
+          console.log('📧 Exchanging Outlook code...');
+          
+          const { data, error: funcError } = await supabase.functions.invoke('outlook-oauth', {
+            body: { action: 'exchangeCode', code, redirectUri },
+          });
+
+          console.log('📥 Outlook OAuth response:', { hasError: !!funcError, hasData: !!data });
+
+          if (funcError || !data?.access_token) {
+            console.error('❌ Outlook OAuth error:', funcError);
+            throw new Error('Failed to receive authentication tokens from Outlook');
+          }
+
+          // Get user email from Microsoft Graph
+          const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+            headers: { Authorization: `Bearer ${data.access_token}` },
+          });
+
+          if (!userInfoResponse.ok) {
+            throw new Error('Failed to fetch user info from Outlook');
+          }
+
+          const userInfo = await userInfoResponse.json();
+          console.log('✅ Outlook user email:', userInfo.mail || userInfo.userPrincipalName);
+
+          // Calculate token expiry
+          const expiresAt = new Date(Date.now() + (data.expires_in * 1000)).toISOString();
+
+          const { error: dbError } = await supabase
+            .from('email_connections')
+            .insert({
+              user_id: user.id,
+              provider: 'outlook',
+              email: userInfo.mail || userInfo.userPrincipalName,
+              label: label.trim(),
+              access_token: data.access_token,
+              refresh_token: data.refresh_token || null,
+              token_expires_at: expiresAt,
+              scopes: data.scope ? data.scope.split(' ') : [],
+              is_active: true,
+              sync_enabled: true,
+            });
+
+          if (dbError) {
+            console.error('❌ Database error:', dbError);
+            throw new Error(`Failed to save Outlook connection: ${dbError.message}`);
+          }
+
+          await loadConnectedEmails();
+          toast.success(`Outlook "${label}" connected!`);
+        }
+        
+        localStorage.removeItem('pending_email_connection');
       }
       
       // Clean up
-      localStorage.removeItem('pending_calendar_connection');
       localStorage.removeItem('oauth_return_tab');
       window.history.replaceState({}, document.title, '/settings');
       
       console.log('✅ OAuth complete!');
     } catch (error) {
       console.error('❌ OAuth error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to connect calendar');
+      toast.error(error instanceof Error ? error.message : 'Failed to complete connection');
       
       localStorage.removeItem('pending_calendar_connection');
+      localStorage.removeItem('pending_email_connection');
       localStorage.removeItem('oauth_return_tab');
       window.history.replaceState({}, document.title, '/settings');
     } finally {
@@ -246,6 +363,36 @@ export const ConnectionsSettings = ({
     }));
     
     setConnectedCalendars(calendars);
+  };
+
+  const loadConnectedEmails = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('email_connections')
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error loading email connections:', error);
+      return;
+    }
+    
+    const emails: EmailConnection[] = (data || []).map((conn: any) => ({
+      id: conn.id,
+      provider: conn.provider,
+      email: conn.email,
+      label: conn.label,
+      is_active: conn.is_active,
+      sync_enabled: conn.sync_enabled,
+      last_sync_at: conn.last_sync_at,
+      created_at: conn.created_at,
+      scopes: conn.scopes
+    }));
+    
+    setEmailConnections(emails);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -608,6 +755,89 @@ export const ConnectionsSettings = ({
     }
   };
 
+  const handleConnectEmail = async (provider: 'gmail' | 'outlook') => {
+    if (!user) {
+      toast.error('Please sign in to connect email');
+      return;
+    }
+
+    setPendingEmailProvider(provider);
+    setEmailLabel('');
+    setShowEmailLabelDialog(true);
+  };
+
+  const handleEmailLabelSubmit = async () => {
+    if (!pendingEmailProvider || !emailLabel.trim()) {
+      toast.error('Please enter a label for your email connection');
+      return;
+    }
+
+    setEmailLoading(true);
+    setShowEmailLabelDialog(false);
+
+    try {
+      const redirectUri = `${window.location.origin}/settings`;
+      const functionName = pendingEmailProvider === 'gmail' ? 'gmail-oauth' : 'outlook-oauth';
+
+      // Store pending connection
+      localStorage.setItem('oauth_return_tab', 'connections');
+      localStorage.setItem('pending_email_connection', JSON.stringify({ 
+        provider: pendingEmailProvider, 
+        label: emailLabel.trim() 
+      }));
+
+      const { data, error } = await supabase.functions.invoke(functionName, {
+        body: { action: 'getAuthUrl', redirectUri }
+      });
+
+      if (error || !data?.authUrl) {
+        throw new Error('Failed to get authentication URL');
+      }
+
+      console.log(`📧 Redirecting to ${pendingEmailProvider} OAuth...`);
+      window.location.href = data.authUrl;
+    } catch (error) {
+      console.error('Email connection error:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to connect email');
+      localStorage.removeItem('pending_email_connection');
+      setEmailLoading(false);
+    }
+  };
+
+  const handleToggleEmailSync = async (emailId: string, enabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('email_connections')
+        .update({ sync_enabled: enabled })
+        .eq('id', emailId);
+
+      if (error) throw error;
+
+      await loadConnectedEmails();
+      toast.success(`Email sync ${enabled ? 'enabled' : 'disabled'}`);
+    } catch (error) {
+      console.error('Error toggling email sync:', error);
+      toast.error('Failed to update sync setting');
+    }
+  };
+
+  const handleDisconnectEmail = async (emailId: string) => {
+    try {
+      const { error } = await supabase
+        .from('email_connections')
+        .update({ is_active: false })
+        .eq('id', emailId);
+
+      if (error) throw error;
+
+      await loadConnectedEmails();
+      toast.success('Email disconnected');
+    } catch (error) {
+      console.error('Error disconnecting email:', error);
+      toast.error('Failed to disconnect email');
+    }
+  };
+
   return (
     <div className="space-y-4">
       <SocialConnections
@@ -616,6 +846,16 @@ export const ConnectionsSettings = ({
         onUpdate={onUpdate}
         onConnectSocial={onConnectSocial}
         onDisconnectSocial={onDisconnectSocial}
+      />
+
+      {/* Email Connections */}
+      <EmailConnections
+        emailConnections={emailConnections}
+        onConnectGmail={() => handleConnectEmail('gmail')}
+        onConnectOutlook={() => handleConnectEmail('outlook')}
+        onToggleSync={handleToggleEmailSync}
+        onDisconnect={handleDisconnectEmail}
+        loading={emailLoading || oauthProcessing}
       />
 
       {/* Resume/CV */}
@@ -846,6 +1086,36 @@ export const ConnectionsSettings = ({
       </Card>
 
       {/* Dialogs */}
+      <Dialog open={showEmailLabelDialog} onOpenChange={setShowEmailLabelDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Name Your Email Connection</DialogTitle>
+            <DialogDescription>
+              Choose a descriptive name for this {pendingEmailProvider === 'gmail' ? 'Gmail' : 'Outlook'} connection
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="email-label">Connection Name</Label>
+              <Input
+                id="email-label"
+                value={emailLabel}
+                onChange={(e) => setEmailLabel(e.target.value)}
+                placeholder="e.g., Work Email, Personal Gmail"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEmailLabelDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEmailLabelSubmit} disabled={!emailLabel.trim()}>
+              Connect
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showResumeDialog} onOpenChange={setShowResumeDialog}>
         <DialogContent>
           <DialogHeader>
