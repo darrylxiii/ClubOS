@@ -120,10 +120,24 @@ export const ConnectionsSettings = ({
       if (provider === 'google') {
         console.log('🔵 Exchanging Google code for tokens...');
         
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-          throw new Error('No active session');
+        // Wait for session to be ready (max 5 seconds)
+        let session = null;
+        for (let i = 0; i < 10; i++) {
+          const { data: { session: currentSession } } = await supabase.auth.getSession();
+          if (currentSession?.access_token) {
+            session = currentSession;
+            break;
+          }
+          console.log(`⏳ Waiting for session... attempt ${i + 1}/10`);
+          await new Promise(resolve => setTimeout(resolve, 500));
         }
+        
+        if (!session?.access_token) {
+          console.error('❌ No active session after waiting');
+          throw new Error('Session expired. Please refresh the page and try again.');
+        }
+        
+        console.log('✅ Session ready, calling edge function...');
         
         const { data, error: funcError } = await supabase.functions.invoke('google-calendar-auth', {
           body: { action: 'exchangeCode', code, redirectUri },
