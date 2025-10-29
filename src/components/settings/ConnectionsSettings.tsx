@@ -118,87 +118,67 @@ export const ConnectionsSettings = ({
       const redirectUri = `${window.location.origin}/settings`;
       
       if (provider === 'google') {
-        console.log('🔵 Exchanging Google code for tokens...');
+        console.log('🔵 Exchanging Google code for tokens via Edge Function...');
         
-        // Wait for session to be ready (max 5 seconds)
-        let session = null;
-        for (let i = 0; i < 10; i++) {
-          const { data: { session: currentSession } } = await supabase.auth.getSession();
-          if (currentSession?.access_token) {
-            session = currentSession;
-            break;
-          }
-          console.log(`⏳ Waiting for session... attempt ${i + 1}/10`);
-          await new Promise(resolve => setTimeout(resolve, 500));
-        }
-        
-        if (!session?.access_token) {
-          console.error('❌ No active session after waiting');
-          throw new Error('Session expired. Please refresh the page and try again.');
-        }
-        
-        console.log('✅ Session ready, calling edge function...');
-        
+        // Supabase client automatically handles authentication
+        // No need to manually pass Authorization header
         const { data, error: funcError } = await supabase.functions.invoke('google-calendar-auth', {
           body: { action: 'exchangeCode', code, redirectUri },
-          headers: { Authorization: `Bearer ${session.access_token}` }
         });
 
+        console.log('📥 Edge Function response:', { hasError: !!funcError, hasData: !!data });
+        
         if (funcError) {
-          console.error('❌ Function invocation error:', funcError);
-          throw new Error(funcError.message || 'Failed to exchange code');
-        }
-        
-        if (data?.error) {
-          console.error('❌ API error:', data.error);
-          throw new Error(data.error);
-        }
-        
-        if (!data?.tokens?.access_token) {
-          console.error('❌ No access token in response:', data);
-          throw new Error('No access token received from Google');
+          console.error('❌ Edge Function error:', funcError);
+          throw new Error(`Authentication failed: ${funcError.message}`);
         }
 
-        console.log('✅ Tokens received, fetching user email...');
-        
-        // Get user email
-        let email = 'Calendar Account';
-        try {
-          const response = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-            headers: { Authorization: `Bearer ${data.tokens.access_token}` }
-          });
-          const userInfo = await response.json();
-          email = userInfo.email || email;
-          console.log('📧 Email:', email);
-        } catch (e) {
-          console.warn('Could not fetch email, using default');
+        if (!data?.tokens) {
+          console.error('❌ No tokens in response:', data);
+          throw new Error('Failed to receive authentication tokens from Google');
         }
+
+        console.log('✅ Tokens received successfully');
+
+        // Get user email from Google
+        console.log('📧 Fetching user email from Google...');
+        const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: { Authorization: `Bearer ${data.tokens.access_token}` },
+        });
+
+        if (!userInfoResponse.ok) {
+          console.error('❌ Failed to fetch user info, status:', userInfoResponse.status);
+          throw new Error('Failed to fetch user info from Google');
+        }
+
+        const userInfo = await userInfoResponse.json();
+        console.log('✅ User email:', userInfo.email);
 
         // Save to database
-        console.log('💾 Inserting into database...');
-        const expiresAt = new Date(Date.now() + (data.tokens.expires_in || 3600) * 1000);
-        
-        const { data: inserted, error: dbError } = await supabase
+        console.log('💾 Saving connection to database...');
+
+        const connectionData = {
+          user_id: user.id,
+          provider: 'google',
+          email: userInfo.email,
+          label: label.trim(),
+          access_token: data.tokens.access_token,
+          refresh_token: data.tokens.refresh_token || null,
+          token_expires_at: data.tokens.expires_at,
+          is_active: true,
+        };
+
+        console.log('📝 Inserting connection data...');
+        const { error: dbError } = await supabase
           .from('calendar_connections')
-          .insert({
-            user_id: user.id,
-            provider: 'google',
-            email,
-            label: label.trim(),
-            access_token: data.tokens.access_token,
-            refresh_token: data.tokens.refresh_token,
-            token_expires_at: expiresAt.toISOString(),
-            is_active: true
-          })
-          .select()
-          .single();
+          .insert(connectionData);
 
         if (dbError) {
-          console.error('❌ DB error:', dbError);
-          throw new Error(`Database error: ${dbError.message}`);
+          console.error('❌ Database error:', dbError);
+          throw new Error(`Failed to save connection: ${dbError.message}`);
         }
-        
-        console.log('✅ Saved to DB:', inserted.id);
+
+        console.log('✅ Calendar connected and saved successfully');
         
         // Reload calendars
         await loadConnectedCalendars();

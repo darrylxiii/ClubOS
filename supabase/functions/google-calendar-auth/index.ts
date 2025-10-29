@@ -22,37 +22,10 @@ serve(async (req) => {
 
     const { action, code, redirectUri } = requestSchema.parse(await req.json());
     
-    console.log('Google Calendar auth request:', { action, redirectUri: redirectUri.substring(0, 50) + '...' });
+    console.log('🔵 Google Calendar auth request:', { action, redirectUri: redirectUri.substring(0, 50) + '...' });
     
-    // Only verify authentication for exchangeCode action (not for getAuthUrl)
-    if (action === 'exchangeCode') {
-      const authHeader = req.headers.get('Authorization');
-      if (!authHeader) {
-        console.error('Missing authorization header');
-        return new Response(
-          JSON.stringify({ error: 'Missing authorization header' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      const supabase = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-        { global: { headers: { Authorization: authHeader } } }
-      );
-
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        console.error('User authentication failed:', userError);
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-
-      console.log('Authenticated user:', user.id);
-    }
+    // Authentication is handled by Supabase platform (verify_jwt = true in config.toml)
+    // No need to manually check auth here
     
     const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
     const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
@@ -97,6 +70,7 @@ serve(async (req) => {
       }
 
       // Exchange authorization code for tokens
+      console.log('🔄 Exchanging code with Google...');
       const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -108,6 +82,7 @@ serve(async (req) => {
           grant_type: 'authorization_code',
         }),
       });
+      console.log('📥 Google response status:', tokenResponse.status);
 
       if (!tokenResponse.ok) {
         const errorText = await tokenResponse.text();
@@ -144,6 +119,7 @@ serve(async (req) => {
       }
 
       const tokens = await tokenResponse.json();
+      console.log('✅ Token exchange successful');
       
       // Calculate token expiration (Google tokens typically expire in 1 hour)
       const expiresIn = tokens.expires_in || 3600;
