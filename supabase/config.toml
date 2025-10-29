@@ -117,3 +117,9 @@ verify_jwt = false
 # Public booking functions (guests need access)
 [functions.get-available-slots]
 verify_jwt = false
+
+[functions.refresh-calendar-tokens]
+verify_jwt = false
+
+[functions.cancel-booking]
+verify_jwt = false
