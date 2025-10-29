@@ -57,6 +57,7 @@ export default function Scheduling() {
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreatingLink, setIsCreatingLink] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   
   const [newLink, setNewLink] = useState({
     title: "",
@@ -179,6 +180,7 @@ export default function Scheduling() {
         requires_approval: false,
         max_bookings_per_day: null,
       });
+      setDialogOpen(false);
     } catch (error: any) {
       if (error.code === "23505") {
         toast.error("This URL is already taken");
@@ -258,7 +260,7 @@ export default function Scheduling() {
             </p>
           </div>
           
-          <Dialog>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="glass">
                 <Plus className="h-4 w-4 mr-2" />
