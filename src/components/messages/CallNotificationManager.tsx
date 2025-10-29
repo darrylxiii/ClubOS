@@ -16,6 +16,7 @@ export function CallNotificationManager({
   const { toast } = useToast();
   const { incomingInvitations, acceptCall, declineCall } = useCallSignaling(conversationId);
   const [handledInvitations, setHandledInvitations] = useState<Set<string>>(new Set());
+  const [hiddenInvitations, setHiddenInvitations] = useState<Set<string>>(new Set());
 
   // Show browser notification if tab is not focused
   useEffect(() => {
@@ -48,6 +49,9 @@ export function CallNotificationManager({
   useEffect(() => {
     incomingInvitations.forEach(invitation => {
       if (invitation.status === 'cancelled') {
+        // Hide immediately
+        setHiddenInvitations(prev => new Set(prev).add(invitation.id));
+        
         toast({
           title: "Call ended",
           description: "The caller ended the call",
@@ -58,12 +62,21 @@ export function CallNotificationManager({
   }, [incomingInvitations, toast]);
 
   const handleAccept = async (invitationId: string, callType: string) => {
+    // Optimistic UI: hide banner immediately
+    setHiddenInvitations(prev => new Set(prev).add(invitationId));
+    
+    // Then update database
     await acceptCall(invitationId);
     onAcceptCall(invitationId, callType as 'audio' | 'video');
   };
 
   const handleDecline = async (invitationId: string) => {
+    // Optimistic UI: hide banner immediately
+    setHiddenInvitations(prev => new Set(prev).add(invitationId));
+    
+    // Then update database
     await declineCall(invitationId);
+    
     toast({
       title: "Call declined",
       description: "You declined the call",
@@ -71,8 +84,10 @@ export function CallNotificationManager({
     });
   };
 
-  // Only show the first ringing invitation
-  const activeInvitation = incomingInvitations.find(inv => inv.status === 'ringing');
+  // Only show the first ringing invitation that hasn't been hidden
+  const activeInvitation = incomingInvitations.find(
+    inv => inv.status === 'ringing' && !hiddenInvitations.has(inv.id)
+  );
 
   if (!activeInvitation) return null;
 
@@ -83,6 +98,7 @@ export function CallNotificationManager({
 
   return (
     <IncomingCallBanner
+      key={activeInvitation.id}
       callerName={callerName}
       callerAvatar={callerAvatar}
       callType={activeInvitation.call_type as 'audio' | 'video'}

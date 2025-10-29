@@ -15,15 +15,33 @@ interface AudioCallLauncherProps {
 export function AudioCallLauncher({ conversationId, participantName, participantAvatar, onSendMessage }: AudioCallLauncherProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [callActive, setCallActive] = useState(false);
-  const { initiateCall } = useCallSignaling(conversationId);
+  const [invitationId, setInvitationId] = useState<string | null>(null);
+  const { initiateCall, cancelCall } = useCallSignaling(conversationId);
 
   const handleStartAudioCall = async () => {
     setShowDialog(false);
-    await initiateCall('audio');
-    setCallActive(true);
+    const invitation = await initiateCall('audio');
+    if (invitation) {
+      setInvitationId(invitation.id);
+      setCallActive(true);
+    }
+  };
+
+  const handleCancelCall = async () => {
+    if (invitationId) {
+      await cancelCall(invitationId);
+      setInvitationId(null);
+    }
+    setCallActive(false);
   };
 
   const handleEndCall = async (duration: number) => {
+    // Cancel invitation first if it exists
+    if (invitationId) {
+      await cancelCall(invitationId);
+      setInvitationId(null);
+    }
+    
     setCallActive(false);
     
     // Send system message with call log
@@ -66,10 +84,12 @@ export function AudioCallLauncher({ conversationId, participantName, participant
       />
 
       {callActive && (
-        <AudioCallInterface 
+        <AudioCallInterface
           conversationId={conversationId}
           participantName={participantName}
+          invitationId={invitationId || undefined}
           onEnd={handleEndCall}
+          onCancel={handleCancelCall}
         />
       )}
     </>

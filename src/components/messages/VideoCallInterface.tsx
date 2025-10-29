@@ -25,9 +25,10 @@ interface VideoCallInterfaceProps {
   participantAvatar?: string;
   onEnd: (duration: number, participantCount: number) => void;
   invitationId?: string;
+  onCancel?: () => void;
 }
 
-export function VideoCallInterface({ conversationId, participantName, participantAvatar, onEnd, invitationId }: VideoCallInterfaceProps) {
+export function VideoCallInterface({ conversationId, participantName, participantAvatar, onEnd, invitationId, onCancel }: VideoCallInterfaceProps) {
   const [showDiagnostics, setShowDiagnostics] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isCalling, setIsCalling] = useState(true);
@@ -153,11 +154,16 @@ export function VideoCallInterface({ conversationId, participantName, participan
   };
 
   const handleEndCall = async () => {
-    await endSession();
-    cleanup();
-    
     const duration = callStartTime ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
     const participantCount = participants.length + 1; // +1 for local user
+    
+    // Cancel invitation if this is the caller
+    if (invitationId && onCancel) {
+      onCancel();
+    }
+    
+    await endSession();
+    cleanup();
     onEnd(duration, participantCount);
   };
 
@@ -173,7 +179,13 @@ export function VideoCallInterface({ conversationId, participantName, participan
     return (
       <PreCallDiagnostics
         onComplete={handleDiagnosticsComplete}
-        onCancel={() => onEnd(0, 0)}
+        onCancel={() => {
+          // Cancel invitation when user cancels diagnostics
+          if (invitationId && onCancel) {
+            onCancel();
+          }
+          handleEndCall();
+        }}
       />
     );
   }

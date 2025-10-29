@@ -8,9 +8,17 @@ interface AudioCallInterfaceProps {
   conversationId: string;
   participantName: string;
   onEnd: (duration: number) => void;
+  invitationId?: string;
+  onCancel?: () => void;
 }
 
-export function AudioCallInterface({ conversationId, participantName, onEnd }: AudioCallInterfaceProps) {
+export function AudioCallInterface({
+  conversationId,
+  participantName,
+  onEnd,
+  invitationId,
+  onCancel
+}: AudioCallInterfaceProps) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -71,6 +79,11 @@ export function AudioCallInterface({ conversationId, participantName, onEnd }: A
   };
 
   const handleEndCall = () => {
+    // Cancel invitation if this is the caller
+    if (invitationId && onCancel) {
+      onCancel();
+    }
+    
     cleanup();
     onEnd(callDuration);
   };

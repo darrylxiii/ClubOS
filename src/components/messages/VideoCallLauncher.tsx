@@ -12,18 +12,41 @@ interface VideoCallLauncherProps {
   onSendMessage: (content: string, metadata?: Record<string, any>) => Promise<void>;
 }
 
-export function VideoCallLauncher({ conversationId, participantName, participantAvatar, onSendMessage }: VideoCallLauncherProps) {
+export function VideoCallLauncher({
+  conversationId,
+  participantName,
+  participantAvatar,
+  onSendMessage
+}: VideoCallLauncherProps) {
   const [showDialog, setShowDialog] = useState(false);
   const [callActive, setCallActive] = useState(false);
-  const { initiateCall } = useCallSignaling(conversationId);
+  const [invitationId, setInvitationId] = useState<string | null>(null);
+  const { initiateCall, cancelCall } = useCallSignaling(conversationId);
 
   const handleStartVideoCall = async () => {
     setShowDialog(false);
-    await initiateCall('video');
-    setCallActive(true);
+    const invitation = await initiateCall('video');
+    if (invitation) {
+      setInvitationId(invitation.id);
+      setCallActive(true);
+    }
+  };
+
+  const handleCancelCall = async () => {
+    if (invitationId) {
+      await cancelCall(invitationId);
+      setInvitationId(null);
+    }
+    setCallActive(false);
   };
 
   const handleEndCall = async (duration: number, participantCount: number) => {
+    // Cancel invitation first if it exists
+    if (invitationId) {
+      await cancelCall(invitationId);
+      setInvitationId(null);
+    }
+    
     setCallActive(false);
     const minutes = Math.floor(duration / 60);
     const seconds = duration % 60;
@@ -63,11 +86,13 @@ export function VideoCallLauncher({ conversationId, participantName, participant
       />
 
       {callActive && (
-        <VideoCallInterface 
+        <VideoCallInterface
           conversationId={conversationId}
           participantName={participantName}
           participantAvatar={participantAvatar}
+          invitationId={invitationId || undefined}
           onEnd={handleEndCall}
+          onCancel={handleCancelCall}
         />
       )}
     </>

@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Phone, Video, PhoneOff } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { createPortal } from 'react-dom';
+import { Phone, PhoneOff, Video } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useEffect, useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface IncomingCallBannerProps {
   callerName: string;
@@ -109,8 +109,16 @@ export function IncomingCallBanner({
     isPlayingRef.current = false;
     if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
       audioContextRef.current.close();
+      audioContextRef.current = null;
     }
   };
+
+  // Cleanup audio on unmount
+  useEffect(() => {
+    return () => {
+      stopAudio();
+    };
+  }, []);
 
   const handleAccept = () => {
     stopAudio();
@@ -139,88 +147,90 @@ export function IncomingCallBanner({
     return () => clearInterval(interval);
   }, [createdAt]);
 
-  if (isConnecting) {
-    return createPortal(
-      <motion.div
-        initial={{ y: 0, opacity: 1 }}
-        exit={{ y: -100, opacity: 0 }}
-        className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-green-500/95 to-green-600/95 backdrop-blur-lg shadow-2xl border-b border-green-400/20"
-      >
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex items-center justify-center gap-3">
-            <Phone className="h-5 w-5 text-white animate-pulse" />
-            <p className="text-white font-medium">Connecting to call...</p>
-          </div>
-        </div>
-      </motion.div>,
-      document.body
-    );
-  }
-
   return createPortal(
-    <AnimatePresence>
-      <motion.div
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        exit={{ y: -100, opacity: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-primary/95 to-primary-dark/95 backdrop-blur-lg shadow-2xl border-b border-primary/20"
-      >
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between gap-4">
-            {/* Caller Info */}
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <Avatar className="h-12 w-12 border-2 border-white/20 ring-2 ring-white/10">
-                <AvatarImage src={callerAvatar} alt={callerName} />
-                <AvatarFallback className="bg-primary-light text-white">
-                  {callerName.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  {callType === 'video' ? (
-                    <Video className="h-4 w-4 text-white/90" />
-                  ) : (
-                    <Phone className="h-4 w-4 text-white/90" />
-                  )}
-                  <p className="text-sm font-medium text-white/90">
-                    Incoming {callType} call
+    <AnimatePresence mode="wait">
+      {isConnecting && (
+        <motion.div
+          key="connecting"
+          initial={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          transition={{ duration: 0.3 }}
+          className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-green-500/95 to-green-600/95 backdrop-blur-lg shadow-2xl border-b border-green-400/20"
+        >
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-center gap-3">
+              <Phone className="h-5 w-5 text-white animate-pulse" />
+              <p className="text-white font-medium">Connecting to call...</p>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {!isConnecting && (
+        <motion.div
+          key="banner"
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300, duration: 0.3 }}
+          className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-primary/95 to-primary-dark/95 backdrop-blur-lg shadow-2xl border-b border-primary/20"
+        >
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between gap-4">
+              {/* Caller Info */}
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                <Avatar className="h-12 w-12 border-2 border-white/20 ring-2 ring-white/10">
+                  <AvatarImage src={callerAvatar} alt={callerName} />
+                  <AvatarFallback className="bg-primary-light text-white">
+                    {callerName.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    {callType === 'video' ? (
+                      <Video className="h-4 w-4 text-white/90" />
+                    ) : (
+                      <Phone className="h-4 w-4 text-white/90" />
+                    )}
+                    <p className="text-sm font-medium text-white/90">
+                      Incoming {callType} call
+                    </p>
+                  </div>
+                  <p className="text-lg font-semibold text-white truncate">
+                    {callerName}
+                  </p>
+                  <p className="text-xs text-white/70">
+                    {timeRemaining}s remaining
                   </p>
                 </div>
-                <p className="text-lg font-semibold text-white truncate">
-                  {callerName}
-                </p>
-                <p className="text-xs text-white/70">
-                  {timeRemaining}s remaining
-                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2">
+                <Button
+                  size="lg"
+                  onClick={handleAccept}
+                  className="bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 gap-2"
+                >
+                  {callType === 'video' ? <Video className="h-5 w-5" /> : <Phone className="h-5 w-5" />}
+                  Accept
+                </Button>
+                
+                <Button
+                  size="lg"
+                  onClick={handleDecline}
+                  variant="outline"
+                  className="bg-red-500 hover:bg-red-600 text-white border-red-600 shadow-lg hover:shadow-xl transition-all duration-200 gap-2"
+                >
+                  <PhoneOff className="h-5 w-5" />
+                  Decline
+                </Button>
               </div>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              <Button
-                size="lg"
-                onClick={handleAccept}
-                className="bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 gap-2"
-              >
-                {callType === 'video' ? <Video className="h-5 w-5" /> : <Phone className="h-5 w-5" />}
-                Accept
-              </Button>
-              
-              <Button
-                size="lg"
-                onClick={handleDecline}
-                variant="outline"
-                className="bg-red-500 hover:bg-red-600 text-white border-red-600 shadow-lg hover:shadow-xl transition-all duration-200 gap-2"
-              >
-                <PhoneOff className="h-5 w-5" />
-                Decline
-              </Button>
-            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      )}
     </AnimatePresence>,
     document.body
   );
