@@ -1,20 +1,25 @@
 import { Button } from "@/components/ui/button";
 import { Phone } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { AudioCallInterface } from "./AudioCallInterface";
+import { CallInitiationDialog } from "./CallInitiationDialog";
+import { useCallSignaling } from "@/hooks/useCallSignaling";
 
 interface AudioCallLauncherProps {
   conversationId: string;
   participantName: string;
+  participantAvatar?: string;
   onSendMessage: (content: string, metadata?: Record<string, any>) => Promise<void>;
 }
 
-export function AudioCallLauncher({ conversationId, participantName, onSendMessage }: AudioCallLauncherProps) {
+export function AudioCallLauncher({ conversationId, participantName, participantAvatar, onSendMessage }: AudioCallLauncherProps) {
+  const [showDialog, setShowDialog] = useState(false);
   const [callActive, setCallActive] = useState(false);
-  const callStartTimeRef = useRef<number>(0);
+  const { initiateCall } = useCallSignaling(conversationId);
 
-  const handleStartCall = () => {
-    callStartTimeRef.current = Date.now();
+  const handleStartAudioCall = async () => {
+    setShowDialog(false);
+    await initiateCall('audio');
     setCallActive(true);
   };
 
@@ -44,12 +49,21 @@ export function AudioCallLauncher({ conversationId, participantName, onSendMessa
       <Button 
         variant="ghost" 
         size="icon" 
-        onClick={handleStartCall}
+        onClick={() => setShowDialog(true)}
         className="h-9 w-9 hover:bg-primary/10 hover:text-primary"
         title="Start voice call"
       >
         <Phone className="h-5 w-5" />
       </Button>
+
+      <CallInitiationDialog
+        open={showDialog}
+        onClose={() => setShowDialog(false)}
+        participantName={participantName}
+        participantAvatar={participantAvatar}
+        onStartAudioCall={handleStartAudioCall}
+        onStartVideoCall={() => setShowDialog(false)}
+      />
 
       {callActive && (
         <AudioCallInterface 

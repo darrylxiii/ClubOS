@@ -1188,6 +1188,54 @@ export type Database = {
           },
         ]
       }
+      call_invitations: {
+        Row: {
+          call_type: string
+          caller_id: string
+          conversation_id: string
+          created_at: string | null
+          id: string
+          responded_at: string | null
+          session_id: string | null
+          status: string
+        }
+        Insert: {
+          call_type: string
+          caller_id: string
+          conversation_id: string
+          created_at?: string | null
+          id?: string
+          responded_at?: string | null
+          session_id?: string | null
+          status?: string
+        }
+        Update: {
+          call_type?: string
+          caller_id?: string
+          conversation_id?: string
+          created_at?: string | null
+          id?: string
+          responded_at?: string | null
+          session_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_invitations_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_invitations_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "video_call_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_comments: {
         Row: {
           application_id: string

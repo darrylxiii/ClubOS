@@ -30,6 +30,7 @@ import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import { MessageEditor } from '@/components/messages/MessageEditor';
 import { ThreadView } from '@/components/messages/ThreadView';
 import { OnlineStatusIndicator } from '@/components/messages/OnlineStatusIndicator';
+import { CallNotificationManager } from '@/components/messages/CallNotificationManager';
 import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -118,6 +119,12 @@ export default function Messages() {
 
   return (
     <AppLayout>
+      <CallNotificationManager 
+        conversationId={selectedConversationId || undefined}
+        onAcceptCall={(invitationId, callType) => {
+          toast.success(`Accepting ${callType} call...`);
+        }}
+      />
       <div className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden">
         {/* Mobile sidebar overlay */}
         {showMobileSidebar && (

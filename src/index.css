@@ -498,6 +498,33 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     box-shadow: 0 0 20px hsl(var(--accent) / 0.4);
   }
 
+  /* Call notification animations */
+  .animate-pulse-border {
+    animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-border {
+    0%, 100% {
+      border-color: hsl(var(--primary) / 0.3);
+    }
+    50% {
+      border-color: hsl(var(--primary) / 0.6);
+    }
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+    }
+    50% {
+      box-shadow: 0 0 40px hsl(var(--primary) / 0.4);
+    }
+  }
+
   .glow-primary {
     box-shadow: 0 0 20px hsl(var(--primary) / 0.4);
   }

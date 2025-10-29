@@ -23,11 +23,11 @@ interface VideoCallInterfaceProps {
   conversationId: string;
   participantName: string;
   participantAvatar?: string;
-  onEnd: (sessionId?: string) => void;
-  onSessionCreated?: (sessionId: string) => void;
+  onEnd: (duration: number, participantCount: number) => void;
+  invitationId?: string;
 }
 
-export function VideoCallInterface({ conversationId, participantName, participantAvatar, onEnd, onSessionCreated }: VideoCallInterfaceProps) {
+export function VideoCallInterface({ conversationId, participantName, participantAvatar, onEnd, invitationId }: VideoCallInterfaceProps) {
   const [showDiagnostics, setShowDiagnostics] = useState(true);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [isCalling, setIsCalling] = useState(true);
