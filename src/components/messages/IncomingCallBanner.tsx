@@ -25,33 +25,47 @@ export function IncomingCallBanner({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(30);
 
-  // Play ring tone
+  // Play pleasant ring tone
   useEffect(() => {
-    // Create a simple ring tone using Web Audio API
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     let isPlaying = true;
+    let ringCount = 0;
+    const maxRings = 4;
 
     const playRing = () => {
-      if (!isPlaying) return;
+      if (!isPlaying || ringCount >= maxRings) return;
 
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
+      // Create a pleasant two-tone chime (C5 -> E5)
+      const playNote = (frequency: number, startTime: number, duration: number) => {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
 
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
 
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
 
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        // Smooth envelope
+        gainNode.gain.setValueAtTime(0, startTime);
+        gainNode.gain.linearRampToValueAtTime(0.08, startTime + 0.05);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
 
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.5);
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+      };
+
+      const now = audioContext.currentTime;
+      
+      // Two-tone chime: C5 (523.25 Hz) -> E5 (659.25 Hz)
+      playNote(523.25, now, 0.3);
+      playNote(659.25, now + 0.32, 0.4);
+
+      ringCount++;
 
       setTimeout(() => {
-        if (isPlaying) playRing();
-      }, 2000);
+        if (isPlaying && ringCount < maxRings) playRing();
+      }, 2500); // Pause between rings
     };
 
     playRing();

@@ -26,6 +26,8 @@ import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { GroupInfoPanel } from '@/components/messages/GroupInfoPanel';
 import { VideoCallLauncher } from '@/components/messages/VideoCallLauncher';
 import { AudioCallLauncher } from '@/components/messages/AudioCallLauncher';
+import { VideoCallInterface } from '@/components/messages/VideoCallInterface';
+import { AudioCallInterface } from '@/components/messages/AudioCallInterface';
 import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import { MessageEditor } from '@/components/messages/MessageEditor';
 import { ThreadView } from '@/components/messages/ThreadView';
@@ -47,6 +49,7 @@ export default function Messages() {
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [threadParentMessageId, setThreadParentMessageId] = useState<string | null>(null);
   const [showThreadView, setShowThreadView] = useState(false);
+  const [activeCall, setActiveCall] = useState<{ type: 'audio' | 'video'; conversationId: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -122,9 +125,36 @@ export default function Messages() {
       <CallNotificationManager 
         conversationId={selectedConversationId || undefined}
         onAcceptCall={(invitationId, callType) => {
-          toast.success(`Accepting ${callType} call...`);
+          if (selectedConversationId) {
+            setActiveCall({ type: callType, conversationId: selectedConversationId });
+          }
         }}
       />
+      
+      {/* Active Call Interfaces */}
+      {activeCall && (
+        <>
+          {activeCall.type === 'video' ? (
+            <VideoCallInterface
+              conversationId={activeCall.conversationId}
+              participantName={selectedConversation?.title || 'User'}
+              onEnd={(duration, participantCount) => {
+                setActiveCall(null);
+                toast.success(`Call ended - ${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')}`);
+              }}
+            />
+          ) : (
+            <AudioCallInterface
+              conversationId={activeCall.conversationId}
+              participantName={selectedConversation?.title || 'User'}
+              onEnd={(duration) => {
+                setActiveCall(null);
+                toast.success(`Call ended - ${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')}`);
+              }}
+            />
+          )}
+        </>
+      )}
       <div className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden">
         {/* Mobile sidebar overlay */}
         {showMobileSidebar && (
