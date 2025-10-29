@@ -91,23 +91,28 @@ const Settings = () => {
   // Initialize exchange rate tracking
   useExchangeRates();
 
-  // Get active tab from URL hash or default to 'profile'
+  // Get active tab from URL (query param or hash) or default to 'profile'
   const getActiveTab = () => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam && ['profile', 'compensation', 'connections', 'notifications', 'privacy', 'security', 'preferences'].includes(tabParam)) {
+      return tabParam;
+    }
     const hash = location.hash.replace('#', '');
     return hash || 'profile';
   };
 
   const [activeTab, setActiveTab] = useState(getActiveTab());
 
-  // Update active tab when hash changes
+  // Update active tab when URL changes
   useEffect(() => {
     setActiveTab(getActiveTab());
-  }, [location.hash]);
+  }, [location.search, location.hash]);
 
   // Handle tab change and update URL
   const handleTabChange = (value: string) => {
     setActiveTab(value);
-    navigate(`/settings#${value}`, { replace: true });
+    navigate(`/settings?tab=${value}`, { replace: true });
   };
 
   // Debounced save function

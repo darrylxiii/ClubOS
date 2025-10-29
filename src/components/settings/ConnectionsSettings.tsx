@@ -74,7 +74,7 @@ export const ConnectionsSettings = ({
         
         toast.error(errorMessage);
         localStorage.removeItem('pending_calendar_connection');
-        window.history.replaceState({}, document.title, '/settings');
+        window.history.replaceState({}, document.title, '/settings?tab=connections');
       }
       return;
     }
@@ -149,9 +149,13 @@ export const ConnectionsSettings = ({
                 console.log('Could not fetch user email');
               }
 
+              // Calculate token expiration (default 1 hour if not provided)
+              const expiresIn = data.tokens.expires_in || 3600;
+              const expiresAt = new Date(Date.now() + expiresIn * 1000);
+
               // Save to database
               const { error: dbError } = await supabase
-                .from('calendar_connections' as any)
+                .from('calendar_connections')
                 .insert({
                   user_id: user?.id,
                   provider,
@@ -159,6 +163,7 @@ export const ConnectionsSettings = ({
                   label,
                   access_token: accessToken,
                   refresh_token: refreshToken,
+                  token_expires_at: expiresAt.toISOString(),
                   is_active: true
                 });
 
@@ -201,9 +206,13 @@ export const ConnectionsSettings = ({
                 console.log('Could not fetch user email');
               }
 
+              // Calculate token expiration (default 1 hour if not provided)
+              const expiresIn = data.expires_in || 3600;
+              const expiresAt = new Date(Date.now() + expiresIn * 1000);
+
               // Save to database
               const { error: dbError } = await supabase
-                .from('calendar_connections' as any)
+                .from('calendar_connections')
                 .insert({
                   user_id: user?.id,
                   provider,
@@ -211,6 +220,7 @@ export const ConnectionsSettings = ({
                   label,
                   access_token: accessToken,
                   refresh_token: refreshToken,
+                  token_expires_at: expiresAt.toISOString(),
                   is_active: true
                 });
 
@@ -224,8 +234,8 @@ export const ConnectionsSettings = ({
             await loadConnectedCalendars();
             localStorage.removeItem('pending_calendar_connection');
             
-            // Clean up URL
-            window.history.replaceState({}, document.title, '/settings');
+            // Clean up URL and redirect to connections tab
+            window.history.replaceState({}, document.title, '/settings?tab=connections');
             
             toast.success(`${provider === 'google' ? 'Google' : 'Microsoft'} Calendar "${label}" connected successfully!`);
           }
@@ -233,7 +243,7 @@ export const ConnectionsSettings = ({
           console.error('Calendar OAuth error:', error);
           toast.error(error instanceof Error ? error.message : 'Failed to connect calendar');
           localStorage.removeItem('pending_calendar_connection');
-          window.history.replaceState({}, document.title, '/settings');
+          window.history.replaceState({}, document.title, '/settings?tab=connections');
         }
       })();
     }
@@ -260,7 +270,7 @@ export const ConnectionsSettings = ({
     if (!user) return;
     
     const { data, error } = await supabase
-      .from('calendar_connections' as any)
+      .from('calendar_connections')
       .select('*')
       .eq('user_id', user.id)
       .eq('is_active', true)

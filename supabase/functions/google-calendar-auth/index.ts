@@ -145,8 +145,17 @@ serve(async (req) => {
 
       const tokens = await tokenResponse.json();
       
+      // Calculate token expiration (Google tokens typically expire in 1 hour)
+      const expiresIn = tokens.expires_in || 3600;
+      const expiresAt = new Date(Date.now() + expiresIn * 1000);
+      
       return new Response(
-        JSON.stringify({ tokens }),
+        JSON.stringify({ 
+          tokens: {
+            ...tokens,
+            expires_at: expiresAt.toISOString()
+          }
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
