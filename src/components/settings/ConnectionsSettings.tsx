@@ -105,7 +105,7 @@ export const ConnectionsSettings = ({
           const { provider, label } = JSON.parse(pendingConnection);
           console.log('📋 Pending connection:', { provider, label });
           
-          const redirectUri = `${window.location.origin}/settings?tab=connections`;
+          const redirectUri = `${window.location.origin}/settings`;
           
           let token: string;
           let email: string = 'Calendar Account';
@@ -296,9 +296,10 @@ export const ConnectionsSettings = ({
           }, 500);
           
           localStorage.removeItem('pending_calendar_connection');
+          localStorage.removeItem('oauth_return_tab');
           
-          // Clean up URL and redirect to connections tab
-          window.history.replaceState({}, document.title, '/settings?tab=connections');
+          // Clean up URL
+          window.history.replaceState({}, document.title, '/settings');
           
           const providerName = provider === 'google' ? 'Google' : 'Microsoft';
           toast.success(`${providerName} Calendar "${label}" connected successfully!`);
@@ -653,8 +654,11 @@ export const ConnectionsSettings = ({
     try {
       setCalendarLoading(true);
       
-      const redirectUri = `${window.location.origin}/settings?tab=connections`;
+      const redirectUri = `${window.location.origin}/settings`;
       console.log(`[Calendar] Connecting ${provider} with redirect URI:`, redirectUri);
+      
+      // Store that we want to return to connections tab after OAuth
+      localStorage.setItem('oauth_return_tab', 'connections');
       
       const functionName = provider === 'google' ? 'google-calendar-auth' : 'microsoft-calendar-auth';
       

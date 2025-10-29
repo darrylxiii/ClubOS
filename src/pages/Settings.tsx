@@ -93,6 +93,13 @@ const Settings = () => {
 
   // Get active tab from URL (query param or hash) or default to 'profile'
   const getActiveTab = () => {
+    // Check if returning from OAuth
+    const oauthReturnTab = localStorage.getItem('oauth_return_tab');
+    if (oauthReturnTab) {
+      localStorage.removeItem('oauth_return_tab');
+      return oauthReturnTab;
+    }
+    
     const params = new URLSearchParams(location.search);
     const tabParam = params.get('tab');
     if (tabParam && ['profile', 'compensation', 'connections', 'notifications', 'privacy', 'security', 'preferences'].includes(tabParam)) {
