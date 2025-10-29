@@ -134,7 +134,9 @@ export const ConnectionsSettings = ({
                 throw new Error(errorMsg);
               }
               
-              token = data.tokens.access_token;
+              const accessToken = data.tokens.access_token;
+              const refreshToken = data.tokens.refresh_token;
+              token = accessToken;
               
               // Try to get user email from Google
               try {
@@ -145,6 +147,24 @@ export const ConnectionsSettings = ({
                 email = userInfo.email || email;
               } catch (e) {
                 console.log('Could not fetch user email');
+              }
+
+              // Save to database
+              const { error: dbError } = await supabase
+                .from('calendar_connections' as any)
+                .insert({
+                  user_id: user?.id,
+                  provider,
+                  email,
+                  label,
+                  access_token: accessToken,
+                  refresh_token: refreshToken,
+                  is_active: true
+                });
+
+              if (dbError) {
+                console.error('Error saving Google calendar connection:', dbError);
+                throw new Error('Failed to save calendar connection');
               }
             } else {
               // Get current session token
@@ -166,7 +186,9 @@ export const ConnectionsSettings = ({
                 throw new Error(data.error);
               }
               
-              token = data.access_token;
+              const accessToken = data.access_token;
+              const refreshToken = data.refresh_token;
+              token = accessToken;
               
               // Try to get user email from Microsoft
               try {
@@ -178,21 +200,28 @@ export const ConnectionsSettings = ({
               } catch (e) {
                 console.log('Could not fetch user email');
               }
+
+              // Save to database
+              const { error: dbError } = await supabase
+                .from('calendar_connections' as any)
+                .insert({
+                  user_id: user?.id,
+                  provider,
+                  email,
+                  label,
+                  access_token: accessToken,
+                  refresh_token: refreshToken,
+                  is_active: true
+                });
+
+              if (dbError) {
+                console.error('Error saving Microsoft calendar connection:', dbError);
+                throw new Error('Failed to save calendar connection');
+              }
             }
 
-            // Create new calendar connection
-            const newConnection: CalendarConnection = {
-              id: `${provider}-${Date.now()}`,
-              provider,
-              email,
-              label,
-              token,
-              connectedAt: new Date().toISOString(),
-            };
-
-            const updatedCalendars = [...connectedCalendars, newConnection];
-            setConnectedCalendars(updatedCalendars);
-            localStorage.setItem('connected_calendars', JSON.stringify(updatedCalendars));
+            // Reload calendars from database
+            await loadConnectedCalendars();
             localStorage.removeItem('pending_calendar_connection');
             
             // Clean up URL
@@ -227,16 +256,31 @@ export const ConnectionsSettings = ({
     setUserResumes(data || []);
   };
 
-  const loadConnectedCalendars = () => {
-    const savedCalendars = localStorage.getItem('connected_calendars');
-    if (savedCalendars) {
-      try {
-        const calendars = JSON.parse(savedCalendars) as CalendarConnection[];
-        setConnectedCalendars(calendars);
-      } catch (error) {
-        console.error('Error parsing saved calendars:', error);
-      }
+  const loadConnectedCalendars = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('calendar_connections' as any)
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error loading calendars:', error);
+      return;
     }
+    
+    const calendars: CalendarConnection[] = (data || []).map((conn: any) => ({
+      id: conn.id,
+      provider: conn.provider as 'google' | 'microsoft',
+      email: conn.email,
+      label: conn.label,
+      token: conn.access_token,
+      connectedAt: conn.created_at
+    }));
+    
+    setConnectedCalendars(calendars);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -579,11 +623,21 @@ export const ConnectionsSettings = ({
     }
   };
 
-  const handleDisconnectCalendar = (calendarId: string) => {
-    const updatedCalendars = connectedCalendars.filter(cal => cal.id !== calendarId);
-    setConnectedCalendars(updatedCalendars);
-    localStorage.setItem('connected_calendars', JSON.stringify(updatedCalendars));
-    toast.success('Calendar disconnected');
+  const handleDisconnectCalendar = async (calendarId: string) => {
+    try {
+      const { error } = await supabase
+        .from('calendar_connections' as any)
+        .update({ is_active: false })
+        .eq('id', calendarId);
+      
+      if (error) throw error;
+      
+      await loadConnectedCalendars();
+      toast.success('Calendar disconnected');
+    } catch (error) {
+      console.error('Error disconnecting calendar:', error);
+      toast.error('Failed to disconnect calendar');
+    }
   };
 
   return (

@@ -4,6 +4,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface CalendarConnection {
   id: string;
@@ -17,27 +19,41 @@ export function CalendarConnectionStatus() {
   const [connectedCalendars, setConnectedCalendars] = useState<CalendarConnection[]>([]);
   const [lastSync, setLastSync] = useState<Date | null>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
     loadConnectedCalendars();
-  }, []);
+  }, [user]);
 
-  const loadConnectedCalendars = () => {
-    const savedCalendars = localStorage.getItem('connected_calendars');
-    if (savedCalendars) {
-      try {
-        const calendars = JSON.parse(savedCalendars) as CalendarConnection[];
-        setConnectedCalendars(calendars);
-        setLastSync(new Date());
-      } catch (error) {
-        console.error('Error parsing saved calendars:', error);
-      }
+  const loadConnectedCalendars = async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('calendar_connections' as any)
+      .select('*')
+      .eq('user_id', user.id)
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading calendars:', error);
+      return;
     }
+
+    const calendars: CalendarConnection[] = (data || []).map((conn: any) => ({
+      id: conn.id,
+      provider: conn.provider,
+      email: conn.email,
+      label: conn.label,
+      connectedAt: conn.created_at
+    }));
+
+    setConnectedCalendars(calendars);
+    setLastSync(new Date());
   };
 
-  const handleRefresh = () => {
-    loadConnectedCalendars();
-    setLastSync(new Date());
+  const handleRefresh = async () => {
+    await loadConnectedCalendars();
   };
 
   if (connectedCalendars.length === 0) {
