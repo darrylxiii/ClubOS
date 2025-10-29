@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Upload, Calendar, CheckCircle2, FileText, Download, Eye, X, Sparkles } from 'lucide-react';
 import { SocialConnections } from '@/components/SocialConnections';
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -35,6 +36,7 @@ export const ConnectionsSettings = ({
   onUpdate
 }: ConnectionsSettingsProps) => {
   const { user } = useAuth();
+  const location = useLocation();
   const [userResumes, setUserResumes] = useState<Array<any>>([]);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const [showResumeDialog, setShowResumeDialog] = useState(false);
@@ -103,7 +105,7 @@ export const ConnectionsSettings = ({
           const { provider, label } = JSON.parse(pendingConnection);
           console.log('📋 Pending connection:', { provider, label });
           
-          const redirectUri = `${window.location.origin}/settings`;
+          const redirectUri = `${window.location.origin}/settings?tab=connections`;
           
           let token: string;
           let email: string = 'Calendar Account';
@@ -312,7 +314,7 @@ export const ConnectionsSettings = ({
         }
       })();
     }
-  }, [user]);
+  }, [user, location.search]);
 
   const loadUserResumes = async () => {
     if (!user) return;
