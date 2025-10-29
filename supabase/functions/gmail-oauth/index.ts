@@ -16,8 +16,8 @@ serve(async (req) => {
     
     console.log('📧 Gmail OAuth request:', { action, redirectUri: redirectUri?.substring(0, 50) + '...' });
     
-    const clientId = Deno.env.get('GOOGLE_CLIENT_ID');
-    const clientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
+    const clientId = Deno.env.get('GMAIL_CLIENT_ID');
+    const clientSecret = Deno.env.get('GMAIL_CLIENT_SECRET');
 
     if (!clientId || !clientSecret) {
       throw new Error('Google OAuth credentials not configured');
