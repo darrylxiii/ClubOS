@@ -28,6 +28,7 @@ import { VideoCallLauncher } from '@/components/messages/VideoCallLauncher';
 import { AudioCallLauncher } from '@/components/messages/AudioCallLauncher';
 import { VideoCallInterface } from '@/components/messages/VideoCallInterface';
 import { AudioCallInterface } from '@/components/messages/AudioCallInterface';
+import { ConnectingCallOverlay } from '@/components/messages/ConnectingCallOverlay';
 import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import { MessageEditor } from '@/components/messages/MessageEditor';
 import { ThreadView } from '@/components/messages/ThreadView';
@@ -50,6 +51,7 @@ export default function Messages() {
   const [threadParentMessageId, setThreadParentMessageId] = useState<string | null>(null);
   const [showThreadView, setShowThreadView] = useState(false);
   const [activeCall, setActiveCall] = useState<{ type: 'audio' | 'video'; conversationId: string } | null>(null);
+  const [isConnectingCall, setIsConnectingCall] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -126,7 +128,11 @@ export default function Messages() {
         conversationId={selectedConversationId || undefined}
         onAcceptCall={(invitationId, callType) => {
           if (selectedConversationId) {
-            setActiveCall({ type: callType, conversationId: selectedConversationId });
+            setIsConnectingCall(true);
+            setTimeout(() => {
+              setIsConnectingCall(false);
+              setActiveCall({ type: callType, conversationId: selectedConversationId });
+            }, 800);
           }
         }}
       />
@@ -384,6 +390,11 @@ export default function Messages() {
           open={showThreadView}
           onOpenChange={setShowThreadView}
         />
+      )}
+
+      {/* Connecting overlay */}
+      {isConnectingCall && (
+        <ConnectingCallOverlay callType={activeCall?.type} />
       )}
     </AppLayout>
   );

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { CheckCircle2, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DiagnosticCheck {
   name: string;
@@ -72,7 +74,6 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
     updateCheck(1, 'checking');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const audioTrack = stream.getAudioTracks()[0];
       stream.getTracks().forEach(track => track.stop());
       
       updateCheck(1, 'passed', 'Microphone is working');
@@ -83,14 +84,13 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
     }
     setOverallProgress(50);
 
-    // Check internet connection with detailed metrics
+    // Check internet connection
     updateCheck(2, 'checking');
     try {
       const start = Date.now();
       await fetch('https://www.google.com/favicon.ico', { mode: 'no-cors', cache: 'no-store' });
       const latency = Date.now() - start;
       
-      // Check bandwidth estimate
       const connection = (navigator as any).connection;
       const bandwidth = connection?.downlink || 'unknown';
       
@@ -143,101 +143,118 @@ export function PreCallDiagnostics({ onComplete, onCancel }: PreCallDiagnosticsP
   const anyFailed = checks.some(c => c.status === 'failed');
   const isComplete = overallProgress === 100;
 
-  return (
-    <div className="flex items-center justify-center min-h-screen p-8 bg-background">
-      <Card className="max-w-2xl w-full p-8 space-y-6 glass-card">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2">Pre-Call Diagnostics</h2>
-          <p className="text-muted-foreground">
-            Checking your device and connection quality...
-          </p>
-        </div>
-
-        {/* Progress */}
-        <div className="space-y-2">
-          <Progress value={overallProgress} className="h-2" />
-          <p className="text-sm text-muted-foreground text-center">
-            {overallProgress}% complete
-          </p>
-        </div>
-
-        {/* Checks */}
-        <div className="space-y-4">
-          {checks.map((check, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-4 rounded-lg bg-muted/50"
-            >
-              <div className="flex items-center gap-3">
-                {check.status === 'pending' && (
-                  <div className="h-6 w-6 rounded-full bg-muted" />
-                )}
-                {check.status === 'checking' && (
-                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                )}
-                {check.status === 'passed' && (
-                  <CheckCircle2 className="h-6 w-6 text-green-500" />
-                )}
-                {check.status === 'warning' && (
-                  <AlertCircle className="h-6 w-6 text-yellow-500" />
-                )}
-                {check.status === 'failed' && (
-                  <XCircle className="h-6 w-6 text-red-500" />
-                )}
-                
-                <div className="flex-1">
-                  <p className="font-medium">{check.name}</p>
-                  {check.message && (
-                    <p className="text-sm text-muted-foreground">{check.message}</p>
-                  )}
-                  {troubleshooting[index] && (
-                    <p className="text-xs mt-1 p-2 rounded bg-muted/50 text-muted-foreground">
-                      {troubleshooting[index]}
-                    </p>
-                  )}
-                </div>
-              </div>
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+        className="fixed inset-0 z-[10000] bg-black/95 backdrop-blur-xl flex items-center justify-center p-4"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="w-full max-w-2xl"
+        >
+          <Card className="p-8 space-y-6 bg-gray-900/90 border-gray-700/50 backdrop-blur-sm shadow-2xl">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold mb-2 text-white">Pre-Call Diagnostics</h2>
+              <p className="text-gray-400">
+                Checking your device and connection quality...
+              </p>
             </div>
-          ))}
-        </div>
 
-        {/* Warning message if issues detected */}
-        {anyFailed && isComplete && (
-          <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
-            <p className="text-sm text-yellow-600 dark:text-yellow-400">
-              ⚠️ Some checks failed. You can still join the call, but your experience may be limited. 
-              We recommend fixing the issues above first.
-            </p>
-          </div>
-        )}
+            {/* Progress */}
+            <div className="space-y-2">
+              <Progress value={overallProgress} className="h-2" />
+              <p className="text-sm text-gray-400 text-center">
+                {overallProgress}% complete
+              </p>
+            </div>
 
-        {/* Actions */}
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={onCancel}
-            className="flex-1"
-          >
-            Cancel
-          </Button>
-          {!isComplete && (
-            <Button
-              onClick={onComplete}
-              variant="ghost"
-              className="flex-1"
-            >
-              Skip Checks
-            </Button>
-          )}
-          <Button
-            onClick={onComplete}
-            disabled={!isComplete && !anyFailed}
-            className="flex-1"
-          >
-            {anyFailed ? 'Join Anyway' : isComplete ? 'Join Call' : 'Please Wait...'}
-          </Button>
-        </div>
-      </Card>
-    </div>
+            {/* Checks */}
+            <div className="space-y-4">
+              {checks.map((check, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 rounded-lg bg-gray-800/50"
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    {check.status === 'pending' && (
+                      <div className="h-6 w-6 rounded-full bg-gray-700" />
+                    )}
+                    {check.status === 'checking' && (
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    )}
+                    {check.status === 'passed' && (
+                      <CheckCircle2 className="h-6 w-6 text-green-500" />
+                    )}
+                    {check.status === 'warning' && (
+                      <AlertCircle className="h-6 w-6 text-yellow-500" />
+                    )}
+                    {check.status === 'failed' && (
+                      <XCircle className="h-6 w-6 text-red-500" />
+                    )}
+                    
+                    <div className="flex-1">
+                      <p className="font-medium text-white">{check.name}</p>
+                      {check.message && (
+                        <p className="text-sm text-gray-400">{check.message}</p>
+                      )}
+                      {troubleshooting[index] && (
+                        <p className="text-xs mt-1 p-2 rounded bg-gray-800/50 text-gray-300">
+                          {troubleshooting[index]}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Warning message if issues detected */}
+            {anyFailed && isComplete && (
+              <div className="p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                <p className="text-sm text-yellow-400">
+                  ⚠️ Some checks failed. You can still join the call, but your experience may be limited. 
+                  We recommend fixing the issues above first.
+                </p>
+              </div>
+            )}
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={onCancel}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              {!isComplete && (
+                <Button
+                  onClick={onComplete}
+                  variant="ghost"
+                  className="flex-1"
+                >
+                  Skip Checks
+                </Button>
+              )}
+              <Button
+                onClick={onComplete}
+                disabled={!isComplete && !anyFailed}
+                className="flex-1"
+              >
+                {anyFailed ? 'Join Anyway' : isComplete ? 'Join Call' : 'Please Wait...'}
+              </Button>
+            </div>
+          </Card>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
   );
 }

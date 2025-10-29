@@ -181,7 +181,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
   // Permission denied screen
   if (permissionDenied) {
     return createPortal(
-    <div className="fixed inset-0 z-[10000] bg-black/90 backdrop-blur-xl flex items-center justify-center"
+    <div className="fixed inset-0 z-[10001] bg-black/90 backdrop-blur-xl flex items-center justify-center"
          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       <div className="max-w-md w-full p-8 text-center space-y-6 glass-card mx-4">
         <div className="w-20 h-20 rounded-full bg-destructive/20 flex items-center justify-center mx-auto">
@@ -217,7 +217,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
 
   // Main call interface
   const content = (
-    <div className="fixed inset-0 z-[10000] bg-gradient-to-br from-gray-900 to-black w-screen h-screen"
+    <div className="fixed inset-0 z-[10001] bg-gradient-to-br from-gray-900 to-black w-screen h-screen"
          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       
       {/* Connection Quality Badge */}

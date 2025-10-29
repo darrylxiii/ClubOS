@@ -22,59 +22,108 @@ export function IncomingCallBanner({
   onDecline,
   createdAt
 }: IncomingCallBannerProps) {
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(30);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const isPlayingRef = useRef(true);
 
-  // Play pleasant ring tone
+  // Play pleasant two-tone chime
   useEffect(() => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    let audioContext: AudioContext | null = null;
     let isPlaying = true;
-    let ringCount = 0;
-    const maxRings = 4;
+    isPlayingRef.current = true;
 
-    const playRing = () => {
-      if (!isPlaying || ringCount >= maxRings) return;
+    const initAudio = async () => {
+      try {
+        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioContextRef.current = audioContext;
 
-      // Create a pleasant two-tone chime (C5 -> E5)
-      const playNote = (frequency: number, startTime: number, duration: number) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
+        const playChime = () => {
+          if (!audioContext || !isPlaying) return;
 
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
+          const now = audioContext.currentTime;
+          const startTime = now + 0.05;
 
-        oscillator.frequency.value = frequency;
-        oscillator.type = 'sine';
+          // First tone (C5 - 523.25 Hz)
+          const oscillator1 = audioContext.createOscillator();
+          const gainNode1 = audioContext.createGain();
+          
+          oscillator1.connect(gainNode1);
+          gainNode1.connect(audioContext.destination);
+          
+          oscillator1.type = 'sine';
+          oscillator1.frequency.setValueAtTime(523.25, startTime);
+          
+          gainNode1.gain.setValueAtTime(0, startTime);
+          gainNode1.gain.linearRampToValueAtTime(0.15, startTime + 0.02);
+          gainNode1.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+          
+          oscillator1.start(startTime);
+          oscillator1.stop(startTime + 0.3);
 
-        // Smooth envelope
-        gainNode.gain.setValueAtTime(0, startTime);
-        gainNode.gain.linearRampToValueAtTime(0.08, startTime + 0.05);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+          // Second tone (E5 - 659.25 Hz)
+          const oscillator2 = audioContext.createOscillator();
+          const gainNode2 = audioContext.createGain();
+          
+          oscillator2.connect(gainNode2);
+          gainNode2.connect(audioContext.destination);
+          
+          oscillator2.type = 'sine';
+          oscillator2.frequency.setValueAtTime(659.25, startTime + 0.15);
+          
+          gainNode2.gain.setValueAtTime(0, startTime + 0.15);
+          gainNode2.gain.linearRampToValueAtTime(0.12, startTime + 0.17);
+          gainNode2.gain.exponentialRampToValueAtTime(0.01, startTime + 0.4);
+          
+          oscillator2.start(startTime + 0.15);
+          oscillator2.stop(startTime + 0.4);
+        };
 
-        oscillator.start(startTime);
-        oscillator.stop(startTime + duration);
-      };
+        // Play the chime 4 times with pauses
+        const playSequence = async () => {
+          for (let i = 0; i < 4 && isPlaying; i++) {
+            playChime();
+            await new Promise(resolve => setTimeout(resolve, 1800));
+          }
+        };
 
-      const now = audioContext.currentTime;
-      
-      // Two-tone chime: C5 (523.25 Hz) -> E5 (659.25 Hz)
-      playNote(523.25, now, 0.3);
-      playNote(659.25, now + 0.32, 0.4);
-
-      ringCount++;
-
-      setTimeout(() => {
-        if (isPlaying && ringCount < maxRings) playRing();
-      }, 2500); // Pause between rings
+        playSequence();
+      } catch (error) {
+        console.error('Error initializing audio:', error);
+      }
     };
 
-    playRing();
+    initAudio();
 
     return () => {
       isPlaying = false;
-      audioContext.close();
+      isPlayingRef.current = false;
+      if (audioContext && audioContext.state !== 'closed') {
+        audioContext.close();
+      }
     };
   }, []);
+
+  // Stop audio immediately when user interacts
+  const stopAudio = () => {
+    isPlayingRef.current = false;
+    if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
+      audioContextRef.current.close();
+    }
+  };
+
+  const handleAccept = () => {
+    stopAudio();
+    setIsConnecting(true);
+    setTimeout(() => {
+      onAccept();
+    }, 500);
+  };
+
+  const handleDecline = () => {
+    stopAudio();
+    onDecline();
+  };
 
   // Update time remaining
   useEffect(() => {
@@ -90,6 +139,24 @@ export function IncomingCallBanner({
     return () => clearInterval(interval);
   }, [createdAt]);
 
+  if (isConnecting) {
+    return createPortal(
+      <motion.div
+        initial={{ y: 0, opacity: 1 }}
+        exit={{ y: -100, opacity: 0 }}
+        className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-green-500/95 to-green-600/95 backdrop-blur-lg shadow-2xl border-b border-green-400/20"
+      >
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-center gap-3">
+            <Phone className="h-5 w-5 text-white animate-pulse" />
+            <p className="text-white font-medium">Connecting to call...</p>
+          </div>
+        </div>
+      </motion.div>,
+      document.body
+    );
+  }
+
   return createPortal(
     <AnimatePresence>
       <motion.div
@@ -97,61 +164,59 @@ export function IncomingCallBanner({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -100, opacity: 0 }}
         transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        className="fixed top-0 left-0 right-0 z-[9999] pointer-events-none"
+        className="fixed top-0 left-0 right-0 z-[9999] bg-gradient-to-r from-primary/95 to-primary-dark/95 backdrop-blur-lg shadow-2xl border-b border-primary/20"
       >
-        <div className="pointer-events-auto bg-gradient-to-r from-background via-background/98 to-background border-b border-primary/30 shadow-2xl animate-pulse-border">
-          <div className="container max-w-4xl mx-auto px-4 py-4">
-            <div className="flex items-center justify-between gap-4">
-              {/* Caller info */}
-              <div className="flex items-center gap-4 flex-1">
-                <div className="relative">
-                  <Avatar className="h-14 w-14 border-2 border-primary/30 ring-2 ring-primary/10 ring-offset-2 ring-offset-background">
-                    <AvatarImage src={callerAvatar} alt={callerName} />
-                    <AvatarFallback className="text-lg bg-primary/10 text-primary">
-                      {callerName.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-background animate-pulse" />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    {callType === 'video' ? (
-                      <Video className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Phone className="h-4 w-4 text-primary" />
-                    )}
-                    <h3 className="text-lg font-semibold text-foreground truncate">
-                      {callerName}
-                    </h3>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Incoming {callType} call • {timeRemaining}s
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between gap-4">
+            {/* Caller Info */}
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <Avatar className="h-12 w-12 border-2 border-white/20 ring-2 ring-white/10">
+                <AvatarImage src={callerAvatar} alt={callerName} />
+                <AvatarFallback className="bg-primary-light text-white">
+                  {callerName.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  {callType === 'video' ? (
+                    <Video className="h-4 w-4 text-white/90" />
+                  ) : (
+                    <Phone className="h-4 w-4 text-white/90" />
+                  )}
+                  <p className="text-sm font-medium text-white/90">
+                    Incoming {callType} call
                   </p>
                 </div>
+                <p className="text-lg font-semibold text-white truncate">
+                  {callerName}
+                </p>
+                <p className="text-xs text-white/70">
+                  {timeRemaining}s remaining
+                </p>
               </div>
+            </div>
 
-              {/* Actions */}
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={onDecline}
-                  variant="outline"
-                  size="lg"
-                  className="h-12 px-6 border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive/50"
-                >
-                  <PhoneOff className="h-5 w-5 mr-2" />
-                  Decline
-                </Button>
-
-                <Button
-                  onClick={onAccept}
-                  size="lg"
-                  className="h-12 px-6 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 animate-pulse-glow"
-                >
-                  <Phone className="h-5 w-5 mr-2" />
-                  Accept
-                </Button>
-              </div>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              <Button
+                size="lg"
+                onClick={handleAccept}
+                className="bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 gap-2"
+              >
+                {callType === 'video' ? <Video className="h-5 w-5" /> : <Phone className="h-5 w-5" />}
+                Accept
+              </Button>
+              
+              <Button
+                size="lg"
+                onClick={handleDecline}
+                variant="outline"
+                className="bg-red-500 hover:bg-red-600 text-white border-red-600 shadow-lg hover:shadow-xl transition-all duration-200 gap-2"
+              >
+                <PhoneOff className="h-5 w-5" />
+                Decline
+              </Button>
             </div>
           </div>
         </div>
