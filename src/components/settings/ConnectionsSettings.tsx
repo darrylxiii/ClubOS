@@ -651,7 +651,7 @@ export const ConnectionsSettings = ({
     try {
       setCalendarLoading(true);
       
-      const redirectUri = `${window.location.origin}/settings`;
+      const redirectUri = `${window.location.origin}/settings?tab=connections`;
       console.log(`[Calendar] Connecting ${provider} with redirect URI:`, redirectUri);
       
       const functionName = provider === 'google' ? 'google-calendar-auth' : 'microsoft-calendar-auth';
