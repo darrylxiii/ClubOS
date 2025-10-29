@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookingAnalyticsDashboard } from "@/components/booking/BookingAnalyticsDashboard";
+import { CalendarConnectionStatus } from "@/components/scheduling/CalendarConnectionStatus";
 import { BarChart3 } from "lucide-react";
 
 interface BookingLink {
@@ -502,6 +503,9 @@ export default function Scheduling() {
             </DialogContent>
           </Dialog>
         </div>
+
+        {/* Calendar Connection Status */}
+        <CalendarConnectionStatus />
 
         <Tabs defaultValue="links" className="w-full">
           <TabsList>

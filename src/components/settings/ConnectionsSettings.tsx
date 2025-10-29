@@ -103,7 +103,23 @@ export const ConnectionsSettings = ({
 
               if (invocationError) {
                 console.error('Google Calendar auth error:', invocationError);
-                throw new Error(invocationError.message || 'Failed to authenticate with Google Calendar');
+                
+                let errorMsg = invocationError.message || 'Failed to authenticate with Google Calendar';
+                
+                // Provide specific guidance for common errors
+                if (errorMsg.includes('403') || errorMsg.includes('access_denied')) {
+                  errorMsg = `Access denied by Google. Common causes:\n\n` +
+                    `1. Your email is not added as a test user in Google Cloud Console\n` +
+                    `2. OAuth consent screen is not configured\n` +
+                    `3. App is not published or in testing mode\n\n` +
+                    `Fix: Go to Google Cloud Console → OAuth consent screen → Add your email as test user`;
+                } else if (errorMsg.includes('redirect_uri')) {
+                  errorMsg = `Redirect URI mismatch.\n\n` +
+                    `Required URI: ${window.location.origin}/settings\n\n` +
+                    `Add this to: Google Cloud Console → Credentials → OAuth 2.0 Client → Authorized redirect URIs`;
+                }
+                
+                throw new Error(errorMsg);
               }
               
               if (data?.error) {

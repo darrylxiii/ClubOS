@@ -66,16 +66,69 @@ serve(async (req) => {
       
       for (const calendar of calendars) {
         try {
+          let accessToken = calendar.access_token;
+          let tokenRefreshed = false;
+          
+          // Check if token might be expired (older than 50 minutes)
+          const tokenAge = Date.now() - new Date(calendar.updated_at || calendar.created_at).getTime();
+          const fiftyMinutes = 50 * 60 * 1000;
+          
+          if (tokenAge > fiftyMinutes && calendar.refresh_token) {
+            console.log(`[Slots] Token might be expired (age: ${Math.round(tokenAge / 60000)}min), attempting refresh...`);
+            
+            try {
+              // Attempt token refresh
+              const refreshFunctionName = calendar.provider === 'google' 
+                ? 'google-calendar-auth' 
+                : 'microsoft-calendar-auth';
+              
+              const { data: refreshData, error: refreshError } = await supabaseClient.functions.invoke(
+                refreshFunctionName,
+                {
+                  body: {
+                    action: 'refreshToken',
+                    refreshToken: calendar.refresh_token
+                  }
+                }
+              );
+
+              if (!refreshError && refreshData?.access_token) {
+                accessToken = refreshData.access_token;
+                tokenRefreshed = true;
+                
+                // Update the stored token
+                await supabaseClient
+                  .from('calendar_connections')
+                  .update({ 
+                    access_token: accessToken,
+                    updated_at: new Date().toISOString()
+                  })
+                  .eq('id', calendar.id);
+                
+                console.log(`[Slots] Token refreshed successfully for ${calendar.provider}`);
+              } else {
+                console.warn(`[Slots] Token refresh failed, using existing token:`, refreshError);
+              }
+            } catch (refreshError) {
+              console.warn(`[Slots] Token refresh error, using existing token:`, refreshError);
+            }
+          }
+          
           const functionName = calendar.provider === 'google' 
             ? 'google-calendar-events' 
             : 'microsoft-calendar-events';
           
-          const { data: busyData, error: busyError } = await supabaseClient.functions.invoke(
+          // Set timeout for calendar API call (5 seconds max)
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Calendar API timeout')), 5000)
+          );
+          
+          const apiPromise = supabaseClient.functions.invoke(
             functionName,
             {
               body: {
                 action: 'findFreeSlots',
-                accessToken: calendar.access_token,
+                accessToken: accessToken,
                 timeMin: dateRange.start,
                 timeMax: dateRange.end,
                 calendars: ['primary']
@@ -83,15 +136,24 @@ serve(async (req) => {
             }
           );
 
+          const { data: busyData, error: busyError } = await Promise.race([
+            apiPromise,
+            timeoutPromise
+          ]) as any;
+
           if (!busyError && busyData?.busySlots) {
-            console.log(`[Slots] Found ${busyData.busySlots.length} busy slots from ${calendar.provider}`);
+            console.log(`[Slots] Found ${busyData.busySlots.length} busy slots from ${calendar.provider}${tokenRefreshed ? ' (token refreshed)' : ''}`);
             calendarBusyTimes.push(...busyData.busySlots.map((slot: any) => ({
               scheduled_start: slot.start,
               scheduled_end: slot.end
             })));
+          } else if (busyError) {
+            console.error(`[Slots] Calendar API error for ${calendar.provider}:`, busyError);
+            // Don't fail the entire request, continue with other calendars
           }
         } catch (error) {
-          console.error(`[Slots] Error fetching calendar busy times:`, error);
+          console.error(`[Slots] Error fetching calendar busy times from ${calendar.provider}:`, error);
+          // Continue with other calendars even if one fails
         }
       }
     }
