@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 interface BookingWeekViewProps {
   bookingLink: {
     id: string;
+    slug: string;
     user_id: string;
     title: string;
     duration_minutes: number;
@@ -45,7 +46,7 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
 
         const { data, error } = await supabase.functions.invoke("get-available-slots", {
           body: {
-            bookingLinkSlug: bookingLink.id,
+            bookingLinkSlug: bookingLink.slug,
             dateRange: { start: startDate, end: endDate },
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           },

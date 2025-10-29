@@ -113,3 +113,7 @@ verify_jwt = false
 # Cron-triggered function (no JWT, uses internal validation)
 [functions.process-booking-reminders]
 verify_jwt = false
+
+# Public booking functions (guests need access)
+[functions.get-available-slots]
+verify_jwt = false

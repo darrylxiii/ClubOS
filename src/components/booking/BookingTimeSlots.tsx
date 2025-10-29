@@ -8,6 +8,7 @@ import { format, addMinutes, parse } from "date-fns";
 interface BookingTimeSlotsProps {
   bookingLink: {
     id: string;
+    slug: string;
     user_id: string;
     title: string;
     duration_minutes: number;
@@ -43,7 +44,7 @@ export function BookingTimeSlots({
 
       const { data, error } = await supabase.functions.invoke("get-available-slots", {
         body: {
-          bookingLinkSlug: bookingLink.id,
+          bookingLinkSlug: bookingLink.slug,
           dateRange: { start: startDate, end: endDate },
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
