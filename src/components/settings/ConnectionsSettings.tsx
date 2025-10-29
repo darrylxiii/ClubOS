@@ -45,6 +45,7 @@ export const ConnectionsSettings = ({
   const [previewResumeName, setPreviewResumeName] = useState('');
   const [connectedCalendars, setConnectedCalendars] = useState<CalendarConnection[]>([]);
   const [calendarLoading, setCalendarLoading] = useState(false);
+  const [oauthProcessing, setOauthProcessing] = useState(false);
 
   useEffect(() => {
     loadUserResumes();
@@ -52,11 +53,18 @@ export const ConnectionsSettings = ({
   }, [user]);
 
   useEffect(() => {
-    // Handle OAuth callback
+    // Handle OAuth callback - only run when user is available
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('code');
     const error = urlParams.get('error');
     const errorDescription = urlParams.get('error_description');
+    
+    console.log('OAuth callback check:', { 
+      hasCode: !!code, 
+      hasError: !!error, 
+      userLoaded: !!user,
+      userId: user?.id 
+    });
     
     // Handle OAuth errors
     if (error) {
@@ -79,175 +87,232 @@ export const ConnectionsSettings = ({
       return;
     }
     
-    if (code) {
+    // Only process OAuth callback if we have a code AND user is loaded
+    if (code && user) {
+      console.log('🔄 Starting OAuth callback processing...');
+      setOauthProcessing(true);
+      
       (async () => {
         try {
           const pendingConnection = localStorage.getItem('pending_calendar_connection');
-          if (pendingConnection) {
-            const { provider, label } = JSON.parse(pendingConnection);
-            const redirectUri = `${window.location.origin}/settings`;
+          if (!pendingConnection) {
+            console.warn('⚠️ No pending connection found in localStorage');
+            return;
+          }
+          
+          const { provider, label } = JSON.parse(pendingConnection);
+          console.log('📋 Pending connection:', { provider, label });
+          
+          const redirectUri = `${window.location.origin}/settings`;
+          
+          let token: string;
+          let email: string = 'Calendar Account';
+
+          if (provider === 'google') {
+            console.log('🔵 Processing Google Calendar OAuth...');
             
-            let token: string;
-            let email: string = 'Calendar Account';
+            // Get current session token
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            const { data, error: invocationError } = await supabase.functions.invoke('google-calendar-auth', {
+              body: { action: 'exchangeCode', code, redirectUri },
+              headers: {
+                Authorization: `Bearer ${session?.access_token}`
+              }
+            });
 
-            if (provider === 'google') {
-              // Get current session token
-              const { data: { session } } = await supabase.auth.getSession();
-              
-              const { data, error: invocationError } = await supabase.functions.invoke('google-calendar-auth', {
-                body: { action: 'exchangeCode', code, redirectUri },
-                headers: {
-                  Authorization: `Bearer ${session?.access_token}`
-                }
+            if (invocationError) {
+              console.error('❌ Google Calendar auth error:', {
+                message: invocationError.message,
+                status: invocationError.status,
+                details: invocationError
               });
-
-              if (invocationError) {
-                console.error('Google Calendar auth error:', invocationError);
-                
-                let errorMsg = invocationError.message || 'Failed to authenticate with Google Calendar';
-                
-                // Provide specific guidance for common errors
-                if (errorMsg.includes('403') || errorMsg.includes('access_denied')) {
-                  errorMsg = `Access denied by Google. Common causes:\n\n` +
-                    `1. Your email is not added as a test user in Google Cloud Console\n` +
-                    `2. OAuth consent screen is not configured\n` +
-                    `3. App is not published or in testing mode\n\n` +
-                    `Fix: Go to Google Cloud Console → OAuth consent screen → Add your email as test user`;
-                } else if (errorMsg.includes('redirect_uri')) {
-                  errorMsg = `Redirect URI mismatch.\n\n` +
-                    `Required URI: ${window.location.origin}/settings\n\n` +
-                    `Add this to: Google Cloud Console → Credentials → OAuth 2.0 Client → Authorized redirect URIs`;
-                }
-                
-                throw new Error(errorMsg);
+              
+              let errorMsg = invocationError.message || 'Failed to authenticate with Google Calendar';
+              
+              // Provide specific guidance for common errors
+              if (errorMsg.includes('403') || errorMsg.includes('access_denied')) {
+                errorMsg = `Access denied by Google. Common causes:\n\n` +
+                  `1. Your email is not added as a test user in Google Cloud Console\n` +
+                  `2. OAuth consent screen is not configured\n` +
+                  `3. App is not published or in testing mode\n\n` +
+                  `Fix: Go to Google Cloud Console → OAuth consent screen → Add your email as test user`;
+              } else if (errorMsg.includes('redirect_uri')) {
+                errorMsg = `Redirect URI mismatch.\n\n` +
+                  `Required URI: ${window.location.origin}/settings\n\n` +
+                  `Add this to: Google Cloud Console → Credentials → OAuth 2.0 Client → Authorized redirect URIs`;
               }
               
-              if (data?.error) {
-                console.error('Google Calendar response error:', data);
-                
-                // Show detailed error with instructions
-                let errorMsg = data.error;
-                if (data.redirectUri && errorMsg.includes('redirect URI')) {
-                  errorMsg += `\n\nPlease ensure this URL is added to your Google Cloud Console:\n${data.redirectUri}\n\nGo to: APIs & Services → Credentials → Your OAuth 2.0 Client → Authorized redirect URIs`;
-                }
-                
-                throw new Error(errorMsg);
+              throw new Error(errorMsg);
+            }
+            
+            if (data?.error) {
+              console.error('❌ Google Calendar response error:', data);
+              
+              // Show detailed error with instructions
+              let errorMsg = data.error;
+              if (data.redirectUri && errorMsg.includes('redirect URI')) {
+                errorMsg += `\n\nPlease ensure this URL is added to your Google Cloud Console:\n${data.redirectUri}\n\nGo to: APIs & Services → Credentials → Your OAuth 2.0 Client → Authorized redirect URIs`;
               }
               
-              const accessToken = data.tokens.access_token;
-              const refreshToken = data.tokens.refresh_token;
-              token = accessToken;
-              
-              // Try to get user email from Google
-              try {
-                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                  headers: { Authorization: `Bearer ${token}` }
-                });
-                const userInfo = await userInfoResponse.json();
-                email = userInfo.email || email;
-              } catch (e) {
-                console.log('Could not fetch user email');
-              }
-
-              // Calculate token expiration (default 1 hour if not provided)
-              const expiresIn = data.tokens.expires_in || 3600;
-              const expiresAt = new Date(Date.now() + expiresIn * 1000);
-
-              // Save to database
-              const { error: dbError } = await supabase
-                .from('calendar_connections')
-                .insert({
-                  user_id: user?.id,
-                  provider,
-                  email,
-                  label,
-                  access_token: accessToken,
-                  refresh_token: refreshToken,
-                  token_expires_at: expiresAt.toISOString(),
-                  is_active: true
-                });
-
-              if (dbError) {
-                console.error('Error saving Google calendar connection:', dbError);
-                throw new Error('Failed to save calendar connection');
-              }
-            } else {
-              // Get current session token
-              const { data: { session } } = await supabase.auth.getSession();
-              
-              const { data, error: invocationError } = await supabase.functions.invoke('microsoft-calendar-auth', {
-                body: { action: 'exchangeCode', code, redirectUri },
-                headers: {
-                  Authorization: `Bearer ${session?.access_token}`
-                }
+              throw new Error(errorMsg);
+            }
+            
+            const accessToken = data.tokens.access_token;
+            const refreshToken = data.tokens.refresh_token;
+            token = accessToken;
+            
+            console.log('✅ Got Google tokens, fetching user info...');
+            
+            // Try to get user email from Google
+            try {
+              const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                headers: { Authorization: `Bearer ${token}` }
               });
-
-              if (invocationError) {
-                console.error('Microsoft Calendar auth error:', invocationError);
-                throw new Error(invocationError.message || 'Failed to authenticate with Microsoft Calendar');
-              }
-              
-              if (data.error) {
-                throw new Error(data.error);
-              }
-              
-              const accessToken = data.access_token;
-              const refreshToken = data.refresh_token;
-              token = accessToken;
-              
-              // Try to get user email from Microsoft
-              try {
-                const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
-                  headers: { Authorization: `Bearer ${token}` }
-                });
-                const userInfo = await userInfoResponse.json();
-                email = userInfo.mail || userInfo.userPrincipalName || email;
-              } catch (e) {
-                console.log('Could not fetch user email');
-              }
-
-              // Calculate token expiration (default 1 hour if not provided)
-              const expiresIn = data.expires_in || 3600;
-              const expiresAt = new Date(Date.now() + expiresIn * 1000);
-
-              // Save to database
-              const { error: dbError } = await supabase
-                .from('calendar_connections')
-                .insert({
-                  user_id: user?.id,
-                  provider,
-                  email,
-                  label,
-                  access_token: accessToken,
-                  refresh_token: refreshToken,
-                  token_expires_at: expiresAt.toISOString(),
-                  is_active: true
-                });
-
-              if (dbError) {
-                console.error('Error saving Microsoft calendar connection:', dbError);
-                throw new Error('Failed to save calendar connection');
-              }
+              const userInfo = await userInfoResponse.json();
+              email = userInfo.email || email;
+              console.log('📧 Google email:', email);
+            } catch (e) {
+              console.log('Could not fetch user email');
             }
 
-            // Reload calendars from database
-            await loadConnectedCalendars();
-            localStorage.removeItem('pending_calendar_connection');
+            // Calculate token expiration (default 1 hour if not provided)
+            const expiresIn = data.tokens.expires_in || 3600;
+            const expiresAt = new Date(Date.now() + expiresIn * 1000);
+
+            console.log('💾 Saving to database...', {
+              userId: user.id,
+              provider,
+              email,
+              label,
+              expiresAt: expiresAt.toISOString()
+            });
+
+            // Save to database
+            const { data: insertData, error: dbError } = await supabase
+              .from('calendar_connections')
+              .insert({
+                user_id: user.id,
+                provider,
+                email,
+                label,
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                token_expires_at: expiresAt.toISOString(),
+                is_active: true
+              })
+              .select()
+              .single();
+
+            if (dbError) {
+              console.error('❌ Database insert error:', {
+                code: dbError.code,
+                message: dbError.message,
+                details: dbError.details,
+                hint: dbError.hint
+              });
+              throw new Error(`Failed to save calendar connection: ${dbError.message}`);
+            }
             
-            // Clean up URL and redirect to connections tab
-            window.history.replaceState({}, document.title, '/settings?tab=connections');
+            console.log('✅ Calendar connection saved to database:', insertData?.id);
+          } else {
+            console.log('🟦 Processing Microsoft Calendar OAuth...');
             
-            toast.success(`${provider === 'google' ? 'Google' : 'Microsoft'} Calendar "${label}" connected successfully!`);
+            // Get current session token
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            const { data, error: invocationError } = await supabase.functions.invoke('microsoft-calendar-auth', {
+              body: { action: 'exchangeCode', code, redirectUri },
+              headers: {
+                Authorization: `Bearer ${session?.access_token}`
+              }
+            });
+
+            if (invocationError) {
+              console.error('❌ Microsoft Calendar auth error:', invocationError);
+              throw new Error(invocationError.message || 'Failed to authenticate with Microsoft Calendar');
+            }
+            
+            if (data.error) {
+              throw new Error(data.error);
+            }
+            
+            const accessToken = data.access_token;
+            const refreshToken = data.refresh_token;
+            token = accessToken;
+            
+            // Try to get user email from Microsoft
+            try {
+              const userInfoResponse = await fetch('https://graph.microsoft.com/v1.0/me', {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              const userInfo = await userInfoResponse.json();
+              email = userInfo.mail || userInfo.userPrincipalName || email;
+            } catch (e) {
+              console.log('Could not fetch user email');
+            }
+
+            // Calculate token expiration (default 1 hour if not provided)
+            const expiresIn = data.expires_in || 3600;
+            const expiresAt = new Date(Date.now() + expiresIn * 1000);
+
+            // Save to database
+            const { data: insertData, error: dbError } = await supabase
+              .from('calendar_connections')
+              .insert({
+                user_id: user.id,
+                provider,
+                email,
+                label,
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                token_expires_at: expiresAt.toISOString(),
+                is_active: true
+              })
+              .select()
+              .single();
+
+            if (dbError) {
+              console.error('❌ Database insert error:', {
+                code: dbError.code,
+                message: dbError.message,
+                details: dbError.details,
+                hint: dbError.hint
+              });
+              throw new Error(`Failed to save calendar connection: ${dbError.message}`);
+            }
+            
+            console.log('✅ Calendar connection saved to database:', insertData?.id);
           }
+
+          console.log('🔄 Reloading calendars from database...');
+          
+          // Force reload with a small delay to ensure DB transaction completes
+          setTimeout(async () => {
+            await loadConnectedCalendars();
+            console.log('✅ Calendars reloaded');
+          }, 500);
+          
+          localStorage.removeItem('pending_calendar_connection');
+          
+          // Clean up URL and redirect to connections tab
+          window.history.replaceState({}, document.title, '/settings?tab=connections');
+          
+          const providerName = provider === 'google' ? 'Google' : 'Microsoft';
+          toast.success(`${providerName} Calendar "${label}" connected successfully!`);
+          
+          console.log('✅ OAuth callback completed successfully');
         } catch (error) {
-          console.error('Calendar OAuth error:', error);
+          console.error('❌ Calendar OAuth error:', error);
           toast.error(error instanceof Error ? error.message : 'Failed to connect calendar');
           localStorage.removeItem('pending_calendar_connection');
           window.history.replaceState({}, document.title, '/settings?tab=connections');
+        } finally {
+          setOauthProcessing(false);
         }
       })();
     }
-  }, [connectedCalendars]);
+  }, [user]);
 
   const loadUserResumes = async () => {
     if (!user) return;
