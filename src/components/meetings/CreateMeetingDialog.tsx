@@ -231,7 +231,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
             
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <Label>QUIN Notetaker</Label>
+                <Label>Club AI Notetaker</Label>
                 <p className="text-xs text-muted-foreground">
                   AI bot will join, record, transcribe, and generate meeting insights
                 </p>

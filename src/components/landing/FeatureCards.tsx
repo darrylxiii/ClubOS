@@ -19,7 +19,7 @@ const features = [
   {
     icon: Brain,
     title: "AI Career Advisor",
-    description: "QUIN AI provides personalized insights, prep, and strategic recommendations",
+    description: "Club AI provides personalized insights, prep, and strategic recommendations",
   },
   {
     icon: Target,

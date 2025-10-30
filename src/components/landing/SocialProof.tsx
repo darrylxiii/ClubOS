@@ -15,7 +15,7 @@ const testimonials = [
     company: "Fortune 500",
   },
   {
-    quote: "QUIN's interview prep was game-changing. I felt prepared and confident in every conversation.",
+    quote: "Club AI's interview prep was game-changing. I felt prepared and confident in every conversation.",
     author: "Priya Patel",
     role: "Senior Data Scientist",
     company: "AI Startup",

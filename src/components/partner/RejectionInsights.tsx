@@ -157,12 +157,12 @@ export function RejectionInsights({ candidates, stages }: Props) {
                   {topReasons.length > 1 && (
                     <>, followed by{' '}
                       <span className="font-medium text-foreground">
-                        {topReasons[1]?.reason.toLowerCase()}
-                      </span>
-                    </>
-                  )}
-                  . QUIN can use this data to improve candidate matching and reduce early-stage rejections.
-                </p>
+                      {topReasons[1]?.reason.toLowerCase()}
+                    </span>
+                  </>
+                )}
+                . Club AI can use this data to improve candidate matching and reduce early-stage rejections.
+              </p>
               </div>
             </div>
           </div>

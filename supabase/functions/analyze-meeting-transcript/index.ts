@@ -176,7 +176,7 @@ Be concise, professional, and focus on actionable insights.`;
           metadata: {
             meeting_id,
             action_item_owner: item.owner,
-            source: 'quin_notetaker'
+            source: 'club_ai_notetaker'
           }
         });
       }

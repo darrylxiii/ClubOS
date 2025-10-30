@@ -121,7 +121,7 @@ export function LiveTranscriptionPanel({ meetingId }: LiveTranscriptionPanelProp
         <div className="px-4 py-2 bg-purple-500/10 border-b border-purple-500/20">
           <div className="flex items-center gap-2 text-sm">
             <Bot className="h-4 w-4 text-purple-500 animate-pulse" />
-            <span className="text-purple-500 font-medium">QUIN Notetaker Active</span>
+            <span className="text-purple-500 font-medium">Club AI Notetaker Active</span>
             <Badge variant="outline" className="ml-auto text-xs">Recording</Badge>
           </div>
         </div>
@@ -133,7 +133,7 @@ export function LiveTranscriptionPanel({ meetingId }: LiveTranscriptionPanelProp
             <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
             <p>Live transcription will appear here</p>
             {!botActive && (
-              <p className="text-xs mt-2">Enable QUIN Notetaker when creating meetings</p>
+              <p className="text-xs mt-2">Enable Club AI Notetaker when creating meetings</p>
             )}
           </div>
         ) : (

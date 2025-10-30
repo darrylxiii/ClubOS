@@ -38,7 +38,7 @@ serve(async (req) => {
         );
       }
 
-      // Get the default QUIN bot
+      // Get the default Club AI bot
       const { data: bot, error: botError } = await supabase
         .from('meeting_bots')
         .select('*')
@@ -47,7 +47,7 @@ serve(async (req) => {
         .single();
 
       if (botError || !bot) {
-        throw new Error('QUIN Notetaker bot not found');
+        throw new Error('Club AI Notetaker bot not found');
       }
 
       // Generate session token
