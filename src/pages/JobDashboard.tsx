@@ -11,6 +11,7 @@ import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Buil
 import { useUserRole } from "@/hooks/useUserRole";
 import { JobDashboardCandidates } from "@/components/partner/JobDashboardCandidates";
 import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
+import { TeamActivityCard } from "@/components/partner/TeamActivityCard";
 import { RejectedCandidatesTab } from "@/components/partner/RejectedCandidatesTab";
 import { EnhancedCandidateActionDialog } from "@/components/partner/EnhancedCandidateActionDialog";
 import { StageDetailCard } from "@/components/partner/StageDetailCard";
@@ -639,25 +640,7 @@ export default function JobDashboard() {
 
           {/* Team & Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card className="border-2 border-primary/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
-              <CardHeader>
-                <CardTitle className="font-black uppercase text-sm">Team Activity</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3].map((i) => (
-                      <Avatar key={i} className="border-2 border-background">
-                        <AvatarFallback className="bg-primary/20 text-primary font-bold">
-                          T{i}
-                        </AvatarFallback>
-                      </Avatar>
-                    ))}
-                  </div>
-                  <span className="text-sm text-muted-foreground">3 team members collaborating</span>
-                </div>
-              </CardContent>
-            </Card>
+            <TeamActivityCard jobId={job.id} />
 
             <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
               <CardHeader>
