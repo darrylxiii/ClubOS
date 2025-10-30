@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+// Only show real team contributions, not passive actions like views
+const TEAM_ACTIVITY_ACTIONS = [
+  'candidate_added',
+  'candidate_advanced',
+  'candidate_declined',
+  'stage_changed_manual',
+  'stage_added',
+  'stage_removed',
+  'stage_updated',
+  'stage_reordered'
+];
+
 interface TeamMember {
   user_id: string;
   last_activity: string;
@@ -26,6 +38,7 @@ export const useTeamActivity = (jobId: string) => {
         .select(`
           user_id,
           created_at,
+          action,
           profiles!inner (
             id,
             full_name,
@@ -35,6 +48,7 @@ export const useTeamActivity = (jobId: string) => {
           )
         `)
         .eq('job_id', jobId)
+        .in('action', TEAM_ACTIVITY_ACTIONS)
         .order('created_at', { ascending: false })
         .limit(100);
 

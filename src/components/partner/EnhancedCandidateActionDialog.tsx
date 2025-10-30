@@ -144,6 +144,29 @@ export function EnhancedCandidateActionDialog({
 
         if (updateError) throw updateError;
 
+        // Log to pipeline audit log
+        await supabase.from('pipeline_audit_logs').insert({
+          job_id: jobId,
+          user_id: user.id,
+          action: 'candidate_advanced',
+          stage_data: {
+            candidate_name: candidateName,
+            candidate_id: candidateProfileId,
+            from_stage: currentStage,
+            to_stage: nextStage,
+            from_stage_index: app?.current_stage_index,
+            to_stage_index: nextStageIndex,
+            skills_match: skillsMatch[0],
+            culture_fit: cultureFit[0],
+            communication: communication[0]
+          },
+          metadata: {
+            application_id: applicationId,
+            feedback_provided: !!feedbackText,
+            feedback_length: feedbackText.length
+          }
+        });
+
         // Save advancement feedback to company database
         if (companyId) {
           await supabase.from('company_candidate_feedback').insert({
@@ -221,6 +244,29 @@ export function EnhancedCandidateActionDialog({
         let seniorityValue = null;
         if (rejectionReason === 'experience_junior') seniorityValue = 'too_junior';
         if (rejectionReason === 'experience_senior') seniorityValue = 'too_senior';
+
+        // Log to pipeline audit log
+        const rejectionLabelForLog = REJECTION_REASONS.find(r => r.value === rejectionReason)?.label || rejectionReason;
+        await supabase.from('pipeline_audit_logs').insert({
+          job_id: jobId,
+          user_id: user.id,
+          action: 'candidate_declined',
+          stage_data: {
+            candidate_name: candidateName,
+            candidate_id: candidateProfileId,
+            stage: currentStage,
+            rejection_reason: rejectionReason,
+            rejection_label: rejectionLabelForLog,
+            specific_gaps: specificGaps,
+            seniority_mismatch: seniorityValue,
+            salary_mismatch: salaryMismatch || rejectionReason === 'salary_high',
+            location_mismatch: locationMismatch || rejectionReason === 'location'
+          },
+          metadata: {
+            application_id: applicationId,
+            feedback_provided: !!feedbackText
+          }
+        });
 
         // Save rejection feedback to company database
         if (companyId) {

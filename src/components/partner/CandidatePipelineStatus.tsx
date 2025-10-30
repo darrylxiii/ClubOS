@@ -120,14 +120,44 @@ export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: Candida
     );
   };
 
-  const handleStageChange = async (applicationId: string, newStageIndex: number) => {
+  const handleStageChange = async (applicationId: string, newStageIndex: number, app: any) => {
     try {
+      const currentStageIndex = app.current_stage_index;
+      const stages = app.jobs?.pipeline_stages || app.stages || [];
+      
       const { error } = await supabase
         .from("applications")
         .update({ current_stage_index: newStageIndex })
         .eq("id", applicationId);
 
       if (error) throw error;
+
+      // Log to pipeline audit log
+      const { data: { user } } = await supabase.auth.getUser();
+      const { data: candidateProfile } = await supabase
+        .from('candidate_profiles')
+        .select('full_name')
+        .eq('email', candidateEmail)
+        .maybeSingle();
+
+      if (user) {
+        await supabase.from('pipeline_audit_logs').insert({
+          job_id: app.job_id,
+          user_id: user.id,
+          action: 'stage_changed_manual',
+          stage_data: {
+            candidate_name: candidateProfile?.full_name || candidateEmail,
+            from_stage_index: currentStageIndex,
+            to_stage_index: newStageIndex,
+            from_stage_name: stages[currentStageIndex]?.name,
+            to_stage_name: stages[newStageIndex]?.name
+          },
+          metadata: {
+            application_id: applicationId,
+            method: 'dropdown_select'
+          }
+        });
+      }
 
       toast.success("Pipeline stage updated");
       loadApplications();
@@ -225,7 +255,7 @@ export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: Candida
                     </div>
                     <Select
                       value={app.current_stage_index.toString()}
-                      onValueChange={(value) => handleStageChange(app.id, parseInt(value))}
+                      onValueChange={(value) => handleStageChange(app.id, parseInt(value), app)}
                     >
                       <SelectTrigger className="w-[200px]">
                         <SelectValue />

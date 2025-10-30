@@ -367,6 +367,36 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           comment: `🎯 **Admin-Added Candidate** - See interaction log for details`,
           is_internal: true,
         });
+
+        // Log to pipeline audit log for team activity tracking
+        const { data: jobStages } = await supabase
+          .from('jobs')
+          .select('pipeline_stages')
+          .eq('id', jobId)
+          .single();
+
+        const stages = jobStages?.pipeline_stages || [];
+        const startingStageName = stages[parseInt(formData.startStageIndex)]?.name || 'Applied';
+
+        await supabase.from('pipeline_audit_logs').insert({
+          job_id: jobId,
+          user_id: adminUser.id,
+          action: 'candidate_added',
+          stage_data: {
+            candidate_name: formData.fullName,
+            candidate_email: formData.email,
+            starting_stage: formData.startStageIndex,
+            starting_stage_name: startingStageName,
+            linkedin_imported: linkedinImported,
+            user_linked: !!matchingUser
+          },
+          metadata: {
+            candidate_id: candidateId,
+            application_id: application.id,
+            duplicate_override: proceedWithDuplicate,
+            credit_to: creditTo
+          }
+        });
       }
 
       toast.success(

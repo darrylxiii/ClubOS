@@ -152,6 +152,28 @@ export default function JobDashboard() {
       if (error) throw error;
       setJob(data);
       
+      // Log job view (once per session to avoid spam)
+      const sessionKey = `job_view_logged_${jobId}`;
+      if (!sessionStorage.getItem(sessionKey)) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          await supabase.from('pipeline_audit_logs').insert({
+            job_id: jobId,
+            user_id: user.id,
+            action: 'job_viewed',
+            stage_data: {
+              page: 'dashboard',
+              view_timestamp: new Date().toISOString()
+            },
+            metadata: {
+              referrer: document.referrer || 'direct',
+              user_agent: navigator.userAgent.substring(0, 200)
+            }
+          });
+          sessionStorage.setItem(sessionKey, 'true');
+        }
+      }
+      
       // Fetch applications for metrics
       const stages = Array.isArray(data.pipeline_stages) ? data.pipeline_stages : [];
       await fetchApplicationsForMetrics(stages);

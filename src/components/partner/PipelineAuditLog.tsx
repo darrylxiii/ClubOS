@@ -3,13 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Shield, Plus, Trash2, Edit2, ArrowUpDown } from "lucide-react";
+import { Shield, Plus, Trash2, Edit2, ArrowUpDown, UserPlus, ArrowRight, XCircle, Eye, Linkedin } from "lucide-react";
 import { format } from "date-fns";
 
 interface AuditLog {
   id: string;
   action: string;
   stage_data: any;
+  metadata?: any;
   created_at: string;
   profiles: {
     full_name: string;
@@ -90,6 +91,11 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
       case 'stage_removed': return Trash2;
       case 'stage_updated': return Edit2;
       case 'stage_reordered': return ArrowUpDown;
+      case 'candidate_added': return UserPlus;
+      case 'candidate_advanced': return ArrowRight;
+      case 'candidate_declined': return XCircle;
+      case 'stage_changed_manual': return ArrowUpDown;
+      case 'job_viewed': return Eye;
       default: return Shield;
     }
   };
@@ -100,12 +106,28 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
       case 'stage_removed': return 'bg-destructive/20 text-destructive border-destructive/30';
       case 'stage_updated': return 'bg-primary/20 text-primary border-primary/30';
       case 'stage_reordered': return 'bg-secondary/20 text-secondary border-secondary/30';
+      case 'candidate_added': return 'bg-green-500/10 text-green-500 border-green-500/20';
+      case 'candidate_advanced': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      case 'candidate_declined': return 'bg-red-500/10 text-red-500 border-red-500/20';
+      case 'stage_changed_manual': return 'bg-purple-500/10 text-purple-500 border-purple-500/20';
+      case 'job_viewed': return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
       default: return 'bg-muted';
     }
   };
 
   const getActionLabel = (action: string) => {
-    return action.split('_').map(word => 
+    const labels: Record<string, string> = {
+      'stage_added': 'Stage Added',
+      'stage_removed': 'Stage Removed',
+      'stage_updated': 'Stage Updated',
+      'stage_reordered': 'Stage Reordered',
+      'candidate_added': 'Candidate Added',
+      'candidate_advanced': 'Candidate Advanced',
+      'candidate_declined': 'Candidate Declined',
+      'stage_changed_manual': 'Stage Changed',
+      'job_viewed': 'Page Viewed'
+    };
+    return labels[action] || action.split('_').map(word => 
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
@@ -171,18 +193,89 @@ export const PipelineAuditLog = ({ jobId }: PipelineAuditLogProps) => {
                               by {log.profiles?.full_name || 'Unknown'}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground">
+                          <div className="text-xs text-muted-foreground space-y-1">
                             {log.stage_data?.stage?.name && (
-                              <span className="font-medium text-foreground">
-                                "{log.stage_data.stage.name}"
-                              </span>
+                              <p>
+                                <span className="font-medium text-foreground">
+                                  "{log.stage_data.stage.name}"
+                                </span>
+                              </p>
                             )}
                             {log.stage_data?.stages && (
-                              <span className="font-medium text-foreground">
-                                {log.stage_data.stages.length} stages modified
-                              </span>
+                              <p>
+                                <span className="font-medium text-foreground">
+                                  {log.stage_data.stages.length} stages modified
+                                </span>
+                              </p>
                             )}
-                          </p>
+                            
+                            {/* Candidate Added Details */}
+                            {log.action === 'candidate_added' && (
+                              <div className="mt-1">
+                                <p className="text-foreground">
+                                  Added <span className="font-medium">{log.stage_data?.candidate_name}</span> to {log.stage_data?.starting_stage_name}
+                                </p>
+                                <div className="flex gap-1 mt-1">
+                                  {log.stage_data?.linkedin_imported && (
+                                    <Badge variant="secondary" className="text-xs h-5">
+                                      <Linkedin className="w-3 h-3 mr-1" />
+                                      LinkedIn Import
+                                    </Badge>
+                                  )}
+                                  {log.metadata?.duplicate_override && (
+                                    <Badge variant="destructive" className="text-xs h-5">
+                                      Override Duplicate
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Candidate Advanced Details */}
+                            {log.action === 'candidate_advanced' && (
+                              <div className="mt-1">
+                                <p className="text-foreground">
+                                  <span className="font-medium">{log.stage_data?.candidate_name}</span>
+                                  {' '}<ArrowRight className="w-3 h-3 inline" />{' '}
+                                  {log.stage_data?.from_stage} → {log.stage_data?.to_stage}
+                                </p>
+                                {log.stage_data?.skills_match && (
+                                  <div className="flex gap-1 mt-1">
+                                    <Badge variant="outline" className="text-xs h-5">Skills: {log.stage_data.skills_match}/10</Badge>
+                                    <Badge variant="outline" className="text-xs h-5">Culture: {log.stage_data.culture_fit}/10</Badge>
+                                    <Badge variant="outline" className="text-xs h-5">Comm: {log.stage_data.communication}/10</Badge>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Candidate Declined Details */}
+                            {log.action === 'candidate_declined' && (
+                              <div className="mt-1">
+                                <p className="text-foreground">
+                                  <span className="font-medium">{log.stage_data?.candidate_name}</span> declined at {log.stage_data?.stage}
+                                </p>
+                                <Badge variant="destructive" className="text-xs h-5 mt-1">
+                                  {log.stage_data?.rejection_label || log.stage_data?.rejection_reason}
+                                </Badge>
+                              </div>
+                            )}
+
+                            {/* Manual Stage Change Details */}
+                            {log.action === 'stage_changed_manual' && (
+                              <p className="text-foreground mt-1">
+                                <span className="font-medium">{log.stage_data?.candidate_name}</span> moved from {log.stage_data?.from_stage_name} → {log.stage_data?.to_stage_name}
+                              </p>
+                            )}
+
+                            {/* Job Viewed Details */}
+                            {log.action === 'job_viewed' && (
+                              <p className="flex items-center gap-1">
+                                <Eye className="w-3 h-3" />
+                                Viewed dashboard
+                              </p>
+                            )}
+                          </div>
                         </div>
                         <span className="text-xs text-muted-foreground whitespace-nowrap">
                           {format(new Date(log.created_at), 'MMM d, HH:mm')}
