@@ -1,9 +1,39 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+interface GoogleTokenResponse {
+  access_token: string;
+  expires_in: number;
+  token_type: string;
+}
+
+async function refreshGoogleToken(refreshToken: string, clientId: string, clientSecret: string): Promise<GoogleTokenResponse> {
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token',
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    console.error('Token refresh failed:', error);
+    throw new Error('Failed to refresh Google token');
+  }
+
+  return await response.json();
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,13 +41,97 @@ serve(async (req) => {
   }
 
   try {
-    const { action, accessToken, event, timeMin, timeMax, calendars } = await req.json();
+    const { action, connectionId, event, timeMin, timeMax, calendars } = await req.json();
 
-    if (!accessToken) {
+    console.log('Google Calendar request:', { action, connectionId, timeMin, timeMax });
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    if (!connectionId) {
       return new Response(
-        JSON.stringify({ error: 'Access token required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'Connection ID required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Get calendar connection from database
+    const { data: connection, error: connectionError } = await supabase
+      .from('calendar_connections')
+      .select('*')
+      .eq('id', connectionId)
+      .single();
+
+    if (connectionError || !connection) {
+      console.error('Failed to fetch connection:', connectionError);
+      return new Response(
+        JSON.stringify({ error: 'Calendar connection not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    let accessToken = connection.access_token;
+    const tokenExpiresAt = new Date(connection.token_expires_at);
+    const now = new Date();
+
+    // Check if token is expired or will expire in the next 5 minutes
+    const expiryBuffer = 5 * 60 * 1000; // 5 minutes in milliseconds
+    if (tokenExpiresAt.getTime() - now.getTime() < expiryBuffer) {
+      console.log('Token expired or expiring soon, refreshing...');
+
+      // Get Google OAuth credentials from environment
+      const googleClientId = Deno.env.get('GOOGLE_CLIENT_ID');
+      const googleClientSecret = Deno.env.get('GOOGLE_CLIENT_SECRET');
+
+      if (!googleClientId || !googleClientSecret) {
+        console.error('Google OAuth credentials not configured');
+        return new Response(
+          JSON.stringify({ 
+            error: 'token_expired',
+            message: 'Calendar connection expired. Please reconnect your Google Calendar in Settings.'
+          }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      try {
+        // Refresh the token
+        const tokenResponse = await refreshGoogleToken(
+          connection.refresh_token,
+          googleClientId,
+          googleClientSecret
+        );
+
+        accessToken = tokenResponse.access_token;
+        const newExpiresAt = new Date(now.getTime() + tokenResponse.expires_in * 1000);
+
+        // Update the database with new token
+        const { error: updateError } = await supabase
+          .from('calendar_connections')
+          .update({
+            access_token: accessToken,
+            token_expires_at: newExpiresAt.toISOString(),
+            updated_at: now.toISOString(),
+          })
+          .eq('id', connectionId);
+
+        if (updateError) {
+          console.error('Failed to update token:', updateError);
+        } else {
+          console.log('Token refreshed successfully');
+        }
+      } catch (refreshError) {
+        console.error('Token refresh error:', refreshError);
+        return new Response(
+          JSON.stringify({ 
+            error: 'token_refresh_failed',
+            message: 'Failed to refresh calendar connection. Please reconnect your Google Calendar in Settings.'
+          }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const headers = {
@@ -26,7 +140,6 @@ serve(async (req) => {
     };
 
     if (action === 'createEvent') {
-      // Create a calendar event
       const response = await fetch(
         'https://www.googleapis.com/calendar/v3/calendars/primary/events',
         {
@@ -53,7 +166,6 @@ serve(async (req) => {
     }
 
     if (action === 'findFreeSlots') {
-      // Find available time slots across calendars
       const calendarIds = calendars || ['primary'];
       
       const freeBusyQuery = {
@@ -82,7 +194,6 @@ serve(async (req) => {
 
       const freeBusyData = await response.json();
       
-      // Process busy times to find free slots
       interface BusySlot {
         start: string;
         end: string;
@@ -95,12 +206,10 @@ serve(async (req) => {
         }
       });
 
-      // Sort busy slots
       busySlots.sort((a, b) => 
         new Date(a.start).getTime() - new Date(b.start).getTime()
       );
 
-      // Calculate free slots (simplified - assumes working hours 9-5)
       const freeSlots: BusySlot[] = [];
       const startTime = new Date(timeMin);
       const endTime = new Date(timeMax);
@@ -123,7 +232,6 @@ serve(async (req) => {
         }
       }
       
-      // Add final free slot if there's time left
       if (currentTime < endTime) {
         freeSlots.push({
           start: currentTime.toISOString(),
@@ -138,10 +246,12 @@ serve(async (req) => {
     }
 
     if (action === 'listEvents') {
-      // List upcoming events
       const url = new URL('https://www.googleapis.com/calendar/v3/calendars/primary/events');
       url.searchParams.append('timeMin', timeMin || new Date().toISOString());
-      url.searchParams.append('maxResults', '10');
+      if (timeMax) {
+        url.searchParams.append('timeMax', timeMax);
+      }
+      url.searchParams.append('maxResults', '100');
       url.searchParams.append('singleEvents', 'true');
       url.searchParams.append('orderBy', 'startTime');
 
@@ -151,14 +261,17 @@ serve(async (req) => {
         const error = await response.text();
         console.error('Failed to list events:', error);
         return new Response(
-          JSON.stringify({ error: 'Failed to retrieve calendar events' }),
+          JSON.stringify({ 
+            error: 'Failed to retrieve calendar events',
+            details: error 
+          }),
           { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      const events = await response.json();
+      const data = await response.json();
       return new Response(
-        JSON.stringify({ events: events.items || [] }),
+        JSON.stringify({ events: data.items || [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

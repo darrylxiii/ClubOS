@@ -80,13 +80,16 @@ async function fetchGoogleCalendarEvents(
       const { data, error } = await supabase.functions.invoke('google-calendar-events', {
         body: {
           action: 'listEvents',
-          accessToken: connection.access_token,
+          connectionId: connection.id,
           timeMin: startDate.toISOString(),
           timeMax: endDate.toISOString(),
         },
       });
 
-      if (error || !data?.events) continue;
+      if (error || !data?.events) {
+        console.error('Failed to fetch Google events:', error);
+        continue;
+      }
 
       const events = data.events.map((event: any) => ({
         id: `google-${event.id}`,
@@ -134,13 +137,16 @@ async function fetchMicrosoftCalendarEvents(
     try {
       const { data, error } = await supabase.functions.invoke('microsoft-calendar-events', {
         body: {
-          accessToken: connection.access_token,
+          connectionId: connection.id,
           timeMin: startDate.toISOString(),
           timeMax: endDate.toISOString(),
         },
       });
 
-      if (error || !data?.events) continue;
+      if (error || !data?.events) {
+        console.error('Failed to fetch Microsoft events:', error);
+        continue;
+      }
 
       const events = data.events.map((event: any) => ({
         id: `ms-${event.id}`,
