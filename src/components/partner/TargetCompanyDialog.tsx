@@ -154,12 +154,55 @@ export function TargetCompanyDialog({
     }
   };
 
-  const handleCompanySelect = async (company: { name: string; domain?: string; logo?: string }) => {
-    setFormData(prev => ({
-      ...prev,
-      name: company.name,
-      website_url: company.domain ? `https://${company.domain}` : prev.website_url,
-    }));
+  const handleCompanySelect = async (company: { name: string; domain?: string; logo?: string; id?: string }) => {
+    // Check if this is from our companies database
+    let sourceCompanyId = null;
+    let enrichmentSource: 'database' | 'clearbit' | 'manual' = 'manual';
+    let logoUrl = '';
+
+    if (company.id) {
+      // Selected from companies database
+      sourceCompanyId = company.id;
+      enrichmentSource = 'database';
+      
+      // Fetch full company details
+      try {
+        const { data: companyData } = await supabase
+          .from('companies')
+          .select('logo_url, website_url, headquarters_location')
+          .eq('id', company.id)
+          .single();
+        
+        if (companyData) {
+          logoUrl = companyData.logo_url || '';
+          setFormData(prev => ({
+            ...prev,
+            name: company.name,
+            website_url: companyData.website_url || prev.website_url,
+            location: companyData.headquarters_location || prev.location,
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching company details:', error);
+      }
+    } else {
+      // Manual entry or external API result
+      enrichmentSource = company.logo ? 'clearbit' : 'manual';
+      logoUrl = company.logo || '';
+      
+      setFormData(prev => ({
+        ...prev,
+        name: company.name,
+        website_url: company.domain ? `https://${company.domain}` : prev.website_url,
+      }));
+    }
+
+    // Store enrichment metadata temporarily (will be saved on submit)
+    (window as any).__tempEnrichmentData = {
+      source_company_id: sourceCompanyId,
+      enrichment_source: enrichmentSource,
+      logo_url: logoUrl,
+    };
   };
 
   const handleAddContact = async () => {
@@ -240,11 +283,17 @@ export function TargetCompanyDialog({
 
     setLoading(true);
     try {
+      // Get enrichment data from temporary storage
+      const enrichmentData = (window as any).__tempEnrichmentData || {};
+      
       const data = {
         ...formData,
         job_id: formData.job_id || null,
         company_id: companyId,
         created_by: user.id,
+        enrichment_source: enrichmentData.enrichment_source || 'manual',
+        source_company_id: enrichmentData.source_company_id || null,
+        logo_url: enrichmentData.logo_url || null,
       };
 
       if (targetCompany) {
@@ -287,6 +336,9 @@ export function TargetCompanyDialog({
 
         toast.success("Bedrijf toegevoegd");
       }
+
+      // Clear temporary enrichment data
+      delete (window as any).__tempEnrichmentData;
 
       onSuccess();
     } catch (error) {

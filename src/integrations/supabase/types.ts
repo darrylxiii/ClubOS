@@ -9314,6 +9314,7 @@ export type Database = {
           company_insider: string | null
           created_at: string
           created_by: string
+          enrichment_source: string | null
           id: string
           industry: string | null
           job_id: string | null
@@ -9323,6 +9324,7 @@ export type Database = {
           name: string
           notes: string | null
           priority: number | null
+          source_company_id: string | null
           status: string
           updated_at: string
           votes: number | null
@@ -9333,6 +9335,7 @@ export type Database = {
           company_insider?: string | null
           created_at?: string
           created_by: string
+          enrichment_source?: string | null
           id?: string
           industry?: string | null
           job_id?: string | null
@@ -9342,6 +9345,7 @@ export type Database = {
           name: string
           notes?: string | null
           priority?: number | null
+          source_company_id?: string | null
           status?: string
           updated_at?: string
           votes?: number | null
@@ -9352,6 +9356,7 @@ export type Database = {
           company_insider?: string | null
           created_at?: string
           created_by?: string
+          enrichment_source?: string | null
           id?: string
           industry?: string | null
           job_id?: string | null
@@ -9361,6 +9366,7 @@ export type Database = {
           name?: string
           notes?: string | null
           priority?: number | null
+          source_company_id?: string | null
           status?: string
           updated_at?: string
           votes?: number | null
@@ -9379,6 +9385,13 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "target_companies_source_company_id_fkey"
+            columns: ["source_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]

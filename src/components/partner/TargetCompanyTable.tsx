@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MoreVertical, Edit, Trash2, ThumbsUp, MessageSquare, ExternalLink } from "lucide-react";
 import { TargetCompanyDetailDialog } from "./TargetCompanyDetailDialog";
+import { EnrichmentBadge } from "./EnrichmentBadge";
 
 interface TargetCompany {
   id: string;
@@ -33,6 +34,7 @@ interface TargetCompany {
   notes: string | null;
   created_by: string;
   created_at: string;
+  enrichment_source?: 'database' | 'clearbit' | 'manual';
   profiles?: { full_name: string | null };
   jobs?: { title: string; status: string };
   target_company_votes?: Array<{ user_id: string; profiles?: { full_name: string | null } }>;
@@ -111,6 +113,7 @@ export function TargetCompanyTable({
               <TableHead>Naam</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Industrie</TableHead>
+              <TableHead>Source</TableHead>
               <TableHead>Prioriteit</TableHead>
               <TableHead>Functies</TableHead>
               <TableHead>Votes</TableHead>
@@ -164,6 +167,11 @@ export function TargetCompanyTable({
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <EnrichmentBadge 
+                      source={company.enrichment_source || 'manual'} 
+                    />
                   </TableCell>
                   <TableCell>
                     {company.priority ? (

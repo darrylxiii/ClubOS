@@ -23,6 +23,7 @@ import { TeamManagement } from "@/components/partner/TeamManagement";
 import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialog";
 import { CreateJobDialog } from "@/components/partner/CreateJobDialog";
 import { JobCard } from "@/components/JobCard";
+import { TargetCompanies } from "@/components/partner/TargetCompanies";
 
 interface Company {
   id: string;
@@ -70,9 +71,13 @@ export default function CompanyPage() {
   const [isCompanyMember, setIsCompanyMember] = useState(false);
   const [createJobDialogOpen, setCreateJobDialogOpen] = useState(false);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [targetCompaniesCount, setTargetCompaniesCount] = useState(0);
 
   const isAdmin = currentRole === 'admin';
   const isPartner = currentRole === 'partner';
+  
+  // Show targets tab only to admins or company members (partners/recruiters)
+  const canAccessTargets = isAdmin || isCompanyMember;
 
   useEffect(() => {
     loadCompany();
@@ -158,15 +163,17 @@ export default function CompanyPage() {
     if (!company) return;
 
     try {
-      const [followersRes, jobsRes, jobsDataRes] = await Promise.all([
+      const [followersRes, jobsRes, jobsDataRes, targetsRes] = await Promise.all([
         supabase.from("company_followers").select("id", { count: 'exact', head: true }).eq("company_id", company.id),
         supabase.from("jobs").select("id", { count: 'exact', head: true }).eq("company_id", company.id).eq("status", "published"),
         supabase.from("jobs").select("*").eq("company_id", company.id).order("created_at", { ascending: false }),
+        supabase.from("target_companies").select("id", { count: 'exact', head: true }).eq("company_id", company.id),
       ]);
 
       setFollowerCount(followersRes.count || 0);
       setJobCount(jobsRes.count || 0);
       setJobs(jobsDataRes.data || []);
+      setTargetCompaniesCount(targetsRes.count || 0);
     } catch (error) {
       console.error("Error loading stats:", error);
     }
@@ -505,11 +512,16 @@ export default function CompanyPage() {
 
         {/* Additional Tabs */}
         <Tabs defaultValue="about" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className={`grid w-full ${canAccessTargets ? 'grid-cols-5' : 'grid-cols-4'}`}>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="jobs">Jobs ({jobCount})</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="culture">Culture</TabsTrigger>
+            {canAccessTargets && (
+              <TabsTrigger value="targets">
+                Targets ({targetCompaniesCount})
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="about" className="space-y-6 mt-6">
@@ -653,6 +665,12 @@ export default function CompanyPage() {
               </Card>
             )}
           </TabsContent>
+
+          {canAccessTargets && (
+            <TabsContent value="targets" className="space-y-6 mt-6">
+              <TargetCompanies companyId={company.id} />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
