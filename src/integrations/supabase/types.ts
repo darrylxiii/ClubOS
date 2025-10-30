@@ -4981,6 +4981,162 @@ export type Database = {
           },
         ]
       }
+      meeting_bot_sessions: {
+        Row: {
+          bot_id: string | null
+          connection_status: string | null
+          id: string
+          joined_at: string | null
+          left_at: string | null
+          meeting_id: string | null
+          metadata: Json | null
+          recording_url: string | null
+          session_token: string
+          transcript_url: string | null
+        }
+        Insert: {
+          bot_id?: string | null
+          connection_status?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          meeting_id?: string | null
+          metadata?: Json | null
+          recording_url?: string | null
+          session_token: string
+          transcript_url?: string | null
+        }
+        Update: {
+          bot_id?: string | null
+          connection_status?: string | null
+          id?: string
+          joined_at?: string | null
+          left_at?: string | null
+          meeting_id?: string | null
+          metadata?: Json | null
+          recording_url?: string | null
+          session_token?: string
+          transcript_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_bot_sessions_bot_id_fkey"
+            columns: ["bot_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_bots"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_bot_sessions_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_bots: {
+        Row: {
+          avatar_url: string | null
+          bot_type: string
+          capabilities: Json | null
+          created_at: string | null
+          display_name: string
+          id: string
+          status: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bot_type?: string
+          capabilities?: Json | null
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          status?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bot_type?: string
+          capabilities?: Json | null
+          created_at?: string | null
+          display_name?: string
+          id?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      meeting_insights: {
+        Row: {
+          action_items: Json | null
+          analysis_status: string | null
+          bot_session_id: string | null
+          created_at: string | null
+          decisions: Json | null
+          full_transcript: string | null
+          id: string
+          key_points: Json | null
+          meeting_id: string | null
+          participants_summary: Json | null
+          processing_time_ms: number | null
+          questions_asked: Json | null
+          sentiment_analysis: Json | null
+          summary: string | null
+          topics: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          analysis_status?: string | null
+          bot_session_id?: string | null
+          created_at?: string | null
+          decisions?: Json | null
+          full_transcript?: string | null
+          id?: string
+          key_points?: Json | null
+          meeting_id?: string | null
+          participants_summary?: Json | null
+          processing_time_ms?: number | null
+          questions_asked?: Json | null
+          sentiment_analysis?: Json | null
+          summary?: string | null
+          topics?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          analysis_status?: string | null
+          bot_session_id?: string | null
+          created_at?: string | null
+          decisions?: Json | null
+          full_transcript?: string | null
+          id?: string
+          key_points?: Json | null
+          meeting_id?: string | null
+          participants_summary?: Json | null
+          processing_time_ms?: number | null
+          questions_asked?: Json | null
+          sentiment_analysis?: Json | null
+          summary?: string | null
+          topics?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_insights_bot_session_id_fkey"
+            columns: ["bot_session_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_bot_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_insights_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_join_requests: {
         Row: {
           created_at: string
@@ -5274,6 +5430,63 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_transcripts: {
+        Row: {
+          bot_session_id: string | null
+          confidence: number | null
+          created_at: string | null
+          id: string
+          is_final: boolean | null
+          language: string | null
+          meeting_id: string | null
+          participant_id: string | null
+          participant_name: string | null
+          text: string
+          timestamp_ms: number
+        }
+        Insert: {
+          bot_session_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_final?: boolean | null
+          language?: string | null
+          meeting_id?: string | null
+          participant_id?: string | null
+          participant_name?: string | null
+          text: string
+          timestamp_ms: number
+        }
+        Update: {
+          bot_session_id?: string | null
+          confidence?: number | null
+          created_at?: string | null
+          id?: string
+          is_final?: boolean | null
+          language?: string | null
+          meeting_id?: string | null
+          participant_id?: string | null
+          participant_name?: string | null
+          text?: string
+          timestamp_ms?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_transcripts_bot_session_id_fkey"
+            columns: ["bot_session_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_bot_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_transcripts_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           access_type: string
@@ -5282,6 +5495,7 @@ export type Database = {
           branding: Json | null
           created_at: string | null
           description: string | null
+          enable_notetaker: boolean | null
           host_id: string
           host_settings: Json | null
           id: string
@@ -5306,6 +5520,7 @@ export type Database = {
           branding?: Json | null
           created_at?: string | null
           description?: string | null
+          enable_notetaker?: boolean | null
           host_id: string
           host_settings?: Json | null
           id?: string
@@ -5330,6 +5545,7 @@ export type Database = {
           branding?: Json | null
           created_at?: string | null
           description?: string | null
+          enable_notetaker?: boolean | null
           host_id?: string
           host_settings?: Json | null
           id?: string

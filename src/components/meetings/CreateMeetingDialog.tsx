@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, Plus, Users, Lock, Globe } from 'lucide-react';
+import { CalendarIcon, Plus, Users, Lock, Globe, Bot, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -32,6 +32,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
   const [accessType, setAccessType] = useState<'invite_only' | 'public' | 'password'>('invite_only');
   const [password, setPassword] = useState('');
   const [maxParticipants, setMaxParticipants] = useState<number | undefined>();
+  const [enableNotetaker, setEnableNotetaker] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreate = async () => {
@@ -66,6 +67,7 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
           access_type: accessType,
           meeting_password: accessType === 'password' ? password : null,
           max_participants: maxParticipants,
+          enable_notetaker: enableNotetaker,
           settings: {
             duration_minutes: duration
           }
@@ -220,10 +222,31 @@ export function CreateMeetingDialog({ trigger, onMeetingCreated }: CreateMeeting
             </div>
           </div>
 
+          {/* AI Notetaker */}
+          <div className="space-y-4 p-4 rounded-lg bg-muted/50">
+            <h4 className="font-semibold flex items-center gap-2">
+              <Bot className="h-4 w-4" />
+              AI Assistant
+            </h4>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                <Label>QUIN Notetaker</Label>
+                <p className="text-xs text-muted-foreground">
+                  AI bot will join, record, transcribe, and generate meeting insights
+                </p>
+              </div>
+              <Switch
+                checked={enableNotetaker}
+                onCheckedChange={setEnableNotetaker}
+              />
+            </div>
+          </div>
+
           {/* Access Settings */}
           <div className="space-y-4 p-4 rounded-lg bg-muted/50">
             <h4 className="font-semibold flex items-center gap-2">
-              <Lock className="h-4 w-4" />
+              <Shield className="h-4 w-4" />
               Access & Privacy
             </h4>
 
