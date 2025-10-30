@@ -48,9 +48,31 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
     if (error) {
       console.error('Error loading documents:', error);
+      toast.error('Failed to load documents');
+      setLoading(false);
       return;
     }
-    setDocuments(data || []);
+
+    // Generate signed URLs for all documents
+    const documentsWithUrls = await Promise.all(
+      (data || []).map(async (doc) => {
+        try {
+          const { data: urlData } = await supabase.storage
+            .from('resumes')
+            .createSignedUrl(doc.file_url, 3600); // 1 hour expiry
+          
+          return {
+            ...doc,
+            file_url: urlData?.signedUrl || doc.file_url,
+          };
+        } catch (error) {
+          console.error('Error creating signed URL:', error);
+          return doc;
+        }
+      })
+    );
+
+    setDocuments(documentsWithUrls);
     setLoading(false);
   };
 
@@ -66,38 +88,41 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
     setUploading(true);
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
       // Upload to storage
       const filePath = `${candidateId}/${Date.now()}-${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('resumes')
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(filePath);
-
-      // Insert document record
+      // Insert document record with file path (not public URL)
       const { error: insertError } = await supabase
         .from('candidate_documents')
         .insert({
           candidate_id: candidateId,
           document_type: file.type.includes('pdf') ? 'cv' : 'other',
           file_name: file.name,
-          file_url: publicUrl,
+          file_url: filePath, // Store path, not public URL
           file_size_kb: Math.round(file.size / 1024),
           mime_type: file.type,
+          uploaded_by: user.id,
         });
 
       if (insertError) throw insertError;
 
       toast.success('Document uploaded successfully');
-      loadDocuments();
-    } catch (error) {
+      await loadDocuments(); // Reload to get the new document
+      
+      // Reset file input
+      event.target.value = '';
+    } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error('Failed to upload document');
+      toast.error(error.message || 'Failed to upload document');
     } finally {
       setUploading(false);
     }
@@ -110,18 +135,31 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   const handleDelete = async (docId: string) => {
     if (!confirm('Are you sure you want to delete this document?')) return;
 
-    const { error } = await supabase
-      .from('candidate_documents')
-      .delete()
-      .eq('id', docId);
+    const doc = documents.find(d => d.id === docId);
+    if (!doc) return;
 
-    if (error) {
+    try {
+      // Delete from storage first
+      const { error: storageError } = await supabase.storage
+        .from('resumes')
+        .remove([doc.file_url.split('resumes/')[1] || doc.file_url]);
+
+      if (storageError) console.error('Storage deletion error:', storageError);
+
+      // Delete from database
+      const { error: dbError } = await supabase
+        .from('candidate_documents')
+        .delete()
+        .eq('id', docId);
+
+      if (dbError) throw dbError;
+
+      toast.success('Document deleted');
+      await loadDocuments();
+    } catch (error) {
+      console.error('Delete error:', error);
       toast.error('Failed to delete document');
-      return;
     }
-
-    toast.success('Document deleted');
-    loadDocuments();
   };
 
   const getDocumentIcon = (type: string) => {
