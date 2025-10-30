@@ -3932,7 +3932,7 @@ export type Database = {
           id: string
           ip_address: unknown
           user_agent: string | null
-          user_id: string
+          user_id: string | null
           verified_at: string | null
         }
         Insert: {
@@ -3943,7 +3943,7 @@ export type Database = {
           id?: string
           ip_address?: unknown
           user_agent?: string | null
-          user_id: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Update: {
@@ -3954,7 +3954,7 @@ export type Database = {
           id?: string
           ip_address?: unknown
           user_agent?: string | null
-          user_id?: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Relationships: []
