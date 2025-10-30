@@ -10112,6 +10112,11 @@ export type Database = {
           page_path: string
           page_title: string
           rating: number
+          resolution_conversation_id: string | null
+          resolution_message: string | null
+          resolution_status: string | null
+          resolved_at: string | null
+          resolved_by: string | null
           role: string
           submitted_at: string | null
           user_id: string
@@ -10127,6 +10132,11 @@ export type Database = {
           page_path: string
           page_title: string
           rating: number
+          resolution_conversation_id?: string | null
+          resolution_message?: string | null
+          resolution_status?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           role: string
           submitted_at?: string | null
           user_id: string
@@ -10142,11 +10152,24 @@ export type Database = {
           page_path?: string
           page_title?: string
           rating?: number
+          resolution_conversation_id?: string | null
+          resolution_message?: string | null
+          resolution_status?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           role?: string
           submitted_at?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_feedback_resolution_conversation_id_fkey"
+            columns: ["resolution_conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_follows: {
         Row: {

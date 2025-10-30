@@ -82,6 +82,14 @@ interface Feedback {
   is_reviewed: boolean;
   admin_notes: string | null;
   submitted_at: string;
+  resolution_status: 'pending' | 'acknowledged' | 'in_progress' | 'fixed' | 'wont_fix';
+  resolved_at: string | null;
+  resolved_by: string | null;
+  resolution_message: string | null;
+  resolution_conversation_id: string | null;
+  resolver?: {
+    full_name: string;
+  };
 }
 
 const COLORS = {
@@ -100,8 +108,15 @@ const FeedbackDatabase = () => {
   const [ratingFilter, setRatingFilter] = useState<string>('all');
   const [reviewedFilter, setReviewedFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<string>('all');
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
-  const [adminNotes, setAdminNotes] = useState('');
+  const [adminNotes, setAdminNotes] = useState("");
+  const [createTaskOpen, setCreateTaskOpen] = useState(false);
+  const [resolutionDialog, setResolutionDialog] = useState(false);
+  const [resolutionStatus, setResolutionStatus] = useState<'acknowledged' | 'in_progress' | 'fixed' | 'wont_fix'>('fixed');
+  const [resolutionMessage, setResolutionMessage] = useState('');
+  const [sendingResponse, setSendingResponse] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isSaving, setIsSaving] = useState(false);
   const [showTaskDialog, setShowTaskDialog] = useState(false);
   const [taskInitialData, setTaskInitialData] = useState<{
@@ -134,8 +149,25 @@ const FeedbackDatabase = () => {
         .order('submitted_at', { ascending: false });
 
       if (error) throw error;
-      setFeedback(data || []);
-      setFilteredFeedback(data || []);
+      
+      // Fetch resolver profiles separately if needed
+      const feedbackWithResolvers = await Promise.all(
+        (data || []).map(async (item) => {
+          if (item.resolved_by) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('id', item.resolved_by)
+              .single();
+            
+            return { ...item, resolver: profile || undefined } as Feedback;
+          }
+          return item as Feedback;
+        })
+      );
+      
+      setFeedback(feedbackWithResolvers);
+      setFilteredFeedback(feedbackWithResolvers);
     } catch (error: any) {
       console.error('Error loading feedback:', error);
       toast({
@@ -185,9 +217,14 @@ const FeedbackDatabase = () => {
     if (reviewedFilter !== 'all') {
       filtered = filtered.filter((f) => f.is_reviewed === (reviewedFilter === 'reviewed'));
     }
+    
+    // Status filter
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((f) => f.resolution_status === statusFilter);
+    }
 
     setFilteredFeedback(filtered);
-  }, [searchTerm, ratingFilter, reviewedFilter, dateRange, feedback]);
+  }, [searchTerm, ratingFilter, reviewedFilter, dateRange, feedback, statusFilter]);
 
   // Advanced Analytics
   const analytics = useMemo(() => {
@@ -422,6 +459,72 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
       description: 'Feedback converted to task successfully',
     });
     setShowTaskDialog(false);
+  };
+
+  const getResolutionStatusBadge = (status: string) => {
+    const variants: Record<string, {variant: any, label: string, icon?: any}> = {
+      pending: { variant: 'secondary', label: 'Pending' },
+      acknowledged: { variant: 'default', label: 'Acknowledged' },
+      in_progress: { variant: 'default', label: 'In Progress' },
+      fixed: { variant: 'default', label: 'Fixed' },
+      wont_fix: { variant: 'destructive', label: "Won't Fix" }
+    };
+    
+    const config = variants[status] || variants.pending;
+    return (
+      <Badge variant={config.variant} className={status === 'fixed' ? 'bg-green-500' : ''}>
+        {config.label}
+      </Badge>
+    );
+  };
+
+  const handleResolve = async () => {
+    if (!selectedFeedback || !resolutionMessage.trim()) {
+      toast({ 
+        title: 'Message required', 
+        description: 'Please provide a response message', 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
+    setSendingResponse(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase.functions.invoke('send-feedback-response', {
+        body: {
+          feedback_id: selectedFeedback.id,
+          resolution_status: resolutionStatus,
+          resolution_message: resolutionMessage,
+          resolved_by: user.id
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Feedback resolved',
+        description: `Response sent to ${selectedFeedback.email}. Conversation created.`
+      });
+
+      // Navigate to the conversation
+      navigate(`/messages?conversation=${data.conversation_id}`);
+      
+      setResolutionDialog(false);
+      setResolutionMessage('');
+      setSelectedFeedback(null);
+      loadFeedback();
+    } catch (error: any) {
+      toast({
+        title: 'Failed to send response',
+        description: error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setSendingResponse(false);
+    }
   };
 
   if (currentRole !== 'admin') return null;
@@ -831,8 +934,25 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="pending">Pending Review</SelectItem>
                         <SelectItem value="reviewed">Reviewed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Resolution</label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All</SelectItem>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="acknowledged">Acknowledged</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="fixed">Fixed</SelectItem>
+                        <SelectItem value="wont_fix">Won't Fix</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -876,7 +996,8 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                         <TableHead>Page</TableHead>
                         <TableHead>Rating</TableHead>
                         <TableHead>Comment</TableHead>
-                        <TableHead>Status</TableHead>
+                        <TableHead>Review Status</TableHead>
+                        <TableHead>Resolution</TableHead>
                         <TableHead>Actions</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -911,6 +1032,9 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                             ) : (
                               <Badge variant="secondary">Pending</Badge>
                             )}
+                          </TableCell>
+                          <TableCell>
+                            {getResolutionStatusBadge(item.resolution_status)}
                           </TableCell>
                           <TableCell>
                             <div className="flex gap-2">
@@ -1007,6 +1131,48 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                 </div>
               )}
 
+              {/* Resolution Status */}
+              <div>
+                <label className="text-sm font-medium text-muted-foreground">Resolution Status</label>
+                <div className="mt-2 flex items-center gap-4">
+                  {getResolutionStatusBadge(selectedFeedback.resolution_status)}
+                  {selectedFeedback.resolved_at && (
+                    <span className="text-sm text-muted-foreground">
+                      Resolved {formatDistanceToNow(new Date(selectedFeedback.resolved_at), { addSuffix: true })}
+                      {selectedFeedback.resolver && ` by ${selectedFeedback.resolver.full_name}`}
+                    </span>
+                  )}
+                </div>
+                {selectedFeedback.resolution_conversation_id && (
+                  <Button
+                    size="sm"
+                    variant="link"
+                    className="mt-2 px-0"
+                    onClick={() => navigate(`/messages?conversation=${selectedFeedback.resolution_conversation_id}`)}
+                  >
+                    View conversation →
+                  </Button>
+                )}
+              </div>
+
+              {selectedFeedback.resolution_status !== 'fixed' && selectedFeedback.resolution_status !== 'wont_fix' && (
+                <Card className="border-primary/20 bg-primary/5">
+                  <CardContent className="pt-4">
+                    <Button
+                      className="w-full gap-2"
+                      onClick={() => {
+                        setResolutionMessage('');
+                        setResolutionStatus('fixed');
+                        setResolutionDialog(true);
+                      }}
+                    >
+                      <CheckCircle className="h-4 w-4" />
+                      Mark as Resolved & Send Response
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Admin Notes */}
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Admin Notes</label>
@@ -1038,6 +1204,96 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
               ) : (
                 'Save Notes'
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Resolution Dialog */}
+      <Dialog open={resolutionDialog} onOpenChange={setResolutionDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Resolve Feedback & Send Response</DialogTitle>
+            <DialogDescription>
+              Send a personalized message to {selectedFeedback?.email} about their feedback.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedFeedback && (
+            <div className="space-y-4">
+              {/* Original Feedback Context */}
+              <Card className="bg-muted/50">
+                <CardContent className="pt-4 space-y-2">
+                  <p className="text-sm"><strong>Page:</strong> {selectedFeedback.page_title}</p>
+                  <p className="text-sm"><strong>Rating:</strong> {selectedFeedback.rating}/10</p>
+                  <p className="text-sm"><strong>Comment:</strong> {selectedFeedback.comment || 'No comment'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Submitted {formatDistanceToNow(new Date(selectedFeedback.submitted_at), { addSuffix: true })}
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Resolution Status Selector */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Resolution Status</label>
+                <Select value={resolutionStatus} onValueChange={(value: any) => setResolutionStatus(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="acknowledged">Acknowledged - We've seen this</SelectItem>
+                    <SelectItem value="in_progress">In Progress - Working on it</SelectItem>
+                    <SelectItem value="fixed">Fixed - Issue resolved</SelectItem>
+                    <SelectItem value="wont_fix">Won't Fix - Not actionable</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Custom Message Textarea */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Your Response Message</label>
+                <Textarea
+                  placeholder="Thank you for your feedback! We've reviewed your concern and..."
+                  value={resolutionMessage}
+                  onChange={(e) => setResolutionMessage(e.target.value)}
+                  rows={6}
+                  className="resize-none"
+                />
+                <p className="text-xs text-muted-foreground">
+                  This message will be sent from "The Quantum Club" company account via our messaging system.
+                </p>
+              </div>
+
+              {/* Preview of what will be sent */}
+              <Card className="border-primary/20">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Message Preview</CardTitle>
+                </CardHeader>
+                <CardContent className="text-sm space-y-2 text-muted-foreground">
+                  <p>📋 <strong>Re: Your feedback on {selectedFeedback.page_title}</strong></p>
+                  <p>Hi! Thank you for sharing your feedback with us.</p>
+                  <p>
+                    <strong>Status:</strong>{' '}
+                    {resolutionStatus === 'fixed' && '✅ Fixed'}
+                    {resolutionStatus === 'in_progress' && '🔄 In Progress'}
+                    {resolutionStatus === 'acknowledged' && '👀 Acknowledged'}
+                    {resolutionStatus === 'wont_fix' && "❌ Won't Fix"}
+                  </p>
+                  <p className="whitespace-pre-wrap">{resolutionMessage || '[Your custom message will appear here]'}</p>
+                  <p className="text-xs">Feel free to reply if you have any questions!</p>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResolutionDialog(false)}>Cancel</Button>
+            <Button 
+              onClick={handleResolve} 
+              disabled={sendingResponse || !resolutionMessage.trim()}
+            >
+              {sendingResponse ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+              Send Response & Mark Resolved
             </Button>
           </DialogFooter>
         </DialogContent>
