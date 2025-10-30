@@ -1,30 +1,51 @@
-import { useState, useEffect } from 'react';
-import { AppLayout } from '@/components/AppLayout';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { CreateMeetingDialog } from '@/components/meetings/CreateMeetingDialog';
-import { MeetingCard } from '@/components/meetings/MeetingCard';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { Search, Calendar, Clock, Video, Users, Bot } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from "react";
+import { AppLayout } from "@/components/AppLayout";
+import { Button } from "@/components/ui/button";
+import { Plus, Calendar as CalendarIcon, Settings } from "lucide-react";
+import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
+import { MeetingCard } from "@/components/meetings/MeetingCard";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MeetingStatsBar } from "@/components/meetings/MeetingStatsBar";
+import { UnifiedCalendarView } from "@/components/meetings/UnifiedCalendarView";
+import { MeetingIntelligenceTab } from "@/components/meetings/MeetingIntelligenceTab";
+import { NotetakerSettingsTab } from "@/components/meetings/NotetakerSettingsTab";
+import { toast } from "sonner";
 
 export default function Meetings() {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState('upcoming');
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const [stats, setStats] = useState({
+    upcoming: 0,
+    today: 0,
+    week: 0,
+    analyzed: 0,
+    hours: 0,
+  });
+  
+  const activeTab = searchParams.get('tab') || 'calendar';
 
   useEffect(() => {
     if (user) {
       loadMeetings();
-      subscribeToMeetings();
+      loadStats();
+      
+      const channel = subscribeToMeetings();
+      
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [user]);
 
@@ -32,7 +53,6 @@ export default function Meetings() {
     try {
       setLoading(true);
       
-      // Get meetings where user is host
       const { data: hostedMeetings, error: hostedError } = await supabase
         .from('meetings')
         .select('*')
@@ -40,7 +60,6 @@ export default function Meetings() {
 
       if (hostedError) throw hostedError;
 
-      // Get meetings where user is participant
       const { data: participantMeetings, error: participantError } = await supabase
         .from('meeting_participants')
         .select('meeting_id, meetings(*)')
@@ -48,13 +67,11 @@ export default function Meetings() {
 
       if (participantError) throw participantError;
 
-      // Combine and deduplicate meetings
       const allMeetings = [
         ...(hostedMeetings || []),
         ...(participantMeetings?.map(p => p.meetings).filter(Boolean) || [])
       ];
 
-      // Remove duplicates by id
       const uniqueMeetings = Array.from(
         new Map(allMeetings.map(m => [m.id, m])).values()
       ).sort((a, b) => new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime());
@@ -68,25 +85,52 @@ export default function Meetings() {
     }
   };
 
+  const loadStats = async () => {
+    if (!user) return;
+
+    try {
+      const now = new Date();
+      const todayStart = new Date(now.setHours(0, 0, 0, 0)).toISOString();
+      const todayEnd = new Date(now.setHours(23, 59, 59, 999)).toISOString();
+      const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      const [upcomingRes, todayRes, weekRes, analyzedRes] = await Promise.all([
+        supabase.from('meetings').select('*', { count: 'exact', head: true }).gte('scheduled_start', new Date().toISOString()),
+        supabase.from('meetings').select('*', { count: 'exact', head: true }).gte('scheduled_start', todayStart).lte('scheduled_start', todayEnd),
+        supabase.from('meetings').select('*', { count: 'exact', head: true }).gte('scheduled_start', todayStart).lte('scheduled_start', weekEnd),
+        supabase.from('meeting_insights').select('*', { count: 'exact', head: true }),
+      ]);
+
+      setStats({
+        upcoming: upcomingRes.count || 0,
+        today: todayRes.count || 0,
+        week: weekRes.count || 0,
+        analyzed: analyzedRes.count || 0,
+        hours: (analyzedRes.count || 0) * 0.5,
+      });
+    } catch (error) {
+      console.error('Failed to load stats:', error);
+    }
+  };
+
   const subscribeToMeetings = () => {
     const channel = supabase
-      .channel('meetings-changes')
+      .channel('meetings_changes')
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'meetings',
+          table: 'meetings'
         },
         () => {
           loadMeetings();
+          loadStats();
         }
       )
       .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
+    
+    return channel;
   };
 
   const handleDeleteMeeting = async (meetingId: string) => {
@@ -105,17 +149,11 @@ export default function Meetings() {
     }
   };
 
-  const filterMeetings = (meetings: any[], type: string) => {
+  const filterMeetings = (type: string) => {
     const now = new Date();
     let filtered = meetings;
 
     switch (type) {
-      case 'upcoming':
-        filtered = meetings.filter(m => new Date(m.scheduled_start) > now && m.status !== 'cancelled');
-        break;
-      case 'past':
-        filtered = meetings.filter(m => new Date(m.scheduled_end) < now);
-        break;
       case 'my-meetings':
         filtered = meetings.filter(m => m.host_id === user?.id);
         break;
@@ -131,176 +169,101 @@ export default function Meetings() {
     return filtered;
   };
 
-  const upcomingMeetings = filterMeetings(meetings, 'upcoming');
-  const pastMeetings = filterMeetings(meetings, 'past');
-  const myMeetings = filterMeetings(meetings, 'my-meetings');
+  const myMeetings = filterMeetings('my-meetings');
 
-  const stats = [
-    {
-      label: 'Upcoming',
-      value: upcomingMeetings.length,
-      icon: Calendar,
-      color: 'text-blue-500'
-    },
-    {
-      label: 'Total Hosted',
-      value: myMeetings.length,
-      icon: Video,
-      color: 'text-purple-500'
-    },
-    {
-      label: 'Past Meetings',
-      value: pastMeetings.length,
-      icon: Clock,
-      color: 'text-gray-500'
-    }
-  ];
+  const setActiveTabValue = (value: string) => {
+    setSearchParams({ tab: value });
+  };
 
   return (
     <AppLayout>
-      <div className="container mx-auto p-8 max-w-7xl">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold mb-2">Meetings</h1>
+            <h1 className="text-4xl font-bold mb-2">Meetings & Intelligence</h1>
             <p className="text-muted-foreground">
-              Schedule, join, and manage your Quantum Club meetings
+              Unified hub for all your meetings, calendar, and AI insights
             </p>
           </div>
-          <div className="flex gap-3">
-            <Button
+          <div className="flex gap-2">
+            <Button 
               variant="outline"
-              onClick={() => navigate('/meeting-intelligence')}
+              onClick={() => navigate('/settings?tab=integrations')}
               className="gap-2"
             >
-              <Bot className="h-4 w-4" />
-              Meeting Intelligence
+              <Settings className="h-4 w-4" />
+              Integrations
             </Button>
             <CreateMeetingDialog onMeetingCreated={loadMeetings} />
           </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {stats.map((stat) => (
-            <Card key={stat.label} className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold">{stat.value}</p>
-                </div>
-                <stat.icon className={`h-8 w-8 ${stat.color}`} />
-              </div>
-            </Card>
-          ))}
-        </div>
+        <MeetingStatsBar
+          upcomingCount={stats.upcoming}
+          todayCount={stats.today}
+          weekCount={stats.week}
+          analyzedCount={stats.analyzed}
+          hoursTranscribed={stats.hours}
+        />
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search meetings..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
+        <Tabs value={activeTab} onValueChange={setActiveTabValue}>
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="calendar" className="gap-2">
+              <CalendarIcon className="h-4 w-4" />
+              Calendar View
+            </TabsTrigger>
             <TabsTrigger value="my-meetings">My Meetings</TabsTrigger>
-            <TabsTrigger value="past">Past</TabsTrigger>
+            <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="upcoming" className="space-y-4">
-            {loading ? (
-              Array(3).fill(0).map((_, i) => (
-                <Card key={i} className="p-6">
-                  <Skeleton className="h-32 w-full" />
-                </Card>
-              ))
-            ) : upcomingMeetings.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Calendar className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No upcoming meetings</h3>
-                <p className="text-muted-foreground mb-4">
-                  Schedule your first meeting to get started
-                </p>
-                <CreateMeetingDialog
-                  trigger={<Button>Schedule Meeting</Button>}
-                  onMeetingCreated={loadMeetings}
-                />
-              </Card>
-            ) : (
-              upcomingMeetings.map(meeting => (
-                <MeetingCard
-                  key={meeting.id}
-                  meeting={meeting}
-                  onDelete={meeting.host_id === user?.id ? handleDeleteMeeting : undefined}
-                />
-              ))
-            )}
+          <TabsContent value="calendar" className="mt-6">
+            <UnifiedCalendarView />
           </TabsContent>
 
-          <TabsContent value="my-meetings" className="space-y-4">
-            {loading ? (
-              Array(3).fill(0).map((_, i) => (
-                <Card key={i} className="p-6">
-                  <Skeleton className="h-32 w-full" />
+          <TabsContent value="my-meetings" className="mt-6">
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search meetings..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              {loading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-48 w-full" />
+                  ))}
+                </div>
+              ) : myMeetings.length === 0 ? (
+                <Card className="p-12 text-center">
+                  <p className="text-muted-foreground">You haven't hosted any meetings yet</p>
                 </Card>
-              ))
-            ) : myMeetings.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Video className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No meetings hosted</h3>
-                <p className="text-muted-foreground mb-4">
-                  Create your first meeting to get started
-                </p>
-                <CreateMeetingDialog
-                  trigger={<Button>Create Meeting</Button>}
-                  onMeetingCreated={loadMeetings}
-                />
-              </Card>
-            ) : (
-              myMeetings.map(meeting => (
-                <MeetingCard
-                  key={meeting.id}
-                  meeting={meeting}
-                  onDelete={handleDeleteMeeting}
-                />
-              ))
-            )}
+              ) : (
+                myMeetings.map((meeting) => (
+                  <MeetingCard
+                    key={meeting.id}
+                    meeting={meeting}
+                    onDelete={handleDeleteMeeting}
+                  />
+                ))
+              )}
+            </div>
           </TabsContent>
 
-          <TabsContent value="past" className="space-y-4">
-            {loading ? (
-              Array(3).fill(0).map((_, i) => (
-                <Card key={i} className="p-6">
-                  <Skeleton className="h-32 w-full" />
-                </Card>
-              ))
-            ) : pastMeetings.length === 0 ? (
-              <Card className="p-12 text-center">
-                <Clock className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No past meetings</h3>
-                <p className="text-muted-foreground">
-                  Your meeting history will appear here
-                </p>
-              </Card>
-            ) : (
-              pastMeetings.map(meeting => (
-                <MeetingCard
-                  key={meeting.id}
-                  meeting={meeting}
-                />
-              ))
-            )}
+          <TabsContent value="intelligence" className="mt-6">
+            <MeetingIntelligenceTab />
+          </TabsContent>
+
+          <TabsContent value="settings" className="mt-6">
+            <NotetakerSettingsTab />
           </TabsContent>
         </Tabs>
+
       </div>
     </AppLayout>
   );
