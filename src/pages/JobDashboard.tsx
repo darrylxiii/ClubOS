@@ -189,7 +189,7 @@ export default function JobDashboard() {
     } catch (error) {
       console.error('Error fetching job:', error);
       toast.error("Failed to load job details");
-      navigate('/company-jobs');
+      navigate('/jobs');
     } finally {
       setLoading(false);
     }
@@ -385,15 +385,15 @@ export default function JobDashboard() {
           
           <div className="relative flex items-start justify-between">
             <div className="space-y-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate('/company-jobs')}
-                className="mb-2 hover:bg-muted/20 transition-all duration-300"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Jobs Dashboard
-              </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/jobs')}
+          className="mb-2 hover:bg-muted/20 transition-all duration-300"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Jobs
+        </Button>
               <div className="flex items-center gap-4">
                 {job.companies?.logo_url && (
                   <div className="relative group">
