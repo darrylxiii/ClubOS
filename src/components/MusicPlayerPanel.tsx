@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, RefObject } from 'react';
 import { Play, Pause, Volume2, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -10,9 +10,12 @@ import { useAudioManager } from '@/hooks/useAudioManager';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-export function MusicPlayerPanel() {
+interface MusicPlayerPanelProps {
+  audioRef: RefObject<HTMLAudioElement>;
+}
+
+export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
   const navigate = useNavigate();
-  const audioRef = useRef<HTMLAudioElement>(null);
   const { play: managedPlay, pause: managedPause } = useAudioManager('preview');
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState([75]);
@@ -115,6 +118,11 @@ export function MusicPlayerPanel() {
 
     const handlePlay = () => setIsPlaying(true);
     const handlePause = () => setIsPlaying(false);
+    const handleTimeUpdate = () => {
+      if (audio.duration) {
+        setProgress((audio.currentTime / audio.duration) * 100);
+      }
+    };
     const handleError = (e: Event) => {
       console.error('Audio error:', e);
       toast.error('Failed to load audio');
@@ -123,11 +131,13 @@ export function MusicPlayerPanel() {
 
     audio.addEventListener('play', handlePlay);
     audio.addEventListener('pause', handlePause);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('error', handleError);
 
     return () => {
       audio.removeEventListener('play', handlePlay);
       audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('error', handleError);
     };
   }, []);
@@ -293,16 +303,6 @@ export function MusicPlayerPanel() {
         </Button>
       </div>
 
-      {/* Hidden Audio Element */}
-      <audio
-        ref={audioRef}
-        onTimeUpdate={(e) => {
-          const audio = e.currentTarget;
-          if (audio.duration) {
-            setProgress((audio.currentTime / audio.duration) * 100);
-          }
-        }}
-      />
     </div>
   );
 }
