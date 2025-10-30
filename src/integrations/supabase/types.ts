@@ -1678,12 +1678,16 @@ export type Database = {
           ai_concerns: Json | null
           ai_strengths: Json | null
           ai_summary: string | null
+          application_status: string | null
+          assigned_strategist_id: string | null
           avatar_url: string | null
           blocked_companies: Json | null
           certifications: Json | null
           created_at: string
           created_by: string | null
           current_company: string | null
+          current_salary_max: number | null
+          current_salary_min: number | null
           current_title: string | null
           cv_parsed_at: string | null
           data_retention_date: string | null
@@ -1720,6 +1724,10 @@ export type Database = {
           preferred_currency: string | null
           profile_completeness: number | null
           remote_preference: string | null
+          remote_work_aspiration: boolean | null
+          resume_filename: string | null
+          resume_url: string | null
+          salary_preference_hidden: boolean | null
           skills: Json | null
           source_channel: string | null
           source_metadata: Json | null
@@ -1734,12 +1742,16 @@ export type Database = {
           ai_concerns?: Json | null
           ai_strengths?: Json | null
           ai_summary?: string | null
+          application_status?: string | null
+          assigned_strategist_id?: string | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           certifications?: Json | null
           created_at?: string
           created_by?: string | null
           current_company?: string | null
+          current_salary_max?: number | null
+          current_salary_min?: number | null
           current_title?: string | null
           cv_parsed_at?: string | null
           data_retention_date?: string | null
@@ -1776,6 +1788,10 @@ export type Database = {
           preferred_currency?: string | null
           profile_completeness?: number | null
           remote_preference?: string | null
+          remote_work_aspiration?: boolean | null
+          resume_filename?: string | null
+          resume_url?: string | null
+          salary_preference_hidden?: boolean | null
           skills?: Json | null
           source_channel?: string | null
           source_metadata?: Json | null
@@ -1790,12 +1806,16 @@ export type Database = {
           ai_concerns?: Json | null
           ai_strengths?: Json | null
           ai_summary?: string | null
+          application_status?: string | null
+          assigned_strategist_id?: string | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           certifications?: Json | null
           created_at?: string
           created_by?: string | null
           current_company?: string | null
+          current_salary_max?: number | null
+          current_salary_min?: number | null
           current_title?: string | null
           cv_parsed_at?: string | null
           data_retention_date?: string | null
@@ -1832,6 +1852,10 @@ export type Database = {
           preferred_currency?: string | null
           profile_completeness?: number | null
           remote_preference?: string | null
+          remote_work_aspiration?: boolean | null
+          resume_filename?: string | null
+          resume_url?: string | null
+          salary_preference_hidden?: boolean | null
           skills?: Json | null
           source_channel?: string | null
           source_metadata?: Json | null
@@ -1842,7 +1866,22 @@ export type Database = {
           work_history?: Json | null
           years_of_experience?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "candidate_profiles_assigned_strategist_id_fkey"
+            columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_profiles_assigned_strategist_id_fkey"
+            columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       candidate_scorecards: {
         Row: {

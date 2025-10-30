@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
@@ -16,6 +16,7 @@ import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { Slider } from "@/components/ui/slider";
+import { CandidateApplicationTracker } from "./CandidateApplicationTracker";
 
 const STEPS = ["contact", "professional", "career", "compensation", "preferences"];
 
@@ -28,6 +29,9 @@ export function CandidateOnboardingSteps() {
   const [verificationCode, setVerificationCode] = useState("");
   const [cities, setCities] = useState<Array<{ id: string; name: string; country: string }>>([]);
   const [selectedCity, setSelectedCity] = useState("");
+  const [cityRadius, setCityRadius] = useState(25);
+  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -64,20 +68,24 @@ export function CandidateOnboardingSteps() {
     current_title: "",
     linkedin_url: "",
     bio: "",
+    resume_url: "",
+    resume_filename: "",
     // Career
     dream_job_title: "",
     employment_type: "fulltime" as "fulltime" | "freelance" | "both",
     notice_period: "2_weeks",
+    remote_work_aspiration: false,
     // Compensation
     current_salary_min: 50000,
     current_salary_max: 70000,
+    salary_preference_hidden: false,
     desired_salary_min: 70000,
     desired_salary_max: 90000,
     freelance_hourly_rate_min: 50,
     freelance_hourly_rate_max: 100,
     // Preferences
     remote_work_preference: false,
-    preferred_work_locations: [] as string[],
+    preferred_work_locations: [] as Array<{ city: string; country: string; radius_km: number }>,
   });
 
   useEffect(() => {
@@ -227,14 +235,19 @@ export function CandidateOnboardingSteps() {
         career_preferences: formData.bio,
         employment_type_preference: formData.employment_type,
         notice_period: formData.notice_period,
-        current_salary_min: formData.current_salary_min,
-        current_salary_max: formData.current_salary_max,
+        current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
+        current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
+        salary_preference_hidden: formData.salary_preference_hidden,
         desired_salary_min: formData.desired_salary_min,
         desired_salary_max: formData.desired_salary_max,
         freelance_hourly_rate_min: formData.freelance_hourly_rate_min,
         freelance_hourly_rate_max: formData.freelance_hourly_rate_max,
         remote_work_preference: formData.remote_work_preference,
+        remote_work_aspiration: formData.remote_work_aspiration,
         preferred_work_locations: formData.preferred_work_locations,
+        resume_url: formData.resume_url,
+        resume_filename: formData.resume_filename,
+        application_status: 'applied',
         onboarding_completed_at: new Date().toISOString(),
       };
 
@@ -257,6 +270,8 @@ export function CandidateOnboardingSteps() {
             ...profileData,
             session_id: sessionId,
             onboarding_source: 'funnel',
+            // Auto-assign Darryl as default strategist
+            assigned_strategist_id: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
           });
 
         if (error) throw error;
@@ -264,18 +279,8 @@ export function CandidateOnboardingSteps() {
 
       await trackStep("complete");
 
-      toast({
-        title: "Profile completed successfully!",
-        description: "You'll be redirected to create your account.",
-      });
-
-      // Redirect based on login status
-      if (session) {
-        navigate('/home');
-      } else {
-        // Redirect to auth with email pre-filled
-        navigate(`/auth?email=${encodeURIComponent(formData.email)}&from=onboarding`);
-      }
+      // Move to success screen instead of redirecting
+      setCurrentStep(5);
     } catch (error: any) {
       console.error('Submission error:', error);
       toast({ title: "Submission failed", description: error.message, variant: "destructive" });
@@ -283,20 +288,111 @@ export function CandidateOnboardingSteps() {
   };
 
   const handleAddPreferredLocation = () => {
-    if (selectedCity && !formData.preferred_work_locations.includes(selectedCity)) {
-      setFormData({
-        ...formData,
-        preferred_work_locations: [...formData.preferred_work_locations, selectedCity]
-      });
-      setSelectedCity('');
+    if (selectedCity) {
+      const [cityName, country] = selectedCity.split(", ");
+      const locationExists = formData.preferred_work_locations.some(
+        loc => loc.city === cityName && loc.country === country
+      );
+      
+      if (!locationExists) {
+        setFormData({
+          ...formData,
+          preferred_work_locations: [
+            ...formData.preferred_work_locations, 
+            { city: cityName, country, radius_km: cityRadius }
+          ]
+        });
+        setSelectedCity('');
+        setCityRadius(25);
+      }
     }
   };
 
-  const handleRemovePreferredLocation = (location: string) => {
+  const handleRemovePreferredLocation = (location: { city: string; country: string; radius_km: number }) => {
     setFormData({
       ...formData,
-      preferred_work_locations: formData.preferred_work_locations.filter(loc => loc !== location)
+      preferred_work_locations: formData.preferred_work_locations.filter(
+        loc => !(loc.city === location.city && loc.country === location.country)
+      )
     });
+  };
+
+  const handleResumeUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!validTypes.includes(file.type)) {
+      toast({ title: "Invalid file type", description: "Please upload a PDF or DOC file", variant: "destructive" });
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({ title: "File too large", description: "Maximum file size is 10MB", variant: "destructive" });
+      return;
+    }
+
+    setIsUploadingResume(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${sessionId}_${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      // Upload to Supabase storage
+      const { error: uploadError } = await supabase.storage
+        .from('resumes')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('resumes')
+        .getPublicUrl(filePath);
+
+      setFormData({
+        ...formData,
+        resume_url: publicUrl,
+        resume_filename: file.name,
+      });
+
+      toast({ title: "Resume uploaded successfully" });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
+    } finally {
+      setIsUploadingResume(false);
+    }
+  };
+
+  const handleRemoveResume = async () => {
+    if (formData.resume_url) {
+      try {
+        // Extract file path from URL
+        const urlParts = formData.resume_url.split('/resumes/');
+        if (urlParts[1]) {
+          await supabase.storage.from('resumes').remove([urlParts[1]]);
+        }
+      } catch (error) {
+        console.error('Error removing resume:', error);
+      }
+    }
+
+    setFormData({
+      ...formData,
+      resume_url: "",
+      resume_filename: "",
+    });
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const renderStep = () => {
@@ -334,11 +430,23 @@ export function CandidateOnboardingSteps() {
               )}
             </div>
 
+            {!emailVerified && !emailOtpSent && (
+              <div className="p-4 border-3 border-primary/30 bg-primary/10 rounded-xl animate-pulse">
+                <div className="flex items-center gap-3">
+                  <Mail className="w-10 h-10 text-primary" />
+                  <div className="flex-1">
+                    <p className="text-base font-bold text-foreground">Email verification required to continue</p>
+                    <p className="text-sm text-muted-foreground mt-1">Click "Send Verification Code" below to verify your email</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {emailOtpSent && !emailVerified && (
-              <div className="p-4 border-2 border-primary/20 bg-primary/5 rounded-lg space-y-3">
+              <div className="p-4 border-3 border-primary/20 bg-primary/5 rounded-lg space-y-3 shadow-lg shadow-primary/20">
                 <div className="flex items-start gap-3">
                   <div className="flex-1">
-                    <Label className="text-base font-semibold">Verify Your Email</Label>
+                    <Label className="text-lg font-bold">Verify Your Email</Label>
                     <p className="text-sm text-muted-foreground mt-1">
                       We've sent a 6-digit code to {formData.email}
                     </p>
@@ -446,6 +554,48 @@ export function CandidateOnboardingSteps() {
               />
               <p className="text-sm text-muted-foreground mt-1">You can skip this and complete it later in settings</p>
             </div>
+            
+            {/* Resume Upload */}
+            <div className="space-y-2">
+              <Label>Resume (Optional)</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleResumeUpload}
+                className="hidden"
+              />
+              
+              {!formData.resume_filename ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingResume}
+                  className="w-full"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  {isUploadingResume ? "Uploading..." : "Upload your resume"}
+                </Button>
+              ) : (
+                <div className="flex items-center gap-2 p-3 border-2 border-primary/20 bg-primary/5 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <span className="text-sm font-medium flex-1 truncate">{formData.resume_filename}</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleRemoveResume}
+                    className="flex-shrink-0"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                You can add this later in settings. Accepted formats: PDF, DOC, DOCX (max 10MB)
+              </p>
+            </div>
           </div>
         );
 
@@ -478,6 +628,24 @@ export function CandidateOnboardingSteps() {
                 </SelectContent>
               </Select>
             </div>
+            
+            {/* Remote Work Aspiration Toggle */}
+            <div className="flex items-center justify-between p-4 border-2 border-border rounded-lg bg-accent/5">
+              <div>
+                <Label htmlFor="remoteAspiration" className="text-base font-semibold cursor-pointer">
+                  Open to Remote Work
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Work from anywhere
+                </p>
+              </div>
+              <Switch
+                id="remoteAspiration"
+                checked={formData.remote_work_aspiration}
+                onCheckedChange={(checked) => setFormData({ ...formData, remote_work_aspiration: checked })}
+              />
+            </div>
+            
             <div>
               <Label>Notice Period *</Label>
               <Select value={formData.notice_period} onValueChange={(value) => setFormData({ ...formData, notice_period: value })}>
@@ -508,7 +676,18 @@ export function CandidateOnboardingSteps() {
             {(formData.employment_type === 'fulltime' || formData.employment_type === 'both') && (
               <>
                 <div className="space-y-2">
-                  <Label>Current Salary Range (€/year)</Label>
+                  <div className="flex items-center justify-between">
+                    <Label>Current Salary Range (€/year)</Label>
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      onClick={() => setFormData({ ...formData, salary_preference_hidden: !formData.salary_preference_hidden })}
+                      className="text-xs"
+                    >
+                      {formData.salary_preference_hidden ? "Share Salary" : "Prefer not to share"}
+                    </Button>
+                  </div>
                   <div className="pt-2 pb-4">
                     <Slider
                       min={0}
@@ -520,15 +699,21 @@ export function CandidateOnboardingSteps() {
                         current_salary_min: value[0], 
                         current_salary_max: value[1] 
                       })}
+                      disabled={formData.salary_preference_hidden}
+                      className={formData.salary_preference_hidden ? "opacity-50" : ""}
                     />
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    €{formData.current_salary_min.toLocaleString()} - €{formData.current_salary_max.toLocaleString()}
+                    {formData.salary_preference_hidden ? (
+                      <span className="italic">Hidden</span>
+                    ) : (
+                      <>€{formData.current_salary_min.toLocaleString()} - €{formData.current_salary_max.toLocaleString()}</>
+                    )}
                   </p>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Desired Salary Range (€/year) *</Label>
+                  <Label>Desired Next Role Salary Range (€/year) *</Label>
                   <div className="pt-2 pb-4">
                     <Slider
                       min={0}
@@ -607,7 +792,12 @@ export function CandidateOnboardingSteps() {
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px]">
                     {cities
-                      .filter(city => !formData.preferred_work_locations.includes(`${city.name}, ${city.country}`))
+                      .filter(city => {
+                        const cityString = `${city.name}, ${city.country}`;
+                        return !formData.preferred_work_locations.some(
+                          loc => loc.city === city.name && loc.country === city.country
+                        );
+                      })
                       .map((city) => (
                         <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
                           {city.name}, {city.country}
@@ -624,18 +814,36 @@ export function CandidateOnboardingSteps() {
                 </Button>
               </div>
 
+              {selectedCity && (
+                <div className="space-y-2 p-4 border-2 border-primary/20 rounded-lg bg-primary/5">
+                  <Label>Maximum distance from {selectedCity.split(", ")[0]}</Label>
+                  <div className="pt-2 pb-4">
+                    <Slider
+                      min={0}
+                      max={100}
+                      step={5}
+                      value={[cityRadius]}
+                      onValueChange={(value) => setCityRadius(value[0])}
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">Within {cityRadius} km radius</p>
+                </div>
+              )}
+
               {formData.preferred_work_locations.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {formData.preferred_work_locations.map((location) => (
+                  {formData.preferred_work_locations.map((location, index) => (
                     <div
-                      key={location}
-                      className="flex items-center gap-2 px-3 py-1 bg-accent/10 border border-accent/20 rounded-lg text-sm"
+                      key={`${location.city}-${location.country}-${index}`}
+                      className="flex items-center gap-2 px-3 py-2 bg-accent/10 border border-accent/20 rounded-lg text-sm"
                     >
-                      <span>{location}</span>
+                      <span>
+                        {location.city}, {location.country} (within {location.radius_km}km)
+                      </span>
                       <button
                         type="button"
                         onClick={() => handleRemovePreferredLocation(location)}
-                        className="text-primary hover:text-primary/80"
+                        className="text-primary hover:text-primary/80 text-lg leading-none"
                       >
                         ×
                       </button>
@@ -730,15 +938,38 @@ export function CandidateOnboardingSteps() {
 
       case 5: // Success
         return (
-          <div className="text-center py-12">
-            <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
-            <h2 className="text-3xl font-bold mb-4">Profile Complete!</h2>
-            <p className="text-lg text-muted-foreground mb-8">
-              You're all set. Your profile has been created successfully.
-            </p>
-            <Button onClick={handleSubmit} size="lg">
-              Continue to Dashboard
-            </Button>
+          <div className="space-y-8 py-4">
+            <div className="text-center">
+              <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
+              <h2 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">Successfully Applied for Membership</h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Thank you for applying to The Quantum Club. Your Talent Strategist is reviewing your profile now.
+              </p>
+            </div>
+
+            <div className="max-w-2xl mx-auto">
+              <CandidateApplicationTracker />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+              {formData.email ? (
+                <>
+                  <Button 
+                    size="lg" 
+                    onClick={() => navigate(`/auth?email=${encodeURIComponent(formData.email)}&from=onboarding`)}
+                  >
+                    Complete Sign Up
+                  </Button>
+                  <Button size="lg" variant="outline" onClick={() => navigate("/roles")}>
+                    View Open Roles
+                  </Button>
+                </>
+              ) : (
+                <Button size="lg" onClick={() => navigate("/home")}>
+                  Go to Dashboard
+                </Button>
+              )}
+            </div>
           </div>
         );
     }
@@ -813,7 +1044,7 @@ export function CandidateOnboardingSteps() {
           </Button>
         ) : (
           <Button onClick={handleSubmit} disabled={!phoneVerified}>
-            Complete Profile
+            Submit Application
             <CheckCircle className="w-4 h-4 ml-2" />
           </Button>
         )}
