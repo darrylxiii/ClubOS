@@ -524,8 +524,8 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
           )}
         </div>
 
-        {/* Center Mixer Section - Pioneer CDJ-3000 Style */}
-        <div className="w-96 rounded-3xl bg-gradient-to-br from-gray-900 via-black to-gray-900 backdrop-blur-xl border-2 border-gray-700 p-6 space-y-6 shadow-2xl">
+        {/* Center Mixer Section */}
+        <div className="w-80 rounded-3xl bg-gradient-to-br from-black/60 to-black/40 backdrop-blur-xl border border-white/10 p-6 space-y-6">
           {/* Sync Button */}
           <Button
             className={`w-full h-14 text-lg font-bold transition-all ${
@@ -539,214 +539,101 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
             {syncEnabled ? '✓ SYNCED' : 'SYNC'}
           </Button>
 
-          {/* Pioneer-Style EQ Section */}
-          <div className="space-y-6">
-            {/* Deck A EQ - CDJ Style */}
-            <div className="bg-gradient-to-br from-blue-950/30 to-black/50 rounded-2xl p-4 border border-blue-500/20">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-blue-500 flex items-center justify-center font-bold text-sm">A</div>
-                  <Label className="text-xs text-blue-400 font-bold tracking-wider">DECK A EQ</Label>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                {/* HIGH Knob */}
-                <div className="flex flex-col items-center space-y-2">
-                  <Label className="text-[10px] text-blue-300 font-bold tracking-widest">HIGH</Label>
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 via-gray-800 to-black border-4 border-gray-600 shadow-xl flex items-center justify-center relative overflow-hidden">
-                      {/* Knob indicator line */}
-                      <div 
-                        className="absolute w-1 h-6 bg-blue-400 rounded-full top-2 transition-transform shadow-lg"
-                        style={{ 
-                          transform: `rotate(${(eqHighA[0] - 50) * 2.7}deg)`,
-                          boxShadow: '0 0 8px rgba(59, 130, 246, 0.8)'
-                        }}
-                      />
-                      {/* Center dot */}
-                      <div className="absolute w-3 h-3 rounded-full bg-gray-900 border border-gray-600" />
-                    </div>
-                    <Slider
-                      value={eqHighA}
-                      onValueChange={setEqHighA}
-                      max={100}
-                      step={1}
-                      className="w-16 mt-2"
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-blue-300 bg-black/40 px-2 py-0.5 rounded">{eqHighA[0]}</span>
-                </div>
-
-                {/* MID Knob */}
-                <div className="flex flex-col items-center space-y-2">
-                  <Label className="text-[10px] text-blue-300 font-bold tracking-widest">MID</Label>
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 via-gray-800 to-black border-4 border-gray-600 shadow-xl flex items-center justify-center relative overflow-hidden">
-                      <div 
-                        className="absolute w-1 h-6 bg-blue-400 rounded-full top-2 transition-transform shadow-lg"
-                        style={{ 
-                          transform: `rotate(${(eqMidA[0] - 50) * 2.7}deg)`,
-                          boxShadow: '0 0 8px rgba(59, 130, 246, 0.8)'
-                        }}
-                      />
-                      <div className="absolute w-3 h-3 rounded-full bg-gray-900 border border-gray-600" />
-                    </div>
-                    <Slider
-                      value={eqMidA}
-                      onValueChange={setEqMidA}
-                      max={100}
-                      step={1}
-                      className="w-16 mt-2"
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-blue-300 bg-black/40 px-2 py-0.5 rounded">{eqMidA[0]}</span>
-                </div>
-
-                {/* LOW Knob */}
-                <div className="flex flex-col items-center space-y-2">
-                  <Label className="text-[10px] text-blue-300 font-bold tracking-widest">LOW</Label>
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 via-gray-800 to-black border-4 border-gray-600 shadow-xl flex items-center justify-center relative overflow-hidden">
-                      <div 
-                        className="absolute w-1 h-6 bg-blue-400 rounded-full top-2 transition-transform shadow-lg"
-                        style={{ 
-                          transform: `rotate(${(eqLowA[0] - 50) * 2.7}deg)`,
-                          boxShadow: '0 0 8px rgba(59, 130, 246, 0.8)'
-                        }}
-                      />
-                      <div className="absolute w-3 h-3 rounded-full bg-gray-900 border border-gray-600" />
-                    </div>
-                    <Slider
-                      value={eqLowA}
-                      onValueChange={setEqLowA}
-                      max={100}
-                      step={1}
-                      className="w-16 mt-2"
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-blue-300 bg-black/40 px-2 py-0.5 rounded">{eqLowA[0]}</span>
-                </div>
-              </div>
-
-              {/* Volume Fader A */}
-              <div className="mt-4 pt-4 border-t border-blue-500/20">
-                <Label className="text-xs text-blue-400 flex items-center gap-1 mb-2">
-                  <Volume2 className="h-3 w-3" />
-                  VOLUME
-                </Label>
+          {/* EQ & Volume Faders - Vertical */}
+          <div className="grid grid-cols-4 gap-3 h-72">
+            {/* Deck A EQ */}
+            <div className="space-y-2">
+              <Label className="text-xs text-blue-400 text-center block">A-LOW</Label>
+              <div className="h-full flex flex-col items-center justify-end">
                 <Slider
-                  value={volumeA}
-                  onValueChange={setVolumeA}
+                  value={eqLowA}
+                  onValueChange={setEqLowA}
                   max={100}
                   step={1}
-                  className="w-full"
+                  orientation="vertical"
+                  className="h-48"
                 />
-                <span className="text-xs font-mono block text-center mt-1 text-blue-300">{volumeA[0]}%</span>
+                <span className="text-xs font-mono mt-2">{eqLowA[0]}</span>
               </div>
             </div>
 
-            {/* Deck B EQ - CDJ Style */}
-            <div className="bg-gradient-to-br from-orange-950/30 to-black/50 rounded-2xl p-4 border border-orange-500/20">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded-lg bg-orange-500 flex items-center justify-center font-bold text-sm">B</div>
-                  <Label className="text-xs text-orange-400 font-bold tracking-wider">DECK B EQ</Label>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                {/* HIGH Knob */}
-                <div className="flex flex-col items-center space-y-2">
-                  <Label className="text-[10px] text-orange-300 font-bold tracking-widest">HIGH</Label>
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 via-gray-800 to-black border-4 border-gray-600 shadow-xl flex items-center justify-center relative overflow-hidden">
-                      <div 
-                        className="absolute w-1 h-6 bg-orange-400 rounded-full top-2 transition-transform shadow-lg"
-                        style={{ 
-                          transform: `rotate(${(eqHighB[0] - 50) * 2.7}deg)`,
-                          boxShadow: '0 0 8px rgba(251, 146, 60, 0.8)'
-                        }}
-                      />
-                      <div className="absolute w-3 h-3 rounded-full bg-gray-900 border border-gray-600" />
-                    </div>
-                    <Slider
-                      value={eqHighB}
-                      onValueChange={setEqHighB}
-                      max={100}
-                      step={1}
-                      className="w-16 mt-2"
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-orange-300 bg-black/40 px-2 py-0.5 rounded">{eqHighB[0]}</span>
-                </div>
-
-                {/* MID Knob */}
-                <div className="flex flex-col items-center space-y-2">
-                  <Label className="text-[10px] text-orange-300 font-bold tracking-widest">MID</Label>
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 via-gray-800 to-black border-4 border-gray-600 shadow-xl flex items-center justify-center relative overflow-hidden">
-                      <div 
-                        className="absolute w-1 h-6 bg-orange-400 rounded-full top-2 transition-transform shadow-lg"
-                        style={{ 
-                          transform: `rotate(${(eqMidB[0] - 50) * 2.7}deg)`,
-                          boxShadow: '0 0 8px rgba(251, 146, 60, 0.8)'
-                        }}
-                      />
-                      <div className="absolute w-3 h-3 rounded-full bg-gray-900 border border-gray-600" />
-                    </div>
-                    <Slider
-                      value={eqMidB}
-                      onValueChange={setEqMidB}
-                      max={100}
-                      step={1}
-                      className="w-16 mt-2"
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-orange-300 bg-black/40 px-2 py-0.5 rounded">{eqMidB[0]}</span>
-                </div>
-
-                {/* LOW Knob */}
-                <div className="flex flex-col items-center space-y-2">
-                  <Label className="text-[10px] text-orange-300 font-bold tracking-widest">LOW</Label>
-                  <div className="relative">
-                    <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-700 via-gray-800 to-black border-4 border-gray-600 shadow-xl flex items-center justify-center relative overflow-hidden">
-                      <div 
-                        className="absolute w-1 h-6 bg-orange-400 rounded-full top-2 transition-transform shadow-lg"
-                        style={{ 
-                          transform: `rotate(${(eqLowB[0] - 50) * 2.7}deg)`,
-                          boxShadow: '0 0 8px rgba(251, 146, 60, 0.8)'
-                        }}
-                      />
-                      <div className="absolute w-3 h-3 rounded-full bg-gray-900 border border-gray-600" />
-                    </div>
-                    <Slider
-                      value={eqLowB}
-                      onValueChange={setEqLowB}
-                      max={100}
-                      step={1}
-                      className="w-16 mt-2"
-                    />
-                  </div>
-                  <span className="text-[10px] font-mono text-orange-300 bg-black/40 px-2 py-0.5 rounded">{eqLowB[0]}</span>
-                </div>
-              </div>
-
-              {/* Volume Fader B */}
-              <div className="mt-4 pt-4 border-t border-orange-500/20">
-                <Label className="text-xs text-orange-400 flex items-center gap-1 mb-2">
-                  <Volume2 className="h-3 w-3" />
-                  VOLUME
-                </Label>
+            <div className="space-y-2">
+              <Label className="text-xs text-blue-400 text-center block">A-HIGH</Label>
+              <div className="h-full flex flex-col items-center justify-end">
                 <Slider
-                  value={volumeB}
-                  onValueChange={setVolumeB}
+                  value={eqHighA}
+                  onValueChange={setEqHighA}
                   max={100}
                   step={1}
-                  className="w-full"
+                  orientation="vertical"
+                  className="h-48"
                 />
-                <span className="text-xs font-mono block text-center mt-1 text-orange-300">{volumeB[0]}%</span>
+                <span className="text-xs font-mono mt-2">{eqHighA[0]}</span>
               </div>
+            </div>
+
+            {/* Deck B EQ */}
+            <div className="space-y-2">
+              <Label className="text-xs text-orange-400 text-center block">B-LOW</Label>
+              <div className="h-full flex flex-col items-center justify-end">
+                <Slider
+                  value={eqLowB}
+                  onValueChange={setEqLowB}
+                  max={100}
+                  step={1}
+                  orientation="vertical"
+                  className="h-48"
+                />
+                <span className="text-xs font-mono mt-2">{eqLowB[0]}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-orange-400 text-center block">B-HIGH</Label>
+              <div className="h-full flex flex-col items-center justify-end">
+                <Slider
+                  value={eqHighB}
+                  onValueChange={setEqHighB}
+                  max={100}
+                  step={1}
+                  orientation="vertical"
+                  className="h-48"
+                />
+                <span className="text-xs font-mono mt-2">{eqHighB[0]}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Volume Faders */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="text-xs text-blue-400 flex items-center gap-1">
+                <Volume2 className="h-3 w-3" />
+                DECK A
+              </Label>
+              <Slider
+                value={volumeA}
+                onValueChange={setVolumeA}
+                max={100}
+                step={1}
+                className="w-full"
+              />
+              <span className="text-xs font-mono block text-center">{volumeA[0]}%</span>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-xs text-orange-400 flex items-center gap-1">
+                <Volume2 className="h-3 w-3" />
+                DECK B
+              </Label>
+              <Slider
+                value={volumeB}
+                onValueChange={setVolumeB}
+                max={100}
+                step={1}
+                className="w-full"
+              />
+              <span className="text-xs font-mono block text-center">{volumeB[0]}%</span>
             </div>
           </div>
 
