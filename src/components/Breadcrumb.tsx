@@ -21,6 +21,7 @@ const routeLabels: Record<string, string> = {
   referrals: "Referrals",
   scheduling: "Scheduling",
   "meeting-history": "Meeting History",
+  "meeting-intelligence": "Meeting Intelligence",
   "interview-prep": "Interview Prep",
   "club-ai": "Club AI",
   "tasks-pilot": "Club Task Pilot",

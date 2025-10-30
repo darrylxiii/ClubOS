@@ -52,6 +52,8 @@ const Referrals = lazy(() => import("./pages/Referrals"));
 const InterviewPrep = lazy(() => import("./pages/InterviewPrep"));
 const InterviewPrepChat = lazy(() => import("./pages/InterviewPrepChat"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
+const MeetingIntelligence = lazy(() => import("./pages/MeetingIntelligence"));
+const MeetingInsights = lazy(() => import("./pages/MeetingInsights"));
 const Messages = lazy(() => import("./pages/Messages"));
 const Applications = lazy(() => import("./pages/Applications"));
 const ApplicationDetail = lazy(() => import("./pages/ApplicationDetail"));
@@ -281,6 +283,23 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/meeting-intelligence"
+              element={
+                <ProtectedRoute>
+                  <Suspense fallback={<PageLoader />}>
+                    <MeetingIntelligence />
+                  </Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/meetings/:meetingId/insights" element={
+              <ProtectedRoute>
+                <Suspense fallback={<PageLoader />}>
+                  <MeetingInsights />
+                </Suspense>
+              </ProtectedRoute>
+            } />
             <Route
               path="/messages"
               element={

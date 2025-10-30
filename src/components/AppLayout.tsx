@@ -86,7 +86,7 @@ const candidateNavigationGroups = [
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
-      { name: "Meeting History", icon: Video, path: "/meeting-history" },
+      { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
       { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
     ],
   },
@@ -151,7 +151,7 @@ const partnerNavigationGroups = [
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
-      { name: "Meeting History", icon: Video, path: "/meeting-history" },
+      { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
     ],
   },
   {

@@ -7,13 +7,15 @@ import { CreateMeetingDialog } from '@/components/meetings/CreateMeetingDialog';
 import { MeetingCard } from '@/components/meetings/MeetingCard';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Search, Calendar, Clock, Video, Users } from 'lucide-react';
+import { Search, Calendar, Clock, Video, Users, Bot } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Meetings() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -165,7 +167,17 @@ export default function Meetings() {
               Schedule, join, and manage your Quantum Club meetings
             </p>
           </div>
-          <CreateMeetingDialog onMeetingCreated={loadMeetings} />
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => navigate('/meeting-intelligence')}
+              className="gap-2"
+            >
+              <Bot className="h-4 w-4" />
+              Meeting Intelligence
+            </Button>
+            <CreateMeetingDialog onMeetingCreated={loadMeetings} />
+          </div>
         </div>
 
         {/* Stats */}

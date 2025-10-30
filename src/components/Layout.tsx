@@ -24,7 +24,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     { path: "/applications", icon: FolderOpen, label: "Applications" },
     { path: "/companies", icon: Building2, label: "Companies" },
     { path: "/jobs", icon: Briefcase, label: "Opportunities" },
-    { path: "/meeting-history", icon: Video, label: "Recordings" },
+    { path: "/meeting-intelligence", icon: Video, label: "Meeting Intelligence" },
     { path: "/referrals", icon: Users, label: "Referrals" },
   ];
 
