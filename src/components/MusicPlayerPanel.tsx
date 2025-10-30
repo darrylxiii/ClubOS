@@ -157,6 +157,14 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
     }
   };
 
+  const handleSeek = (value: number[]) => {
+    if (!audioRef.current || !audioRef.current.duration) return;
+    
+    const newTime = (value[0] / 100) * audioRef.current.duration;
+    audioRef.current.currentTime = newTime;
+    setProgress(value[0]);
+  };
+
   const handleViewFullPlayer = () => {
     if (liveSession?.id) {
       navigate(`/radio/${liveSession.id}`);
@@ -252,10 +260,10 @@ export function MusicPlayerPanel({ audioRef }: MusicPlayerPanelProps) {
           <div className="mt-3">
             <Slider
               value={[progress]}
+              onValueChange={handleSeek}
               max={100}
-              step={1}
-              className="w-full"
-              disabled
+              step={0.1}
+              className="w-full cursor-pointer"
             />
           </div>
 
