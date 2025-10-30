@@ -35,6 +35,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Award } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DuplicateCandidateDialog } from "./DuplicateCandidateDialog";
 
 interface AddCandidateDialogProps {
   open: boolean;
@@ -60,6 +61,10 @@ export const AddCandidateDialog = ({
   const [teamMembers, setTeamMembers] = useState<Array<{ id: string; name: string; email: string }>>([]);
   const [creditPopoverOpen, setCreditPopoverOpen] = useState(false);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [duplicateCandidates, setDuplicateCandidates] = useState<any[]>([]);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateMatchType, setDuplicateMatchType] = useState<"name" | "linkedin" | "both">("name");
+  const [proceedWithDuplicate, setProceedWithDuplicate] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -140,10 +145,79 @@ export const AddCandidateDialog = ({
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const checkForDuplicates = async () => {
+    // Only check if we have at least name
+    if (!formData.fullName && !formData.linkedinUrl) return [];
 
+    try {
+      // Build OR conditions for name and/or LinkedIn URL
+      const conditions: string[] = [];
+      
+      if (formData.fullName) {
+        conditions.push(`candidate_profiles.full_name.ilike.%${formData.fullName.trim()}%`);
+      }
+      
+      if (formData.linkedinUrl) {
+        // Normalize LinkedIn URL (remove trailing slashes, query params)
+        const normalizedUrl = formData.linkedinUrl.trim().split('?')[0].replace(/\/$/, '');
+        conditions.push(`candidate_profiles.linkedin_url.ilike.%${normalizedUrl}%`);
+      }
+
+      if (conditions.length === 0) return [];
+
+      const { data: existingApplications, error } = await supabase
+        .from('applications')
+        .select(`
+          id,
+          candidate_id,
+          current_stage_index,
+          candidate_profiles!inner(
+            id,
+            full_name,
+            email,
+            linkedin_url,
+            current_title,
+            current_company
+          )
+        `)
+        .eq('job_id', jobId)
+        .or(conditions.join(','))
+        .limit(5);
+
+      if (error) {
+        console.error('Error checking duplicates:', error);
+        return [];
+      }
+
+      // Determine match type
+      let matchType: "name" | "linkedin" | "both" = "name";
+      if (existingApplications && existingApplications.length > 0) {
+        const hasNameMatch = formData.fullName && existingApplications.some(
+          app => app.candidate_profiles?.full_name?.toLowerCase().includes(formData.fullName.toLowerCase())
+        );
+        const hasLinkedInMatch = formData.linkedinUrl && existingApplications.some(
+          app => app.candidate_profiles?.linkedin_url?.toLowerCase().includes(formData.linkedinUrl.toLowerCase())
+        );
+        
+        if (hasNameMatch && hasLinkedInMatch) {
+          matchType = "both";
+        } else if (hasLinkedInMatch) {
+          matchType = "linkedin";
+        } else {
+          matchType = "name";
+        }
+        
+        setDuplicateMatchType(matchType);
+      }
+
+      return existingApplications || [];
+    } catch (error) {
+      console.error('Duplicate check error:', error);
+      return [];
+    }
+  };
+
+  const proceedWithSubmission = async () => {
     try {
       // Get current admin user
       const { data: { user: adminUser } } = await supabase.auth.getUser();
@@ -277,7 +351,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             job_title: jobTitle,
             starting_stage: formData.startStageIndex,
             linkedin_imported: linkedinImported,
-            credit_to: creditTo
+            credit_to: creditTo,
+            duplicate_override: proceedWithDuplicate,
+            duplicate_matched_by: proceedWithDuplicate ? duplicateMatchType : null
           },
           created_by: adminUser.id,
           is_internal: true,
@@ -320,6 +396,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       setCreditTo([]);
       setResumeFile(null);
       setLinkedinUrlForScrape("");
+      setProceedWithDuplicate(false);
+      setDuplicateCandidates([]);
+      setShowDuplicateDialog(false);
     } catch (error) {
       console.error("Error adding candidate:", error);
       toast.error("Failed to add candidate. Please try again.");
@@ -328,9 +407,59 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      // Check for duplicates first (unless already proceeding with duplicate)
+      if (!proceedWithDuplicate) {
+        const duplicates = await checkForDuplicates();
+        
+        if (duplicates && duplicates.length > 0) {
+          setDuplicateCandidates(duplicates);
+          setShowDuplicateDialog(true);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Proceed with submission
+      await proceedWithSubmission();
+    } catch (error) {
+      console.error("Error in submission flow:", error);
+      toast.error("Failed to add candidate. Please try again.");
+      setLoading(false);
+    }
+  };
+
+  const handleDuplicateProceed = async () => {
+    setShowDuplicateDialog(false);
+    setProceedWithDuplicate(true);
+    setLoading(true);
+    await proceedWithSubmission();
+  };
+
+  const handleDuplicateCancel = () => {
+    setShowDuplicateDialog(false);
+    setDuplicateCandidates([]);
+    setProceedWithDuplicate(false);
+    setLoading(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card">
+    <>
+      <DuplicateCandidateDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+        duplicates={duplicateCandidates}
+        matchType={duplicateMatchType}
+        onProceed={handleDuplicateProceed}
+        onCancel={handleDuplicateCancel}
+      />
+
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto glass-card">
         <DialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-3 rounded-full bg-gradient-to-br from-accent to-purple-500">
@@ -656,5 +785,6 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         </Tabs>
       </DialogContent>
     </Dialog>
+    </>
   );
 };
