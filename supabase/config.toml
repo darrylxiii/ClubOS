@@ -129,3 +129,9 @@ verify_jwt = false
 
 [functions.create-meeting-from-booking]
 verify_jwt = false
+
+[functions.send-booking-reminder]
+verify_jwt = false
+
+[functions.handle-booking-reschedule]
+verify_jwt = false

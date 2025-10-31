@@ -13,6 +13,8 @@ import { BookingConfirmation } from "@/components/booking/BookingConfirmation";
 import { BookingWeekView } from "@/components/booking/BookingWeekView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AIBookingAssistant } from "@/components/booking/AIBookingAssistant";
+import { AvailabilityIndicator } from "@/components/booking/AvailabilityIndicator";
+import { TimezoneSelector } from "@/components/booking/TimezoneSelector";
 import { Sparkles } from "lucide-react";
 
 interface BookingLink {
@@ -51,6 +53,9 @@ export default function BookingPage() {
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("day");
+  const [timezone, setTimezone] = useState<string>(
+    Intl.DateTimeFormat().resolvedOptions().timeZone
+  );
   const [showAIAssistant, setShowAIAssistant] = useState(false);
 
   useEffect(() => {
@@ -187,6 +192,23 @@ export default function BookingPage() {
               )}
             </div>
           </CardHeader>
+
+          {/* Live Availability Indicator */}
+          {step === "calendar" && bookingLink && (
+            <div className="px-6">
+              <AvailabilityIndicator 
+                bookingLinkSlug={bookingLink.slug}
+                selectedDate={selectedDate}
+              />
+            </div>
+          )}
+
+          {/* Timezone Selector */}
+          {(step === "calendar" || step === "time") && (
+            <div className="px-6 pb-4">
+              <TimezoneSelector value={timezone} onChange={setTimezone} />
+            </div>
+          )}
 
           <CardContent className="p-6">
             {step === "calendar" && (
