@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export interface Email {
   id: string;
@@ -59,6 +60,7 @@ export function useEmails(filter: string = "inbox") {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const loadEmails = async () => {
     try {
@@ -112,62 +114,72 @@ export function useEmails(filter: string = "inbox") {
   };
 
   const syncEmails = async () => {
+    setSyncing(true);
     try {
-      setSyncing(true);
-
-      // Get all active email connections
-      const { data: connections, error: connError } = await supabase
+      // Get active email connections
+      const { data: connections } = await supabase
         .from("email_connections")
         .select("*")
-        .eq("is_active", true)
-        .eq("sync_enabled", true);
-
-      if (connError) throw connError;
+        .eq("user_id", user!.id)
+        .eq("is_active", true);
 
       if (!connections || connections.length === 0) {
         toast({
-          title: "No email connections",
-          description: "Please connect an email account in Settings",
+          title: "No email accounts",
+          description: "Please connect an email account in settings",
         });
         return;
       }
 
+      let totalSynced = 0;
+
       // Sync each connection
-      for (const conn of connections) {
-        const functionName =
-          conn.provider === "gmail" ? "sync-gmail-emails" : "sync-outlook-emails";
+      for (const connection of connections) {
+        try {
+          const functionName =
+            connection.provider === "gmail"
+              ? "sync-gmail-emails"
+              : "sync-outlook-emails";
 
-        const { error: syncError } = await supabase.functions.invoke(functionName, {
-          body: { connectionId: conn.id },
-        });
-
-        if (syncError) {
-          console.error(`Error syncing ${conn.provider}:`, syncError);
-        }
-      }
-
-      // Process emails with AI
-      const { data: unprocessed } = await supabase
-        .from("emails")
-        .select("id")
-        .is("ai_processed_at", null)
-        .limit(20);
-
-      if (unprocessed && unprocessed.length > 0) {
-        for (const email of unprocessed) {
-          await supabase.functions.invoke("process-email-ai", {
-            body: { emailId: email.id },
+          const { data, error } = await supabase.functions.invoke(functionName, {
+            body: { connectionId: connection.id, maxResults: 50 },
           });
+
+          if (error) throw error;
+
+          totalSynced += data?.emailsSynced || 0;
+        } catch (error: any) {
+          console.error(`Error syncing ${connection.provider}:`, error);
         }
       }
 
       toast({
-        title: "Emails synced",
-        description: "Your inbox has been updated",
+        title: "Sync complete",
+        description: `Synced ${totalSynced} new email(s) from ${connections.length} account(s)`,
       });
 
       // Reload emails
       await loadEmails();
+
+      // Trigger AI processing for unprocessed emails
+      const { data: unprocessedEmails } = await supabase
+        .from("emails")
+        .select("id")
+        .eq("user_id", user!.id)
+        .is("ai_processed", false)
+        .limit(10);
+
+      if (unprocessedEmails && unprocessedEmails.length > 0) {
+        for (const email of unprocessedEmails) {
+          try {
+            await supabase.functions.invoke("process-email-ai", {
+              body: { emailId: email.id },
+            });
+          } catch (error) {
+            console.error("Error processing email:", email.id, error);
+          }
+        }
+      }
     } catch (error: any) {
       console.error("Error syncing emails:", error);
       toast({

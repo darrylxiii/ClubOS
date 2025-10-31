@@ -135,3 +135,16 @@ verify_jwt = false
 
 [functions.handle-booking-reschedule]
 verify_jwt = false
+
+# Email sync functions
+[functions.sync-gmail-emails]
+verify_jwt = true
+
+[functions.sync-outlook-emails]
+verify_jwt = true
+
+[functions.process-email-ai]
+verify_jwt = true
+
+[functions.sync-all-emails]
+verify_jwt = false

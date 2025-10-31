@@ -12,6 +12,10 @@ import {
   Plus,
 } from "lucide-react";
 import { EmailLabel } from "@/hooks/useEmails";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { formatDistanceToNow } from "date-fns";
 
 interface EmailSidebarProps {
   currentFilter: string;
@@ -28,6 +32,32 @@ export function EmailSidebar({
   unreadCount,
   onCompose,
 }: EmailSidebarProps) {
+  const { user } = useAuth();
+  const [lastSync, setLastSync] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchLastSync = async () => {
+      if (!user) return;
+
+      const { data } = await supabase
+        .from("email_connections")
+        .select("last_sync_at")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .order("last_sync_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data?.last_sync_at) {
+        setLastSync(data.last_sync_at);
+      }
+    };
+
+    fetchLastSync();
+    const interval = setInterval(fetchLastSync, 30000); // Update every 30s
+    return () => clearInterval(interval);
+  }, [user]);
+
   const folders = [
     { id: "inbox", label: "Inbox", icon: Inbox, count: unreadCount },
     { id: "starred", label: "Starred", icon: Star },
@@ -40,11 +70,16 @@ export function EmailSidebar({
 
   return (
     <div className="w-64 border-r border-border bg-background flex flex-col">
-      <div className="p-4">
+      <div className="p-4 space-y-3">
         <Button onClick={onCompose} className="w-full" size="lg">
           <Plus className="mr-2 h-4 w-4" />
           Compose
         </Button>
+        {lastSync && (
+          <p className="text-xs text-muted-foreground text-center">
+            Last sync: {formatDistanceToNow(new Date(lastSync), { addSuffix: true })}
+          </p>
+        )}
       </div>
 
       <ScrollArea className="flex-1">

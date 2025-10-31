@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { useEmails } from "@/hooks/useEmails";
 import { EmailSidebar } from "./EmailSidebar";
 import { EmailList } from "./EmailList";
@@ -17,6 +19,7 @@ export function EmailInbox() {
   const [composerOpen, setComposerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const {
     emails,
@@ -31,6 +34,28 @@ export function EmailInbox() {
     deleteEmail,
     snoozeEmail,
   } = useEmails(filter);
+
+  // Auto-sync on first load if never synced
+  useEffect(() => {
+    const checkAndSync = async () => {
+      if (!user) return;
+
+      const { data: connections } = await supabase
+        .from("email_connections")
+        .select("last_sync_at, is_active")
+        .eq("user_id", user.id)
+        .eq("is_active", true);
+
+      // If any connection has never been synced, trigger sync
+      const needsSync = connections?.some((c) => !c.last_sync_at);
+      if (needsSync && !syncing) {
+        console.log("First time sync - fetching emails...");
+        syncEmails();
+      }
+    };
+
+    checkAndSync();
+  }, [user]);
 
   // Check if user has any email connections
   const hasEmails = emails.length > 0 || loading;
