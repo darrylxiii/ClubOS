@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { ensureValidToken } from "../_shared/token-refresh.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -50,6 +51,16 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("No active email connection found");
     }
 
+    // Ensure we have a valid access token
+    const { accessToken, error: tokenError } = await ensureValidToken(
+      connection.id,
+      connection.provider
+    );
+
+    if (tokenError || !accessToken) {
+      throw new Error(`Token refresh failed: ${tokenError || "No access token"}`);
+    }
+
     let threadId = undefined;
     let inReplyTo = undefined;
     let references = undefined;
@@ -98,7 +109,7 @@ const handler = async (req: Request): Promise<Response> => {
       const sendResponse = await fetch(sendUrl, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${connection.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -139,7 +150,7 @@ const handler = async (req: Request): Promise<Response> => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${connection.access_token}`,
+            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ message, saveToSentItems: true }),

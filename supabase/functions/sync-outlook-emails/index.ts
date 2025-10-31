@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { ensureValidToken } from "../_shared/token-refresh.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -34,6 +35,16 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Connection not found");
     }
 
+    // Ensure we have a valid access token
+    const { accessToken, error: tokenError } = await ensureValidToken(
+      connectionId,
+      connection.provider
+    );
+
+    if (tokenError || !accessToken) {
+      throw new Error(`Token refresh failed: ${tokenError || "No access token"}`);
+    }
+
     // Log sync start
     const { data: syncLog } = await supabase
       .from("email_sync_log")
@@ -62,7 +73,7 @@ const handler = async (req: Request): Promise<Response> => {
       `https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?$top=${effectiveMaxResults}&$filter=receivedDateTime ge ${syncDate.toISOString()}&$orderby=receivedDateTime desc`,
       {
         headers: {
-          Authorization: `Bearer ${connection.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
@@ -130,7 +141,7 @@ const handler = async (req: Request): Promise<Response> => {
       `https://graph.microsoft.com/v1.0/me/mailFolders/sentitems/messages?$top=${effectiveMaxResults}&$filter=sentDateTime ge ${syncDate.toISOString()}&$orderby=sentDateTime desc`,
       {
         headers: {
-          Authorization: `Bearer ${connection.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     );

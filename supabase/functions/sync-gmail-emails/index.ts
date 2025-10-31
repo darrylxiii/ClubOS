@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { ensureValidToken } from "../_shared/token-refresh.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -32,6 +33,16 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (connError || !connection) {
       throw new Error("Connection not found");
+    }
+
+    // Ensure we have a valid access token
+    const { accessToken, error: tokenError } = await ensureValidToken(
+      connectionId,
+      connection.provider
+    );
+
+    if (tokenError || !accessToken) {
+      throw new Error(`Token refresh failed: ${tokenError || "No access token"}`);
     }
 
     // Log sync start
@@ -71,7 +82,7 @@ const handler = async (req: Request): Promise<Response> => {
       `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${effectiveMaxResults}&q=after:${afterDate} in:inbox`,
       {
         headers: {
-          Authorization: `Bearer ${connection.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
@@ -86,14 +97,14 @@ const handler = async (req: Request): Promise<Response> => {
     // Process inbox emails
     for (const message of inboxMessages) {
       try {
-        const detailResponse = await fetch(
-          `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`,
-          {
-            headers: {
-              Authorization: `Bearer ${connection.access_token}`,
-            },
-          }
-        );
+          const detailResponse = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
 
         const emailData = await detailResponse.json();
         const headers = parseHeaders(emailData.payload.headers);
@@ -140,7 +151,7 @@ const handler = async (req: Request): Promise<Response> => {
       `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${effectiveMaxResults}&q=after:${afterDate} in:sent`,
       {
         headers: {
-          Authorization: `Bearer ${connection.access_token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       }
     );
@@ -155,7 +166,7 @@ const handler = async (req: Request): Promise<Response> => {
             `https://gmail.googleapis.com/gmail/v1/users/me/messages/${message.id}?format=full`,
             {
               headers: {
-                Authorization: `Bearer ${connection.access_token}`,
+                Authorization: `Bearer ${accessToken}`,
               },
             }
           );
