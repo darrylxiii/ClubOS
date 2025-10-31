@@ -301,8 +301,16 @@ function parseBody(payload: any): {
 function decodeBase64Url(data: string): string {
   try {
     const base64 = data.replace(/-/g, "+").replace(/_/g, "/");
-    return atob(base64);
-  } catch {
+    // Properly decode UTF-8 from base64
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    const decoder = new TextDecoder('utf-8');
+    return decoder.decode(bytes);
+  } catch (error) {
+    console.error('Error decoding base64:', error);
     return "";
   }
 }

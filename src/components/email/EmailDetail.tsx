@@ -63,7 +63,11 @@ export function EmailDetail({
   };
 
   const sanitizedHtml = email.body_html
-    ? DOMPurify.sanitize(email.body_html)
+    ? DOMPurify.sanitize(email.body_html, {
+        ADD_TAGS: ['style'],
+        ADD_ATTR: ['target'],
+        ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+      })
     : null;
 
   return (
@@ -226,10 +230,14 @@ export function EmailDetail({
                 word-wrap: break-word !important;
                 overflow-x: auto !important;
               }
+              .prose * {
+                max-width: 100% !important;
+              }
             `}</style>
             {sanitizedHtml ? (
               <div 
-                className="break-words overflow-hidden" 
+                className="break-words overflow-hidden"
+                style={{ unicodeBidi: 'normal' }}
                 dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
               />
             ) : (
