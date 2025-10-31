@@ -1,17 +1,19 @@
 import { useState } from "react";
-import { useEmails, Email } from "@/hooks/useEmails";
+import { useEmails } from "@/hooks/useEmails";
 import { EmailSidebar } from "./EmailSidebar";
 import { EmailList } from "./EmailList";
 import { EmailDetail } from "./EmailDetail";
 import { EmailComposer } from "./EmailComposer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { RefreshCw, Search } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { RefreshCw, Search, Mail, Settings as SettingsIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 export function EmailInbox() {
   const [filter, setFilter] = useState("inbox");
-  const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
+  const [selectedEmail, setSelectedEmail] = useState<any>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
@@ -30,9 +32,11 @@ export function EmailInbox() {
     snoozeEmail,
   } = useEmails(filter);
 
+  // Check if user has any email connections
+  const hasEmails = emails.length > 0 || loading;
   const unreadCount = emails.filter((e) => !e.is_read).length;
 
-  const handleEmailSelect = async (email: Email) => {
+  const handleEmailSelect = async (email: any) => {
     setSelectedEmail(email);
     if (!email.is_read) {
       await markAsRead(email.id);
@@ -76,6 +80,36 @@ export function EmailInbox() {
           e.from_name?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : emails;
+
+  // Show empty state if no connections
+  if (!loading && !hasEmails && emails.length === 0) {
+    return (
+      <div className="h-screen flex items-center justify-center p-8">
+        <Card className="max-w-md w-full">
+          <CardHeader>
+            <div className="flex justify-center mb-4">
+              <Mail className="h-16 w-16 text-muted-foreground" />
+            </div>
+            <CardTitle className="text-center">Connect Your Email</CardTitle>
+            <CardDescription className="text-center">
+              Connect Gmail or Outlook to manage your emails from The Quantum Club
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Your email inbox is empty. Connect an email account to get started.
+            </p>
+            <Link to="/settings">
+              <Button className="w-full">
+                <SettingsIcon className="mr-2 h-4 w-4" />
+                Go to Settings
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen flex flex-col">

@@ -33,6 +33,7 @@ import {
   MessagesSquare,
   GraduationCap,
   ClipboardCheck,
+  Mail,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -83,6 +84,7 @@ const candidateNavigationGroups = [
     title: "Communication",
     icon: MessageSquare,
     items: [
+      { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
@@ -148,6 +150,7 @@ const partnerNavigationGroups = [
     title: "Communication",
     icon: MessageSquare,
     items: [
+      { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
@@ -215,6 +218,7 @@ const adminNavigationGroups = [
     title: "Communication",
     icon: MessageSquare,
     items: [
+      { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
