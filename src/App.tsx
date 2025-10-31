@@ -29,6 +29,9 @@ import MeetingRoom from "./pages/MeetingRoom";
 
 // Lazy load protected routes to reduce initial bundle size
 const ClubHome = lazy(() => import("./pages/ClubHome"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const PartnerDashboard = lazy(() => import("./pages/PartnerDashboard"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 const InviteAcceptance = lazy(() => import("./pages/InviteAcceptance"));
 const InviteComplete = lazy(() => import("./pages/InviteComplete"));
 const Jobs = lazy(() => import("./pages/Jobs"));
@@ -130,6 +133,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ClubHome />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/partner/dashboard"
+              element={
+                <ProtectedRoute>
+                  <PartnerDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedRoute>
+                  <AdminDashboard />
                 </ProtectedRoute>
               }
             />

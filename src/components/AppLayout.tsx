@@ -58,6 +58,7 @@ const candidateNavigationGroups = [
     icon: Layers,
     items: [
       { name: "Club Home", icon: Home, path: "/home" },
+      { name: "Dashboard", icon: BarChart3, path: "/dashboard" },
       { name: "Feed", icon: Rss, path: "/feed" },
       { name: "Achievements", icon: Trophy, path: "/achievements" },
     ],
@@ -124,6 +125,7 @@ const partnerNavigationGroups = [
     icon: Layers,
     items: [
       { name: "Club Home", icon: Home, path: "/home" },
+      { name: "Dashboard", icon: BarChart3, path: "/partner/dashboard" },
       { name: "Feed", icon: Rss, path: "/feed" },
       { name: "Achievements", icon: Trophy, path: "/achievements" },
     ],
@@ -189,6 +191,7 @@ const adminNavigationGroups = [
     icon: Layers,
     items: [
       { name: "Club Home", icon: Home, path: "/home" },
+      { name: "Dashboard", icon: BarChart3, path: "/admin/dashboard" },
       { name: "Admin Panel", icon: Users, path: "/admin" },
       { name: "Feed", icon: Rss, path: "/feed" },
       { name: "Achievements", icon: Trophy, path: "/achievements" },

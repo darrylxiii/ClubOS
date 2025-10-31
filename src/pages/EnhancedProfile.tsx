@@ -243,7 +243,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
 
         {/* Main Tabs */}
         <Tabs defaultValue="experience" className="space-y-6">
-          <TabsList className={`grid w-full ${isOwnProfile ? 'grid-cols-6' : 'grid-cols-5'}`}>
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="experience" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               <span className="hidden sm:inline">Experience</span>
@@ -264,12 +264,6 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
               <Music2 className="w-4 h-4" />
               <span className="hidden sm:inline">Music</span>
             </TabsTrigger>
-            {isOwnProfile && (
-              <TabsTrigger value="settings" className="flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Settings</span>
-              </TabsTrigger>
-            )}
           </TabsList>
 
           <TabsContent value="experience" className="space-y-6">
@@ -296,31 +290,6 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
               appleMusicPlaylists={(profile as any)?.apple_music_playlists || []}
             />
           </TabsContent>
-
-          {isOwnProfile && (
-            <TabsContent value="settings" className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Profile Settings</CardTitle>
-                  <CardDescription>Manage your profile visibility and privacy</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <Button variant="outline" className="w-full" asChild>
-                      <a href="/settings#account">
-                        <Settings className="w-4 h-4 mr-2" />
-                        Go to Full Settings
-                      </a>
-                    </Button>
-                    <Button variant="outline" className="w-full" onClick={handleExportData}>
-                      <Download className="w-4 h-4 mr-2" />
-                      Download My Data
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          )}
         </Tabs>
 
         {/* Activity Timeline */}
