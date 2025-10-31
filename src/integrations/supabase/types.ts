@@ -4338,6 +4338,7 @@ export type Database = {
           deleted_at: string | null
           email_date: string
           external_id: string
+          from_avatar_url: string | null
           from_email: string
           from_name: string | null
           has_attachments: boolean | null
@@ -4379,6 +4380,7 @@ export type Database = {
           deleted_at?: string | null
           email_date: string
           external_id: string
+          from_avatar_url?: string | null
           from_email: string
           from_name?: string | null
           has_attachments?: boolean | null
@@ -4420,6 +4422,7 @@ export type Database = {
           deleted_at?: string | null
           email_date?: string
           external_id?: string
+          from_avatar_url?: string | null
           from_email?: string
           from_name?: string | null
           has_attachments?: boolean | null

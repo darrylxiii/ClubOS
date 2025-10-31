@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { ensureValidToken } from "../_shared/token-refresh.ts";
+import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -88,6 +89,9 @@ const handler = async (req: Request): Promise<Response> => {
     // Store inbox emails
     for (const message of inboxMessages) {
       try {
+        const fromEmail = message.from?.emailAddress?.address || "";
+        const avatarUrl = await getGravatarUrl(fromEmail);
+        
         const { error: insertError } = await supabase.from("emails").upsert(
           {
             user_id: connection.user_id,
@@ -95,8 +99,9 @@ const handler = async (req: Request): Promise<Response> => {
             external_id: message.id,
             thread_id: message.conversationId,
             subject: message.subject || "(No Subject)",
-            from_email: message.from?.emailAddress?.address || "",
+            from_email: fromEmail,
             from_name: message.from?.emailAddress?.name || "",
+            from_avatar_url: avatarUrl,
             to_emails: (message.toRecipients || []).map((r: any) => ({
               email: r.emailAddress?.address,
               name: r.emailAddress?.name,
@@ -152,6 +157,9 @@ const handler = async (req: Request): Promise<Response> => {
 
       for (const message of sentMessages) {
         try {
+          const fromEmail = message.from?.emailAddress?.address || "";
+          const avatarUrl = await getGravatarUrl(fromEmail);
+          
           await supabase.from("emails").upsert(
             {
               user_id: connection.user_id,
@@ -159,8 +167,9 @@ const handler = async (req: Request): Promise<Response> => {
               external_id: message.id,
               thread_id: message.conversationId,
               subject: message.subject || "(No Subject)",
-              from_email: message.from?.emailAddress?.address || "",
+              from_email: fromEmail,
               from_name: message.from?.emailAddress?.name || "",
+              from_avatar_url: avatarUrl,
               to_emails: (message.toRecipients || []).map((r: any) => ({
                 email: r.emailAddress?.address,
                 name: r.emailAddress?.name,
@@ -236,5 +245,15 @@ const handler = async (req: Request): Promise<Response> => {
     );
   }
 };
+
+async function getGravatarUrl(email: string): Promise<string> {
+  const normalized = email.trim().toLowerCase();
+  const encoder = new TextEncoder();
+  const data = encoder.encode(normalized);
+  const hashBuffer = await crypto.subtle.digest("MD5", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return `https://www.gravatar.com/avatar/${hashHex}?d=mp&s=200`;
+}
 
 serve(handler);

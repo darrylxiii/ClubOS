@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +12,7 @@ export interface Email {
   subject: string;
   from_email: string;
   from_name: string | null;
+  from_avatar_url: string | null;
   to_emails: any;
   cc_emails?: any;
   bcc_emails?: any;
@@ -192,29 +193,31 @@ export function useEmails(filter: string = "inbox") {
     }
   };
 
-  const updateEmail = async (
+  const updateEmail = useCallback(async (
     emailId: string,
     updates: Partial<Email>
   ): Promise<void> => {
     try {
+      // Optimistic update
+      setEmails((prev) =>
+        prev.map((email) =>
+          email.id === emailId ? { ...email, ...updates } : email
+        )
+      );
+
       const { error } = await supabase
         .from("emails")
         .update(updates)
         .eq("id", emailId);
 
       if (error) throw error;
-
-      // Update local state
-      setEmails((prev) =>
-        prev.map((email) =>
-          email.id === emailId ? { ...email, ...updates } : email
-        )
-      );
     } catch (error: any) {
       console.error("Error updating email:", error);
+      // Reload emails on error to revert optimistic update
+      await loadEmails();
       throw error;
     }
-  };
+  }, []);
 
   const markAsRead = async (emailId: string) => {
     await updateEmail(emailId, {
@@ -258,7 +261,9 @@ export function useEmails(filter: string = "inbox") {
     loadEmails();
     loadLabels();
 
-    // Subscribe to real-time changes
+    // Debounced reload to prevent excessive reloading
+    let reloadTimeout: number | null = null;
+    
     const channel = supabase
       .channel("emails")
       .on(
@@ -269,12 +274,16 @@ export function useEmails(filter: string = "inbox") {
           table: "emails",
         },
         () => {
-          loadEmails();
+          if (reloadTimeout) clearTimeout(reloadTimeout);
+          reloadTimeout = setTimeout(() => {
+            loadEmails();
+          }, 500) as unknown as number;
         }
       )
       .subscribe();
 
     return () => {
+      if (reloadTimeout) clearTimeout(reloadTimeout);
       supabase.removeChannel(channel);
     };
   }, [filter]);

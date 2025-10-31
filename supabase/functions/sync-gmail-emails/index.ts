@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { ensureValidToken } from "../_shared/token-refresh.ts";
+import { crypto } from "https://deno.land/std@0.190.0/crypto/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -109,6 +110,9 @@ const handler = async (req: Request): Promise<Response> => {
         const emailData = await detailResponse.json();
         const headers = parseHeaders(emailData.payload.headers);
         const body = parseBody(emailData.payload);
+        
+        const fromEmail = extractEmail(headers.from || "");
+        const avatarUrl = await getGravatarUrl(fromEmail);
 
         // Insert email
         const { error: insertError } = await supabase.from("emails").upsert(
@@ -118,8 +122,9 @@ const handler = async (req: Request): Promise<Response> => {
             external_id: emailData.id,
             thread_id: emailData.threadId,
             subject: headers.subject || "(No Subject)",
-            from_email: extractEmail(headers.from || ""),
+            from_email: fromEmail,
             from_name: extractName(headers.from || ""),
+            from_avatar_url: avatarUrl,
             to_emails: parseEmailList(headers.to || ""),
             cc_emails: parseEmailList(headers.cc || ""),
             reply_to: headers["reply-to"],
@@ -174,6 +179,9 @@ const handler = async (req: Request): Promise<Response> => {
           const emailData = await detailResponse.json();
           const headers = parseHeaders(emailData.payload.headers);
           const body = parseBody(emailData.payload);
+          
+          const fromEmail = extractEmail(headers.from || "");
+          const avatarUrl = await getGravatarUrl(fromEmail);
 
           await supabase.from("emails").upsert(
             {
@@ -182,8 +190,9 @@ const handler = async (req: Request): Promise<Response> => {
               external_id: emailData.id,
               thread_id: emailData.threadId,
               subject: headers.subject || "(No Subject)",
-              from_email: extractEmail(headers.from || ""),
+              from_email: fromEmail,
               from_name: extractName(headers.from || ""),
+              from_avatar_url: avatarUrl,
               to_emails: parseEmailList(headers.to || ""),
               cc_emails: parseEmailList(headers.cc || ""),
               reply_to: headers["reply-to"],
@@ -315,6 +324,16 @@ function parseEmailList(emailString: string): any[] {
     const name = extractName(e);
     return { email, name: name === email ? null : name };
   });
+}
+
+async function getGravatarUrl(email: string): Promise<string> {
+  const normalized = email.trim().toLowerCase();
+  const encoder = new TextEncoder();
+  const data = encoder.encode(normalized);
+  const hashBuffer = await crypto.subtle.digest("MD5", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  return `https://www.gravatar.com/avatar/${hashHex}?d=mp&s=200`;
 }
 
 serve(handler);

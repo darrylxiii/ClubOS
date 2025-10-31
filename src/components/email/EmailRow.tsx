@@ -1,7 +1,8 @@
+import { memo } from "react";
 import { Email } from "@/hooks/useEmails";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -15,7 +16,7 @@ interface EmailRowProps {
   onToggleStar: (emailId: string, starred: boolean) => void;
 }
 
-export function EmailRow({
+export const EmailRow = memo(function EmailRow({
   email,
   isSelected,
   isChecked,
@@ -42,7 +43,7 @@ export function EmailRow({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 p-3 border-b border-border hover:bg-accent/50 cursor-pointer transition-colors",
+        "flex items-center gap-3 p-3 border-b border-border hover:bg-accent/50 cursor-pointer transition-all duration-200 ease-in-out",
         isSelected && "bg-accent",
         !email.is_read && "bg-muted/30",
         getPriorityColor(email.ai_priority)
@@ -62,17 +63,20 @@ export function EmailRow({
           e.stopPropagation();
           onToggleStar(email.id, !email.is_starred);
         }}
-        className="text-muted-foreground hover:text-yellow-500 transition-colors"
+        className="text-muted-foreground hover:text-yellow-500 transition-all duration-200"
       >
         <Star
           className={cn(
-            "h-4 w-4",
-            email.is_starred && "fill-yellow-500 text-yellow-500"
+            "h-4 w-4 transition-all duration-200",
+            email.is_starred && "fill-yellow-500 text-yellow-500 scale-110"
           )}
         />
       </button>
 
       <Avatar className="h-10 w-10">
+        {email.from_avatar_url && (
+          <AvatarImage src={email.from_avatar_url} alt={email.from_name || email.from_email} />
+        )}
         <AvatarFallback className="text-xs">
           {getInitials(email.from_name || email.from_email)}
         </AvatarFallback>
@@ -123,4 +127,4 @@ export function EmailRow({
       </div>
     </div>
   );
-}
+});

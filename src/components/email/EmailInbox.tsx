@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEmails } from "@/hooks/useEmails";
+import { useEmails, Email } from "@/hooks/useEmails";
 import { EmailSidebar } from "./EmailSidebar";
 import { EmailList } from "./EmailList";
 import { EmailDetail } from "./EmailDetail";
@@ -69,12 +69,22 @@ export function EmailInbox() {
 
   const unreadCount = emails.filter((e) => !e.is_read).length;
 
-  const handleEmailSelect = async (email: any) => {
+  const handleEmailSelect = async (email: Email) => {
     setSelectedEmail(email);
     if (!email.is_read) {
-      await markAsRead(email.id);
+      markAsRead(email.id);
     }
   };
+
+  // Preserve selected email when emails array updates
+  useEffect(() => {
+    if (selectedEmail) {
+      const updatedEmail = emails.find(e => e.id === selectedEmail.id);
+      if (updatedEmail && updatedEmail !== selectedEmail) {
+        setSelectedEmail(updatedEmail);
+      }
+    }
+  }, [emails, selectedEmail]);
 
   const handleSnooze = () => {
     if (!selectedEmail) return;
@@ -210,6 +220,7 @@ export function EmailInbox() {
           onDelete={deleteEmail}
           onMarkAsRead={markAsRead}
           onMarkAsUnread={markAsUnread}
+          loading={loading}
         />
 
         {selectedEmail ? (

@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Email } from "@/hooks/useEmails";
 import { EmailRow } from "./EmailRow";
+import { EmailRowSkeleton } from "./EmailRowSkeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
-import { Archive, Trash2, Mail, MailOpen, Star } from "lucide-react";
+import { Archive, Trash2, Mail, MailOpen } from "lucide-react";
 
 interface EmailListProps {
   emails: Email[];
@@ -15,6 +16,7 @@ interface EmailListProps {
   onDelete: (emailId: string) => void;
   onMarkAsRead: (emailId: string) => void;
   onMarkAsUnread: (emailId: string) => void;
+  loading?: boolean;
 }
 
 export function EmailList({
@@ -26,6 +28,7 @@ export function EmailList({
   onDelete,
   onMarkAsRead,
   onMarkAsUnread,
+  loading = false,
 }: EmailListProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
@@ -123,19 +126,25 @@ export function EmailList({
         </span>
       </div>
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 scroll-smooth">
         <div>
-          {emails.map((email) => (
-            <EmailRow
-              key={email.id}
-              email={email}
-              isSelected={email.id === selectedEmailId}
-              isChecked={selectedIds.has(email.id)}
-              onSelect={() => onEmailSelect(email)}
-              onToggleCheck={() => toggleSelection(email.id)}
-              onToggleStar={onToggleStar}
-            />
-          ))}
+          {loading ? (
+            Array.from({ length: 10 }).map((_, i) => (
+              <EmailRowSkeleton key={i} />
+            ))
+          ) : (
+            emails.map((email) => (
+              <EmailRow
+                key={email.id}
+                email={email}
+                isSelected={email.id === selectedEmailId}
+                isChecked={selectedIds.has(email.id)}
+                onSelect={() => onEmailSelect(email)}
+                onToggleCheck={() => toggleSelection(email.id)}
+                onToggleStar={onToggleStar}
+              />
+            ))
+          )}
         </div>
       </ScrollArea>
     </div>

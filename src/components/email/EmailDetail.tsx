@@ -2,7 +2,7 @@ import { Email } from "@/hooks/useEmails";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   Reply,
@@ -67,7 +67,7 @@ export function EmailDetail({
     : null;
 
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <div key={email.id} className="flex-1 flex flex-col bg-background transition-all duration-200 ease-in-out">
       {/* Header */}
       <div className="border-b border-border p-4 flex items-center gap-2">
         <Button variant="ghost" size="sm" onClick={onReply}>
@@ -133,6 +133,9 @@ export function EmailDetail({
           {/* Sender Info */}
           <div className="flex items-center gap-3">
             <Avatar className="h-12 w-12">
+              {email.from_avatar_url && (
+                <AvatarImage src={email.from_avatar_url} alt={email.from_name || email.from_email} />
+              )}
               <AvatarFallback>
                 {getInitials(email.from_name || email.from_email)}
               </AvatarFallback>
