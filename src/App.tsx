@@ -84,6 +84,7 @@ const RadioListen = lazy(() => import("./pages/RadioListen"));
 const Assessments = lazy(() => import("./pages/Assessments"));
 const SwipeGame = lazy(() => import("./pages/SwipeGame"));
 const Miljoenenjacht = lazy(() => import("./pages/Miljoenenjacht"));
+const Inbox = lazy(() => import("./pages/Inbox"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -467,6 +468,7 @@ const App = () => (
             <Route path="/module/:moduleId" element={<ModuleDetail />} />
             <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
             <Route path="/meetings/:meetingCode" element={<MeetingRoom />} />
+            <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
             <Route
               path="/club-dj"
               element={

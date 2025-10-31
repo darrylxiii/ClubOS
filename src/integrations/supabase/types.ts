@@ -3993,6 +3993,56 @@ export type Database = {
           },
         ]
       }
+      email_attachments: {
+        Row: {
+          content_id: string | null
+          created_at: string | null
+          email_id: string
+          external_id: string | null
+          file_name: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          is_inline: boolean | null
+          mime_type: string | null
+          storage_path: string | null
+        }
+        Insert: {
+          content_id?: string | null
+          created_at?: string | null
+          email_id: string
+          external_id?: string | null
+          file_name: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_inline?: boolean | null
+          mime_type?: string | null
+          storage_path?: string | null
+        }
+        Update: {
+          content_id?: string | null
+          created_at?: string | null
+          email_id?: string
+          external_id?: string | null
+          file_name?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          is_inline?: boolean | null
+          mime_type?: string | null
+          storage_path?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_attachments_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_connections: {
         Row: {
           access_token: string
@@ -4044,6 +4094,194 @@ export type Database = {
         }
         Relationships: []
       }
+      email_drafts: {
+        Row: {
+          ai_suggestions: Json | null
+          ai_template_used: string | null
+          ai_tone: string | null
+          attachments: Json | null
+          bcc_emails: Json | null
+          body_html: string | null
+          body_text: string | null
+          cc_emails: Json | null
+          connection_id: string | null
+          created_at: string | null
+          id: string
+          is_scheduled: boolean | null
+          reply_to_email_id: string | null
+          scheduled_for: string | null
+          subject: string | null
+          to_emails: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_suggestions?: Json | null
+          ai_template_used?: string | null
+          ai_tone?: string | null
+          attachments?: Json | null
+          bcc_emails?: Json | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: Json | null
+          connection_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_scheduled?: boolean | null
+          reply_to_email_id?: string | null
+          scheduled_for?: string | null
+          subject?: string | null
+          to_emails: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_suggestions?: Json | null
+          ai_template_used?: string | null
+          ai_tone?: string | null
+          attachments?: Json | null
+          bcc_emails?: Json | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: Json | null
+          connection_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_scheduled?: boolean | null
+          reply_to_email_id?: string | null
+          scheduled_for?: string | null
+          subject?: string | null
+          to_emails?: Json
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_drafts_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "email_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_drafts_reply_to_email_id_fkey"
+            columns: ["reply_to_email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_label_mappings: {
+        Row: {
+          created_at: string | null
+          email_id: string
+          id: string
+          label_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email_id: string
+          id?: string
+          label_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email_id?: string
+          id?: string
+          label_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_label_mappings_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_label_mappings_label_id_fkey"
+            columns: ["label_id"]
+            isOneToOne: false
+            referencedRelation: "email_labels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_labels: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon: string | null
+          id: string
+          name: string
+          sort_order: number | null
+          type: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          sort_order?: number | null
+          type?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          sort_order?: number | null
+          type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_sync_log: {
+        Row: {
+          completed_at: string | null
+          connection_id: string
+          emails_fetched: number | null
+          errors: Json | null
+          id: string
+          started_at: string | null
+          status: string | null
+          sync_type: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          connection_id: string
+          emails_fetched?: number | null
+          errors?: Json | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          sync_type?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          connection_id?: string
+          emails_fetched?: number | null
+          errors?: Json | null
+          id?: string
+          started_at?: string | null
+          status?: string | null
+          sync_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_sync_log_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "email_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_verifications: {
         Row: {
           code: string
@@ -4079,6 +4317,140 @@ export type Database = {
           verified_at?: string | null
         }
         Relationships: []
+      }
+      emails: {
+        Row: {
+          ai_action_items: Json | null
+          ai_category: string | null
+          ai_priority: number | null
+          ai_processed_at: string | null
+          ai_sentiment: string | null
+          ai_summary: string | null
+          archived_at: string | null
+          assigned_to: string | null
+          attachment_count: number | null
+          bcc_emails: Json | null
+          body_html: string | null
+          body_text: string | null
+          cc_emails: Json | null
+          connection_id: string
+          created_at: string | null
+          deleted_at: string | null
+          email_date: string
+          external_id: string
+          from_email: string
+          from_name: string | null
+          has_attachments: boolean | null
+          id: string
+          is_important: boolean | null
+          is_read: boolean | null
+          is_starred: boolean | null
+          metadata: Json | null
+          raw_headers: Json | null
+          read_at: string | null
+          received_at: string | null
+          reminder_at: string | null
+          reply_to: string | null
+          snippet: string | null
+          snoozed_until: string | null
+          status: string
+          subject: string
+          thread_id: string | null
+          to_emails: Json
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_action_items?: Json | null
+          ai_category?: string | null
+          ai_priority?: number | null
+          ai_processed_at?: string | null
+          ai_sentiment?: string | null
+          ai_summary?: string | null
+          archived_at?: string | null
+          assigned_to?: string | null
+          attachment_count?: number | null
+          bcc_emails?: Json | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: Json | null
+          connection_id: string
+          created_at?: string | null
+          deleted_at?: string | null
+          email_date: string
+          external_id: string
+          from_email: string
+          from_name?: string | null
+          has_attachments?: boolean | null
+          id?: string
+          is_important?: boolean | null
+          is_read?: boolean | null
+          is_starred?: boolean | null
+          metadata?: Json | null
+          raw_headers?: Json | null
+          read_at?: string | null
+          received_at?: string | null
+          reminder_at?: string | null
+          reply_to?: string | null
+          snippet?: string | null
+          snoozed_until?: string | null
+          status?: string
+          subject: string
+          thread_id?: string | null
+          to_emails: Json
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_action_items?: Json | null
+          ai_category?: string | null
+          ai_priority?: number | null
+          ai_processed_at?: string | null
+          ai_sentiment?: string | null
+          ai_summary?: string | null
+          archived_at?: string | null
+          assigned_to?: string | null
+          attachment_count?: number | null
+          bcc_emails?: Json | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: Json | null
+          connection_id?: string
+          created_at?: string | null
+          deleted_at?: string | null
+          email_date?: string
+          external_id?: string
+          from_email?: string
+          from_name?: string | null
+          has_attachments?: boolean | null
+          id?: string
+          is_important?: boolean | null
+          is_read?: boolean | null
+          is_starred?: boolean | null
+          metadata?: Json | null
+          raw_headers?: Json | null
+          read_at?: string | null
+          received_at?: string | null
+          reminder_at?: string | null
+          reply_to?: string | null
+          snippet?: string | null
+          snoozed_until?: string | null
+          status?: string
+          subject?: string
+          thread_id?: string | null
+          to_emails?: Json
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "email_connections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expert_availability: {
         Row: {
