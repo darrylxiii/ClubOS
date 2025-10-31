@@ -10,6 +10,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { X, Paperclip, Send } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface EmailComposerProps {
   open: boolean;
@@ -29,12 +31,36 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
   const [sending, setSending] = useState(false);
 
   const handleSend = async () => {
+    if (!to || !subject) {
+      toast.error("Please fill in recipient and subject");
+      return;
+    }
+
     setSending(true);
-    // TODO: Implement send via edge function
-    setTimeout(() => {
-      setSending(false);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: {
+          to,
+          subject,
+          body,
+          replyToEmailId: replyTo?.email,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Email sent successfully");
+      setTo("");
+      setSubject("");
+      setBody("");
       onClose();
-    }, 1000);
+    } catch (error: any) {
+      console.error("Failed to send email:", error);
+      toast.error(error.message || "Failed to send email");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (

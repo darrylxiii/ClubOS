@@ -45,12 +45,21 @@ const handler = async (req: Request): Promise<Response> => {
       .select()
       .single();
 
-    // Get last sync timestamp
-    const lastSync = connection.last_sync_at || new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    // Determine sync parameters
+    const isFirstSync = !connection.last_sync_at;
+    const effectiveMaxResults = maxResults || (isFirstSync ? 100 : 50);
+    
+    // Get date range - 90 days for first sync, incremental after
+    const syncDate = isFirstSync 
+      ? new Date(Date.now() - 90 * 24 * 60 * 60 * 1000)
+      : new Date(connection.last_sync_at);
+    
+    let totalEmailsInserted = 0;
 
-    // Fetch emails from Microsoft Graph API
-    const listResponse = await fetch(
-      `https://graph.microsoft.com/v1.0/me/messages?$top=${maxResults}&$filter=receivedDateTime ge ${lastSync}&$orderby=receivedDateTime desc`,
+    // Fetch inbox emails from Microsoft Graph API
+    console.log(`Syncing inbox emails from ${syncDate.toISOString()}...`);
+    const inboxResponse = await fetch(
+      `https://graph.microsoft.com/v1.0/me/mailFolders/inbox/messages?$top=${effectiveMaxResults}&$filter=receivedDateTime ge ${syncDate.toISOString()}&$orderby=receivedDateTime desc`,
       {
         headers: {
           Authorization: `Bearer ${connection.access_token}`,
@@ -58,17 +67,15 @@ const handler = async (req: Request): Promise<Response> => {
       }
     );
 
-    if (!listResponse.ok) {
-      throw new Error(`Outlook API error: ${listResponse.statusText}`);
+    if (!inboxResponse.ok) {
+      throw new Error(`Outlook API error: ${inboxResponse.statusText}`);
     }
 
-    const listData = await listResponse.json();
-    const messages = listData.value || [];
+    const inboxData = await inboxResponse.json();
+    const inboxMessages = inboxData.value || [];
 
-    let emailsInserted = 0;
-
-    // Store each email
-    for (const message of messages) {
+    // Store inbox emails
+    for (const message of inboxMessages) {
       try {
         const { error: insertError } = await supabase.from("emails").upsert(
           {
@@ -110,10 +117,73 @@ const handler = async (req: Request): Promise<Response> => {
         );
 
         if (!insertError) {
-          emailsInserted++;
+          totalEmailsInserted++;
         }
       } catch (err) {
-        console.error("Error processing email:", message.id, err);
+        console.error("Error processing inbox email:", message.id, err);
+      }
+    }
+
+    // Fetch sent emails
+    console.log(`Syncing sent emails from ${syncDate.toISOString()}...`);
+    const sentResponse = await fetch(
+      `https://graph.microsoft.com/v1.0/me/mailFolders/sentitems/messages?$top=${effectiveMaxResults}&$filter=sentDateTime ge ${syncDate.toISOString()}&$orderby=sentDateTime desc`,
+      {
+        headers: {
+          Authorization: `Bearer ${connection.access_token}`,
+        },
+      }
+    );
+
+    if (sentResponse.ok) {
+      const sentData = await sentResponse.json();
+      const sentMessages = sentData.value || [];
+
+      for (const message of sentMessages) {
+        try {
+          await supabase.from("emails").upsert(
+            {
+              user_id: connection.user_id,
+              connection_id: connectionId,
+              external_id: message.id,
+              thread_id: message.conversationId,
+              subject: message.subject || "(No Subject)",
+              from_email: message.from?.emailAddress?.address || "",
+              from_name: message.from?.emailAddress?.name || "",
+              to_emails: (message.toRecipients || []).map((r: any) => ({
+                email: r.emailAddress?.address,
+                name: r.emailAddress?.name,
+              })),
+              cc_emails: (message.ccRecipients || []).map((r: any) => ({
+                email: r.emailAddress?.address,
+                name: r.emailAddress?.name,
+              })),
+              bcc_emails: (message.bccRecipients || []).map((r: any) => ({
+                email: r.emailAddress?.address,
+                name: r.emailAddress?.name,
+              })),
+              reply_to: message.replyTo?.[0]?.emailAddress?.address,
+              body_text: message.body?.contentType === "text" ? message.body?.content : null,
+              body_html: message.body?.contentType === "html" ? message.body?.content : null,
+              snippet: message.bodyPreview,
+              status: "sent",
+              is_read: true,
+              is_starred: message.flag?.flagStatus === "flagged",
+              has_attachments: message.hasAttachments,
+              attachment_count: message.hasAttachments ? 1 : 0,
+              email_date: message.sentDateTime,
+              raw_headers: {
+                importance: message.importance,
+                internetMessageId: message.internetMessageId,
+              },
+            },
+            { onConflict: "connection_id,external_id" }
+          );
+
+          totalEmailsInserted++;
+        } catch (err) {
+          console.error("Error processing sent email:", message.id, err);
+        }
       }
     }
 
@@ -122,7 +192,7 @@ const handler = async (req: Request): Promise<Response> => {
       .from("email_sync_log")
       .update({
         status: "completed",
-        emails_fetched: emailsInserted,
+        emails_fetched: totalEmailsInserted,
         completed_at: new Date().toISOString(),
       })
       .eq("id", syncLog.id);
@@ -133,11 +203,14 @@ const handler = async (req: Request): Promise<Response> => {
       .update({ last_sync_at: new Date().toISOString() })
       .eq("id", connectionId);
 
+    console.log(`Successfully synced ${totalEmailsInserted} emails (inbox + sent)`);
+
     return new Response(
       JSON.stringify({
         success: true,
-        emailsSynced: emailsInserted,
-        totalMessages: messages.length,
+        emailsSynced: totalEmailsInserted,
+        inboxCount: inboxMessages.length,
+        isFirstSync,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

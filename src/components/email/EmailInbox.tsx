@@ -37,6 +37,7 @@ export function EmailInbox() {
 
   // Check if user has email connections
   const [hasConnections, setHasConnections] = useState<boolean | null>(null);
+  const [isInitialSync, setIsInitialSync] = useState(false);
 
   useEffect(() => {
     const checkConnections = async () => {
@@ -53,11 +54,13 @@ export function EmailInbox() {
       // Auto-sync on first load if never synced
       const needsSync = connections?.some((c) => !c.last_sync_at);
       if (needsSync && !syncing && connections && connections.length > 0) {
-        console.log("First time sync - fetching emails...");
-        // Small delay to let functions deploy
-        setTimeout(() => {
-          syncEmails();
-        }, 2000);
+        console.log("Initial sync - fetching last 90 days of emails...");
+        setIsInitialSync(true);
+        // Allow edge functions to deploy
+        setTimeout(async () => {
+          await syncEmails();
+          setIsInitialSync(false);
+        }, 3000);
       }
     };
 
@@ -149,9 +152,13 @@ export function EmailInbox() {
           <CardContent className="pt-6 space-y-4 text-center">
             <RefreshCw className="h-12 w-12 mx-auto animate-spin text-primary" />
             <div>
-              <h3 className="font-semibold text-lg">Syncing your emails...</h3>
+              <h3 className="font-semibold text-lg">
+                {isInitialSync ? "Initial sync in progress..." : "Syncing your emails..."}
+              </h3>
               <p className="text-sm text-muted-foreground mt-2">
-                This may take a moment. We're fetching your latest emails.
+                {isInitialSync 
+                  ? "Fetching your last 90 days of emails. This may take 30-60 seconds."
+                  : "This may take a moment. We're fetching your latest emails."}
               </p>
             </div>
           </CardContent>
