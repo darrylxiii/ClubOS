@@ -833,6 +833,101 @@ export type Database = {
           },
         ]
       }
+      booking_availability_settings: {
+        Row: {
+          auto_detect_timezone: boolean
+          auto_generate_links: boolean
+          check_all_calendars: boolean
+          created_at: string
+          custom_welcome_message: string | null
+          default_advance_booking_days: number
+          default_available_days: number[]
+          default_buffer_after: number
+          default_buffer_before: number
+          default_color: string
+          default_end_time: string
+          default_min_notice_hours: number
+          default_start_time: string
+          default_timezone: string
+          default_video_provider: string | null
+          id: string
+          include_dial_in: boolean
+          notify_on_booking: boolean
+          primary_calendar_id: string | null
+          reminder_minutes_before: number
+          send_calendar_invites: boolean
+          send_reminders: boolean
+          show_profile_picture: boolean
+          time_slot_interval: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_detect_timezone?: boolean
+          auto_generate_links?: boolean
+          check_all_calendars?: boolean
+          created_at?: string
+          custom_welcome_message?: string | null
+          default_advance_booking_days?: number
+          default_available_days?: number[]
+          default_buffer_after?: number
+          default_buffer_before?: number
+          default_color?: string
+          default_end_time?: string
+          default_min_notice_hours?: number
+          default_start_time?: string
+          default_timezone?: string
+          default_video_provider?: string | null
+          id?: string
+          include_dial_in?: boolean
+          notify_on_booking?: boolean
+          primary_calendar_id?: string | null
+          reminder_minutes_before?: number
+          send_calendar_invites?: boolean
+          send_reminders?: boolean
+          show_profile_picture?: boolean
+          time_slot_interval?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_detect_timezone?: boolean
+          auto_generate_links?: boolean
+          check_all_calendars?: boolean
+          created_at?: string
+          custom_welcome_message?: string | null
+          default_advance_booking_days?: number
+          default_available_days?: number[]
+          default_buffer_after?: number
+          default_buffer_before?: number
+          default_color?: string
+          default_end_time?: string
+          default_min_notice_hours?: number
+          default_start_time?: string
+          default_timezone?: string
+          default_video_provider?: string | null
+          id?: string
+          include_dial_in?: boolean
+          notify_on_booking?: boolean
+          primary_calendar_id?: string | null
+          reminder_minutes_before?: number
+          send_calendar_invites?: boolean
+          send_reminders?: boolean
+          show_profile_picture?: boolean
+          time_slot_interval?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_availability_settings_primary_calendar_id_fkey"
+            columns: ["primary_calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_calendar_syncs: {
         Row: {
           booking_id: string

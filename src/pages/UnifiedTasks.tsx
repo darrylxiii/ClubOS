@@ -29,6 +29,7 @@ import { UnifiedTasksByMember } from "@/components/unified-tasks/UnifiedTasksByM
 import { useUserRole } from "@/hooks/useUserRole";
 import { ObjectivesBoard } from "@/components/objectives/ObjectivesBoard";
 import { ObjectivesList } from "@/components/objectives/ObjectivesList";
+import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
 
 interface SystemPreferences {
   active_system: string;
@@ -321,7 +322,7 @@ const UnifiedTasks = () => {
           </Card>
 
           <Tabs defaultValue="board" className="space-y-6">
-            <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-4' : 'grid-cols-3'} lg:w-auto`}>
+            <TabsList className={`grid w-full ${role === 'admin' || role === 'partner' ? 'grid-cols-5' : 'grid-cols-4'} lg:w-auto`}>
               <TabsTrigger value="board" className="gap-2">
                 <LayoutDashboard className="h-4 w-4" />
                 Board
@@ -339,6 +340,10 @@ const UnifiedTasks = () => {
               <TabsTrigger value="calendar" className="gap-2">
                 <Calendar className="h-4 w-4" />
                 Calendar
+              </TabsTrigger>
+              <TabsTrigger value="ai-scheduling" className="gap-2">
+                <Wand2 className="h-4 w-4" />
+                AI Scheduling
               </TabsTrigger>
             </TabsList>
 
@@ -373,6 +378,10 @@ const UnifiedTasks = () => {
                 objectiveId={selectedObjective}
                 onRefresh={handleRefresh}
               />
+            </TabsContent>
+
+            <TabsContent value="ai-scheduling" className="space-y-4">
+              <TaskSchedulingPreferences />
             </TabsContent>
           </Tabs>
         </div>

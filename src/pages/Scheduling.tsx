@@ -13,7 +13,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Calendar, Clock, Copy, ExternalLink, Link as LinkIcon, Plus, Settings, Trash2, Video, Users, Shield, Repeat } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
+import { BookingAvailabilitySettings } from "@/components/scheduling/BookingAvailabilitySettings";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookingAnalyticsDashboard } from "@/components/booking/BookingAnalyticsDashboard";
 import { CalendarConnectionStatus } from "@/components/scheduling/CalendarConnectionStatus";
@@ -789,7 +789,7 @@ export default function Scheduling() {
           </TabsContent>
 
           <TabsContent value="availability" className="mt-6">
-            <TaskSchedulingPreferences />
+            <BookingAvailabilitySettings />
           </TabsContent>
         </Tabs>
       </div>
