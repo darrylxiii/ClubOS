@@ -7,6 +7,7 @@ import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
 import { RoleAssignmentFix } from "@/components/admin/RoleAssignmentFix";
 import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsManager";
 import { AssessmentResultsManager } from "@/components/admin/AssessmentResultsManager";
+import { AdminApplicationHub } from "@/components/admin/AdminApplicationHub";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -56,9 +57,10 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 max-w-4xl sticky top-4 z-20">
+          <TabsList className="grid w-full grid-cols-6 max-w-5xl sticky top-4 z-20">
             <TabsTrigger value="companies" onClick={(e) => e.currentTarget.blur()}>Companies</TabsTrigger>
             <TabsTrigger value="users" onClick={(e) => e.currentTarget.blur()}>Users & Roles</TabsTrigger>
+            <TabsTrigger value="applications" onClick={(e) => e.currentTarget.blur()}>Applications</TabsTrigger>
             <TabsTrigger value="achievements" onClick={(e) => e.currentTarget.blur()}>Achievements</TabsTrigger>
             <TabsTrigger value="assessments" onClick={(e) => e.currentTarget.blur()}>Assessments</TabsTrigger>
             <TabsTrigger value="system" onClick={(e) => e.currentTarget.blur()}>System Health</TabsTrigger>
@@ -70,6 +72,10 @@ const Admin = () => {
 
           <TabsContent value="users" className="space-y-4">
             <UnifiedUserManagement />
+          </TabsContent>
+
+          <TabsContent value="applications" className="space-y-4">
+            <AdminApplicationHub />
           </TabsContent>
 
           <TabsContent value="achievements" className="space-y-4">

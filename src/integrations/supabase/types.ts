@@ -1352,6 +1352,41 @@ export type Database = {
           },
         ]
       }
+      candidate_application_logs: {
+        Row: {
+          action: string
+          actor_id: string | null
+          candidate_profile_id: string
+          created_at: string | null
+          details: Json | null
+          id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          candidate_profile_id: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          candidate_profile_id?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_application_logs_candidate_profile_id_fkey"
+            columns: ["candidate_profile_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_comments: {
         Row: {
           application_id: string
@@ -1749,6 +1784,7 @@ export type Database = {
       }
       candidate_profiles: {
         Row: {
+          admin_notes: string | null
           ai_concerns: Json | null
           ai_strengths: Json | null
           ai_summary: string | null
@@ -1797,10 +1833,13 @@ export type Database = {
           portfolio_url: string | null
           preferred_currency: string | null
           profile_completeness: number | null
+          rejection_reason: string | null
           remote_preference: string | null
           remote_work_aspiration: boolean | null
           resume_filename: string | null
           resume_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           salary_preference_hidden: boolean | null
           skills: Json | null
           source_channel: string | null
@@ -1813,6 +1852,7 @@ export type Database = {
           years_of_experience: number | null
         }
         Insert: {
+          admin_notes?: string | null
           ai_concerns?: Json | null
           ai_strengths?: Json | null
           ai_summary?: string | null
@@ -1861,10 +1901,13 @@ export type Database = {
           portfolio_url?: string | null
           preferred_currency?: string | null
           profile_completeness?: number | null
+          rejection_reason?: string | null
           remote_preference?: string | null
           remote_work_aspiration?: boolean | null
           resume_filename?: string | null
           resume_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           salary_preference_hidden?: boolean | null
           skills?: Json | null
           source_channel?: string | null
@@ -1877,6 +1920,7 @@ export type Database = {
           years_of_experience?: number | null
         }
         Update: {
+          admin_notes?: string | null
           ai_concerns?: Json | null
           ai_strengths?: Json | null
           ai_summary?: string | null
@@ -1925,10 +1969,13 @@ export type Database = {
           portfolio_url?: string | null
           preferred_currency?: string | null
           profile_completeness?: number | null
+          rejection_reason?: string | null
           remote_preference?: string | null
           remote_work_aspiration?: boolean | null
           resume_filename?: string | null
           resume_url?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           salary_preference_hidden?: boolean | null
           skills?: Json | null
           source_channel?: string | null
