@@ -35,30 +35,35 @@ export function EmailInbox() {
     snoozeEmail,
   } = useEmails(filter);
 
-  // Auto-sync on first load if never synced
+  // Check if user has email connections
+  const [hasConnections, setHasConnections] = useState<boolean | null>(null);
+
   useEffect(() => {
-    const checkAndSync = async () => {
+    const checkConnections = async () => {
       if (!user) return;
 
       const { data: connections } = await supabase
         .from("email_connections")
-        .select("last_sync_at, is_active")
+        .select("id, last_sync_at")
         .eq("user_id", user.id)
         .eq("is_active", true);
 
-      // If any connection has never been synced, trigger sync
+      setHasConnections((connections?.length || 0) > 0);
+
+      // Auto-sync on first load if never synced
       const needsSync = connections?.some((c) => !c.last_sync_at);
-      if (needsSync && !syncing) {
+      if (needsSync && !syncing && connections && connections.length > 0) {
         console.log("First time sync - fetching emails...");
-        syncEmails();
+        // Small delay to let functions deploy
+        setTimeout(() => {
+          syncEmails();
+        }, 2000);
       }
     };
 
-    checkAndSync();
+    checkConnections();
   }, [user]);
 
-  // Check if user has any email connections
-  const hasEmails = emails.length > 0 || loading;
   const unreadCount = emails.filter((e) => !e.is_read).length;
 
   const handleEmailSelect = async (email: any) => {
@@ -107,7 +112,7 @@ export function EmailInbox() {
     : emails;
 
   // Show empty state if no connections
-  if (!loading && !hasEmails && emails.length === 0) {
+  if (hasConnections === false && !loading) {
     return (
       <div className="h-screen flex items-center justify-center p-8">
         <Card className="max-w-md w-full">
@@ -130,6 +135,25 @@ export function EmailInbox() {
                 Go to Settings
               </Button>
             </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show loading or syncing state
+  if (hasConnections && emails.length === 0 && (loading || syncing)) {
+    return (
+      <div className="h-screen flex items-center justify-center p-8">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6 space-y-4 text-center">
+            <RefreshCw className="h-12 w-12 mx-auto animate-spin text-primary" />
+            <div>
+              <h3 className="font-semibold text-lg">Syncing your emails...</h3>
+              <p className="text-sm text-muted-foreground mt-2">
+                This may take a moment. We're fetching your latest emails.
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
