@@ -123,3 +123,9 @@ verify_jwt = false
 
 [functions.cancel-booking]
 verify_jwt = false
+
+[functions.sync-booking-to-calendar]
+verify_jwt = false
+
+[functions.create-meeting-from-booking]
+verify_jwt = false

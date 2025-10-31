@@ -880,16 +880,19 @@ export type Database = {
           buffer_before_minutes: number | null
           color: string | null
           confirmation_message: string | null
+          create_quantum_meeting: boolean | null
           created_at: string
           custom_questions: Json | null
           description: string | null
           duration_minutes: number
+          enable_club_ai: boolean | null
           expires_at: string | null
           id: string
           is_active: boolean
           max_bookings_per_day: number | null
           max_uses: number | null
           min_notice_hours: number | null
+          primary_calendar_id: string | null
           redirect_url: string | null
           requires_approval: boolean | null
           routing_rules: Json | null
@@ -911,16 +914,19 @@ export type Database = {
           buffer_before_minutes?: number | null
           color?: string | null
           confirmation_message?: string | null
+          create_quantum_meeting?: boolean | null
           created_at?: string
           custom_questions?: Json | null
           description?: string | null
           duration_minutes?: number
+          enable_club_ai?: boolean | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
           max_bookings_per_day?: number | null
           max_uses?: number | null
           min_notice_hours?: number | null
+          primary_calendar_id?: string | null
           redirect_url?: string | null
           requires_approval?: boolean | null
           routing_rules?: Json | null
@@ -942,16 +948,19 @@ export type Database = {
           buffer_before_minutes?: number | null
           color?: string | null
           confirmation_message?: string | null
+          create_quantum_meeting?: boolean | null
           created_at?: string
           custom_questions?: Json | null
           description?: string | null
           duration_minutes?: number
+          enable_club_ai?: boolean | null
           expires_at?: string | null
           id?: string
           is_active?: boolean
           max_bookings_per_day?: number | null
           max_uses?: number | null
           min_notice_hours?: number | null
+          primary_calendar_id?: string | null
           redirect_url?: string | null
           requires_approval?: boolean | null
           routing_rules?: Json | null
@@ -965,7 +974,15 @@ export type Database = {
           user_id?: string
           video_conferencing_provider?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "booking_links_primary_calendar_id_fkey"
+            columns: ["primary_calendar_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       booking_reminders: {
         Row: {
@@ -1099,6 +1116,7 @@ export type Database = {
           attended: boolean | null
           booking_link_id: string
           calendar_event_id: string | null
+          calendar_provider: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
           created_at: string
@@ -1107,12 +1125,14 @@ export type Database = {
           guest_name: string
           guest_phone: string | null
           id: string
+          meeting_id: string | null
           no_show: boolean | null
           notes: string | null
           reminder_sent: boolean | null
           scheduled_end: string
           scheduled_start: string
           status: string
+          synced_to_calendar: boolean | null
           timezone: string
           updated_at: string
           user_id: string
@@ -1128,6 +1148,7 @@ export type Database = {
           attended?: boolean | null
           booking_link_id: string
           calendar_event_id?: string | null
+          calendar_provider?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           created_at?: string
@@ -1136,12 +1157,14 @@ export type Database = {
           guest_name: string
           guest_phone?: string | null
           id?: string
+          meeting_id?: string | null
           no_show?: boolean | null
           notes?: string | null
           reminder_sent?: boolean | null
           scheduled_end: string
           scheduled_start: string
           status?: string
+          synced_to_calendar?: boolean | null
           timezone: string
           updated_at?: string
           user_id: string
@@ -1157,6 +1180,7 @@ export type Database = {
           attended?: boolean | null
           booking_link_id?: string
           calendar_event_id?: string | null
+          calendar_provider?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           created_at?: string
@@ -1165,12 +1189,14 @@ export type Database = {
           guest_name?: string
           guest_phone?: string | null
           id?: string
+          meeting_id?: string | null
           no_show?: boolean | null
           notes?: string | null
           reminder_sent?: boolean | null
           scheduled_end?: string
           scheduled_start?: string
           status?: string
+          synced_to_calendar?: boolean | null
           timezone?: string
           updated_at?: string
           user_id?: string
@@ -1184,6 +1210,13 @@ export type Database = {
             columns: ["booking_link_id"]
             isOneToOne: false
             referencedRelation: "booking_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
             referencedColumns: ["id"]
           },
         ]
@@ -1229,6 +1262,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      calendar_sync_log: {
+        Row: {
+          action: string
+          booking_id: string
+          calendar_event_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          provider: string
+          success: boolean
+        }
+        Insert: {
+          action: string
+          booking_id: string
+          calendar_event_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider: string
+          success: boolean
+        }
+        Update: {
+          action?: string
+          booking_id?: string
+          calendar_event_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          provider?: string
+          success?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_sync_log_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       call_invitations: {
         Row: {

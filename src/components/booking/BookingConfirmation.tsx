@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Calendar, Clock, Mail, MapPin, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { BookingSyncStatus } from "./BookingSyncStatus";
 
 interface BookingConfirmationProps {
   bookingId: string;
@@ -21,6 +22,12 @@ interface Booking {
   scheduled_start: string;
   scheduled_end: string;
   notes: string | null;
+  synced_to_calendar?: boolean;
+  calendar_provider?: string | null;
+  meeting_id?: string | null;
+  booking_links?: {
+    enable_club_ai?: boolean;
+  };
 }
 
 export function BookingConfirmation({
@@ -38,7 +45,12 @@ export function BookingConfirmation({
     try {
       const { data, error } = await supabase
         .from("bookings")
-        .select("*")
+        .select(`
+          *,
+          booking_links (
+            enable_club_ai
+          )
+        `)
         .eq("id", bookingId)
         .single();
 
@@ -137,7 +149,15 @@ export function BookingConfirmation({
       </div>
 
       <div className="border rounded-lg p-6 space-y-4 bg-muted/30">
-        <h4 className="font-semibold text-lg">{bookingLink.title}</h4>
+        <div className="flex items-center justify-between">
+          <h4 className="font-semibold text-lg">{bookingLink.title}</h4>
+          <BookingSyncStatus
+            syncedToCalendar={booking.synced_to_calendar}
+            calendarProvider={booking.calendar_provider}
+            meetingCreated={!!booking.meeting_id}
+            clubAIEnabled={booking.booking_links?.enable_club_ai}
+          />
+        </div>
         
         <div className="space-y-3 text-sm">
           <div className="flex items-start gap-3">

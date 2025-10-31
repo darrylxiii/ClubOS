@@ -51,6 +51,21 @@ serve(async (req) => {
       .lte("scheduled_end", dateRange.end)
       .eq("status", "confirmed");
 
+    // Get Quantum Club meetings to block slots
+    const { data: meetings } = await supabaseClient
+      .from("meetings")
+      .select("start_time, end_time")
+      .eq("created_by", bookingLink.user_id)
+      .gte("start_time", dateRange.start)
+      .lte("end_time", dateRange.end)
+      .is("deleted_at", null);
+
+    // Convert meetings to booking format
+    const meetingBlockedTimes = (meetings || []).map(m => ({
+      scheduled_start: m.start_time,
+      scheduled_end: m.end_time
+    }));
+
     // Get connected calendars and fetch busy times
     const { data: calendars } = await supabaseClient
       .from("calendar_connections")
@@ -158,9 +173,13 @@ serve(async (req) => {
       }
     }
 
-    // Merge database bookings with calendar busy times
-    const allBusyTimes = [...(existingBookings || []), ...calendarBusyTimes];
-    console.log(`[Slots] Total busy times: ${allBusyTimes.length}`);
+    // Merge all busy times: bookings + calendar + meetings
+    const allBusyTimes = [
+      ...(existingBookings || []), 
+      ...calendarBusyTimes,
+      ...meetingBlockedTimes
+    ];
+    console.log(`[Slots] Total busy times: ${allBusyTimes.length} (${existingBookings?.length || 0} bookings + ${calendarBusyTimes.length} calendar + ${meetingBlockedTimes.length} meetings)`);
 
     // Generate available slots
     const slots = generateAvailableSlots(

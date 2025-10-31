@@ -110,6 +110,16 @@ serve(async (req) => {
       console.error("Error sending confirmation email:", emailError);
     }
 
+    // Sync to calendar (don't wait for it)
+    supabaseClient.functions.invoke("sync-booking-to-calendar", {
+      body: { bookingId: booking.id }
+    }).catch(err => console.error("Error syncing to calendar:", err));
+
+    // Create Quantum Club meeting (don't wait for it)
+    supabaseClient.functions.invoke("create-meeting-from-booking", {
+      body: { bookingId: booking.id }
+    }).catch(err => console.error("Error creating meeting:", err));
+
     return new Response(
       JSON.stringify({ 
         success: true, 

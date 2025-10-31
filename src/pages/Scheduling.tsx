@@ -56,6 +56,7 @@ export default function Scheduling() {
   const { user } = useAuth();
   const [bookingLinks, setBookingLinks] = useState<BookingLink[]>([]);
   const [upcomingBookings, setUpcomingBookings] = useState<Booking[]>([]);
+  const [connectedCalendars, setConnectedCalendars] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreatingLink, setIsCreatingLink] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -78,14 +79,34 @@ export default function Scheduling() {
     max_uses: null as number | null,
     requires_approval: false,
     max_bookings_per_day: null as number | null,
+    primary_calendar_id: null as string | null,
+    create_quantum_meeting: true,
+    enable_club_ai: false,
   });
 
   useEffect(() => {
     if (user) {
       loadBookingLinks();
       loadUpcomingBookings();
+      loadConnectedCalendars();
     }
   }, [user]);
+
+  const loadConnectedCalendars = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('calendar_connections')
+        .select('*')
+        .eq('user_id', user?.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setConnectedCalendars(data || []);
+    } catch (error) {
+      console.error('[Scheduling] Error loading calendars:', error);
+    }
+  };
 
   const loadBookingLinks = async () => {
     try {
@@ -180,6 +201,9 @@ export default function Scheduling() {
         max_uses: null,
         requires_approval: false,
         max_bookings_per_day: null,
+        primary_calendar_id: null,
+        create_quantum_meeting: true,
+        enable_club_ai: false,
       });
       setDialogOpen(false);
     } catch (error: any) {
@@ -489,6 +513,73 @@ export default function Scheduling() {
                       })}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t">
+                  <h3 className="font-semibold flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    Calendar Integration
+                  </h3>
+
+                  <div>
+                    <Label htmlFor="primary_calendar">Primary Calendar (Auto-sync)</Label>
+                    <Select
+                      value={newLink.primary_calendar_id || "none"}
+                      onValueChange={(value) => setNewLink({ 
+                        ...newLink, 
+                        primary_calendar_id: value === "none" ? null : value
+                      })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a calendar" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None (No auto-sync)</SelectItem>
+                        {connectedCalendars.map((cal) => (
+                          <SelectItem key={cal.id} value={cal.id}>
+                            {cal.provider === 'google' ? '📅 Google' : '📆 Microsoft'} - {cal.calendar_label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Bookings will automatically create events in this calendar
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="create_meeting">Create Quantum Meeting</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Auto-create a Quantum Club meeting for each booking
+                      </p>
+                    </div>
+                    <Switch
+                      id="create_meeting"
+                      checked={newLink.create_quantum_meeting}
+                      onCheckedChange={(checked) => setNewLink({ 
+                        ...newLink, 
+                        create_quantum_meeting: checked,
+                        enable_club_ai: checked ? newLink.enable_club_ai : false
+                      })}
+                    />
+                  </div>
+
+                  {newLink.create_quantum_meeting && (
+                    <div className="flex items-center justify-between pl-4">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="enable_ai">Enable Club AI</Label>
+                        <p className="text-sm text-muted-foreground">
+                          AI notetaker, insights, and summaries
+                        </p>
+                      </div>
+                      <Switch
+                        id="enable_ai"
+                        checked={newLink.enable_club_ai}
+                        onCheckedChange={(checked) => setNewLink({ ...newLink, enable_club_ai: checked })}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <Button
