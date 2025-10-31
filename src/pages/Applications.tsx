@@ -263,37 +263,38 @@ function ApplicationCard({ application }: { application: Application }) {
     >
       {/* Header with quick actions */}
       <CardHeader className="pb-4">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div 
-            className="flex items-start gap-4 flex-1 cursor-pointer"
+            className="flex items-start gap-3 sm:gap-4 flex-1 cursor-pointer w-full"
             onClick={() => navigate(`/applications/${application.id}`)}
           >
             {application.job?.companies?.logo_url && (
-              <Avatar className="w-14 h-14 border border-border/30">
+              <Avatar className="w-12 h-12 sm:w-14 sm:h-14 border border-border/30 flex-shrink-0">
                 <AvatarImage src={application.job.companies.logo_url} />
                 <AvatarFallback className="bg-muted">{application.job?.companies?.name?.[0]}</AvatarFallback>
               </Avatar>
             )}
-            <div className="space-y-1 flex-1">
-              <CardTitle className="text-xl flex items-center gap-2">
+            <div className="space-y-1 flex-1 min-w-0">
+              <CardTitle className="text-lg sm:text-xl flex items-center gap-2 truncate">
                 {application.job?.title || application.position}
               </CardTitle>
               <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  {application.job?.companies?.name || application.company_name}
-                </div>
-                {application.job?.location && (
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="w-3 h-3" />
-                    {application.job.location}
-                  </div>
-                )}
-                {formatSalaryRange() && (
-                  <div className="flex items-center gap-1.5">
-                    <DollarSign className="w-3 h-3" />
-                    {formatSalaryRange()}
-                  </div>
-                )}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 flex-1 min-w-[200px]">
+            {application.job?.companies?.name || application.company_name}
+          </div>
+          {application.job?.location && (
+            <div className="flex items-center gap-1.5">
+              <MapPin className="w-3 h-3" />
+              <span className="hidden sm:inline">{application.job.location}</span>
+              <span className="sm:hidden">{application.job.location.split(',')[0]}</span>
+            </div>
+          )}
+          {formatSalaryRange() && (
+            <div className="flex items-center gap-1.5">
+              <DollarSign className="w-3 h-3" />
+              <span className="hidden md:inline">{formatSalaryRange()}</span>
+            </div>
+          )}
               </div>
             </div>
           </div>

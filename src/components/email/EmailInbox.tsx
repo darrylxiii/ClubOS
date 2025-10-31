@@ -9,9 +9,10 @@ import { EmailComposer } from "./EmailComposer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, Search, Mail, Settings as SettingsIcon } from "lucide-react";
+import { RefreshCw, Search, Mail, Settings as SettingsIcon, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 export function EmailInbox() {
   const [filter, setFilter] = useState("inbox");
@@ -190,10 +191,10 @@ export function EmailInbox() {
   }
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="flex flex-col h-full md:h-screen">
       {/* Top Bar */}
-      <div className="border-b border-border p-4 flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="border-b border-border p-3 md:p-4 flex items-center gap-2 md:gap-4 flex-wrap">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search emails..."
@@ -213,17 +214,27 @@ export function EmailInbox() {
         </Button>
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
-        <EmailSidebar
-          currentFilter={filter}
-          onFilterChange={setFilter}
-          labels={labels}
-          unreadCount={unreadCount}
-          onCompose={() => setComposerOpen(true)}
-        />
+      {/* Main Content - Mobile responsive layout */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        {/* Sidebar - Collapsible on mobile */}
+        <div className={cn(
+          "md:block",
+          selectedEmail && "hidden md:block"
+        )}>
+          <EmailSidebar
+            currentFilter={filter}
+            onFilterChange={setFilter}
+            labels={labels}
+            unreadCount={unreadCount}
+            onCompose={() => setComposerOpen(true)}
+          />
+        </div>
 
-        <div className="w-96 border-r border-border">
+        {/* Email List - Hidden when email selected on mobile */}
+        <div className={cn(
+          "w-full md:w-96 border-r border-border",
+          selectedEmail && "hidden md:block"
+        )}>
           <EmailList
             emails={filteredEmails}
             selectedEmailId={selectedEmail?.id || null}
@@ -237,21 +248,37 @@ export function EmailInbox() {
           />
         </div>
 
-        {selectedEmail ? (
-          <EmailDetail
-            key={selectedEmail.id}
-            email={selectedEmail}
-            onReply={() => setComposerOpen(true)}
-            onForward={() => setComposerOpen(true)}
-            onArchive={handleArchive}
-            onDelete={handleDelete}
-            onSnooze={handleSnooze}
-            onMarkAsUnread={() => markAsUnread(selectedEmail.id)}
-            onToggleStar={(starred) => toggleStar(selectedEmail.id, starred)}
-          />
-        ) : (
-          <div className="flex-1 flex items-center justify-center text-muted-foreground">
-            Select an email to read
+        {/* Email Detail - Full screen on mobile, flex on desktop */}
+        {selectedEmail && (
+          <div className="flex-1 overflow-y-auto">
+            {/* Mobile back button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="md:hidden m-2"
+              onClick={() => setSelectedEmail(null)}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Inbox
+            </Button>
+            <EmailDetail
+              key={selectedEmail.id}
+              email={selectedEmail}
+              onReply={() => setComposerOpen(true)}
+              onForward={() => setComposerOpen(true)}
+              onArchive={handleArchive}
+              onDelete={handleDelete}
+              onSnooze={handleSnooze}
+              onMarkAsUnread={() => markAsUnread(selectedEmail.id)}
+              onToggleStar={(starred) => toggleStar(selectedEmail.id, starred)}
+            />
+          </div>
+        )}
+
+        {/* Empty state when no email selected */}
+        {!selectedEmail && (
+          <div className="hidden md:flex flex-1 items-center justify-center text-muted-foreground">
+            <p>Select an email to read</p>
           </div>
         )}
       </div>
