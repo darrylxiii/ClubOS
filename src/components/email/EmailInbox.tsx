@@ -223,17 +223,19 @@ export function EmailInbox() {
           onCompose={() => setComposerOpen(true)}
         />
 
-        <EmailList
-          emails={filteredEmails}
-          selectedEmailId={selectedEmail?.id || null}
-          onEmailSelect={handleEmailSelect}
-          onToggleStar={toggleStar}
-          onArchive={archiveEmail}
-          onDelete={deleteEmail}
-          onMarkAsRead={markAsRead}
-          onMarkAsUnread={markAsUnread}
-          loading={loading}
-        />
+        <div className="w-96 border-r border-border">
+          <EmailList
+            emails={filteredEmails}
+            selectedEmailId={selectedEmail?.id || null}
+            onEmailSelect={handleEmailSelect}
+            onToggleStar={toggleStar}
+            onArchive={archiveEmail}
+            onDelete={deleteEmail}
+            onMarkAsRead={markAsRead}
+            onMarkAsUnread={markAsUnread}
+            loading={loading}
+          />
+        </div>
 
         {selectedEmail ? (
           <EmailDetail

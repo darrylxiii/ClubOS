@@ -78,7 +78,7 @@ export function EmailList({
   }
 
   return (
-    <div className="flex-1 flex flex-col border-r border-border">
+    <div className="h-full flex flex-col">
       {selectedIds.size > 0 && (
         <div className="border-b border-border p-2 flex items-center gap-2 bg-muted/50">
           <span className="text-sm text-muted-foreground ml-2">
