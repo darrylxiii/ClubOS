@@ -21,6 +21,7 @@ import Auth from "./pages/Auth";
 import SharedProfile from "./pages/SharedProfile";
 import BookingPage from "./pages/BookingPage";
 import PartnerFunnel from "./pages/PartnerFunnel";
+import PartnershipSubmitted from "./pages/PartnershipSubmitted";
 import CandidateOnboarding from "./pages/CandidateOnboarding";
 import NotFound from "./pages/NotFound";
 import Meetings from "./pages/Meetings";
@@ -113,6 +114,7 @@ const App = () => (
                 <Route path="/book/:slug" element={<BookingPage />} />
                 <Route path="/share/:token" element={<SharedProfile />} />
           <Route path="/partner-funnel" element={<PartnerFunnel />} />
+          <Route path="/partnership-submitted/:companyName" element={<PartnershipSubmitted />} />
           <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
                 <Route
                   path="/funnel-analytics"

@@ -212,8 +212,9 @@ export function FunnelSteps() {
         description: "Your strategist will respond within 19 minutes on average.",
       });
 
-      // Show success view
-      setCurrentStep(5);
+      // Redirect to trackable success page with company name
+      const encodedCompanyName = encodeURIComponent(formData.company_name || 'unknown');
+      navigate(`/partnership-submitted/${encodedCompanyName}`);
     });
 
     if (!verified) {
