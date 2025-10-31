@@ -60,20 +60,85 @@ serve(async (req) => {
       );
     }
 
-    // Check for conflicts
+    // Comprehensive conflict checking
+    console.log("[Booking] Checking conflicts for:", { scheduledStart, scheduledEnd, userId: bookingLink.user_id });
+    
+    // 1. Check existing bookings
     const { data: existingBookings } = await supabaseClient
       .from("bookings")
-      .select("id")
+      .select("id, guest_name")
       .eq("user_id", bookingLink.user_id)
       .eq("status", "confirmed")
       .or(`and(scheduled_start.lt.${scheduledEnd},scheduled_end.gt.${scheduledStart})`);
 
     if (existingBookings && existingBookings.length > 0) {
+      console.log("[Booking] Conflict: Existing booking found");
       return new Response(
-        JSON.stringify({ error: "This time slot is no longer available" }),
+        JSON.stringify({ error: "This time slot is no longer available - already booked" }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // 2. Check Quantum Club meetings
+    const { data: meetings } = await supabaseClient
+      .from("meetings")
+      .select("id, title")
+      .eq("created_by", bookingLink.user_id)
+      .is("deleted_at", null)
+      .or(`and(start_time.lt.${scheduledEnd},end_time.gt.${scheduledStart})`);
+
+    if (meetings && meetings.length > 0) {
+      console.log("[Booking] Conflict: Quantum Club meeting found:", meetings[0].title);
+      return new Response(
+        JSON.stringify({ error: "Calendar conflict: You have a meeting at this time" }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // 3. Check connected calendars
+    const { data: calendars } = await supabaseClient
+      .from("calendar_connections")
+      .select("*")
+      .eq("user_id", bookingLink.user_id)
+      .eq("is_active", true);
+
+    if (calendars && calendars.length > 0) {
+      for (const calendar of calendars) {
+        try {
+          const functionName = calendar.provider === 'google' 
+            ? 'google-calendar-events' 
+            : 'microsoft-calendar-events';
+          
+          const { data: busyData, error: busyError } = await supabaseClient.functions.invoke(
+            functionName,
+            {
+              body: {
+                action: 'findFreeSlots',
+                connectionId: calendar.id,
+                timeMin: scheduledStart,
+                timeMax: scheduledEnd,
+                calendars: ['primary']
+              }
+            }
+          );
+
+          if (!busyError && busyData?.busySlots && busyData.busySlots.length > 0) {
+            console.log("[Booking] Conflict: Calendar busy time found in", calendar.provider);
+            return new Response(
+              JSON.stringify({ 
+                error: `Calendar conflict: You have an event in your ${calendar.provider} calendar at this time` 
+              }),
+              { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+          }
+        } catch (calendarError) {
+          console.error(`[Booking] Error checking ${calendar.provider} calendar:`, calendarError);
+          // Continue with booking - don't fail on calendar check errors
+        }
+      }
+    }
+    
+    console.log("[Booking] No conflicts found, proceeding with booking creation");
 
     // Create booking
     const { data: booking, error: bookingError } = await supabaseClient

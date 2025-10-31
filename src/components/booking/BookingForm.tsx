@@ -11,6 +11,7 @@ import { format, parse } from "date-fns";
 interface BookingFormProps {
   bookingLink: {
     id: string;
+    slug: string;
     user_id: string;
     duration_minutes: number;
     custom_questions?: any[];
@@ -59,7 +60,7 @@ export function BookingForm({
 
       const { data, error } = await supabase.functions.invoke("create-booking", {
         body: {
-          bookingLinkId: bookingLink.id,
+          bookingLinkSlug: bookingLink.slug,
           guestName: formData.name,
           guestEmail: formData.email,
           guestPhone: formData.phone || null,
@@ -76,7 +77,16 @@ export function BookingForm({
       onComplete(data.booking.id);
     } catch (error: any) {
       console.error("Error creating booking:", error);
-      toast.error(error.message || "Failed to create booking");
+      
+      // Better error messages
+      const errorMsg = error.message || "Failed to create booking";
+      if (errorMsg.includes("no longer available") || errorMsg.includes("conflict")) {
+        toast.error("This time slot was just booked. Please select another time.");
+      } else if (errorMsg.includes("token") || errorMsg.includes("calendar")) {
+        toast.error("Calendar connection issue. Please try another time or contact support.");
+      } else {
+        toast.error(errorMsg);
+      }
     } finally {
       setLoading(false);
     }
