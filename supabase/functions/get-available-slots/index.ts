@@ -51,19 +51,20 @@ serve(async (req) => {
       .lte("scheduled_end", dateRange.end)
       .eq("status", "confirmed");
 
-    // Get Quantum Club meetings to block slots
+    // Get Quantum Club meetings to block slots (using correct column names)
     const { data: meetings } = await supabaseClient
       .from("meetings")
-      .select("start_time, end_time")
-      .eq("created_by", bookingLink.user_id)
-      .gte("start_time", dateRange.start)
-      .lte("end_time", dateRange.end)
-      .is("deleted_at", null);
+      .select("scheduled_start, scheduled_end")
+      .eq("host_id", bookingLink.user_id)
+      .gte("scheduled_start", dateRange.start)
+      .lte("scheduled_end", dateRange.end);
+
+    console.log(`[Slots] Found ${meetings?.length || 0} Quantum Club meetings`);
 
     // Convert meetings to booking format
     const meetingBlockedTimes = (meetings || []).map(m => ({
-      scheduled_start: m.start_time,
-      scheduled_end: m.end_time
+      scheduled_start: m.scheduled_start,
+      scheduled_end: m.scheduled_end
     }));
 
     // Get connected calendars and fetch busy times
@@ -157,7 +158,10 @@ serve(async (req) => {
           ]) as any;
 
           if (!busyError && busyData?.busySlots) {
-            console.log(`[Slots] Found ${busyData.busySlots.length} busy slots from ${calendar.provider}${tokenRefreshed ? ' (token refreshed)' : ''}`);
+            console.log(`[Slots] ${calendar.provider} returned ${busyData.busySlots.length} busy slots${tokenRefreshed ? ' (token refreshed)' : ''}`);
+            if (busyData.busySlots.length > 0) {
+              console.log(`[Slots] Sample busy slot from ${calendar.provider}:`, busyData.busySlots[0]);
+            }
             calendarBusyTimes.push(...busyData.busySlots.map((slot: any) => ({
               scheduled_start: slot.start,
               scheduled_end: slot.end
@@ -165,6 +169,8 @@ serve(async (req) => {
           } else if (busyError) {
             console.error(`[Slots] Calendar API error for ${calendar.provider}:`, busyError);
             // Don't fail the entire request, continue with other calendars
+          } else {
+            console.log(`[Slots] ${calendar.provider} returned no busy slots or unexpected format:`, busyData);
           }
         } catch (error) {
           console.error(`[Slots] Error fetching calendar busy times from ${calendar.provider}:`, error);

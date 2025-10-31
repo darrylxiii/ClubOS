@@ -78,14 +78,31 @@ export function BookingForm({
     } catch (error: any) {
       console.error("Error creating booking:", error);
       
-      // Better error messages
-      const errorMsg = error.message || "Failed to create booking";
-      if (errorMsg.includes("no longer available") || errorMsg.includes("conflict")) {
-        toast.error("This time slot was just booked. Please select another time.");
-      } else if (errorMsg.includes("token") || errorMsg.includes("calendar")) {
-        toast.error("Calendar connection issue. Please try another time or contact support.");
+      // Parse the actual error from edge function response
+      let errorMsg = "Failed to create booking. Please try again.";
+      
+      if (error.context?.body) {
+        try {
+          const errorBody = JSON.parse(error.context.body);
+          errorMsg = errorBody.error || errorMsg;
+        } catch {
+          // Keep default message if parsing fails
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      
+      // Show user-friendly messages based on error type
+      if (errorMsg.includes("no longer available") || errorMsg.includes("already booked")) {
+        toast.error("⏰ This time slot was just booked. Please select another time.");
+      } else if (errorMsg.includes("Calendar conflict") || errorMsg.includes("meeting at this time")) {
+        toast.error("📅 You have a calendar conflict at this time. Please choose another slot.");
+      } else if (errorMsg.includes("just booked by someone else")) {
+        toast.error("⚡ Someone just booked this slot. Please select another time.");
+      } else if (errorMsg.includes("Booking link not found") || errorMsg.includes("not active")) {
+        toast.error("❌ This booking link is no longer active.");
       } else {
-        toast.error(errorMsg);
+        toast.error(`❌ ${errorMsg}`);
       }
     } finally {
       setLoading(false);

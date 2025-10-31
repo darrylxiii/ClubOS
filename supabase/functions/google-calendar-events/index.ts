@@ -166,6 +166,8 @@ serve(async (req) => {
     }
 
     if (action === 'findFreeSlots') {
+      console.log('[Google Calendar] Finding free slots:', { timeMin, timeMax, calendars });
+      
       const calendarIds = calendars || ['primary'];
       
       const freeBusyQuery = {
@@ -173,6 +175,8 @@ serve(async (req) => {
         timeMax,
         items: calendarIds.map((id: string) => ({ id })),
       };
+
+      console.log('[Google Calendar] Querying free/busy with access token length:', accessToken?.length);
 
       const response = await fetch(
         'https://www.googleapis.com/calendar/v3/freeBusy',
@@ -185,7 +189,7 @@ serve(async (req) => {
 
       if (!response.ok) {
         const error = await response.text();
-        console.error('Failed to query free/busy:', error);
+        console.error('[Google Calendar] Free/busy API error:', error);
         return new Response(
           JSON.stringify({ error: 'Failed to find available slots' }),
           { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -193,6 +197,7 @@ serve(async (req) => {
       }
 
       const freeBusyData = await response.json();
+      console.log('[Google Calendar] Free/busy API response received');
       
       interface BusySlot {
         start: string;
@@ -209,6 +214,11 @@ serve(async (req) => {
       busySlots.sort((a, b) => 
         new Date(a.start).getTime() - new Date(b.start).getTime()
       );
+
+      console.log(`[Google Calendar] Found ${busySlots.length} busy slots`);
+      if (busySlots.length > 0) {
+        console.log('[Google Calendar] Sample busy slot:', busySlots[0]);
+      }
 
       const freeSlots: BusySlot[] = [];
       const startTime = new Date(timeMin);
@@ -238,6 +248,8 @@ serve(async (req) => {
           end: endTime.toISOString(),
         });
       }
+
+      console.log(`[Google Calendar] Returning ${freeSlots.length} free slots and ${busySlots.length} busy slots`);
 
       return new Response(
         JSON.stringify({ freeSlots, busySlots }),

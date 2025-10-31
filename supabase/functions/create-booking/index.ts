@@ -19,12 +19,12 @@ serve(async (req) => {
       bookingLinkSlug: z.string().min(1).max(100),
       guestName: z.string().min(1).max(200),
       guestEmail: z.string().email().max(255),
-      guestPhone: z.string().max(50).optional(),
+      guestPhone: z.string().max(50).nullable().optional(),
       scheduledStart: z.string().datetime(),
       scheduledEnd: z.string().datetime(),
       timezone: z.string().min(1).max(100),
       customResponses: z.record(z.any()).optional(),
-      notes: z.string().max(1000).optional()
+      notes: z.string().max(1000).nullable().optional()
     });
 
     const {
@@ -61,7 +61,12 @@ serve(async (req) => {
     }
 
     // Comprehensive conflict checking
-    console.log("[Booking] Checking conflicts for:", { scheduledStart, scheduledEnd, userId: bookingLink.user_id });
+    console.log("[Booking] Creating booking for:", { 
+      slug: bookingLinkSlug, 
+      time: scheduledStart, 
+      guest: guestName,
+      userId: bookingLink.user_id 
+    });
     
     // 1. Check existing bookings
     const { data: existingBookings } = await supabaseClient
@@ -79,13 +84,12 @@ serve(async (req) => {
       );
     }
 
-    // 2. Check Quantum Club meetings
+    // 2. Check Quantum Club meetings (using correct column names)
     const { data: meetings } = await supabaseClient
       .from("meetings")
       .select("id, title")
-      .eq("created_by", bookingLink.user_id)
-      .is("deleted_at", null)
-      .or(`and(start_time.lt.${scheduledEnd},end_time.gt.${scheduledStart})`);
+      .eq("host_id", bookingLink.user_id)
+      .or(`and(scheduled_start.lt.${scheduledEnd},scheduled_end.gt.${scheduledStart})`);
 
     if (meetings && meetings.length > 0) {
       console.log("[Booking] Conflict: Quantum Club meeting found:", meetings[0].title);
@@ -138,7 +142,29 @@ serve(async (req) => {
       }
     }
     
+    console.log("[Booking] Conflict check results:", {
+      existingBookings: existingBookings?.length || 0,
+      meetings: meetings?.length || 0,
+      calendars: calendars?.length || 0
+    });
     console.log("[Booking] No conflicts found, proceeding with booking creation");
+
+    // RACE CONDITION PROTECTION: Double-check no conflicts before creating
+    const { data: finalCheck } = await supabaseClient
+      .from("bookings")
+      .select("id")
+      .eq("user_id", bookingLink.user_id)
+      .eq("status", "confirmed")
+      .or(`and(scheduled_start.lt.${scheduledEnd},scheduled_end.gt.${scheduledStart})`)
+      .limit(1);
+
+    if (finalCheck && finalCheck.length > 0) {
+      console.log("[Booking] Race condition detected - slot was just booked");
+      return new Response(
+        JSON.stringify({ error: "This time slot was just booked by someone else. Please select another time." }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Create booking
     const { data: booking, error: bookingError } = await supabaseClient
