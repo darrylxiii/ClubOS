@@ -69,9 +69,9 @@ export function EmailInbox() {
 
   const unreadCount = emails.filter((e) => !e.is_read).length;
 
-  const handleEmailSelect = async (email: Email) => {
+  const handleEmailSelect = (email: Email) => {
     setSelectedEmail(email);
-    if (!email.is_read) {
+    if (!email.is_read && filter === "inbox") {
       markAsRead(email.id);
     }
   };
@@ -80,11 +80,11 @@ export function EmailInbox() {
   useEffect(() => {
     if (selectedEmail) {
       const updatedEmail = emails.find(e => e.id === selectedEmail.id);
-      if (updatedEmail && updatedEmail !== selectedEmail) {
+      if (updatedEmail) {
         setSelectedEmail(updatedEmail);
       }
     }
-  }, [emails, selectedEmail]);
+  }, [emails]);
 
   const handleSnooze = () => {
     if (!selectedEmail) return;

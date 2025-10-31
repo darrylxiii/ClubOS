@@ -74,6 +74,8 @@ export function useEmails(filter: string = "inbox") {
 
       if (filter === "inbox") {
         query = query.eq("status", "inbox");
+      } else if (filter === "sent") {
+        query = query.eq("status", "sent");
       } else if (filter === "starred") {
         query = query.eq("is_starred", true);
       } else if (filter === "snoozed") {

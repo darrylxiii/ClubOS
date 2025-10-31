@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { Email } from "@/hooks/useEmails";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +15,7 @@ interface EmailRowProps {
   onToggleStar: (emailId: string, starred: boolean) => void;
 }
 
-export const EmailRow = memo(function EmailRow({
+export function EmailRow({
   email,
   isSelected,
   isChecked,
@@ -127,4 +126,4 @@ export const EmailRow = memo(function EmailRow({
       </div>
     </div>
   );
-});
+}
