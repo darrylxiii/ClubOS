@@ -126,7 +126,7 @@ export function EmailDetail({
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-6 max-w-full overflow-hidden">
           {/* Subject */}
           <h1 className="text-2xl font-semibold">{email.subject}</h1>
 
@@ -210,11 +210,30 @@ export function EmailDetail({
           )}
 
           {/* Email Body */}
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto break-words">
+            <style>{`
+              .prose img {
+                max-width: 100% !important;
+                height: auto !important;
+              }
+              .prose table {
+                display: block !important;
+                overflow-x: auto !important;
+                max-width: 100% !important;
+              }
+              .prose pre {
+                white-space: pre-wrap !important;
+                word-wrap: break-word !important;
+                overflow-x: auto !important;
+              }
+            `}</style>
             {sanitizedHtml ? (
-              <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+              <div 
+                className="break-words overflow-hidden" 
+                dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
+              />
             ) : (
-              <pre className="whitespace-pre-wrap font-sans">
+              <pre className="whitespace-pre-wrap font-sans break-words overflow-x-auto">
                 {email.body_text || email.snippet}
               </pre>
             )}
