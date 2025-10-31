@@ -66,6 +66,7 @@ export function useEmails(filter: string = "inbox") {
   const loadEmails = async () => {
     try {
       setLoading(true);
+      console.log('[useEmails] Loading emails for filter:', filter);
       let query = supabase
         .from("emails")
         .select("*")
@@ -73,7 +74,7 @@ export function useEmails(filter: string = "inbox") {
         .order("email_date", { ascending: false });
 
       if (filter === "inbox") {
-        query = query.eq("status", "inbox");
+        query = query.eq("status", "inbox").is("archived_at", null);
       } else if (filter === "sent") {
         query = query.eq("status", "sent");
       } else if (filter === "starred") {
@@ -89,6 +90,7 @@ export function useEmails(filter: string = "inbox") {
       const { data, error } = await query;
 
       if (error) throw error;
+      console.log('[useEmails] Loaded', data?.length || 0, 'emails');
       setEmails(data || []);
     } catch (error: any) {
       console.error("Error loading emails:", error);

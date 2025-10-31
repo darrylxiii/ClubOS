@@ -70,18 +70,30 @@ export function EmailInbox() {
   const unreadCount = emails.filter((e) => !e.is_read).length;
 
   const handleEmailSelect = (email: Email) => {
+    console.log('[EmailInbox] Email selected:', email.id, 'Current filter:', filter);
     setSelectedEmail(email);
+    
+    // Mark as read only if in inbox and unread
     if (!email.is_read && filter === "inbox") {
-      markAsRead(email.id);
+      setTimeout(() => markAsRead(email.id), 100);
     }
   };
+
+  // Clear selection when filter changes
+  useEffect(() => {
+    console.log('[EmailInbox] Filter changed to:', filter, 'Clearing selection');
+    setSelectedEmail(null);
+  }, [filter]);
 
   // Preserve selected email when emails array updates
   useEffect(() => {
     if (selectedEmail) {
       const updatedEmail = emails.find(e => e.id === selectedEmail.id);
       if (updatedEmail) {
+        console.log('[EmailInbox] Updating selected email from emails array');
         setSelectedEmail(updatedEmail);
+      } else {
+        console.log('[EmailInbox] Selected email not found in current filter, keeping current');
       }
     }
   }, [emails]);
@@ -225,6 +237,7 @@ export function EmailInbox() {
 
         {selectedEmail ? (
           <EmailDetail
+            key={selectedEmail.id}
             email={selectedEmail}
             onReply={() => setComposerOpen(true)}
             onForward={() => setComposerOpen(true)}
