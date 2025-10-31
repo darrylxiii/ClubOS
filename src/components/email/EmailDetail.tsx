@@ -216,27 +216,50 @@ export function EmailDetail({
           {/* Email Body */}
           <div className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto break-words">
             <style>{`
-              .prose img {
+              .email-body-wrapper {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+                overflow-y: visible !important;
+              }
+              .email-body-wrapper * {
+                max-width: 100% !important;
+                word-wrap: break-word !important;
+                overflow-wrap: break-word !important;
+              }
+              .email-body-wrapper img {
                 max-width: 100% !important;
                 height: auto !important;
+                display: block !important;
               }
-              .prose table {
+              .email-body-wrapper table {
                 display: block !important;
                 overflow-x: auto !important;
                 max-width: 100% !important;
+                width: auto !important;
               }
-              .prose pre {
+              .email-body-wrapper pre {
                 white-space: pre-wrap !important;
                 word-wrap: break-word !important;
                 overflow-x: auto !important;
               }
-              .prose * {
-                max-width: 100% !important;
+              /* Dark mode email content fixes */
+              @media (prefers-color-scheme: dark) {
+                .email-body-wrapper,
+                .email-body-wrapper > div,
+                .email-body-wrapper table,
+                .email-body-wrapper td,
+                .email-body-wrapper th {
+                  background-color: transparent !important;
+                  background: none !important;
+                }
+                .email-body-wrapper * {
+                  color: inherit !important;
+                }
               }
             `}</style>
             {sanitizedHtml ? (
               <div 
-                className="break-words overflow-hidden"
+                className="email-body-wrapper break-words overflow-hidden bg-transparent dark:bg-transparent"
                 style={{ unicodeBidi: 'normal' }}
                 dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
               />
