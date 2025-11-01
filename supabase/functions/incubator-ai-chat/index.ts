@@ -13,13 +13,13 @@ serve(async (req) => {
   try {
     const { messages, scenario, frameAnswers } = await req.json();
     
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    
     console.log('[Incubator AI] Request received:', {
       messageCount: messages?.length,
       hasScenario: !!scenario,
       hasFrameAnswers: !!frameAnswers,
     });
-    
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
