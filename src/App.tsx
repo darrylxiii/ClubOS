@@ -87,6 +87,7 @@ const RadioListen = lazy(() => import("./pages/RadioListen"));
 const Assessments = lazy(() => import("./pages/Assessments"));
 const SwipeGame = lazy(() => import("./pages/SwipeGame"));
 const Miljoenenjacht = lazy(() => import("./pages/Miljoenenjacht"));
+const Incubator20 = lazy(() => import("./pages/assessments/Incubator20"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 
 // Loading fallback component

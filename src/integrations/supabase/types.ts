@@ -4966,6 +4966,192 @@ export type Database = {
         }
         Relationships: []
       }
+      incubator_actions: {
+        Row: {
+          action_type: string
+          ai_response: string | null
+          created_at: string | null
+          edit_delta: Json | null
+          id: string
+          payload: Json | null
+          prompt_text: string | null
+          response_action: string | null
+          session_id: string
+          timestamp_ms: number
+          tokens_used: number | null
+          tool_used: string | null
+        }
+        Insert: {
+          action_type: string
+          ai_response?: string | null
+          created_at?: string | null
+          edit_delta?: Json | null
+          id?: string
+          payload?: Json | null
+          prompt_text?: string | null
+          response_action?: string | null
+          session_id: string
+          timestamp_ms: number
+          tokens_used?: number | null
+          tool_used?: string | null
+        }
+        Update: {
+          action_type?: string
+          ai_response?: string | null
+          created_at?: string | null
+          edit_delta?: Json | null
+          id?: string
+          payload?: Json | null
+          prompt_text?: string | null
+          response_action?: string | null
+          session_id?: string
+          timestamp_ms?: number
+          tokens_used?: number | null
+          tool_used?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incubator_actions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "incubator_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incubator_scoring_evidence: {
+        Row: {
+          created_at: string | null
+          evidence_snippets: Json | null
+          id: string
+          llm_rationale: string | null
+          normalized_score: number | null
+          raw_score: number | null
+          rubric_component: string
+          session_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          evidence_snippets?: Json | null
+          id?: string
+          llm_rationale?: string | null
+          normalized_score?: number | null
+          raw_score?: number | null
+          rubric_component: string
+          session_id: string
+        }
+        Update: {
+          created_at?: string | null
+          evidence_snippets?: Json | null
+          id?: string
+          llm_rationale?: string | null
+          normalized_score?: number | null
+          raw_score?: number | null
+          rubric_component?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incubator_scoring_evidence_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "incubator_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incubator_sessions: {
+        Row: {
+          ai_collab_score: number | null
+          assessment_result_id: string | null
+          brief_completed_at: string | null
+          build_completed_at: string | null
+          capability_vector: Json | null
+          communication_score: number | null
+          created_at: string | null
+          final_plan: Json | null
+          frame_completed_at: string | null
+          frame_customer: string | null
+          frame_problem: string | null
+          frame_success_metric: string | null
+          id: string
+          normalized_score: number | null
+          plan_quality_score: number | null
+          scenario_difficulty: number | null
+          scenario_seed: Json
+          started_at: string | null
+          submitted_at: string | null
+          total_score: number | null
+          updated_at: string | null
+          user_id: string
+          voice_rationale_transcript: string | null
+          voice_rationale_url: string | null
+          word_count: number | null
+        }
+        Insert: {
+          ai_collab_score?: number | null
+          assessment_result_id?: string | null
+          brief_completed_at?: string | null
+          build_completed_at?: string | null
+          capability_vector?: Json | null
+          communication_score?: number | null
+          created_at?: string | null
+          final_plan?: Json | null
+          frame_completed_at?: string | null
+          frame_customer?: string | null
+          frame_problem?: string | null
+          frame_success_metric?: string | null
+          id?: string
+          normalized_score?: number | null
+          plan_quality_score?: number | null
+          scenario_difficulty?: number | null
+          scenario_seed: Json
+          started_at?: string | null
+          submitted_at?: string | null
+          total_score?: number | null
+          updated_at?: string | null
+          user_id: string
+          voice_rationale_transcript?: string | null
+          voice_rationale_url?: string | null
+          word_count?: number | null
+        }
+        Update: {
+          ai_collab_score?: number | null
+          assessment_result_id?: string | null
+          brief_completed_at?: string | null
+          build_completed_at?: string | null
+          capability_vector?: Json | null
+          communication_score?: number | null
+          created_at?: string | null
+          final_plan?: Json | null
+          frame_completed_at?: string | null
+          frame_customer?: string | null
+          frame_problem?: string | null
+          frame_success_metric?: string | null
+          id?: string
+          normalized_score?: number | null
+          plan_quality_score?: number | null
+          scenario_difficulty?: number | null
+          scenario_seed?: Json
+          started_at?: string | null
+          submitted_at?: string | null
+          total_score?: number | null
+          updated_at?: string | null
+          user_id?: string
+          voice_rationale_transcript?: string | null
+          voice_rationale_url?: string | null
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incubator_sessions_assessment_result_id_fkey"
+            columns: ["assessment_result_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interviews: {
         Row: {
           application_id: string

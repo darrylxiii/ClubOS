@@ -41,6 +41,16 @@ export const ASSESSMENTS: Assessment[] = [
     estimatedTime: 10,
     isActive: true,
   },
+  {
+    id: 'incubator-20',
+    name: 'Incubator:20',
+    description: 'Ship a fundable one-pager in 20 minutes. Showcase your strategic thinking, economic literacy, and AI collaboration skills.',
+    icon: '🚀',
+    route: '/assessments/incubator-20',
+    category: 'strategic',
+    estimatedTime: 20,
+    isActive: true,
+  },
 ];
 
 export const SWIPE_SCENARIOS: SwipeScenario[] = [
