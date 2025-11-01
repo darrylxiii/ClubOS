@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BookingAnalyticsDashboard } from "@/components/booking/BookingAnalyticsDashboard";
 import { CalendarConnectionStatus } from "@/components/scheduling/CalendarConnectionStatus";
 import { BarChart3 } from "lucide-react";
+import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 
 interface BookingLink {
   id: string;
@@ -793,6 +794,11 @@ export default function Scheduling() {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <AIPageCopilot 
+        currentPage="/scheduling" 
+        contextData={{ bookingLinksCount: bookingLinks.length }}
+      />
     </AppLayout>
   );
 }

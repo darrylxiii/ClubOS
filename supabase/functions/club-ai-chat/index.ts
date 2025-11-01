@@ -689,9 +689,10 @@ ${careerBrainContext}`;
       }
     ] : [];
 
-    // Import AI tools
+    // Import AI action tools
     const { allAITools, executeToolCall } = await import("../_shared/ai-tools.ts");
     
+    // Combine all tools
     const tools = [...baseTools, ...searchTools, ...allAITools];
 
     // Map client-selected model to actual AI model

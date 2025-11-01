@@ -23,6 +23,8 @@ import { toast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { PromptInputBox } from "@/components/PromptInputBox";
+import { AIQuickActions } from "@/components/ai/AIQuickActions";
+import { useAISuggestions } from "@/hooks/useAISuggestions";
 
 interface Message {
   role: "user" | "assistant";
@@ -53,6 +55,9 @@ const ClubAI = () => {
   const [conversations, setConversations] = useState<any[]>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [showConversations, setShowConversations] = useState(false);
+  
+  // AI suggestions
+  const { suggestions: aiSuggestions, unreadCount } = useAISuggestions();
 
   useEffect(() => {
     loadProfile();

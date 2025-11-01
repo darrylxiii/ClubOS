@@ -39,6 +39,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { AIPageCopilot } from '@/components/ai/AIPageCopilot';
 
 export default function Messages() {
   const { user } = useAuth();
@@ -396,6 +397,14 @@ export default function Messages() {
       {isConnectingCall && (
         <ConnectingCallOverlay callType={activeCall?.type} />
       )}
+      
+      <AIPageCopilot 
+        currentPage="/messages" 
+        contextData={{ 
+          conversationId: selectedConversationId,
+          conversationsCount: conversations.length 
+        }}
+      />
     </AppLayout>
   );
 }

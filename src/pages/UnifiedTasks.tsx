@@ -29,6 +29,7 @@ import { UnifiedTasksByMember } from "@/components/unified-tasks/UnifiedTasksByM
 import { useUserRole } from "@/hooks/useUserRole";
 import { ObjectivesBoard } from "@/components/objectives/ObjectivesBoard";
 import { ObjectivesList } from "@/components/objectives/ObjectivesList";
+import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
 
 interface SystemPreferences {
@@ -391,6 +392,11 @@ const UnifiedTasks = () => {
           open={settingsOpen}
           onOpenChange={setSettingsOpen}
           onSettingsUpdated={handleRefresh}
+        />
+        
+        <AIPageCopilot 
+          currentPage="/unified-tasks" 
+          contextData={{ objectivesCount: objectives.length }}
         />
       </div>
     </AppLayout>
