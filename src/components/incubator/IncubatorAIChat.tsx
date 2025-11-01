@@ -1,9 +1,9 @@
-import { memo, useState } from 'react';
+import { memo, useState, useRef, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Send, Bot, User } from 'lucide-react';
+import { Send, Bot, User, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface Message {
@@ -22,20 +22,27 @@ export const IncubatorAIChat = memo(({ context, onInteraction }: IncubatorAIChat
     {
       id: '1',
       role: 'assistant',
-      content: `I'm here to help you build your one-pager. You can ask me to:
-      
-• Calculate unit economics and payback periods
-• Analyze market sizing (TAM/SAM/SOM)
-• Generate GTM strategy options
-• Counter-argue your assumptions
-• Research industry insights
-• Draft specific sections
+      content: `I'm your AI strategy advisor for this assessment. I know your scenario and can help with:
 
-What would you like help with?`,
+• **Unit economics** - Calculate payback, margins, CAC
+• **Market sizing** - Estimate TAM/SAM/SOM for your industry
+• **GTM strategy** - Channel recommendations for your constraints
+• **Budget planning** - How to allocate your $${(context.scenario?.budget / 1000).toFixed(0)}k
+• **Risk mitigation** - Identify and test key assumptions
+• **Section drafting** - Help write specific plan sections
+
+What would you like to work on?`,
     },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -47,41 +54,110 @@ What would you like help with?`,
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageText = input;
     setInput('');
     setIsLoading(true);
 
+    // Create placeholder for assistant response
+    const assistantId = (Date.now() + 1).toString();
+    setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
+
     try {
-      // Log the interaction
-      onInteraction({
-        message: input,
-        tool: 'chat',
-        response: '',
-        tokens: 0,
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/incubator-ai-chat`;
+      
+      const response = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        },
+        body: JSON.stringify({
+          messages: messages.concat(userMessage).map(m => ({
+            role: m.role,
+            content: m.content,
+          })),
+          scenario: context.scenario,
+          frameAnswers: context.frameAnswers,
+        }),
       });
 
-      // Simulate AI response for now
-      // In production, this would call the club-ai-chat edge function
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `I understand you're asking about: "${input}"\n\nFor the Incubator:20 assessment, I recommend focusing on:\n\n1. Being specific with your assumptions\n2. Showing your work (calculations)\n3. Considering constraints from your scenario\n\nWhat specific aspect would you like me to help calculate or analyze?`,
-      };
+      if (!response.ok) {
+        if (response.status === 429) {
+          toast.error('Rate limit reached. Please wait a moment.');
+          setMessages(prev => prev.filter(m => m.id !== assistantId));
+          return;
+        }
+        if (response.status === 402) {
+          toast.error('AI credits depleted. Please add funds.');
+          setMessages(prev => prev.filter(m => m.id !== assistantId));
+          return;
+        }
+        throw new Error('Failed to get AI response');
+      }
 
-      setTimeout(() => {
-        setMessages(prev => [...prev, aiResponse]);
-        setIsLoading(false);
-      }, 1000);
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = '';
+      let fullContent = '';
+
+      if (!reader) throw new Error('No response body');
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        textBuffer += decoder.decode(value, { stream: true });
+        let newlineIndex: number;
+
+        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content;
+            
+            if (content) {
+              fullContent += content;
+              setMessages(prev =>
+                prev.map(m =>
+                  m.id === assistantId ? { ...m, content: fullContent } : m
+                )
+              );
+            }
+          } catch (e) {
+            console.error('Parse error:', e);
+          }
+        }
+      }
+
+      // Log the interaction
+      onInteraction({
+        message: messageText,
+        tool: 'chat',
+        response: fullContent,
+        tokens: fullContent.length,
+      });
 
     } catch (error) {
       console.error('Error:', error);
       toast.error('Failed to get AI response');
+      setMessages(prev => prev.filter(m => m.id !== assistantId));
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
     <div className="h-full flex flex-col">
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         <div className="space-y-4">
           {messages.map((message) => (
             <div
@@ -107,13 +183,13 @@ What would you like help with?`,
               )}
             </div>
           ))}
-          {isLoading && (
+          {isLoading && messages[messages.length - 1]?.role === 'user' && (
             <div className="flex gap-3 justify-start">
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <Bot className="w-4 h-4 text-primary" />
+                <Loader2 className="w-4 h-4 text-primary animate-spin" />
               </div>
               <Card className="p-3">
-                <p className="text-sm text-muted-foreground">Thinking...</p>
+                <p className="text-sm text-muted-foreground">Analyzing your question...</p>
               </Card>
             </div>
           )}
