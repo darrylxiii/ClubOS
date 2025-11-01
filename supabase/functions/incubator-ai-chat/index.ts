@@ -19,9 +19,34 @@ serve(async (req) => {
       messageCount: messages?.length,
       hasScenario: !!scenario,
       hasFrameAnswers: !!frameAnswers,
+      timestamp: new Date().toISOString(),
     });
 
+    // Validate input
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      console.error('[Incubator AI] Invalid messages array');
+      return new Response(
+        JSON.stringify({ error: "Invalid request: messages array is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    if (!scenario) {
+      console.error('[Incubator AI] Missing scenario context');
+      return new Response(
+        JSON.stringify({ error: "Invalid request: scenario context is required" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     if (!LOVABLE_API_KEY) {
+      console.error('[Incubator AI] LOVABLE_API_KEY not configured');
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
@@ -60,6 +85,11 @@ TOOLS YOU CAN HELP WITH:
 
 Be specific with numbers when possible. Reference their constraints and twist in your advice.`;
 
+    console.log('[Incubator AI] Calling Lovable AI Gateway...');
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -75,7 +105,11 @@ Be specific with numbers when possible. Reference their constraints and twist in
         stream: true,
         temperature: 0.7,
       }),
+      signal: controller.signal,
     });
+    
+    clearTimeout(timeoutId);
+    console.log('[Incubator AI] AI Gateway response status:', response.status);
 
     if (!response.ok) {
       if (response.status === 429) {

@@ -44,7 +44,7 @@ What would you like to work on?`,
     }
   }, [messages]);
 
-  const handleSend = async () => {
+  const handleSend = async (retryCount = 0) => {
     if (!input.trim() || isLoading) return;
 
     const userMessage: Message = {
@@ -85,10 +85,19 @@ What would you like to work on?`,
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error || `Server error: ${response.status}`;
         
-        if (response.status === 429) {
+        if (response.status === 404) {
+          toast.error('AI assistant is initializing. Please wait a moment and try again.');
+          console.error('Edge function not deployed yet');
+        } else if (response.status === 429) {
           toast.error('Rate limit reached. Please wait a moment.');
         } else if (response.status === 402) {
           toast.error('AI credits depleted. Please add funds.');
+        } else if (response.status >= 500 && retryCount < 2) {
+          console.log(`Server error (${response.status}), retrying (attempt ${retryCount + 1}/2)...`);
+          setMessages(prev => prev.filter(m => m.id !== assistantId));
+          setIsLoading(false);
+          await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+          return handleSend(retryCount + 1);
         } else {
           toast.error(errorMessage);
           console.error('AI Error:', errorMessage, response.status);
@@ -149,8 +158,18 @@ What would you like to work on?`,
       });
 
     } catch (error) {
-      console.error('Error:', error);
-      toast.error('Failed to get AI response');
+      console.error('Error in AI chat:', error);
+      
+      // Retry on network errors
+      if (error instanceof TypeError && error.message.includes('fetch') && retryCount < 2) {
+        console.log(`Network error, retrying (attempt ${retryCount + 1}/2)...`);
+        setMessages(prev => prev.filter(m => m.id !== assistantId));
+        setIsLoading(false);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (retryCount + 1)));
+        return handleSend(retryCount + 1);
+      }
+      
+      toast.error(error instanceof Error ? error.message : 'Failed to get AI response');
       setMessages(prev => prev.filter(m => m.id !== assistantId));
     } finally {
       setIsLoading(false);
@@ -214,7 +233,7 @@ What would you like to work on?`,
             className="resize-none"
           />
           <Button
-            onClick={handleSend}
+            onClick={() => handleSend()}
             disabled={!input.trim() || isLoading}
             size="icon"
             className="shrink-0"
