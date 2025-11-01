@@ -25,13 +25,11 @@ export const NotificationBell = () => {
     if (!user) return;
 
     try {
-      // @ts-ignore - Supabase type inference issue
       const { count, error } = await supabase
         .from('notifications')
         .select('*', { count: 'exact', head: true })
         .eq('user_id', user.id)
-        .eq('is_read', false)
-        .eq('is_archived', false);
+        .eq('is_read', false);
 
       if (error) throw error;
       setUnreadCount(count || 0);
