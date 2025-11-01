@@ -689,7 +689,10 @@ ${careerBrainContext}`;
       }
     ] : [];
 
-    const tools = [...baseTools, ...searchTools];
+    // Import AI tools
+    const { allAITools, executeToolCall } = await import("../_shared/ai-tools.ts");
+    
+    const tools = [...baseTools, ...searchTools, ...allAITools];
 
     // Map client-selected model to actual AI model
     let selectedModel = 'google/gemini-2.5-flash'; // Default

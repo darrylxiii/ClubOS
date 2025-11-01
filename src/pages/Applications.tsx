@@ -15,6 +15,7 @@ import { ProgressionHeatmap } from "@/components/applications/ProgressionHeatmap
 import { CompetitionInsight } from "@/components/applications/CompetitionInsight";
 import { NextStepHelper } from "@/components/applications/NextStepHelper";
 import { TimelineDeadlines } from "@/components/applications/TimelineDeadlines";
+import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 
 interface Application {
   id: string;
@@ -240,6 +241,10 @@ export default function Applications() {
             </TabsContent>
           </Tabs>
         </div>
+        <AIPageCopilot 
+          currentPage="/applications" 
+          contextData={{ applicationsCount: activeApplications.length }}
+        />
     </AppLayout>
   );
 }

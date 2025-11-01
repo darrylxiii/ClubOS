@@ -15,6 +15,9 @@ import { convertCurrency, formatCurrency, type Currency } from "@/lib/currencyCo
 import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useUserRole } from "@/hooks/useUserRole";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
+import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
+import { useNavigate } from "react-router-dom";
+
 type SortOption = "match" | "newest" | "salary";
 const Jobs = () => {
   const {
@@ -170,6 +173,7 @@ const Jobs = () => {
     };
   };
   const savedJobs = sortedJobs.filter(job => savedJobIds.includes(job.id));
+  const navigate = useNavigate();
 
   // If user is Partner or Admin, show Partner-specific view
   if ((role === 'partner' || role === 'admin') && (userCompanyId || role === 'admin')) {
@@ -388,6 +392,13 @@ const Jobs = () => {
         </Tabs>
 
         {selectedJob && <ReferralDialog open={referralDialogOpen} onOpenChange={setReferralDialogOpen} jobId={selectedJob.id} jobTitle={selectedJob.title} companyName={selectedJob.company} />}
+        <AIPageCopilot 
+          currentPage="/jobs" 
+          contextData={{ jobsCount: sortedJobs.length }}
+          onAction={(action) => {
+            if (action === 'search_jobs') navigate('/club-ai');
+          }}
+        />
       </div>
     </AppLayout>;
 };

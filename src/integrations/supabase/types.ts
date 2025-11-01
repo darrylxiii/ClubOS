@@ -255,6 +255,54 @@ export type Database = {
           },
         ]
       }
+      ai_action_log: {
+        Row: {
+          action_data: Json | null
+          action_type: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          result: Json | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_data?: Json | null
+          action_type: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          result?: Json | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_data?: Json | null
+          action_type?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          result?: Json | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_action_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_action_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_content_suggestions: {
         Row: {
           applied: boolean | null
@@ -344,6 +392,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      ai_generated_content: {
+        Row: {
+          content_type: string
+          created_at: string | null
+          feedback_rating: number | null
+          generated_content: string
+          id: string
+          metadata: Json | null
+          prompt: string | null
+          used: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          content_type: string
+          created_at?: string | null
+          feedback_rating?: number | null
+          generated_content: string
+          id?: string
+          metadata?: Json | null
+          prompt?: string | null
+          used?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          content_type?: string
+          created_at?: string | null
+          feedback_rating?: number | null
+          generated_content?: string
+          id?: string
+          metadata?: Json | null
+          prompt?: string | null
+          used?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_generated_content_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_generated_content_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_memory: {
         Row: {
@@ -555,6 +654,66 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "ai_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_suggestions: {
+        Row: {
+          acted_upon: boolean | null
+          action_data: Json | null
+          created_at: string | null
+          description: string | null
+          dismissed: boolean | null
+          expires_at: string | null
+          id: string
+          priority: string | null
+          shown: boolean | null
+          suggestion_type: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          acted_upon?: boolean | null
+          action_data?: Json | null
+          created_at?: string | null
+          description?: string | null
+          dismissed?: boolean | null
+          expires_at?: string | null
+          id?: string
+          priority?: string | null
+          shown?: boolean | null
+          suggestion_type: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          acted_upon?: boolean | null
+          action_data?: Json | null
+          created_at?: string | null
+          description?: string | null
+          dismissed?: boolean | null
+          expires_at?: string | null
+          id?: string
+          priority?: string | null
+          shown?: boolean | null
+          suggestion_type?: string
+          title?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
