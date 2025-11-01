@@ -34,6 +34,9 @@ import {
 } from "lucide-react";
 import { CreateJobDialog } from "@/components/partner/CreateJobDialog";
 import { PipelineCustomizer } from "@/components/partner/PipelineCustomizer";
+import { JobCard } from "@/components/partner/JobCard";
+import { JobCardSkeleton } from "@/components/LoadingSkeletons";
+import { EmptyState } from "@/components/EmptyState";
 
 interface Job {
   id: string;
@@ -232,117 +235,70 @@ const CompanyJobsDashboard = () => {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-8 space-y-6">
+      <div className="container mx-auto px-4 py-4 md:py-8 space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between border-b-2 border-foreground pb-6">
-          <div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b-2 border-foreground pb-4 md:pb-6">
+          <div className="flex-1">
             <p className="text-caps text-muted-foreground">Company Jobs Dashboard</p>
-            <h1 className="text-4xl font-black uppercase tracking-tight">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-black uppercase tracking-tight">
               {companyName || 'Your Company'}
             </h1>
-            <p className="text-muted-foreground mt-2">
+            <p className="text-sm md:text-base text-muted-foreground mt-2">
               Manage your jobs and customize hiring pipeline
             </p>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)} size="lg">
+          <Button onClick={() => setCreateDialogOpen(true)} size="lg" className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" />
-            Create New Job
+            <span className="sm:inline">Create New Job</span>
           </Button>
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full max-w-md grid-cols-3">
-            <TabsTrigger value="jobs">
-              <Briefcase className="w-4 h-4 mr-2" />
-              Jobs
+          <TabsList className="grid w-full grid-cols-3 max-w-full sm:max-w-md">
+            <TabsTrigger value="jobs" className="text-xs sm:text-sm">
+              <Briefcase className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Jobs</span>
             </TabsTrigger>
-            <TabsTrigger value="pipeline">
-              <Target className="w-4 h-4 mr-2" />
-              Pipeline
+            <TabsTrigger value="pipeline" className="text-xs sm:text-sm">
+              <Target className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Pipeline</span>
             </TabsTrigger>
-            <TabsTrigger value="role-settings">
-              <Settings className="w-4 h-4 mr-2" />
-              Role Settings
+            <TabsTrigger value="role-settings" className="text-xs sm:text-sm">
+              <Settings className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Settings</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Jobs Tab */}
           <TabsContent value="jobs" className="space-y-4">
             {loading ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Loading jobs...</p>
+              <div className="space-y-4">
+                <JobCardSkeleton />
+                <JobCardSkeleton />
+                <JobCardSkeleton />
               </div>
             ) : jobs.length === 0 ? (
-              <Card>
-                <CardContent className="text-center py-12">
-                  <Briefcase className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-lg font-medium mb-2">No jobs yet</p>
-                  <p className="text-muted-foreground mb-4">
-                    Create your first job to start hiring
-                  </p>
-                  <Button onClick={() => setCreateDialogOpen(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Job
-                  </Button>
-                </CardContent>
-              </Card>
+              <EmptyState
+                icon={Briefcase}
+                title="No jobs yet"
+                description="Create your first job to start hiring top talent"
+                action={{
+                  label: "Create Job",
+                  onClick: () => setCreateDialogOpen(true),
+                }}
+              />
             ) : (
               <div className="grid gap-4">
                 {jobs.map((job) => (
-                  <Card key={job.id}>
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-xl">{job.title}</CardTitle>
-                          <CardDescription className="mt-2">
-                            {job.location} • {job.employment_type}
-                          </CardDescription>
-                        </div>
-                        <Badge
-                          variant={
-                            job.status === 'published'
-                              ? 'default'
-                              : job.status === 'draft'
-                              ? 'secondary'
-                              : 'outline'
-                          }
-                        >
-                          {job.status}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4" />
-                          Created {new Date(job.created_at).toLocaleDateString()}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Target className="w-4 h-4" />
-                          {(Array.isArray(job.pipeline_stages) ? job.pipeline_stages.length : 0)} stages
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="default"
-                          onClick={() => navigate(`/jobs/${job.id}/dashboard`)}
-                        >
-                          <LayoutDashboard className="w-4 h-4 mr-2" />
-                          View Dashboard
-                        </Button>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedJobForSettings(job.id);
-                            setSelectedTab("pipeline");
-                          }}
-                        >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit Pipeline
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <JobCard
+                    key={job.id}
+                    job={job}
+                    onViewDashboard={(jobId) => navigate(`/jobs/${jobId}/dashboard`)}
+                    onEditPipeline={(jobId) => {
+                      setSelectedJobForSettings(jobId);
+                      setSelectedTab("pipeline");
+                    }}
+                  />
                 ))}
               </div>
             )}
@@ -366,8 +322,8 @@ const CompanyJobsDashboard = () => {
                   </p>
                   <div className="space-y-2">
                     {pipelineSettings.default_stages.map((stage, index) => (
-                      <div key={index} className="flex items-center gap-2 p-3 border rounded-lg">
-                        <span className="font-medium">{index + 1}.</span>
+                      <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 p-3 border rounded-lg">
+                        <span className="font-medium shrink-0">{index + 1}.</span>
                         <Input
                           value={stage.name}
                           onChange={(e) => {
@@ -378,10 +334,10 @@ const CompanyJobsDashboard = () => {
                               default_stages: newStages,
                             });
                           }}
-                          className="flex-1"
+                          className="flex-1 w-full"
                         />
-                        <div className="flex items-center gap-2">
-                          <Label className="text-sm">SLA (hours):</Label>
+                        <div className="flex items-center gap-2 w-full sm:w-auto">
+                          <Label className="text-sm shrink-0">SLA (hours):</Label>
                           <Input
                             type="number"
                             value={pipelineSettings.sla_hours_per_stage[stage.name] || 24}
@@ -406,8 +362,8 @@ const CompanyJobsDashboard = () => {
                 <div className="space-y-4">
                   <Label className="text-base font-semibold">Notification Preferences</Label>
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 border rounded-lg">
+                      <div className="flex-1">
                         <p className="font-medium">New Application</p>
                         <p className="text-sm text-muted-foreground">
                           Get notified when a candidate applies
@@ -426,8 +382,8 @@ const CompanyJobsDashboard = () => {
                         }
                       />
                     </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 border rounded-lg">
+                      <div className="flex-1">
                         <p className="font-medium">Stage Changes</p>
                         <p className="text-sm text-muted-foreground">
                           Get notified when candidates move between stages
@@ -446,8 +402,8 @@ const CompanyJobsDashboard = () => {
                         }
                       />
                     </div>
-                    <div className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 border rounded-lg">
+                      <div className="flex-1">
                         <p className="font-medium">Rejections</p>
                         <p className="text-sm text-muted-foreground">
                           Get notified when candidates are rejected
