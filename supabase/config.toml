@@ -1,5 +1,8 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
+[functions.incubator-ai-chat]
+verify_jwt = false
+
 [functions.linkedin-scraper-proxycurl]
 verify_jwt = true
 

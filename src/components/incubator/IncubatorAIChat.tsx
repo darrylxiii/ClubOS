@@ -69,7 +69,7 @@ What would you like to work on?`,
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
           messages: messages.concat(userMessage).map(m => ({
@@ -82,17 +82,19 @@ What would you like to work on?`,
       });
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || `Server error: ${response.status}`;
+        
         if (response.status === 429) {
           toast.error('Rate limit reached. Please wait a moment.');
-          setMessages(prev => prev.filter(m => m.id !== assistantId));
-          return;
-        }
-        if (response.status === 402) {
+        } else if (response.status === 402) {
           toast.error('AI credits depleted. Please add funds.');
-          setMessages(prev => prev.filter(m => m.id !== assistantId));
-          return;
+        } else {
+          toast.error(errorMessage);
+          console.error('AI Error:', errorMessage, response.status);
         }
-        throw new Error('Failed to get AI response');
+        setMessages(prev => prev.filter(m => m.id !== assistantId));
+        return;
       }
 
       const reader = response.body?.getReader();
