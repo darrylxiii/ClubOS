@@ -25,6 +25,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { SmartReplyButtons } from "./SmartReplyButtons";
+import { useState } from "react";
 
 interface EmailDetailProps {
   email: Email;
@@ -47,6 +49,17 @@ export function EmailDetail({
   onMarkAsUnread,
   onToggleStar,
 }: EmailDetailProps) {
+  const [replyDraft, setReplyDraft] = useState("");
+
+  const handleSmartReply = (reply: string, type: string) => {
+    setReplyDraft(reply);
+    // In production, this would open the composer with the draft
+    onReply?.();
+  };
+
+  const smartReplies = email.metadata?.smart_replies || {};
+  const relationship = email.metadata?.relationship || {};
+
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -168,6 +181,14 @@ export function EmailDetail({
             ))}
           </div>
 
+          {/* Smart Reply Suggestions */}
+          {email.ai_processed_at && Object.keys(smartReplies).length > 0 && (
+            <SmartReplyButtons 
+              smartReplies={smartReplies} 
+              onSelectReply={handleSmartReply}
+            />
+          )}
+
           {/* AI Insights */}
           {email.ai_processed_at && (
             <Card>
@@ -188,6 +209,11 @@ export function EmailDetail({
                   {email.ai_sentiment && (
                     <Badge className={getSentimentColor(email.ai_sentiment)}>
                       {email.ai_sentiment}
+                    </Badge>
+                  )}
+                  {relationship.relationshipStrength && (
+                    <Badge variant="outline" className="capitalize">
+                      {relationship.relationshipStrength} Contact
                     </Badge>
                   )}
                 </div>

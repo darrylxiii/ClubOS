@@ -4426,6 +4426,53 @@ export type Database = {
           },
         ]
       }
+      email_follow_ups: {
+        Row: {
+          created_at: string
+          email_id: string
+          follow_up_date: string
+          follow_up_type: string
+          id: string
+          metadata: Json | null
+          reminder_sent: boolean | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_id: string
+          follow_up_date: string
+          follow_up_type: string
+          id?: string
+          metadata?: Json | null
+          reminder_sent?: boolean | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_id?: string
+          follow_up_date?: string
+          follow_up_type?: string
+          id?: string
+          metadata?: Json | null
+          reminder_sent?: boolean | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_follow_ups_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_label_mappings: {
         Row: {
           created_at: string | null
@@ -4491,6 +4538,113 @@ export type Database = {
           name?: string
           sort_order?: number | null
           type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      email_meetings: {
+        Row: {
+          calendar_event_created: boolean | null
+          created_at: string
+          email_id: string
+          id: string
+          meeting_date: string | null
+          meeting_duration_minutes: number | null
+          meeting_location: string | null
+          meeting_title: string | null
+          metadata: Json | null
+          participants: Json | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calendar_event_created?: boolean | null
+          created_at?: string
+          email_id: string
+          id?: string
+          meeting_date?: string | null
+          meeting_duration_minutes?: number | null
+          meeting_location?: string | null
+          meeting_title?: string | null
+          metadata?: Json | null
+          participants?: Json | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calendar_event_created?: boolean | null
+          created_at?: string
+          email_id?: string
+          id?: string
+          meeting_date?: string | null
+          meeting_duration_minutes?: number | null
+          meeting_location?: string | null
+          meeting_title?: string | null
+          metadata?: Json | null
+          participants?: Json | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_meetings_email_id_fkey"
+            columns: ["email_id"]
+            isOneToOne: false
+            referencedRelation: "emails"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_relationships: {
+        Row: {
+          avg_response_time_hours: number | null
+          avg_sentiment: string | null
+          contact_email: string
+          contact_name: string | null
+          created_at: string
+          id: string
+          last_email_at: string | null
+          metadata: Json | null
+          relationship_strength: string | null
+          total_emails: number | null
+          total_received: number | null
+          total_sent: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_response_time_hours?: number | null
+          avg_sentiment?: string | null
+          contact_email: string
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          last_email_at?: string | null
+          metadata?: Json | null
+          relationship_strength?: string | null
+          total_emails?: number | null
+          total_received?: number | null
+          total_sent?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_response_time_hours?: number | null
+          avg_sentiment?: string | null
+          contact_email?: string
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          last_email_at?: string | null
+          metadata?: Json | null
+          relationship_strength?: string | null
+          total_emails?: number | null
+          total_received?: number | null
+          total_sent?: number | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

@@ -6,14 +6,33 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM_PROMPT = `You are an AI assistant for The Quantum Club, a luxury executive career platform.
+const SYSTEM_PROMPT = `You are an AI Executive Assistant for The Quantum Club, a luxury executive career platform.
 
-Analyze this email and provide:
+Analyze this email comprehensively and provide:
+
 1. Category: recruiter_outreach | interview_invitation | offer | networking | newsletter | spam | other
 2. Priority: 1-5 (5 = urgent interview/offer, 1 = newsletter)
 3. Summary: One sentence (max 100 chars)
 4. Sentiment: positive | neutral | negative
 5. Action items: Array of {type: 'reply'|'schedule'|'review', text: string}
+6. Smart Replies: Generate 3 contextual reply options:
+   - professional: Formal, executive tone
+   - friendly: Warm but professional
+   - decline: Polite rejection
+   Each reply should be 2-3 sentences, ready to send.
+7. Meeting Detection: If email contains meeting request, extract:
+   - hasMeeting: boolean
+   - meetingTitle: string
+   - suggestedDates: array of date strings
+   - location: string (if any)
+8. Follow-up Needed: Detect if this requires follow-up:
+   - needsFollowUp: boolean
+   - followUpType: 'no_reply' | 'meeting_request' | 'deadline' | 'important'
+   - followUpDays: number (suggested days to wait)
+   - followUpReason: string
+9. Relationship Intelligence:
+   - relationshipStrength: 'cold' | 'warm' | 'hot' | 'vip'
+   - keyTopics: array of main discussion points
 
 Consider:
 - Recruiter emails with "interview" or "opportunity" → HIGH priority
@@ -27,7 +46,28 @@ Respond ONLY with valid JSON in this format:
   "priority": number,
   "summary": "string",
   "sentiment": "string",
-  "action_items": []
+  "action_items": [],
+  "smart_replies": {
+    "professional": "string",
+    "friendly": "string",
+    "decline": "string"
+  },
+  "meeting": {
+    "hasMeeting": boolean,
+    "meetingTitle": "string",
+    "suggestedDates": [],
+    "location": "string"
+  },
+  "follow_up": {
+    "needsFollowUp": boolean,
+    "followUpType": "string",
+    "followUpDays": number,
+    "followUpReason": "string"
+  },
+  "relationship": {
+    "relationshipStrength": "string",
+    "keyTopics": []
+  }
 }`;
 
 interface ProcessRequest {
@@ -113,6 +153,61 @@ Body: ${email.body_text || email.snippet || ""}
     if (updateError) {
       throw updateError;
     }
+
+    // Store smart replies in metadata
+    if (analysis.smart_replies) {
+      await supabase
+        .from("emails")
+        .update({
+          metadata: {
+            smart_replies: analysis.smart_replies,
+            relationship: analysis.relationship,
+          }
+        })
+        .eq("id", emailId);
+    }
+
+    // Create meeting record if detected
+    if (analysis.meeting?.hasMeeting) {
+      await supabase.from("email_meetings").insert({
+        user_id: email.user_id,
+        email_id: emailId,
+        meeting_title: analysis.meeting.meetingTitle,
+        meeting_date: analysis.meeting.suggestedDates?.[0] || null,
+        meeting_location: analysis.meeting.location,
+        participants: [],
+        metadata: { suggestedDates: analysis.meeting.suggestedDates },
+      });
+    }
+
+    // Create follow-up reminder if needed
+    if (analysis.follow_up?.needsFollowUp) {
+      const followUpDate = new Date();
+      followUpDate.setDate(followUpDate.getDate() + (analysis.follow_up.followUpDays || 3));
+      
+      await supabase.from("email_follow_ups").insert({
+        user_id: email.user_id,
+        email_id: emailId,
+        follow_up_type: analysis.follow_up.followUpType,
+        follow_up_date: followUpDate.toISOString(),
+        metadata: { reason: analysis.follow_up.followUpReason },
+      });
+    }
+
+    // Update relationship intelligence
+    await supabase
+      .from("email_relationships")
+      .upsert({
+        user_id: email.user_id,
+        contact_email: email.from_email,
+        contact_name: email.from_name,
+        last_email_at: email.email_date,
+        relationship_strength: analysis.relationship?.relationshipStrength || 'cold',
+        avg_sentiment: analysis.sentiment,
+        metadata: { keyTopics: analysis.relationship?.keyTopics || [] },
+      }, {
+        onConflict: 'user_id,contact_email',
+      });
 
     return new Response(
       JSON.stringify({

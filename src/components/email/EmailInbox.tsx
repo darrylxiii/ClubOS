@@ -10,6 +10,7 @@ import { EmailList } from "./EmailList";
 import { EmailDetail } from "./EmailDetail";
 import { EmailComposer } from "./EmailComposer";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
+import { NeedsAttentionWidget } from "./NeedsAttentionWidget";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -338,13 +339,16 @@ export function EmailInbox() {
           "md:block",
           selectedEmail && "hidden md:block"
         )}>
-          <EmailSidebar
-            currentFilter={filter}
-            onFilterChange={setFilter}
-            labels={labels}
-            unreadCount={unreadCount}
-            onCompose={() => setComposerOpen(true)}
-          />
+          <div className="space-y-4 p-4">
+            <EmailSidebar
+              currentFilter={filter}
+              onFilterChange={setFilter}
+              labels={labels}
+              unreadCount={unreadCount}
+              onCompose={() => setComposerOpen(true)}
+            />
+            <NeedsAttentionWidget />
+          </div>
         </div>
 
         {/* Email List - Hidden when email selected on mobile */}
