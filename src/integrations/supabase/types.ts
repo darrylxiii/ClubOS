@@ -7541,8 +7541,10 @@ export type Database = {
       notifications: {
         Row: {
           action_url: string | null
+          category: string | null
           created_at: string
           id: string
+          is_archived: boolean | null
           is_read: boolean
           message: string
           metadata: Json | null
@@ -7553,8 +7555,10 @@ export type Database = {
         }
         Insert: {
           action_url?: string | null
+          category?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean | null
           is_read?: boolean
           message: string
           metadata?: Json | null
@@ -7565,8 +7569,10 @@ export type Database = {
         }
         Update: {
           action_url?: string | null
+          category?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean | null
           is_read?: boolean
           message?: string
           metadata?: Json | null

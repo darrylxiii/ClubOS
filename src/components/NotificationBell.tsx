@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NotificationsPanel } from './NotificationsPanel';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export const NotificationBell = () => {
   const { user } = useAuth();
@@ -18,29 +16,7 @@ export const NotificationBell = () => {
   useEffect(() => {
     if (!user) return;
     loadUnreadCount();
-    subscribeToNotifications();
-  }, [user]);
-
-  const loadUnreadCount = async () => {
-    if (!user) return;
-
-    try {
-      const { count, error } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-      if (error) throw error;
-      setUnreadCount(count || 0);
-    } catch (error) {
-      console.error('Error loading unread count:', error);
-    }
-  };
-
-  const subscribeToNotifications = () => {
-    if (!user) return;
-
+    
     const channel = supabase
       .channel('unread-notifications')
       .on(
@@ -60,21 +36,56 @@ export const NotificationBell = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [user]);
+
+  const loadUnreadCount = async () => {
+    if (!user) return;
+
+    try {
+      const { count, error } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+        .eq('is_archived', false);
+
+      if (error) throw error;
+      setUnreadCount(count || 0);
+    } catch (error) {
+      console.error('Error loading unread count:', error);
+    }
   };
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-destructive text-[10px] font-bold text-white flex items-center justify-center">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-        </Button>
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Button variant="ghost" size="icon" className="relative group">
+            <Bell className={cn(
+              "h-5 w-5 transition-all duration-300",
+              unreadCount > 0 && "text-primary"
+            )} />
+            
+            {unreadCount > 0 && (
+              <>
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-br from-red-500 to-orange-500 text-[10px] font-bold text-white flex items-center justify-center shadow-lg ring-2 ring-background"
+                >
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </motion.span>
+                
+                <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+              </>
+            )}
+          </Button>
+        </motion.div>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg p-0">
+      <SheetContent className="w-full sm:max-w-lg p-0 flex flex-col">
         <NotificationsPanel />
       </SheetContent>
     </Sheet>
