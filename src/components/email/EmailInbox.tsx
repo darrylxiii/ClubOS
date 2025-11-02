@@ -11,10 +11,10 @@ import { EmailDetail } from "./EmailDetail";
 import { EmailComposer } from "./EmailComposer";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { NeedsAttentionWidget } from "./NeedsAttentionWidget";
+import { AdvancedSearchInput } from "./AdvancedSearchInput";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, Search, Mail, Settings as SettingsIcon, ArrowLeft, HelpCircle } from "lucide-react";
+import { RefreshCw, Mail, Settings as SettingsIcon, ArrowLeft, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -28,7 +28,6 @@ export function EmailInbox() {
   const { toast } = useToast();
   const { user } = useAuth();
   const { executeWithUndo } = useUndoableAction();
-  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const {
     emails,
@@ -131,7 +130,11 @@ export function EmailInbox() {
     {
       key: EMAIL_SHORTCUTS.SEARCH.key,
       description: EMAIL_SHORTCUTS.SEARCH.description,
-      action: () => searchInputRef.current?.focus(),
+      action: () => {
+        // Focus the search input
+        const input = document.querySelector('input[type="text"]') as HTMLInputElement;
+        input?.focus();
+      },
     },
     {
       key: EMAIL_SHORTCUTS.HELP.key,
@@ -304,16 +307,12 @@ export function EmailInbox() {
     <div className="flex flex-col h-full md:h-screen">
       {/* Top Bar */}
       <div className="border-b border-border p-3 md:p-4 flex items-center gap-2 md:gap-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px] max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            ref={searchInputRef}
-            placeholder="Search emails (try: from:, is:unread, has:attachment)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
+        <AdvancedSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search emails..."
+          className="flex-1 min-w-[200px] max-w-2xl"
+        />
         <Button
           variant="outline"
           size="sm"
