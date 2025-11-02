@@ -175,15 +175,26 @@ export function useEmails(filter: string = "inbox") {
         .limit(10);
 
       if (unprocessedEmails && unprocessedEmails.length > 0) {
-        for (const email of unprocessedEmails) {
-          try {
-            await supabase.functions.invoke("process-email-ai", {
+        console.log(`[useEmails] Processing ${unprocessedEmails.length} emails with AI in parallel (max 5 concurrent)...`);
+        
+        // Process in batches of 5
+        const batchSize = 5;
+        for (let i = 0; i < unprocessedEmails.length; i += batchSize) {
+          const batch = unprocessedEmails.slice(i, i + batchSize);
+          const promises = batch.map(email =>
+            supabase.functions.invoke("process-email-ai", {
               body: { emailId: email.id },
-            });
-          } catch (error) {
-            console.error("Error processing email:", email.id, error);
-          }
+            }).catch(error => {
+              console.error("Error processing email:", email.id, error);
+              return { error };
+            })
+          );
+          
+          await Promise.allSettled(promises);
+          console.log(`[useEmails] Processed batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(unprocessedEmails.length / batchSize)}`);
         }
+        
+        console.log(`[useEmails] AI processing complete`);
       }
     } catch (error: any) {
       console.error("Error syncing emails:", error);
@@ -238,7 +249,15 @@ export function useEmails(filter: string = "inbox") {
   };
 
   const toggleStar = async (emailId: string, starred: boolean) => {
-    await updateEmail(emailId, { is_starred: starred } as Partial<Email>);
+    try {
+      await updateEmail(emailId, { is_starred: starred } as Partial<Email>);
+    } catch (error: any) {
+      toast({
+        title: "Failed to update",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const archiveEmail = async (emailId: string) => {
@@ -265,7 +284,7 @@ export function useEmails(filter: string = "inbox") {
     loadEmails();
     loadLabels();
 
-    // Debounced reload to prevent excessive reloading
+    // Optimized realtime: update individual emails instead of full reload
     let reloadTimeout: number | null = null;
     
     const channel = supabase
@@ -277,11 +296,35 @@ export function useEmails(filter: string = "inbox") {
           schema: "public",
           table: "emails",
         },
-        () => {
+        (payload) => {
+          console.log('[useEmails] Realtime event:', payload.eventType, payload.new && 'id' in payload.new ? (payload.new as any).id : 'unknown');
+          
+          if (payload.eventType === 'INSERT' && payload.new) {
+            // Add new email to list
+            const newEmail = payload.new as Email;
+            setEmails((prev) => [newEmail, ...prev]);
+          } else if (payload.eventType === 'UPDATE' && payload.new) {
+            // Update existing email
+            const updatedEmail = payload.new as Email;
+            setEmails((prev) =>
+              prev.map((email) =>
+                email.id === updatedEmail.id ? updatedEmail : email
+              )
+            );
+          } else if (payload.eventType === 'DELETE' && payload.old) {
+            // Remove deleted email
+            const deletedId = (payload.old as any)?.id;
+            if (deletedId) {
+              setEmails((prev) => prev.filter((email) => email.id !== deletedId));
+            }
+          }
+          
+          // Debounced full reload as fallback (for filter changes)
           if (reloadTimeout) clearTimeout(reloadTimeout);
           reloadTimeout = setTimeout(() => {
+            console.log('[useEmails] Fallback reload after realtime events');
             loadEmails();
-          }, 500) as unknown as number;
+          }, 1000) as unknown as number;
         }
       )
       .subscribe();

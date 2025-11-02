@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Email } from "@/hooks/useEmails";
-import { EmailRow } from "./EmailRow";
 import { EmailRowSkeleton } from "./EmailRowSkeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { VirtualEmailList } from "./VirtualEmailList";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Archive, Trash2, Mail, MailOpen } from "lucide-react";
@@ -165,27 +164,22 @@ export function EmailList({
         </span>
       </div>
 
-      <ScrollArea className="flex-1 scroll-smooth">
-        <div>
-          {loading ? (
-            Array.from({ length: 10 }).map((_, i) => (
-              <EmailRowSkeleton key={i} />
-            ))
-          ) : (
-            emails.map((email) => (
-              <EmailRow
-                key={email.id}
-                email={email}
-                isSelected={email.id === selectedEmailId}
-                isChecked={selectedIds.has(email.id)}
-                onSelect={() => onEmailSelect(email)}
-                onToggleCheck={() => toggleSelection(email.id)}
-                onToggleStar={onToggleStar}
-              />
-            ))
-          )}
+      {loading ? (
+        <div className="flex-1 overflow-hidden">
+          {Array.from({ length: 10 }).map((_, i) => (
+            <EmailRowSkeleton key={i} />
+          ))}
         </div>
-      </ScrollArea>
+      ) : (
+        <VirtualEmailList
+          emails={emails}
+          selectedEmailId={selectedEmailId}
+          selectedIds={selectedIds}
+          onEmailSelect={onEmailSelect}
+          onToggleCheck={toggleSelection}
+          onToggleStar={onToggleStar}
+        />
+      )}
     </div>
   );
 }
