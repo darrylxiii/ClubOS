@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useSwipeable } from "react-swipeable";
 
 interface EmailRowProps {
   email: Email;
@@ -13,6 +14,8 @@ interface EmailRowProps {
   onSelect: () => void;
   onToggleCheck: () => void;
   onToggleStar: (emailId: string, starred: boolean) => void;
+  onArchive?: (emailId: string) => void;
+  onMarkAsRead?: (emailId: string) => void;
 }
 
 export function EmailRow({
@@ -22,6 +25,8 @@ export function EmailRow({
   onSelect,
   onToggleCheck,
   onToggleStar,
+  onArchive,
+  onMarkAsRead,
 }: EmailRowProps) {
   const getInitials = (name: string) => {
     return name
@@ -39,8 +44,21 @@ export function EmailRow({
     return "";
   };
 
+  // Mobile swipe handlers
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      if (onArchive) onArchive(email.id);
+    },
+    onSwipedRight: () => {
+      if (onMarkAsRead) onMarkAsRead(email.id);
+    },
+    trackMouse: false,
+    trackTouch: true,
+  });
+
   return (
     <div
+      {...swipeHandlers}
       className={cn(
         "flex items-center gap-3 p-3 border-b border-border hover:bg-accent/50 cursor-pointer transition-all duration-200 ease-in-out",
         isSelected && "bg-accent",

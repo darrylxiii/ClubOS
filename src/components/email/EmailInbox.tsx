@@ -1,15 +1,19 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmails, Email } from "@/hooks/useEmails";
+import { useKeyboardShortcuts, EMAIL_SHORTCUTS } from "@/hooks/useKeyboardShortcuts";
+import { useAdvancedSearch } from "@/hooks/useAdvancedSearch";
+import { useUndoableAction } from "@/hooks/useUndoableAction";
 import { EmailSidebar } from "./EmailSidebar";
 import { EmailList } from "./EmailList";
 import { EmailDetail } from "./EmailDetail";
 import { EmailComposer } from "./EmailComposer";
+import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, Search, Mail, Settings as SettingsIcon, ArrowLeft } from "lucide-react";
+import { RefreshCw, Search, Mail, Settings as SettingsIcon, ArrowLeft, HelpCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -19,8 +23,11 @@ export function EmailInbox() {
   const [selectedEmail, setSelectedEmail] = useState<any>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { executeWithUndo } = useUndoableAction();
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const {
     emails,
@@ -69,6 +76,68 @@ export function EmailInbox() {
   }, [user]);
 
   const unreadCount = emails.filter((e) => !e.is_read).length;
+
+  // Advanced search with operators
+  const filteredEmails = useAdvancedSearch(emails, searchQuery);
+
+  // Keyboard shortcuts
+  const selectedIndex = filteredEmails.findIndex((e) => e.id === selectedEmail?.id);
+  
+  useKeyboardShortcuts([
+    {
+      key: EMAIL_SHORTCUTS.COMPOSE.key,
+      description: EMAIL_SHORTCUTS.COMPOSE.description,
+      action: () => setComposerOpen(true),
+    },
+    {
+      key: EMAIL_SHORTCUTS.NEXT.key,
+      description: EMAIL_SHORTCUTS.NEXT.description,
+      action: () => {
+        if (selectedIndex < filteredEmails.length - 1) {
+          handleEmailSelect(filteredEmails[selectedIndex + 1]);
+        }
+      },
+    },
+    {
+      key: EMAIL_SHORTCUTS.PREV.key,
+      description: EMAIL_SHORTCUTS.PREV.description,
+      action: () => {
+        if (selectedIndex > 0) {
+          handleEmailSelect(filteredEmails[selectedIndex - 1]);
+        }
+      },
+    },
+    {
+      key: EMAIL_SHORTCUTS.ARCHIVE.key,
+      description: EMAIL_SHORTCUTS.ARCHIVE.description,
+      action: () => selectedEmail && handleArchive(),
+    },
+    {
+      key: EMAIL_SHORTCUTS.DELETE.key,
+      description: EMAIL_SHORTCUTS.DELETE.description,
+      action: () => selectedEmail && handleDelete(),
+    },
+    {
+      key: EMAIL_SHORTCUTS.STAR.key,
+      description: EMAIL_SHORTCUTS.STAR.description,
+      action: () => selectedEmail && toggleStar(selectedEmail.id, !selectedEmail.is_starred),
+    },
+    {
+      key: EMAIL_SHORTCUTS.REPLY.key,
+      description: EMAIL_SHORTCUTS.REPLY.description,
+      action: () => selectedEmail && setComposerOpen(true),
+    },
+    {
+      key: EMAIL_SHORTCUTS.SEARCH.key,
+      description: EMAIL_SHORTCUTS.SEARCH.description,
+      action: () => searchInputRef.current?.focus(),
+    },
+    {
+      key: EMAIL_SHORTCUTS.HELP.key,
+      description: EMAIL_SHORTCUTS.HELP.description,
+      action: () => setShowShortcuts(true),
+    },
+  ]);
 
   const handleEmailSelect = (email: Email) => {
     console.log('[EmailInbox] Email selected:', email.id, 'Current filter:', filter);
@@ -133,25 +202,48 @@ export function EmailInbox() {
 
   const handleArchive = async () => {
     if (!selectedEmail) return;
-    await archiveEmail(selectedEmail.id);
-    toast({ title: "Email archived" });
+    
+    const emailToArchive = selectedEmail;
     setSelectedEmail(null);
+    
+    await executeWithUndo({
+      description: "Email archived",
+      execute: async () => {
+        await archiveEmail(emailToArchive.id);
+      },
+      undo: async () => {
+        // Restore from archive
+        await supabase
+          .from("emails")
+          .update({ status: "inbox", archived_at: null })
+          .eq("id", emailToArchive.id);
+      },
+    });
   };
 
   const handleDelete = async () => {
     if (!selectedEmail) return;
-    await deleteEmail(selectedEmail.id);
-    toast({ title: "Email moved to trash" });
+    
+    const emailToDelete = selectedEmail;
     setSelectedEmail(null);
+    
+    await executeWithUndo({
+      description: "Email moved to trash",
+      execute: async () => {
+        await deleteEmail(emailToDelete.id);
+      },
+      undo: async () => {
+        // Restore from trash
+        await supabase
+          .from("emails")
+          .update({ status: "inbox", deleted_at: null })
+          .eq("id", emailToDelete.id);
+      },
+    });
   };
 
-  const filteredEmails = searchQuery
-    ? emails.filter(
-        (e) =>
-          e.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          e.from_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          e.from_name?.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+  const filteredEmailsForDisplay = searchQuery
+    ? filteredEmails
     : emails;
 
   // Show empty state if no connections
@@ -214,7 +306,8 @@ export function EmailInbox() {
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search emails..."
+            ref={searchInputRef}
+            placeholder="Search emails (try: from:, is:unread, has:attachment)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -228,6 +321,13 @@ export function EmailInbox() {
         >
           <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
           {syncing ? "Syncing..." : "Sync"}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowShortcuts(true)}
+        >
+          <HelpCircle className="h-4 w-4" />
         </Button>
       </div>
 
@@ -253,12 +353,24 @@ export function EmailInbox() {
           selectedEmail && "hidden md:block"
         )}>
           <EmailList
-            emails={filteredEmails}
+            emails={filteredEmailsForDisplay}
             selectedEmailId={selectedEmail?.id || null}
             onEmailSelect={handleEmailSelect}
             onToggleStar={toggleStar}
-            onArchive={archiveEmail}
-            onDelete={deleteEmail}
+            onArchive={(id) => executeWithUndo({
+              description: "Email archived",
+              execute: async () => await archiveEmail(id),
+              undo: async () => {
+                await supabase.from("emails").update({ status: "inbox", archived_at: null }).eq("id", id);
+              },
+            })}
+            onDelete={(id) => executeWithUndo({
+              description: "Email moved to trash",
+              execute: async () => await deleteEmail(id),
+              undo: async () => {
+                await supabase.from("emails").update({ status: "inbox", deleted_at: null }).eq("id", id);
+              },
+            })}
             onMarkAsRead={markAsRead}
             onMarkAsUnread={markAsUnread}
             loading={loading}
@@ -311,6 +423,11 @@ export function EmailInbox() {
               }
             : undefined
         }
+      />
+
+      <KeyboardShortcutsDialog
+        open={showShortcuts}
+        onOpenChange={setShowShortcuts}
       />
     </div>
   );
