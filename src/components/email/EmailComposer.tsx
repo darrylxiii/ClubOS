@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +9,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { X, Paperclip, Send } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { X, Paperclip, Send, Sparkles, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -29,6 +36,93 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
   );
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [uploadingAttachments, setUploadingAttachments] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Limit file size to 10MB per file
+    const validFiles = files.filter(file => {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`${file.name} is too large (max 10MB)`);
+        return false;
+      }
+      return true;
+    });
+
+    setAttachments(prev => [...prev, ...validFiles]);
+  };
+
+  const removeAttachment = (index: number) => {
+    setAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadAttachments = async () => {
+    if (attachments.length === 0) return [];
+
+    setUploadingAttachments(true);
+    const uploadedFiles: string[] = [];
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      for (const file of attachments) {
+        const filePath = `${user.id}/${Date.now()}_${file.name}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from("email-attachments")
+          .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+        
+        uploadedFiles.push(filePath);
+      }
+
+      return uploadedFiles;
+    } catch (error) {
+      console.error("Failed to upload attachments:", error);
+      toast.error("Failed to upload attachments");
+      throw error;
+    } finally {
+      setUploadingAttachments(false);
+    }
+  };
+
+  const handleAiAssist = async (action: string) => {
+    if (!body && action !== "compose") {
+      toast.error("Write some text first for AI to work with");
+      return;
+    }
+
+    setAiGenerating(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("assist-email-writing", {
+        body: {
+          action,
+          currentText: body,
+          subject,
+          recipientEmail: to,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.suggestion) {
+        setBody(data.suggestion);
+        toast.success("AI suggestion applied");
+      }
+    } catch (error: any) {
+      console.error("AI assist failed:", error);
+      toast.error(error.message || "Failed to generate AI suggestion");
+    } finally {
+      setAiGenerating(false);
+    }
+  };
 
   const handleSend = async () => {
     if (!to || !subject) {
@@ -39,11 +133,15 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
     setSending(true);
 
     try {
+      // Upload attachments first
+      const attachmentPaths = await uploadAttachments();
+
       const { data, error } = await supabase.functions.invoke("send-email", {
         body: {
           to,
           subject,
           body,
+          attachments: attachmentPaths,
           replyToEmailId: replyTo?.email,
         },
       });
@@ -54,6 +152,7 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
       setTo("");
       setSubject("");
       setBody("");
+      setAttachments([]);
       onClose();
     } catch (error: any) {
       console.error("Failed to send email:", error);
@@ -98,25 +197,120 @@ export function EmailComposer({ open, onClose, replyTo }: EmailComposerProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="body">Message</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="body">Message</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={aiGenerating}
+                      className="h-7 text-xs"
+                    >
+                      {aiGenerating ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3 mr-1" />
+                          AI Assist
+                        </>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleAiAssist("compose")}>
+                      <Sparkles className="h-3 w-3 mr-2" />
+                      Compose email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("improve")}>
+                      Improve writing
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("shorten")}>
+                      Make shorter
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("expand")}>
+                      Make longer
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("professional")}>
+                      More professional
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleAiAssist("friendly")}>
+                      More friendly
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
               <Textarea
                 id="body"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
-                placeholder="Write your message..."
+                placeholder="Write your message or use AI to help you compose..."
                 className="min-h-[300px] resize-none"
+                disabled={aiGenerating}
               />
             </div>
+
+            {/* Attachments */}
+            {attachments.length > 0 && (
+              <div className="space-y-2">
+                <Label>Attachments</Label>
+                <div className="flex flex-wrap gap-2">
+                  {attachments.map((file, index) => (
+                    <Badge key={index} variant="secondary" className="pr-1">
+                      <Paperclip className="h-3 w-3 mr-1" />
+                      {file.name}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 ml-1"
+                        onClick={() => removeAttachment(index)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="border-t border-border p-4 flex items-center justify-between">
-            <Button variant="ghost" size="sm">
-              <Paperclip className="h-4 w-4 mr-2" />
-              Attach
-            </Button>
-            <Button onClick={handleSend} disabled={sending || !to || !subject}>
-              <Send className="h-4 w-4 mr-2" />
-              {sending ? "Sending..." : "Send"}
+            <div className="flex gap-2">
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={handleFileSelect}
+                className="hidden"
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAttachments}
+              >
+                <Paperclip className="h-4 w-4 mr-2" />
+                Attach
+              </Button>
+            </div>
+            <Button
+              onClick={handleSend}
+              disabled={sending || uploadingAttachments || !to || !subject}
+            >
+              {sending || uploadingAttachments ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {uploadingAttachments ? "Uploading..." : "Sending..."}
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send
+                </>
+              )}
             </Button>
           </div>
         </div>
