@@ -70,17 +70,13 @@ export const NotificationBell = () => {
             )} />
             
             {unreadCount > 0 && (
-              <>
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-br from-red-500 to-orange-500 text-[10px] font-bold text-white flex items-center justify-center shadow-lg ring-2 ring-background"
-                >
-                  {unreadCount > 99 ? '99+' : unreadCount}
-                </motion.span>
-                
-                <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
-              </>
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-[10px] font-bold text-white flex items-center justify-center border-2 border-background animate-pulse"
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </motion.span>
             )}
           </Button>
         </motion.div>
