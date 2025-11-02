@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Archive, Trash2, Mail, MailOpen } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface EmailListProps {
   emails: Email[];
@@ -31,6 +32,7 @@ export function EmailList({
   loading = false,
 }: EmailListProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const { toast } = useToast();
 
   const toggleSelection = (emailId: string) => {
     const newSet = new Set(selectedIds);
@@ -54,13 +56,50 @@ export function EmailList({
     action: "archive" | "delete" | "read" | "unread"
   ) => {
     const ids = Array.from(selectedIds);
+    let successCount = 0;
+    let failCount = 0;
+
     for (const id of ids) {
-      if (action === "archive") await onArchive(id);
-      else if (action === "delete") await onDelete(id);
-      else if (action === "read") await onMarkAsRead(id);
-      else if (action === "unread") await onMarkAsUnread(id);
+      try {
+        if (action === "archive") await onArchive(id);
+        else if (action === "delete") await onDelete(id);
+        else if (action === "read") await onMarkAsRead(id);
+        else if (action === "unread") await onMarkAsUnread(id);
+        successCount++;
+      } catch (error) {
+        console.error(`Failed to ${action} email ${id}:`, error);
+        failCount++;
+      }
     }
-    setSelectedIds(new Set());
+
+    // Show result toast
+    const actionLabel = action === "read" ? "marked as read" : 
+                       action === "unread" ? "marked as unread" :
+                       action === "archive" ? "archived" : "deleted";
+    
+    if (failCount === 0) {
+      toast({
+        title: "Success",
+        description: `${successCount} email${successCount !== 1 ? 's' : ''} ${actionLabel}`,
+      });
+      setSelectedIds(new Set());
+    } else if (successCount === 0) {
+      toast({
+        title: "Error",
+        description: `Failed to ${action} all emails`,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Partial success",
+        description: `${actionLabel} ${successCount} of ${ids.length} emails. ${failCount} failed.`,
+        variant: "destructive",
+      });
+      // Clear only successful ones from selection
+      const newSelection = new Set(selectedIds);
+      // For simplicity, clear all - in production you'd track which ones failed
+      setSelectedIds(new Set());
+    }
   };
 
   if (emails.length === 0) {

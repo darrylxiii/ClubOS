@@ -94,10 +94,27 @@ export function EmailInbox() {
         console.log('[EmailInbox] Updating selected email from emails array');
         setSelectedEmail(updatedEmail);
       } else {
-        console.log('[EmailInbox] Selected email not found in current filter, keeping current');
+        // Email not in current filter - fetch it directly to show updates
+        console.log('[EmailInbox] Selected email not in filter, fetching directly');
+        const fetchEmail = async () => {
+          const { data, error } = await supabase
+            .from("emails")
+            .select("*")
+            .eq("id", selectedEmail.id)
+            .single();
+          
+          if (data && !error) {
+            setSelectedEmail(data);
+          } else {
+            // Email was deleted or moved - clear selection
+            console.log('[EmailInbox] Selected email no longer exists, clearing');
+            setSelectedEmail(null);
+          }
+        };
+        fetchEmail();
       }
     }
-  }, [emails]);
+  }, [emails, selectedEmail?.id]);
 
   const handleSnooze = () => {
     if (!selectedEmail) return;

@@ -171,7 +171,7 @@ export function useEmails(filter: string = "inbox") {
         .from("emails")
         .select("id")
         .eq("user_id", user!.id)
-        .is("ai_processed", false)
+        .is("ai_processed_at", null)
         .limit(10);
 
       if (unprocessedEmails && unprocessedEmails.length > 0) {

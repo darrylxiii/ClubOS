@@ -73,9 +73,16 @@ export function EmailRow({
       </button>
 
       <Avatar className="h-10 w-10">
-        {email.from_avatar_url && (
-          <AvatarImage src={email.from_avatar_url} alt={email.from_name || email.from_email} />
-        )}
+        {email.from_avatar_url ? (
+          <AvatarImage 
+            src={email.from_avatar_url} 
+            alt={email.from_name || email.from_email}
+            onError={(e) => {
+              // Hide broken image, fallback will show
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        ) : null}
         <AvatarFallback className="text-xs">
           {getInitials(email.from_name || email.from_email)}
         </AvatarFallback>
