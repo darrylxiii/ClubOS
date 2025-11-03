@@ -35,9 +35,9 @@ serve(async (req) => {
       );
     }
 
-    // Get user's scheduling preferences
-    const { data: preferences } = await supabaseClient
-      .from("task_scheduling_preferences")
+    // Get user's booking availability settings
+    const { data: settings } = await supabaseClient
+      .from("booking_availability_settings")
       .select("*")
       .eq("user_id", bookingLink.user_id)
       .single();
@@ -144,6 +144,7 @@ serve(async (req) => {
             {
               body: {
                 action: 'findFreeSlots',
+                connectionId: calendar.id,
                 accessToken: accessToken,
                 timeMin: dateRange.start,
                 timeMax: dateRange.end,
@@ -191,7 +192,7 @@ serve(async (req) => {
     const slots = generateAvailableSlots(
       dateRange,
       bookingLink,
-      preferences,
+      settings,
       allBusyTimes,
       timezone
     );
@@ -214,7 +215,7 @@ serve(async (req) => {
 function generateAvailableSlots(
   dateRange: any,
   bookingLink: any,
-  preferences: any,
+  settings: any,
   existingBookings: any[],
   timezone: string
 ): any[] {
@@ -222,9 +223,10 @@ function generateAvailableSlots(
   const startDate = new Date(dateRange.start);
   const endDate = new Date(dateRange.end);
   
-  const workingHoursStart = preferences?.working_hours_start || "09:00:00";
-  const workingHoursEnd = preferences?.working_hours_end || "17:00:00";
-  const workingDays = preferences?.working_days || [1, 2, 3, 4, 5];
+  // Use settings from booking_availability_settings table or defaults
+  const workingHoursStart = settings?.working_hours_start || "09:00:00";
+  const workingHoursEnd = settings?.working_hours_end || "17:00:00";
+  const workingDays = settings?.working_days || [1, 2, 3, 4, 5];
   
   const durationMinutes = bookingLink.duration_minutes;
   const bufferBefore = bookingLink.buffer_before_minutes || 0;

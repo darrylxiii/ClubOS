@@ -6,7 +6,7 @@ import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookingCalendar } from "@/components/booking/BookingCalendar";
+import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
 import { BookingTimeSlots } from "@/components/booking/BookingTimeSlots";
 import { BookingForm } from "@/components/booking/BookingForm";
 import { BookingConfirmation } from "@/components/booking/BookingConfirmation";
@@ -244,10 +244,10 @@ export default function BookingPage() {
                         <TabsTrigger value="week">Week View</TabsTrigger>
                       </TabsList>
                   <TabsContent value="day">
-                    <BookingCalendar
-                      bookingLink={bookingLink}
-                      onDateSelect={handleDateSelect}
-                    />
+              <AvailabilityCalendar
+                bookingLink={bookingLink}
+                onDateSelect={handleDateSelect}
+              />
                   </TabsContent>
                   <TabsContent value="week">
                     <BookingWeekView

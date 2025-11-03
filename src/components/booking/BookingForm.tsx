@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { Loader2, Calendar, Clock } from "lucide-react";
 import { format, parse } from "date-fns";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
+import { parseISO, setHours, setMinutes } from "date-fns";
+import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
 
 interface BookingFormProps {
   bookingLink: {
@@ -45,38 +47,61 @@ export function BookingForm({
       return;
     }
 
-    // Execute reCAPTCHA
-    if (!executeRecaptcha) {
-      toast.error("reCAPTCHA not ready. Please try again.");
-      return;
-    }
-
     setLoading(true);
     try {
-      const recaptchaToken = await executeRecaptcha("create_booking");
+      // Execute reCAPTCHA only if enabled
+      let recaptchaToken = "";
+      if (RECAPTCHA_ENABLED) {
+        if (!executeRecaptcha) {
+          toast.error("reCAPTCHA not ready. Please try again.");
+          setLoading(false);
+          return;
+        }
+        recaptchaToken = await executeRecaptcha("create_booking");
+        
+        if (!recaptchaToken) {
+          toast.error("Failed to verify. Please try again.");
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Parse the selected time properly with timezone awareness
+      // Format: "9:00 AM" or "14:30 PM"
+      const timeMatch = selectedTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
       
-      if (!recaptchaToken) {
-        toast.error("Failed to verify. Please try again.");
+      if (!timeMatch) {
+        toast.error("Invalid time format. Please try again.");
         setLoading(false);
         return;
       }
-      // Parse the selected time to create start/end times
-      const [time, period] = selectedTime.toLowerCase().split(" ");
-      let [hours, minutes] = time.split(":").map(Number);
+
+      let hours = parseInt(timeMatch[1], 10);
+      const minutes = parseInt(timeMatch[2], 10);
+      const period = timeMatch[3].toUpperCase();
       
-      if (period === "pm" && hours !== 12) hours += 12;
-      if (period === "am" && hours === 12) hours = 0;
+      // Convert 12-hour to 24-hour format
+      if (period === "PM" && hours !== 12) {
+        hours += 12;
+      } else if (period === "AM" && hours === 12) {
+        hours = 0;
+      }
 
-      const scheduledStart = new Date(selectedDate);
-      scheduledStart.setHours(hours, minutes, 0, 0);
+      // Create start time with proper timezone handling
+      let scheduledStart = new Date(selectedDate);
+      scheduledStart = setHours(scheduledStart, hours);
+      scheduledStart = setMinutes(scheduledStart, minutes);
+      scheduledStart.setSeconds(0, 0);
 
-      const scheduledEnd = new Date(scheduledStart);
-      scheduledEnd.setMinutes(scheduledEnd.getMinutes() + bookingLink.duration_minutes);
+      const scheduledEnd = new Date(scheduledStart.getTime() + bookingLink.duration_minutes * 60 * 1000);
+
+      const headers: Record<string, string> = {};
+      if (RECAPTCHA_ENABLED && recaptchaToken) {
+        headers["x-recaptcha-token"] = recaptchaToken;
+      }
 
       const { data, error } = await supabase.functions.invoke("create-booking", {
-        headers: {
-          "x-recaptcha-token": recaptchaToken,
-        },
+        headers,
         body: {
           bookingLinkSlug: bookingLink.slug,
           guestName: formData.name,

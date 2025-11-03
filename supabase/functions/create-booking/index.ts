@@ -15,21 +15,17 @@ serve(async (req) => {
   }
 
   try {
-    // Verify reCAPTCHA
+    // Verify reCAPTCHA if token provided
     const recaptchaToken = req.headers.get("x-recaptcha-token");
-    if (!recaptchaToken) {
-      return new Response(
-        JSON.stringify({ error: "reCAPTCHA verification required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    if (recaptchaToken) {
+      const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.5);
+      if (!recaptchaResult.success) {
+        return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
+      }
+      console.log("[Booking] reCAPTCHA verified, score:", recaptchaResult.score);
+    } else {
+      console.log("[Booking] reCAPTCHA not configured, skipping verification");
     }
-
-    const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.5);
-    if (!recaptchaResult.success) {
-      return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
-    }
-
-    console.log("[Booking] reCAPTCHA verified, score:", recaptchaResult.score);
 
     // Validate input
     const bookingSchema = z.object({
@@ -155,18 +151,61 @@ serve(async (req) => {
       .eq("is_active", true);
 
     if (calendars && calendars.length > 0) {
+      let calendarCheckFailed = false;
+      
       for (const calendar of calendars) {
         try {
+          let accessToken = calendar.access_token;
+          
+          // Check if token needs refresh
+          const tokenAge = Date.now() - new Date(calendar.updated_at || calendar.created_at).getTime();
+          const fiftyMinutes = 50 * 60 * 1000;
+          
+          if (tokenAge > fiftyMinutes && calendar.refresh_token) {
+            console.log(`[Booking] Refreshing ${calendar.provider} token...`);
+            
+            const refreshFunctionName = calendar.provider === 'google' 
+              ? 'google-calendar-auth' 
+              : 'microsoft-calendar-auth';
+            
+            const { data: refreshData } = await supabaseClient.functions.invoke(
+              refreshFunctionName,
+              {
+                body: {
+                  action: 'refreshToken',
+                  refreshToken: calendar.refresh_token
+                }
+              }
+            );
+
+            if (refreshData?.access_token) {
+              accessToken = refreshData.access_token;
+              await supabaseClient
+                .from('calendar_connections')
+                .update({ 
+                  access_token: accessToken,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('id', calendar.id);
+            }
+          }
+          
           const functionName = calendar.provider === 'google' 
             ? 'google-calendar-events' 
             : 'microsoft-calendar-events';
           
-          const { data: busyData, error: busyError } = await supabaseClient.functions.invoke(
+          // Set 5 second timeout for calendar check
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Calendar check timeout')), 5000)
+          );
+          
+          const apiPromise = supabaseClient.functions.invoke(
             functionName,
             {
               body: {
                 action: 'findFreeSlots',
                 connectionId: calendar.id,
+                accessToken: accessToken,
                 timeMin: scheduledStart,
                 timeMax: scheduledEnd,
                 calendars: ['primary']
@@ -174,7 +213,18 @@ serve(async (req) => {
             }
           );
 
-          if (!busyError && busyData?.busySlots && busyData.busySlots.length > 0) {
+          const { data: busyData, error: busyError } = await Promise.race([
+            apiPromise,
+            timeoutPromise
+          ]) as any;
+
+          if (busyError) {
+            console.error(`[Booking] Calendar check failed for ${calendar.provider}:`, busyError);
+            calendarCheckFailed = true;
+            break;
+          }
+
+          if (busyData?.busySlots && busyData.busySlots.length > 0) {
             console.log("[Booking] Conflict: Calendar busy time found in", calendar.provider);
             return new Response(
               JSON.stringify({ 
@@ -184,9 +234,20 @@ serve(async (req) => {
             );
           }
         } catch (calendarError) {
-          console.error(`[Booking] Error checking ${calendar.provider} calendar:`, calendarError);
-          // Continue with booking - don't fail on calendar check errors
+          console.error(`[Booking] Critical error checking ${calendar.provider} calendar:`, calendarError);
+          calendarCheckFailed = true;
+          break;
         }
+      }
+      
+      // Fail booking if calendar check failed or timed out
+      if (calendarCheckFailed) {
+        return new Response(
+          JSON.stringify({ 
+            error: "Unable to verify calendar availability. Please try again or contact support." 
+          }),
+          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
       }
     }
     
@@ -269,9 +330,45 @@ serve(async (req) => {
     );
   } catch (error: any) {
     console.error("Error creating booking:", error);
+    
+    // Return appropriate status codes based on error type
+    let status = 500;
+    let errorMessage = "An unexpected error occurred. Please try again.";
+    
+    // Database constraint violations
+    if (error.code === '23505') {
+      status = 409;
+      errorMessage = "This booking already exists.";
+    } else if (error.code === '23503') {
+      status = 400;
+      errorMessage = "Invalid booking link or user reference.";
+    }
+    // Validation errors
+    else if (error.name === 'ZodError') {
+      status = 400;
+      errorMessage = "Invalid booking data: " + error.issues.map((i: any) => i.message).join(", ");
+    }
+    // Rate limit or quota errors
+    else if (error.message?.includes('rate limit') || error.message?.includes('quota')) {
+      status = 429;
+      errorMessage = "Too many requests. Please try again later.";
+    }
+    // Calendar or external service errors
+    else if (error.message?.includes('calendar') || error.message?.includes('timeout')) {
+      status = 503;
+      errorMessage = "Calendar service temporarily unavailable. Please try again.";
+    }
+    // Use the error message if it's user-friendly
+    else if (error.message && !error.message.includes('function') && !error.message.includes('undefined')) {
+      errorMessage = error.message;
+    }
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ 
+        error: errorMessage,
+        code: error.code || 'UNKNOWN_ERROR'
+      }),
+      { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
