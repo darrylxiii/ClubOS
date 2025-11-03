@@ -290,19 +290,19 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
           </TabsList>
 
           <TabsContent value="experience" className="space-y-6">
-            <ExperienceSection />
+            <ExperienceSection userId={profileUserId} isReadOnly={!isOwnProfile} />
           </TabsContent>
 
           <TabsContent value="education" className="space-y-6">
-            <EducationSection />
+            <EducationSection userId={profileUserId} isReadOnly={!isOwnProfile} />
           </TabsContent>
 
           <TabsContent value="skills" className="space-y-6">
-            <SkillsSection />
+            <SkillsSection userId={profileUserId} isReadOnly={!isOwnProfile} />
           </TabsContent>
 
           <TabsContent value="portfolio" className="space-y-6">
-            <PortfolioSection />
+            <PortfolioSection userId={profileUserId} isReadOnly={!isOwnProfile} />
           </TabsContent>
 
           <TabsContent value="music" className="space-y-6">

@@ -22,8 +22,14 @@ interface Skill {
   ai_verified: boolean;
 }
 
-export const SkillsSection = () => {
+interface SkillsSectionProps {
+  userId?: string;
+  isReadOnly?: boolean;
+}
+
+export const SkillsSection = ({ userId, isReadOnly = false }: SkillsSectionProps = {}) => {
   const { user } = useAuth();
+  const targetUserId = userId || user?.id;
   const [skills, setSkills] = useState<Skill[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -40,14 +46,14 @@ export const SkillsSection = () => {
 
   useEffect(() => {
     loadSkills();
-  }, [user]);
+  }, [targetUserId]);
 
   const loadSkills = async () => {
-    if (!user) return;
+    if (!targetUserId) return;
     const { data, error } = await supabase
       .from('profile_skills')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .order('endorsement_count', { ascending: false });
 
     if (error) {
@@ -58,10 +64,10 @@ export const SkillsSection = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !targetUserId) return;
 
     const payload = {
-      user_id: user.id,
+      user_id: targetUserId,
       ...formData
     };
 
@@ -146,12 +152,14 @@ export const SkillsSection = () => {
             setIsDialogOpen(open);
             if (!open) resetForm();
           }}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Skill
-              </Button>
-            </DialogTrigger>
+            {!isReadOnly && (
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Skill
+                </Button>
+              </DialogTrigger>
+            )}
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>{editingId ? 'Edit' : 'Add'} Skill</DialogTitle>
@@ -258,14 +266,16 @@ export const SkillsSection = () => {
                         {skill.category} • {skill.years_experience} {skill.years_experience === 1 ? 'year' : 'years'} experience
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => handleEdit(skill)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleDelete(skill.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    {!isReadOnly && (
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="ghost" onClick={() => handleEdit(skill)}>
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleDelete(skill.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-2">

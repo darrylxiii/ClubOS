@@ -26,8 +26,14 @@ interface Portfolio {
   likes_count: number;
 }
 
-export const PortfolioSection = () => {
+interface PortfolioSectionProps {
+  userId?: string;
+  isReadOnly?: boolean;
+}
+
+export const PortfolioSection = ({ userId, isReadOnly = false }: PortfolioSectionProps = {}) => {
   const { user } = useAuth();
+  const targetUserId = userId || user?.id;
   const [items, setItems] = useState<Portfolio[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -48,14 +54,14 @@ export const PortfolioSection = () => {
 
   useEffect(() => {
     loadPortfolio();
-  }, [user]);
+  }, [targetUserId]);
 
   const loadPortfolio = async () => {
-    if (!user) return;
+    if (!targetUserId) return;
     const { data, error } = await supabase
       .from('profile_portfolio')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .order('featured', { ascending: false })
       .order('created_at', { ascending: false });
 
@@ -67,10 +73,10 @@ export const PortfolioSection = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !targetUserId) return;
 
     const payload = {
-      user_id: user.id,
+      user_id: targetUserId,
       ...formData,
       tags: formData.tags ? formData.tags.split(',').map(t => t.trim()).filter(Boolean) : []
     };
@@ -164,12 +170,14 @@ export const PortfolioSection = () => {
             setIsDialogOpen(open);
             if (!open) resetForm();
           }}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Project
-              </Button>
-            </DialogTrigger>
+            {!isReadOnly && (
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Project
+                </Button>
+              </DialogTrigger>
+            )}
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>{editingId ? 'Edit' : 'Add'} Portfolio Item</DialogTitle>
@@ -307,14 +315,16 @@ export const PortfolioSection = () => {
                           <Badge variant="default" className="text-xs mt-1">Featured</Badge>
                         )}
                       </div>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => handleEdit(item)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" onClick={() => handleDelete(item.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                      {!isReadOnly && (
+                        <div className="flex gap-2">
+                          <Button size="sm" variant="ghost" onClick={() => handleEdit(item)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => handleDelete(item.id)}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     {item.description && (

@@ -29,8 +29,14 @@ interface Education {
   visibility: string;
 }
 
-export const EducationSection = () => {
+interface EducationSectionProps {
+  userId?: string;
+  isReadOnly?: boolean;
+}
+
+export const EducationSection = ({ userId, isReadOnly = false }: EducationSectionProps = {}) => {
   const { user } = useAuth();
+  const targetUserId = userId || user?.id;
   const [educations, setEducations] = useState<Education[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -49,14 +55,14 @@ export const EducationSection = () => {
 
   useEffect(() => {
     loadEducations();
-  }, [user]);
+  }, [targetUserId]);
 
   const loadEducations = async () => {
-    if (!user) return;
+    if (!targetUserId) return;
     const { data, error } = await supabase
       .from('profile_education')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .order('start_date', { ascending: false });
 
     if (error) {
@@ -67,10 +73,10 @@ export const EducationSection = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !targetUserId) return;
 
     const payload = {
-      user_id: user.id,
+      user_id: targetUserId,
       ...formData,
       end_date: formData.is_current ? null : formData.end_date
     };
@@ -162,12 +168,14 @@ export const EducationSection = () => {
             setIsDialogOpen(open);
             if (!open) resetForm();
           }}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Education
-              </Button>
-            </DialogTrigger>
+            {!isReadOnly && (
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Education
+                </Button>
+              </DialogTrigger>
+            )}
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingId ? 'Edit' : 'Add'} Education</DialogTitle>
@@ -303,14 +311,16 @@ export const EducationSection = () => {
                       {edu.field_of_study && ` in ${edu.field_of_study}`}
                     </p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => handleEdit(edu)}>
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleDelete(edu.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  {!isReadOnly && (
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => handleEdit(edu)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleDelete(edu.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">

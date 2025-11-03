@@ -30,8 +30,14 @@ interface Experience {
   visibility: string;
 }
 
-export const ExperienceSection = () => {
+interface ExperienceSectionProps {
+  userId?: string;
+  isReadOnly?: boolean;
+}
+
+export const ExperienceSection = ({ userId, isReadOnly = false }: ExperienceSectionProps = {}) => {
   const { user } = useAuth();
+  const targetUserId = userId || user?.id;
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -52,14 +58,14 @@ export const ExperienceSection = () => {
 
   useEffect(() => {
     loadExperiences();
-  }, [user]);
+  }, [targetUserId]);
 
   const loadExperiences = async () => {
-    if (!user) return;
+    if (!targetUserId) return;
     const { data, error } = await supabase
       .from('profile_experience')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .order('start_date', { ascending: false });
 
     if (error) {
@@ -70,10 +76,10 @@ export const ExperienceSection = () => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
+    if (!user || !targetUserId) return;
 
     const payload = {
-      user_id: user.id,
+      user_id: targetUserId,
       ...formData,
       end_date: formData.is_current ? null : formData.end_date,
       achievements: formData.achievements ? formData.achievements.split('\n').filter(Boolean) : [],
@@ -171,12 +177,14 @@ export const ExperienceSection = () => {
             setIsDialogOpen(open);
             if (!open) resetForm();
           }}>
-            <DialogTrigger asChild>
-              <Button size="sm">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Experience
-              </Button>
-            </DialogTrigger>
+            {!isReadOnly && (
+              <DialogTrigger asChild>
+                <Button size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Experience
+                </Button>
+              </DialogTrigger>
+            )}
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingId ? 'Edit' : 'Add'} Experience</DialogTitle>
@@ -336,14 +344,16 @@ export const ExperienceSection = () => {
                     <h3 className="font-semibold text-lg">{exp.position_title}</h3>
                     <p className="text-muted-foreground">{exp.company_name}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="ghost" onClick={() => handleEdit(exp)}>
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => handleDelete(exp.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
+                  {!isReadOnly && (
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => handleEdit(exp)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleDelete(exp.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex flex-wrap gap-2 text-sm text-muted-foreground">
