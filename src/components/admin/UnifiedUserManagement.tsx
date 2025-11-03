@@ -27,6 +27,11 @@ interface UserWithRoles {
   company_role: string | null;
   roles: string[];
   candidate_id: string | null;
+  desired_salary_min?: number | null;
+  desired_salary_max?: number | null;
+  remote_work_preference?: string | null;
+  resume_url?: string | null;
+  stealth_mode_enabled?: boolean | null;
 }
 
 interface Company {
@@ -77,7 +82,7 @@ export function UnifiedUserManagement() {
 
   useEffect(() => {
     filterUsers();
-  }, [users, searchQuery, roleFilter]);
+  }, [users, searchQuery, roleFilter, salaryRange, workPreferenceFilter, documentFilter, privacyFilter]);
 
   const fetchData = async () => {
     try {
@@ -91,7 +96,14 @@ export function UnifiedUserManagement() {
           created_at, 
           email_verified, 
           company_id,
-          candidate_profiles(id)
+          candidate_profiles(
+            id,
+            desired_salary_min,
+            desired_salary_max,
+            remote_work_preference,
+            resume_url,
+            stealth_mode_enabled
+          )
         `)
         .order('created_at', { ascending: false });
 
@@ -136,7 +148,12 @@ export function UnifiedUserManagement() {
           company_name: company?.name || null,
           company_role: member?.role || null,
           roles: userRoles?.filter(r => r.user_id === profile.id).map(r => r.role) || [],
-          candidate_id: profile.candidate_profiles?.[0]?.id || null
+          candidate_id: profile.candidate_profiles?.[0]?.id || null,
+          desired_salary_min: profile.candidate_profiles?.[0]?.desired_salary_min || null,
+          desired_salary_max: profile.candidate_profiles?.[0]?.desired_salary_max || null,
+          remote_work_preference: profile.candidate_profiles?.[0]?.remote_work_preference || null,
+          resume_url: profile.candidate_profiles?.[0]?.resume_url || null,
+          stealth_mode_enabled: profile.candidate_profiles?.[0]?.stealth_mode_enabled || null,
         };
       });
 
@@ -164,6 +181,57 @@ export function UnifiedUserManagement() {
     // Role filter
     if (roleFilter !== "all") {
       filtered = filtered.filter(user => user.roles.includes(roleFilter));
+    }
+
+    // PHASE 3: Advanced Filters (only apply to users with candidate_id)
+    
+    // Salary Range Filter
+    if (salaryRange[0] > 0 || salaryRange[1] < 500000) {
+      filtered = filtered.filter(user => {
+        if (!user.candidate_id) return true; // Don't filter non-candidates
+        
+        const min = user.desired_salary_min || 0;
+        const max = user.desired_salary_max || 0;
+        
+        // Check if user's salary range overlaps with filter range
+        return (min <= salaryRange[1] && max >= salaryRange[0]);
+      });
+    }
+
+    // Work Preference Filter
+    if (workPreferenceFilter !== "all") {
+      filtered = filtered.filter(user => {
+        if (!user.candidate_id) return true; // Don't filter non-candidates
+        return user.remote_work_preference?.toLowerCase() === workPreferenceFilter.toLowerCase();
+      });
+    }
+
+    // Document Filter
+    if (documentFilter !== "all") {
+      filtered = filtered.filter(user => {
+        if (!user.candidate_id) return true; // Don't filter non-candidates
+        
+        if (documentFilter === "uploaded") {
+          return !!user.resume_url;
+        } else if (documentFilter === "missing") {
+          return !user.resume_url;
+        }
+        return true;
+      });
+    }
+
+    // Privacy Filter
+    if (privacyFilter !== "all") {
+      filtered = filtered.filter(user => {
+        if (!user.candidate_id) return true; // Don't filter non-candidates
+        
+        if (privacyFilter === "stealth") {
+          return user.stealth_mode_enabled === true;
+        } else if (privacyFilter === "public") {
+          return user.stealth_mode_enabled === false || user.stealth_mode_enabled === null;
+        }
+        return true;
+      });
     }
 
     setFilteredUsers(filtered);
