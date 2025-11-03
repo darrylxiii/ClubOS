@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Card, Heading, Paragraph, Spacer, InfoRow } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -85,37 +87,53 @@ serve(async (req) => {
           
           const hostName = hostProfile?.full_name || "Your host";
           
-          const emailHtml = `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #6366f1;">Meeting Reminder</h2>
-              
-              <p>Hi ${booking.guest_name},</p>
-              
-              <p>This is a reminder that your meeting <strong>"${bookingLinkData?.title}"</strong> with ${hostName} is starting in <strong>${window.name}</strong>.</p>
-              
-              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 8px 0;"><strong>📅 When:</strong> ${startTime.toLocaleString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric',
-                  hour: 'numeric',
-                  minute: '2-digit',
-                  hour12: true
-                 })}</p>
-                <p style="margin: 8px 0;"><strong>⏱️ Duration:</strong> ${bookingLinkData?.duration_minutes} minutes</p>
-              </div>
-              
-              <p style="color: #666; font-size: 14px;">
-                If you need to reschedule or cancel, please contact ${hostName} directly.
-              </p>
-              
-              <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;">
-              <p style="color: #999; font-size: 12px; text-align: center;">
-                Powered by The Quantum Club
-              </p>
-            </div>
+          // Dynamic urgency config
+          const urgencyConfig: Record<string, { icon: string; title: string }> = {
+            '24h': { icon: '📅', title: 'Tomorrow' },
+            '1h': { icon: '⏰', title: 'In 1 Hour' },
+            '15min': { icon: '🔔', title: 'Starting Soon!' }
+          };
+
+          const config = urgencyConfig[window.type] || { icon: '📅', title: window.name };
+          const isUrgent = window.type === '15min';
+
+          const formattedTime = startTime.toLocaleString('en-US', { 
+            weekday: 'long', 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+
+          const emailContent = `
+            ${Heading({ text: `${config.icon} Meeting in ${window.name}`, level: 1 })}
+            ${Spacer(24)}
+            ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+            ${Spacer(16)}
+            ${Paragraph(`This is a reminder that your meeting "${bookingLinkData?.title}" with ${hostName} is starting in ${window.name}.`, 'secondary')}
+            ${Spacer(32)}
+            ${Card({
+              variant: isUrgent ? 'highlight' : 'default',
+              content: `
+                ${Heading({ text: bookingLinkData?.title || 'Meeting Details', level: 2 })}
+                ${Spacer(16)}
+                ${InfoRow({ icon: '👤', label: 'With', value: hostName })}
+                ${InfoRow({ icon: '📅', label: 'When', value: formattedTime })}
+                ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${bookingLinkData?.duration_minutes} minutes` })}
+              `
+            })}
+            ${Spacer(32)}
+            ${Paragraph('If you need to reschedule or cancel, please contact your host directly.', 'muted')}
           `;
+
+          const html = baseEmailTemplate({
+            preheader: `Meeting reminder: ${bookingLinkData?.title} in ${window.name}`,
+            content: emailContent,
+            showHeader: true,
+            showFooter: true
+          });
 
           const resendApiKey = Deno.env.get("RESEND_API_KEY");
           const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -127,8 +145,8 @@ serve(async (req) => {
             body: JSON.stringify({
               from: "The Quantum Club <bookings@thequantumclub.com>",
               to: [booking.guest_email],
-              subject: `Reminder: ${bookingLinkData?.title} in ${window.name}`,
-              html: emailHtml,
+              subject: `${config.icon} Reminder: ${bookingLinkData?.title} in ${window.name}`,
+              html,
             }),
           });
 

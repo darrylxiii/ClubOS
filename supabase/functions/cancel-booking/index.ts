@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Card, Heading, Paragraph, Spacer, InfoRow, Button } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -122,6 +124,34 @@ serve(async (req) => {
         minute: "2-digit",
       });
 
+      const emailContent = `
+        ${Heading({ text: '❌ Meeting Cancelled', level: 1 })}
+        ${Spacer(24)}
+        ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+        ${Spacer(16)}
+        ${Paragraph('Your upcoming meeting has been cancelled.', 'secondary')}
+        ${Spacer(32)}
+        ${Card({
+          variant: 'default',
+          content: `
+            ${Heading({ text: booking.booking_links.title, level: 2 })}
+            ${Spacer(16)}
+            ${InfoRow({ icon: '📅', label: 'Originally scheduled', value: formattedDate })}
+            ${InfoRow({ icon: '⏰', label: 'Time', value: formattedTime })}
+            ${reason ? InfoRow({ icon: '📝', label: 'Reason', value: reason }) : ''}
+          `
+        })}
+        ${Spacer(32)}
+        ${Paragraph('If you\'d like to reschedule, you can book a new time using the original booking link.', 'muted')}
+      `;
+
+      const html = baseEmailTemplate({
+        preheader: `Meeting cancelled: ${booking.booking_links.title}`,
+        content: emailContent,
+        showHeader: true,
+        showFooter: true
+      });
+
       // Email to guest
       const resendApiKey = Deno.env.get("RESEND_API_KEY");
       await fetch("https://api.resend.com/emails", {
@@ -131,18 +161,10 @@ serve(async (req) => {
           Authorization: `Bearer ${resendApiKey}`,
         },
         body: JSON.stringify({
-          from: "Quantum Club <onboarding@resend.dev>",
+          from: "The Quantum Club <bookings@thequantumclub.com>",
           to: [booking.guest_email],
           subject: `Meeting Cancelled: ${booking.booking_links.title}`,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h1 style="color: #dc2626;">Meeting Cancelled</h1>
-              <p>Hi ${booking.guest_name},</p>
-              <p>Your meeting scheduled for <strong>${formattedDate}</strong> at <strong>${formattedTime}</strong> has been cancelled.</p>
-              ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ""}
-              <p>If you'd like to reschedule, please visit the booking link again.</p>
-            </div>
-          `,
+          html,
         }),
       });
 

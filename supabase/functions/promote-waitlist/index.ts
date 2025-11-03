@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Button, Card, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,6 +69,40 @@ serve(async (req) => {
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     
     if (resendApiKey) {
+      const emailContent = `
+        ${Heading({ text: '🎉 A Spot Just Opened Up!', level: 1 })}
+        ${Spacer(24)}
+        ${Paragraph(`Great news, ${waitlistEntry.guest_name}!`, 'primary')}
+        ${Spacer(16)}
+        ${Paragraph('A time slot has become available for:', 'secondary')}
+        ${Spacer(32)}
+        ${Card({
+          variant: 'highlight',
+          content: `
+            ${Heading({ text: bookingLink.title, level: 2 })}
+            ${Spacer(16)}
+            ${Paragraph('⏰ <strong>Act fast!</strong> This exclusive slot expires in 24 hours.', 'secondary')}
+            ${Spacer(24)}
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td align="center">
+                  ${Button({ url: bookingUrl, text: 'Claim Your Spot Now →', variant: 'primary' })}
+                </td>
+              </tr>
+            </table>
+          `
+        })}
+        ${Spacer(32)}
+        ${Paragraph('If you don\'t book within 24 hours, we\'ll offer this to the next person on the waitlist.', 'muted')}
+      `;
+
+      const html = baseEmailTemplate({
+        preheader: `A spot opened up for ${bookingLink.title}`,
+        content: emailContent,
+        showHeader: true,
+        showFooter: true
+      });
+
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -76,14 +112,8 @@ serve(async (req) => {
         body: JSON.stringify({
           from: "The Quantum Club <bookings@thequantumclub.com>",
           to: [waitlistEntry.guest_email],
-          subject: `A Time Slot Opened Up! - ${bookingLink.title}`,
-          html: `
-            <h1>Great News, ${waitlistEntry.guest_name}!</h1>
-            <p>A time slot has opened up for <strong>${bookingLink.title}</strong>.</p>
-            <p>You have 24 hours to book this slot before it's offered to the next person on the waitlist.</p>
-            <p><a href="${bookingUrl}" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Book Now</a></p>
-            <p style="color: #666; font-size: 14px;">This link expires in 24 hours.</p>
-          `,
+          subject: `🎉 A Spot Opened Up! - ${bookingLink.title}`,
+          html,
         }),
       });
     }

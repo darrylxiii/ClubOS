@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Card, Heading, Paragraph, Spacer, InfoRow } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -123,45 +125,53 @@ serve(async (req) => {
     // Send notification emails
     const hostName = booking.profiles?.full_name || "Your host";
     
+    const oldTimeFormatted = oldStart.toLocaleString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
+    const newTimeFormatted = newStartDate.toLocaleString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+
     // Email to guest
-    const guestEmailHtml = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #f59e0b;">Meeting Rescheduled</h2>
-        
-        <p>Hi ${booking.guest_name},</p>
-        
-        <p>Your meeting <strong>"${booking.booking_links?.title}"</strong> has been rescheduled.</p>
-        
-        ${reason ? `<p><em>Reason: ${reason}</em></p>` : ''}
-        
-        <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
-          <p style="margin: 8px 0;"><strong>Previous time:</strong> ${oldStart.toLocaleString('en-US', { 
-            weekday: 'long', 
-            month: 'long', 
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          })}</p>
-          <p style="margin: 8px 0; color: #059669; font-weight: 600;"><strong>New time:</strong> ${newStartDate.toLocaleString('en-US', { 
-            weekday: 'long', 
-            month: 'long', 
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          })}</p>
-          <p style="margin: 8px 0;"><strong>Duration:</strong> ${booking.booking_links?.duration_minutes} minutes</p>
-        </div>
-        
-        <p>Please update your calendar accordingly. We look forward to meeting with you!</p>
-        
-        <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;">
-        <p style="color: #999; font-size: 12px; text-align: center;">
-          Powered by The Quantum Club
-        </p>
-      </div>
+    const guestEmailContent = `
+      ${Heading({ text: '🔄 Meeting Rescheduled', level: 1 })}
+      ${Spacer(24)}
+      ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+      ${Spacer(16)}
+      ${Paragraph(`Your meeting "${booking.booking_links?.title}" has been rescheduled.`, 'secondary')}
+      ${reason ? Spacer(16) + Paragraph(`💬 Reason: ${reason}`, 'secondary') : ''}
+      ${Spacer(32)}
+      ${Card({
+        variant: 'highlight',
+        content: `
+          ${Heading({ text: 'Time Change', level: 2 })}
+          ${Spacer(16)}
+          ${InfoRow({ icon: '❌', label: 'Previous time', value: oldTimeFormatted })}
+          ${InfoRow({ icon: '✅', label: 'New time', value: newTimeFormatted })}
+          ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${booking.booking_links?.duration_minutes} minutes` })}
+        `
+      })}
+      ${Spacer(32)}
+      ${Paragraph('Please update your calendar accordingly. We look forward to meeting with you!', 'muted')}
     `;
+
+    const guestEmailHtml = baseEmailTemplate({
+      preheader: `Meeting rescheduled: ${booking.booking_links?.title}`,
+      content: guestEmailContent,
+      showHeader: true,
+      showFooter: true
+    });
 
     const resendApiKey = Deno.env.get("RESEND_API_KEY");
     
@@ -182,29 +192,32 @@ serve(async (req) => {
 
     // Email to host
     if (booking.profiles?.email) {
-      const hostEmailHtml = `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #6366f1;">Booking Rescheduled</h2>
-          
-          <p>Hi ${hostName},</p>
-          
-          <p>A booking has been rescheduled:</p>
-          
-          <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <p style="margin: 8px 0;"><strong>Guest:</strong> ${booking.guest_name} (${booking.guest_email})</p>
-            <p style="margin: 8px 0;"><strong>Meeting:</strong> ${booking.booking_links?.title}</p>
-            <p style="margin: 8px 0;"><strong>New time:</strong> ${newStartDate.toLocaleString('en-US', { 
-              weekday: 'long', 
-              month: 'long', 
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit',
-              hour12: true
-            })}</p>
-            ${reason ? `<p style="margin: 8px 0;"><strong>Reason:</strong> ${reason}</p>` : ''}
-          </div>
-        </div>
+      const hostEmailContent = `
+        ${Heading({ text: '🔄 Booking Rescheduled', level: 1 })}
+        ${Spacer(24)}
+        ${Paragraph(`Hi ${hostName},`, 'primary')}
+        ${Spacer(16)}
+        ${Paragraph('A booking has been rescheduled:', 'secondary')}
+        ${Spacer(32)}
+        ${Card({
+          variant: 'default',
+          content: `
+            ${Heading({ text: booking.booking_links?.title, level: 2 })}
+            ${Spacer(16)}
+            ${InfoRow({ icon: '👤', label: 'Guest', value: `${booking.guest_name} (${booking.guest_email})` })}
+            ${InfoRow({ icon: '✅', label: 'New time', value: newTimeFormatted })}
+            ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${booking.booking_links?.duration_minutes} minutes` })}
+            ${reason ? InfoRow({ icon: '📝', label: 'Reason', value: reason }) : ''}
+          `
+        })}
       `;
+
+      const hostEmailHtml = baseEmailTemplate({
+        preheader: `Booking rescheduled: ${booking.guest_name}`,
+        content: hostEmailContent,
+        showHeader: true,
+        showFooter: true
+      });
 
       await fetch("https://api.resend.com/emails", {
         method: "POST",
