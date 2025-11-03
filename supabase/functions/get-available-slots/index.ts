@@ -161,7 +161,7 @@ serve(async (req) => {
           if (!busyError && busyData?.busySlots) {
             console.log(`[Slots] ${calendar.provider} returned ${busyData.busySlots.length} busy slots${tokenRefreshed ? ' (token refreshed)' : ''}`);
             if (busyData.busySlots.length > 0) {
-              console.log(`[Slots] Sample busy slot from ${calendar.provider}:`, busyData.busySlots[0]);
+              console.log(`[Slots] Sample busy slot from ${calendar.provider}:`, JSON.stringify(busyData.busySlots[0]));
             }
             calendarBusyTimes.push(...busyData.busySlots.map((slot: any) => ({
               scheduled_start: slot.start,
@@ -169,9 +169,10 @@ serve(async (req) => {
             })));
           } else if (busyError) {
             console.error(`[Slots] Calendar API error for ${calendar.provider}:`, busyError);
+            console.error(`[Slots] Calendar API call failed - connectionId: ${calendar.id}, timeMin: ${dateRange.start}, timeMax: ${dateRange.end}`);
             // Don't fail the entire request, continue with other calendars
           } else {
-            console.log(`[Slots] ${calendar.provider} returned no busy slots or unexpected format:`, busyData);
+            console.log(`[Slots] ${calendar.provider} returned no busy slots or unexpected format:`, JSON.stringify(busyData));
           }
         } catch (error) {
           console.error(`[Slots] Error fetching calendar busy times from ${calendar.provider}:`, error);
@@ -187,6 +188,10 @@ serve(async (req) => {
       ...meetingBlockedTimes
     ];
     console.log(`[Slots] Total busy times: ${allBusyTimes.length} (${existingBookings?.length || 0} bookings + ${calendarBusyTimes.length} calendar + ${meetingBlockedTimes.length} meetings)`);
+    
+    if (allBusyTimes.length > 0) {
+      console.log(`[Slots] First 3 busy times:`, JSON.stringify(allBusyTimes.slice(0, 3)));
+    }
 
     // Generate available slots
     const slots = generateAvailableSlots(
@@ -224,9 +229,11 @@ function generateAvailableSlots(
   const endDate = new Date(dateRange.end);
   
   // Use settings from booking_availability_settings table or defaults
-  const workingHoursStart = settings?.working_hours_start || "09:00:00";
-  const workingHoursEnd = settings?.working_hours_end || "17:00:00";
-  const workingDays = settings?.working_days || [1, 2, 3, 4, 5];
+  const workingHoursStart = settings?.default_start_time || "09:00:00";
+  const workingHoursEnd = settings?.default_end_time || "17:00:00";
+  const workingDays = settings?.default_available_days || [1, 2, 3, 4, 5];
+  
+  console.log(`[Slots] Using availability settings: start=${workingHoursStart}, end=${workingHoursEnd}, days=${JSON.stringify(workingDays)}`);
   
   const durationMinutes = bookingLink.duration_minutes;
   const bufferBefore = bookingLink.buffer_before_minutes || 0;

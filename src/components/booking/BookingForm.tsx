@@ -47,7 +47,43 @@ export function BookingForm({
       return;
     }
 
+    if (!selectedDate || !selectedTime) {
+      toast.error("Please select a date and time");
+      return;
+    }
+
     setLoading(true);
+    
+    // Phase 4: Client-side validation - verify slot is still available
+    try {
+      const verification = await supabase.functions.invoke("get-available-slots", {
+        body: {
+          bookingLinkSlug: bookingLink.slug,
+          dateRange: {
+            start: format(selectedDate, "yyyy-MM-dd"),
+            end: format(selectedDate, "yyyy-MM-dd"),
+          },
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      });
+      
+      if (verification.data?.slots) {
+        const selectedTimeStr = selectedTime;
+        const isStillAvailable = verification.data.slots.some((slot: string) => 
+          slot.startsWith(selectedTimeStr)
+        );
+        
+        if (!isStillAvailable) {
+          toast.error("This time slot was just booked. Please select another time.");
+          setLoading(false);
+          return;
+        }
+      }
+    } catch (verifyError) {
+      console.warn("Could not verify slot availability:", verifyError);
+      // Continue with booking attempt anyway
+    }
+    
     try {
       // Execute reCAPTCHA only if enabled
       let recaptchaToken = "";
@@ -119,7 +155,7 @@ export function BookingForm({
       toast.success("Booking confirmed!");
       onComplete(data.booking.id);
     } catch (error: any) {
-      console.error("Error creating booking:", error);
+      console.error("Booking error:", error);
       
       // Parse the actual error from edge function response
       let errorMsg = "Failed to create booking. Please try again.";
@@ -135,21 +171,27 @@ export function BookingForm({
         errorMsg = error.message;
       }
       
-      // Show user-friendly messages based on error type
-      if (errorMsg.includes("no longer available") || errorMsg.includes("already booked")) {
-        toast.error("⏰ This time slot was just booked. Please select another time.");
-      } else if (errorMsg.includes("Calendar conflict") || errorMsg.includes("meeting at this time")) {
-        toast.error("📅 You have a calendar conflict at this time. Please choose another slot.");
-      } else if (errorMsg.includes("just booked by someone else")) {
-        toast.error("⚡ Someone just booked this slot. Please select another time.");
-      } else if (errorMsg.includes("Booking link not found") || errorMsg.includes("not active")) {
-        toast.error("❌ This booking link is no longer active.");
-      } else if (errorMsg.includes("Too many booking attempts")) {
-        toast.error("⏱️ Too many booking attempts. Please try again in a few minutes.");
-      } else if (errorMsg.includes("reCAPTCHA")) {
-        toast.error("🔒 Verification failed. Please refresh and try again.");
+      // Phase 5: Improved error messages
+      const errorLower = errorMsg.toLowerCase();
+      
+      if (errorLower.includes("calendar") && errorLower.includes("conflict")) {
+        const provider = errorLower.includes("google") ? "Google Calendar" : 
+                        errorLower.includes("microsoft") ? "Microsoft Calendar" : "your calendar";
+        toast.error(`This time conflicts with an event in ${provider}. Please select another time.`);
+      } else if (errorLower.includes("no longer available") || errorLower.includes("already booked") || errorLower.includes("just booked")) {
+        toast.error("This time slot was just booked by someone else. Please select another time.");
+      } else if (errorLower.includes("rate limit") || errorLower.includes("too many")) {
+        toast.error("Too many booking attempts. Please wait a few minutes before trying again.");
+      } else if (errorLower.includes("calendar") && (errorLower.includes("unavailable") || errorLower.includes("timeout"))) {
+        toast.error("Unable to verify calendar availability. Please try again or contact support.");
+      } else if (errorLower.includes("validation") || errorLower.includes("invalid")) {
+        toast.error("Please check your booking details and try again.");
+      } else if (errorLower.includes("not found") || errorLower.includes("not active")) {
+        toast.error("This booking link is no longer active.");
+      } else if (errorLower.includes("recaptcha")) {
+        toast.error("Verification failed. Please refresh and try again.");
       } else {
-        toast.error(`❌ ${errorMsg}`);
+        toast.error(`Unable to complete booking: ${errorMsg}`);
       }
     } finally {
       setLoading(false);

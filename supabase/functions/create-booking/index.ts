@@ -151,9 +151,13 @@ serve(async (req) => {
       .eq("is_active", true);
 
     if (calendars && calendars.length > 0) {
+      console.log(`[Booking] Checking ${calendars.length} connected calendars for conflicts`);
       let calendarCheckFailed = false;
       
       for (const calendar of calendars) {
+        console.log(`[Booking] Checking calendar conflicts for ${calendar.provider}...`);
+        console.log(`[Booking] Calendar check params: connectionId=${calendar.id}, timeMin=${scheduledStart}, timeMax=${scheduledEnd}`);
+        
         try {
           let accessToken = calendar.access_token;
           
@@ -220,12 +224,24 @@ serve(async (req) => {
 
           if (busyError) {
             console.error(`[Booking] Calendar check failed for ${calendar.provider}:`, busyError);
+            console.error(`[Booking] Full calendar error:`, JSON.stringify(busyError));
             calendarCheckFailed = true;
             break;
           }
 
-          if (busyData?.busySlots && busyData.busySlots.length > 0) {
-            console.log("[Booking] Conflict: Calendar busy time found in", calendar.provider);
+          if (!busyData) {
+            console.error(`[Booking] No calendar response data from ${calendar.provider}`);
+            console.error(`[Booking] Full calendar response:`, JSON.stringify({ busyData, busyError }));
+            calendarCheckFailed = true;
+            break;
+          }
+
+          const busySlots = busyData.busySlots || [];
+          console.log(`[Booking] ${calendar.provider} returned ${busySlots.length} busy slots`);
+          
+          if (busySlots.length > 0) {
+            console.log(`[Booking] Conflict detected in ${calendar.provider}:`, JSON.stringify(busySlots[0]));
+            console.log(`[Booking] Booking attempt: ${scheduledStart} to ${scheduledEnd}`);
             return new Response(
               JSON.stringify({ 
                 error: `Calendar conflict: You have an event in your ${calendar.provider} calendar at this time` 
