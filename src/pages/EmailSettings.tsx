@@ -25,6 +25,8 @@ import {
   DialogTrigger,
   DialogFooter
 } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { logger } from "@/lib/logger";
 
 interface EmailConnection {
   id: string;
@@ -99,7 +101,7 @@ const EmailSettings = () => {
       setNewEmail('');
       loadConnections();
     } catch (error) {
-      console.error('Connection error:', error);
+      logger.error('Connection error:', error);
       toast.error('Failed to add email connection');
     } finally {
       setConnecting(false);
@@ -118,7 +120,7 @@ const EmailSettings = () => {
       toast.success(`Sync ${!currentState ? 'enabled' : 'disabled'}`);
       loadConnections();
     } catch (error) {
-      console.error('Toggle sync error:', error);
+      logger.error('Toggle sync error:', error);
       toast.error('Failed to update sync settings');
     }
   };
@@ -138,7 +140,7 @@ const EmailSettings = () => {
       toast.success('Emails synced successfully');
       loadConnections();
     } catch (error) {
-      console.error('Sync error:', error);
+      logger.error('Sync error:', error);
       toast.error('Failed to sync emails');
     }
   };
@@ -159,7 +161,7 @@ const EmailSettings = () => {
       toast.success('Email connection removed');
       loadConnections();
     } catch (error) {
-      console.error('Remove error:', error);
+      logger.error('Remove error:', error);
       toast.error('Failed to remove connection');
     }
   };

@@ -95,6 +95,9 @@ const ValuesPoker = lazy(() => import("./pages/ValuesPoker"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 const DocumentManagement = lazy(() => import("./pages/DocumentManagement"));
 const EmailSettings = lazy(() => import("./pages/EmailSettings"));
+const BookingManagement = lazy(() => import("./pages/BookingManagement"));
+const CompanySettings = lazy(() => import("./pages/CompanySettings"));
+const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 
 // Loading fallback component
 const PageLoader = () => (

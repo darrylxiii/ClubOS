@@ -15,6 +15,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { logger } from "@/lib/logger";
 
 interface Document {
   id: string;
@@ -88,7 +90,7 @@ const DocumentManagement = () => {
       const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
-        .from('candidate-documents')
+        .from('resumes')
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
@@ -150,7 +152,7 @@ const DocumentManagement = () => {
   const handleDownload = async (doc: Document) => {
     try {
       const { data, error } = await supabase.storage
-        .from('candidate-documents')
+        .from('resumes')
         .download(doc.file_path);
 
       if (error) throw error;
@@ -174,10 +176,10 @@ const DocumentManagement = () => {
     }
 
     try {
-      // Delete from storage
-      const { error: storageError } = await supabase.storage
-        .from('candidate-documents')
-        .remove([doc.file_path]);
+    // Delete from storage
+    const { error: storageError } = await supabase.storage
+      .from('resumes')
+      .remove([doc.file_path]);
 
       if (storageError) throw storageError;
 
@@ -265,8 +267,11 @@ const DocumentManagement = () => {
         </Alert>
 
         {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
           </div>
         ) : documents.length === 0 ? (
           <Card>
