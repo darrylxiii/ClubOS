@@ -612,6 +612,30 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/booking-management"
+              element={
+                <ProtectedRoute>
+                  <BookingManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/company-settings"
+              element={
+                <ProtectedRoute>
+                  <CompanySettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/expert-marketplace"
+              element={
+                <ProtectedRoute>
+                  <ExpertMarketplace />
+                </ProtectedRoute>
+              }
+            />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
                 </Routes>

@@ -159,6 +159,8 @@ const partnerNavigationGroups = [
       { name: "Meetings", icon: Video, path: "/meetings" },
       { name: "Meeting History", icon: Clock, path: "/meeting-history" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+      { name: "Booking Management", icon: Calendar, path: "/booking-management" },
+      { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
       { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
     ],
   },
