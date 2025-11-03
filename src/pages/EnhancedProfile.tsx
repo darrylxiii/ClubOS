@@ -339,7 +339,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
         )}
 
         {/* Social Activity Feed */}
-        <SocialActivityFeed />
+        <SocialActivityFeed userId={profileUserId} isReadOnly={!isOwnProfile} />
 
         {/* Profile Completion Stats */}
         <Card>

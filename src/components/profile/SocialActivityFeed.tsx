@@ -49,9 +49,15 @@ interface SocialAccount {
   avatar_url: string;
 }
 
-export const SocialActivityFeed = () => {
+interface SocialActivityFeedProps {
+  userId?: string;
+  isReadOnly?: boolean;
+}
+
+export const SocialActivityFeed = ({ userId, isReadOnly = false }: SocialActivityFeedProps = {}) => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const targetUserId = userId || user?.id;
   const [posts, setPosts] = useState<Post[]>([]);
   const [stories, setStories] = useState<Story[]>([]);
   const [likes, setLikes] = useState<Like[]>([]);
@@ -59,10 +65,10 @@ export const SocialActivityFeed = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user) {
+    if (targetUserId) {
       fetchAllData();
     }
-  }, [user]);
+  }, [targetUserId]);
 
   const fetchAllData = async () => {
     try {
@@ -84,7 +90,7 @@ export const SocialActivityFeed = () => {
     const { data } = await supabase
       .from('posts')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: false })
       .limit(5);
     
@@ -95,7 +101,7 @@ export const SocialActivityFeed = () => {
     const { data } = await supabase
       .from('stories')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', targetUserId)
       .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
       .order('created_at', { ascending: false })
       .limit(5);
@@ -115,7 +121,7 @@ export const SocialActivityFeed = () => {
           user:profiles(full_name, avatar_url)
         )
       `)
-      .eq('user_id', user?.id)
+      .eq('user_id', targetUserId)
       .order('created_at', { ascending: false })
       .limit(5);
     
@@ -126,7 +132,7 @@ export const SocialActivityFeed = () => {
     const { data } = await supabase
       .from('social_media_accounts')
       .select('*')
-      .eq('user_id', user?.id)
+      .eq('user_id', targetUserId)
       .eq('is_active', true);
     
     if (data) setSocialAccounts(data);
@@ -167,17 +173,19 @@ export const SocialActivityFeed = () => {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle>Social Activity</CardTitle>
-            <CardDescription>Your latest posts, stories, and likes</CardDescription>
+            <CardDescription>{isReadOnly ? 'Latest posts, stories, and likes' : 'Your latest posts, stories, and likes'}</CardDescription>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/settings#social')}
-            className="gap-2"
-          >
-            <Settings className="w-4 h-4" />
-            Connect Platforms
-          </Button>
+          {!isReadOnly && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/settings#social')}
+              className="gap-2"
+            >
+              <Settings className="w-4 h-4" />
+              Connect Platforms
+            </Button>
+          )}
         </div>
       </CardHeader>
       <CardContent>
@@ -347,7 +355,7 @@ export const SocialActivityFeed = () => {
           </TabsContent>
         </Tabs>
 
-        {socialAccounts.length === 0 && (
+        {socialAccounts.length === 0 && !isReadOnly && (
           <div className="mt-6 p-6 border rounded-lg bg-muted/50 text-center">
             <p className="text-sm text-muted-foreground mb-3">
               Connect your social media accounts to see aggregated posts from other platforms
