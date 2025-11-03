@@ -43,7 +43,6 @@ serve(async (req) => {
           scheduled_end,
           booking_links (
             title,
-            meeting_link,
             duration_minutes
           )
         `)
@@ -103,16 +102,8 @@ serve(async (req) => {
                   hour: 'numeric',
                   minute: '2-digit',
                   hour12: true
-                })}</p>
+                 })}</p>
                 <p style="margin: 8px 0;"><strong>⏱️ Duration:</strong> ${bookingLinkData?.duration_minutes} minutes</p>
-                ${bookingLinkData?.meeting_link ? `
-                  <p style="margin: 16px 0;">
-                    <a href="${bookingLinkData.meeting_link}" 
-                       style="display: inline-block; background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600;">
-                      Join Meeting
-                    </a>
-                  </p>
-                ` : ''}
               </div>
               
               <p style="color: #666; font-size: 14px;">

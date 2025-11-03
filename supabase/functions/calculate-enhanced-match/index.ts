@@ -1,6 +1,12 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders } from '../_shared/cors.ts';
 
+// Structured logging utility
+function log(level: 'info' | 'error' | 'warn', message: string, context?: any) {
+  const timestamp = new Date().toISOString();
+  console[level](`[${timestamp}] [${level.toUpperCase()}] ${message}`, context || '');
+}
+
 interface MatchFactors {
   skillOverlap: number;
   experienceMatch: number;
@@ -34,6 +40,7 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
     if (authError || !user) {
+      log('error', 'Auth error', { authError });
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 401 }
@@ -42,31 +49,51 @@ Deno.serve(async (req) => {
 
     const { jobId } = await req.json();
     if (!jobId) {
+      log('warn', 'Missing jobId in request');
       return new Response(
         JSON.stringify({ error: 'jobId is required' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
 
+    log('info', 'Calculating match', { userId: user.id, jobId });
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch candidate profile
-    const { data: profile } = await supabase
+    // Fetch candidate profile - using maybeSingle to handle missing data gracefully
+    const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('current_title, location, skills, years_experience, desired_salary_min, desired_salary_max')
+      .select('id, current_title, location, skills, years_experience, desired_salary_min, desired_salary_max')
       .eq('id', user.id)
-      .single();
+      .maybeSingle();
 
-    // Fetch job
-    const { data: job } = await supabase
+    if (profileError) {
+      log('error', 'Error fetching profile', { profileError, userId: user.id });
+    }
+
+    // Fetch job - using maybeSingle to handle missing data gracefully
+    const { data: job, error: jobError } = await supabase
       .from('jobs')
       .select('*, companies(name, culture_values)')
       .eq('id', jobId)
-      .single();
+      .maybeSingle();
 
-    if (!job || !profile) {
+    if (jobError) {
+      log('error', 'Error fetching job', { jobError, jobId });
+    }
+
+    if (!job) {
+      log('warn', 'Job not found', { jobId });
       return new Response(
-        JSON.stringify({ error: 'Job or profile not found' }),
+        JSON.stringify({ error: 'Job not found', jobId }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
+      );
+    }
+
+    if (!profile) {
+      log('warn', 'Profile not found', { userId: user.id });
+      return new Response(
+        JSON.stringify({ error: 'Profile not found', userId: user.id }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
     }
@@ -97,8 +124,10 @@ Deno.serve(async (req) => {
     // Generate explanation
     const explanation = generateMatchExplanation(factors, overallScore);
 
+    log('info', 'Match calculated successfully', { userId: user.id, jobId, overallScore });
+
     // Store match score
-    await supabase.from('match_scores').upsert({
+    const { error: upsertError } = await supabase.from('match_scores').upsert({
       user_id: user.id,
       job_id: jobId,
       overall_score: overallScore,
@@ -106,15 +135,19 @@ Deno.serve(async (req) => {
       calculated_at: new Date().toISOString()
     });
 
+    if (upsertError) {
+      log('error', 'Error storing match score', { upsertError, userId: user.id, jobId });
+    }
+
     return new Response(
       JSON.stringify({ score: overallScore, factors, explanation }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in calculate-enhanced-match:', error);
+    log('error', 'Unhandled error in calculate-enhanced-match', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error', message: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
