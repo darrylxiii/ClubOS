@@ -202,13 +202,15 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   const groups: NavigationGroup[] = [];
   
   // 1. Add overview section with correct dashboard
-  const overviewGroup = { ...baseNavigationGroups[0] };
-  overviewGroup.items = overviewGroup.items.map(item => {
-    if (item.path === '/dashboard') {
-      return { ...item, path: dashboardPaths[normalizedRole] };
-    }
-    return item;
-  });
+  const overviewGroup = { 
+    ...baseNavigationGroups[0],
+    items: baseNavigationGroups[0].items.map(item => {
+      if (item.path === '/dashboard') {
+        return { ...item, path: dashboardPaths[normalizedRole] };
+      }
+      return item;
+    })
+  };
   
   // Add admin panel for admin role
   if (normalizedRole === 'admin') {
@@ -224,7 +226,10 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   }
   
   // 3. Add communication section with role-specific items
-  const communicationGroup = { ...baseNavigationGroups[1] };
+  const communicationGroup = { 
+    ...baseNavigationGroups[1],
+    items: [...baseNavigationGroups[1].items] // Deep copy the items array
+  };
   if (normalizedRole === 'partner') {
     communicationGroup.items.push(...partnerSpecificItems);
   } else if (normalizedRole === 'candidate') {
