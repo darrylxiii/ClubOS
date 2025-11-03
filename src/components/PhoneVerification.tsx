@@ -8,6 +8,7 @@ import 'react-phone-number-input/style.css';
 import '@/styles/phone-input.css';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { usePhoneVerification } from '@/hooks/usePhoneVerification';
+import { useCountryDetection } from '@/hooks/useCountryDetection';
 import type { PhoneVerificationProps } from '@/types/verification';
 
 export const PhoneVerification = ({
@@ -26,6 +27,8 @@ export const PhoneVerification = ({
     verifyOTP,
     resetVerification,
   } = usePhoneVerification();
+  
+  const { countryCode } = useCountryDetection();
 
   const isPhoneValid = phoneNumber && isValidPhoneNumber(phoneNumber);
 
@@ -76,7 +79,7 @@ export const PhoneVerification = ({
         <div className="flex gap-2">
           <PhoneInput
             international
-            defaultCountry="US"
+            defaultCountry={countryCode as any}
             value={phoneNumber}
             onChange={onPhoneChange}
             disabled={phoneVerified || otpSent}

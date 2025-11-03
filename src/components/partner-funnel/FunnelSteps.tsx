@@ -17,6 +17,7 @@ import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { PartnerRequestTracker } from "./PartnerRequestTracker";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useCountryDetection } from "@/hooks/useCountryDetection";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
 
@@ -48,6 +49,8 @@ export function FunnelSteps() {
     isSendingOtp: isSendingEmailOtp,
     resendCooldown: emailResendCooldown 
   } = useEmailVerification();
+  
+  const { countryCode } = useCountryDetection();
 
   const [emailVerified, setEmailVerified] = useState(false);
   const [emailOtpCode, setEmailOtpCode] = useState("");
@@ -510,7 +513,7 @@ export function FunnelSteps() {
               <Label>Phone Number *</Label>
               <PhoneInput
                 international
-                defaultCountry="NL"
+                defaultCountry={countryCode as any}
                 value={phoneNumber}
                 onChange={(value) => setPhoneNumber(value || "")}
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"

@@ -15,6 +15,7 @@ import { useEmailVerification } from "@/hooks/useEmailVerification";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
+import { useCountryDetection } from "@/hooks/useCountryDetection";
 import { Slider } from "@/components/ui/slider";
 import { CandidateApplicationTracker } from "./CandidateApplicationTracker";
 
@@ -53,6 +54,8 @@ export function CandidateOnboardingSteps() {
     isSendingOtp: isSendingEmailOtp,
     resendCooldown: emailResendCooldown 
   } = useEmailVerification();
+  
+  const { countryCode } = useCountryDetection();
 
   const [emailVerified, setEmailVerified] = useState(false);
   const [emailOtpCode, setEmailOtpCode] = useState("");
@@ -865,7 +868,7 @@ export function CandidateOnboardingSteps() {
                 <Label>Phone Number *</Label>
                 <PhoneInput
                   international
-                  defaultCountry="NL"
+                  defaultCountry={countryCode as any}
                   value={phoneNumber}
                   onChange={(value) => setPhoneNumber(value || "")}
                   disabled={phoneVerified}
