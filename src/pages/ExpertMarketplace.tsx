@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -273,20 +274,23 @@ export default function ExpertMarketplace() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-12 w-full" />
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
+      <AppLayout>
+        <div className="container mx-auto py-6 space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-12 w-full" />
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <AppLayout>
+      <div className="container mx-auto py-6 space-y-6">
       <Breadcrumb />
       
       <div className="flex justify-between items-center">
@@ -631,5 +635,6 @@ export default function ExpertMarketplace() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </AppLayout>
   );
 }

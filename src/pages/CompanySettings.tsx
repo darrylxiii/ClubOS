@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AppLayout } from "@/components/AppLayout";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -288,33 +289,38 @@ export default function CompanySettings() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
-        <Skeleton className="h-8 w-64" />
-        <div className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-64 w-full" />
-          <Skeleton className="h-64 w-full" />
+      <AppLayout>
+        <div className="container mx-auto py-6 space-y-6">
+          <Skeleton className="h-8 w-64" />
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
         </div>
-      </div>
+      </AppLayout>
     );
   }
 
   if (!company) {
     return (
-      <div className="container mx-auto py-6">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">You are not associated with any company</p>
-            <p className="text-sm text-muted-foreground mt-2">Contact an admin to be added to a company</p>
-          </CardContent>
-        </Card>
-      </div>
+      <AppLayout>
+        <div className="container mx-auto py-6">
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">You are not associated with any company</p>
+              <p className="text-sm text-muted-foreground mt-2">Contact an admin to be added to a company</p>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <AppLayout>
+      <div className="container mx-auto py-6 space-y-6">
       <Breadcrumb />
       
       <div className="flex justify-between items-center">
@@ -639,5 +645,6 @@ export default function CompanySettings() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </AppLayout>
   );
 }
