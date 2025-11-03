@@ -88,6 +88,9 @@ const Assessments = lazy(() => import("./pages/Assessments"));
 const SwipeGame = lazy(() => import("./pages/SwipeGame"));
 const Miljoenenjacht = lazy(() => import("./pages/Miljoenenjacht"));
 const Incubator20 = lazy(() => import("./pages/assessments/Incubator20"));
+const PressureCooker = lazy(() => import("./pages/PressureCooker"));
+const BlindSpotDetector = lazy(() => import("./pages/BlindSpotDetector"));
+const ValuesPoker = lazy(() => import("./pages/ValuesPoker"));
 const Inbox = lazy(() => import("./pages/Inbox"));
 
 // Loading fallback component
@@ -536,6 +539,30 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Incubator20 />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessments/pressure-cooker"
+              element={
+                <ProtectedRoute>
+                  <PressureCooker />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessments/blind-spot-detector"
+              element={
+                <ProtectedRoute>
+                  <BlindSpotDetector />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/assessments/values-poker"
+              element={
+                <ProtectedRoute>
+                  <ValuesPoker />
                 </ProtectedRoute>
               }
             />

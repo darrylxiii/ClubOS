@@ -177,12 +177,13 @@ export function useBlindSpotSession() {
       // Save to assessment_results
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('assessment_results').insert({
+        await (supabase.from('assessment_results') as any).insert({
+          user_id: user.id,
           assessment_id: 'blind_spot_detector',
           assessment_name: 'Blind Spot Detector',
           assessment_type: 'personality',
           score: results.selfAwarenessScore,
-          results_data: results as any
+          results_data: results
         });
       }
 

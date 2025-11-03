@@ -184,12 +184,13 @@ export function usePressureCookerSession(scenarioKey: string, tasks: PressureCoo
       // Save to assessment_results
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('assessment_results').insert({
+        await (supabase.from('assessment_results') as any).insert({
+          user_id: user.id,
           assessment_id: 'pressure_cooker',
           assessment_name: 'Pressure Cooker',
           assessment_type: 'skills',
           score: (results.completionRate + results.prioritizationAccuracy) / 2,
-          results_data: results as any
+          results_data: results
         });
       }
 

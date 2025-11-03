@@ -174,12 +174,13 @@ export function useValuesPokerSession() {
       // Save to assessment_results
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('assessment_results').insert({
+        await (supabase.from('assessment_results') as any).insert({
+          user_id: user.id,
           assessment_id: 'values_poker',
           assessment_name: 'Values Poker',
           assessment_type: 'culture',
           score: results.consistencyScore,
-          results_data: results as any
+          results_data: results
         });
       }
 
