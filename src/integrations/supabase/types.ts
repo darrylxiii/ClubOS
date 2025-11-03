@@ -301,13 +301,6 @@ export type Database = {
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "ai_action_log_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
-          },
         ]
       }
       ai_content_suggestions: {
@@ -449,13 +442,6 @@ export type Database = {
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "ai_generated_content_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
-          },
         ]
       }
       ai_memory: {
@@ -556,6 +542,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      ai_rate_limits: {
+        Row: {
+          created_at: string | null
+          endpoint: string
+          id: string
+          ip_address: string
+          request_count: number | null
+          updated_at: string | null
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint: string
+          id?: string
+          ip_address: string
+          request_count?: number | null
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string
+          id?: string
+          ip_address?: string
+          request_count?: number | null
+          updated_at?: string | null
+          window_start?: string | null
+        }
+        Relationships: []
       }
       ai_session_feedback: {
         Row: {
@@ -730,13 +746,6 @@ export type Database = {
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "ai_suggestions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
-          },
         ]
       }
       ai_usage_logs: {
@@ -903,7 +912,7 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
-            referencedColumns: ["candidate_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "applications_job_id_fkey"
@@ -925,13 +934,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "applications_sourced_by_fkey"
-            columns: ["sourced_by"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
           },
         ]
       }
@@ -1724,7 +1726,7 @@ export type Database = {
             columns: ["candidate_profile_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
-            referencedColumns: ["candidate_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1889,7 +1891,7 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
-            referencedColumns: ["candidate_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1983,7 +1985,7 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
-            referencedColumns: ["candidate_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2052,7 +2054,7 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
-            referencedColumns: ["candidate_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "candidate_invitations_invited_by_fkey"
@@ -2067,13 +2069,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "candidate_invitations_invited_by_fkey"
-            columns: ["invited_by"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
           },
         ]
       }
@@ -2136,7 +2131,7 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
-            referencedColumns: ["candidate_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "candidate_notes_created_by_fkey"
@@ -2151,13 +2146,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "candidate_notes_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "candidate_notes_related_job_id_fkey"
@@ -2218,7 +2206,7 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
-            referencedColumns: ["candidate_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "candidate_profile_views_job_id_fkey"
@@ -2448,13 +2436,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "candidate_profiles_assigned_strategist_id_fkey"
-            columns: ["assigned_strategist_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
           },
         ]
       }
@@ -2803,13 +2784,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "club_sync_requests_requested_by_fkey"
-            columns: ["requested_by"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
-          },
-          {
             foreignKeyName: "club_sync_requests_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
@@ -2822,13 +2796,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "club_sync_requests_reviewed_by_fkey"
-            columns: ["reviewed_by"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
           },
         ]
       }
@@ -3328,7 +3295,7 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
-            referencedColumns: ["candidate_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "company_candidate_feedback_company_id_fkey"
@@ -3357,13 +3324,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_candidate_feedback_provided_by_fkey"
-            columns: ["provided_by"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
           },
         ]
       }
@@ -4376,13 +4336,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "courses_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "courses_learning_path_id_fkey"
@@ -7389,13 +7342,6 @@ export type Database = {
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "module_chat_messages_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
-          },
         ]
       }
       module_content: {
@@ -10128,7 +10074,7 @@ export type Database = {
             columns: ["candidate_id"]
             isOneToOne: false
             referencedRelation: "unified_candidate_view"
-            referencedColumns: ["candidate_id"]
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "role_candidate_feedback_job_id_fkey"
@@ -10150,13 +10096,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "role_candidate_feedback_provided_by_fkey"
-            columns: ["provided_by"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
           },
         ]
       }
@@ -11527,13 +11466,6 @@ export type Database = {
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "unified_task_assignees_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
-          },
         ]
       }
       unified_task_blockers: {
@@ -12781,169 +12713,103 @@ export type Database = {
       public_profiles: {
         Row: {
           avatar_url: string | null
-          current_title: string | null
+          created_at: string | null
           full_name: string | null
           id: string | null
-          location: string | null
+          profile_slug: string | null
         }
         Insert: {
           avatar_url?: string | null
-          current_title?: never
+          created_at?: string | null
           full_name?: string | null
           id?: string | null
-          location?: never
+          profile_slug?: string | null
         }
         Update: {
           avatar_url?: string | null
-          current_title?: never
+          created_at?: string | null
           full_name?: string | null
           id?: string | null
-          location?: never
+          profile_slug?: string | null
         }
         Relationships: []
       }
       public_talent_strategists: {
         Row: {
           availability: string | null
-          bio: string | null
           created_at: string | null
+          email: string | null
           full_name: string | null
           id: string | null
+          linkedin_url: string | null
+          phone: string | null
           photo_url: string | null
           specialties: string[] | null
           title: string | null
-          updated_at: string | null
         }
         Insert: {
           availability?: string | null
-          bio?: string | null
           created_at?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
           photo_url?: string | null
           specialties?: string[] | null
           title?: string | null
-          updated_at?: string | null
         }
         Update: {
           availability?: string | null
-          bio?: string | null
           created_at?: string | null
+          email?: string | null
           full_name?: string | null
           id?: string | null
+          linkedin_url?: string | null
+          phone?: string | null
           photo_url?: string | null
           specialties?: string[] | null
           title?: string | null
-          updated_at?: string | null
         }
         Relationships: []
       }
       unified_candidate_view: {
         Row: {
-          ai_summary: string | null
-          assigned_strategist_id: string | null
-          candidate_avatar: string | null
-          candidate_created_at: string | null
-          candidate_email: string | null
-          candidate_full_name: string | null
-          candidate_id: string | null
-          candidate_skills: Json | null
-          certifications: Json | null
-          contract_end_date: string | null
-          cp_desired_salary_max: number | null
-          cp_desired_salary_min: number | null
-          cp_notice_period: string | null
-          cp_preferred_currency: string | null
-          cp_remote_preference: string | null
+          avatar_url: string | null
+          blocked_companies: Json | null
+          created_at: string | null
           current_company: string | null
           current_salary_max: number | null
           current_salary_min: number | null
           current_title: string | null
-          data_completeness_score: number | null
           desired_locations: Json | null
-          display_avatar: string | null
-          display_email: string | null
-          display_name: string | null
-          education: Json | null
-          email_verified: boolean | null
-          employment_type_preference: string | null
-          engagement_score: number | null
-          final_currency: string | null
-          final_desired_salary_max: number | null
-          final_desired_salary_min: number | null
-          final_notice_period: string | null
-          fit_score: number | null
-          freelance_hourly_rate_max: number | null
-          freelance_hourly_rate_min: number | null
-          freelance_hours_per_week_max: number | null
-          freelance_hours_per_week_min: number | null
-          fulltime_hours_per_week_max: number | null
-          fulltime_hours_per_week_min: number | null
-          github_connected: boolean | null
-          github_url: string | null
-          has_indefinite_contract: boolean | null
-          header_media_type: string | null
-          header_media_url: string | null
-          internal_rating: number | null
-          invitation_status: string | null
-          languages: Json | null
-          linkedin_connected: boolean | null
+          desired_salary_max: number | null
+          desired_salary_min: number | null
+          email: string | null
+          full_name: string | null
+          gdpr_consent: boolean | null
+          id: string | null
+          last_activity_at: string | null
+          last_application_date: string | null
+          last_interaction_date: string | null
           linkedin_url: string | null
-          location: string | null
-          merge_status: string | null
           merged_at: string | null
-          p_desired_salary_max: number | null
-          p_desired_salary_min: number | null
-          p_notice_period: string | null
-          p_preferred_currency: string | null
+          notice_period: string | null
           phone: string | null
-          phone_verified: boolean | null
-          portfolio_url: string | null
-          preferred_work_locations: Json | null
-          privacy_settings: Json | null
-          profile_avatar: string | null
-          profile_completeness: number | null
-          profile_created_at: string | null
-          profile_current_title: string | null
-          profile_email: string | null
+          preferred_currency: string | null
           profile_full_name: string | null
-          profile_id: string | null
-          profile_linkedin: string | null
           profile_slug: string | null
-          public_fields: Json | null
-          remote_work_preference: boolean | null
-          resume_url: string | null
-          source_channel: string | null
-          stealth_mode_enabled: boolean | null
-          tags: Json | null
+          profile_views: number | null
+          remote_preference: string | null
+          skills: Json | null
+          total_applications: number | null
+          total_documents: number | null
+          updated_at: string | null
           user_id: string | null
           work_authorization: Json | null
-          work_history: Json | null
           years_of_experience: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "candidate_profiles_assigned_strategist_id_fkey"
-            columns: ["assigned_strategist_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "candidate_profiles_assigned_strategist_id_fkey"
-            columns: ["assigned_strategist_id"]
-            isOneToOne: false
-            referencedRelation: "public_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "candidate_profiles_assigned_strategist_id_fkey"
-            columns: ["assigned_strategist_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["profile_id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Functions: {
