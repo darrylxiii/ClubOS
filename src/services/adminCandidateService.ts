@@ -109,7 +109,6 @@ export const adminCandidateService = {
         candidate_profiles(
           id,
           resume_url,
-          cv_url,
           portfolio_url,
           linkedin_url,
           github_url

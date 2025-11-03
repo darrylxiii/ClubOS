@@ -47,7 +47,7 @@ export default function AdminUserProfile() {
         .from('profiles')
         .select(`
           *,
-          candidate_profiles(id, resume_url, cv_url)
+          candidate_profiles(id, resume_url)
         `)
         .eq('id', userId)
         .single();
@@ -245,21 +245,6 @@ export default function AdminUserProfile() {
                             target="_blank" 
                             rel="noopener noreferrer"
                           >
-                            <Download className="w-4 h-4 mr-2" />
-                            Download
-                          </a>
-                        </Button>
-                      </div>
-                    )}
-
-                    {candidateProfile?.cv_url && (
-                      <div className="flex items-center justify-between p-4 border rounded-lg">
-                        <div>
-                          <p className="font-medium">CV</p>
-                          <p className="text-sm text-muted-foreground">Curriculum Vitae</p>
-                        </div>
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={candidateProfile.cv_url} target="_blank" rel="noopener noreferrer">
                             <Download className="w-4 h-4 mr-2" />
                             Download
                           </a>

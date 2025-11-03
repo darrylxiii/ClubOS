@@ -336,21 +336,6 @@ export function UserSettingsViewer({
               <span>No resume uploaded</span>
             </div>
           )}
-
-          {candidateProfile?.cv_url && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span>CV uploaded</span>
-              </div>
-              <Button variant="outline" size="sm" asChild>
-                <a href={candidateProfile.cv_url} target="_blank" rel="noopener noreferrer">
-                  <Download className="w-4 h-4 mr-2" />
-                  Download
-                </a>
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
 
