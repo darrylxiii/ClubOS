@@ -205,8 +205,7 @@ function ApplicationCard({ application }: { application: Application }) {
               variant="ghost"
               onClick={(e) => {
                 e.stopPropagation();
-                // TODO: Share functionality
-                toast.success("Share link copied!");
+                toast.info("Share application feature coming soon");
               }}
             >
               <Share2 className="w-4 h-4" />
@@ -216,8 +215,7 @@ function ApplicationCard({ application }: { application: Application }) {
               variant="ghost"
               onClick={(e) => {
                 e.stopPropagation();
-                // TODO: Export functionality
-                toast.success("Exporting application history...");
+                toast.info("Export application history feature coming soon");
               }}
             >
               <Download className="w-4 h-4" />

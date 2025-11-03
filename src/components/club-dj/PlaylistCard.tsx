@@ -37,7 +37,7 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onTogglePublish }: Pl
           <Button
             size="icon"
             variant="ghost"
-            className="bg-white/10 hover:bg-white/20 text-white"
+            className="bg-card/10 hover:bg-card/20 text-white"
             onClick={() => onEdit(playlist)}
           >
             <Edit2 className="h-4 w-4" />
@@ -45,7 +45,7 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onTogglePublish }: Pl
           <Button
             size="icon"
             variant="ghost"
-            className="bg-white/10 hover:bg-white/20 text-white"
+            className="bg-card/10 hover:bg-card/20 text-white"
             onClick={() => onTogglePublish(playlist.id, playlist.is_published)}
           >
             {playlist.is_published ? (
@@ -57,7 +57,7 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onTogglePublish }: Pl
           <Button
             size="icon"
             variant="ghost"
-            className="bg-white/10 hover:bg-white/20 text-white"
+            className="bg-card/10 hover:bg-card/20 text-white"
             onClick={() => onDelete(playlist.id)}
           >
             <Trash2 className="h-4 w-4" />

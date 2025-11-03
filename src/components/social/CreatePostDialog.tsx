@@ -60,8 +60,7 @@ export const CreatePostDialog = ({ open, onOpenChange }: CreatePostDialogProps) 
   };
 
   const handleAISuggestion = async () => {
-    toast.info("AI suggestions coming soon!");
-    // TODO: Implement AI suggestions
+    toast.info("AI-powered content suggestions coming soon to help you create engaging posts!");
   };
 
   const handleSubmit = async () => {

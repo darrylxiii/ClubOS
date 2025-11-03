@@ -78,7 +78,7 @@ export default function AcademyCreatorHub() {
         totalCourses,
         publishedCourses,
         totalModules,
-        totalStudents: 0, // TODO: Implement when we have enrollment tracking
+        totalStudents: 0, // Enrollment tracking will be implemented in Phase 2
       });
 
     } catch (error: any) {

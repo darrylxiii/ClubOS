@@ -69,7 +69,7 @@ const TooltipContent = React.forwardRef<
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
-      "z-50 overflow-hidden rounded-md border border-border bg-white dark:bg-card px-3 py-1.5 text-sm text-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
+      "z-50 overflow-hidden rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2",
       className
     )}
     {...props}
@@ -104,7 +104,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-[90vw] md:max-w-[800px] translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-white dark:bg-card p-0 shadow-xl duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-2xl",
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-[90vw] md:max-w-[800px] translate-x-[-50%] translate-y-[-50%] gap-4 border border-border bg-card p-0 shadow-xl duration-300 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 rounded-2xl",
         className
       )}
       {...props}
@@ -144,7 +144,7 @@ const PopoverContent = React.forwardRef<
       align={align}
       sideOffset={sideOffset}
       className={cn(
-        "z-50 w-72 rounded-xl border border-border bg-white dark:bg-card p-3 shadow-xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        "z-50 w-72 rounded-xl border border-border bg-card p-3 shadow-xl outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
         className
       )}
       {...props}
@@ -270,7 +270,7 @@ const ImageViewDialog: React.FC<ImageViewDialogProps> = ({ imageUrl, onClose }) 
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ duration: 0.2, ease: "easeOut" }}
-          className="relative bg-white dark:bg-card rounded-2xl overflow-hidden shadow-2xl"
+          className="relative bg-card rounded-2xl overflow-hidden shadow-2xl"
         >
           <img
             src={imageUrl}
@@ -356,7 +356,7 @@ const PromptInput = React.forwardRef<HTMLDivElement, PromptInputProps>(
           <div
             ref={ref}
             className={cn(
-              "rounded-3xl border border-border bg-white dark:bg-card p-2 shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300",
+              "rounded-3xl border border-border bg-card p-2 shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300",
               isLoading && "border-red-500/70",
               className
             )}
@@ -773,7 +773,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
         isLoading={isLoading}
         onSubmit={handleSubmit}
         className={cn(
-          "w-full bg-white dark:bg-card border border-border shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 ease-in-out rounded-3xl",
+          "w-full bg-card border border-border shadow-[0_8px_30px_rgba(0,0,0,0.24)] transition-all duration-300 ease-in-out rounded-3xl",
           isRecording && "border-red-500/70",
           className
         )}
@@ -802,9 +802,9 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                         e.stopPropagation();
                         handleRemoveFile(index);
                       }}
-                      className="absolute top-1 right-1 rounded-full bg-black/70 dark:bg-white/70 p-0.5 opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 rounded-full bg-muted/70 p-0.5 opacity-100 transition-opacity"
                     >
-                      <X className="h-3 w-3 text-white dark:text-black" />
+                      <X className="h-3 w-3 text-foreground" />
                     </button>
                   </div>
                 ) : (
@@ -875,7 +875,7 @@ export const PromptInputBox = React.forwardRef<HTMLDivElement, PromptInputBoxPro
                   </button>
                 </PopoverTrigger>
               </PromptInputAction>
-              <PopoverContent align="start" className="w-80 p-2 bg-white dark:bg-card border-border">
+              <PopoverContent align="start" className="w-80 p-2 bg-card border-border">
                 <div className="space-y-1">
                   <div className="px-2 py-1.5">
                     <h4 className="text-sm font-semibold text-foreground mb-1">Select AI Model</h4>

@@ -85,7 +85,7 @@ export function ControlsPanel({
           className={cn(
             "rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10",
             isAudioEnabled
-              ? "bg-white/10 hover:bg-white/20 text-white"
+              ? "bg-card/10 hover:bg-card/20 text-white"
               : "bg-red-500/90 hover:bg-red-600 text-white shadow-red-500/50"
           )}
         >
@@ -99,7 +99,7 @@ export function ControlsPanel({
           className={cn(
             "rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10",
             isVideoEnabled
-              ? "bg-white/10 hover:bg-white/20 text-white"
+              ? "bg-card/10 hover:bg-card/20 text-white"
               : "bg-red-500/90 hover:bg-red-600 text-white shadow-red-500/50"
           )}
         >
@@ -114,7 +114,7 @@ export function ControlsPanel({
             "rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10",
             isScreenSharing
               ? "bg-primary/90 text-white shadow-primary/50"
-              : "bg-white/10 hover:bg-white/20 text-white"
+              : "bg-card/10 hover:bg-card/20 text-white"
           )}
         >
           {isScreenSharing ? <MonitorOff className="h-6 w-6" /> : <Monitor className="h-6 w-6" />}
@@ -128,7 +128,7 @@ export function ControlsPanel({
           <DropdownMenuTrigger asChild>
             <Button
               size="lg"
-              className="rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10 bg-white/10 hover:bg-white/20 text-white text-2xl"
+              className="rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10 bg-card/10 hover:bg-card/20 text-white text-2xl"
             >
               😊
             </Button>
@@ -158,7 +158,7 @@ export function ControlsPanel({
             "rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10",
             isHandRaised
               ? "bg-yellow-500/90 hover:bg-yellow-600 text-white animate-bounce shadow-yellow-500/50"
-              : "bg-white/10 hover:bg-white/20 text-white"
+              : "bg-card/10 hover:bg-card/20 text-white"
           )}
         >
           <Hand className="h-6 w-6" />
@@ -172,7 +172,7 @@ export function ControlsPanel({
           <DropdownMenuTrigger asChild>
             <Button
               size="lg"
-              className="rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10 bg-white/10 hover:bg-white/20 text-white"
+              className="rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10 bg-card/10 hover:bg-card/20 text-white"
             >
               <MoreVertical className="h-6 w-6" />
             </Button>

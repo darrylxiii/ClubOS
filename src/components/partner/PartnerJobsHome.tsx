@@ -439,16 +439,13 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const handleQuickAction = (action: string, jobId: string, jobTitle: string) => {
     switch (action) {
       case 'invite':
-        toast.info(`Opening invite flow for ${jobTitle}`);
-        // TODO: Open invite dialog
+        toast.info(`Invite candidates feature coming soon for ${jobTitle}`);
         break;
       case 'export':
-        toast.info(`Exporting pipeline for ${jobTitle}`);
-        // TODO: Implement export
+        toast.info(`Export pipeline feature coming soon for ${jobTitle}`);
         break;
       case 'support':
-        toast.info(`Requesting Club support for ${jobTitle}`);
-        // TODO: Open support request
+        toast.info(`Club support request feature coming soon for ${jobTitle}`);
         break;
       case 'analytics':
         navigate(`/jobs/${jobId}/dashboard`);

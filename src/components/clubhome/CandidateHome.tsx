@@ -14,6 +14,7 @@ import {
   FileText,
   Clock
 } from "lucide-react";
+import { EmptyState } from "@/components/EmptyState";
 import { ProfileCompletion } from "@/components/ProfileCompletion";
 import { LivePulse } from "@/components/LivePulse";
 import { ProfileViewers } from "@/components/ProfileViewers";
@@ -170,9 +171,16 @@ export const CandidateHome = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             {stats.matches === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-8">
-                No matches yet. Complete your profile to get personalized recommendations.
-              </p>
+              <EmptyState
+                icon={Target}
+                title="No matches yet"
+                description="Complete your profile to get personalized job recommendations"
+                action={{
+                  label: "Complete Profile",
+                  onClick: () => window.location.href = "/settings",
+                  variant: "default"
+                }}
+              />
             ) : (
               <div className="space-y-3">
                 <div className="p-3 border border-border/20 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)]">

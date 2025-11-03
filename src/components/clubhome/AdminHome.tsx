@@ -14,6 +14,7 @@ import {
   Activity
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { EmptyState } from "@/components/EmptyState";
 
 export const AdminHome = () => {
   console.log('👑 [AdminHome] Component mounting');
@@ -194,9 +195,11 @@ export const AdminHome = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground text-center py-8">
-              Recent system activity and logs will appear here
-            </p>
+            <EmptyState
+              icon={Activity}
+              title="No recent activity"
+              description="System activity and logs will appear here as they occur"
+            />
           </div>
         </CardContent>
       </Card>
