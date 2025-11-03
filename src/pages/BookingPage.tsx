@@ -16,6 +16,8 @@ import { AIBookingAssistant } from "@/components/booking/AIBookingAssistant";
 import { AvailabilityIndicator } from "@/components/booking/AvailabilityIndicator";
 import { TimezoneSelector } from "@/components/booking/TimezoneSelector";
 import { Sparkles } from "lucide-react";
+import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
+import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 
 interface BookingLink {
   id: string;
@@ -141,157 +143,159 @@ export default function BookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-      <div className="container mx-auto py-8 px-4 max-w-5xl">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <Avatar className="h-20 w-20 mx-auto mb-4">
-            <AvatarImage src={profile?.avatar_url || ""} />
-            <AvatarFallback>{profile?.full_name?.[0] || "Q"}</AvatarFallback>
-          </Avatar>
-          <h1 className="text-3xl font-bold mb-2">{profile?.full_name || "Quantum Club Member"}</h1>
-        </div>
+    <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+        <div className="container mx-auto py-8 px-4 max-w-5xl">
+          {/* Header */}
+          <div className="mb-8 text-center">
+            <Avatar className="h-20 w-20 mx-auto mb-4">
+              <AvatarImage src={profile?.avatar_url || ""} />
+              <AvatarFallback>{profile?.full_name?.[0] || "Q"}</AvatarFallback>
+            </Avatar>
+            <h1 className="text-3xl font-bold mb-2">{profile?.full_name || "Quantum Club Member"}</h1>
+          </div>
 
-        <Card className="mx-auto" style={{ borderTopColor: bookingLink.color, borderTopWidth: 4 }}>
-          <CardHeader>
-            <div className="flex items-start justify-between">
-              <div>
-                <CardTitle className="text-2xl">{bookingLink.title}</CardTitle>
-                {bookingLink.description && (
-                  <CardDescription className="mt-2 text-base">
-                    {bookingLink.description}
-                  </CardDescription>
-                )}
-                <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
-                    {bookingLink.duration_minutes} minutes
-                  </span>
-                  {selectedDate && (
+          <Card className="mx-auto" style={{ borderTopColor: bookingLink.color, borderTopWidth: 4 }}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle className="text-2xl">{bookingLink.title}</CardTitle>
+                  {bookingLink.description && (
+                    <CardDescription className="mt-2 text-base">
+                      {bookingLink.description}
+                    </CardDescription>
+                  )}
+                  <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
                     <span className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {selectedDate.toLocaleDateString("en-US", {
-                        weekday: "long",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      <Clock className="h-4 w-4" />
+                      {bookingLink.duration_minutes} minutes
                     </span>
-                  )}
-                  {selectedTime && (
-                    <span className="font-medium text-foreground">
-                      {selectedTime}
-                    </span>
-                  )}
+                    {selectedDate && (
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {selectedDate.toLocaleDateString("en-US", {
+                          weekday: "long",
+                          month: "long",
+                          day: "numeric",
+                        })}
+                      </span>
+                    )}
+                    {selectedTime && (
+                      <span className="font-medium text-foreground">
+                        {selectedTime}
+                      </span>
+                    )}
+                  </div>
                 </div>
-              </div>
-              {step !== "calendar" && step !== "confirmation" && (
-                <Button variant="ghost" size="sm" onClick={handleBack}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-
-          {/* Live Availability Indicator */}
-          {step === "calendar" && bookingLink && (
-            <div className="px-6">
-              <AvailabilityIndicator 
-                bookingLinkSlug={bookingLink.slug}
-                selectedDate={selectedDate}
-              />
-            </div>
-          )}
-
-          {/* Timezone Selector */}
-          {(step === "calendar" || step === "time") && (
-            <div className="px-6 pb-4">
-              <TimezoneSelector value={timezone} onChange={setTimezone} />
-            </div>
-          )}
-
-          <CardContent className="p-6">
-            {step === "calendar" && (
-              <>
-                <div className="mb-4 flex justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowAIAssistant(!showAIAssistant)}
-                    className="flex items-center gap-2"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    {showAIAssistant ? "Show Calendar" : "AI Assistant"}
+                {step !== "calendar" && step !== "confirmation" && (
+                  <Button variant="ghost" size="sm" onClick={handleBack}>
+                    <ArrowLeft className="h-4 w-4 mr-2" />
+                    Back
                   </Button>
-                </div>
-
-                {showAIAssistant ? (
-                  <AIBookingAssistant
-                    bookingLink={bookingLink}
-                    onBookingScheduled={(date, time) => {
-                      setSelectedDate(date);
-                      setSelectedTime(time);
-                      setStep("details");
-                      setShowAIAssistant(false);
-                    }}
-                  />
-                ) : (
-                  <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-                    <TabsList className="grid w-full grid-cols-2 mb-6">
-                      <TabsTrigger value="day">Day View</TabsTrigger>
-                      <TabsTrigger value="week">Week View</TabsTrigger>
-                    </TabsList>
-                <TabsContent value="day">
-                  <BookingCalendar
-                    bookingLink={bookingLink}
-                    onDateSelect={handleDateSelect}
-                  />
-                </TabsContent>
-                <TabsContent value="week">
-                  <BookingWeekView
-                    bookingLink={bookingLink}
-                    onTimeSelect={(date, time) => {
-                      setSelectedDate(date);
-                      setSelectedTime(time);
-                      setStep("details");
-                    }}
-                  />
-                </TabsContent>
-              </Tabs>
                 )}
-              </>
+              </div>
+            </CardHeader>
+
+            {/* Live Availability Indicator */}
+            {step === "calendar" && bookingLink && (
+              <div className="px-6">
+                <AvailabilityIndicator 
+                  bookingLinkSlug={bookingLink.slug}
+                  selectedDate={selectedDate}
+                />
+              </div>
             )}
 
-            {step === "time" && selectedDate && (
-              <BookingTimeSlots
-                bookingLink={bookingLink}
-                selectedDate={selectedDate}
-                onTimeSelect={handleTimeSelect}
-              />
+            {/* Timezone Selector */}
+            {(step === "calendar" || step === "time") && (
+              <div className="px-6 pb-4">
+                <TimezoneSelector value={timezone} onChange={setTimezone} />
+              </div>
             )}
 
-            {step === "details" && selectedDate && selectedTime && (
-              <BookingForm
-                bookingLink={bookingLink}
-                selectedDate={selectedDate}
-                selectedTime={selectedTime}
-                onComplete={handleBookingComplete}
-              />
-            )}
+            <CardContent className="p-6">
+              {step === "calendar" && (
+                <>
+                  <div className="mb-4 flex justify-end">
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowAIAssistant(!showAIAssistant)}
+                      className="flex items-center gap-2"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      {showAIAssistant ? "Show Calendar" : "AI Assistant"}
+                    </Button>
+                  </div>
 
-            {step === "confirmation" && bookingId && (
-              <BookingConfirmation
-                bookingId={bookingId}
-                bookingLink={bookingLink}
-              />
-            )}
-          </CardContent>
-        </Card>
+                  {showAIAssistant ? (
+                    <AIBookingAssistant
+                      bookingLink={bookingLink}
+                      onBookingScheduled={(date, time) => {
+                        setSelectedDate(date);
+                        setSelectedTime(time);
+                        setStep("details");
+                        setShowAIAssistant(false);
+                      }}
+                    />
+                  ) : (
+                    <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
+                      <TabsList className="grid w-full grid-cols-2 mb-6">
+                        <TabsTrigger value="day">Day View</TabsTrigger>
+                        <TabsTrigger value="week">Week View</TabsTrigger>
+                      </TabsList>
+                  <TabsContent value="day">
+                    <BookingCalendar
+                      bookingLink={bookingLink}
+                      onDateSelect={handleDateSelect}
+                    />
+                  </TabsContent>
+                  <TabsContent value="week">
+                    <BookingWeekView
+                      bookingLink={bookingLink}
+                      onTimeSelect={(date, time) => {
+                        setSelectedDate(date);
+                        setSelectedTime(time);
+                        setStep("details");
+                      }}
+                    />
+                  </TabsContent>
+                </Tabs>
+                  )}
+                </>
+              )}
 
-        {/* Footer */}
-        <div className="mt-8 text-center text-sm text-muted-foreground">
-          <p>Powered by The Quantum Club</p>
+              {step === "time" && selectedDate && (
+                <BookingTimeSlots
+                  bookingLink={bookingLink}
+                  selectedDate={selectedDate}
+                  onTimeSelect={handleTimeSelect}
+                />
+              )}
+
+              {step === "details" && selectedDate && selectedTime && (
+                <BookingForm
+                  bookingLink={bookingLink}
+                  selectedDate={selectedDate}
+                  selectedTime={selectedTime}
+                  onComplete={handleBookingComplete}
+                />
+              )}
+
+              {step === "confirmation" && bookingId && (
+                <BookingConfirmation
+                  bookingId={bookingId}
+                  bookingLink={bookingLink}
+                />
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Footer */}
+          <div className="mt-8 text-center text-sm text-muted-foreground">
+            <p>Powered by The Quantum Club</p>
+          </div>
         </div>
       </div>
-    </div>
+    </GoogleReCaptchaProvider>
   );
 }

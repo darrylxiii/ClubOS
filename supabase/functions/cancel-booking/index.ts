@@ -5,7 +5,7 @@ import { Card, Heading, Paragraph, Spacer, InfoRow, Button } from "../_shared/em
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cancellation-token",
 };
 
 serve(async (req) => {
@@ -36,6 +36,56 @@ serve(async (req) => {
 
     if (bookingError || !booking) {
       throw new Error("Booking not found");
+    }
+
+    // Verify cancellation token or authentication
+    const cancellationToken = req.headers.get("x-cancellation-token");
+    const authHeader = req.headers.get("authorization");
+    
+    let isAuthorized = false;
+
+    // Check if user is authenticated and owns the booking
+    if (authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
+      
+      if (!userError && user && user.id === booking.user_id) {
+        isAuthorized = true;
+        console.log("[cancel-booking] Authorized via user authentication");
+      }
+    }
+
+    // Check if valid cancellation token is provided (from email link)
+    if (!isAuthorized && cancellationToken) {
+      // Token format: base64(bookingId:guestEmail:timestamp)
+      try {
+        const decoded = atob(cancellationToken);
+        const [tokenBookingId, tokenEmail, timestamp] = decoded.split(":");
+        const tokenTime = parseInt(timestamp);
+        const now = Date.now();
+        
+        // Token valid for 7 days
+        if (
+          tokenBookingId === bookingId &&
+          tokenEmail === booking.guest_email &&
+          now - tokenTime < 7 * 24 * 60 * 60 * 1000
+        ) {
+          isAuthorized = true;
+          console.log("[cancel-booking] Authorized via cancellation token");
+        }
+      } catch (tokenError) {
+        console.error("[cancel-booking] Invalid cancellation token:", tokenError);
+      }
+    }
+
+    if (!isAuthorized) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: Valid cancellation token or authentication required" }),
+        {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 403,
+        }
+      );
     }
 
     // Update booking status

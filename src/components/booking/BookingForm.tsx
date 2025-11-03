@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Calendar, Clock } from "lucide-react";
 import { format, parse } from "date-fns";
+import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 
 interface BookingFormProps {
   bookingLink: {
@@ -27,6 +28,7 @@ export function BookingForm({
   selectedTime,
   onComplete,
 }: BookingFormProps) {
+  const { executeRecaptcha } = useGoogleReCaptcha();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -43,8 +45,21 @@ export function BookingForm({
       return;
     }
 
+    // Execute reCAPTCHA
+    if (!executeRecaptcha) {
+      toast.error("reCAPTCHA not ready. Please try again.");
+      return;
+    }
+
     setLoading(true);
     try {
+      const recaptchaToken = await executeRecaptcha("create_booking");
+      
+      if (!recaptchaToken) {
+        toast.error("Failed to verify. Please try again.");
+        setLoading(false);
+        return;
+      }
       // Parse the selected time to create start/end times
       const [time, period] = selectedTime.toLowerCase().split(" ");
       let [hours, minutes] = time.split(":").map(Number);
@@ -59,6 +74,9 @@ export function BookingForm({
       scheduledEnd.setMinutes(scheduledEnd.getMinutes() + bookingLink.duration_minutes);
 
       const { data, error } = await supabase.functions.invoke("create-booking", {
+        headers: {
+          "x-recaptcha-token": recaptchaToken,
+        },
         body: {
           bookingLinkSlug: bookingLink.slug,
           guestName: formData.name,
@@ -101,6 +119,10 @@ export function BookingForm({
         toast.error("⚡ Someone just booked this slot. Please select another time.");
       } else if (errorMsg.includes("Booking link not found") || errorMsg.includes("not active")) {
         toast.error("❌ This booking link is no longer active.");
+      } else if (errorMsg.includes("Too many booking attempts")) {
+        toast.error("⏱️ Too many booking attempts. Please try again in a few minutes.");
+      } else if (errorMsg.includes("reCAPTCHA")) {
+        toast.error("🔒 Verification failed. Please refresh and try again.");
       } else {
         toast.error(`❌ ${errorMsg}`);
       }

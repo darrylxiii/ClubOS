@@ -1,11 +1,12 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { verifyRecaptcha, createRecaptchaErrorResponse } from "../_shared/recaptcha-verifier.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-recaptcha-token",
 };
 
 serve(async (req) => {
@@ -14,6 +15,22 @@ serve(async (req) => {
   }
 
   try {
+    // Verify reCAPTCHA
+    const recaptchaToken = req.headers.get("x-recaptcha-token");
+    if (!recaptchaToken) {
+      return new Response(
+        JSON.stringify({ error: "reCAPTCHA verification required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const recaptchaResult = await verifyRecaptcha(recaptchaToken, "create_booking", 0.5);
+    if (!recaptchaResult.success) {
+      return createRecaptchaErrorResponse(recaptchaResult, corsHeaders);
+    }
+
+    console.log("[Booking] reCAPTCHA verified, score:", recaptchaResult.score);
+
     // Validate input
     const bookingSchema = z.object({
       bookingLinkSlug: z.string().min(1).max(100),
@@ -44,6 +61,37 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
+
+    // IP-based rate limiting: 5 bookings per 15 minutes per IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0] || 
+                     req.headers.get("x-real-ip") || 
+                     "unknown";
+    
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+    
+    const { data: recentBookings, error: rateLimitError } = await supabaseClient
+      .from("bookings")
+      .select("id")
+      .eq("guest_email", guestEmail)
+      .gte("created_at", fifteenMinutesAgo);
+
+    if (!rateLimitError && recentBookings && recentBookings.length >= 5) {
+      console.log("[Booking] Rate limit exceeded for:", guestEmail);
+      return new Response(
+        JSON.stringify({ 
+          error: "Too many booking attempts. Please try again in a few minutes.",
+          retryAfter: 900
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            "Content-Type": "application/json",
+            "Retry-After": "900"
+          } 
+        }
+      );
+    }
 
     // Get booking link details
     const { data: bookingLink, error: linkError } = await supabaseClient
