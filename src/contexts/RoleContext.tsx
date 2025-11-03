@@ -157,41 +157,86 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    if (!user || !availableRoles.includes(newRole)) {
-      console.error('[RoleContext] Cannot switch to unavailable role:', newRole);
-      return;
+    if (!user) {
+      console.error('[RoleContext] Cannot switch role: User not authenticated');
+      throw new Error('User not authenticated');
     }
 
+    if (!availableRoles.includes(newRole)) {
+      console.error('[RoleContext] Cannot switch to unavailable role:', newRole, 'Available:', availableRoles);
+      throw new Error(`Role ${newRole} is not available for this user`);
+    }
+
+    const previousRole = currentRole;
+
     try {
-      // Update local state FIRST to prevent feedback loop
+      // Update local state FIRST to provide immediate UI feedback
       setCurrentRole(newRole);
-      console.log('[RoleContext] Role switched successfully to:', newRole);
+      console.log('[RoleContext] Role switched locally to:', newRole);
 
-      // Then save preference to database
-      const { error } = await supabase
-        .from('user_preferences')
-        .upsert({
-          user_id: user.id,
-          preferred_role_view: newRole,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id'
-        });
+      // Then save preference to database with retry logic
+      let retries = 3;
+      let lastError = null;
+      
+      while (retries > 0) {
+        try {
+          const { error } = await supabase
+            .from('user_preferences')
+            .upsert({
+              user_id: user.id,
+              preferred_role_view: newRole,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'user_id'
+            });
 
-      if (error) throw error;
+          if (error) throw error;
+          
+          console.log('[RoleContext] Role preference saved to database');
+          
+          // Success - break out of retry loop
+          lastError = null;
+          break;
+        } catch (err) {
+          lastError = err;
+          retries--;
+          console.warn(`[RoleContext] Failed to save preference (${3 - retries}/3):`, err);
+          
+          if (retries > 0) {
+            // Wait before retrying (exponential backoff: 500ms, 1s, 2s)
+            await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, 2 - retries)));
+          }
+        }
+      }
 
-      // Log role switch in audit table (non-blocking, fire-and-forget)
-      supabase.from('role_change_audit').insert({
-        user_id: user.id,
-        changed_by: user.id,
-        old_roles: [currentRole],
-        new_roles: [newRole],
-        change_type: 'role_switched',
-        metadata: { timestamp: new Date().toISOString() }
-      });
+      // If all retries failed, log but don't revert (user can try again)
+      if (lastError) {
+        console.error('[RoleContext] Failed to persist role preference after 3 attempts:', lastError);
+        // Don't throw - let the UI update succeed even if DB save failed
+        // The preference will be saved on next successful switch
+      } else {
+        // Only log audit if DB save was successful (non-blocking)
+        try {
+          await supabase.from('role_change_audit').insert({
+            user_id: user.id,
+            changed_by: user.id,
+            old_roles: [previousRole],
+            new_roles: [newRole],
+            change_type: 'role_switched',
+            metadata: { 
+              timestamp: new Date().toISOString(),
+              success: true
+            }
+          });
+        } catch (auditError) {
+          console.warn('[RoleContext] Failed to log audit entry:', auditError);
+        }
+      }
 
     } catch (error) {
-      console.error('[RoleContext] Error switching role:', error);
+      // Revert local state on critical errors
+      console.error('[RoleContext] Critical error switching role, reverting:', error);
+      setCurrentRole(previousRole);
       throw error;
     }
   };

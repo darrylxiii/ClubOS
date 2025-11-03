@@ -38,9 +38,10 @@ export const GlobalRoleSwitcher = () => {
       toast.success(`Switched to ${roleConfig[newRole].label} view`, {
         description: "Your dashboard will update instantly"
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[GlobalRoleSwitcher] Role switch error:', error);
       toast.error("Failed to switch roles", {
-        description: "Please try again"
+        description: error?.message || "Please try again or refresh the page"
       });
     }
   };

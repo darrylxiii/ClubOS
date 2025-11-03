@@ -61,9 +61,10 @@ export function RoleSwitcher() {
       toast.success(`Switched to ${roleOptions[newRole as UserRole]?.label || newRole} view`, {
         description: "Your dashboard has been updated"
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[RoleSwitcher] Role switch error:', error);
       toast.error("Failed to switch roles", {
-        description: "Please try again"
+        description: error?.message || "Please try again or contact support if the issue persists"
       });
     }
   };
