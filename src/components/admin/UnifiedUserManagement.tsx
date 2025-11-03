@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Pencil, Search, Download, Link as LinkIcon, Building2, Eye, ChevronDown, ChevronRight } from "lucide-react";
+import { UserPlus, Pencil, Search, Download, Link as LinkIcon, Building2, Eye, ChevronDown, ChevronRight, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -666,14 +666,22 @@ export function UnifiedUserManagement() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => navigate(`/admin/users/${user.id}/profile`)}
+                          title="View Full Profile & Settings"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Button>
                         {user.candidate_id && (
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => navigate(`/candidates/${user.candidate_id}?tab=settings`)}
-                            title="View Full Settings"
+                            onClick={() => navigate(`/candidates/${user.candidate_id}`)}
+                            title="View as Candidate"
                           >
-                            <Eye className="w-4 h-4" />
+                            <ExternalLink className="w-4 h-4" />
                           </Button>
                         )}
                         <Button

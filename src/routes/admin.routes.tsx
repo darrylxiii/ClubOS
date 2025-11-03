@@ -6,6 +6,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
+const AdminUserProfile = lazy(() => import("@/pages/admin/AdminUserProfile"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
 const CompanyManagement = lazy(() => import("@/pages/admin/CompanyManagement"));
 const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
@@ -26,6 +27,7 @@ export const adminRoutes = (
     
     {/* User Management */}
     <Route path="/admin/candidates" element={<ProtectedRoute><AdminCandidates /></ProtectedRoute>} />
+    <Route path="/admin/users/:userId/profile" element={<ProtectedRoute><AdminUserProfile /></ProtectedRoute>} />
     
     {/* Company Management */}
     <Route path="/admin/companies" element={<ProtectedRoute><CompanyManagement /></ProtectedRoute>} />

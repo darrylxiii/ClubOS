@@ -100,6 +100,27 @@ export const adminCandidateService = {
     return { data, error };
   },
 
+  // Get comprehensive user settings (works for all users, not just candidates)
+  async getUserSettings(userId: string) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select(`
+        *,
+        candidate_profiles(
+          id,
+          resume_url,
+          cv_url,
+          portfolio_url,
+          linkedin_url,
+          github_url
+        )
+      `)
+      .eq('id', userId)
+      .single();
+    
+    return { data, error };
+  },
+
   // Get merge statistics
   async getMergeStats() {
     const { data, error } = await supabase

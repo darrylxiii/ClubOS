@@ -31,6 +31,7 @@ import { CandidatePipelineContextBanner } from "@/components/partner/CandidatePi
 import { SourceInformationCard } from "@/components/partner/SourceInformationCard";
 import { EditCandidateDialog } from "@/components/partner/EditCandidateDialog";
 import { CandidateSettingsViewer } from "@/components/admin/CandidateSettingsViewer";
+import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 
 export default function CandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -333,11 +334,12 @@ export default function CandidateProfile() {
             </TabsList>
 
             {/* Settings Tab - Admin Only */}
-            {isTeamView && userProfile && (
+            {isTeamView && candidate.user_id && (
               <TabsContent value="settings" className="space-y-6">
-                <CandidateSettingsViewer 
+                <UserSettingsViewer 
                   userId={candidate.user_id} 
-                  candidateName={candidate.full_name}
+                  userName={candidate.full_name}
+                  source="candidate_profile"
                 />
               </TabsContent>
             )}
