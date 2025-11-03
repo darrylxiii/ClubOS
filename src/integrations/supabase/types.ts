@@ -12833,6 +12833,17 @@ export type Database = {
         Args: { _conversation_id: string }
         Returns: boolean
       }
+      check_profile_auth_integrity: {
+        Args: never
+        Returns: {
+          auth_email: string
+          auth_full_name: string
+          mismatch_type: string
+          profile_email: string
+          profile_full_name: string
+          user_id: string
+        }[]
+      }
       check_verification_rate_limit: {
         Args: { _action: string; _user_id: string; _verification_type: string }
         Returns: Json
@@ -12846,6 +12857,15 @@ export type Database = {
           progress: number
           target: number
           unlocked: boolean
+        }[]
+      }
+      fix_profile_auth_mismatches: {
+        Args: never
+        Returns: {
+          fix_type: string
+          fixed_email: string
+          fixed_name: string
+          user_id: string
         }[]
       }
       generate_invite_code: { Args: never; Returns: string }

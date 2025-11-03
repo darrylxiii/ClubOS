@@ -9,6 +9,7 @@ import { RoleAssignmentFix } from "@/components/admin/RoleAssignmentFix";
 import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsManager";
 import { AssessmentResultsManager } from "@/components/admin/AssessmentResultsManager";
 import { AdminApplicationHub } from "@/components/admin/AdminApplicationHub";
+import { DataIntegrityChecker } from "@/components/admin/DataIntegrityChecker";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -95,6 +96,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="system" className="space-y-4">
+            <DataIntegrityChecker />
             <RoleAssignmentFix />
           </TabsContent>
         </Tabs>

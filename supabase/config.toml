@@ -1,5 +1,8 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
+[functions.check-data-integrity]
+verify_jwt = false
+
 [functions.incubator-ai-chat]
 verify_jwt = false
 

@@ -75,6 +75,9 @@ export function UnifiedUserManagement() {
   const [documentFilter, setDocumentFilter] = useState<string>("all");
   const [privacyFilter, setPrivacyFilter] = useState<string>("all");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  
+  // Data integrity monitoring
+  const [integrityIssues, setIntegrityIssues] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchData();
@@ -157,6 +160,14 @@ export function UnifiedUserManagement() {
       });
 
       setUsers(usersWithRoles);
+      
+      // Check data integrity
+      const { data: mismatches } = await supabase.rpc('check_profile_auth_integrity');
+      if (mismatches && mismatches.length > 0) {
+        setIntegrityIssues(new Set(mismatches.map((m: any) => m.user_id)));
+      } else {
+        setIntegrityIssues(new Set());
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error("Failed to load users");
@@ -625,7 +636,12 @@ export function UnifiedUserManagement() {
                             )}
                           </Button>
                         )}
-                        {user.full_name || 'No name'}
+                        <span>{user.full_name || 'No name'}</span>
+                        {integrityIssues.has(user.id) && (
+                          <Badge variant="destructive" className="text-xs">
+                            Data Mismatch
+                          </Badge>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>{user.email}</TableCell>
