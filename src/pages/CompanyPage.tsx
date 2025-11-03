@@ -24,6 +24,7 @@ import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialo
 import { CreateJobDialog } from "@/components/partner/CreateJobDialog";
 import { JobCard } from "@/components/JobCard";
 import { TargetCompanies } from "@/components/partner/TargetCompanies";
+import { CompanyCRMMetrics } from "@/components/crm/CompanyCRMMetrics";
 
 interface Company {
   id: string;
