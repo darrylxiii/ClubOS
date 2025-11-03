@@ -15,6 +15,16 @@ import { Building2, Users, Settings, Palette, Shield, Plus, Trash2, Mail } from 
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Company {
   id: string;
@@ -64,6 +74,8 @@ export default function CompanySettings() {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("member");
+  const [removeMemberDialogOpen, setRemoveMemberDialogOpen] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
 
   // Company form state
   const [companyForm, setCompanyForm] = useState({
@@ -236,18 +248,26 @@ export default function CompanySettings() {
     }
   };
 
-  const handleRemoveMember = async (memberId: string) => {
-    if (!confirm("Remove this member from the company?")) return;
+  const openRemoveMemberDialog = (memberId: string) => {
+    setMemberToRemove(memberId);
+    setRemoveMemberDialogOpen(true);
+  };
+
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) return;
 
     const { error } = await supabase
       .from("company_members")
       .update({ is_active: false })
-      .eq("id", memberId);
+      .eq("id", memberToRemove);
 
     if (error) {
+      logger.error('Remove member error:', error);
       toast.error("Failed to remove member");
     } else {
       toast.success("Member removed");
+      setRemoveMemberDialogOpen(false);
+      setMemberToRemove(null);
       loadCompanyData();
     }
   };
@@ -485,7 +505,7 @@ export default function CompanySettings() {
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => handleRemoveMember(member.id)}
+                          onClick={() => openRemoveMemberDialog(member.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -601,6 +621,23 @@ export default function CompanySettings() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={removeMemberDialogOpen} onOpenChange={setRemoveMemberDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Team Member</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this member from the company? They will lose access to all company resources.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setMemberToRemove(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRemoveMember} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

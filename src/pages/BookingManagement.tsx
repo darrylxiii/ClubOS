@@ -16,6 +16,16 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface BookingLink {
   id: string;
@@ -56,6 +66,8 @@ export default function BookingManagement() {
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingLink, setEditingLink] = useState<BookingLink | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [linkToDelete, setLinkToDelete] = useState<string | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -184,20 +196,28 @@ export default function BookingManagement() {
     loadBookingLinks();
   };
 
-  const handleDeleteLink = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this booking link?")) return;
+  const openDeleteDialog = (id: string) => {
+    setLinkToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteLink = async () => {
+    if (!linkToDelete) return;
 
     const { error } = await supabase
       .from("booking_links")
       .delete()
-      .eq("id", id);
+      .eq("id", linkToDelete);
 
     if (error) {
+      logger.error('Delete booking link error:', error);
       toast.error("Failed to delete booking link");
       return;
     }
 
     toast.success("Booking link deleted");
+    setDeleteDialogOpen(false);
+    setLinkToDelete(null);
     loadBookingLinks();
   };
 
@@ -491,7 +511,7 @@ export default function BookingManagement() {
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => handleDeleteLink(link.id)}
+                          onClick={() => openDeleteDialog(link.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -606,6 +626,23 @@ export default function BookingManagement() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Booking Link</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this booking link? This action cannot be undone and all associated bookings will be affected.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setLinkToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteLink} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

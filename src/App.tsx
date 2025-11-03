@@ -603,7 +603,9 @@ const App = () => (
               path="/profile/documents"
               element={
                 <ProtectedRoute>
-                  <DocumentManagement />
+                  <RouteErrorBoundary>
+                    <DocumentManagement />
+                  </RouteErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -611,7 +613,9 @@ const App = () => (
               path="/settings/email"
               element={
                 <ProtectedRoute>
-                  <EmailSettings />
+                  <RouteErrorBoundary>
+                    <EmailSettings />
+                  </RouteErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -619,7 +623,9 @@ const App = () => (
               path="/booking-management"
               element={
                 <ProtectedRoute>
-                  <BookingManagement />
+                  <RouteErrorBoundary>
+                    <BookingManagement />
+                  </RouteErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -627,7 +633,9 @@ const App = () => (
               path="/company-settings"
               element={
                 <ProtectedRoute>
-                  <CompanySettings />
+                  <RouteErrorBoundary>
+                    <CompanySettings />
+                  </RouteErrorBoundary>
                 </ProtectedRoute>
               }
             />
@@ -635,7 +643,9 @@ const App = () => (
               path="/expert-marketplace"
               element={
                 <ProtectedRoute>
-                  <ExpertMarketplace />
+                  <RouteErrorBoundary>
+                    <ExpertMarketplace />
+                  </RouteErrorBoundary>
                 </ProtectedRoute>
               }
             />

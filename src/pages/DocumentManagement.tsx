@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { 
   Upload, FileText, Download, Trash2, Star, Eye, 
-  Loader2, CheckCircle, XCircle, File 
+  Loader2, CheckCircle, XCircle, File, AlertTriangle
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,6 +17,16 @@ import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface Document {
   id: string;
@@ -35,6 +45,8 @@ const DocumentManagement = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -144,7 +156,7 @@ const DocumentManagement = () => {
       toast.success('Primary document updated');
       loadDocuments();
     } catch (error) {
-      console.error('Set primary error:', error);
+      logger.error('Set primary error:', error);
       toast.error('Failed to set primary document');
     }
   };
@@ -165,21 +177,24 @@ const DocumentManagement = () => {
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Download error:', error);
+      logger.error('Download error:', error);
       toast.error('Failed to download document');
     }
   };
 
-  const handleDelete = async (doc: Document) => {
-    if (!confirm(`Delete "${doc.display_name}"? This action cannot be undone.`)) {
-      return;
-    }
+  const openDeleteDialog = (doc: Document) => {
+    setDocumentToDelete(doc);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!documentToDelete) return;
 
     try {
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
-      .from('resumes')
-      .remove([doc.file_path]);
+      // Delete from storage
+      const { error: storageError } = await supabase.storage
+        .from('resumes')
+        .remove([documentToDelete.file_path]);
 
       if (storageError) throw storageError;
 
@@ -187,14 +202,16 @@ const DocumentManagement = () => {
       const { error: dbError } = await supabase
         .from('user_resumes')
         .delete()
-        .eq('id', doc.id);
+        .eq('id', documentToDelete.id);
 
       if (dbError) throw dbError;
 
       toast.success('Document deleted');
+      setDeleteDialogOpen(false);
+      setDocumentToDelete(null);
       loadDocuments();
     } catch (error) {
-      console.error('Delete error:', error);
+      logger.error('Delete error:', error);
       toast.error('Failed to delete document');
     }
   };
@@ -341,7 +358,7 @@ const DocumentManagement = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDelete(doc)}
+                      onClick={() => openDeleteDialog(doc)}
                       className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
                     >
                       <Trash2 className="w-3 h-3 mr-1" />
@@ -353,6 +370,23 @@ const DocumentManagement = () => {
             ))}
           </div>
         )}
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Document</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{documentToDelete?.display_name}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setDocumentToDelete(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );

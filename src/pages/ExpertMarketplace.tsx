@@ -15,6 +15,16 @@ import { GraduationCap, Users, Award, Plus, Search, BookOpen, CheckCircle2 } fro
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Skeleton } from "@/components/ui/skeleton";
 import { logger } from "@/lib/logger";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ExpertProfile {
   id: string;
@@ -62,6 +72,8 @@ export default function ExpertMarketplace() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState("");
   const [selectedExpert, setSelectedExpert] = useState("");
+  const [unassignDialogOpen, setUnassignDialogOpen] = useState(false);
+  const [assignmentToRemove, setAssignmentToRemove] = useState<string | null>(null);
 
   // Expert profile form
   const [profileDialogOpen, setProfileDialogOpen] = useState(false);
@@ -219,20 +231,28 @@ export default function ExpertMarketplace() {
     loadAssignments();
   };
 
-  const handleUnassign = async (assignmentId: string) => {
-    if (!confirm("Remove this expert from the module?")) return;
+  const openUnassignDialog = (assignmentId: string) => {
+    setAssignmentToRemove(assignmentId);
+    setUnassignDialogOpen(true);
+  };
+
+  const handleUnassign = async () => {
+    if (!assignmentToRemove) return;
 
     const { error } = await supabase
       .from("module_experts")
       .delete()
-      .eq("id", assignmentId);
+      .eq("id", assignmentToRemove);
 
     if (error) {
+      logger.error('Unassign expert error:', error);
       toast.error("Failed to unassign expert");
       return;
     }
 
     toast.success("Expert unassigned");
+    setUnassignDialogOpen(false);
+    setAssignmentToRemove(null);
     loadAssignments();
   };
 
@@ -581,7 +601,7 @@ export default function ExpertMarketplace() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleUnassign(assignment.id)}
+                        onClick={() => openUnassignDialog(assignment.id)}
                       >
                         Unassign
                       </Button>
@@ -593,6 +613,23 @@ export default function ExpertMarketplace() {
           )}
         </TabsContent>
       </Tabs>
+
+      <AlertDialog open={unassignDialogOpen} onOpenChange={setUnassignDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unassign Expert</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove this expert from the module? This will revoke their teaching access.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setAssignmentToRemove(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleUnassign} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Unassign
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
