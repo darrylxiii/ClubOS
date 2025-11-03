@@ -207,6 +207,7 @@ const adminNavigationGroups = [
     title: "Management",
     icon: Building,
     items: [
+      { name: "All Candidates", icon: Users, path: "/admin/candidates" },
       { name: "Companies", icon: Building, path: "/companies" },
       { name: "Jobs", icon: Briefcase, path: "/jobs" },
       { name: "Applications", icon: FileText, path: "/applications" },

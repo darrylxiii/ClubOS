@@ -73,6 +73,27 @@ Deno.serve(async (req) => {
     if (!userProfile?.location && candidate.desired_locations?.[0]) {
       updates.location = candidate.desired_locations[0];
     }
+    
+    // Merge compensation if not set
+    if (!userProfile?.desired_salary_min && candidate.desired_salary_min) {
+      updates.desired_salary_min = candidate.desired_salary_min;
+      updates.desired_salary_max = candidate.desired_salary_max;
+      updates.preferred_currency = candidate.preferred_currency;
+    }
+    
+    // Merge work preferences
+    if (!userProfile?.remote_work_preference && candidate.remote_preference) {
+      updates.remote_work_preference = candidate.remote_preference;
+    }
+    if (!userProfile?.preferred_work_locations && candidate.desired_locations) {
+      updates.preferred_work_locations = candidate.desired_locations;
+    }
+    if (!userProfile?.notice_period && candidate.notice_period) {
+      updates.notice_period = candidate.notice_period;
+    }
+    if (!userProfile?.linkedin_url && candidate.linkedin_url) {
+      updates.linkedin_url = candidate.linkedin_url;
+    }
 
     if (Object.keys(updates).length > 0) {
       await supabase
@@ -93,9 +114,10 @@ Deno.serve(async (req) => {
       candidate_id: candidateId,
       interaction_type: 'system_event',
       title: 'Profile merged',
-      content: `Candidate registered on platform. Profile data merged with user account.`,
+      content: `Candidate registered. Merged ${Object.keys(updates).length} fields from candidate profile to user account. Fields: ${Object.keys(updates).join(', ')}`,
       created_by: userId,
-      visible_to_candidate: true
+      visible_to_candidate: true,
+      metadata: { merged_fields: Object.keys(updates), merge_timestamp: new Date().toISOString() }
     });
 
     return new Response(

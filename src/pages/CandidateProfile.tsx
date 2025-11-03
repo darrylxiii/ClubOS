@@ -30,6 +30,7 @@ import { CandidateNotesManager } from "@/components/partner/CandidateNotesManage
 import { CandidatePipelineContextBanner } from "@/components/partner/CandidatePipelineContextBanner";
 import { SourceInformationCard } from "@/components/partner/SourceInformationCard";
 import { EditCandidateDialog } from "@/components/partner/EditCandidateDialog";
+import { CandidateSettingsViewer } from "@/components/admin/CandidateSettingsViewer";
 
 export default function CandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -321,14 +322,25 @@ export default function CandidateProfile() {
         {/* Main Content */}
         <div className="container mx-auto px-4 py-6">
           <Tabs defaultValue={isTeamView ? "assessment" : "overview"} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               {isTeamView && <TabsTrigger value="assessment">Assessment</TabsTrigger>}
               <TabsTrigger value="experience">Experience</TabsTrigger>
+              {isTeamView && <TabsTrigger value="settings">Settings</TabsTrigger>}
               {isTeamView && <TabsTrigger value="workauth">Work Auth</TabsTrigger>}
               {isTeamView && <TabsTrigger value="pipeline">Pipeline</TabsTrigger>}
               {isTeamView && <TabsTrigger value="activity">Activity</TabsTrigger>}
             </TabsList>
+
+            {/* Settings Tab - Admin Only */}
+            {isTeamView && userProfile && (
+              <TabsContent value="settings" className="space-y-6">
+                <CandidateSettingsViewer 
+                  userId={candidate.user_id} 
+                  candidateName={candidate.full_name}
+                />
+              </TabsContent>
+            )}
 
             {/* Assessment Tab - Combines Decision, Documents, Notes, Internal - Admin Only */}
             {isTeamView && (
