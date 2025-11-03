@@ -72,7 +72,7 @@ export const JobCard = ({
   };
   return (
     <Card 
-      className="group relative overflow-hidden border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300 cursor-pointer" 
+      className="group relative overflow-hidden border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300 cursor-pointer min-w-0 max-w-full" 
       onClick={handleCardClick}
     >
       <CardHeader className="pb-4">
@@ -112,7 +112,7 @@ export const JobCard = ({
       </CardHeader>
       <CardContent className="pt-0 space-y-4">
         {/* Tags & Salary Section */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 overflow-x-auto scrollbar-hide">
           {tags.map((tag) => (
             <Badge 
               key={tag} 
@@ -168,8 +168,8 @@ export const JobCard = ({
         )}
         
         {/* Footer with Actions */}
-        <div className="flex items-center justify-between gap-4 pt-2">
-          <div className="flex items-center gap-3 text-xs text-muted-foreground/70">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 pt-2">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground/70 flex-wrap">
             <div className="flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5" />
               <span className="font-medium">{postedDate}</span>
@@ -180,7 +180,7 @@ export const JobCard = ({
             </Badge>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             {status ? (
               <StatusBadge status={status} />
             ) : (
@@ -189,7 +189,7 @@ export const JobCard = ({
                   <Button 
                     onClick={(e) => handleButtonClick(e, onClubSync)}
                     size="sm" 
-                    className="bg-muted/20 text-foreground border border-border/30 hover:bg-muted/30 hover:border-border/50 font-semibold backdrop-blur-sm"
+                    className="bg-muted/20 text-foreground border border-border/30 hover:bg-muted/30 hover:border-border/50 font-semibold backdrop-blur-sm min-h-[48px] flex-1 sm:flex-initial"
                   >
                     <Zap className="w-3.5 h-3.5 mr-1.5" />
                     Club Sync
@@ -198,7 +198,7 @@ export const JobCard = ({
                   <Button 
                     onClick={(e) => handleButtonClick(e, onApply)}
                     size="sm" 
-                    className="bg-muted/20 text-foreground border border-border/30 hover:bg-muted/30 hover:border-border/50 font-semibold backdrop-blur-sm"
+                    className="bg-muted/20 text-foreground border border-border/30 hover:bg-muted/30 hover:border-border/50 font-semibold backdrop-blur-sm min-h-[48px] flex-1 sm:flex-initial"
                   >
                     Apply Now
                   </Button>
@@ -208,7 +208,7 @@ export const JobCard = ({
                     onClick={(e) => handleButtonClick(e, onRefer)}
                     size="sm" 
                     variant="outline"
-                    className="bg-background/20 border-border/20 hover:bg-background/30 hover:border-border/30 backdrop-blur-sm"
+                    className="bg-background/20 border-border/20 hover:bg-background/30 hover:border-border/30 backdrop-blur-sm min-h-[48px]"
                   >
                     Refer
                   </Button>

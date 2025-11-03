@@ -282,11 +282,11 @@ export default function JobDetail() {
           />
         </div>
 
-        {/* Simplified Sticky Bottom CTA */}
+        {/* Simplified Sticky Bottom CTA - Desktop & Mobile */}
         <AnimatePresence>
           {isScrolled && (
             <motion.div
-              className="fixed bottom-0 left-0 right-0 z-50 frosted-glass border-t border-border/50 p-4"
+              className="fixed bottom-0 left-0 right-0 z-50 frosted-glass border-t border-border/50 p-4 pb-safe"
               initial={{ y: 100 }}
               animate={{ y: 0 }}
               exit={{ y: 100 }}
@@ -335,6 +335,18 @@ export default function JobDetail() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Mobile-only FAB for Apply - Always visible on mobile */}
+        <div className="md:hidden fixed bottom-20 right-4 z-40">
+          <Button
+            onClick={handleApply}
+            disabled={isApplied}
+            size="lg"
+            className="rounded-full shadow-lg h-14 px-6"
+          >
+            {isApplied ? 'Applied ✓' : 'Apply Now'}
+          </Button>
+        </div>
       </div>
     </AppLayout>
   );

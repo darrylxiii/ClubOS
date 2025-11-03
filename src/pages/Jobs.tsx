@@ -55,37 +55,51 @@ const Jobs = () => {
     fetchUserCurrency();
   }, [user]);
 
-  // Fetch jobs from database
+  // Fetch jobs from database with match scores
   useEffect(() => {
     const fetchJobs = async () => {
       setLoading(true);
       try {
-        const {
-          data,
-          error
-        } = await supabase.from('jobs').select(`
-            id,
-            title,
-            location,
-            employment_type,
-            salary_min,
-            salary_max,
-            currency,
-            created_at,
-            company_id,
-            tags,
-            companies (
-              name,
-              slug,
-              logo_url
-            )
-          `).order('created_at', {
-          ascending: false
-        });
+        // Fetch jobs with match scores if user is logged in
+        const jobsQuery = supabase.from('jobs').select(`
+          id,
+          title,
+          location,
+          employment_type,
+          salary_min,
+          salary_max,
+          currency,
+          created_at,
+          company_id,
+          tags,
+          companies (
+            name,
+            slug,
+            logo_url
+          )
+        `).order('created_at', { ascending: false });
+
+        const { data: jobsData, error } = await jobsQuery;
         if (error) throw error;
 
+        // Fetch match scores if user exists
+        let matchScoresMap: Record<string, number> = {};
+        if (user?.id) {
+          const { data: matchScores } = await supabase
+            .from('match_scores')
+            .select('job_id, overall_score')
+            .eq('user_id', user.id);
+          
+          if (matchScores) {
+            matchScoresMap = matchScores.reduce((acc, ms) => {
+              acc[ms.job_id] = ms.overall_score;
+              return acc;
+            }, {} as Record<string, number>);
+          }
+        }
+
         // Transform data for display
-        const transformedJobs = data?.map((job: any) => ({
+        const transformedJobs = jobsData?.map((job: any) => ({
           id: job.id,
           title: job.title,
           company: job.companies?.name || 'Unknown Company',
@@ -96,7 +110,7 @@ const Jobs = () => {
           postedDate: new Date(job.created_at).toLocaleDateString(),
           postedDaysAgo: Math.floor((Date.now() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)),
           tags: Array.isArray(job.tags) ? job.tags : [],
-          matchScore: job.match_score || null,
+          matchScore: matchScoresMap[job.id] || null,
           salary: job.salary_max || 0,
           salaryMin: job.salary_min || 0,
           salaryMax: job.salary_max || 0,
@@ -111,7 +125,7 @@ const Jobs = () => {
       }
     };
     fetchJobs();
-  }, []);
+  }, [user]);
   const sortedJobs = [...jobs].sort((a, b) => {
     switch (sortBy) {
       case "match":
@@ -188,7 +202,7 @@ const Jobs = () => {
   return <AppLayout>
       <OceanBackgroundVideo />
       
-      <div className="relative z-10 container mx-auto px-4 py-8 space-y-6">
+      <div className="relative z-10 container mx-auto px-4 py-8 pb-safe space-y-6">
         {/* Header */}
         <div className="space-y-4 border-b-2 border-foreground pb-8">
           <p className="text-caps text-muted-foreground">Curated Roles</p>

@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExpandablePipelineStage, PipelineStageData } from "@/components/ExpandablePipelineStage";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Briefcase, Building2, MapPin, Users, DollarSign, ArrowRight, Check, Share2, Download } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +15,8 @@ import { CompetitionInsight } from "@/components/applications/CompetitionInsight
 import { NextStepHelper } from "@/components/applications/NextStepHelper";
 import { TimelineDeadlines } from "@/components/applications/TimelineDeadlines";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
+import { useApplications } from "@/hooks/useApplications";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Application {
   id: string;
@@ -47,136 +48,8 @@ interface Application {
 }
 
 export default function Applications() {
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    loadApplications();
-  }, []);
-
-  const loadApplications = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Fetch applications with job and company details including pipeline stages
-      const { data, error } = await supabase
-        .from("applications")
-        .select(`
-          *,
-          jobs!applications_job_id_fkey (
-            id,
-            title,
-            location,
-            salary_min,
-            salary_max,
-            currency,
-            company_id,
-            pipeline_stages,
-            companies!jobs_company_id_fkey (
-              name,
-              logo_url
-            )
-          )
-        `)
-        .eq("user_id", user.id)
-        .order("applied_at", { ascending: false });
-
-      if (error) throw error;
-
-      // Enrich with other candidates count and talent strategist
-      const enrichedApps = await Promise.all((data || []).map(async (app) => {
-        // Get count of other candidates in same job
-        const { count } = await supabase
-          .from("applications")
-          .select("*", { count: 'exact', head: true })
-          .eq("job_id", app.job_id)
-          .neq("user_id", user.id);
-
-        // Get talent strategist from company members with strategist role
-        let strategist = null;
-        if (app.jobs?.company_id) {
-          const { data: companyMembers, error: strategistError } = await supabase
-            .from("company_members")
-            .select("user_id, role")
-            .eq("company_id", app.jobs.company_id)
-            .eq("is_active", true)
-            .in("role", ["recruiter", "admin"])
-            .order('created_at', { ascending: true })
-            .limit(1);
-
-          if (strategistError) {
-            console.error("Error fetching strategist:", strategistError);
-          } else {
-            console.log("Company members query result:", companyMembers);
-          }
-
-          // Get profile data separately
-          if (companyMembers && companyMembers.length > 0) {
-            const member = companyMembers[0];
-            const { data: profileData } = await supabase
-              .from("profiles")
-              .select("id, full_name, avatar_url")
-              .eq("id", member.user_id)
-              .single();
-
-            if (profileData) {
-              strategist = {
-                id: profileData.id,
-                full_name: profileData.full_name,
-                avatar_url: profileData.avatar_url,
-                user_id: member.user_id
-              };
-              console.log("Found strategist:", strategist);
-            }
-          } else {
-            console.log("No strategist found for company:", app.jobs.company_id);
-          }
-        }
-
-        // Use job's pipeline_stages as the source of truth, converting to PipelineStageData format
-        const jobPipelineStages = app.jobs?.pipeline_stages || [];
-        const formattedStages = Array.isArray(jobPipelineStages) 
-          ? jobPipelineStages.map((stage: any) => ({
-              id: stage.id || String(stage.order),
-              title: stage.name,
-              description: stage.description,
-              status: "upcoming" as const,
-              preparation: stage.resources ? {
-                title: "Preparation Guide",
-                content: stage.description || "",
-                resources: stage.resources
-              } : undefined,
-              scheduledDate: stage.scheduled_date,
-              duration: stage.duration,
-              location: stage.location,
-              meetingType: stage.format,
-              interviewers: stage.owner ? [{
-                name: stage.owner,
-                title: stage.owner_role || "Interviewer",
-                photo: stage.owner_avatar
-              }] : undefined,
-            }))
-          : [];
-
-        return {
-          ...app,
-          job: app.jobs,
-          stages: formattedStages,
-          other_candidates_count: count || 0,
-          talent_strategist: strategist,
-        };
-      }));
-
-      console.log("Enriched applications with strategist data:", enrichedApps);
-      setApplications(enrichedApps);
-    } catch (error) {
-      console.error("Error loading applications:", error);
-      toast.error("Failed to load applications");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { user } = useAuth();
+  const { data: applications = [], isLoading: loading } = useApplications(user?.id);
 
   const activeApplications = applications.filter(app => app.status === "active");
   const archivedApplications = applications.filter(app => app.status !== "active");

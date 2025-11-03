@@ -344,12 +344,13 @@ export const useMessages = (conversationId?: string) => {
     [conversationId, user?.id]
   );
 
-  // Subscribe to real-time updates
+  // Subscribe to real-time updates - Optimized single multiplexed channel
   useEffect(() => {
     if (!user?.id) return;
 
+    // Single multiplexed channel for better performance
     const channel = supabase
-      .channel('messages-realtime')
+      .channel('messages-multiplexed')
       .on(
         'postgres_changes',
         {
@@ -359,11 +360,9 @@ export const useMessages = (conversationId?: string) => {
         },
         async (payload) => {
           const newMessage = payload.new as Message;
-
-          // Skip if deleted
           if (newMessage.deleted_at) return;
 
-          // Check if this message belongs to any of user's conversations
+          // Check if belongs to user's conversations
           const { data: userConvos } = await supabase
             .from('conversation_participants')
             .select('conversation_id')
@@ -371,13 +370,10 @@ export const useMessages = (conversationId?: string) => {
 
           const userConvoIds = userConvos?.map(c => c.conversation_id) || [];
           
-          // If message is in one of user's conversations
           if (userConvoIds.includes(newMessage.conversation_id)) {
-            // If we're in that specific conversation, reload messages
             if (conversationId && newMessage.conversation_id === conversationId) {
               loadMessages();
             }
-            // Always reload conversations list to update unread counts
             loadConversations();
           }
         }
@@ -392,8 +388,6 @@ export const useMessages = (conversationId?: string) => {
         },
         async (payload) => {
           const updatedMessage = payload.new as Message;
-          
-          // Update the message in local state
           setMessages((prev) => 
             prev.map((msg) => 
               msg.id === updatedMessage.id 
