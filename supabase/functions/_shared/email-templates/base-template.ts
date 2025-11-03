@@ -193,13 +193,34 @@ export const baseEmailTemplate = ({
           ${showHeader ? `
           <!-- Header -->
           <tr>
-            <td class="gradient-header" style="padding: 40px 40px; text-align: center;">
+            <td class="gradient-header" style="padding: 48px 40px; text-align: center;">
               <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                 <tr>
                   <td align="center">
-                    <div style="font-size: 32px; font-weight: 700; background: linear-gradient(135deg, #C9A24E 0%, #F5F4EF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px;">
-                      ✦ THE QUANTUM CLUB
-                    </div>
+                    <!-- Logo -->
+                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                      <tr>
+                        <td align="center" style="padding-bottom: 16px;">
+                          <img 
+                            src="https://app.thequantumclub.com/placeholder.svg" 
+                            alt="The Quantum Club" 
+                            width="80" 
+                            height="80" 
+                            style="display: block; max-width: 80px; height: auto; margin: 0 auto; border-radius: 16px; box-shadow: 0 8px 24px rgba(201, 162, 78, 0.3);"
+                          />
+                        </td>
+                      </tr>
+                      <tr>
+                        <td align="center">
+                          <div style="font-size: 28px; font-weight: 700; background: linear-gradient(135deg, #C9A24E 0%, #F5F4EF 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -0.5px; margin-top: 8px;">
+                            THE QUANTUM CLUB
+                          </div>
+                          <div style="font-size: 14px; color: rgba(245, 244, 239, 0.6); margin-top: 8px; letter-spacing: 2px; text-transform: uppercase;">
+                            Exclusive Talent Network
+                          </div>
+                        </td>
+                      </tr>
+                    </table>
                   </td>
                 </tr>
               </table>

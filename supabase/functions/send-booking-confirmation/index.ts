@@ -64,6 +64,15 @@ serve(async (req) => {
     const outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(bookingLink.title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(bookingLink.description || '')}`;
 
     const emailContent = `
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center" style="padding-bottom: 32px;">
+            <div style="display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, rgba(201, 162, 78, 0.1) 0%, rgba(201, 162, 78, 0.05) 100%); border-radius: 100px; border: 1px solid rgba(201, 162, 78, 0.3);">
+              <span style="color: #C9A24E; font-size: 14px; font-weight: 600; letter-spacing: 0.5px;">✓ BOOKING CONFIRMED</span>
+            </div>
+          </td>
+        </tr>
+      </table>
       ${Heading({ text: bookingLink.title, level: 1 })}
       ${Spacer(24)}
       ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
@@ -82,23 +91,40 @@ serve(async (req) => {
         `
       })}
       ${Spacer(32)}
-      ${Paragraph('<strong>Add to Your Calendar</strong>', 'primary')}
-      ${Spacer(16)}
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(201, 162, 78, 0.05) 0%, rgba(201, 162, 78, 0.02) 100%); border-radius: 16px; padding: 32px; border: 1px solid rgba(201, 162, 78, 0.15);">
         <tr>
           <td align="center">
-            ${Button({ url: googleCalUrl, text: '📅 Google Calendar', variant: 'primary' })}
-          </td>
-        </tr>
-        <tr><td style="height: 12px;"></td></tr>
-        <tr>
-          <td align="center">
-            ${Button({ url: outlookCalUrl, text: '📅 Outlook Calendar', variant: 'secondary' })}
+            <p class="text-primary" style="margin: 0 0 24px 0; font-size: 18px; font-weight: 600;">
+              📅 Add to Your Calendar
+            </p>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td align="center">
+                  ${Button({ url: googleCalUrl, text: 'Google Calendar', variant: 'primary' })}
+                </td>
+              </tr>
+              <tr><td style="height: 16px;"></td></tr>
+              <tr>
+                <td align="center">
+                  ${Button({ url: outlookCalUrl, text: 'Outlook Calendar', variant: 'secondary' })}
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
       </table>
       ${Spacer(32)}
-      ${Paragraph('If you need to cancel or reschedule, please contact us as soon as possible.', 'muted')}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: rgba(201, 162, 78, 0.05); border-left: 4px solid #C9A24E; border-radius: 8px; padding: 20px;">
+        <tr>
+          <td>
+            <p class="text-secondary" style="margin: 0; font-size: 14px; line-height: 20px;">
+              <strong>Need to make changes?</strong><br>
+              If you need to cancel or reschedule, please contact us as soon as possible at 
+              <a href="mailto:support@thequantumclub.nl" style="color: #C9A24E; text-decoration: none;">support@thequantumclub.nl</a>
+            </p>
+          </td>
+        </tr>
+      </table>
     `;
 
     const emailHtml = baseEmailTemplate({
