@@ -311,8 +311,11 @@ serve(async (req) => {
       .single();
 
     if (bookingError) {
-      throw bookingError;
+      console.error("[Booking] Database error creating booking:", bookingError);
+      throw new Error(`Failed to create booking: ${bookingError.message}`);
     }
+
+    console.log("[Booking] Booking created successfully:", booking.id);
 
     // Send confirmation email
     try {
