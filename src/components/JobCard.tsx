@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Building2, MapPin, Clock, Bookmark, Zap } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "./StatusBadge";
 import { MatchScoreDialog } from "./MatchScoreDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/lib/logger";
 
 interface JobCardProps {
   id?: string;
@@ -49,6 +51,30 @@ export const JobCard = ({
 }: JobCardProps) => {
   const navigate = useNavigate();
   const [showBreakdown, setShowBreakdown] = useState(false);
+  const [matchFactors, setMatchFactors] = useState<any>(null);
+
+  // Fetch match score breakdown when dialog opens
+  useEffect(() => {
+    if (showBreakdown && id) {
+      logger.debug('Fetching match score data', { jobId: id });
+      
+      supabase
+        .from('match_scores')
+        .select('club_match_factors, additional_factors, overall_score')
+        .eq('job_id', id)
+        .maybeSingle()
+        .then(({ data, error }) => {
+          if (error) {
+            logger.error('Failed to fetch match data', error, { jobId: id });
+            return;
+          }
+          if (data) {
+            setMatchFactors(data);
+            logger.debug('Match data loaded', { jobId: id });
+          }
+        });
+    }
+  }, [showBreakdown, id]);
 
   const handleCardClick = () => {
     if (id) navigate(`/jobs/${id}`);
@@ -158,7 +184,7 @@ export const JobCard = ({
             <MatchScoreDialog
               open={showBreakdown}
               onOpenChange={setShowBreakdown}
-              jobId={`${company}-${title}`}
+              jobId={id || `${company}-${title}`}
               jobTitle={title}
               company={company}
               tags={tags}

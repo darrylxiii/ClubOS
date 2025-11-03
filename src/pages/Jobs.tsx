@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { JobCard } from "@/components/JobCard";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { PartnerJobsHome } from "@/components/partner/PartnerJobsHome";
 import { useUserRole } from "@/hooks/useUserRole";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
+import { logger } from "@/lib/logger";
 import { useNavigate } from "react-router-dom";
 
 type SortOption = "match" | "newest" | "salary";
@@ -169,18 +170,37 @@ const Jobs = () => {
     const timer = setTimeout(calculateMissingMatchScores, 1000);
     return () => clearTimeout(timer);
   }, [jobs, user]);
-  const sortedJobs = [...jobs].sort((a, b) => {
-    switch (sortBy) {
-      case "match":
-        return (b.matchScore ?? 0) - (a.matchScore ?? 0);
-      case "newest":
-        return a.postedDaysAgo - b.postedDaysAgo;
-      case "salary":
-        return b.salary - a.salary;
-      default:
-        return 0;
-    }
-  });
+  const sortedJobs = useMemo(() => {
+    return [...jobs].sort((a, b) => {
+      switch (sortBy) {
+        case "match":
+          return (b.matchScore ?? 0) - (a.matchScore ?? 0);
+        case "newest":
+          return a.postedDaysAgo - b.postedDaysAgo;
+        case "salary":
+          return b.salary - a.salary;
+        default:
+          return 0;
+      }
+    });
+  }, [jobs, sortBy]);
+
+  // Memoize currency conversions to prevent recalculation on every render
+  const jobsWithConvertedSalary = useMemo(() => {
+    return sortedJobs.map(job => {
+      if (!job.salaryMax) {
+        return { ...job, convertedSalary: null };
+      }
+      
+      const convertedMin = convertCurrency(job.salaryMin || 0, job.currency, userCurrency);
+      const convertedMax = convertCurrency(job.salaryMax, job.currency, userCurrency);
+      
+      return {
+        ...job,
+        convertedSalary: `${formatCurrency(convertedMin, userCurrency, { compact: true })} - ${formatCurrency(convertedMax, userCurrency, { compact: true })}`
+      };
+    });
+  }, [sortedJobs, userCurrency]);
   const handleApply = (jobTitle: string) => {
     toast.success(`Applied to ${jobTitle}!`, {
       description: "Your application has been submitted successfully."
@@ -214,22 +234,10 @@ const Jobs = () => {
     });
   };
 
-  // Convert salary for display
-  const getConvertedSalary = (job: any) => {
-    if (!job.salaryMax) return null;
-    const convertedMin = convertCurrency(job.salaryMin || 0, job.currency, userCurrency);
-    const convertedMax = convertCurrency(job.salaryMax, job.currency, userCurrency);
-    return {
-      min: convertedMin,
-      max: convertedMax,
-      formatted: `${formatCurrency(convertedMin, userCurrency, {
-        compact: true
-      })} - ${formatCurrency(convertedMax, userCurrency, {
-        compact: true
-      })}`
-    };
-  };
-  const savedJobs = sortedJobs.filter(job => savedJobIds.includes(job.id));
+  // Saved jobs with currency conversion
+  const savedJobs = useMemo(() => {
+    return jobsWithConvertedSalary.filter(job => savedJobIds.includes(job.id));
+  }, [jobsWithConvertedSalary, savedJobIds]);
   const navigate = useNavigate();
 
   // If user is Partner or Admin, show Partner-specific view
@@ -331,8 +339,7 @@ const Jobs = () => {
               </div> : sortedJobs.length === 0 ? <div className="text-center py-12">
                 <p className="text-muted-foreground">No jobs available</p>
               </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {sortedJobs.map(job => {
-              const convertedSalary = getConvertedSalary(job);
+                {jobsWithConvertedSalary.map(job => {
               return <JobCard 
                 key={job.id} 
                 id={job.id}
@@ -344,7 +351,7 @@ const Jobs = () => {
                 type={job.type} 
                 postedDate={job.postedDate} 
                 tags={job.tags} 
-                salary={convertedSalary?.formatted} 
+                salary={job.convertedSalary} 
                 matchScore={job.matchScore} 
                 isSaved={savedJobIds.includes(job.id)} 
                 onApply={() => handleApply(job.title)} 
@@ -423,7 +430,6 @@ const Jobs = () => {
                 </p>
               </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {savedJobs.map(job => {
-              const convertedSalary = getConvertedSalary(job);
               return <JobCard 
                 key={job.id} 
                 id={job.id}
@@ -435,7 +441,7 @@ const Jobs = () => {
                 type={job.type} 
                 postedDate={job.postedDate} 
                 tags={job.tags} 
-                salary={convertedSalary?.formatted} 
+                salary={job.convertedSalary} 
                 matchScore={job.matchScore} 
                 isSaved={true} 
                 onApply={() => handleApply(job.title)} 

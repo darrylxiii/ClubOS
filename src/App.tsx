@@ -11,6 +11,7 @@ import { MotionProvider } from "@/contexts/MotionContext";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
 import { lazy, Suspense } from "react";
@@ -100,7 +101,18 @@ const PageLoader = () => (
   </div>
 );
 
-const queryClient = new QueryClient();
+// Initialize QueryClient with optimized defaults
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60000, // 1 minute
+      gcTime: 300000, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: 'always',
+    },
+  },
+});
 
 const App = () => (
   <ErrorBoundary>
@@ -135,9 +147,11 @@ const App = () => (
             <Route
               path="/home"
               element={
-                <ProtectedRoute>
-                  <ClubHome />
-                </ProtectedRoute>
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <ClubHome />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
               }
             />
             <Route
@@ -183,17 +197,31 @@ const App = () => (
             <Route
               path="/jobs"
               element={
-                <ProtectedRoute>
-                  <Jobs />
-                </ProtectedRoute>
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <Jobs />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
               }
             />
             <Route
               path="/jobs/:jobId"
               element={
-                <ProtectedRoute>
-                  <JobDetail />
-                </ProtectedRoute>
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <JobDetail />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/applications"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <Applications />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
               }
             />
             <Route

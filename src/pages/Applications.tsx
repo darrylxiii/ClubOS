@@ -17,6 +17,8 @@ import { TimelineDeadlines } from "@/components/applications/TimelineDeadlines";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { useApplications } from "@/hooks/useApplications";
 import { useAuth } from "@/contexts/AuthContext";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 
 interface Application {
   id: string;
@@ -49,16 +51,24 @@ interface Application {
 
 export default function Applications() {
   const { user } = useAuth();
-  const { data: applications = [], isLoading: loading } = useApplications(user?.id);
+  const { data: applications = [], isLoading, isFetching } = useApplications(user?.id);
 
   const activeApplications = applications.filter(app => app.status === "active");
   const archivedApplications = applications.filter(app => app.status !== "active");
 
-  if (loading) {
+  if (isLoading) {
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-8">
-          <p className="text-center text-muted-foreground">Loading applications...</p>
+        <div className="container mx-auto px-4 py-8 space-y-6">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-12 w-full max-w-md" />
+          <div className="space-y-4">
+            <Skeleton className="h-96 w-full" />
+            <Skeleton className="h-96 w-full" />
+          </div>
         </div>
       </AppLayout>
     );
@@ -66,6 +76,18 @@ export default function Applications() {
 
   return (
     <AppLayout>
+      {/* Background refetch indicator */}
+      {isFetching && !isLoading && (
+        <div className="fixed top-20 right-4 z-50 animate-in fade-in slide-in-from-right-2 duration-300">
+          <div className="frosted-glass p-3 rounded-lg border border-border/20 shadow-lg">
+            <div className="flex items-center gap-2 text-sm">
+              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              <span className="text-muted-foreground font-medium">Updating...</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="container mx-auto px-4 py-8 space-y-6">
           {/* Header */}
           <div>
