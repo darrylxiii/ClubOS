@@ -19,58 +19,54 @@ export const adminCandidateService = {
   // Get all candidates with filters
   async getAllCandidates(filters: UnifiedCandidateFilters = {}) {
     let query = supabase
-      .from('unified_candidate_view')
+      .from('candidate_profiles')
       .select('*');
     
     if (filters.mergeStatus) {
-      query = query.eq('merge_status', filters.mergeStatus);
-    }
-    if (filters.minCompleteness !== undefined) {
-      query = query.gte('data_completeness_score', filters.minCompleteness);
+      query = query.eq('invitation_status', filters.mergeStatus);
     }
     if (filters.strategistId) {
       query = query.eq('assigned_strategist_id', filters.strategistId);
     }
     if (filters.searchTerm) {
       query = query.or(
-        `display_name.ilike.%${filters.searchTerm}%,display_email.ilike.%${filters.searchTerm}%`
+        `full_name.ilike.%${filters.searchTerm}%,email.ilike.%${filters.searchTerm}%`
       );
     }
     
-    const { data, error } = await query.order('candidate_created_at', { ascending: false });
+    const { data, error } = await query.order('created_at', { ascending: false });
     return { data, error };
   },
 
   // Export candidates to CSV
   async exportCandidatesCSV(candidateIds: string[]) {
     const { data, error } = await supabase
-      .from('unified_candidate_view')
+      .from('candidate_profiles')
       .select('*')
-      .in('candidate_id', candidateIds);
+      .in('id', candidateIds);
     
     if (error || !data) return { data: null, error };
 
     // Convert to CSV format
     const headers = [
       'Name', 'Email', 'Phone', 'Current Title', 'Company', 'Years Experience',
-      'Desired Salary Min', 'Desired Salary Max', 'Currency', 'Resume', 
-      'Merge Status', 'Data Completeness', 'Created At'
+      'Desired Salary Min', 'Desired Salary Max', 'Currency', 'LinkedIn', 
+      'Status', 'Created At'
     ];
     
     const rows = data.map(c => [
-      c.display_name,
-      c.display_email,
+      c.full_name || c.email,
+      c.email,
       c.phone || '',
       c.current_title || '',
       c.current_company || '',
       c.years_of_experience || '',
-      c.final_desired_salary_min || '',
-      c.final_desired_salary_max || '',
-      c.final_currency,
-      c.resume_url ? 'Yes' : 'No',
-      c.merge_status,
-      c.data_completeness_score,
-      c.candidate_created_at
+      c.desired_salary_min || '',
+      c.desired_salary_max || '',
+      c.preferred_currency || '',
+      c.linkedin_url ? 'Yes' : 'No',
+      c.invitation_status || 'unlinked',
+      c.created_at
     ]);
     
     const csv = [
@@ -107,19 +103,16 @@ export const adminCandidateService = {
   // Get merge statistics
   async getMergeStats() {
     const { data, error } = await supabase
-      .from('unified_candidate_view')
-      .select('merge_status, data_completeness_score');
+      .from('candidate_profiles')
+      .select('invitation_status');
     
     if (error || !data) return { data: null, error };
 
     const stats = {
       total: data.length,
-      merged: data.filter(c => c.merge_status === 'merged').length,
-      invited: data.filter(c => c.merge_status === 'invited').length,
-      unlinked: data.filter(c => c.merge_status === 'unlinked').length,
-      avgCompleteness: Math.round(
-        data.reduce((sum, c) => sum + (c.data_completeness_score || 0), 0) / data.length
-      ),
+      merged: data.filter(c => c.invitation_status === 'registered').length,
+      invited: data.filter(c => c.invitation_status === 'invited').length,
+      unlinked: data.filter(c => !c.invitation_status || c.invitation_status === 'pending').length,
     };
 
     return { data: stats, error: null };

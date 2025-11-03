@@ -1,9 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  candidateId: z.string().uuid(),
+  userId: z.string().uuid(),
+  invitationToken: z.string().max(200).optional()
+});
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,7 +18,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { candidateId, userId, invitationToken } = await req.json();
+    const body = await req.json();
+    const { candidateId, userId, invitationToken } = requestSchema.parse(body);
     
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,

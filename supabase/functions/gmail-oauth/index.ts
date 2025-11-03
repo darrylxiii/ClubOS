@@ -1,10 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  action: z.enum(['getAuthUrl', 'exchangeCode']),
+  code: z.string().max(500).optional(),
+  redirectUri: z.string().url().optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,7 +19,8 @@ serve(async (req) => {
   }
 
   try {
-    const { action, code, redirectUri } = await req.json();
+    const body = await req.json();
+    const { action, code, redirectUri } = requestSchema.parse(body);
     
     console.log('📧 Gmail OAuth request:', { action, redirectUri: redirectUri?.substring(0, 50) + '...' });
     
@@ -24,6 +32,8 @@ serve(async (req) => {
     }
 
     if (action === 'getAuthUrl') {
+      if (!redirectUri) throw new Error('redirectUri is required for getAuthUrl');
+      
       // Request comprehensive Gmail scopes
       const scopes = [
         'https://www.googleapis.com/auth/gmail.readonly',
@@ -53,6 +63,9 @@ serve(async (req) => {
     }
 
     if (action === 'exchangeCode') {
+      if (!code) throw new Error('code is required for exchangeCode');
+      if (!redirectUri) throw new Error('redirectUri is required for exchangeCode');
+      
       console.log('🔄 Exchanging code with Google...');
       
       const tokenUrl = 'https://oauth2.googleapis.com/token';
