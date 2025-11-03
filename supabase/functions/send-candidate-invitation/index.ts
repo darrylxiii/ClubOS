@@ -1,4 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Button, Card, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -72,52 +74,52 @@ Deno.serve(async (req) => {
 
     const inviteUrl = `${Deno.env.get('VITE_APP_URL') || 'https://app.thequantumclub.com'}/invite/${inviteToken}`;
     
-    const jobMentions = jobContext && jobContext.length > 0
-      ? `<p><strong>Relevant Opportunities:</strong></p><ul>${jobContext.map((j: any) => `<li>${j.job_title}</li>`).join('')}</ul>`
+    const jobList = jobContext && jobContext.length > 0
+      ? jobContext.map((j: any) => `<li class="text-secondary" style="margin-bottom: 8px;">• ${j.job_title}</li>`).join('')
       : '';
 
-    const emailHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #0E0E10 0%, #1a1a1c 100%); color: #F5F4EF; padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0; }
-            .content { background: #fff; padding: 40px 30px; border: 1px solid #e5e5e5; border-top: none; }
-            .button { display: inline-block; padding: 14px 32px; background: #C9A24E; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 600; margin: 20px 0; }
-            .footer { text-align: center; padding: 20px; color: #999; font-size: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0; font-size: 28px;">Welcome to The Quantum Club</h1>
-              <p style="margin: 10px 0 0; opacity: 0.9;">Exclusive Talent Platform</p>
-            </div>
-            <div class="content">
-              <p>Hi ${candidate.full_name},</p>
-              
-              <p>${message.split('\n').join('<br>')}</p>
-              
-              ${jobMentions}
-              
-              <p style="text-align: center;">
-                <a href="${inviteUrl}" class="button">Accept Invitation</a>
-              </p>
-              
-              <p style="font-size: 14px; color: #666;">
-                This invitation expires in 7 days. If you have any questions, feel free to reply to this email.
-              </p>
-            </div>
-            <div class="footer">
-              <p>© ${new Date().getFullYear()} The Quantum Club. All rights reserved.</p>
-              <p>You received this email because someone at The Quantum Club invited you to join our platform.</p>
-            </div>
-          </div>
-        </body>
-      </html>
+    const emailContent = `
+      ${Heading({ text: 'Welcome to The Quantum Club', level: 1 })}
+      ${Spacer(24)}
+      ${Paragraph(`Hi ${candidate.full_name},`, 'primary')}
+      ${Spacer(16)}
+      ${Paragraph(message.replace(/\n/g, '<br>'), 'secondary')}
+      ${Spacer(32)}
+      ${jobList ? Card({
+        variant: 'default',
+        content: `
+          ${Paragraph('<strong>Relevant Opportunities:</strong>', 'primary')}
+          ${Spacer(16)}
+          <ul style="margin: 0; padding-left: 20px;">
+            ${jobList}
+          </ul>
+        `
+      }) : ''}
+      ${Spacer(32)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: inviteUrl, text: 'Accept Invitation', variant: 'primary' })}
+          </td>
+        </tr>
+      </table>
+      ${Spacer(32)}
+      ${Card({
+        variant: 'default',
+        content: `
+          ${Paragraph('⏱️ <strong>This invitation expires in 7 days</strong>', 'secondary')}
+          ${Spacer(16)}
+          ${Paragraph('If you have any questions, feel free to reply to this email. We\'re here to help!', 'muted')}
+        `
+      })}
     `;
+
+    const emailHtml = baseEmailTemplate({
+      preheader: 'You are invited to join The Quantum Club',
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
 
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',

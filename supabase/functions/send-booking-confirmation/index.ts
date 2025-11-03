@@ -1,4 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Button, Card, Heading, Paragraph, Spacer, InfoRow } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -61,37 +63,50 @@ serve(async (req) => {
     const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(bookingLink.title)}&dates=${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(bookingLink.description || '')}`;
     const outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(bookingLink.title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(bookingLink.description || '')}`;
 
-    const emailHtml = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h1 style="color: ${bookingLink.color};">${bookingLink.title}</h1>
-        <p>Hi ${booking.guest_name},</p>
-        <p>${confirmationMessage}</p>
-        
-        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
-          <h2 style="margin-top: 0;">Meeting Details</h2>
-          <p><strong>Date:</strong> ${formattedDate}</p>
-          <p><strong>Time:</strong> ${formattedTime} (${booking.timezone})</p>
-          ${bookingLink.description ? `<p><strong>Description:</strong> ${bookingLink.description}</p>` : ""}
-          ${booking.notes ? `<p><strong>Notes:</strong> ${booking.notes}</p>` : ""}
-        </div>
-
-        <div style="text-align: center; margin: 30px 0;">
-          <h3 style="margin-bottom: 15px;">Add to Your Calendar</h3>
-          <div style="display: inline-block;">
-            <a href="${googleCalUrl}" style="display: inline-block; padding: 12px 24px; margin: 5px; background-color: #4285f4; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">
-              📅 Google Calendar
-            </a>
-            <a href="${outlookCalUrl}" style="display: inline-block; padding: 12px 24px; margin: 5px; background-color: #0078d4; color: white; text-decoration: none; border-radius: 6px; font-weight: 500;">
-              📅 Outlook
-            </a>
-          </div>
-        </div>
-        
-        <p style="color: #666; font-size: 14px;">
-          If you need to cancel or reschedule, please contact us as soon as possible.
-        </p>
-      </div>
+    const emailContent = `
+      ${Heading({ text: bookingLink.title, level: 1 })}
+      ${Spacer(24)}
+      ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
+      ${Spacer(16)}
+      ${Paragraph(confirmationMessage, 'secondary')}
+      ${Spacer(32)}
+      ${Card({
+        variant: 'highlight',
+        content: `
+          ${Heading({ text: 'Meeting Details', level: 2 })}
+          ${Spacer(16)}
+          ${InfoRow({ icon: '📅', label: 'Date', value: formattedDate })}
+          ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
+          ${bookingLink.description ? InfoRow({ icon: '📝', label: 'Description', value: bookingLink.description }) : ''}
+          ${booking.notes ? InfoRow({ icon: '💬', label: 'Your Notes', value: booking.notes }) : ''}
+        `
+      })}
+      ${Spacer(32)}
+      ${Paragraph('<strong>Add to Your Calendar</strong>', 'primary')}
+      ${Spacer(16)}
+      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+        <tr>
+          <td align="center">
+            ${Button({ url: googleCalUrl, text: '📅 Google Calendar', variant: 'primary' })}
+          </td>
+        </tr>
+        <tr><td style="height: 12px;"></td></tr>
+        <tr>
+          <td align="center">
+            ${Button({ url: outlookCalUrl, text: '📅 Outlook Calendar', variant: 'secondary' })}
+          </td>
+        </tr>
+      </table>
+      ${Spacer(32)}
+      ${Paragraph('If you need to cancel or reschedule, please contact us as soon as possible.', 'muted')}
     `;
+
+    const emailHtml = baseEmailTemplate({
+      preheader: `Meeting confirmed for ${formattedDate} at ${formattedTime}`,
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
 
     // Send email using Resend API
     const resendApiKey = Deno.env.get("RESEND_API_KEY");

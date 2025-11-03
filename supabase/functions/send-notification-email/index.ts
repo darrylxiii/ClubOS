@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Button, Card, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -122,10 +124,49 @@ serve(async (req: Request) => {
       );
     }
 
-    // Build action button HTML
-    const actionButton = actionUrl
-      ? `<a href="${actionUrl}" style="display: inline-block; padding: 12px 24px; background-color: #6366f1; color: white; text-decoration: none; border-radius: 6px; margin-top: 16px;">${actionLabel || "View Details"}</a>`
-      : "";
+    // Get notification icon based on type
+    const notificationIcons: Record<string, string> = {
+      application_status: '📋',
+      new_application: '📝',
+      message: '💬',
+      interview: '🗓️',
+      job_match: '✨',
+      system: '🔔',
+    };
+    const icon = notificationIcons[type] || '🔔';
+
+    // Build email content
+    const emailContent = `
+      ${Heading({ text: `${icon} ${title}`, level: 1 })}
+      ${Spacer(24)}
+      ${Card({
+        variant: type === 'job_match' ? 'highlight' : 'default',
+        content: `
+          ${Paragraph(message, 'secondary')}
+        `
+      })}
+      ${Spacer(32)}
+      ${actionUrl ? `
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+          <tr>
+            <td align="center">
+              ${Button({ url: actionUrl, text: actionLabel || "View Details", variant: 'primary' })}
+            </td>
+          </tr>
+        </table>
+        ${Spacer(24)}
+      ` : ''}
+      ${Paragraph('You received this email because you have notifications enabled in your settings.', 'muted')}
+      ${Spacer(16)}
+      ${Paragraph('<a href="https://app.thequantumclub.com/settings" style="color: #C9A24E; text-decoration: none;">Manage notification preferences</a>', 'muted')}
+    `;
+
+    const html = baseEmailTemplate({
+      preheader: message.substring(0, 100),
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
 
     // Send email via Resend API
     const emailResponse = await fetch("https://api.resend.com/emails", {
@@ -138,26 +179,7 @@ serve(async (req: Request) => {
         from: "The Quantum Club <notifications@thequantumclub.com>",
         to: [userEmail],
         subject: title,
-        html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        </head>
-        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-          <div style="background-color: #f8f9fa; border-radius: 8px; padding: 24px; margin-bottom: 20px;">
-            <h1 style="color: #1a1a1a; margin: 0 0 16px 0; font-size: 24px;">${title}</h1>
-            <p style="color: #4a5568; margin: 0; font-size: 16px;">${message}</p>
-            ${actionButton}
-          </div>
-          <div style="text-align: center; padding: 16px; color: #718096; font-size: 12px;">
-            <p>You received this email because you have notifications enabled in your settings.</p>
-            <p><a href="https://app.thequantumclub.com/settings" style="color: #6366f1; text-decoration: none;">Manage notification preferences</a></p>
-          </div>
-        </body>
-        </html>
-        `,
+        html,
       }),
     });
 

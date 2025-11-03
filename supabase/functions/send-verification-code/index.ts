@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
+import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { Button, CodeBox, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -24,6 +26,25 @@ const handler = async (req: Request): Promise<Response> => {
 
     console.log('Sending verification code to:', email);
 
+    const emailContent = `
+      ${Heading({ text: 'Email Verification', level: 1 })}
+      ${Spacer(24)}
+      ${Paragraph('Your verification code is ready. Enter this code to complete your verification:', 'secondary')}
+      ${Spacer(32)}
+      ${CodeBox({ code, label: 'Verification Code' })}
+      ${Spacer(32)}
+      ${Paragraph('This code will expire in 10 minutes for your security.', 'muted')}
+      ${Spacer(16)}
+      ${Paragraph('If you didn\'t request this code, you can safely ignore this email.', 'muted')}
+    `;
+
+    const html = baseEmailTemplate({
+      preheader: `Your verification code: ${code}`,
+      content: emailContent,
+      showHeader: true,
+      showFooter: true,
+    });
+
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -31,28 +52,10 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Verification <onboarding@resend.dev>",
+        from: "The Quantum Club <onboarding@resend.dev>",
         to: [email],
-        subject: "Your Verification Code",
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h1 style="color: #333;">Email Verification</h1>
-            <p style="font-size: 16px; color: #666;">
-              Your verification code is:
-            </p>
-            <div style="background: #f4f4f4; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-              <span style="font-size: 32px; font-weight: bold; letter-spacing: 8px; color: #333;">
-                ${code}
-              </span>
-            </div>
-            <p style="font-size: 14px; color: #666;">
-              This code will expire in 10 minutes.
-            </p>
-            <p style="font-size: 14px; color: #999; margin-top: 30px;">
-              If you didn't request this code, please ignore this email.
-            </p>
-          </div>
-        `,
+        subject: "Your Verification Code - The Quantum Club",
+        html,
       }),
     });
 
