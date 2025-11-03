@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit } from "lucide-react";
+import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit, FileText, Mail } from "lucide-react";
 import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { EducationSection } from "@/components/profile/EducationSection";
 import { SkillsSection } from "@/components/profile/SkillsSection";
@@ -227,6 +227,18 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
             </CardHeader>
             <CardContent className="flex flex-wrap gap-3">
               <LinkedInImport />
+              <Button variant="outline" asChild>
+                <a href="/profile/documents">
+                  <FileText className="w-4 h-4 mr-2" />
+                  Manage Documents
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/settings/email">
+                  <Mail className="w-4 h-4 mr-2" />
+                  Email Connections
+                </a>
+              </Button>
               <Button variant="outline" onClick={handleExportData}>
                 <Download className="w-4 h-4 mr-2" />
                 Export My Data (GDPR)

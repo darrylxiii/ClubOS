@@ -1,4 +1,5 @@
 import { AppLayout } from "@/components/AppLayout";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield } from "lucide-react";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
@@ -39,6 +40,13 @@ const Admin = () => {
 
         {/* Content */}
         <div className="relative z-10 container mx-auto px-4 py-8 lg:py-12">
+        <Breadcrumb 
+          items={[
+            { label: 'Home', path: '/home' },
+            { label: 'Admin Control Panel' }
+          ]}
+        />
+        
         <div className="space-y-4 mb-12">
           <div className="flex items-center gap-2">
             <Shield className="w-8 h-8" />

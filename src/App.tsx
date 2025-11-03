@@ -93,6 +93,8 @@ const PressureCooker = lazy(() => import("./pages/PressureCooker"));
 const BlindSpotDetector = lazy(() => import("./pages/BlindSpotDetector"));
 const ValuesPoker = lazy(() => import("./pages/ValuesPoker"));
 const Inbox = lazy(() => import("./pages/Inbox"));
+const DocumentManagement = lazy(() => import("./pages/DocumentManagement"));
+const EmailSettings = lazy(() => import("./pages/EmailSettings"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -591,6 +593,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ValuesPoker />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile/documents"
+              element={
+                <ProtectedRoute>
+                  <DocumentManagement />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/email"
+              element={
+                <ProtectedRoute>
+                  <EmailSettings />
                 </ProtectedRoute>
               }
             />

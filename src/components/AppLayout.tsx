@@ -88,6 +88,7 @@ const candidateNavigationGroups = [
       { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
+      { name: "Meeting History", icon: Clock, path: "/meeting-history" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
       { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
       { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
@@ -106,6 +107,7 @@ const candidateNavigationGroups = [
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
       { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
+      { name: "Club Radio", icon: Video, path: "/club-dj" },
     ],
   },
   {
@@ -155,6 +157,7 @@ const partnerNavigationGroups = [
       { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
+      { name: "Meeting History", icon: Clock, path: "/meeting-history" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
       { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
     ],
@@ -172,6 +175,7 @@ const partnerNavigationGroups = [
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
       { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
+      { name: "Club Radio", icon: Video, path: "/club-dj" },
     ],
   },
   {
@@ -206,6 +210,10 @@ const adminNavigationGroups = [
       { name: "Applications", icon: FileText, path: "/applications" },
       { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
       { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
+      { name: "Club Sync Requests", icon: Zap, path: "/admin/club-sync-requests" },
+      { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
+      { name: "Global Analytics", icon: BarChart3, path: "/admin/analytics" },
+      { name: "AI Configuration", icon: Cog, path: "/admin/ai-config" },
     ],
   },
   {
@@ -224,6 +232,7 @@ const adminNavigationGroups = [
       { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
+      { name: "Meeting History", icon: Clock, path: "/meeting-history" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
     ],
   },
@@ -240,6 +249,7 @@ const adminNavigationGroups = [
     items: [
       { name: "Club AI", icon: Sparkles, path: "/club-ai" },
       { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
+      { name: "Club Radio", icon: Video, path: "/club-dj" },
     ],
   },
   {

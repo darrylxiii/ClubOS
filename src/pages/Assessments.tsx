@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { Breadcrumb } from '@/components/Breadcrumb';
 import { AssessmentCard } from '@/components/assessments/AssessmentCard';
 import { ASSESSMENTS } from '@/data/assessments';
 import { AppLayout } from '@/components/AppLayout';
@@ -7,6 +8,14 @@ const Assessments = memo(() => {
   return (
     <AppLayout>
       <div className="container mx-auto p-6 space-y-8">
+        {/* Breadcrumb */}
+        <Breadcrumb 
+          items={[
+            { label: 'Home', path: '/home' },
+            { label: 'Assessments' }
+          ]}
+        />
+        
         {/* Header */}
         <div className="space-y-3 text-center max-w-2xl mx-auto">
           <h1 className="text-4xl font-bold">Assessments</h1>
