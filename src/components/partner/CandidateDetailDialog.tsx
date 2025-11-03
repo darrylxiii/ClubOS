@@ -12,6 +12,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Star, MessageSquare, Calendar, FileText, TrendingUp, History } from "lucide-react";
 import { CandidateInteractionLog } from "./CandidateInteractionLog";
+import { EnhancedCandidateDetails } from "./EnhancedCandidateDetails";
+import { getVisibleFields } from "@/utils/candidateVisibility";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface CandidateDetailDialogProps {
   open: boolean;
@@ -22,6 +25,7 @@ interface CandidateDetailDialogProps {
 
 export const CandidateDetailDialog = ({ open, onOpenChange, application, stages }: CandidateDetailDialogProps) => {
   const { user } = useAuth();
+  const { role } = useUserRole();
   const [comments, setComments] = useState<any[]>([]);
   const [scorecards, setScorecards] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
@@ -35,6 +39,10 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
     recommendation: "neutral" as const,
     notes: "",
   });
+
+  const companyId = application?.jobs?.company_id || application?.job?.company_id;
+  const visibility = getVisibleFields(application, companyId, role || 'partner');
+  const appliedToOurJob = application?.job?.company_id === companyId || application?.jobs?.company_id === companyId;
 
   useEffect(() => {
     if (open && application) {
@@ -217,11 +225,18 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
                 <CardTitle>Candidate Info</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <p><strong>Email:</strong> {application?.profiles?.email}</p>
+                <p><strong>Email:</strong> {visibility.email ? application?.profiles?.email : 'Hidden'}</p>
                 <p><strong>Position:</strong> {application?.position}</p>
                 <p><strong>Company:</strong> {application?.company_name}</p>
               </CardContent>
             </Card>
+
+            <EnhancedCandidateDetails
+              candidate={application?.candidate_profiles}
+              profile={application?.profiles}
+              visibility={visibility}
+              appliedToOurJob={appliedToOurJob}
+            />
           </TabsContent>
 
           <TabsContent value="interactions" className="mt-4">

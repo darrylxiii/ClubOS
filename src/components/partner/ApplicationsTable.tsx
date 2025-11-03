@@ -30,6 +30,8 @@ import {
 import { useNavigate } from "react-router-dom";
 import { CandidateDetailDialog } from "./CandidateDetailDialog";
 import { CandidateActionDialog } from "./CandidateActionDialog";
+import { getVisibleFields } from "@/utils/candidateVisibility";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface ApplicationsTableProps {
   applications: any[];
@@ -38,6 +40,7 @@ interface ApplicationsTableProps {
 
 export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableProps) => {
   const navigate = useNavigate();
+  const { role } = useUserRole();
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [actionDialog, setActionDialog] = useState<{
@@ -115,25 +118,39 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
               <TableBody>
                 {applications.map((app) => {
                   const candidate = app.candidate_profiles;
+                  const profile = app.profiles;
                   const lastActivity = candidate?.last_activity_at;
+                  const companyId = app.jobs?.company_id || app.job?.company_id;
+                  const visibility = getVisibleFields(app, companyId, role || 'partner');
                   
                   return (
                     <TableRow key={app.id} className="hover:bg-muted/50">
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
-                            <AvatarImage src={candidate?.avatar_url} />
+                            <AvatarImage src={visibility.avatar ? candidate?.avatar_url : undefined} />
                             <AvatarFallback>
-                              {candidate?.full_name?.[0]?.toUpperCase() || '?'}
+                              {visibility.fullName && candidate?.full_name?.[0]?.toUpperCase() || '?'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-bold">{candidate?.full_name || 'Unknown'}</p>
-                            <p className="text-xs text-muted-foreground">{candidate?.email}</p>
-                            {candidate?.current_title && (
+                            <p className="font-bold">
+                              {visibility.fullName ? candidate?.full_name : 'Candidate'} 
+                            </p>
+                            {visibility.email && candidate?.email && (
+                              <p className="text-xs text-muted-foreground">{candidate.email}</p>
+                            )}
+                            {visibility.currentTitle && candidate?.current_title && (
                               <p className="text-xs text-muted-foreground">
                                 {candidate.current_title}
-                                {candidate.current_company && ` @ ${candidate.current_company}`}
+                                {visibility.currentCompany && candidate.current_company && 
+                                  ` @ ${candidate.current_company}`
+                                }
+                              </p>
+                            )}
+                            {visibility.desiredSalary && (profile?.desired_salary_min || candidate?.desired_salary_min) && (
+                              <p className="text-xs text-primary font-medium">
+                                Target: {profile?.preferred_currency || candidate?.preferred_currency || 'USD'} {(profile?.desired_salary_min || candidate?.desired_salary_min)?.toLocaleString()}
                               </p>
                             )}
                           </div>
