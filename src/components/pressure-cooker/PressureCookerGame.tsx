@@ -1,11 +1,20 @@
-import { memo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { memo, useState, useEffect } from 'react';
+import { PressureCookerTask, PressureCookerAction } from '@/types/assessment';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
-import { Clock, CheckCircle, Forward, Pause, X, TrendingUp } from 'lucide-react';
-import { PressureCookerTask } from '@/types/assessment';
+import { Slider } from '@/components/ui/slider';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { 
+  Clock, Mail, CheckCircle, AlertTriangle, FileText, Users, 
+  TrendingUp, Paperclip, Eye, EyeOff, ZapIcon
+} from 'lucide-react';
 
 interface PressureCookerGameProps {
   session: any;
@@ -13,175 +22,249 @@ interface PressureCookerGameProps {
   onComplete: () => void;
 }
 
-const TIME_LIMIT = 900; // 15 minutes in seconds
+const TIME_LIMIT = 900;
 
 export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: PressureCookerGameProps) => {
   const [selectedTask, setSelectedTask] = useState<PressureCookerTask | null>(null);
   const [notes, setNotes] = useState('');
+  const [quality, setQuality] = useState([85]);
+  const [delegationTarget, setDelegationTarget] = useState<string>('peer');
+  const [responseTemplate, setResponseTemplate] = useState<string>('professional');
+  const [contextRevealed, setContextRevealed] = useState(false);
+  const [interruptTask, setInterruptTask] = useState<PressureCookerTask | null>(null);
+  const [focusLevel, setFocusLevel] = useState(100);
 
-  const remainingTime = TIME_LIMIT - elapsedTime;
+  const remainingTime = Math.max(0, TIME_LIMIT - elapsedTime);
   const progress = (elapsedTime / TIME_LIMIT) * 100;
 
-  const formatTime = (seconds: number) => {
+  useEffect(() => {
+    const interruptingTask = session.currentTasks.find(
+      (t: PressureCookerTask) => t.isInterrupt && !session.completedTaskIds.has(t.id) && t.id !== interruptTask?.id
+    );
+    if (interruptingTask) {
+      setInterruptTask(interruptingTask);
+      setSelectedTask(interruptingTask);
+    }
+  }, [session.currentTasks, session.completedTaskIds, interruptTask]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFocusLevel(prev => Math.max(0, prev - 0.5));
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (remainingTime <= 0) onComplete();
+  }, [remainingTime, onComplete]);
+
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getUrgencyColor = (urgency: string) => {
+  const getUrgencyColor = (urgency: string): string => {
     switch (urgency) {
-      case 'critical': return 'bg-red-500';
-      case 'high': return 'bg-orange-500';
-      case 'medium': return 'bg-yellow-500';
-      default: return 'bg-blue-500';
+      case 'critical': return 'bg-destructive text-destructive-foreground';
+      case 'high': return 'bg-orange-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-black';
+      case 'low': return 'bg-green-500 text-white';
+      default: return 'bg-muted';
     }
   };
 
-  const handleAction = (action: 'complete' | 'delegate' | 'defer' | 'skip' | 'escalate') => {
-    if (!selectedTask) return;
-    
-    const quality = action === 'complete' ? 85 : undefined;
-    session.handleTaskAction(selectedTask.id, action, quality, notes);
-    setSelectedTask(null);
-    setNotes('');
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'email': return <Mail className="h-4 w-4" />;
+      case 'bug': return <AlertTriangle className="h-4 w-4" />;
+      case 'report': return <FileText className="h-4 w-4" />;
+      case 'meeting': return <Users className="h-4 w-4" />;
+      case 'approval': return <CheckCircle className="h-4 w-4" />;
+      case 'escalation': return <TrendingUp className="h-4 w-4" />;
+      default: return <Mail className="h-4 w-4" />;
+    }
   };
 
-  if (remainingTime <= 0) {
-    onComplete();
-    return null;
-  }
+  const handleAction = (actionType: PressureCookerAction['action']) => {
+    if (!selectedTask) return;
+    
+    session.handleTaskAction(
+      selectedTask.id,
+      actionType,
+      actionType === 'complete' ? quality[0] : undefined,
+      notes || undefined,
+      actionType === 'delegate' ? delegationTarget : undefined,
+      actionType === 'complete' ? responseTemplate : undefined
+    );
+
+    const focusCost = { complete: 8, delegate: 5, escalate: 6, defer: 2, skip: 1, in_progress: 3 }[actionType] || 5;
+    setFocusLevel(prev => Math.max(0, prev - focusCost));
+
+    setNotes('');
+    setQuality([85]);
+    setDelegationTarget('peer');
+    setResponseTemplate('professional');
+    setContextRevealed(false);
+    setSelectedTask(null);
+    if (interruptTask?.id === selectedTask.id) setInterruptTask(null);
+  };
+
+  const isTaskBlocked = (task: PressureCookerTask): boolean => {
+    if (!task.dependencies) return false;
+    return task.dependencies.some((depId: string) => !session.completedTaskIds.has(depId));
+  };
 
   return (
-    <div className="container mx-auto p-4 h-screen flex flex-col gap-4">
-      {/* Timer Bar */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              <span className="font-bold text-xl">{formatTime(remainingTime)}</span>
+    <div className="h-screen flex flex-col bg-background">
+      <div className="border-b bg-card p-4">
+        <div className="max-w-7xl mx-auto space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-muted-foreground" />
+                <span className={`text-2xl font-bold tabular-nums ${remainingTime < 180 ? 'text-destructive animate-pulse' : ''}`}>
+                  {formatTime(remainingTime)}
+                </span>
+              </div>
+              <Separator orientation="vertical" className="h-8" />
+              <div className="flex items-center gap-2">
+                <ZapIcon className="h-5 w-5 text-primary" />
+                <Progress value={focusLevel} className="w-32 h-2" />
+                <span className="text-sm text-muted-foreground">{Math.round(focusLevel)}%</span>
+              </div>
             </div>
-            <div className="text-sm text-muted-foreground">
-              {session.completedTaskIds.size} / {session.currentTasks.length} completed
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-muted-foreground">
+                Completed: <span className="font-semibold text-foreground">{session.completedTaskIds.size}</span> / {session.currentTasks.length}
+              </div>
+              <Button onClick={onComplete} variant="outline" size="sm">Finish Early</Button>
             </div>
           </div>
-          <Progress value={progress} className="h-2" />
-        </CardContent>
-      </Card>
-
-      <div className="flex-1 grid grid-cols-3 gap-4 overflow-hidden">
-        {/* Task Inbox */}
-        <Card className="overflow-hidden flex flex-col">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Task Inbox</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto space-y-2">
-            {session.currentTasks.map((task: PressureCookerTask) => (
-              <button
-                key={task.id}
-                onClick={() => setSelectedTask(task)}
-                disabled={session.completedTaskIds.has(task.id)}
-                className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                  selectedTask?.id === task.id 
-                    ? 'border-primary bg-primary/10' 
-                    : session.completedTaskIds.has(task.id)
-                    ? 'border-muted bg-muted opacity-50'
-                    : 'border-border hover:border-primary'
-                }`}
-              >
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <span className="font-medium text-sm line-clamp-1">{task.title}</span>
-                  {session.completedTaskIds.has(task.id) && (
-                    <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-xs">
-                  <Badge variant="outline" className={`${getUrgencyColor(task.urgency)} text-white border-0`}>
-                    {task.urgency}
-                  </Badge>
-                  <span className="text-muted-foreground">{task.estimatedTime}min</span>
-                </div>
-              </button>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Task Detail */}
-        <Card className="col-span-2 overflow-hidden flex flex-col">
-          <CardHeader>
-            <CardTitle className="text-lg">Task Details</CardTitle>
-          </CardHeader>
-          <CardContent className="flex-1 overflow-y-auto">
-            {selectedTask ? (
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-lg mb-2">{selectedTask.title}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">{selectedTask.description}</p>
-                  
-                  <div className="flex flex-wrap gap-2 mb-4">
-                    <Badge variant="outline">From: {selectedTask.sender}</Badge>
-                    <Badge variant="outline" className={getUrgencyColor(selectedTask.urgency)}>
-                      {selectedTask.urgency}
-                    </Badge>
-                    <Badge variant="outline">Impact: {selectedTask.impact}</Badge>
-                    <Badge variant="outline">~{selectedTask.estimatedTime}min</Badge>
-                    {selectedTask.dueIn && (
-                      <Badge variant="outline" className="bg-red-500/10">
-                        Due in {selectedTask.dueIn}min
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Notes (optional)</label>
-                  <Textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Add notes about this task..."
-                    className="min-h-[80px]"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <Button onClick={() => handleAction('complete')} className="gap-2">
-                    <CheckCircle className="h-4 w-4" />
-                    Complete
-                  </Button>
-                  <Button onClick={() => handleAction('delegate')} variant="outline" className="gap-2">
-                    <Forward className="h-4 w-4" />
-                    Delegate
-                  </Button>
-                  <Button onClick={() => handleAction('defer')} variant="outline" className="gap-2">
-                    <Pause className="h-4 w-4" />
-                    Defer
-                  </Button>
-                  <Button onClick={() => handleAction('skip')} variant="outline" className="gap-2">
-                    <X className="h-4 w-4" />
-                    Skip
-                  </Button>
-                  <Button onClick={() => handleAction('escalate')} variant="outline" className="col-span-2 gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    Escalate
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="h-full flex items-center justify-center text-muted-foreground">
-                Select a task from the inbox to get started
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <Progress value={progress} className="h-1" />
+        </div>
       </div>
 
-      <Card>
-        <CardContent className="p-4">
-          <Button onClick={onComplete} variant="outline" className="w-full">
-            Finish Early & Submit
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full max-w-7xl mx-auto grid grid-cols-2 gap-6 p-6">
+          <Card className="flex flex-col">
+            <div className="p-4 border-b">
+              <h2 className="text-lg font-semibold">Task Inbox</h2>
+            </div>
+            <ScrollArea className="flex-1">
+              <div className="p-4 space-y-2">
+                {session.currentTasks.map((task: PressureCookerTask) => {
+                  const isCompleted = session.completedTaskIds.has(task.id);
+                  const isSelected = selectedTask?.id === task.id;
+                  const isBlocked = isTaskBlocked(task);
+
+                  return (
+                    <Card
+                      key={task.id}
+                      className={`p-4 cursor-pointer transition-all hover:border-primary ${
+                        isSelected ? 'border-primary bg-accent' : ''
+                      } ${isCompleted ? 'opacity-50' : ''} ${isBlocked ? 'border-yellow-500' : ''}`}
+                      onClick={() => !isCompleted && setSelectedTask(task)}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="mt-0.5">{getTypeIcon(task.type)}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h3 className="font-semibold text-sm leading-tight truncate">{task.title}</h3>
+                            {isCompleted && <Badge variant="outline" className="shrink-0">✓</Badge>}
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge className={getUrgencyColor(task.urgency)} variant="secondary">{task.urgency}</Badge>
+                            <span className="text-xs text-muted-foreground">{task.sender}</span>
+                            {isBlocked && <Badge variant="outline" className="text-yellow-600">Blocked</Badge>}
+                            {task.attachments && task.attachments.length > 0 && (
+                              <Badge variant="outline"><Paperclip className="h-3 w-3 mr-1" />{task.attachments.length}</Badge>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </ScrollArea>
+          </Card>
+
+          <Card className="flex flex-col">
+            {selectedTask ? (
+              <>
+                <ScrollArea className="flex-1 p-6 space-y-4">
+                  <div>
+                    <h2 className="text-xl font-bold mb-2">{selectedTask.title}</h2>
+                    <p className="text-sm">{selectedTask.description}</p>
+                    {selectedTask.hiddenContext && (
+                      <Button variant="outline" size="sm" onClick={() => setContextRevealed(!contextRevealed)} className="mt-2">
+                        {contextRevealed ? <><EyeOff className="h-4 w-4 mr-2" />Hide</> : <><Eye className="h-4 w-4 mr-2" />Read More</>}
+                      </Button>
+                    )}
+                    {contextRevealed && selectedTask.hiddenContext && (
+                      <Card className="mt-2 p-3 bg-accent"><p className="text-sm">{selectedTask.hiddenContext}</p></Card>
+                    )}
+                  </div>
+                  <Separator />
+                  <div>
+                    <Label>Notes / Response</Label>
+                    <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+                  </div>
+                  <div>
+                    <Label>Quality Level: {quality[0]}%</Label>
+                    <Slider value={quality} onValueChange={setQuality} min={50} max={100} step={5} />
+                  </div>
+                  <div>
+                    <Label>Response Tone</Label>
+                    <RadioGroup value={responseTemplate} onValueChange={setResponseTemplate}>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="brief" id="brief" />
+                          <Label htmlFor="brief">Brief</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="professional" id="professional" />
+                          <Label htmlFor="professional">Professional</Label>
+                        </div>
+                      </div>
+                    </RadioGroup>
+                  </div>
+                </ScrollArea>
+                <div className="border-t p-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button onClick={() => handleAction('complete')} disabled={isTaskBlocked(selectedTask)} className="bg-green-600">Complete</Button>
+                    <Button onClick={() => handleAction('delegate')} variant="outline">Delegate</Button>
+                    <Button onClick={() => handleAction('defer')} variant="outline">Defer</Button>
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="flex-1 flex items-center justify-center text-muted-foreground">Select a task</div>
+            )}
+          </Card>
+        </div>
+      </div>
+
+      <Dialog open={!!interruptTask} onOpenChange={() => {}}>
+        <DialogContent onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />URGENT INTERRUPTION
+            </DialogTitle>
+          </DialogHeader>
+          {interruptTask && (
+            <div className="space-y-4">
+              <h3 className="font-bold">{interruptTask.title}</h3>
+              <p className="text-sm">{interruptTask.description}</p>
+              <div className="flex gap-2">
+                <Button onClick={() => handleAction('complete')} className="flex-1 bg-green-600">Handle Now</Button>
+                <Button onClick={() => handleAction('escalate')} variant="outline" className="flex-1">Escalate</Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

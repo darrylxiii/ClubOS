@@ -90,21 +90,51 @@ export interface PressureCookerTask {
   title: string;
   description: string;
   sender: string;
+  senderRole: string;
+  senderPersonality: 'impatient' | 'detail-oriented' | 'collaborative' | 'demanding';
   urgency: 'critical' | 'high' | 'medium' | 'low';
   impact: 'high' | 'medium' | 'low';
   estimatedTime: number;
   dependencies?: string[];
+  blocks?: string[]; // Tasks that this task blocks
   arrivalTime: number;
   dueIn?: number;
+  isInterrupt?: boolean; // Shows as modal, blocks other work
+  emailThread?: Array<{
+    from: string;
+    timestamp: string;
+    message: string;
+  }>;
+  attachments?: Array<{
+    type: 'document' | 'chart' | 'code' | 'spreadsheet';
+    name: string;
+    preview?: string;
+  }>;
+  hiddenContext?: string; // Revealed when user clicks "Read More"
+  parts?: Array<{
+    id: string;
+    title: string;
+    completed: boolean;
+  }>;
+  triggersEscalation?: {
+    taskId: string;
+    delaySeconds: number;
+    condition: 'skip' | 'defer' | 'low_quality';
+  };
 }
 
 export interface PressureCookerAction {
   taskId: string;
-  action: 'complete' | 'delegate' | 'defer' | 'skip' | 'escalate';
+  action: 'complete' | 'delegate' | 'defer' | 'skip' | 'escalate' | 'in_progress';
   timestamp: number;
   timeSpent: number;
-  quality?: number;
+  quality?: number; // 50-100, user-selected
+  delegationTarget?: 'junior' | 'peer' | 'senior' | 'external';
+  responseTemplate?: 'brief' | 'professional' | 'empathetic' | 'urgent';
   notes?: string;
+  partId?: string; // For multi-part tasks
+  readTime?: number; // Time spent reading before acting
+  contextRevealed?: boolean; // Did they click "Read More"?
 }
 
 export interface PressureCookerSession {
@@ -124,6 +154,10 @@ export interface PressureCookerSession {
   multitasking_ability: number;
   decision_quality: number;
   communication_style: 'brief' | 'detailed' | 'delegator' | 'collaborative';
+  focus_level?: number; // 0-100, depletes with actions
+  context_switches?: number; // Count of task type changes
+  dependency_recognition?: number; // % of dependencies correctly handled
+  escalation_triggers?: number; // Count of cascading consequences triggered
 }
 
 export interface PressureCookerResult {
@@ -137,6 +171,16 @@ export interface PressureCookerResult {
   totalTasks: number;
   avgResponseTime: number;
   recommendations: string[];
+  focusManagement: number; // How well they managed energy
+  dependencyAwareness: number; // Recognition of blocking tasks
+  stakeholderSavvy: number; // Handling different personalities
+  qualityVsSpeed: 'perfectionist' | 'balanced' | 'speed-focused';
+  archetype: string; // "Strategic Delegator", "Methodical Executor", etc.
+  outcomeSimulation?: {
+    projectDelay: number; // days
+    teamSatisfaction: number; // 0-100
+    costImpact: number; // dollars
+  };
 }
 
 // Blind Spot Detector Assessment Types
