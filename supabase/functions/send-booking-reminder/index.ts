@@ -1,12 +1,14 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { Card, Heading, Paragraph, Spacer, InfoRow } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -19,164 +21,146 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
     );
 
-    const now = new Date();
-    const reminderWindows = [
-      { type: '24h', hours: 24, name: '24 hours' },
-      { type: '1h', hours: 1, name: '1 hour' },
-      { type: '15min', hours: 0.25, name: '15 minutes' }
-    ];
+    // Get bookings scheduled for tomorrow that haven't received reminders
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    
+    const dayAfterTomorrow = new Date(tomorrow);
+    dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
 
-    console.log(`[Reminders] Checking for upcoming bookings at ${now.toISOString()}`);
-
-    for (const window of reminderWindows) {
-      const targetTime = new Date(now.getTime() + window.hours * 60 * 60 * 1000);
-      const windowStart = new Date(targetTime.getTime() - 5 * 60 * 1000); // 5 min before
-      const windowEnd = new Date(targetTime.getTime() + 5 * 60 * 1000); // 5 min after
-
-      // Get bookings that need reminders
-      const { data: bookings, error: bookingsError } = await supabaseClient
-        .from("bookings")
-        .select(`
-          id,
+    const { data: bookings, error: fetchError } = await supabaseClient
+      .from("bookings")
+      .select(`
+        *,
+        booking_links!inner(
+          title,
+          duration_minutes,
           user_id,
-          guest_name,
-          guest_email,
-          scheduled_start,
-          scheduled_end,
-          booking_links (
-            title,
-            duration_minutes
-          )
-        `)
-        .eq("status", "confirmed")
-        .gte("scheduled_start", windowStart.toISOString())
-        .lte("scheduled_start", windowEnd.toISOString());
+          profiles:user_id(full_name, email)
+        )
+      `)
+      .eq("status", "confirmed")
+      .eq("reminder_sent", false)
+      .gte("scheduled_start", tomorrow.toISOString())
+      .lt("scheduled_start", dayAfterTomorrow.toISOString());
 
-      if (bookingsError) {
-        console.error(`[Reminders] Error fetching bookings for ${window.type}:`, bookingsError);
-        continue;
-      }
+    if (fetchError) {
+      throw new Error(`Failed to fetch bookings: ${fetchError.message}`);
+    }
 
-      console.log(`[Reminders] Found ${bookings?.length || 0} bookings for ${window.type} window`);
+    if (!bookings || bookings.length === 0) {
+      return new Response(
+        JSON.stringify({ message: "No bookings to remind", count: 0 }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-      for (const booking of bookings || []) {
-        // Check if reminder already sent
-        const { data: existingReminder } = await supabaseClient
-          .from("booking_reminders")
-          .select("id")
-          .eq("booking_id", booking.id)
-          .eq("reminder_type", window.type)
-          .maybeSingle();
+    console.log(`[Reminders] Found ${bookings.length} bookings to send reminders for`);
 
-        if (existingReminder) {
-          console.log(`[Reminders] Already sent ${window.type} reminder for booking ${booking.id}`);
-          continue;
-        }
+    let successCount = 0;
+    let errorCount = 0;
 
-        // Send reminder email
-        try {
-          const startTime = new Date(booking.scheduled_start);
-          const bookingLinkData = Array.isArray(booking.booking_links) ? booking.booking_links[0] : booking.booking_links;
-          
-          // Fetch host profile separately
-          const { data: hostProfile } = await supabaseClient
-            .from("profiles")
-            .select("full_name")
-            .eq("id", booking.user_id)
-            .maybeSingle();
-          
-          const hostName = hostProfile?.full_name || "Your host";
-          
-          // Dynamic urgency config
-          const urgencyConfig: Record<string, { icon: string; title: string }> = {
-            '24h': { icon: '📅', title: 'Tomorrow' },
-            '1h': { icon: '⏰', title: 'In 1 Hour' },
-            '15min': { icon: '🔔', title: 'Starting Soon!' }
-          };
+    // Send reminder emails
+    for (const booking of bookings) {
+      try {
+        const formattedDate = new Date(booking.scheduled_start).toLocaleDateString("en-US", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        const formattedTime = new Date(booking.scheduled_start).toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          timeZoneName: "short",
+        });
 
-          const config = urgencyConfig[window.type] || { icon: '📅', title: window.name };
-          const isUrgent = window.type === '15min';
+        const content = `
+          <div style="text-align: center; margin-bottom: 32px;">
+            <div style="display: inline-block; padding: 8px 16px; background-color: #FEF3C7; color: #92400E; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 24px;">
+              REMINDER: MEETING TOMORROW
+            </div>
+          </div>
 
-          const formattedTime = startTime.toLocaleString('en-US', { 
-            weekday: 'long', 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-          });
+          <h1 class="text-primary" style="font-size: 28px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.3;">
+            Your Meeting is Tomorrow
+          </h1>
 
-          const emailContent = `
-            ${Heading({ text: `${config.icon} Meeting in ${window.name}`, level: 1 })}
-            ${Spacer(24)}
-            ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
-            ${Spacer(16)}
-            ${Paragraph(`This is a reminder that your meeting "${bookingLinkData?.title}" with ${hostName} is starting in ${window.name}.`, 'secondary')}
-            ${Spacer(32)}
-            ${Card({
-              variant: isUrgent ? 'highlight' : 'default',
-              content: `
-                ${Heading({ text: bookingLinkData?.title || 'Meeting Details', level: 2 })}
-                ${Spacer(16)}
-                ${InfoRow({ icon: '👤', label: 'With', value: hostName })}
-                ${InfoRow({ icon: '📅', label: 'When', value: formattedTime })}
-                ${InfoRow({ icon: '⏱️', label: 'Duration', value: `${bookingLinkData?.duration_minutes} minutes` })}
-              `
-            })}
-            ${Spacer(32)}
-            ${Paragraph('If you need to reschedule or cancel, please contact your host directly.', 'muted')}
-          `;
+          <p class="text-secondary" style="font-size: 16px; line-height: 1.6; margin: 0 0 32px 0;">
+            This is a friendly reminder about your upcoming meeting with ${booking.booking_links.profiles?.full_name || "The Quantum Club"}.
+          </p>
 
-          const html = baseEmailTemplate({
-            preheader: `Meeting reminder: ${bookingLinkData?.title} in ${window.name}`,
-            content: emailContent,
-            showHeader: true,
-            showFooter: true
-          });
+          <div class="bg-card" style="padding: 24px; border-radius: 12px; margin-bottom: 32px;">
+            <h3 class="text-primary" style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">Meeting Details</h3>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 15px;">
+              <tr>
+                <td class="text-secondary" style="padding: 8px 0;"><strong>Meeting:</strong></td>
+                <td class="text-primary" style="padding: 8px 0; text-align: right;">${booking.booking_links.title}</td>
+              </tr>
+              <tr>
+                <td class="text-secondary" style="padding: 8px 0;"><strong>Date:</strong></td>
+                <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedDate}</td>
+              </tr>
+              <tr>
+                <td class="text-secondary" style="padding: 8px 0;"><strong>Time:</strong></td>
+                <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedTime}</td>
+              </tr>
+              <tr>
+                <td class="text-secondary" style="padding: 8px 0;"><strong>Duration:</strong></td>
+                <td class="text-primary" style="padding: 8px 0; text-align: right;">${booking.booking_links.duration_minutes} minutes</td>
+              </tr>
+            </table>
+          </div>
 
-          const resendApiKey = Deno.env.get("RESEND_API_KEY");
-          const emailResponse = await fetch("https://api.resend.com/emails", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${resendApiKey}`,
-            },
-            body: JSON.stringify({
-              from: "The Quantum Club <bookings@thequantumclub.com>",
-              to: [booking.guest_email],
-              subject: `${config.icon} Reminder: ${bookingLinkData?.title} in ${window.name}`,
-              html,
-            }),
-          });
+          ${booking.video_meeting_link ? `
+          <div style="text-align: center; margin: 32px 0;">
+            <a href="${booking.video_meeting_link}" style="display: inline-block; padding: 14px 32px; background: linear-gradient(135deg, #C9A24E 0%, #F5F4EF 100%); color: #0E0E10; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+              Join Video Meeting
+            </a>
+          </div>
+          ` : ''}
 
-          if (!emailResponse.ok) {
-            throw new Error(`Email API error: ${await emailResponse.text()}`);
-          }
+          <p class="text-secondary" style="font-size: 14px; line-height: 1.6; margin: 24px 0 0 0; text-align: center;">
+            Need to reschedule? <a href="https://app.thequantumclub.com/bookings/${booking.id}" style="color: #C9A24E; text-decoration: none;">Manage your booking</a>
+          </p>
+        `;
 
-          console.log(`[Reminders] Sent ${window.type} reminder to ${booking.guest_email}`);
+        await resend.emails.send({
+          from: "The Quantum Club <bookings@thequantumclub.nl>",
+          to: [booking.guest_email],
+          subject: `Reminder: ${booking.booking_links.title} Tomorrow`,
+          html: baseEmailTemplate({ 
+            content,
+            preheader: `Your meeting is tomorrow at ${formattedTime}`
+          }),
+        });
 
-          // Log reminder sent
-          await supabaseClient
-            .from("booking_reminders")
-            .insert({
-              booking_id: booking.id,
-              reminder_type: window.type,
-              sent_at: now.toISOString(),
-            });
+        // Mark reminder as sent
+        await supabaseClient
+          .from("bookings")
+          .update({ reminder_sent: true })
+          .eq("id", booking.id);
 
-        } catch (emailError: any) {
-          console.error(`[Reminders] Error sending reminder for booking ${booking.id}:`, emailError);
-        }
+        successCount++;
+        console.log(`[Reminders] Sent reminder for booking ${booking.id}`);
+      } catch (error) {
+        console.error(`[Reminders] Failed to send reminder for booking ${booking.id}:`, error);
+        errorCount++;
       }
     }
 
     return new Response(
-      JSON.stringify({ success: true, checked: now.toISOString() }),
+      JSON.stringify({ 
+        success: true, 
+        sent: successCount, 
+        failed: errorCount,
+        total: bookings.length 
+      }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
-    console.error("[Reminders] Error processing reminders:", error);
+    console.error("[Reminders] Error:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

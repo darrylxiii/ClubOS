@@ -36,6 +36,8 @@ export function BookingConfirmation({
 }: BookingConfirmationProps) {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCancel, setShowCancel] = useState(false);
+  const [showReschedule, setShowReschedule] = useState(false);
 
   useEffect(() => {
     loadBooking();

@@ -35,34 +35,47 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
 
   const loadWeekSlots = async () => {
     setLoading(true);
+    const weekSlots: Record<string, TimeSlot[]> = {};
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    
     try {
-      const weekDays = Array.from({ length: 7 }, (_, i) => addDays(currentWeekStart, i));
-      const slotsData: Record<string, TimeSlot[]> = {};
+      // Load slots for all days in parallel (Performance optimization)
+      const slotPromises = Array.from({ length: 7 }, async (_, i) => {
+        const date = addDays(currentWeekStart, i);
+        const dateStr = format(date, "yyyy-MM-dd");
+        
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        const startDate = startOfDay.toISOString();
+        const endDate = endOfDay.toISOString();
 
-      for (const day of weekDays) {
-        const dateStr = format(day, "yyyy-MM-dd");
-        const startDate = `${dateStr}T00:00:00Z`;
-        const endDate = `${dateStr}T23:59:59Z`;
+        try {
+          const { data, error } = await supabase.functions.invoke("get-available-slots", {
+            body: {
+              bookingLinkSlug: bookingLink.slug,
+              dateRange: { start: startDate, end: endDate },
+              timezone: userTimezone,
+            },
+          });
 
-        const { data, error } = await supabase.functions.invoke("get-available-slots", {
-          body: {
-            bookingLinkSlug: bookingLink.slug,
-            dateRange: { start: startDate, end: endDate },
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          },
-        });
-
-        if (!error && data?.slots) {
-          slotsData[dateStr] = data.slots.map((slot: any) => ({
-            ...slot,
-            date: day,
-          }));
-        } else {
-          slotsData[dateStr] = [];
+          if (!error && data?.slots) {
+            return { dateStr, slots: data.slots.map((slot: any) => ({ ...slot, date })) };
+          }
+        } catch (err) {
+          console.error(`Error loading slots for ${dateStr}:`, err);
         }
-      }
+        return { dateStr, slots: [] };
+      });
 
-      setSlots(slotsData);
+      const results = await Promise.all(slotPromises);
+      results.forEach(({ dateStr, slots: daySlots }) => {
+        weekSlots[dateStr] = daySlots;
+      });
+      
+      setSlots(weekSlots);
     } catch (error: any) {
       console.error("Error loading week slots:", error);
       toast.error("Failed to load available times");
@@ -110,69 +123,71 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
         </Button>
       </div>
 
-      <div className="grid grid-cols-8 gap-2 overflow-x-auto">
-        {/* Time column */}
-        <div className="space-y-2">
-          <div className="h-12 border-b" />
-          {hours.map((hour) => (
-            <div key={hour} className="h-16 text-xs text-muted-foreground">
-              {format(new Date().setHours(hour, 0), "h:mm a")}
-            </div>
-          ))}
-        </div>
-
-        {/* Day columns */}
-        {Array.from({ length: 7 }, (_, i) => {
-          const day = addDays(currentWeekStart, i);
-          const dateStr = format(day, "yyyy-MM-dd");
-          const daySlots = slots[dateStr] || [];
-          const isToday = isSameDay(day, new Date());
-
-          return (
-            <div key={i} className="space-y-2">
-              <div className={cn(
-                "h-12 border-b flex flex-col items-center justify-center",
-                isToday && "bg-primary/10"
-              )}>
-                <div className="text-xs text-muted-foreground">
-                  {format(day, "EEE")}
-                </div>
-                <div className={cn(
-                  "text-sm font-medium",
-                  isToday && "text-primary"
-                )}>
-                  {format(day, "d")}
-                </div>
+      <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
+        <div className="grid grid-cols-8 gap-2 min-w-[800px] md:min-w-0">
+          {/* Time column */}
+          <div className="space-y-2">
+            <div className="h-12 border-b" />
+            {hours.map((hour) => (
+              <div key={hour} className="h-16 text-xs text-muted-foreground">
+                {format(new Date().setHours(hour, 0), "h:mm a")}
               </div>
+            ))}
+          </div>
 
-              {hours.map((hour) => {
-                const hourSlots = daySlots.filter((slot) => {
-                  const slotHour = parseISO(slot.start).getHours();
-                  return slotHour === hour;
-                });
+          {/* Day columns */}
+          {Array.from({ length: 7 }, (_, i) => {
+            const day = addDays(currentWeekStart, i);
+            const dateStr = format(day, "yyyy-MM-dd");
+            const daySlots = slots[dateStr] || [];
+            const isToday = isSameDay(day, new Date());
 
-                return (
-                  <div key={hour} className="h-16 relative">
-                    {hourSlots.map((slot, idx) => {
-                      const isSelected = selectedSlot === slot.start;
-                      return (
-                        <Button
-                          key={idx}
-                          variant={isSelected ? "default" : "outline"}
-                          size="sm"
-                          className="w-full h-8 text-xs mb-1"
-                          onClick={() => handleSlotClick(slot)}
-                        >
-                          {format(parseISO(slot.start), "h:mm")}
-                        </Button>
-                      );
-                    })}
+            return (
+              <div key={i} className="space-y-2">
+                <div className={cn(
+                  "h-12 border-b flex flex-col items-center justify-center",
+                  isToday && "bg-primary/10"
+                )}>
+                  <div className="text-xs text-muted-foreground">
+                    {format(day, "EEE")}
                   </div>
-                );
-              })}
-            </div>
-          );
-        })}
+                  <div className={cn(
+                    "text-sm font-medium",
+                    isToday && "text-primary"
+                  )}>
+                    {format(day, "d")}
+                  </div>
+                </div>
+
+                {hours.map((hour) => {
+                  const hourSlots = daySlots.filter((slot) => {
+                    const slotHour = parseISO(slot.start).getHours();
+                    return slotHour === hour;
+                  });
+
+                  return (
+                    <div key={hour} className="h-16 relative">
+                      {hourSlots.map((slot, idx) => {
+                        const isSelected = selectedSlot === slot.start;
+                        return (
+                          <Button
+                            key={idx}
+                            variant={isSelected ? "default" : "outline"}
+                            size="sm"
+                            className="w-full h-8 text-xs mb-1"
+                            onClick={() => handleSlotClick(slot)}
+                          >
+                            {format(parseISO(slot.start), "h:mm")}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       <p className="text-xs text-center text-muted-foreground mt-4">

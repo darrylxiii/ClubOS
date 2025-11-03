@@ -1,12 +1,14 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { Resend } from "npm:resend@2.0.0";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
-import { Card, Heading, Paragraph, Spacer, InfoRow, Button } from "../_shared/email-templates/components.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-cancellation-token",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -14,13 +16,14 @@ serve(async (req) => {
   }
 
   try {
-    const { bookingId, cancelledBy, reason } = await req.json();
+    const { bookingId, reason } = await req.json();
 
-    if (!bookingId) {
-      throw new Error("Booking ID is required");
+    if (!bookingId || !reason) {
+      return new Response(
+        JSON.stringify({ error: "Missing bookingId or reason" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-
-    console.log("[cancel-booking] Cancelling booking:", bookingId);
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -28,63 +31,27 @@ serve(async (req) => {
     );
 
     // Get booking details
-    const { data: booking, error: bookingError } = await supabaseClient
+    const { data: booking, error: fetchError } = await supabaseClient
       .from("bookings")
-      .select("*, booking_links(*)")
+      .select(`
+        *,
+        booking_links!inner(
+          title,
+          user_id,
+          profiles:user_id(email, full_name)
+        )
+      `)
       .eq("id", bookingId)
       .single();
 
-    if (bookingError || !booking) {
+    if (fetchError || !booking) {
       throw new Error("Booking not found");
     }
 
-    // Verify cancellation token or authentication
-    const cancellationToken = req.headers.get("x-cancellation-token");
-    const authHeader = req.headers.get("authorization");
-    
-    let isAuthorized = false;
-
-    // Check if user is authenticated and owns the booking
-    if (authHeader) {
-      const token = authHeader.replace("Bearer ", "");
-      const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-      
-      if (!userError && user && user.id === booking.user_id) {
-        isAuthorized = true;
-        console.log("[cancel-booking] Authorized via user authentication");
-      }
-    }
-
-    // Check if valid cancellation token is provided (from email link)
-    if (!isAuthorized && cancellationToken) {
-      // Token format: base64(bookingId:guestEmail:timestamp)
-      try {
-        const decoded = atob(cancellationToken);
-        const [tokenBookingId, tokenEmail, timestamp] = decoded.split(":");
-        const tokenTime = parseInt(timestamp);
-        const now = Date.now();
-        
-        // Token valid for 7 days
-        if (
-          tokenBookingId === bookingId &&
-          tokenEmail === booking.guest_email &&
-          now - tokenTime < 7 * 24 * 60 * 60 * 1000
-        ) {
-          isAuthorized = true;
-          console.log("[cancel-booking] Authorized via cancellation token");
-        }
-      } catch (tokenError) {
-        console.error("[cancel-booking] Invalid cancellation token:", tokenError);
-      }
-    }
-
-    if (!isAuthorized) {
+    if (booking.status === "cancelled") {
       return new Response(
-        JSON.stringify({ error: "Unauthorized: Valid cancellation token or authentication required" }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 403,
-        }
+        JSON.stringify({ error: "Booking already cancelled" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -93,151 +60,146 @@ serve(async (req) => {
       .from("bookings")
       .update({
         status: "cancelled",
-        cancellation_reason: reason || null,
+        cancelled_at: new Date().toISOString(),
+        cancellation_reason: reason,
       })
       .eq("id", bookingId);
 
-    if (updateError) {
-      throw updateError;
-    }
-
-    console.log("[cancel-booking] Booking status updated to cancelled");
+    if (updateError) throw updateError;
 
     // Delete calendar event if synced
-    const { data: calendarSyncs } = await supabaseClient
-      .from("booking_calendar_syncs")
-      .select("*, calendar_connections(*)")
-      .eq("booking_id", bookingId)
-      .eq("sync_status", "synced");
+    if (booking.synced_to_calendar && booking.calendar_event_id) {
+      try {
+        const functionName = booking.calendar_provider === "google"
+          ? "google-calendar-events"
+          : "microsoft-calendar-events";
 
-    if (calendarSyncs && calendarSyncs.length > 0) {
-      for (const sync of calendarSyncs) {
-        try {
-          console.log(`[cancel-booking] Deleting event from ${sync.provider} calendar`);
-
-          const functionName = sync.provider === "google"
-            ? "google-calendar-events"
-            : "microsoft-calendar-events";
-
-          await supabaseClient.functions.invoke(functionName, {
-            body: {
-              action: "deleteEvent",
-              accessToken: sync.calendar_connections.access_token,
-              eventId: sync.calendar_event_id,
-            },
-          });
-
-          // Update sync status
-          await supabaseClient
-            .from("booking_calendar_syncs")
-            .update({
-              sync_status: "deleted",
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", sync.id);
-
-          console.log("[cancel-booking] Calendar event deleted successfully");
-        } catch (calendarError) {
-          console.error("[cancel-booking] Error deleting calendar event:", calendarError);
-          // Mark as failed but continue
-          await supabaseClient
-            .from("booking_calendar_syncs")
-            .update({
-              sync_status: "failed",
-              error_message: calendarError instanceof Error ? calendarError.message : String(calendarError),
-              updated_at: new Date().toISOString(),
-            })
-            .eq("id", sync.id);
-        }
+        await supabaseClient.functions.invoke(functionName, {
+          body: {
+            action: "deleteEvent",
+            eventId: booking.calendar_event_id,
+            connectionId: booking.booking_links.user_id,
+          },
+        });
+      } catch (calError) {
+        console.error("Calendar deletion failed:", calError);
       }
     }
 
-    // Invalidate cache
-    const bookingDate = new Date(booking.scheduled_start).toISOString().split("T")[0];
-    await supabaseClient
-      .from("calendar_busy_times_cache")
-      .delete()
-      .eq("user_id", booking.booking_links.user_id)
-      .eq("date", bookingDate);
+    // Send cancellation emails
+    const formattedDate = new Date(booking.scheduled_start).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+    const formattedTime = new Date(booking.scheduled_start).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    });
 
-    // Send cancellation emails (to both guest and host)
-    try {
-      const startDate = new Date(booking.scheduled_start);
-      const formattedDate = startDate.toLocaleDateString("en-US", {
-        weekday: "long",
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-      const formattedTime = startDate.toLocaleTimeString("en-US", {
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+    // Email to guest
+    const guestContent = `
+      <div style="text-align: center; margin-bottom: 32px;">
+        <div style="display: inline-block; padding: 8px 16px; background-color: #FEE2E2; color: #DC2626; border-radius: 8px; font-weight: 600; font-size: 14px; margin-bottom: 24px;">
+          BOOKING CANCELLED
+        </div>
+      </div>
 
-      const emailContent = `
-        ${Heading({ text: '❌ Meeting Cancelled', level: 1 })}
-        ${Spacer(24)}
-        ${Paragraph(`Hi ${booking.guest_name},`, 'primary')}
-        ${Spacer(16)}
-        ${Paragraph('Your upcoming meeting has been cancelled.', 'secondary')}
-        ${Spacer(32)}
-        ${Card({
-          variant: 'default',
-          content: `
-            ${Heading({ text: booking.booking_links.title, level: 2 })}
-            ${Spacer(16)}
-            ${InfoRow({ icon: '📅', label: 'Originally scheduled', value: formattedDate })}
-            ${InfoRow({ icon: '⏰', label: 'Time', value: formattedTime })}
-            ${reason ? InfoRow({ icon: '📝', label: 'Reason', value: reason }) : ''}
-          `
-        })}
-        ${Spacer(32)}
-        ${Paragraph('If you\'d like to reschedule, you can book a new time using the original booking link.', 'muted')}
+      <h1 class="text-primary" style="font-size: 28px; font-weight: 700; margin: 0 0 16px 0; line-height: 1.3;">
+        Your Booking Has Been Cancelled
+      </h1>
+
+      <p class="text-secondary" style="font-size: 16px; line-height: 1.6; margin: 0 0 32px 0;">
+        Your booking for <strong>${booking.booking_links.title}</strong> has been cancelled.
+      </p>
+
+      <div class="bg-card" style="padding: 24px; border-radius: 12px; margin-bottom: 32px;">
+        <h3 class="text-primary" style="font-size: 18px; font-weight: 600; margin: 0 0 16px 0;">Cancelled Booking Details</h3>
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 15px;">
+          <tr>
+            <td class="text-secondary" style="padding: 8px 0;"><strong>Date:</strong></td>
+            <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedDate}</td>
+          </tr>
+          <tr>
+            <td class="text-secondary" style="padding: 8px 0;"><strong>Time:</strong></td>
+            <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedTime}</td>
+          </tr>
+          <tr>
+            <td class="text-secondary" style="padding: 8px 0;"><strong>Reason:</strong></td>
+            <td class="text-primary" style="padding: 8px 0; text-align: right;">${reason}</td>
+          </tr>
+        </table>
+      </div>
+
+      <p class="text-secondary" style="font-size: 14px; line-height: 1.6; margin: 0;">
+        Need to reschedule? Book a new time at any time.
+      </p>
+    `;
+
+    await resend.emails.send({
+      from: "The Quantum Club <bookings@thequantumclub.nl>",
+      to: [booking.guest_email],
+      subject: `Booking Cancelled - ${booking.booking_links.title}`,
+      html: baseEmailTemplate({ content: guestContent }),
+    });
+
+    // Email to owner
+    const ownerEmail = booking.booking_links.profiles?.email;
+    if (ownerEmail) {
+      const ownerContent = `
+        <h1 class="text-primary" style="font-size: 28px; font-weight: 700; margin: 0 0 16px 0;">
+          Booking Cancellation Notice
+        </h1>
+
+        <p class="text-secondary" style="font-size: 16px; line-height: 1.6; margin: 0 0 24px 0;">
+          ${booking.guest_name} has cancelled their booking.
+        </p>
+
+        <div class="bg-card" style="padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="font-size: 15px;">
+            <tr>
+              <td class="text-secondary" style="padding: 8px 0;"><strong>Guest:</strong></td>
+              <td class="text-primary" style="padding: 8px 0; text-align: right;">${booking.guest_name}</td>
+            </tr>
+            <tr>
+              <td class="text-secondary" style="padding: 8px 0;"><strong>Email:</strong></td>
+              <td class="text-primary" style="padding: 8px 0; text-align: right;">${booking.guest_email}</td>
+            </tr>
+            <tr>
+              <td class="text-secondary" style="padding: 8px 0;"><strong>Date:</strong></td>
+              <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedDate}</td>
+            </tr>
+            <tr>
+              <td class="text-secondary" style="padding: 8px 0;"><strong>Time:</strong></td>
+              <td class="text-primary" style="padding: 8px 0; text-align: right;">${formattedTime}</td>
+            </tr>
+            <tr>
+              <td class="text-secondary" style="padding: 8px 0;"><strong>Reason:</strong></td>
+              <td class="text-primary" style="padding: 8px 0; text-align: right;">${reason}</td>
+            </tr>
+          </table>
+        </div>
       `;
 
-      const html = baseEmailTemplate({
-        preheader: `Meeting cancelled: ${booking.booking_links.title}`,
-        content: emailContent,
-        showHeader: true,
-        showFooter: true
+      await resend.emails.send({
+        from: "The Quantum Club <bookings@thequantumclub.nl>",
+        to: [ownerEmail],
+        subject: `Booking Cancelled - ${booking.guest_name}`,
+        html: baseEmailTemplate({ content: ownerContent }),
       });
-
-      // Email to guest
-      const resendApiKey = Deno.env.get("RESEND_API_KEY");
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${resendApiKey}`,
-        },
-        body: JSON.stringify({
-          from: "The Quantum Club <bookings@thequantumclub.com>",
-          to: [booking.guest_email],
-          subject: `Meeting Cancelled: ${booking.booking_links.title}`,
-          html,
-        }),
-      });
-
-      console.log("[cancel-booking] Cancellation email sent to guest");
-    } catch (emailError) {
-      console.error("[cancel-booking] Error sending cancellation emails:", emailError);
     }
 
     return new Response(
-      JSON.stringify({ success: true, message: "Booking cancelled successfully" }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
-      }
+      JSON.stringify({ success: true }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
-    console.error("[cancel-booking] Error:", error);
+    console.error("Error cancelling booking:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

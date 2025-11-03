@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Clock, Loader2 } from "lucide-react";
-import { format, addMinutes, parse } from "date-fns";
+import { format } from "date-fns";
+import { toZonedTime, formatInTimeZone } from "date-fns-tz";
 
 interface BookingTimeSlotsProps {
   bookingLink: {
@@ -38,24 +39,42 @@ export function BookingTimeSlots({
   const loadAvailableSlots = async () => {
     setLoading(true);
     try {
-      const dateStr = format(selectedDate, "yyyy-MM-dd");
-      const startDate = `${dateStr}T00:00:00Z`;
-      const endDate = `${dateStr}T23:59:59Z`;
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      
+      // Create start and end dates in user's timezone
+      const startOfDay = new Date(selectedDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(selectedDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const startDate = startOfDay.toISOString();
+      const endDate = endOfDay.toISOString();
 
       const { data, error } = await supabase.functions.invoke("get-available-slots", {
         body: {
           bookingLinkSlug: bookingLink.slug,
           dateRange: { start: startDate, end: endDate },
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          timezone: userTimezone,
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Slots API error:", error);
+        throw new Error(error.message || "Failed to fetch slots");
+      }
 
       setSlots(data.slots || []);
     } catch (error: any) {
       console.error("Error loading slots:", error);
-      toast.error("Failed to load available time slots");
+      
+      // Provide more specific error messages
+      const errorMessage = error.message?.includes("timeout")
+        ? "Request timed out. Please try again."
+        : error.message?.includes("network")
+        ? "Network error. Please check your connection."
+        : "Failed to load available time slots. Please try again.";
+      
+      toast.error(errorMessage);
       setSlots([]);
     } finally {
       setLoading(false);
