@@ -101,7 +101,7 @@ export function UnifiedUserManagement() {
             id,
             desired_salary_min,
             desired_salary_max,
-            remote_preference,
+            remote_work_aspiration,
             resume_url,
             stealth_mode_enabled
           )
@@ -152,7 +152,7 @@ export function UnifiedUserManagement() {
           candidate_id: profile.candidate_profiles?.[0]?.id || null,
           desired_salary_min: profile.candidate_profiles?.[0]?.desired_salary_min || null,
           desired_salary_max: profile.candidate_profiles?.[0]?.desired_salary_max || null,
-          remote_work_preference: profile.remote_work_preference || profile.candidate_profiles?.[0]?.remote_preference || null,
+          remote_work_preference: profile.remote_work_preference || profile.candidate_profiles?.[0]?.remote_work_aspiration || null,
           resume_url: profile.candidate_profiles?.[0]?.resume_url || null,
           stealth_mode_enabled: profile.candidate_profiles?.[0]?.stealth_mode_enabled || null,
         };
