@@ -939,6 +939,51 @@ export type Database = {
         }
         Relationships: []
       }
+      blind_spot_sessions: {
+        Row: {
+          awareness_gaps: Json | null
+          coachability_indicator: number | null
+          completed_at: string | null
+          hidden_strengths: string[] | null
+          id: string
+          objective_scores: Json | null
+          overall_self_awareness_score: number | null
+          scenario_responses: Json
+          self_ratings: Json
+          started_at: string | null
+          top_blind_spots: string[] | null
+          user_id: string
+        }
+        Insert: {
+          awareness_gaps?: Json | null
+          coachability_indicator?: number | null
+          completed_at?: string | null
+          hidden_strengths?: string[] | null
+          id?: string
+          objective_scores?: Json | null
+          overall_self_awareness_score?: number | null
+          scenario_responses: Json
+          self_ratings: Json
+          started_at?: string | null
+          top_blind_spots?: string[] | null
+          user_id: string
+        }
+        Update: {
+          awareness_gaps?: Json | null
+          coachability_indicator?: number | null
+          completed_at?: string | null
+          hidden_strengths?: string[] | null
+          id?: string
+          objective_scores?: Json | null
+          overall_self_awareness_score?: number | null
+          scenario_responses?: Json
+          self_ratings?: Json
+          started_at?: string | null
+          top_blind_spots?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_analytics: {
         Row: {
           avg_booking_time_minutes: number | null
@@ -1640,6 +1685,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      candidate_assessment_profiles: {
+        Row: {
+          assessments_completed: number | null
+          coachability_score: number | null
+          communication_style: string | null
+          culture_fit_scores: Json | null
+          dimension_scores: Json | null
+          hidden_strengths: string[] | null
+          last_updated: string | null
+          multitasking_ability: number | null
+          prioritization_skill: number | null
+          self_awareness_score: number | null
+          stress_resilience: number | null
+          top_blind_spots: string[] | null
+          top_values: string[] | null
+          user_id: string
+          value_archetype: string | null
+          value_consistency_score: number | null
+        }
+        Insert: {
+          assessments_completed?: number | null
+          coachability_score?: number | null
+          communication_style?: string | null
+          culture_fit_scores?: Json | null
+          dimension_scores?: Json | null
+          hidden_strengths?: string[] | null
+          last_updated?: string | null
+          multitasking_ability?: number | null
+          prioritization_skill?: number | null
+          self_awareness_score?: number | null
+          stress_resilience?: number | null
+          top_blind_spots?: string[] | null
+          top_values?: string[] | null
+          user_id: string
+          value_archetype?: string | null
+          value_consistency_score?: number | null
+        }
+        Update: {
+          assessments_completed?: number | null
+          coachability_score?: number | null
+          communication_style?: string | null
+          culture_fit_scores?: Json | null
+          dimension_scores?: Json | null
+          hidden_strengths?: string[] | null
+          last_updated?: string | null
+          multitasking_ability?: number | null
+          prioritization_skill?: number | null
+          self_awareness_score?: number | null
+          stress_resilience?: number | null
+          top_blind_spots?: string[] | null
+          top_values?: string[] | null
+          user_id?: string
+          value_archetype?: string | null
+          value_consistency_score?: number | null
+        }
+        Relationships: []
       }
       candidate_comments: {
         Row: {
@@ -8579,6 +8681,104 @@ export type Database = {
           },
         ]
       }
+      pressure_cooker_actions: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          quality_score: number | null
+          session_id: string | null
+          task_id: string
+          time_spent_ms: number | null
+          timestamp_ms: number
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          quality_score?: number | null
+          session_id?: string | null
+          task_id: string
+          time_spent_ms?: number | null
+          timestamp_ms: number
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          quality_score?: number | null
+          session_id?: string | null
+          task_id?: string
+          time_spent_ms?: number | null
+          timestamp_ms?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pressure_cooker_actions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "pressure_cooker_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pressure_cooker_sessions: {
+        Row: {
+          avg_response_time_ms: number | null
+          communication_style: string | null
+          completed_at: string | null
+          completed_tasks: number | null
+          completion_rate: number | null
+          decision_quality: number | null
+          id: string
+          multitasking_ability: number | null
+          prioritization_accuracy: number | null
+          scenario_seed: string
+          started_at: string | null
+          stress_handling_score: number | null
+          tasks_presented: Json
+          total_tasks: number | null
+          user_id: string
+        }
+        Insert: {
+          avg_response_time_ms?: number | null
+          communication_style?: string | null
+          completed_at?: string | null
+          completed_tasks?: number | null
+          completion_rate?: number | null
+          decision_quality?: number | null
+          id?: string
+          multitasking_ability?: number | null
+          prioritization_accuracy?: number | null
+          scenario_seed: string
+          started_at?: string | null
+          stress_handling_score?: number | null
+          tasks_presented: Json
+          total_tasks?: number | null
+          user_id: string
+        }
+        Update: {
+          avg_response_time_ms?: number | null
+          communication_style?: string | null
+          completed_at?: string | null
+          completed_tasks?: number | null
+          completion_rate?: number | null
+          decision_quality?: number | null
+          id?: string
+          multitasking_ability?: number | null
+          prioritization_accuracy?: number | null
+          scenario_seed?: string
+          started_at?: string | null
+          stress_handling_score?: number | null
+          tasks_presented?: Json
+          total_tasks?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profile_achievements: {
         Row: {
           certificate_file_url: string | null
@@ -11766,6 +11966,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      values_poker_sessions: {
+        Row: {
+          completed_at: string | null
+          consistency_score: number | null
+          culture_fit_scores: Json | null
+          id: string
+          red_flags: string[] | null
+          revealed_priorities: Json | null
+          started_at: string | null
+          stated_priorities: Json
+          tradeoff_responses: Json
+          user_id: string
+          value_archetype: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          consistency_score?: number | null
+          culture_fit_scores?: Json | null
+          id?: string
+          red_flags?: string[] | null
+          revealed_priorities?: Json | null
+          started_at?: string | null
+          stated_priorities: Json
+          tradeoff_responses: Json
+          user_id: string
+          value_archetype?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          consistency_score?: number | null
+          culture_fit_scores?: Json | null
+          id?: string
+          red_flags?: string[] | null
+          revealed_priorities?: Json | null
+          started_at?: string | null
+          stated_priorities?: Json
+          tradeoff_responses?: Json
+          user_id?: string
+          value_archetype?: string | null
+        }
+        Relationships: []
       }
       verification_attempts: {
         Row: {
