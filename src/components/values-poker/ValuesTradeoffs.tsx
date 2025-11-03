@@ -55,7 +55,7 @@ export const ValuesTradeoffs = memo(({ scenarios, session, onComplete }: ValuesT
             <Button
               onClick={() => handleChoice('A')}
               variant="outline"
-              className="h-auto p-6 flex flex-col items-start gap-3 hover:border-primary hover:bg-primary/5 transition-all"
+              className="h-auto p-6 flex flex-col items-start gap-3 hover:border-primary hover:bg-primary/5 transition-all whitespace-normal"
             >
               <div className="flex items-center gap-2 w-full">
                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
@@ -63,16 +63,16 @@ export const ValuesTradeoffs = memo(({ scenarios, session, onComplete }: ValuesT
                 </span>
                 <span className="font-semibold text-left">Option A</span>
               </div>
-              <p className="text-sm text-muted-foreground text-left">
+              <p className="text-sm text-muted-foreground text-left w-full break-words whitespace-normal">
                 {currentScenario.optionA.text}
               </p>
-              <ArrowRight className="h-5 w-5 ml-auto text-primary" />
+              <ArrowRight className="h-5 w-5 ml-auto text-primary flex-shrink-0" />
             </Button>
 
             <Button
               onClick={() => handleChoice('B')}
               variant="outline"
-              className="h-auto p-6 flex flex-col items-start gap-3 hover:border-primary hover:bg-primary/5 transition-all"
+              className="h-auto p-6 flex flex-col items-start gap-3 hover:border-primary hover:bg-primary/5 transition-all whitespace-normal"
             >
               <div className="flex items-center gap-2 w-full">
                 <span className="flex-shrink-0 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold">
@@ -80,10 +80,10 @@ export const ValuesTradeoffs = memo(({ scenarios, session, onComplete }: ValuesT
                 </span>
                 <span className="font-semibold text-left">Option B</span>
               </div>
-              <p className="text-sm text-muted-foreground text-left">
+              <p className="text-sm text-muted-foreground text-left w-full break-words whitespace-normal">
                 {currentScenario.optionB.text}
               </p>
-              <ArrowRight className="h-5 w-5 ml-auto text-primary" />
+              <ArrowRight className="h-5 w-5 ml-auto text-primary flex-shrink-0" />
             </Button>
           </div>
         </CardContent>
