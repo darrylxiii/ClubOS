@@ -19,10 +19,12 @@ import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
 import { Volume2, VolumeX } from 'lucide-react';
 import { soundManager } from '@/lib/miljoenenjacht/soundManager';
+import { useAssessmentResults } from '@/hooks/useAssessmentResults';
 
 const ROUNDS_STRUCTURE = [6, 5, 4, 3, 2, 2];
 
 const Miljoenenjacht = memo(() => {
+  const { saveResult } = useAssessmentResults();
   const [gameState, setGameState] = useState<GameState>({
     stage: 'intro',
     cases: [],
@@ -115,7 +117,7 @@ const Miljoenenjacht = memo(() => {
     }
   }, [gameState.cases, gameState.casesToOpenThisRound, gameState.lastActionTime]);
 
-  const handleDeal = useCallback(() => {
+  const handleDeal = useCallback(async () => {
     const decisionTime = Date.now() - new Date(gameState.lastActionTime).getTime();
     const remainingCases = gameState.cases.filter(c => !c.opened);
     const expectedValue = calculateExpectedValue(remainingCases);
@@ -154,6 +156,22 @@ const Miljoenenjacht = memo(() => {
     const profile = calculatePsychologicalProfile(allDecisions, outcome);
     const jobMatches = calculateJobMatches(profile);
 
+    // Save to database
+    const timeSpent = Math.floor((Date.now() - new Date(gameState.gameStartTime).getTime()) / 1000);
+    await saveResult({
+      assessmentId: 'miljoenenjacht',
+      assessmentName: 'Deal or No Deal',
+      assessmentType: 'personality',
+      resultsData: {
+        profile,
+        outcome,
+        jobMatches,
+        allDecisions,
+        timeSpent
+      },
+      score: Math.round(profile.decisionQuality * 10)
+    });
+
     setGameState(prev => ({
       ...prev,
       stage: 'results',
@@ -162,9 +180,9 @@ const Miljoenenjacht = memo(() => {
 
     // Store results for display
     (window as any)._miljoenenJachtResults = { profile, outcome, jobMatches };
-  }, [gameState, currentRoundData, hesitationCount]);
+  }, [gameState, currentRoundData, hesitationCount, saveResult]);
 
-  const handleNoDeal = useCallback(() => {
+  const handleNoDeal = useCallback(async () => {
     const decisionTime = Date.now() - new Date(gameState.lastActionTime).getTime();
     const remainingCases = gameState.cases.filter(c => !c.opened);
     const expectedValue = calculateExpectedValue(remainingCases);
@@ -206,6 +224,22 @@ const Miljoenenjacht = memo(() => {
       const allDecisions = [...gameState.decisions, decision];
       const profile = calculatePsychologicalProfile(allDecisions, outcome);
       const jobMatches = calculateJobMatches(profile);
+
+      // Save to database
+      const timeSpent = Math.floor((Date.now() - new Date(gameState.gameStartTime).getTime()) / 1000);
+      await saveResult({
+        assessmentId: 'miljoenenjacht',
+        assessmentName: 'Deal or No Deal',
+        assessmentType: 'personality',
+        resultsData: {
+          profile,
+          outcome,
+          jobMatches,
+          allDecisions,
+          timeSpent
+        },
+        score: Math.round(profile.decisionQuality * 10)
+      });
 
       setGameState(prev => ({
         ...prev,

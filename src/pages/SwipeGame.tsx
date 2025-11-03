@@ -1,4 +1,4 @@
-import { memo, useState, useCallback } from 'react';
+import { memo, useState, useCallback, useRef } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { InstructionsPage } from '@/components/swipe-game/InstructionsPage';
 import { SwipeInterface } from '@/components/swipe-game/SwipeInterface';
@@ -6,23 +6,27 @@ import { LoadingScreen } from '@/components/swipe-game/LoadingScreen';
 import { ResultsDashboard } from '@/components/swipe-game/ResultsDashboard';
 import { SWIPE_SCENARIOS } from '@/data/assessments';
 import { SwipeResult, SwipeScenario, SwipeDirection } from '@/types/assessment';
+import { useAssessmentResults } from '@/hooks/useAssessmentResults';
 
 type GameStage = 'instructions' | 'swiping' | 'loading' | 'results';
 
 const SwipeGame = memo(() => {
   const [stage, setStage] = useState<GameStage>('instructions');
   const [result, setResult] = useState<SwipeResult | null>(null);
+  const { saveResult } = useAssessmentResults();
+  const startTime = useRef<number>(Date.now());
 
   const handleStart = useCallback(() => {
+    startTime.current = Date.now();
     setStage('swiping');
   }, []);
 
   const handleComplete = useCallback(
-    (responses: Array<{ scenario: SwipeScenario; direction: SwipeDirection }>) => {
+    async (responses: Array<{ scenario: SwipeScenario; direction: SwipeDirection }>) => {
       setStage('loading');
 
       // Calculate results based on responses
-      setTimeout(() => {
+      setTimeout(async () => {
         const traitScores: { [key: string]: number } = {};
         let totalPoints = 0;
 
@@ -74,11 +78,25 @@ const SwipeGame = memo(() => {
           ],
         };
 
+        // Save results to database
+        const timeSpent = Math.floor((Date.now() - startTime.current) / 1000);
+        await saveResult({
+          assessmentId: 'swipe-game',
+          assessmentName: 'Would You Rather?',
+          assessmentType: 'personality',
+          resultsData: {
+            ...calculatedResult,
+            responses,
+            timeSpent
+          },
+          score: calculatedResult.score
+        });
+
         setResult(calculatedResult);
         setStage('results');
       }, 3000);
     },
-    []
+    [saveResult]
   );
 
   const handleLoadingComplete = useCallback(() => {

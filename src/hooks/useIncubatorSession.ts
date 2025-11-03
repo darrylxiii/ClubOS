@@ -189,7 +189,7 @@ export function useIncubatorSession(scenario: IncubatorScenario) {
 
       if (updateError) throw updateError;
 
-      // Create assessment result entry
+      // Create assessment result entry with time tracking
       const { data: resultData, error: resultError } = await supabase
         .from('assessment_results')
         .insert([{
@@ -204,6 +204,11 @@ export function useIncubatorSession(scenario: IncubatorScenario) {
             wordCount,
             timeElapsed,
           } as any,
+          time_spent_seconds: timeElapsed,
+          metadata: {
+            wordCount,
+            hasVoiceRationale: !!voiceUrl
+          }
         }])
         .select()
         .single();

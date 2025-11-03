@@ -32,6 +32,7 @@ import { SourceInformationCard } from "@/components/partner/SourceInformationCar
 import { EditCandidateDialog } from "@/components/partner/EditCandidateDialog";
 import { CandidateSettingsViewer } from "@/components/admin/CandidateSettingsViewer";
 import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
+import { AssessmentHistory } from "@/components/candidate/AssessmentHistory";
 
 export default function CandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -322,16 +323,27 @@ export default function CandidateProfile() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-6">
-          <Tabs defaultValue={isTeamView ? "assessment" : "overview"} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-7">
+          <Tabs defaultValue={isTeamView ? "team-assessment" : "overview"} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              {isTeamView && <TabsTrigger value="assessment">Assessment</TabsTrigger>}
+              <TabsTrigger value="assessments">Assessments</TabsTrigger>
+              {isTeamView && <TabsTrigger value="team-assessment">Team View</TabsTrigger>}
               <TabsTrigger value="experience">Experience</TabsTrigger>
               {isTeamView && <TabsTrigger value="settings">Settings</TabsTrigger>}
               {isTeamView && <TabsTrigger value="workauth">Work Auth</TabsTrigger>}
               {isTeamView && <TabsTrigger value="pipeline">Pipeline</TabsTrigger>}
               {isTeamView && <TabsTrigger value="activity">Activity</TabsTrigger>}
             </TabsList>
+
+            {/* Assessments Tab - Available for all users */}
+            {candidate.user_id && (
+              <TabsContent value="assessments" className="space-y-6">
+                <AssessmentHistory 
+                  userId={candidate.user_id}
+                  viewMode={isTeamView ? (role === 'admin' ? 'admin' : 'partner') : 'candidate'}
+                />
+              </TabsContent>
+            )}
 
             {/* Settings Tab - Admin Only */}
             {isTeamView && candidate.user_id && (
@@ -344,9 +356,9 @@ export default function CandidateProfile() {
               </TabsContent>
             )}
 
-            {/* Assessment Tab - Combines Decision, Documents, Notes, Internal - Admin Only */}
+            {/* Team Assessment Tab - Combines Decision, Documents, Notes, Internal - Admin/Partner Only */}
             {isTeamView && (
-              <TabsContent value="assessment" className="space-y-6">
+              <TabsContent value="team-assessment" className="space-y-6">
                 <CandidateDecisionDashboard candidate={candidate} />
                 
                 <Card>
