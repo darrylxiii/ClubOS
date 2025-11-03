@@ -86,29 +86,26 @@ export function UnifiedUserManagement() {
 
   const fetchData = async () => {
     try {
-      // Fetch all profiles with company info and candidate_id
+      // Fetch all profiles WITHOUT nested candidate_profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id, 
-          email, 
-          full_name, 
-          created_at, 
-          email_verified, 
-          company_id,
-          remote_work_preference,
-          candidate_profiles(
-            id,
-            desired_salary_min,
-            desired_salary_max,
-            remote_work_aspiration,
-            resume_url,
-            stealth_mode_enabled
-          )
-        `)
+        .select('id, email, full_name, created_at, email_verified, company_id, remote_work_preference, stealth_mode_enabled, resume_url, desired_salary_min, desired_salary_max')
         .order('created_at', { ascending: false });
 
-      if (profilesError) throw profilesError;
+      if (profilesError) {
+        console.error('Profiles query error:', profilesError);
+        throw profilesError;
+      }
+
+      // Fetch ALL candidate profiles separately (for additional candidate-specific data)
+      const { data: candidateProfiles, error: candidateError } = await supabase
+        .from('candidate_profiles')
+        .select('user_id, id, desired_salary_min, desired_salary_max, remote_work_aspiration, resume_url');
+
+      if (candidateError) {
+        console.error('Candidate profiles query error:', candidateError);
+        // Don't throw - continue without candidate data
+      }
 
       // Fetch all user roles
       const { data: userRoles, error: rolesError } = await supabase
@@ -134,10 +131,11 @@ export function UnifiedUserManagement() {
 
       if (membersError) throw membersError;
 
-      // Combine all data
+      // Combine all data - JOIN candidate profiles in JavaScript
       const usersWithRoles: UserWithRoles[] = (profiles || []).map((profile: any) => {
         const company = companiesData?.find(c => c.id === profile.company_id);
         const member = members?.find(m => m.user_id === profile.id);
+        const candidateProfile = candidateProfiles?.find(cp => cp.user_id === profile.id);
         
         return {
           id: profile.id,
@@ -149,12 +147,12 @@ export function UnifiedUserManagement() {
           company_name: company?.name || null,
           company_role: member?.role || null,
           roles: userRoles?.filter(r => r.user_id === profile.id).map(r => r.role) || [],
-          candidate_id: profile.candidate_profiles?.[0]?.id || null,
-          desired_salary_min: profile.candidate_profiles?.[0]?.desired_salary_min || null,
-          desired_salary_max: profile.candidate_profiles?.[0]?.desired_salary_max || null,
-          remote_work_preference: profile.remote_work_preference || profile.candidate_profiles?.[0]?.remote_work_aspiration || null,
-          resume_url: profile.candidate_profiles?.[0]?.resume_url || null,
-          stealth_mode_enabled: profile.candidate_profiles?.[0]?.stealth_mode_enabled || null,
+          candidate_id: candidateProfile?.id || null,
+          desired_salary_min: profile.desired_salary_min || candidateProfile?.desired_salary_min || null,
+          desired_salary_max: profile.desired_salary_max || candidateProfile?.desired_salary_max || null,
+          remote_work_preference: profile.remote_work_preference || candidateProfile?.remote_work_aspiration || null,
+          resume_url: profile.resume_url || candidateProfile?.resume_url || null,
+          stealth_mode_enabled: profile.stealth_mode_enabled || null,
         };
       });
 
