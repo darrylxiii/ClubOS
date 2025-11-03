@@ -676,7 +676,7 @@ export function UnifiedUserManagement() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => navigate(`/admin/users/${user.id}/profile`)}
+                          onClick={() => navigate(`/profile/${user.id}`)}
                           title="View Full Profile & Settings"
                         >
                           <Eye className="w-4 h-4" />

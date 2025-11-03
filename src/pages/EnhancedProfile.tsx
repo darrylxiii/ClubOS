@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit, FileText, Mail } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { User, Briefcase, GraduationCap, Award, Folder, Settings, Download, Share2, Eye, Music2, Edit, FileText, Mail, Shield } from "lucide-react";
 import { ExperienceSection } from "@/components/profile/ExperienceSection";
 import { EducationSection } from "@/components/profile/EducationSection";
 import { SkillsSection } from "@/components/profile/SkillsSection";
@@ -19,6 +20,8 @@ import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ShareProfileDialog } from "@/components/profile/ShareProfileDialog";
 import EditProfileSlugDialog from "@/components/profile/EditProfileSlugDialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { useRole } from "@/contexts/RoleContext";
+import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +34,7 @@ interface EnhancedProfileProps {
 
 export default function EnhancedProfile({ viewingUserId, isSharedView = false }: EnhancedProfileProps = {}) {
   const { user } = useAuth();
+  const { currentRole } = useRole();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -41,6 +45,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
   // Determine which user's profile to show
   const profileUserId = viewingUserId || user?.id;
   const isOwnProfile = !isSharedView && user?.id === profileUserId;
+  const isAdminViewing = (currentRole === 'admin' || currentRole === 'strategist') && !isOwnProfile;
 
   useEffect(() => {
     loadProfile();
@@ -255,7 +260,7 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
 
         {/* Main Tabs */}
         <Tabs defaultValue="experience" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className={`grid w-full ${isAdminViewing ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="experience" className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               <span className="hidden sm:inline">Experience</span>
@@ -276,6 +281,12 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
               <Music2 className="w-4 h-4" />
               <span className="hidden sm:inline">Music</span>
             </TabsTrigger>
+            {isAdminViewing && (
+              <TabsTrigger value="admin-settings" className="flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Admin Settings</span>
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="experience" className="space-y-6">
@@ -302,6 +313,24 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
               appleMusicPlaylists={(profile as any)?.apple_music_playlists || []}
             />
           </TabsContent>
+
+          {isAdminViewing && (
+            <TabsContent value="admin-settings" className="space-y-6">
+              <Alert className="border-orange-500 bg-orange-50 dark:bg-orange-950/20">
+                <Shield className="h-4 w-4 text-orange-600" />
+                <AlertDescription className="text-orange-900 dark:text-orange-200">
+                  🔒 Admin View: You are viewing {profile?.full_name || 'this user'}'s complete settings and private data. 
+                  This information is GDPR protected and must be handled accordingly.
+                </AlertDescription>
+              </Alert>
+              
+              <UserSettingsViewer 
+                userId={profileUserId!} 
+                userName={profile?.full_name || profile?.email || 'User'}
+                source="admin_user_profile"
+              />
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Activity Timeline */}
