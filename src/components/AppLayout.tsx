@@ -45,6 +45,7 @@ import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MotionToggle } from "@/components/MotionToggle";
 import { useRole } from "@/contexts/RoleContext";
+import { getNavigationForRole } from "@/config/navigation.config";
 import {
   Sidebar,
   SidebarGroup,
@@ -295,11 +296,9 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   }, [user?.id]);
 
   // Determine navigation based on current role from context
-  const navigationGroups = currentRole === 'admin'
-    ? adminNavigationGroups
-    : currentRole === 'partner'
-    ? partnerNavigationGroups
-    : candidateNavigationGroups;
+  // Map company_admin to admin for navigation
+  const navRole = currentRole === 'company_admin' ? 'admin' : (currentRole as 'candidate' | 'partner' | 'admin');
+  const navigationGroups = getNavigationForRole(navRole || 'candidate');
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
