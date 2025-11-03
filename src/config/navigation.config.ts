@@ -192,33 +192,42 @@ const candidateSpecificItems: NavigationItem[] = [
  * Get navigation groups for a specific role
  * Merges base navigation with role-specific additions
  */
-export function getNavigationForRole(role: 'candidate' | 'partner' | 'admin'): NavigationGroup[] {
+export function getNavigationForRole(role?: string | null): NavigationGroup[] {
+  // Normalize role - default to candidate if invalid
+  const normalizedRole: 'candidate' | 'partner' | 'admin' = 
+    role === 'company_admin' || role === 'recruiter' ? 'admin' : 
+    (role === 'candidate' || role === 'partner' || role === 'admin') ? role : 
+    'candidate';
+  
   const groups: NavigationGroup[] = [];
   
   // 1. Add overview section with correct dashboard
   const overviewGroup = { ...baseNavigationGroups[0] };
   overviewGroup.items = overviewGroup.items.map(item => {
     if (item.path === '/dashboard') {
-      return { ...item, path: dashboardPaths[role] };
+      return { ...item, path: dashboardPaths[normalizedRole] };
     }
     return item;
   });
   
   // Add admin panel for admin role
-  if (role === 'admin') {
+  if (normalizedRole === 'admin') {
     overviewGroup.items.splice(2, 0, ...adminSpecificItems);
   }
   
   groups.push(overviewGroup);
   
   // 2. Add role-specific sections (Career/Hiring/Management)
-  groups.push(...roleSpecificGroups[role]);
+  const roleSpecific = roleSpecificGroups[normalizedRole];
+  if (roleSpecific) {
+    groups.push(...roleSpecific);
+  }
   
   // 3. Add communication section with role-specific items
   const communicationGroup = { ...baseNavigationGroups[1] };
-  if (role === 'partner') {
+  if (normalizedRole === 'partner') {
     communicationGroup.items.push(...partnerSpecificItems);
-  } else if (role === 'candidate') {
+  } else if (normalizedRole === 'candidate') {
     communicationGroup.items.push(...candidateSpecificItems);
   }
   groups.push(communicationGroup);

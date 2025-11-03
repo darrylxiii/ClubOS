@@ -296,9 +296,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   }, [user?.id]);
 
   // Determine navigation based on current role from context
-  // Map company_admin to admin for navigation
-  const navRole = currentRole === 'company_admin' ? 'admin' : (currentRole as 'candidate' | 'partner' | 'admin');
-  const navigationGroups = getNavigationForRole(navRole || 'candidate');
+  const navigationGroups = getNavigationForRole(currentRole);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
