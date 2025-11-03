@@ -91,7 +91,7 @@ export function UnifiedUserManagement() {
           created_at, 
           email_verified, 
           company_id,
-          candidate_profiles!inner(id)
+          candidate_profiles(id)
         `)
         .order('created_at', { ascending: false });
 
