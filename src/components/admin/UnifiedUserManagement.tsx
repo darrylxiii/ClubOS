@@ -8,9 +8,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus, Pencil, Search, Download, Link as LinkIcon, Building2 } from "lucide-react";
+import { UserPlus, Pencil, Search, Download, Link as LinkIcon, Building2, Eye, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Slider } from "@/components/ui/slider";
+import { UserSettingsPreview } from "./UserSettingsPreview";
+import { useNavigate } from "react-router-dom";
 
 interface UserWithRoles {
   id: string;
@@ -22,6 +26,7 @@ interface UserWithRoles {
   company_name: string | null;
   company_role: string | null;
   roles: string[];
+  candidate_id: string | null;
 }
 
 interface Company {
@@ -43,6 +48,7 @@ const COMPANY_ROLES = [
 ];
 
 export function UnifiedUserManagement() {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<UserWithRoles[]>([]);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserWithRoles[]>([]);
@@ -54,6 +60,16 @@ export function UnifiedUserManagement() {
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedCompany, setSelectedCompany] = useState<string>("");
   const [selectedCompanyRole, setSelectedCompanyRole] = useState<string>("recruiter");
+  
+  // Phase 2: Expandable rows
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  
+  // Phase 3: Advanced filters
+  const [salaryRange, setSalaryRange] = useState<[number, number]>([0, 500000]);
+  const [workPreferenceFilter, setWorkPreferenceFilter] = useState<string>("all");
+  const [documentFilter, setDocumentFilter] = useState<string>("all");
+  const [privacyFilter, setPrivacyFilter] = useState<string>("all");
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -65,10 +81,18 @@ export function UnifiedUserManagement() {
 
   const fetchData = async () => {
     try {
-      // Fetch all profiles with company info
+      // Fetch all profiles with company info and candidate_id
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email, full_name, created_at, email_verified, company_id')
+        .select(`
+          id, 
+          email, 
+          full_name, 
+          created_at, 
+          email_verified, 
+          company_id,
+          candidate_profiles!inner(id)
+        `)
         .order('created_at', { ascending: false });
 
       if (profilesError) throw profilesError;
@@ -98,15 +122,21 @@ export function UnifiedUserManagement() {
       if (membersError) throw membersError;
 
       // Combine all data
-      const usersWithRoles: UserWithRoles[] = (profiles || []).map(profile => {
+      const usersWithRoles: UserWithRoles[] = (profiles || []).map((profile: any) => {
         const company = companiesData?.find(c => c.id === profile.company_id);
         const member = members?.find(m => m.user_id === profile.id);
         
         return {
-          ...profile,
+          id: profile.id,
+          email: profile.email,
+          full_name: profile.full_name,
+          created_at: profile.created_at,
+          email_verified: profile.email_verified,
+          company_id: profile.company_id,
           company_name: company?.name || null,
           company_role: member?.role || null,
-          roles: userRoles?.filter(r => r.user_id === profile.id).map(r => r.role) || []
+          roles: userRoles?.filter(r => r.user_id === profile.id).map(r => r.role) || [],
+          candidate_id: profile.candidate_profiles?.[0]?.id || null
         };
       });
 
@@ -122,6 +152,7 @@ export function UnifiedUserManagement() {
   const filterUsers = () => {
     let filtered = users;
 
+    // Basic search
     if (searchQuery) {
       filtered = filtered.filter(user => 
         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -130,11 +161,24 @@ export function UnifiedUserManagement() {
       );
     }
 
+    // Role filter
     if (roleFilter !== "all") {
       filtered = filtered.filter(user => user.roles.includes(roleFilter));
     }
 
     setFilteredUsers(filtered);
+  };
+
+  const toggleRowExpansion = (userId: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
   };
 
   const handleUpdateUser = async () => {
@@ -357,29 +401,112 @@ export function UnifiedUserManagement() {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filters */}
-        <div className="flex gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by name, email, or company..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name, email, or company..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Filter by role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                {AVAILABLE_ROLES.map(role => (
+                  <SelectItem key={role.value} value={role.value}>
+                    {role.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Filter by role" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              {AVAILABLE_ROLES.map(role => (
-                <SelectItem key={role.value} value={role.value}>
-                  {role.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+          {/* Phase 3: Advanced Filters */}
+          <Collapsible open={showAdvancedFilters} onOpenChange={setShowAdvancedFilters}>
+            <CollapsibleTrigger asChild>
+              <Button variant="ghost" className="w-full justify-between">
+                <span>Advanced Filters (Settings-based)</span>
+                {showAdvancedFilters ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              </Button>
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-4 pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Work Preference</Label>
+                  <Select value={workPreferenceFilter} onValueChange={setWorkPreferenceFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="remote">Remote</SelectItem>
+                      <SelectItem value="hybrid">Hybrid</SelectItem>
+                      <SelectItem value="onsite">On-site</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Document Status</Label>
+                  <Select value={documentFilter} onValueChange={setDocumentFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="uploaded">Resume Uploaded</SelectItem>
+                      <SelectItem value="missing">No Resume</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Privacy Mode</Label>
+                  <Select value={privacyFilter} onValueChange={setPrivacyFilter}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="stealth">Stealth Mode ON</SelectItem>
+                      <SelectItem value="public">Stealth Mode OFF</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Desired Salary Range: {salaryRange[0].toLocaleString()} - {salaryRange[1].toLocaleString()}</Label>
+                <Slider
+                  min={0}
+                  max={500000}
+                  step={10000}
+                  value={salaryRange}
+                  onValueChange={(value) => setSalaryRange(value as [number, number])}
+                  className="w-full"
+                />
+              </div>
+
+              <Button 
+                variant="outline" 
+                className="w-full"
+                onClick={() => {
+                  setSalaryRange([0, 500000]);
+                  setWorkPreferenceFilter("all");
+                  setDocumentFilter("all");
+                  setPrivacyFilter("all");
+                }}
+              >
+                Reset Filters
+              </Button>
+            </CollapsibleContent>
+          </Collapsible>
         </div>
 
         {/* Users Table */}
@@ -405,63 +532,109 @@ export function UnifiedUserManagement() {
               </TableRow>
             ) : (
               filteredUsers.map((user) => (
-                <TableRow key={user.id}>
-                  <TableCell className="font-medium">
-                    {user.full_name || 'No name'}
-                  </TableCell>
-                  <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-1 flex-wrap">
-                      {user.roles.length === 0 ? (
-                        <Badge variant="outline">No roles</Badge>
-                      ) : (
-                        user.roles.map(role => (
-                          <Badge key={role} variant="secondary">
-                            {AVAILABLE_ROLES.find(r => r.value === role)?.label || role}
-                          </Badge>
-                        ))
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {user.company_name ? (
-                      <div className="flex items-center gap-1">
-                        <Building2 className="w-3 h-3 text-muted-foreground" />
-                        <span>{user.company_name}</span>
+                <>
+                  <TableRow key={user.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-2">
+                        {user.candidate_id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => toggleRowExpansion(user.id)}
+                          >
+                            {expandedRows.has(user.id) ? (
+                              <ChevronDown className="w-4 h-4" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                          </Button>
+                        )}
+                        {user.full_name || 'No name'}
                       </div>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">No company</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.company_role ? (
-                      <Badge variant="outline" className="capitalize">
-                        {user.company_role}
-                      </Badge>
-                    ) : (
-                      <span className="text-muted-foreground text-sm">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {user.email_verified ? (
-                      <Badge variant="default">Verified</Badge>
-                    ) : (
-                      <Badge variant="outline">Unverified</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(user.created_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => openEditDialog(user)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
+                    </TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1 flex-wrap">
+                        {user.roles.length === 0 ? (
+                          <Badge variant="outline">No roles</Badge>
+                        ) : (
+                          user.roles.map(role => (
+                            <Badge key={role} variant="secondary">
+                              {AVAILABLE_ROLES.find(r => r.value === role)?.label || role}
+                            </Badge>
+                          ))
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {user.company_name ? (
+                        <div className="flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-muted-foreground" />
+                          <span>{user.company_name}</span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No company</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {user.company_role ? (
+                        <Badge variant="outline" className="capitalize">
+                          {user.company_role}
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {user.email_verified ? (
+                        <Badge variant="default">Verified</Badge>
+                      ) : (
+                        <Badge variant="outline">Unverified</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(user.created_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        {user.candidate_id && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/candidates/${user.candidate_id}?tab=settings`)}
+                            title="View Full Settings"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditDialog(user)}
+                          title="Edit User"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  {/* Phase 2: Expandable Settings Preview */}
+                  {user.candidate_id && expandedRows.has(user.id) && (
+                    <TableRow>
+                      <TableCell colSpan={8} className="bg-muted/50 p-0">
+                        <div className="p-4">
+                          <UserSettingsPreview 
+                            userId={user.id}
+                            candidateId={user.candidate_id}
+                            onViewFull={() => navigate(`/candidates/${user.candidate_id}?tab=settings`)}
+                          />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </>
               ))
             )}
           </TableBody>
