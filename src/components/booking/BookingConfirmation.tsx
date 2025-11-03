@@ -5,18 +5,23 @@ import { CheckCircle2, Calendar, Clock, Mail, MapPin, ExternalLink } from "lucid
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { BookingSyncStatus } from "./BookingSyncStatus";
+import { CancelBookingDialog } from "./CancelBookingDialog";
+import { RescheduleDialog } from "./RescheduleDialog";
 
 interface BookingConfirmationProps {
   bookingId: string;
   bookingLink: {
+    id?: string;
     title: string;
     duration_minutes: number;
     color: string;
+    user_id?: string;
   };
 }
 
 interface Booking {
   id: string;
+  user_id?: string;
   guest_name: string;
   guest_email: string;
   scheduled_start: string;
@@ -26,6 +31,14 @@ interface Booking {
   calendar_provider?: string | null;
   meeting_id?: string | null;
   booking_links?: {
+    id: string;
+    slug: string;
+    title: string;
+    duration_minutes: number;
+    color: string;
+    user_id: string;
+    advance_booking_days: number;
+    min_notice_hours: number;
     enable_club_ai?: boolean;
   };
 }
@@ -49,7 +62,15 @@ export function BookingConfirmation({
         .from("bookings")
         .select(`
           *,
-          booking_links (
+          booking_links!inner (
+            id,
+            slug,
+            title,
+            duration_minutes,
+            color,
+            user_id,
+            advance_booking_days,
+            min_notice_hours,
             enable_club_ai
           )
         `)
@@ -231,14 +252,60 @@ export function BookingConfirmation({
         </div>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-3 pt-4">
+        <Button
+          variant="outline"
+          onClick={() => setShowReschedule(true)}
+          className="flex-1"
+        >
+          Reschedule Booking
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => setShowCancel(true)}
+          className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+        >
+          Cancel Booking
+        </Button>
+      </div>
+
       <div className="text-center pt-4">
-        <p className="text-sm text-muted-foreground mb-4">
-          Need to make changes? Contact us with your booking ID:
+        <p className="text-sm text-muted-foreground mb-2">
+          Booking ID:
         </p>
         <code className="px-3 py-1.5 bg-muted rounded text-xs font-mono">
           {booking.id.slice(0, 8)}
         </code>
       </div>
+
+      <CancelBookingDialog
+        open={showCancel}
+        onOpenChange={setShowCancel}
+        bookingId={booking.id}
+        onCancelled={() => {
+          toast.success("Booking cancelled successfully");
+          setShowCancel(false);
+        }}
+      />
+
+      {booking.booking_links && (
+        <RescheduleDialog
+          open={showReschedule}
+          onOpenChange={setShowReschedule}
+          booking={{
+            id: booking.id,
+            scheduled_start: booking.scheduled_start,
+            scheduled_end: booking.scheduled_end,
+            guest_name: booking.guest_name,
+          }}
+          bookingLink={booking.booking_links}
+          onRescheduled={() => {
+            toast.success("Booking rescheduled successfully");
+            setShowReschedule(false);
+            loadBooking();
+          }}
+        />
+      )}
     </div>
   );
 }

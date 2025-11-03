@@ -201,13 +201,14 @@ export const baseEmailTemplate = ({
                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                       <tr>
                         <td align="center" style="padding-bottom: 16px;">
-                          <img 
-                            src="https://app.thequantumclub.com/placeholder.svg" 
-                            alt="The Quantum Club" 
-                            width="80" 
-                            height="80" 
-                            style="display: block; max-width: 80px; height: auto; margin: 0 auto; border-radius: 16px; box-shadow: 0 8px 24px rgba(201, 162, 78, 0.3);"
-                          />
+                          <div style="width: 80px; height: 80px; margin: 0 auto; border-radius: 16px; background: linear-gradient(135deg, #C9A24E 0%, #F5F4EF 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 24px rgba(201, 162, 78, 0.3);">
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M24 4L28 20L24 28L20 20L24 4Z" fill="#0E0E10" opacity="0.9"/>
+                              <path d="M24 20L40 24L32 28L24 32L24 20Z" fill="#0E0E10" opacity="0.7"/>
+                              <path d="M24 20L8 24L16 28L24 32L24 20Z" fill="#0E0E10" opacity="0.5"/>
+                              <circle cx="24" cy="24" r="3" fill="#0E0E10"/>
+                            </svg>
+                          </div>
                         </td>
                       </tr>
                       <tr>

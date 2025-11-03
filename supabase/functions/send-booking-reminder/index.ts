@@ -1,14 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -126,13 +123,20 @@ serve(async (req) => {
           </p>
         `;
 
-        await resend.emails.send({
-          from: "The Quantum Club <bookings@thequantumclub.nl>",
-          to: [booking.guest_email],
-          subject: `Reminder: ${booking.booking_links.title} Tomorrow`,
-          html: baseEmailTemplate({ 
-            content,
-            preheader: `Your meeting is tomorrow at ${formattedTime}`
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("RESEND_API_KEY")}`,
+          },
+          body: JSON.stringify({
+            from: "The Quantum Club <bookings@thequantumclub.nl>",
+            to: [booking.guest_email],
+            subject: `Reminder: ${booking.booking_links.title} Tomorrow`,
+            html: baseEmailTemplate({ 
+              content,
+              preheader: `Your meeting is tomorrow at ${formattedTime}`
+            }),
           }),
         });
 

@@ -1,14 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { Resend } from "npm:resend@2.0.0";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -87,6 +84,7 @@ serve(async (req) => {
     }
 
     // Send cancellation emails
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
     const formattedDate = new Date(booking.scheduled_start).toLocaleDateString("en-US", {
       weekday: "long",
       year: "numeric",
@@ -138,11 +136,18 @@ serve(async (req) => {
       </p>
     `;
 
-    await resend.emails.send({
-      from: "The Quantum Club <bookings@thequantumclub.nl>",
-      to: [booking.guest_email],
-      subject: `Booking Cancelled - ${booking.booking_links.title}`,
-      html: baseEmailTemplate({ content: guestContent }),
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${resendApiKey}`,
+      },
+      body: JSON.stringify({
+        from: "The Quantum Club <bookings@thequantumclub.nl>",
+        to: [booking.guest_email],
+        subject: `Booking Cancelled - ${booking.booking_links.title}`,
+        html: baseEmailTemplate({ content: guestContent }),
+      }),
     });
 
     // Email to owner
@@ -183,11 +188,18 @@ serve(async (req) => {
         </div>
       `;
 
-      await resend.emails.send({
-        from: "The Quantum Club <bookings@thequantumclub.nl>",
-        to: [ownerEmail],
-        subject: `Booking Cancelled - ${booking.guest_name}`,
-        html: baseEmailTemplate({ content: ownerContent }),
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${resendApiKey}`,
+        },
+        body: JSON.stringify({
+          from: "The Quantum Club <bookings@thequantumclub.nl>",
+          to: [ownerEmail],
+          subject: `Booking Cancelled - ${booking.guest_name}`,
+          html: baseEmailTemplate({ content: ownerContent }),
+        }),
       });
     }
 

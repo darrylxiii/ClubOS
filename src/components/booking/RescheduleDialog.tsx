@@ -28,9 +28,10 @@ interface RescheduleDialogProps {
     advance_booking_days: number;
     min_notice_hours: number;
   };
+  onRescheduled?: () => void;
 }
 
-export function RescheduleDialog({ open, onOpenChange, booking, bookingLink }: RescheduleDialogProps) {
+export function RescheduleDialog({ open, onOpenChange, booking, bookingLink, onRescheduled }: RescheduleDialogProps) {
   const [step, setStep] = useState<"date" | "time" | "reason">("date");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string>("");
@@ -74,6 +75,7 @@ export function RescheduleDialog({ open, onOpenChange, booking, bookingLink }: R
       if (error) throw error;
 
       toast.success("Booking rescheduled successfully!");
+      onRescheduled?.();
       onOpenChange(false);
       
       // Reset state
