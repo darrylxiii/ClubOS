@@ -36,6 +36,7 @@ serve(async (req) => {
         .from("bookings")
         .select(`
           id,
+          user_id,
           guest_name,
           guest_email,
           scheduled_start,
@@ -44,9 +45,6 @@ serve(async (req) => {
             title,
             meeting_link,
             duration_minutes
-          ),
-          profiles:user_id (
-            full_name
           )
         `)
         .eq("status", "confirmed")
@@ -78,8 +76,15 @@ serve(async (req) => {
         try {
           const startTime = new Date(booking.scheduled_start);
           const bookingLinkData = Array.isArray(booking.booking_links) ? booking.booking_links[0] : booking.booking_links;
-          const profileData = Array.isArray(booking.profiles) ? booking.profiles[0] : booking.profiles;
-          const hostName = profileData?.full_name || "Your host";
+          
+          // Fetch host profile separately
+          const { data: hostProfile } = await supabaseClient
+            .from("profiles")
+            .select("full_name")
+            .eq("id", booking.user_id)
+            .maybeSingle();
+          
+          const hostName = hostProfile?.full_name || "Your host";
           
           const emailHtml = `
             <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">

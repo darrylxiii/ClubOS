@@ -126,10 +126,53 @@ const Jobs = () => {
     };
     fetchJobs();
   }, [user]);
+
+  // Trigger match calculation for jobs without scores
+  useEffect(() => {
+    const calculateMissingMatchScores = async () => {
+      if (!user?.id || jobs.length === 0) return;
+
+      const jobsNeedingScores = jobs.filter(job => job.matchScore === null);
+      if (jobsNeedingScores.length === 0) return;
+
+      console.log(`Calculating match scores for ${jobsNeedingScores.length} jobs...`);
+
+      // Calculate scores in batches to avoid overwhelming the server
+      for (const job of jobsNeedingScores.slice(0, 5)) {
+        try {
+          const { data, error } = await supabase.functions.invoke('calculate-enhanced-match', {
+            body: {
+              jobId: job.id
+            }
+          });
+
+          if (error) {
+            console.error('Error calculating match score for job:', job.id, error);
+            continue;
+          }
+
+          // Update local state with new score
+          if (data?.score) {
+            setJobs(prevJobs =>
+              prevJobs.map(j =>
+                j.id === job.id ? { ...j, matchScore: data.score } : j
+              )
+            );
+          }
+        } catch (error) {
+          console.error('Error calculating match score:', error);
+        }
+      }
+    };
+
+    // Delay calculation slightly to avoid blocking initial render
+    const timer = setTimeout(calculateMissingMatchScores, 1000);
+    return () => clearTimeout(timer);
+  }, [jobs, user]);
   const sortedJobs = [...jobs].sort((a, b) => {
     switch (sortBy) {
       case "match":
-        return b.matchScore - a.matchScore;
+        return (b.matchScore ?? 0) - (a.matchScore ?? 0);
       case "newest":
         return a.postedDaysAgo - b.postedDaysAgo;
       case "salary":

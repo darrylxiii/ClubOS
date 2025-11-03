@@ -123,98 +123,119 @@ export const useMessages = (conversationId?: string) => {
       if (convosError) throw convosError;
 
       // Get last message, participants, and unread count for each conversation
-      const conversationsWithDetails = await Promise.all(
-        (convos || []).map(async (convo) => {
-          // Get participants with profiles
-          const { data: participants } = await supabase
-            .from('conversation_participants')
-            .select('id, conversation_id, user_id, role, joined_at, last_read_at, notifications_enabled, is_muted')
-            .eq('conversation_id', convo.id);
+      // Optimized: Batch queries to eliminate N+1
+      const convoIds = convos?.map(c => c.id) || [];
+      
+      // Batch fetch all participants
+      const { data: allParticipants } = await supabase
+        .from('conversation_participants')
+        .select('*')
+        .in('conversation_id', convoIds);
 
-          const participantIds = participants?.map(p => p.user_id) || [];
-          const { data: profiles } = await supabase
-            .from('profiles')
-            .select('id, full_name, avatar_url')
-            .in('id', participantIds);
+      // Batch fetch profiles for all participants
+      const participantUserIds = [...new Set(allParticipants?.map(p => p.user_id) || [])];
+      const { data: participantProfiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', participantUserIds);
 
-          const participantsWithProfiles = participants?.map(p => {
-            const profile = profiles?.find(prof => prof.id === p.user_id);
-            return {
-              id: p.id,
-              conversation_id: p.conversation_id,
-              user_id: p.user_id,
-              role: p.role,
-              joined_at: p.joined_at,
-              last_read_at: p.last_read_at,
-              notifications_enabled: p.notifications_enabled,
-              is_muted: p.is_muted,
-              profile: profile ? {
-                full_name: profile.full_name,
-                avatar_url: profile.avatar_url
-              } : null
-            };
-          });
+      const profilesById = participantProfiles?.reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>) || {};
 
-          // Get last message with sender
-          const { data: lastMsg } = await supabase
-            .from('messages')
-            .select('*')
-            .eq('conversation_id', convo.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+      // Batch fetch all last messages
+      const { data: allLastMessages } = await supabase
+        .from('messages')
+        .select('*')
+        .in('conversation_id', convoIds)
+        .order('created_at', { ascending: false });
 
-          let lastMessageWithSender: Message | null = null;
-          if (lastMsg) {
-            const { data: sender } = await supabase
-              .from('profiles')
-              .select('full_name, avatar_url')
-              .eq('id', lastMsg.sender_id)
-              .maybeSingle();
-            lastMessageWithSender = { 
-              ...lastMsg as any,
-              sender: sender || undefined
-            } as Message;
-          }
+      // Batch fetch sender profiles for messages
+      const senderIds = [...new Set(allLastMessages?.map(m => m.sender_id) || [])];
+      const { data: senderProfiles } = await supabase
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .in('id', senderIds);
 
-          // Get unread count
-          const { data: messageIds } = await supabase
-            .from('messages')
-            .select('id')
-            .eq('conversation_id', convo.id);
+      const sendersById = senderProfiles?.reduce((acc, profile) => {
+        acc[profile.id] = profile;
+        return acc;
+      }, {} as Record<string, any>) || {};
 
-          const { count } = await supabase
-            .from('message_notifications')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id)
-            .eq('is_read', false)
-            .in('message_id', messageIds?.map(m => m.id) || []);
+      // Batch fetch all unread counts
+      const { data: allUnreadNotifications } = await supabase
+        .from('message_notifications')
+        .select('message_id, messages!inner(conversation_id)')
+        .eq('user_id', user.id)
+        .eq('is_read', false)
+        .in('messages.conversation_id', convoIds);
 
-          // Get application info if exists
-          let application = null;
-          if (convo.application_id) {
-            const { data: app } = await supabase
-              .from('applications')
-              .select('company_name, position')
-              .eq('id', convo.application_id)
-              .maybeSingle();
-            application = app;
-          }
+      // Batch fetch applications if needed
+      const appIds = convos?.filter(c => c.application_id).map(c => c.application_id!) || [];
+      const { data: allApplications } = appIds.length > 0 ? await supabase
+        .from('applications')
+        .select('id, company_name, position')
+        .in('id', appIds) : { data: [] };
 
-          return {
-            ...convo,
-            application,
-            participants: participantsWithProfiles,
-            last_message: lastMessageWithSender,
-            unread_count: count || 0,
-            metadata: {
-              ...(typeof convo.metadata === 'object' && convo.metadata !== null ? convo.metadata : {}),
-              is_group: (participantsWithProfiles?.length || 0) > 2,
-              participant_count: participantsWithProfiles?.length || 0
-            }
+      // Group data by conversation
+      const participantsByConvo = allParticipants?.reduce((acc, p) => {
+        if (!acc[p.conversation_id]) acc[p.conversation_id] = [];
+        const profile = profilesById[p.user_id];
+        acc[p.conversation_id].push({
+          id: p.id,
+          conversation_id: p.conversation_id,
+          user_id: p.user_id,
+          role: p.role,
+          joined_at: p.joined_at,
+          last_read_at: p.last_read_at,
+          notifications_enabled: p.notifications_enabled,
+          is_muted: p.is_muted,
+          profile: profile ? {
+            full_name: profile.full_name,
+            avatar_url: profile.avatar_url
+          } : null
+        });
+        return acc;
+      }, {} as Record<string, any[]>) || {};
+
+      const lastMessageByConvo = allLastMessages?.reduce((acc, msg) => {
+        if (!acc[msg.conversation_id]) {
+          const sender = sendersById[msg.sender_id];
+          acc[msg.conversation_id] = {
+            ...msg,
+            sender: sender || undefined
           };
-        })
-      );
+        }
+        return acc;
+      }, {} as Record<string, any>) || {};
+
+      const unreadCountByConvo = allUnreadNotifications?.reduce((acc, notif) => {
+        const convoId = (notif as any).messages?.conversation_id;
+        if (convoId) acc[convoId] = (acc[convoId] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      type AppData = { id: string; company_name: string; position: string };
+      const applicationById: Record<string, AppData> = {};
+      allApplications?.forEach(app => {
+        if (app && app.id) {
+          applicationById[app.id] = app as AppData;
+        }
+      });
+
+      const conversationsWithDetails = convos?.map(convo => ({
+        ...convo,
+        application: convo.application_id ? (applicationById[convo.application_id] || null) : null,
+        participants: participantsByConvo[convo.id] || [],
+        last_message: lastMessageByConvo[convo.id] || null,
+        unread_count: unreadCountByConvo[convo.id] || 0,
+        metadata: {
+          ...(typeof convo.metadata === 'object' && convo.metadata !== null ? convo.metadata : {}),
+          is_group: (participantsByConvo[convo.id]?.length || 0) > 2,
+          participant_count: participantsByConvo[convo.id]?.length || 0
+        }
+      })) || [];
 
       setConversations(conversationsWithDetails as unknown as Conversation[]);
     } catch (error: any) {
