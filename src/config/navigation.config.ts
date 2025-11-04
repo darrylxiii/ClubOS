@@ -208,7 +208,12 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   // 2. Add role-specific sections (Career/Hiring/Management)
   const roleSpecific = roleSpecificGroups[normalizedRole];
   if (roleSpecific) {
-    groups.push(...roleSpecific);
+    // Deep copy each group and its items array to prevent mutations
+    const deepCopiedRoleGroups = roleSpecific.map(group => ({
+      ...group,
+      items: [...group.items]
+    }));
+    groups.push(...deepCopiedRoleGroups);
   }
   
   // 3. Add communication section with role-specific items

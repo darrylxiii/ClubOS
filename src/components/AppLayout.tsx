@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 // Short QC icons (for collapsed state) - "transparent" files are the small icons
 import quantumClubLogoDarkShort from "@/assets/quantum-logo-dark-transparent.png"; // QC icon - black for light theme
@@ -82,7 +82,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   }, [user?.id]);
 
   // Determine navigation based on current role from context
-  const navigationGroups = getNavigationForRole(currentRole);
+  // Memoize to prevent unnecessary recalculations and stop accumulation
+  const navigationGroups = useMemo(
+    () => getNavigationForRole(currentRole),
+    [currentRole]
+  );
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
