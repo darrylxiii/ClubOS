@@ -192,15 +192,15 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
   return (
     <>
       {needsClubCheck > 0 && (
-        <Card className="border-2 border-amber-500/40 bg-gradient-to-br from-amber-500/10 to-amber-500/5 backdrop-blur-xl animate-pulse">
+        <Card className="border border-border/50 bg-gradient-to-br from-amber-500/5 to-accent/5 backdrop-blur-xl hover:border-accent/40 transition-all duration-300 animate-fade-in">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-3 rounded-xl bg-amber-500/20">
+                <div className="p-3 rounded-xl bg-amber-500/10 animate-pulse">
                   <AlertCircle className="w-6 h-6 text-amber-500" />
                 </div>
                 <div>
-                  <h3 className="font-black text-lg">
+                  <h3 className="font-bold text-lg">
                     {needsClubCheck} Candidate{needsClubCheck !== 1 ? 's' : ''} Need Club Check
                   </h3>
                   <p className="text-sm text-muted-foreground">
