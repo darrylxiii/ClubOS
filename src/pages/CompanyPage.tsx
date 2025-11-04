@@ -28,6 +28,7 @@ import { OrgChartView } from "@/components/organization/OrgChartView";
 import { JobCard } from "@/components/JobCard";
 import { TargetCompanies } from "@/components/partner/TargetCompanies";
 import { CompanyCRMMetrics } from "@/components/crm/CompanyCRMMetrics";
+import { getJobViewPath } from "@/utils/jobNavigation";
 
 interface Company {
   id: string;
@@ -167,10 +168,17 @@ export default function CompanyPage() {
     if (!company) return;
 
     try {
+      // Build queries based on user role - admins and company members see all jobs including drafts
+      const isInternalUser = isAdmin || isCompanyMember;
+      
       const [followersRes, jobsRes, jobsDataRes, targetsRes] = await Promise.all([
         supabase.from("company_followers").select("id", { count: 'exact', head: true }).eq("company_id", company.id),
-        supabase.from("jobs").select("id", { count: 'exact', head: true }).eq("company_id", company.id).eq("status", "published"),
-        supabase.from("jobs").select("*").eq("company_id", company.id).order("created_at", { ascending: false }),
+        isInternalUser
+          ? supabase.from("jobs").select("id", { count: 'exact', head: true }).eq("company_id", company.id)
+          : supabase.from("jobs").select("id", { count: 'exact', head: true }).eq("company_id", company.id).eq("status", "published"),
+        isInternalUser
+          ? supabase.from("jobs").select("*").eq("company_id", company.id).order("created_at", { ascending: false })
+          : supabase.from("jobs").select("*").eq("company_id", company.id).eq("status", "published").order("created_at", { ascending: false }),
         supabase.from("target_companies").select("id", { count: 'exact', head: true }).eq("company_id", company.id),
       ]);
 
@@ -612,19 +620,31 @@ export default function CompanyPage() {
             ) : (
               <div className="grid gap-6">
                 {jobs.map((job) => (
-                  <JobCard 
-                    key={job.id}
-                    title={job.title}
-                    company={company.name}
-                    location={job.location || "Remote"}
-                    type={job.employment_type || "Full-time"}
-                    postedDate={new Date(job.created_at).toLocaleDateString()}
-                    tags={[]}
-                    salary={job.salary_min && job.salary_max 
-                      ? `${job.currency} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`
-                      : undefined}
-                    onApply={() => navigate(`/jobs/${job.id}`)}
-                  />
+                  <div key={job.id} className="relative">
+                    {(isAdmin || isCompanyMember) && job.status === 'draft' && (
+                      <Badge className="absolute -top-2 -right-2 z-10 bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
+                        Draft
+                      </Badge>
+                    )}
+                    <JobCard 
+                      id={job.id}
+                      title={job.title}
+                      company={company.name}
+                      companyLogo={company.logo_url || undefined}
+                      companySlug={company.slug}
+                      location={job.location || "Remote"}
+                      type={job.employment_type || "Full-time"}
+                      postedDate={new Date(job.created_at).toLocaleDateString()}
+                      tags={[]}
+                      salary={job.salary_min && job.salary_max 
+                        ? `${job.currency} ${job.salary_min.toLocaleString()} - ${job.salary_max.toLocaleString()}`
+                        : undefined}
+                      onApply={() => {
+                        const path = getJobViewPath(job.id, currentRole);
+                        navigate(path);
+                      }}
+                    />
+                  </div>
                 ))}
               </div>
             )}
