@@ -444,6 +444,54 @@ export type Database = {
           },
         ]
       }
+      ai_meeting_suggestions: {
+        Row: {
+          acted_upon: boolean | null
+          created_at: string | null
+          duration_minutes: number
+          id: string
+          participant_ids: string[] | null
+          reason: string | null
+          suggested_times: Json
+          user_id: string
+        }
+        Insert: {
+          acted_upon?: boolean | null
+          created_at?: string | null
+          duration_minutes: number
+          id?: string
+          participant_ids?: string[] | null
+          reason?: string | null
+          suggested_times?: Json
+          user_id: string
+        }
+        Update: {
+          acted_upon?: boolean | null
+          created_at?: string | null
+          duration_minutes?: number
+          id?: string
+          participant_ids?: string[] | null
+          reason?: string | null
+          suggested_times?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_meeting_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_meeting_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_memory: {
         Row: {
           content: string
@@ -6615,6 +6663,67 @@ export type Database = {
           },
         ]
       }
+      meeting_invitations: {
+        Row: {
+          created_at: string | null
+          id: string
+          invitee_email: string | null
+          invitee_user_id: string | null
+          meeting_id: string
+          responded_at: string | null
+          response_message: string | null
+          sent_at: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          invitee_email?: string | null
+          invitee_user_id?: string | null
+          meeting_id: string
+          responded_at?: string | null
+          response_message?: string | null
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          invitee_email?: string | null
+          invitee_user_id?: string | null
+          meeting_id?: string
+          responded_at?: string | null
+          response_message?: string | null
+          sent_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_invitations_invitee_user_id_fkey"
+            columns: ["invitee_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_invitations_invitee_user_id_fkey"
+            columns: ["invitee_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_invitations_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_join_requests: {
         Row: {
           created_at: string
@@ -6969,9 +7078,12 @@ export type Database = {
         Row: {
           access_type: string
           agenda: string | null
+          ai_confidence_score: number | null
+          ai_suggested_time: boolean | null
           allow_guests: boolean | null
           branding: Json | null
           created_at: string | null
+          created_by_ai: boolean | null
           description: string | null
           enable_notetaker: boolean | null
           host_id: string
@@ -6980,6 +7092,7 @@ export type Database = {
           max_participants: number | null
           meeting_code: string
           meeting_password: string | null
+          original_user_request: string | null
           recurrence_rule: string | null
           require_approval: boolean | null
           scheduled_end: string
@@ -6994,9 +7107,12 @@ export type Database = {
         Insert: {
           access_type?: string
           agenda?: string | null
+          ai_confidence_score?: number | null
+          ai_suggested_time?: boolean | null
           allow_guests?: boolean | null
           branding?: Json | null
           created_at?: string | null
+          created_by_ai?: boolean | null
           description?: string | null
           enable_notetaker?: boolean | null
           host_id: string
@@ -7005,6 +7121,7 @@ export type Database = {
           max_participants?: number | null
           meeting_code: string
           meeting_password?: string | null
+          original_user_request?: string | null
           recurrence_rule?: string | null
           require_approval?: boolean | null
           scheduled_end: string
@@ -7019,9 +7136,12 @@ export type Database = {
         Update: {
           access_type?: string
           agenda?: string | null
+          ai_confidence_score?: number | null
+          ai_suggested_time?: boolean | null
           allow_guests?: boolean | null
           branding?: Json | null
           created_at?: string | null
+          created_by_ai?: boolean | null
           description?: string | null
           enable_notetaker?: boolean | null
           host_id?: string
@@ -7030,6 +7150,7 @@ export type Database = {
           max_participants?: number | null
           meeting_code?: string
           meeting_password?: string | null
+          original_user_request?: string | null
           recurrence_rule?: string | null
           require_approval?: boolean | null
           scheduled_end?: string

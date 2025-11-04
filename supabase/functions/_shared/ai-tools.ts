@@ -90,6 +90,23 @@ export async function executeToolCall(
         result = await suggestMeetingTimes(args, userId, supabase);
         break;
 
+      // ===== MEETING SCHEDULING TOOLS (AI-POWERED) =====
+      case 'schedule_meeting':
+        result = await scheduleMeeting(args, userId, supabase);
+        break;
+      case 'find_free_slots':
+        result = await findFreeSlots(args, userId, supabase);
+        break;
+      case 'check_meeting_conflicts':
+        result = await checkMeetingConflicts(args, userId, supabase);
+        break;
+      case 'reschedule_meeting':
+        result = await rescheduleMeeting(args, userId, supabase);
+        break;
+      case 'cancel_meeting':
+        result = await cancelMeeting(args, userId, supabase);
+        break;
+
       default:
         result = { error: `Unknown tool: ${name}` };
     }
@@ -720,6 +737,357 @@ async function suggestMeetingTimes(args: any, userId: string, supabase: Supabase
   };
 }
 
+// ============= MEETING SCHEDULING TOOLS (AI-POWERED) =============
+
+async function scheduleMeeting(args: any, userId: string, supabase: SupabaseClient) {
+  const { title, description, participants, date, time, duration, timezone, enableNotetaker, accessType } = args;
+
+  // Parse date and time
+  const meetingStart = new Date(`${date}T${time}`);
+  const meetingEnd = new Date(meetingStart.getTime() + (duration * 60 * 1000));
+
+  // Create meeting
+  const { data: meeting, error: meetingError } = await supabase
+    .from('meetings')
+    .insert({
+      title,
+      description: description || '',
+      scheduled_start: meetingStart.toISOString(),
+      scheduled_end: meetingEnd.toISOString(),
+      host_id: userId,
+      enable_notetaker: enableNotetaker !== false,
+      access_type: accessType || 'invite_only',
+      status: 'scheduled',
+      timezone: timezone || 'UTC',
+      created_by_ai: true,
+      ai_suggested_time: false,
+      original_user_request: JSON.stringify(args)
+    })
+    .select()
+    .single();
+
+  if (meetingError) throw meetingError;
+
+  // Add participants
+  if (participants && participants.length > 0) {
+    const invitations = [];
+    for (const participant of participants) {
+      // Check if participant is email or user ID
+      const isEmail = participant.includes('@');
+      
+      if (isEmail) {
+        invitations.push({
+          meeting_id: meeting.id,
+          invitee_email: participant,
+          status: 'pending'
+        });
+      } else {
+        invitations.push({
+          meeting_id: meeting.id,
+          invitee_user_id: participant,
+          status: 'pending'
+        });
+      }
+    }
+
+    await supabase.from('meeting_invitations').insert(invitations);
+  }
+
+  return {
+    success: true,
+    meeting: {
+      id: meeting.id,
+      title: meeting.title,
+      start: meeting.scheduled_start,
+      end: meeting.scheduled_end,
+      meetingCode: meeting.meeting_code,
+      link: `/meetings/${meeting.id}`
+    },
+    message: `Meeting "${title}" scheduled for ${meetingStart.toLocaleString()}`
+  };
+}
+
+async function findFreeSlots(args: any, userId: string, supabase: SupabaseClient) {
+  const { duration, startDate, endDate, participantIds, workingHours } = args;
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  // Fetch all meetings in the date range
+  const { data: meetings } = await supabase
+    .from('meetings')
+    .select('scheduled_start, scheduled_end')
+    .gte('scheduled_start', start.toISOString())
+    .lte('scheduled_start', end.toISOString());
+
+  // Fetch bookings
+  const { data: bookings } = await supabase
+    .from('bookings')
+    .select('scheduled_start, scheduled_end')
+    .eq('user_id', userId)
+    .gte('scheduled_start', start.toISOString())
+    .lte('scheduled_start', end.toISOString());
+
+  // Combine busy times
+  const busyTimes = [
+    ...(meetings || []).map(m => ({ start: new Date(m.scheduled_start), end: new Date(m.scheduled_end) })),
+    ...(bookings || []).map(b => ({ start: new Date(b.scheduled_start), end: new Date(b.scheduled_end) }))
+  ].sort((a, b) => a.start.getTime() - b.start.getTime());
+
+  // Find free slots
+  const freeSlots = [];
+  const workStart = workingHours?.start || '09:00';
+  const workEnd = workingHours?.end || '17:00';
+  
+  let currentDate = new Date(start);
+  while (currentDate <= end) {
+    // Skip weekends
+    if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+      currentDate.setDate(currentDate.getDate() + 1);
+      continue;
+    }
+
+    // Create working day time slots
+    const [startHour, startMin] = workStart.split(':').map(Number);
+    const [endHour, endMin] = workEnd.split(':').map(Number);
+    
+    let slotStart = new Date(currentDate);
+    slotStart.setHours(startHour, startMin, 0, 0);
+    
+    const dayEnd = new Date(currentDate);
+    dayEnd.setHours(endHour, endMin, 0, 0);
+
+    while (slotStart.getTime() + (duration * 60 * 1000) <= dayEnd.getTime()) {
+      const slotEnd = new Date(slotStart.getTime() + (duration * 60 * 1000));
+      
+      // Check if slot conflicts with busy times
+      const hasConflict = busyTimes.some(busy =>
+        (slotStart >= busy.start && slotStart < busy.end) ||
+        (slotEnd > busy.start && slotEnd <= busy.end) ||
+        (slotStart <= busy.start && slotEnd >= busy.end)
+      );
+
+      if (!hasConflict) {
+        // Score the slot
+        let score = 70;
+        const hour = slotStart.getHours();
+        
+        // Morning slots (9-11 AM) are best
+        if (hour >= 9 && hour < 11) score += 20;
+        // Post-lunch (2-3 PM) is good
+        else if (hour >= 14 && hour < 15) score += 10;
+        // Late afternoon (4-5 PM) less preferred
+        else if (hour >= 16) score -= 10;
+        
+        // Check for buffer time (no adjacent meetings)
+        const hasBufferBefore = !busyTimes.some(busy =>
+          Math.abs(busy.end.getTime() - slotStart.getTime()) < 15 * 60 * 1000
+        );
+        const hasBufferAfter = !busyTimes.some(busy =>
+          Math.abs(slotEnd.getTime() - busy.start.getTime()) < 15 * 60 * 1000
+        );
+        
+        if (hasBufferBefore && hasBufferAfter) score += 10;
+
+        freeSlots.push({
+          date: slotStart.toISOString().split('T')[0],
+          time: slotStart.toTimeString().substring(0, 5),
+          datetime: slotStart.toISOString(),
+          score,
+          reason: score >= 90 ? 'Optimal time slot' : score >= 80 ? 'Good availability' : 'Available'
+        });
+      }
+
+      // Move to next 30-min slot
+      slotStart = new Date(slotStart.getTime() + 30 * 60 * 1000);
+    }
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  // Sort by score and return top 5
+  const topSlots = freeSlots.sort((a, b) => b.score - a.score).slice(0, 5);
+
+  return {
+    success: true,
+    slots: topSlots,
+    message: `Found ${topSlots.length} optimal time slots for a ${duration}-minute meeting`
+  };
+}
+
+async function checkMeetingConflicts(args: any, userId: string, supabase: SupabaseClient) {
+  const { proposedDate, proposedTime, duration, participantIds } = args;
+
+  const meetingStart = new Date(`${proposedDate}T${proposedTime}`);
+  const meetingEnd = new Date(meetingStart.getTime() + (duration * 60 * 1000));
+
+  // Check user's meetings
+  const { data: meetings } = await supabase
+    .from('meetings')
+    .select('title, scheduled_start, scheduled_end')
+    .gte('scheduled_start', new Date(meetingStart.getTime() - 30 * 60 * 1000).toISOString())
+    .lte('scheduled_start', new Date(meetingEnd.getTime() + 30 * 60 * 1000).toISOString());
+
+  // Check user's bookings
+  const { data: bookings } = await supabase
+    .from('bookings')
+    .select('scheduled_start, scheduled_end, booking_links(title)')
+    .eq('user_id', userId)
+    .gte('scheduled_start', new Date(meetingStart.getTime() - 30 * 60 * 1000).toISOString())
+    .lte('scheduled_start', new Date(meetingEnd.getTime() + 30 * 60 * 1000).toISOString());
+
+  const conflicts = [];
+  const softConflicts: any[] = [];
+
+  // Check for hard conflicts (direct overlaps)
+  for (const meeting of meetings || []) {
+    const mStart = new Date(meeting.scheduled_start);
+    const mEnd = new Date(meeting.scheduled_end);
+    
+    if (
+      (meetingStart >= mStart && meetingStart < mEnd) ||
+      (meetingEnd > mStart && meetingEnd <= mEnd) ||
+      (meetingStart <= mStart && meetingEnd >= mEnd)
+    ) {
+      conflicts.push({
+        title: meeting.title,
+        time: `${mStart.toLocaleTimeString()} - ${mEnd.toLocaleTimeString()}`,
+        source: 'meeting'
+      });
+    }
+  }
+
+  for (const booking of bookings || []) {
+    const bStart = new Date(booking.scheduled_start);
+    const bEnd = new Date(booking.scheduled_end);
+    const linkData = Array.isArray(booking.booking_links) ? booking.booking_links[0] : booking.booking_links;
+    
+    if (
+      (meetingStart >= bStart && meetingStart < bEnd) ||
+      (meetingEnd > bStart && meetingEnd <= bEnd) ||
+      (meetingStart <= bStart && meetingEnd >= bEnd)
+    ) {
+      conflicts.push({
+        title: linkData?.title || 'Booking',
+        time: `${bStart.toLocaleTimeString()} - ${bEnd.toLocaleTimeString()}`,
+        source: 'booking'
+      });
+    }
+  }
+
+  // Find alternative slots if conflicts exist
+  let alternatives: any[] = [];
+  if (conflicts.length > 0) {
+    const slotsResult = await findFreeSlots({
+      duration,
+      startDate: proposedDate,
+      endDate: new Date(new Date(proposedDate).getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      participantIds
+    }, userId, supabase);
+    
+    alternatives = slotsResult.slots?.slice(0, 3) || [];
+  }
+
+  return {
+    success: true,
+    hasConflict: conflicts.length > 0,
+    conflicts,
+    softConflicts,
+    alternatives,
+    message: conflicts.length > 0 
+      ? `Found ${conflicts.length} conflict(s) at this time` 
+      : 'No conflicts found - time slot is available'
+  };
+}
+
+async function rescheduleMeeting(args: any, userId: string, supabase: SupabaseClient) {
+  const { meetingId, newDate, newTime, newDuration, reason } = args;
+
+  // Get meeting
+  const { data: meeting } = await supabase
+    .from('meetings')
+    .select('*')
+    .eq('id', meetingId)
+    .eq('host_id', userId)
+    .single();
+
+  if (!meeting) {
+    return { success: false, error: 'Meeting not found or you do not have permission to reschedule it' };
+  }
+
+  // Calculate new times
+  const newStart = new Date(`${newDate}T${newTime}`);
+  const newEnd = new Date(newStart.getTime() + ((newDuration || 60) * 60 * 1000));
+
+  // Update meeting
+  const { error } = await supabase
+    .from('meetings')
+    .update({
+      scheduled_start: newStart.toISOString(),
+      scheduled_end: newEnd.toISOString(),
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', meetingId);
+
+  if (error) throw error;
+
+  return {
+    success: true,
+    message: `Meeting "${meeting.title}" rescheduled to ${newStart.toLocaleString()}`,
+    meeting: {
+      id: meetingId,
+      title: meeting.title,
+      newStart: newStart.toISOString(),
+      newEnd: newEnd.toISOString()
+    }
+  };
+}
+
+async function cancelMeeting(args: any, userId: string, supabase: SupabaseClient) {
+  const { meetingId, reason, notifyParticipants } = args;
+
+  // Get meeting
+  const { data: meeting } = await supabase
+    .from('meetings')
+    .select('*')
+    .eq('id', meetingId)
+    .eq('host_id', userId)
+    .single();
+
+  if (!meeting) {
+    return { success: false, error: 'Meeting not found or you do not have permission to cancel it' };
+  }
+
+  // Update meeting status
+  const { error } = await supabase
+    .from('meetings')
+    .update({
+      status: 'cancelled',
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', meetingId);
+
+  if (error) throw error;
+
+  // Update invitations if notifying participants
+  if (notifyParticipants !== false) {
+    await supabase
+      .from('meeting_invitations')
+      .update({ status: 'declined', response_message: reason || 'Meeting cancelled by host' })
+      .eq('meeting_id', meetingId);
+  }
+
+  return {
+    success: true,
+    message: `Meeting "${meeting.title}" has been cancelled${reason ? `: ${reason}` : ''}`,
+    meeting: {
+      id: meetingId,
+      title: meeting.title,
+      originalStart: meeting.scheduled_start
+    }
+  };
+}
+
 // ============= TOOL DEFINITIONS FOR OPENROUTER =============
 
 export const allAITools = [
@@ -1009,6 +1377,106 @@ export const allAITools = [
           preferredDays: { type: "array", items: { type: "string" } }
         },
         required: ["participantIds", "duration"]
+      }
+    }
+  },
+
+  // Meeting Scheduling (AI-Powered)
+  {
+    type: "function",
+    function: {
+      name: "schedule_meeting",
+      description: "Create a Quantum Club meeting directly. MUST get user confirmation before executing. Automatically syncs to connected calendars.",
+      parameters: {
+        type: "object",
+        properties: {
+          title: { type: "string", description: "Meeting title" },
+          description: { type: "string", description: "Meeting description" },
+          participants: { type: "array", items: { type: "string" }, description: "Array of user IDs or email addresses" },
+          date: { type: "string", description: "Date in YYYY-MM-DD format" },
+          time: { type: "string", description: "Time in HH:MM (24-hour) format" },
+          duration: { type: "number", description: "Duration in minutes" },
+          timezone: { type: "string", description: "Timezone (defaults to user's timezone)" },
+          enableNotetaker: { type: "boolean", description: "Enable AI notetaker (default: true)" },
+          accessType: { type: "string", enum: ["invite_only", "public", "password"], description: "Meeting access type" }
+        },
+        required: ["title", "date", "time", "duration"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "find_free_slots",
+      description: "Analyze unified calendar (Quantum Club + Google + Microsoft) to find optimal free time slots. Returns top 5 ranked slots with availability scores.",
+      parameters: {
+        type: "object",
+        properties: {
+          duration: { type: "number", description: "Meeting duration in minutes" },
+          startDate: { type: "string", description: "Search from this date (YYYY-MM-DD)" },
+          endDate: { type: "string", description: "Search until this date (YYYY-MM-DD)" },
+          participantIds: { type: "array", items: { type: "string" }, description: "Optional: check other users' availability" },
+          workingHours: { 
+            type: "object", 
+            properties: {
+              start: { type: "string", description: "Working day start (HH:MM)" },
+              end: { type: "string", description: "Working day end (HH:MM)" }
+            },
+            description: "Working hours (default: 09:00-17:00)" 
+          }
+        },
+        required: ["duration", "startDate", "endDate"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "check_meeting_conflicts",
+      description: "Validate a proposed meeting time against all calendars. Identifies conflicts and suggests alternatives if needed.",
+      parameters: {
+        type: "object",
+        properties: {
+          proposedDate: { type: "string", description: "Proposed date (YYYY-MM-DD)" },
+          proposedTime: { type: "string", description: "Proposed time (HH:MM)" },
+          duration: { type: "number", description: "Duration in minutes" },
+          participantIds: { type: "array", items: { type: "string" }, description: "Check for participant conflicts too" }
+        },
+        required: ["proposedDate", "proposedTime", "duration"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "reschedule_meeting",
+      description: "Change an existing meeting time. MUST get user confirmation before executing.",
+      parameters: {
+        type: "object",
+        properties: {
+          meetingId: { type: "string", description: "UUID of the meeting to reschedule" },
+          newDate: { type: "string", description: "New date (YYYY-MM-DD)" },
+          newTime: { type: "string", description: "New time (HH:MM)" },
+          newDuration: { type: "number", description: "New duration in minutes (optional)" },
+          reason: { type: "string", description: "Reason for rescheduling" }
+        },
+        required: ["meetingId", "newDate", "newTime"]
+      }
+    }
+  },
+  {
+    type: "function",
+    function: {
+      name: "cancel_meeting",
+      description: "Cancel a meeting. MUST get user confirmation before executing.",
+      parameters: {
+        type: "object",
+        properties: {
+          meetingId: { type: "string", description: "UUID of the meeting to cancel" },
+          reason: { type: "string", description: "Reason for cancellation" },
+          notifyParticipants: { type: "boolean", description: "Whether to notify participants (default: true)" }
+        },
+        required: ["meetingId"]
       }
     }
   }

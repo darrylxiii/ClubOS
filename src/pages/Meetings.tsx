@@ -195,7 +195,11 @@ export default function Meetings() {
               <Settings className="h-4 w-4" />
               Integrations
             </Button>
-            <CreateMeetingDialog onMeetingCreated={loadMeetings} />
+          <Button variant="outline" onClick={() => navigate('/club-ai')} className="gap-2">
+            <Sparkles className="h-4 w-4" />
+            Ask AI to Schedule
+          </Button>
+          <CreateMeetingDialog onMeetingCreated={loadMeetings} />
           </div>
         </div>
 
