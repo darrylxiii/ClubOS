@@ -210,12 +210,10 @@ export default function Meetings() {
           <TabsList className="w-full justify-start">
             <TabsTrigger value="calendar" className="gap-2">
               <CalendarIcon className="h-4 w-4" />
-              Calendar
+              Calendar View
             </TabsTrigger>
             <TabsTrigger value="my-meetings">My Meetings</TabsTrigger>
-            <TabsTrigger value="past">Past Meetings</TabsTrigger>
-            <TabsTrigger value="booking">Booking Links</TabsTrigger>
-            <TabsTrigger value="intelligence">Insights</TabsTrigger>
+            <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
@@ -259,30 +257,6 @@ export default function Meetings() {
 
           <TabsContent value="intelligence" className="mt-6">
             <MeetingIntelligenceTab />
-          </TabsContent>
-
-          <TabsContent value="past" className="mt-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Past Meeting Recordings</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                View and manage your archived meeting recordings. Connect your calendar to automatically capture meetings.
-              </p>
-              <Button onClick={() => navigate('/meeting-history')}>
-                View Full Recording Archive
-              </Button>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="booking" className="mt-6">
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Booking Links & Scheduling</h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                Create and manage booking links for seamless meeting scheduling.
-              </p>
-              <Button onClick={() => navigate('/scheduling')}>
-                Manage Booking Links
-              </Button>
-            </Card>
           </TabsContent>
 
           <TabsContent value="settings" className="mt-6">

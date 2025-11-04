@@ -52,13 +52,219 @@ import {
   SidebarFooter,
 } from "@/components/AnimatedSidebar";
 
-// Legacy navigation structures - kept for backward compatibility but not actively used
-// The actual navigation is now generated from navigation.config.ts
-const candidateNavigationGroups = [];
+// Grouped Candidate Navigation
+const candidateNavigationGroups = [
+  {
+    title: "Overview",
+    icon: Layers,
+    items: [
+      { name: "Club Home", icon: Home, path: "/home" },
+      { name: "Dashboard", icon: BarChart3, path: "/dashboard" },
+      { name: "Feed", icon: Rss, path: "/feed" },
+      { name: "Achievements", icon: Trophy, path: "/achievements" },
+    ],
+  },
+  {
+    title: "Career",
+    icon: Briefcase,
+    items: [
+      { name: "Jobs", icon: Briefcase, path: "/jobs" },
+      { name: "Applications", icon: FileText, path: "/applications" },
+      { name: "Companies", icon: Building2, path: "/companies" },
+      { name: "Referrals", icon: Gift, path: "/referrals" },
+      { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+    ],
+  },
+  {
+    title: "Social Media",
+    icon: Share2,
+    items: [
+      { name: "Social Feed", icon: Share2, path: "/social-feed" },
+    ],
+  },
+  {
+    title: "Communication",
+    icon: MessageSquare,
+    items: [
+      { name: "Inbox", icon: Mail, path: "/inbox" },
+      { name: "Messages", icon: MessageSquare, path: "/messages" },
+      { name: "Meetings", icon: Video, path: "/meetings" },
+      { name: "Meeting History", icon: Clock, path: "/meeting-history" },
+      { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+      { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
+      { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
+    ],
+  },
+  {
+    title: "Learning",
+    icon: GraduationCap,
+    items: [
+      { name: "Academy", icon: GraduationCap, path: "/academy" },
+    ],
+  },
+  {
+    title: "AI & Tools",
+    icon: Zap,
+    items: [
+      { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+      { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
+      { name: "Club Radio", icon: Video, path: "/club-dj" },
+    ],
+  },
+  {
+    title: "Settings",
+    icon: Cog,
+    items: [
+      { name: "My Profile", icon: User, path: "/profile" },
+      { name: "Settings", icon: Settings, path: "/settings" },
+    ],
+  },
+];
 
-const partnerNavigationGroups = [];
+// Grouped Partner Navigation
+const partnerNavigationGroups = [
+  {
+    title: "Overview",
+    icon: Layers,
+    items: [
+      { name: "Club Home", icon: Home, path: "/home" },
+      { name: "Dashboard", icon: BarChart3, path: "/partner/dashboard" },
+      { name: "Feed", icon: Rss, path: "/feed" },
+      { name: "Achievements", icon: Trophy, path: "/achievements" },
+    ],
+  },
+  {
+    title: "Hiring",
+    icon: Briefcase,
+    items: [
+      { name: "Jobs", icon: Briefcase, path: "/jobs" },
+      { name: "Applicants", icon: FileText, path: "/applications" },
+      { name: "Companies", icon: Building, path: "/companies" },
+      { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+    ],
+  },
+  {
+    title: "Social Media",
+    icon: Share2,
+    items: [
+      { name: "Social Feed", icon: Share2, path: "/social-feed" },
+      { name: "Analytics", icon: BarChart3, path: "/analytics" },
+    ],
+  },
+  {
+    title: "Communication",
+    icon: MessageSquare,
+    items: [
+      { name: "Inbox", icon: Mail, path: "/inbox" },
+      { name: "Messages", icon: MessageSquare, path: "/messages" },
+      { name: "Meetings", icon: Video, path: "/meetings" },
+      { name: "Meeting History", icon: Clock, path: "/meeting-history" },
+      { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+      { name: "Booking Management", icon: Calendar, path: "/booking-management" },
+      { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
+      { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
+    ],
+  },
+  {
+    title: "Learning",
+    icon: GraduationCap,
+    items: [
+      { name: "Academy", icon: GraduationCap, path: "/academy" },
+    ],
+  },
+  {
+    title: "AI & Tools",
+    icon: Zap,
+    items: [
+      { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+      { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
+      { name: "Club Radio", icon: Video, path: "/club-dj" },
+    ],
+  },
+  {
+    title: "Settings",
+    icon: Cog,
+    items: [
+      { name: "My Profile", icon: User, path: "/profile" },
+      { name: "Settings", icon: Settings, path: "/settings" },
+    ],
+  },
+];
 
-const adminNavigationGroups = [];
+// Grouped Admin Navigation
+const adminNavigationGroups = [
+  {
+    title: "Overview",
+    icon: Layers,
+    items: [
+      { name: "Club Home", icon: Home, path: "/home" },
+      { name: "Dashboard", icon: BarChart3, path: "/admin/dashboard" },
+      { name: "Admin Panel", icon: Users, path: "/admin" },
+      { name: "Feed", icon: Rss, path: "/feed" },
+      { name: "Achievements", icon: Trophy, path: "/achievements" },
+    ],
+  },
+  {
+    title: "Management",
+    icon: Building,
+    items: [
+      { name: "All Candidates", icon: Users, path: "/admin/candidates" },
+      { name: "Companies", icon: Building, path: "/companies" },
+      { name: "Jobs", icon: Briefcase, path: "/jobs" },
+      { name: "Applications", icon: FileText, path: "/applications" },
+      { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+      { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
+      { name: "Club Sync Requests", icon: Zap, path: "/admin/club-sync-requests" },
+      { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
+      { name: "Global Analytics", icon: BarChart3, path: "/admin/analytics" },
+      { name: "AI Configuration", icon: Cog, path: "/admin/ai-config" },
+    ],
+  },
+  {
+    title: "Social Media",
+    icon: Share2,
+    items: [
+      { name: "Social Feed", icon: Share2, path: "/social-feed" },
+      { name: "Management", icon: BarChart3, path: "/social-management" },
+      { name: "Analytics", icon: TrendingUp, path: "/analytics" },
+    ],
+  },
+  {
+    title: "Communication",
+    icon: MessageSquare,
+    items: [
+      { name: "Inbox", icon: Mail, path: "/inbox" },
+      { name: "Messages", icon: MessageSquare, path: "/messages" },
+      { name: "Meetings", icon: Video, path: "/meetings" },
+      { name: "Meeting History", icon: Clock, path: "/meeting-history" },
+      { name: "Scheduling", icon: Calendar, path: "/scheduling" },
+    ],
+  },
+  {
+    title: "Learning",
+    icon: GraduationCap,
+    items: [
+      { name: "Academy", icon: GraduationCap, path: "/academy" },
+    ],
+  },
+  {
+    title: "AI & Tools",
+    icon: Zap,
+    items: [
+      { name: "Club AI", icon: Sparkles, path: "/club-ai" },
+      { name: "Tasks", icon: ListTodo, path: "/unified-tasks" },
+      { name: "Club Radio", icon: Video, path: "/club-dj" },
+    ],
+  },
+  {
+    title: "Settings",
+    icon: Cog,
+    items: [
+      { name: "My Profile", icon: User, path: "/profile" },
+      { name: "Settings", icon: Settings, path: "/settings" },
+    ],
+  },
+];
 
 interface AppLayoutProps {
   children: ReactNode;

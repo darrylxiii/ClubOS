@@ -49,7 +49,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     title: "Overview",
     icon: Layers,
     items: [
-      { name: "Home", icon: Home, path: "/home" },
+      { name: "Club Home", icon: Home, path: "/home" },
       { name: "Dashboard", icon: BarChart3, path: "/dashboard" },
       { name: "Feed", icon: Rss, path: "/feed" },
       { name: "Achievements", icon: Trophy, path: "/achievements" },
@@ -59,8 +59,11 @@ const baseNavigationGroups: NavigationGroup[] = [
     title: "Communication",
     icon: MessageSquare,
     items: [
+      { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
+      { name: "Meeting History", icon: Clock, path: "/meeting-history" },
+      { name: "Scheduling", icon: Calendar, path: "/scheduling" },
     ],
   },
   {
@@ -83,6 +86,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     title: "Settings",
     icon: Cog,
     items: [
+      { name: "My Profile", icon: User, path: "/profile" },
       { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },
@@ -100,6 +104,12 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Companies", icon: Building2, path: "/companies" },
         { name: "Referrals", icon: Gift, path: "/referrals" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+      ],
+    },
+    {
+      title: "Social Media",
+      icon: Share2,
+      items: [
         { name: "Social Feed", icon: Share2, path: "/social-feed" },
       ],
     },
@@ -113,8 +123,14 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Applicants", icon: FileText, path: "/applications" },
         { name: "Companies", icon: Building, path: "/companies" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
-        { name: "Analytics", icon: BarChart3, path: "/analytics" },
+      ],
+    },
+    {
+      title: "Social Media",
+      icon: Share2,
+      items: [
         { name: "Social Feed", icon: Share2, path: "/social-feed" },
+        { name: "Analytics", icon: BarChart3, path: "/analytics" },
       ],
     },
   ],
@@ -133,8 +149,15 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
         { name: "Global Analytics", icon: BarChart3, path: "/admin/analytics" },
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-config" },
-        { name: "Social Management", icon: Share2, path: "/social-management" },
-        { name: "Social Feed", icon: TrendingUp, path: "/social-feed" },
+      ],
+    },
+    {
+      title: "Social Media",
+      icon: Share2,
+      items: [
+        { name: "Social Feed", icon: Share2, path: "/social-feed" },
+        { name: "Management", icon: BarChart3, path: "/social-management" },
+        { name: "Analytics", icon: TrendingUp, path: "/analytics" },
       ],
     },
   ],
@@ -150,6 +173,19 @@ const dashboardPaths: Record<'candidate' | 'partner' | 'admin', string> = {
 // Admin panel visibility
 const adminSpecificItems: NavigationItem[] = [
   { name: "Admin Panel", icon: Users, path: "/admin" },
+];
+
+// Partner-specific items
+const partnerSpecificItems: NavigationItem[] = [
+  { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
+  { name: "Booking Management", icon: Calendar, path: "/booking-management" },
+  { name: "Expert Marketplace", icon: GraduationCap, path: "/expert-marketplace" },
+];
+
+// Candidate-specific items
+const candidateSpecificItems: NavigationItem[] = [
+  { name: "Interview Prep", icon: Clock, path: "/interview-prep" },
+  { name: "Meeting Intelligence", icon: Video, path: "/meeting-intelligence" },
 ];
 
 /**
@@ -189,8 +225,17 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
     groups.push(...roleSpecific);
   }
   
-  // 3. Add communication section
-  groups.push(baseNavigationGroups[1]);
+  // 3. Add communication section with role-specific items
+  const communicationGroup = { 
+    ...baseNavigationGroups[1],
+    items: [...baseNavigationGroups[1].items] // Deep copy the items array
+  };
+  if (normalizedRole === 'partner') {
+    communicationGroup.items.push(...partnerSpecificItems);
+  } else if (normalizedRole === 'candidate') {
+    communicationGroup.items.push(...candidateSpecificItems);
+  }
+  groups.push(communicationGroup);
   
   // 4. Add remaining base sections (Learning, AI & Tools, Settings)
   groups.push(baseNavigationGroups[2]); // Learning
