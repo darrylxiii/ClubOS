@@ -193,7 +193,10 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   const groups: NavigationGroup[] = [];
   
   // 1. Add overview section
-  const overviewGroup = { ...baseNavigationGroups[0] };
+  const overviewGroup = { 
+    ...baseNavigationGroups[0],
+    items: [...baseNavigationGroups[0].items] // Deep copy items array
+  };
   
   // Add admin panel for admin role
   if (normalizedRole === 'admin') {
