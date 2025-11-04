@@ -9,6 +9,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, L
 import { TrendingUp, Users, MousePointerClick, CheckCircle, Download, Settings, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { AppLayout } from "@/components/AppLayout";
 
 export default function FunnelAnalytics() {
   const [isActive, setIsActive] = useState(true);
@@ -130,8 +131,8 @@ export default function FunnelAnalytics() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted p-4 md:p-8">
-      <div className="container mx-auto max-w-7xl">
+    <AppLayout>
+      <div className="container mx-auto max-w-7xl px-4 py-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
@@ -299,6 +300,6 @@ export default function FunnelAnalytics() {
           </div>
         </Card>
       </div>
-    </div>
+    </AppLayout>
   );
 }
