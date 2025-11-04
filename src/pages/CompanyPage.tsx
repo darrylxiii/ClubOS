@@ -24,6 +24,7 @@ import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialo
 import { CreateJobDialog } from "@/components/partner/CreateJobDialog";
 import { DepartmentManager } from "@/components/organization/DepartmentManager";
 import { MemberAssignmentEditor } from "@/components/organization/MemberAssignmentEditor";
+import { OrgChartView } from "@/components/organization/OrgChartView";
 import { JobCard } from "@/components/JobCard";
 import { TargetCompanies } from "@/components/partner/TargetCompanies";
 import { CompanyCRMMetrics } from "@/components/crm/CompanyCRMMetrics";
@@ -643,8 +644,9 @@ export default function CompanyPage() {
 
             {/* Team Sub-Tabs */}
             <Tabs defaultValue="directory" className="w-full">
-              <TabsList className={`w-full ${(isAdmin || isCompanyMember) ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                <TabsTrigger value="directory">Team Directory</TabsTrigger>
+              <TabsList className={`w-full ${(isAdmin || isCompanyMember) ? 'grid-cols-4' : 'grid-cols-3'}`}>
+                <TabsTrigger value="directory">Directory</TabsTrigger>
+                <TabsTrigger value="orgchart">Org Chart</TabsTrigger>
                 <TabsTrigger value="departments">Departments</TabsTrigger>
                 {(isAdmin || isCompanyMember) && (
                   <TabsTrigger value="manage">Manage</TabsTrigger>
@@ -658,6 +660,10 @@ export default function CompanyPage() {
                     <CompanyMembersStack companyId={company.id} showFull />
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              <TabsContent value="orgchart" className="mt-6">
+                <OrgChartView companyId={company.id} />
               </TabsContent>
 
               <TabsContent value="departments" className="mt-6">
