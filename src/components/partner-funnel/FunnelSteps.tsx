@@ -487,7 +487,15 @@ export function FunnelSteps() {
                   onCheckedChange={(checked) => setFormData({ ...formData, agreed_privacy: checked as boolean })}
                 />
                 <Label className="text-sm cursor-pointer">
-                  I agree to the privacy policy and data handling terms *
+                  I agree to the{' '}
+                  <a href="/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                    Privacy Policy
+                  </a>{' '}
+                  and{' '}
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">
+                    Terms of Service
+                  </a>{' '}
+                  *
                 </Label>
               </div>
             </Card>

@@ -33,6 +33,10 @@ const ClubHome = lazy(() => import("./pages/ClubHome"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const PartnerDashboard = lazy(() => import("./pages/PartnerDashboard"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+
+// Legal pages (public)
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const InviteAcceptance = lazy(() => import("./pages/InviteAcceptance"));
 const InviteComplete = lazy(() => import("./pages/InviteComplete"));
 const Jobs = lazy(() => import("./pages/Jobs"));
@@ -137,6 +141,8 @@ const App = () => (
                       <Routes>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
                 <Route path="/book/:slug" element={<BookingPage />} />
                 <Route path="/share/:token" element={<SharedProfile />} />
           <Route path="/partner-funnel" element={<PartnerFunnel />} />

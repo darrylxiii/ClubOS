@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { RainbowButton } from "@/components/ui/rainbow-button";
@@ -516,6 +516,19 @@ const Auth = () => {
                 <FaGoogle className="w-5 h-5 text-foreground" />
               </button>
             </div>
+
+            {!isLogin && (
+              <p className="text-xs text-center text-muted-foreground mt-4">
+                By creating an account, you agree to our{' '}
+                <Link to="/terms" className="underline hover:text-foreground">
+                  Terms of Service
+                </Link>{' '}
+                and{' '}
+                <Link to="/privacy" className="underline hover:text-foreground">
+                  Privacy Policy
+                </Link>
+              </p>
+            )}
             </form>}
 
           {!inviteCode && !needsEmailVerification && !mfaRequired && <div className="text-center text-sm pt-8 pb-4">
