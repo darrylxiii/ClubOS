@@ -210,7 +210,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
               </div>
               <Button 
                 size="lg"
-                className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold shadow-lg"
+                className="bg-gradient-to-r from-accent via-accent/95 to-accent/90 hover:from-accent/95 hover:via-accent hover:to-accent text-accent-foreground font-semibold shadow-glass-lg hover:shadow-glass-xl transition-all duration-300 hover:-translate-y-0.5 whitespace-nowrap"
               >
                 Club Check Now
               </Button>
