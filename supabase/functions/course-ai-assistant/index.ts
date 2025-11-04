@@ -134,6 +134,7 @@ Keep responses focused, helpful, and encouraging. Use markdown formatting for cl
           { role: 'system', content: systemPrompt },
           ...messages
         ],
+        stream: true,
       }),
     });
 
@@ -158,13 +159,9 @@ Keep responses focused, helpful, and encouraging. Use markdown formatting for cl
       );
     }
 
-    const data = await response.json();
-    const assistantMessage = data.choices?.[0]?.message?.content || '';
-
-    return new Response(
-      JSON.stringify({ response: assistantMessage }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(response.body, {
+      headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' }
+    });
   } catch (error) {
     console.error('Course AI assistant error:', error);
     return new Response(

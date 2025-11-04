@@ -41,33 +41,88 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
 
     setIsLoading(true);
     setAnswer("");
+    setIsExpanded(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('course-ai-assistant', {
-        body: {
+      const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/course-ai-assistant`;
+      
+      const response = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({
           messages: [{ role: 'user', content: input }],
           courseId: courseId
-        }
+        }),
       });
 
-      if (error) throw error;
-
-      if (data) {
-        setAnswer(data.response || "I couldn't generate a response. Please try again.");
-        setIsExpanded(true);
-        
-        // Show auth prompt after guest's first AI response
-        if (!user && guestMessageCount === 1) {
-          setTimeout(() => setShowAuthPrompt(true), 2000);
+      if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
         }
+        if (response.status === 402) {
+          throw new Error('AI credits exhausted. Please contact support.');
+        }
+        throw new Error('Failed to get response');
+      }
+
+      if (!response.body) throw new Error('No response body');
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = "";
+      let streamDone = false;
+      let fullResponse = "";
+
+      while (!streamDone) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf("\n")) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith("\r")) line = line.slice(0, -1);
+          if (line.startsWith(":") || line.trim() === "") continue;
+          if (!line.startsWith("data: ")) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") {
+            streamDone = true;
+            break;
+          }
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              fullResponse += content;
+              setAnswer(fullResponse);
+            }
+          } catch {
+            textBuffer = line + "\n" + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Show auth prompt after guest's first AI response
+      if (!user && guestMessageCount === 1) {
+        setTimeout(() => setShowAuthPrompt(true), 2000);
       }
     } catch (error) {
       console.error('Error asking AI:', error);
       toast({
         title: "Error",
-        description: "Failed to get an answer. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to get an answer. Please try again.",
         variant: "destructive",
       });
+      setAnswer("");
+      setIsExpanded(false);
     } finally {
       setIsLoading(false);
     }
