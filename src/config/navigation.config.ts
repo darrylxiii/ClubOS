@@ -102,6 +102,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Companies", icon: Building2, path: "/companies" },
         { name: "Referrals", icon: Gift, path: "/referrals" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+        { name: "Analytics", icon: BarChart3, path: "/candidate/analytics" },
       ],
     },
     {
@@ -122,6 +123,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Rejections", icon: Users, path: "/partner/rejections" },
         { name: "Companies", icon: Building, path: "/companies" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+        { name: "Hiring Analytics", icon: BarChart3, path: "/partner/analytics" },
       ],
     },
     {
@@ -129,7 +131,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Share2,
       items: [
         { name: "Social Feed", icon: Share2, path: "/social-feed" },
-        { name: "Analytics", icon: BarChart3, path: "/analytics" },
+        { name: "Social Analytics", icon: TrendingUp, path: "/analytics" },
       ],
     },
   ],
