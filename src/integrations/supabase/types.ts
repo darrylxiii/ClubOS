@@ -4878,6 +4878,90 @@ export type Database = {
           },
         ]
       }
+      email_templates: {
+        Row: {
+          avg_response_time_hours: number | null
+          body_template: string
+          category: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          subject_template: string | null
+          updated_at: string | null
+          usage_count: number | null
+          user_id: string
+          variables: Json | null
+        }
+        Insert: {
+          avg_response_time_hours?: number | null
+          body_template: string
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          subject_template?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id: string
+          variables?: Json | null
+        }
+        Update: {
+          avg_response_time_hours?: number | null
+          body_template?: string
+          category?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          subject_template?: string | null
+          updated_at?: string | null
+          usage_count?: number | null
+          user_id?: string
+          variables?: Json | null
+        }
+        Relationships: []
+      }
+      email_threads: {
+        Row: {
+          ai_thread_summary: string | null
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          message_count: number | null
+          participant_emails: Json | null
+          subject: string | null
+          thread_id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          ai_thread_summary?: string | null
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          message_count?: number | null
+          participant_emails?: Json | null
+          subject?: string | null
+          thread_id: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          ai_thread_summary?: string | null
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          message_count?: number | null
+          participant_emails?: Json | null
+          subject?: string | null
+          thread_id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       email_verifications: {
         Row: {
           code: string
@@ -4919,6 +5003,8 @@ export type Database = {
           ai_action_items: Json | null
           ai_category: string | null
           ai_priority: number | null
+          ai_priority_reason: string | null
+          ai_priority_score: number | null
           ai_processed_at: string | null
           ai_sentiment: string | null
           ai_summary: string | null
@@ -4939,6 +5025,7 @@ export type Database = {
           from_name: string | null
           has_attachments: boolean | null
           id: string
+          inbox_type: string | null
           is_important: boolean | null
           is_read: boolean | null
           is_starred: boolean | null
@@ -4961,6 +5048,8 @@ export type Database = {
           ai_action_items?: Json | null
           ai_category?: string | null
           ai_priority?: number | null
+          ai_priority_reason?: string | null
+          ai_priority_score?: number | null
           ai_processed_at?: string | null
           ai_sentiment?: string | null
           ai_summary?: string | null
@@ -4981,6 +5070,7 @@ export type Database = {
           from_name?: string | null
           has_attachments?: boolean | null
           id?: string
+          inbox_type?: string | null
           is_important?: boolean | null
           is_read?: boolean | null
           is_starred?: boolean | null
@@ -5003,6 +5093,8 @@ export type Database = {
           ai_action_items?: Json | null
           ai_category?: string | null
           ai_priority?: number | null
+          ai_priority_reason?: string | null
+          ai_priority_score?: number | null
           ai_processed_at?: string | null
           ai_sentiment?: string | null
           ai_summary?: string | null
@@ -5023,6 +5115,7 @@ export type Database = {
           from_name?: string | null
           has_attachments?: boolean | null
           id?: string
+          inbox_type?: string | null
           is_important?: boolean | null
           is_read?: boolean | null
           is_starred?: boolean | null
@@ -10166,6 +10259,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      saved_searches: {
+        Row: {
+          created_at: string | null
+          filters: Json | null
+          id: string
+          is_favorite: boolean | null
+          name: string
+          search_query: string
+          sort_order: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          filters?: Json | null
+          id?: string
+          is_favorite?: boolean | null
+          name: string
+          search_query: string
+          sort_order?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          filters?: Json | null
+          id?: string
+          is_favorite?: boolean | null
+          name?: string
+          search_query?: string
+          sort_order?: number | null
+          user_id?: string
+        }
+        Relationships: []
       }
       scheduled_messages: {
         Row: {

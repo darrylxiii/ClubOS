@@ -23,9 +23,13 @@ export interface Email {
   status: string;
   is_read: boolean;
   is_starred: boolean;
+  starred?: boolean; // Alias for compatibility
   is_important: boolean;
   ai_category: string | null;
   ai_priority: number | null;
+  ai_priority_score?: number | null;
+  ai_priority_reason?: string | null;
+  inbox_type?: string | null;
   ai_summary: string | null;
   ai_sentiment: string | null;
   ai_action_items: any | null;
@@ -37,8 +41,10 @@ export interface Email {
   attachment_count: number;
   email_date: string;
   received_at: string;
+  sender_email?: string; // Alias for from_email
   read_at: string | null;
   archived_at: string | null;
+  archived?: boolean; // Helper flag
   deleted_at: string | null;
   created_at: string;
   updated_at: string;

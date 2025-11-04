@@ -137,6 +137,30 @@ Body: ${email.body_text || email.snippet || ""}
     const aiData = await aiResponse.json();
     const analysis = JSON.parse(aiData.choices[0].message.content);
 
+    // Calculate priority score
+    let priorityScore = 50;
+    let priorityReason = "Standard email";
+    if (analysis.priority === "urgent") {
+      priorityScore = 90;
+      priorityReason = "Urgent priority detected";
+    } else if (analysis.priority === "high") {
+      priorityScore = 75;
+      priorityReason = "High priority indicators";
+    }
+    if (analysis.action_items?.length > 0) {
+      priorityScore = Math.min(100, priorityScore + 10);
+      priorityReason += " • Contains action items";
+    }
+    if (analysis.meeting?.hasMeeting) {
+      priorityScore = Math.min(100, priorityScore + 15);
+      priorityReason += " • Meeting detected";
+    }
+    
+    const inboxType = analysis.category === "newsletter" || analysis.category === "marketing" ? "newsletters" : 
+                     priorityScore >= 80 ? "important" : 
+                     analysis.action_items?.length > 0 ? "action" : 
+                     priorityScore < 40 ? "low" : "fyi";
+
     // Update email with AI insights
     const { error: updateError } = await supabase
       .from("emails")
@@ -146,6 +170,9 @@ Body: ${email.body_text || email.snippet || ""}
         ai_summary: analysis.summary,
         ai_sentiment: analysis.sentiment,
         ai_action_items: analysis.action_items || [],
+        ai_priority_score: priorityScore,
+        ai_priority_reason: priorityReason,
+        inbox_type: inboxType,
         ai_processed_at: new Date().toISOString(),
       })
       .eq("id", emailId);

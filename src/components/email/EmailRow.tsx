@@ -6,6 +6,7 @@ import { Star } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useSwipeable } from "react-swipeable";
+import { PriorityBadge } from "./intelligence/PriorityBadge";
 
 interface EmailRowProps {
   email: Email;
@@ -116,10 +117,12 @@ export function EmailRow({
           >
             {email.from_name || email.from_email}
           </span>
-          {email.ai_priority && email.ai_priority >= 4 && (
-            <Badge variant="destructive" className="text-xs">
-              High Priority
-            </Badge>
+          {email.ai_priority_score !== undefined && email.ai_priority_score >= 60 && (
+            <PriorityBadge
+              score={email.ai_priority_score}
+              reason={email.ai_priority_reason}
+              size="sm"
+            />
           )}
           <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
             {formatDistanceToNow(new Date(email.email_date), {

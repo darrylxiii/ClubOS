@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEmails, Email } from "@/hooks/useEmails";
@@ -12,6 +12,10 @@ import { EmailComposer } from "./EmailComposer";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
 import { NeedsAttentionWidget } from "./NeedsAttentionWidget";
 import { AdvancedSearchInput } from "./AdvancedSearchInput";
+import { PriorityInboxTabs } from "./intelligence/PriorityInboxTabs";
+import { AICommandPalette } from "./intelligence/AICommandPalette";
+import { QuickActionsBar } from "./intelligence/QuickActionsBar";
+import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw, Mail, Settings as SettingsIcon, ArrowLeft, HelpCircle } from "lucide-react";
@@ -21,13 +25,16 @@ import { cn } from "@/lib/utils";
 
 export function EmailInbox() {
   const [filter, setFilter] = useState("inbox");
+  const [priorityTab, setPriorityTab] = useState("important");
   const [selectedEmail, setSelectedEmail] = useState<any>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [selectedEmailIds, setSelectedEmailIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const { user } = useAuth();
   const { executeWithUndo } = useUndoableAction();
+  const { open: commandPaletteOpen, setOpen: setCommandPaletteOpen } = useCommandPalette();
 
   const {
     emails,
@@ -80,8 +87,44 @@ export function EmailInbox() {
   // Advanced search with operators
   const filteredEmails = useAdvancedSearch(emails, searchQuery);
 
+  // Filter by priority tab when in inbox view
+  const displayedEmails = useMemo(() => {
+    if (filter !== "inbox") return filteredEmails;
+
+    return filteredEmails.filter((email) => {
+      const inboxType = email.inbox_type || "fyi";
+      
+      switch (priorityTab) {
+        case "important":
+          return inboxType === "important";
+        case "action":
+          return inboxType === "action";
+        case "fyi":
+          return inboxType === "fyi";
+        case "newsletters":
+          return inboxType === "newsletters";
+        case "low":
+          return inboxType === "low";
+        default:
+          return true;
+      }
+    });
+  }, [filteredEmails, filter, priorityTab]);
+
+  // Calculate tab counts
+  const tabCounts = useMemo(() => {
+    const inboxEmails = filteredEmails.filter(e => !e.archived_at && !e.deleted_at);
+    return {
+      important: inboxEmails.filter(e => e.inbox_type === "important").length,
+      actionRequired: inboxEmails.filter(e => e.inbox_type === "action").length,
+      fyi: inboxEmails.filter(e => e.inbox_type === "fyi").length,
+      newsletters: inboxEmails.filter(e => e.inbox_type === "newsletters").length,
+      lowPriority: inboxEmails.filter(e => e.inbox_type === "low").length,
+    };
+  }, [filteredEmails]);
+
   // Keyboard shortcuts
-  const selectedIndex = filteredEmails.findIndex((e) => e.id === selectedEmail?.id);
+  const selectedIndex = displayedEmails.findIndex((e) => e.id === selectedEmail?.id);
   
   useKeyboardShortcuts([
     {
@@ -93,8 +136,8 @@ export function EmailInbox() {
       key: EMAIL_SHORTCUTS.NEXT.key,
       description: EMAIL_SHORTCUTS.NEXT.description,
       action: () => {
-        if (selectedIndex < filteredEmails.length - 1) {
-          handleEmailSelect(filteredEmails[selectedIndex + 1]);
+        if (selectedIndex < displayedEmails.length - 1) {
+          handleEmailSelect(displayedEmails[selectedIndex + 1]);
         }
       },
     },
@@ -103,7 +146,7 @@ export function EmailInbox() {
       description: EMAIL_SHORTCUTS.PREV.description,
       action: () => {
         if (selectedIndex > 0) {
-          handleEmailSelect(filteredEmails[selectedIndex - 1]);
+          handleEmailSelect(displayedEmails[selectedIndex - 1]);
         }
       },
     },
@@ -246,9 +289,43 @@ export function EmailInbox() {
     });
   };
 
-  const filteredEmailsForDisplay = searchQuery
-    ? filteredEmails
-    : emails;
+  // Bulk actions
+  const handleBulkArchive = async () => {
+    const promises = Array.from(selectedEmailIds).map(id => archiveEmail(id));
+    await Promise.all(promises);
+    setSelectedEmailIds(new Set());
+    toast({ title: `Archived ${selectedEmailIds.size} emails` });
+  };
+
+  const handleBulkDelete = async () => {
+    const promises = Array.from(selectedEmailIds).map(id => deleteEmail(id));
+    await Promise.all(promises);
+    setSelectedEmailIds(new Set());
+    toast({ title: `Deleted ${selectedEmailIds.size} emails` });
+  };
+
+  const handleBulkSnooze = async () => {
+    const snoozeUntil = new Date();
+    snoozeUntil.setHours(snoozeUntil.getHours() + 24);
+    const promises = Array.from(selectedEmailIds).map(id => snoozeEmail(id, snoozeUntil));
+    await Promise.all(promises);
+    setSelectedEmailIds(new Set());
+    toast({ title: `Snoozed ${selectedEmailIds.size} emails` });
+  };
+
+  const handleBulkMarkAsRead = async () => {
+    const promises = Array.from(selectedEmailIds).map(id => markAsRead(id));
+    await Promise.all(promises);
+    setSelectedEmailIds(new Set());
+    toast({ title: `Marked ${selectedEmailIds.size} emails as read` });
+  };
+
+  const handleBulkMarkAsUnread = async () => {
+    const promises = Array.from(selectedEmailIds).map(id => markAsUnread(id));
+    await Promise.all(promises);
+    setSelectedEmailIds(new Set());
+    toast({ title: `Marked ${selectedEmailIds.size} emails as unread` });
+  };
 
   // Show empty state if no connections
   if (hasConnections === false && !loading) {
@@ -331,6 +408,15 @@ export function EmailInbox() {
         </Button>
       </div>
 
+      {/* Priority Tabs - Only show in inbox */}
+      {filter === "inbox" && (
+        <PriorityInboxTabs
+          activeTab={priorityTab}
+          onTabChange={setPriorityTab}
+          counts={tabCounts}
+        />
+      )}
+
       {/* Main Content - Mobile responsive layout */}
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
         {/* Sidebar - Collapsible on mobile */}
@@ -356,7 +442,7 @@ export function EmailInbox() {
           selectedEmail && "hidden md:block"
         )}>
           <EmailList
-            emails={filteredEmailsForDisplay}
+            emails={displayedEmails}
             selectedEmailId={selectedEmail?.id || null}
             onEmailSelect={handleEmailSelect}
             onToggleStar={toggleStar}
@@ -431,6 +517,27 @@ export function EmailInbox() {
       <KeyboardShortcutsDialog
         open={showShortcuts}
         onOpenChange={setShowShortcuts}
+      />
+
+      <AICommandPalette
+        open={commandPaletteOpen}
+        onOpenChange={setCommandPaletteOpen}
+        selectedEmail={selectedEmail}
+        onArchive={handleArchive}
+        onDelete={handleDelete}
+        onSnooze={handleSnooze}
+        onStar={() => selectedEmail && toggleStar(selectedEmail.id, !selectedEmail.is_starred)}
+        onReply={() => setComposerOpen(true)}
+      />
+
+      <QuickActionsBar
+        selectedCount={selectedEmailIds.size}
+        onArchive={handleBulkArchive}
+        onDelete={handleBulkDelete}
+        onSnooze={handleBulkSnooze}
+        onMarkAsRead={handleBulkMarkAsRead}
+        onMarkAsUnread={handleBulkMarkAsUnread}
+        onClearSelection={() => setSelectedEmailIds(new Set())}
       />
     </div>
   );
