@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { EmailInbox } from '@/components/email/EmailInbox';
 import {
   Search,
   Plus,
@@ -14,6 +16,7 @@ import {
   Info,
   Users,
   ArrowLeft,
+  Mail,
 } from 'lucide-react';
 import { useMessages } from '@/hooks/useMessages';
 import { useReadReceipts } from '@/hooks/useReadReceipts';
@@ -43,6 +46,7 @@ import { AIPageCopilot } from '@/components/ai/AIPageCopilot';
 
 export default function Messages() {
   const { user } = useAuth();
+  const [viewMode, setViewMode] = useState<'chat' | 'email'>('chat');
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -123,9 +127,37 @@ export default function Messages() {
     );
   }
 
+  // Email view
+  if (viewMode === 'email') {
+    return (
+      <AppLayout>
+        <div className="flex flex-col h-screen">
+          <div className="border-b border-border px-4 py-3 bg-background flex items-center gap-4">
+            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'chat' | 'email')} className="w-full max-w-xs">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="chat" className="gap-2">
+                  <MessageCircle className="h-4 w-4" />
+                  Chat
+                </TabsTrigger>
+                <TabsTrigger value="email" className="gap-2">
+                  <Mail className="h-4 w-4" />
+                  Email
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <EmailInbox />
+          </div>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  // Chat view
   return (
     <AppLayout>
-      <CallNotificationManager 
+      <CallNotificationManager
         conversationId={selectedConversationId || undefined}
         onAcceptCall={(invitationId, callType) => {
           if (selectedConversationId) {
@@ -162,7 +194,25 @@ export default function Messages() {
           )}
         </>
       )}
-      <div className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden">
+      
+      <div className="flex flex-col h-[calc(100vh-4rem)] bg-background">
+        {/* View Switcher */}
+        <div className="border-b border-border px-4 py-3 bg-background/95 backdrop-blur-md flex items-center gap-4">
+          <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'chat' | 'email')} className="w-full max-w-xs">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="chat" className="gap-2">
+                <MessageCircle className="h-4 w-4" />
+                Chat
+              </TabsTrigger>
+              <TabsTrigger value="email" className="gap-2">
+                <Mail className="h-4 w-4" />
+                Email
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+
+        <div className="flex flex-1 overflow-hidden">
         {/* Mobile sidebar overlay */}
         {showMobileSidebar && (
           <div 
@@ -372,6 +422,7 @@ export default function Messages() {
             </div>
           </>
         )}
+        </div>
       </div>
 
       <CreateConversationDialog 

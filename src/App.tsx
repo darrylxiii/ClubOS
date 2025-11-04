@@ -327,14 +327,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/interview-prep"
-              element={
-                <ProtectedRoute>
-                  <InterviewPrep />
-                </ProtectedRoute>
-              }
-            />
+            {/* Interview prep chat - keep for specific application interviews */}
             <Route
               path="/interview-prep-chat/:applicationId"
               element={
@@ -343,8 +336,16 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            {/* Redirect old meeting routes to unified hub */}
+            <Route path="/meeting-history" element={<Navigate to="/meetings?tab=past" replace />} />
+            <Route path="/meeting-intelligence" element={<Navigate to="/meetings?tab=intelligence" replace />} />
+            <Route path="/scheduling" element={<Navigate to="/meetings?tab=booking" replace />} />
+            <Route path="/booking-management" element={<Navigate to="/meetings?tab=booking" replace />} />
+            <Route path="/interview-prep" element={<Navigate to="/meetings?tab=intelligence" replace />} />
+            
+            {/* Keep standalone pages for deep links */}
             <Route
-              path="/meeting-history"
+              path="/meeting-history-archive"
               element={
                 <ProtectedRoute>
                   <MeetingHistory />
@@ -352,12 +353,10 @@ const App = () => (
               }
             />
             <Route
-              path="/meeting-intelligence"
+              path="/scheduling-links"
               element={
                 <ProtectedRoute>
-                  <Suspense fallback={<PageLoader />}>
-                    <MeetingIntelligence />
-                  </Suspense>
+                  <Scheduling />
                 </ProtectedRoute>
               }
             />
@@ -368,6 +367,8 @@ const App = () => (
                 </Suspense>
               </ProtectedRoute>
             } />
+            {/* Unified Messages hub (Chat + Email) */}
+            <Route path="/inbox" element={<Navigate to="/messages?view=email" replace />} />
             <Route
               path="/messages"
               element={
@@ -413,14 +414,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <CompanyPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/scheduling"
-              element={
-                <ProtectedRoute>
-                  <Scheduling />
                 </ProtectedRoute>
               }
             />
@@ -608,6 +601,10 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            
+            {/* Redirect /inbox to Messages with email view */}
+            <Route path="/inbox" element={<Navigate to="/messages?view=email" replace />} />
+            
             <Route
               path="/profile/documents"
               element={
@@ -628,16 +625,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/booking-management"
-              element={
-                <ProtectedRoute>
-                  <RouteErrorBoundary>
-                    <BookingManagement />
-                  </RouteErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
+            
             <Route
               path="/company-settings"
               element={
