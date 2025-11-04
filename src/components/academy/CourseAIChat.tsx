@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import ReactMarkdown from "react-markdown";
+import { useAnimatedText } from "@/hooks/useAnimatedText";
 
 interface CourseAIChatProps {
   courseId: string;
@@ -24,6 +25,7 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const animatedAnswer = useAnimatedText(answer, " ");
 
   const handleAsk = async () => {
     if (!input.trim()) return;
@@ -112,7 +114,7 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
             <Bot className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
             <ScrollArea className="flex-1 max-h-[400px]">
               <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert pr-4">
-                <ReactMarkdown>{answer}</ReactMarkdown>
+                <ReactMarkdown>{animatedAnswer}</ReactMarkdown>
               </div>
             </ScrollArea>
             <Button
