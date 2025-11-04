@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
 import { canManageJob } from "@/utils/jobNavigation";
+import { trackJobView, trackJobSave } from "@/services/analyticsTracking";
 import { toast } from "sonner";
 import { ArrowLeft, Settings, Loader2, Bookmark } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,6 +37,11 @@ export default function JobDetail() {
     if (jobId) {
       loadJobDetails();
       checkUserStatus();
+      
+      // Phase 3: Track job view
+      if (user) {
+        trackJobView(user.id, jobId);
+      }
     }
   }, [jobId, user]);
 
@@ -76,7 +82,6 @@ export default function JobDetail() {
     if (!user || !jobId) return;
 
     try {
-      // Check if applied
       const { data: appliedData } = await supabase
         .from('applications')
         .select('id')
@@ -136,8 +141,12 @@ export default function JobDetail() {
       return;
     }
 
-    // Toggle saved state (using local state for now)
     setIsSaved(!isSaved);
+    
+    // Phase 3: Track job save
+    if (!isSaved && jobId) {
+      trackJobSave(user.id, jobId);
+    }
     
     if (isSaved) {
       toast.info('Job removed from saved jobs');
@@ -157,11 +166,9 @@ export default function JobDetail() {
           url,
         });
       } catch (error) {
-        // User cancelled or error occurred
         console.log('Share cancelled');
       }
     } else {
-      // Fallback: copy to clipboard
       try {
         await navigator.clipboard.writeText(url);
         toast.success('Link copied to clipboard!');
@@ -170,7 +177,6 @@ export default function JobDetail() {
       }
     }
   };
-
 
   if (loading) {
     return (
@@ -198,33 +204,18 @@ export default function JobDetail() {
       <OceanBackgroundVideo />
       
       <div className="relative z-10 min-h-screen pb-32">
-        {/* Navigation Header */}
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-            >
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/jobs')}
-                className="gap-2"
-              >
+            <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+              <Button variant="ghost" onClick={() => navigate('/jobs')} className="gap-2">
                 <ArrowLeft className="w-4 h-4" />
                 Back to Jobs
               </Button>
             </motion.div>
 
             {canManageJob(role) && (
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-              >
-                <Button
-                  variant="outline"
-                  onClick={() => navigate(`/jobs/${jobId}/dashboard`)}
-                  className="gap-2"
-                >
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+                <Button variant="outline" onClick={() => navigate(`/jobs/${jobId}/dashboard`)} className="gap-2">
                   <Settings className="w-4 h-4" />
                   Manage Job
                 </Button>
@@ -233,9 +224,7 @@ export default function JobDetail() {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
-          {/* Job Detail Card - Matches Companies design */}
           <JobDetailCard
             job={{
               title: job.title,
@@ -267,7 +256,6 @@ export default function JobDetail() {
             }}
           />
 
-          {/* Job Details Sections - All as clean cards */}
           <JobDetailsSection
             job={{
               description: job.description,
@@ -282,7 +270,6 @@ export default function JobDetail() {
           />
         </div>
 
-        {/* Simplified Sticky Bottom CTA - Desktop & Mobile */}
         <AnimatePresence>
           {isScrolled && (
             <motion.div
@@ -293,15 +280,10 @@ export default function JobDetail() {
               transition={{ duration: 0.3 }}
             >
               <div className="container mx-auto flex items-center justify-between gap-4">
-                {/* Job info with logo */}
                 <div className="hidden sm:flex items-center gap-3">
                   {job.companies?.logo_url && (
                     <div className="w-10 h-10 rounded-lg overflow-hidden border border-border/50">
-                      <img
-                        src={job.companies.logo_url}
-                        alt={job.companies.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={job.companies.logo_url} alt={job.companies.name} className="w-full h-full object-cover" />
                     </div>
                   )}
                   <div>
@@ -310,24 +292,12 @@ export default function JobDetail() {
                   </div>
                 </div>
 
-                {/* CTA Buttons */}
                 <div className="flex gap-2 ml-auto">
-                  <Button
-                    onClick={handleSave}
-                    variant="outline"
-                    size="lg"
-                    className="gap-2"
-                  >
+                  <Button onClick={handleSave} variant="outline" size="lg" className="gap-2">
                     <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-                    <span className="hidden sm:inline">
-                      {isSaved ? 'Saved' : 'Save'}
-                    </span>
+                    <span className="hidden sm:inline">{isSaved ? 'Saved' : 'Save'}</span>
                   </Button>
-                  <Button
-                    onClick={handleApply}
-                    disabled={isApplied}
-                    size="lg"
-                  >
+                  <Button onClick={handleApply} disabled={isApplied} size="lg">
                     {isApplied ? 'Applied' : 'Apply Now'}
                   </Button>
                 </div>
@@ -336,14 +306,8 @@ export default function JobDetail() {
           )}
         </AnimatePresence>
 
-        {/* Mobile-only FAB for Apply - Always visible on mobile */}
         <div className="md:hidden fixed bottom-20 right-4 z-40">
-          <Button
-            onClick={handleApply}
-            disabled={isApplied}
-            size="lg"
-            className="rounded-full shadow-lg h-14 px-6"
-          >
+          <Button onClick={handleApply} disabled={isApplied} size="lg" className="rounded-full shadow-lg h-14 px-6">
             {isApplied ? 'Applied ✓' : 'Apply Now'}
           </Button>
         </div>

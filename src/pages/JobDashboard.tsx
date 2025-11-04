@@ -24,6 +24,7 @@ import { AddStageDialog } from "@/components/partner/AddStageDialog";
 import { AdminJobTools } from "@/components/partner/AdminJobTools";
 import { EditJobDialog } from "@/components/partner/EditJobDialog";
 import { JobDocuments } from "@/components/partner/JobDocuments";
+import { JobAnalytics } from "@/components/partner/JobAnalytics";
 import {
   DndContext,
   closestCenter,
@@ -758,16 +759,7 @@ export default function JobDashboard() {
           </TabsContent>
 
           <TabsContent value="analytics">
-            <Card className="border-2 border-secondary/20 backdrop-blur-xl bg-background/90">
-              <CardHeader>
-                <CardTitle className="font-black uppercase">Analytics</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Advanced analytics coming soon...
-                </p>
-              </CardContent>
-            </Card>
+            <JobAnalytics jobId={job.id} />
           </TabsContent>
 
           <TabsContent value="audit">

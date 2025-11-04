@@ -54,6 +54,27 @@ export function useCandidateAnalytics(userId: string | undefined, dateRange?: { 
   useEffect(() => {
     if (!userId) return;
     fetchAnalytics();
+
+    // Phase 4: Real-time updates
+    const channel = supabase
+      .channel(`candidate-analytics-${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'applications',
+          filter: `user_id=eq.${userId}`
+        },
+        () => {
+          fetchAnalytics();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userId, dateRange]);
 
   const fetchAnalytics = async () => {

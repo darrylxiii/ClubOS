@@ -1,5 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
+// Phase 3: Export tracking functions
+
 // Generate a session ID for tracking
 const getSessionId = () => {
   let sessionId = sessionStorage.getItem('analytics_session_id');
