@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCandidateAnalytics } from "@/hooks/useCandidateAnalytics";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth as useSupabaseAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from "recharts";
 import { Eye, FileText, Briefcase, Award, TrendingUp, Users, Download, Search, Target } from "lucide-react";
@@ -10,7 +10,7 @@ import { exportToCSV } from "@/utils/analyticsExport";
 import { toast } from "sonner";
 
 export default function CandidateAnalytics() {
-  const { user } = useAuth();
+  const { user } = useSupabaseAuth();
   const { data, loading } = useCandidateAnalytics(user?.id);
 
   const handleExport = () => {

@@ -81,6 +81,8 @@ const Settings = lazy(() => import("./pages/Settings"));
 const SocialFeed = lazy(() => import("./pages/SocialFeed"));
 const SocialManagement = lazy(() => import("./pages/SocialManagement"));
 const Analytics = lazy(() => import("./pages/Analytics"));
+const CandidateAnalytics = lazy(() => import("./pages/CandidateAnalytics"));
+const PartnerAnalyticsDashboard = lazy(() => import("./pages/PartnerAnalyticsDashboard"));
 const Achievements = lazy(() => import("./pages/Achievements"));
 const FeedbackDatabase = lazy(() => import("./pages/FeedbackDatabase"));
 const FunnelAnalytics = lazy(() => import("./pages/FunnelAnalytics"));
@@ -483,6 +485,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Analytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/candidate/analytics"
+              element={
+                <ProtectedRoute>
+                  <CandidateAnalytics />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/partner/analytics"
+              element={
+                <ProtectedRoute>
+                  <PartnerAnalyticsDashboard />
                 </ProtectedRoute>
               }
             />
