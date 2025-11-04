@@ -22,6 +22,8 @@ import { EditCompanyDialog } from "@/components/companies/EditCompanyDialog";
 import { TeamManagement } from "@/components/partner/TeamManagement";
 import { CompanyMembersDialog } from "@/components/companies/CompanyMembersDialog";
 import { CreateJobDialog } from "@/components/partner/CreateJobDialog";
+import { DepartmentManager } from "@/components/organization/DepartmentManager";
+import { MemberAssignmentEditor } from "@/components/organization/MemberAssignmentEditor";
 import { JobCard } from "@/components/JobCard";
 import { TargetCompanies } from "@/components/partner/TargetCompanies";
 import { CompanyCRMMetrics } from "@/components/crm/CompanyCRMMetrics";
@@ -632,20 +634,42 @@ export default function CompanyPage() {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-2xl font-bold">Team & Staff</h2>
-                <p className="text-muted-foreground">Manage your organizational structure</p>
+                <p className="text-muted-foreground">Organizational structure and team members</p>
               </div>
               {(isAdmin || isCompanyMember) && (
                 <CompanyMembersDialog companyId={company.id} companyName={company.name} />
               )}
             </div>
 
-            {/* Team Grid View */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-bold mb-4">All Team Members</h3>
-                <CompanyMembersStack companyId={company.id} showFull />
-              </CardContent>
-            </Card>
+            {/* Team Sub-Tabs */}
+            <Tabs defaultValue="directory" className="w-full">
+              <TabsList className={`w-full ${(isAdmin || isCompanyMember) ? 'grid-cols-3' : 'grid-cols-2'}`}>
+                <TabsTrigger value="directory">Team Directory</TabsTrigger>
+                <TabsTrigger value="departments">Departments</TabsTrigger>
+                {(isAdmin || isCompanyMember) && (
+                  <TabsTrigger value="manage">Manage</TabsTrigger>
+                )}
+              </TabsList>
+
+              <TabsContent value="directory" className="mt-6">
+                <Card>
+                  <CardContent className="p-6">
+                    <h3 className="text-lg font-bold mb-4">All Team Members</h3>
+                    <CompanyMembersStack companyId={company.id} showFull />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="departments" className="mt-6">
+                <DepartmentManager companyId={company.id} />
+              </TabsContent>
+
+              {(isAdmin || isCompanyMember) && (
+                <TabsContent value="manage" className="mt-6 space-y-6">
+                  <MemberAssignmentEditor companyId={company.id} />
+                </TabsContent>
+              )}
+            </Tabs>
           </TabsContent>
 
           <TabsContent value="culture" className="space-y-6 mt-6">
