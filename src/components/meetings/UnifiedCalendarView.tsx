@@ -5,6 +5,7 @@ import { useCalendarView } from "@/hooks/useCalendarView";
 import { CalendarSidebar } from "./CalendarSidebar";
 import { CalendarViewSwitcher } from "./CalendarViewSwitcher";
 import { CalendarTimeGrid } from "./CalendarTimeGrid";
+import { CalendarWeekGrid } from "./CalendarWeekGrid";
 import { CalendarMonthGrid } from "./CalendarMonthGrid";
 import { CalendarListView } from "./CalendarListView";
 import { EventDetailModal } from "./EventDetailModal";
@@ -45,19 +46,11 @@ export function UnifiedCalendarView() {
       
       case 'week':
         return (
-          <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
-            {Array.from({ length: 7 }, (_, i) => {
-              const dayDate = addDays(selectedDate, i - selectedDate.getDay() + 1);
-              return (
-                <CalendarTimeGrid 
-                  key={dayDate.toISOString()}
-                  events={events}
-                  date={dayDate}
-                  onEventClick={handleEventClick}
-                />
-              );
-            })}
-          </div>
+          <CalendarWeekGrid 
+            events={events}
+            selectedDate={selectedDate}
+            onEventClick={handleEventClick}
+          />
         );
       
       case 'month':
