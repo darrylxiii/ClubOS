@@ -260,6 +260,8 @@ export function CandidatePipelineContextBanner({
         jobTitle={context.jobTitle}
         companyName={context.companyName}
         currentStage={context.currentStage}
+        currentStageIndex={context.stageIndex}
+        stages={context.stages}
         nextStage={nextStage?.name}
         actionType={actionType}
         onComplete={handleActionComplete}

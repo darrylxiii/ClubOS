@@ -8,6 +8,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,6 +33,8 @@ interface Props {
   jobTitle: string;
   companyName: string;
   currentStage: string;
+  currentStageIndex: number;
+  stages: any[];
   nextStage?: string;
   actionType: 'advance' | 'decline';
   onComplete: () => void;
@@ -58,6 +67,8 @@ export function EnhancedCandidateActionDialog({
   jobTitle,
   companyName,
   currentStage,
+  currentStageIndex,
+  stages,
   nextStage,
   actionType,
   onComplete
@@ -69,6 +80,7 @@ export function EnhancedCandidateActionDialog({
   const [skillsMatch, setSkillsMatch] = useState([7]);
   const [cultureFit, setCultureFit] = useState([7]);
   const [communication, setCommunication] = useState([7]);
+  const [targetStageIndex, setTargetStageIndex] = useState<number | null>(null);
   
   // Rejection fields
   const [rejectionReason, setRejectionReason] = useState<string>("");
@@ -93,12 +105,21 @@ export function EnhancedCandidateActionDialog({
   useEffect(() => {
     if (open) {
       resetForm();
+      // Set default target to next stage
+      if (actionType === 'advance' && currentStageIndex !== undefined) {
+        setTargetStageIndex(currentStageIndex + 1);
+      }
     }
-  }, [open, actionType]);
+  }, [open, actionType, currentStageIndex]);
 
   const handleSubmit = async () => {
     if (actionType === 'decline' && !rejectionReason) {
       toast.error("Please select a rejection reason");
+      return;
+    }
+
+    if (actionType === 'advance' && targetStageIndex === null) {
+      toast.error("Please select a target stage");
       return;
     }
 
@@ -123,21 +144,20 @@ export function EnhancedCandidateActionDialog({
       const companyId = jobData?.company_id;
       const candidateProfileId = candidateData?.id;
 
-      if (actionType === 'advance' && nextStage) {
-        // Get current application to find next stage index
-        const { data: app } = await supabase
-          .from('applications')
-          .select('current_stage_index, stages')
-          .eq('id', applicationId)
-          .single();
+      if (actionType === 'advance' && targetStageIndex !== null) {
+        // Validate target stage
+        if (targetStageIndex < 0 || targetStageIndex >= stages.length) {
+          toast.error("Invalid target stage");
+          return;
+        }
 
-        const nextStageIndex = (app?.current_stage_index || 0) + 1;
+        const targetStage = stages[targetStageIndex];
 
         // Update application
         const { error: updateError } = await supabase
           .from('applications')
           .update({ 
-            current_stage_index: nextStageIndex,
+            current_stage_index: targetStageIndex,
             updated_at: new Date().toISOString()
           })
           .eq('id', applicationId);
@@ -153,9 +173,9 @@ export function EnhancedCandidateActionDialog({
             candidate_name: candidateName,
             candidate_id: candidateProfileId,
             from_stage: currentStage,
-            to_stage: nextStage,
-            from_stage_index: app?.current_stage_index,
-            to_stage_index: nextStageIndex,
+            to_stage: targetStage.name,
+            from_stage_index: currentStageIndex,
+            to_stage_index: targetStageIndex,
             skills_match: skillsMatch[0],
             culture_fit: cultureFit[0],
             communication: communication[0]
@@ -183,7 +203,7 @@ export function EnhancedCandidateActionDialog({
               skills_match: skillsMatch[0],
               culture_fit: cultureFit[0],
               communication: communication[0],
-              next_stage: nextStage
+              next_stage: stages[targetStageIndex!].name
             }
           });
         }
@@ -200,7 +220,7 @@ export function EnhancedCandidateActionDialog({
           experience_match_score: cultureFit[0],
           provided_by: user.id,
           metadata: {
-            next_stage: nextStage
+            next_stage: stages[targetStageIndex!].name
           }
         });
 
@@ -210,12 +230,12 @@ export function EnhancedCandidateActionDialog({
           application_id: applicationId,
           interaction_type: 'status_change',
           interaction_direction: 'internal',
-          title: `Advanced to ${nextStage}`,
-          content: feedbackText || `Candidate advanced from ${currentStage} to ${nextStage} for ${jobTitle}`,
+          title: `Advanced to ${stages[targetStageIndex!].name}`,
+          content: feedbackText || `Candidate advanced from ${currentStage} to ${stages[targetStageIndex!].name} for ${jobTitle}`,
           metadata: {
             action: 'advance',
             previous_stage: currentStage,
-            new_stage: nextStage,
+            new_stage: stages[targetStageIndex!].name,
             job_id: jobId,
             job_title: jobTitle,
             company_name: companyName,
@@ -355,7 +375,7 @@ export function EnhancedCandidateActionDialog({
             {actionType === 'advance' ? (
               <>
                 <ArrowRight className="h-5 w-5 text-primary" />
-                Advance to {nextStage}
+                Advance Candidate
               </>
             ) : (
               <>
@@ -366,7 +386,7 @@ export function EnhancedCandidateActionDialog({
           </DialogTitle>
           <DialogDescription>
             {actionType === 'advance' 
-              ? `Moving ${candidateName} from ${currentStage} to ${nextStage} for ${jobTitle} at ${companyName}`
+              ? `Moving ${candidateName} forward in the pipeline for ${jobTitle} at ${companyName}`
               : `Declining ${candidateName} for ${jobTitle} at ${companyName}`
             }
           </DialogDescription>
@@ -405,13 +425,37 @@ export function EnhancedCandidateActionDialog({
                     onValueChange={setCommunication}
                     max={10}
                     step={1}
-                    className="mt-2"
-                  />
-                </div>
+                  className="mt-2"
+                />
               </div>
+            </div>
 
-              <div>
-                <Label htmlFor="advancement-notes">Notes (Optional)</Label>
+            <div>
+              <Label htmlFor="target-stage">Advance to Stage *</Label>
+              <Select 
+                value={targetStageIndex?.toString()} 
+                onValueChange={(value) => setTargetStageIndex(parseInt(value))}
+              >
+                <SelectTrigger className="mt-2">
+                  <SelectValue placeholder="Select target stage..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {stages
+                    .filter((stage) => stage.order > currentStageIndex)
+                    .map((stage) => (
+                      <SelectItem key={stage.order} value={stage.order.toString()}>
+                        {stage.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Select which stage to move this candidate to
+              </p>
+            </div>
+
+            <div>
+              <Label htmlFor="advancement-notes">Notes (Optional)</Label>
                 <Textarea
                   id="advancement-notes"
                   value={feedbackText}

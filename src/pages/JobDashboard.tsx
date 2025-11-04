@@ -861,6 +861,8 @@ export default function JobDashboard() {
           jobTitle={job.title}
           companyName={job.companies?.name || ''}
           currentStage={stages[selectedCandidateForAction.candidate.current_stage_index]?.name || ''}
+          currentStageIndex={selectedCandidateForAction.candidate.current_stage_index}
+          stages={stages}
           nextStage={stages[selectedCandidateForAction.candidate.current_stage_index + 1]?.name}
           actionType={selectedCandidateForAction.action}
           onComplete={() => {

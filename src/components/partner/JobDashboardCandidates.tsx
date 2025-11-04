@@ -271,16 +271,15 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
                             <Eye className="w-4 h-4 mr-2" />
                             View
                           </Button>
-                          {!isLastStage && (
-                            <Button
-                              size="sm"
-                              variant="default"
-                              onClick={() => handleOpenActionDialog(app, 'advance')}
-                            >
-                              <UserCheck className="w-4 h-4 mr-2" />
-                              Advance
-                            </Button>
-                          )}
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleOpenActionDialog(app, 'advance')}
+                            disabled={isLastStage && stages.length === (app.current_stage_index + 1)}
+                          >
+                            <UserCheck className="w-4 h-4 mr-2" />
+                            Advance
+                          </Button>
                           <Button
                             size="sm"
                             variant="ghost"
@@ -320,6 +319,8 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
           jobTitle={actionDialog.application.jobs?.title || ''}
           companyName={actionDialog.application.jobs?.companies?.name || ''}
           currentStage={stages[actionDialog.application.current_stage_index]?.name || ''}
+          currentStageIndex={actionDialog.application.current_stage_index}
+          stages={stages}
           nextStage={stages[actionDialog.application.current_stage_index + 1]?.name}
           actionType={actionDialog.action}
           onComplete={handleActionComplete}
