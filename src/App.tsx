@@ -349,14 +349,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/meeting-history"
-              element={
-                <ProtectedRoute>
-                  <MeetingHistory />
-                </ProtectedRoute>
-              }
-            />
+            {/* Redirect old meeting-history route to unified meetings page */}
+            <Route path="/meeting-history" element={<Navigate to="/meetings?tab=history" replace />} />
             <Route
               path="/meeting-intelligence"
               element={

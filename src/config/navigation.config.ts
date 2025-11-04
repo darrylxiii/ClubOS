@@ -62,7 +62,6 @@ const baseNavigationGroups: NavigationGroup[] = [
       { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },
-      { name: "Meeting History", icon: Clock, path: "/meeting-history" },
       { name: "Scheduling", icon: Calendar, path: "/scheduling" },
     ],
   },

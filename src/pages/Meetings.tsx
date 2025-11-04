@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Plus, Calendar as CalendarIcon, Settings } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, Settings, Video, Clock, Sparkles } from "lucide-react";
 import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
 import { MeetingCard } from "@/components/meetings/MeetingCard";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -16,6 +16,7 @@ import { MeetingStatsBar } from "@/components/meetings/MeetingStatsBar";
 import { UnifiedCalendarView } from "@/components/meetings/UnifiedCalendarView";
 import { MeetingIntelligenceTab } from "@/components/meetings/MeetingIntelligenceTab";
 import { NotetakerSettingsTab } from "@/components/meetings/NotetakerSettingsTab";
+import { MeetingHistoryTab } from "@/components/meetings/MeetingHistoryTab";
 import { toast } from "sonner";
 
 export default function Meetings() {
@@ -212,9 +213,22 @@ export default function Meetings() {
               <CalendarIcon className="h-4 w-4" />
               Calendar View
             </TabsTrigger>
-            <TabsTrigger value="my-meetings">My Meetings</TabsTrigger>
-            <TabsTrigger value="intelligence">Intelligence</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="my-meetings" className="gap-2">
+              <Video className="h-4 w-4" />
+              My Meetings
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2">
+              <Clock className="h-4 w-4" />
+              History
+            </TabsTrigger>
+            <TabsTrigger value="intelligence" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              Intelligence
+            </TabsTrigger>
+            <TabsTrigger value="settings" className="gap-2">
+              <Settings className="h-4 w-4" />
+              Settings
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="calendar" className="mt-6">
@@ -255,13 +269,17 @@ export default function Meetings() {
             </div>
           </TabsContent>
 
-          <TabsContent value="intelligence" className="mt-6">
-            <MeetingIntelligenceTab />
-          </TabsContent>
+            <TabsContent value="history" className="mt-6">
+              <MeetingHistoryTab />
+            </TabsContent>
 
-          <TabsContent value="settings" className="mt-6">
-            <NotetakerSettingsTab />
-          </TabsContent>
+            <TabsContent value="intelligence" className="mt-6">
+              <MeetingIntelligenceTab />
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-6">
+              <NotetakerSettingsTab />
+            </TabsContent>
         </Tabs>
 
       </div>
