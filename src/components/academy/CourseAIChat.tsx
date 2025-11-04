@@ -25,7 +25,7 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
   const { toast } = useToast();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const animatedAnswer = useAnimatedText(answer, " ");
+  // Removed useAnimatedText - streaming handles progressive display naturally
 
   const handleAsk = async () => {
     if (!input.trim()) return;
@@ -169,7 +169,7 @@ export function CourseAIChat({ courseId }: CourseAIChatProps) {
             <Bot className="h-5 w-5 text-primary flex-shrink-0 mt-1" />
             <ScrollArea className="flex-1 max-h-[400px]">
               <div className="text-sm leading-relaxed prose prose-sm max-w-none dark:prose-invert pr-4">
-                <ReactMarkdown>{animatedAnswer}</ReactMarkdown>
+                <ReactMarkdown>{answer}</ReactMarkdown>
               </div>
             </ScrollArea>
             <Button

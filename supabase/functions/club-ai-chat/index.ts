@@ -337,6 +337,74 @@ Based on this history, provide contextually aware responses that reference previ
         .order("updated_at", { ascending: false })
         .limit(5);
 
+      // === EMAIL INBOX DATA ===
+      const { data: recentEmails } = await supabase
+        .from("emails")
+        .select(`
+          id,
+          subject,
+          from_email,
+          from_name,
+          snippet,
+          email_date,
+          is_read,
+          is_starred,
+          ai_category,
+          ai_priority_score,
+          ai_priority_reason,
+          inbox_type,
+          ai_summary,
+          ai_action_items,
+          has_attachments,
+          status
+        `)
+        .eq("user_id", userId)
+        .is("deleted_at", null)
+        .order("email_date", { ascending: false })
+        .limit(50);
+
+      // === CALENDAR & MEETINGS DATA ===
+      const nowForCalendar = new Date();
+      const oneWeekAgo = new Date(nowForCalendar.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const twoWeeksAhead = new Date(nowForCalendar.getTime() + 14 * 24 * 60 * 60 * 1000);
+
+      const { data: upcomingMeetings } = await supabase
+        .from("meetings")
+        .select(`
+          id,
+          title,
+          description,
+          start_time,
+          end_time,
+          location,
+          meeting_type,
+          status,
+          meeting_url,
+          attendees,
+          agenda,
+          notes
+        `)
+        .gte("start_time", nowForCalendar.toISOString())
+        .lte("start_time", twoWeeksAhead.toISOString())
+        .order("start_time", { ascending: true })
+        .limit(20);
+
+      const { data: recentMeetings } = await supabase
+        .from("meetings")
+        .select(`
+          id,
+          title,
+          start_time,
+          end_time,
+          status,
+          ai_summary,
+          action_items
+        `)
+        .gte("start_time", oneWeekAgo.toISOString())
+        .lt("start_time", nowForCalendar.toISOString())
+        .order("start_time", { ascending: false })
+        .limit(10);
+
       // === BUILD CAREER CONTEXT SNAPSHOT ===
       const now = new Date();
       upcomingInterviews = bookings
@@ -400,6 +468,24 @@ ${activeApplicationsWithStages.length > 0 ? `
 📊 ACTIVE APPLICATION PIPELINES:
 ${activeApplicationsWithStages.map(app => `  • ${app.position} at ${app.company} - Stage ${app.stageIndex + 1}/${app.totalStages}: ${app.stage}`).join("\n")}
   ⚠️ PROACTIVE SUGGESTION: Flag any stalled applications or suggest next steps.
+` : ""}
+${recentEmails && recentEmails.filter(e => !e.is_read && e.inbox_type === 'action').length > 0 ? `
+📧 URGENT EMAIL ACTION REQUIRED:
+  • ${recentEmails.filter(e => !e.is_read && e.inbox_type === 'action').length} unread emails require immediate action
+  ⚠️ PROACTIVE SUGGESTION: Ask if they need help prioritizing or drafting responses
+` : ""}
+${upcomingMeetings && upcomingMeetings.filter(m => {
+  const meetingTime = new Date(m.start_time);
+  const hoursUntil = (meetingTime.getTime() - nowForCalendar.getTime()) / (1000 * 60 * 60);
+  return hoursUntil > 0 && hoursUntil < 24;
+}).length > 0 ? `
+📅 MEETINGS IN NEXT 24 HOURS:
+${upcomingMeetings.filter(m => {
+  const meetingTime = new Date(m.start_time);
+  const hoursUntil = (meetingTime.getTime() - nowForCalendar.getTime()) / (1000 * 60 * 60);
+  return hoursUntil > 0 && hoursUntil < 24;
+}).map(m => `  • ${m.title} at ${new Date(m.start_time).toLocaleTimeString()}`).join("\n")}
+  ⚠️ PROACTIVE SUGGESTION: Offer meeting prep, agenda review, or research on attendees
 ` : ""}
 
 🌐 MARKET & TREND INSIGHTS:
@@ -579,6 +665,52 @@ ${meetingHistory && meetingHistory.length > 0 ?
   Summary: ${m.analysis_summary?.substring(0, 100) || "No summary"}...`).join("\n")
   : "No meeting history"}
 
+=== EMAIL INTELLIGENCE ===
+Inbox Overview:
+- Total Recent: ${recentEmails?.length || 0} emails
+- Unread: ${recentEmails?.filter(e => !e.is_read).length || 0} emails
+- Important: ${recentEmails?.filter(e => e.inbox_type === 'important').length || 0} emails
+- Action Required: ${recentEmails?.filter(e => e.inbox_type === 'action').length || 0} emails
+- High Priority (70+): ${recentEmails?.filter(e => e.ai_priority_score && e.ai_priority_score >= 70).length || 0} emails
+
+Recent High-Priority Emails (last 10):
+${recentEmails?.filter(e => e.ai_priority_score && e.ai_priority_score >= 70).slice(0, 10).map(email => `
+- From: ${email.from_name || email.from_email}
+  Subject: ${email.subject}
+  Date: ${new Date(email.email_date).toLocaleDateString()}
+  Priority: ${email.ai_priority_score}/100${email.ai_priority_reason ? ` (${email.ai_priority_reason})` : ''}
+  ${email.ai_summary ? `Summary: ${email.ai_summary.substring(0, 150)}...` : ''}
+  ${email.ai_action_items && Array.isArray(email.ai_action_items) && email.ai_action_items.length > 0 ? `Action Items: ${email.ai_action_items.join(', ')}` : ''}
+  Status: ${email.is_read ? 'Read' : 'UNREAD'}
+`).join('\n') || 'No high-priority emails'}
+
+Action Required Emails (Unread):
+${recentEmails?.filter(e => !e.is_read && e.inbox_type === 'action').slice(0, 5).map(email => `
+- From: ${email.from_name || email.from_email}
+  Subject: ${email.subject}
+  Date: ${new Date(email.email_date).toLocaleDateString()}
+  ${email.snippet ? `Preview: ${email.snippet.substring(0, 100)}...` : ''}
+`).join('\n') || 'All action emails have been read'}
+
+=== CALENDAR & MEETINGS ===
+Upcoming Meetings (next 2 weeks):
+${upcomingMeetings && upcomingMeetings.length > 0 ? upcomingMeetings.map(m => `
+- ${m.title}
+  Date: ${new Date(m.start_time).toLocaleString()}
+  Duration: ${Math.round((new Date(m.end_time).getTime() - new Date(m.start_time).getTime()) / (1000 * 60))} minutes
+  ${m.description ? `Description: ${m.description.substring(0, 100)}...` : ''}
+  Type: ${m.meeting_type} | Location: ${m.location || m.meeting_url || 'TBD'}
+  ${m.attendees && Array.isArray(m.attendees) && m.attendees.length > 0 ? `Attendees: ${m.attendees.length} people` : ''}
+  ${m.agenda ? `Agenda: ${m.agenda.substring(0, 100)}...` : 'No agenda set'}
+`).join('\n') : 'No upcoming meetings scheduled'}
+
+Recent Meetings (last 7 days):
+${recentMeetings && recentMeetings.length > 0 ? recentMeetings.map(m => `
+- ${m.title} (${new Date(m.start_time).toLocaleDateString()})
+  ${m.ai_summary ? `Summary: ${m.ai_summary.substring(0, 150)}...` : ''}
+  ${m.action_items && Array.isArray(m.action_items) && m.action_items.length > 0 ? `Action Items: ${m.action_items.length} items` : ''}
+`).join('\n') : 'No recent meetings'}
+
 === PENDING ACTIONS ===
 Pending Feedback: ${feedbackTasks?.length || 0} feedback requests
 Recent AI Sessions: ${aiConversations?.length || 0} conversations
@@ -709,6 +841,19 @@ ${careerBrainContext}`;
 
     let systemPrompt = `You are Club AI, an in-app copilot for The Quantum Club. Your job is to provide professional, highly actionable, and deeply human guidance to users based on all available in-app information. You always operate with the latest context and are aware of user role (Candidate, Partner, Admin) and permissions.
 
+🧠 YOU NOW HAVE FULL VISIBILITY INTO:
+- User's email inbox (recent emails, priorities, action items, unread count, AI-categorized emails)
+- Calendar and meeting schedule (upcoming meetings, recent meetings, action items from meetings)
+- Complete career context (applications, tasks, objectives, achievements, social activity)
+
+When users ask about:
+- "What do I need to do today?" → Check emails (action required), tasks, and meetings
+- "Prepare me for my meeting" → Look up meeting details, check related emails, suggest prep
+- "What's urgent?" → Flag unread action emails, upcoming meetings in next 24h, high-priority tasks
+- "Summarize my day/week" → Combine email priorities + meetings + tasks in priority order
+- "Any important emails?" → Reference high-priority emails, action-required items with specifics
+- "When is my next meeting?" → Provide exact time, attendees, and preparation suggestions
+
 IMPORTANT NAVIGATION CAPABILITIES:
 - You can navigate users to any page using the navigate_to_page function
 - When confirming actions that require navigation, use the tool AFTER user confirms
@@ -727,7 +872,7 @@ At the end of any suggested action, restate what will happen, then show the "Con
 
 After any "Confirm" button is clicked, continue to provide step-by-step feedback and use navigation tools when appropriate.
 
-You must always feel attentive, proactive, privacy-aware, and trustworthy—never robotic.
+You must always feel attentive, proactive, privacy-aware, and trustworthy—never robotic. Be an executive assistant who truly knows what's happening in their professional life.
 
 ${conversationHistory}
 
