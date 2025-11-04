@@ -261,6 +261,46 @@ export async function trackMessageSent(
   }
 }
 
+// Track job view
+export async function trackJobView(userId: string, jobId: string) {
+  try {
+    await (supabase as any).from('user_activity_events').insert({
+      user_id: userId,
+      event_type: 'job_interaction',
+      event_category: 'job',
+      event_metadata: {
+        job_id: jobId,
+        action: 'viewed',
+      },
+      page_path: window.location.pathname,
+      session_id: getSessionId(),
+      device_type: getDeviceType(),
+    });
+  } catch (error) {
+    console.error('Failed to track job view:', error);
+  }
+}
+
+// Track job save
+export async function trackJobSave(userId: string, jobId: string, saved: boolean) {
+  try {
+    await (supabase as any).from('user_activity_events').insert({
+      user_id: userId,
+      event_type: 'job_interaction',
+      event_category: 'job',
+      event_metadata: {
+        job_id: jobId,
+        action: saved ? 'saved' : 'unsaved',
+      },
+      page_path: window.location.pathname,
+      session_id: getSessionId(),
+      device_type: getDeviceType(),
+    });
+  } catch (error) {
+    console.error('Failed to track job save:', error);
+  }
+}
+
 // Batch track multiple events (for performance)
 export async function batchTrackEvents(events: any[]) {
   try {

@@ -144,8 +144,8 @@ export default function JobDetail() {
     setIsSaved(!isSaved);
     
     // Phase 3: Track job save
-    if (!isSaved && jobId) {
-      trackJobSave(user.id, jobId);
+    if (jobId) {
+      trackJobSave(user.id, jobId, !isSaved);
     }
     
     if (isSaved) {
