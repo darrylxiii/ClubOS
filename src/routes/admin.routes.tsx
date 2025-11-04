@@ -4,7 +4,6 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Lazy load admin-specific pages
 const Admin = lazy(() => import("@/pages/Admin"));
-const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
 const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
 const AdminUserProfile = lazy(() => import("@/pages/admin/AdminUserProfile"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
@@ -23,7 +22,6 @@ export const adminRoutes = (
   <>
     {/* Admin Panel */}
     <Route path="/admin" element={<ProtectedRoute><Admin /></ProtectedRoute>} />
-    <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
     
     {/* User Management */}
     <Route path="/admin/candidates" element={<ProtectedRoute><AdminCandidates /></ProtectedRoute>} />

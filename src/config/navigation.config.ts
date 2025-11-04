@@ -50,7 +50,6 @@ const baseNavigationGroups: NavigationGroup[] = [
     icon: Layers,
     items: [
       { name: "Club Home", icon: Home, path: "/home" },
-      { name: "Dashboard", icon: BarChart3, path: "/dashboard" },
       { name: "Feed", icon: Rss, path: "/feed" },
       { name: "Achievements", icon: Trophy, path: "/achievements" },
     ],
@@ -162,13 +161,6 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
   ],
 };
 
-// Dashboard path overrides per role
-const dashboardPaths: Record<'candidate' | 'partner' | 'admin', string> = {
-  candidate: '/dashboard',
-  partner: '/partner/dashboard',
-  admin: '/admin/dashboard',
-};
-
 // Admin panel visibility
 const adminSpecificItems: NavigationItem[] = [
   { name: "Admin Panel", icon: Users, path: "/admin" },
@@ -200,16 +192,8 @@ export function getNavigationForRole(role?: string | null): NavigationGroup[] {
   
   const groups: NavigationGroup[] = [];
   
-  // 1. Add overview section with correct dashboard
-  const overviewGroup = { 
-    ...baseNavigationGroups[0],
-    items: baseNavigationGroups[0].items.map(item => {
-      if (item.path === '/dashboard') {
-        return { ...item, path: dashboardPaths[normalizedRole] };
-      }
-      return item;
-    })
-  };
+  // 1. Add overview section
+  const overviewGroup = { ...baseNavigationGroups[0] };
   
   // Add admin panel for admin role
   if (normalizedRole === 'admin') {

@@ -4,7 +4,6 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 // Lazy load shared pages accessible to all authenticated users
 const ClubHome = lazy(() => import("@/pages/ClubHome"));
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Feed = lazy(() => import("@/pages/Feed"));
 const Post = lazy(() => import("@/pages/Post"));
 const SocialFeed = lazy(() => import("@/pages/SocialFeed"));
@@ -46,7 +45,6 @@ export const sharedRoutes = (
   <>
     {/* Home & Dashboard */}
     <Route path="/home" element={<ProtectedRoute><ClubHome /></ProtectedRoute>} />
-    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
     
     {/* Feed & Social */}
     <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
