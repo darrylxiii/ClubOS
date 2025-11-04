@@ -19,6 +19,7 @@ import { useApplications } from "@/hooks/useApplications";
 import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
+import { RejectedApplicationsTab } from "@/components/candidate/RejectedApplicationsTab";
 
 interface Application {
   id: string;
@@ -51,10 +52,11 @@ interface Application {
 
 export default function Applications() {
   const { user } = useAuth();
-  const { data: applications = [], isLoading, isFetching } = useApplications(user?.id);
+  const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true); // Include rejected
 
   const activeApplications = applications.filter(app => app.status === "active");
-  const archivedApplications = applications.filter(app => app.status !== "active");
+  const rejectedApplications = applications.filter(app => app.status === "rejected");
+  const archivedApplications = applications.filter(app => app.status !== "active" && app.status !== "rejected");
 
   if (isLoading) {
     return (
@@ -100,8 +102,9 @@ export default function Applications() {
           </div>
 
           <Tabs defaultValue="active" className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsList className="grid w-full max-w-2xl grid-cols-3">
               <TabsTrigger value="active">Active ({activeApplications.length})</TabsTrigger>
+              <TabsTrigger value="rejected">Rejected ({rejectedApplications.length})</TabsTrigger>
               <TabsTrigger value="archived">Archived ({archivedApplications.length})</TabsTrigger>
             </TabsList>
 
@@ -119,6 +122,10 @@ export default function Applications() {
                   <ApplicationCard key={application.id} application={application} />
                 ))
               )}
+            </TabsContent>
+
+            <TabsContent value="rejected" className="space-y-6 mt-6">
+              <RejectedApplicationsTab applications={rejectedApplications} />
             </TabsContent>
 
             <TabsContent value="archived" className="space-y-6 mt-6">

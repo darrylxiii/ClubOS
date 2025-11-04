@@ -119,6 +119,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
         { name: "Applicants", icon: FileText, path: "/applications" },
+        { name: "Rejections", icon: Users, path: "/partner/rejections" },
         { name: "Companies", icon: Building, path: "/companies" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
       ],
@@ -141,6 +142,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Companies", icon: Building, path: "/companies" },
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
         { name: "Applications", icon: FileText, path: "/applications" },
+        { name: "Global Rejections", icon: TrendingUp, path: "/admin/rejections" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
         { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
         { name: "Club Sync Requests", icon: Zap, path: "/admin/club-sync-requests" },

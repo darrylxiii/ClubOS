@@ -13,6 +13,7 @@ const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
 const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
 const FunnelAnalytics = lazy(() => import("@/pages/FunnelAnalytics"));
 const SocialManagement = lazy(() => import("@/pages/SocialManagement"));
+const AdminRejections = lazy(() => import("@/pages/AdminRejections"));
 
 /**
  * Admin-specific routes
@@ -35,6 +36,7 @@ export const adminRoutes = (
     
     {/* Analytics */}
     <Route path="/admin/analytics" element={<ProtectedRoute><GlobalAnalytics /></ProtectedRoute>} />
+    <Route path="/admin/rejections" element={<ProtectedRoute><AdminRejections /></ProtectedRoute>} />
     <Route path="/funnel-analytics" element={<ProtectedRoute><FunnelAnalytics /></ProtectedRoute>} />
     
     {/* Configuration */}

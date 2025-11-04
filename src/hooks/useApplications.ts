@@ -11,6 +11,7 @@ export interface ApplicationData {
   stages: any[];
   status: string;
   applied_at: string;
+  updated_at: string;
   job: {
     title: string;
     location: string;
@@ -146,10 +147,14 @@ async function fetchApplicationsOptimized(userId: string): Promise<ApplicationDa
   });
 }
 
-export function useApplications(userId: string | undefined) {
+export function useApplications(userId: string | undefined, includeRejected: boolean = false) {
   return useQuery({
-    queryKey: ['applications', userId],
-    queryFn: () => fetchApplicationsOptimized(userId!),
+    queryKey: ['applications', userId, includeRejected],
+    queryFn: async () => {
+      const apps = await fetchApplicationsOptimized(userId!);
+      // Filter based on includeRejected flag
+      return includeRejected ? apps : apps.filter(app => app.status !== 'rejected');
+    },
     staleTime: 60000, // Cache for 1 minute
     gcTime: 300000, // Keep in cache for 5 minutes
     enabled: !!userId,
