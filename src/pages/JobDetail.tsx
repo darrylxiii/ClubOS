@@ -1,9 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
-import { JobDetailCard } from "@/components/jobs/JobDetailCard";
-import { JobDetailsSection } from "@/components/jobs/JobDetailsSection";
+import { JobProfileHero } from "@/components/jobs/JobProfileHero";
+import { AboutRoleSection } from "@/components/jobs/AboutRoleSection";
+import { SkillMatrix } from "@/components/jobs/SkillMatrix";
+import { ResponsibilityGrid } from "@/components/jobs/ResponsibilityGrid";
+import { BenefitsShowcase } from "@/components/jobs/BenefitsShowcase";
+import { ApplicationTimeline } from "@/components/jobs/ApplicationTimeline";
+import { CompanyShowcase } from "@/components/jobs/CompanyShowcase";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,8 +18,8 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { canManageJob } from "@/utils/jobNavigation";
 import { trackJobView, trackJobSave } from "@/services/analyticsTracking";
 import { toast } from "sonner";
-import { ArrowLeft, Settings, Loader2, Bookmark } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Settings, Loader2, Activity } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function JobDetail() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -199,12 +206,17 @@ export default function JobDetail() {
     );
   }
 
+  const daysOpen = Math.floor(
+    (new Date().getTime() - new Date(job.created_at).getTime()) / (1000 * 60 * 60 * 24)
+  );
+
   return (
     <AppLayout>
       <OceanBackgroundVideo />
       
-      <div className="relative z-10 min-h-screen pb-32">
-        <div className="container mx-auto px-4 py-6">
+      <div className="relative z-10 min-h-screen">
+        {/* Top Navigation */}
+        <div className="container mx-auto px-6 py-6 max-w-6xl">
           <div className="flex items-center justify-between">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
               <Button variant="ghost" onClick={() => navigate('/jobs')} className="gap-2">
@@ -224,92 +236,150 @@ export default function JobDetail() {
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-8 max-w-5xl space-y-6">
-          <JobDetailCard
-            job={{
-              title: job.title,
-              location: job.location,
-              employment_type: job.employment_type,
-              salary_min: job.salary_min,
-              salary_max: job.salary_max,
-              currency: job.currency,
-              created_at: job.created_at,
-              description: job.description,
-            }}
-            company={{
-              name: job.companies?.name || 'Unknown Company',
-              slug: job.companies?.slug,
-              logo_url: job.companies?.logo_url,
-              cover_image_url: job.companies?.cover_image_url,
-              website_url: job.companies?.website_url,
-            }}
-            matchScore={job.match_score}
-            isSaved={isSaved}
-            isApplied={isApplied}
-            onApply={handleApply}
-            onSave={handleSave}
-            onShare={handleShare}
-            metrics={{
-              applicants: 24,
-              views: 156,
-              timeToHire: "~2 weeks"
-            }}
-          />
+        {/* Hero Section */}
+        <JobProfileHero
+          job={{
+            id: job.id,
+            title: job.title,
+            location: job.location,
+            employment_type: job.employment_type,
+            salary_min: job.salary_min,
+            salary_max: job.salary_max,
+            currency: job.currency,
+            created_at: job.created_at,
+            status: job.status,
+            match_score: job.match_score,
+          }}
+          company={{
+            name: job.companies?.name || 'Unknown Company',
+            slug: job.companies?.slug,
+            logo_url: job.companies?.logo_url,
+            cover_image_url: job.companies?.cover_image_url,
+            tagline: job.companies?.tagline,
+          }}
+          metrics={{
+            applicants: 24,
+            views: 156,
+            daysOpen: daysOpen,
+          }}
+          isSaved={isSaved}
+          isApplied={isApplied}
+          isAdmin={canManageJob(role)}
+          onApply={handleApply}
+          onSave={handleSave}
+          onShare={handleShare}
+        />
 
-          <JobDetailsSection
-            job={{
-              description: job.description,
-              requirements: job.requirements,
-              nice_to_have: job.nice_to_have,
-              benefits: job.benefits,
-              responsibilities: job.responsibilities,
-              tags: job.tags,
-            }}
-            company={job.companies}
-            showCompanyInfo={true}
-          />
-        </div>
+        {/* Tab Navigation and Content */}
+        <div className="container mx-auto px-6 py-6 max-w-6xl space-y-6">
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="company">Company</TabsTrigger>
+              {canManageJob(role) && (
+                <TabsTrigger value="activity">Activity</TabsTrigger>
+              )}
+            </TabsList>
 
-        <AnimatePresence>
-          {isScrolled && (
-            <motion.div
-              className="fixed bottom-0 left-0 right-0 z-50 frosted-glass border-t border-border/50 p-4 pb-safe"
-              initial={{ y: 100 }}
-              animate={{ y: 0 }}
-              exit={{ y: 100 }}
-              transition={{ duration: 0.3 }}
-            >
-              <div className="container mx-auto flex items-center justify-between gap-4">
-                <div className="hidden sm:flex items-center gap-3">
-                  {job.companies?.logo_url && (
-                    <div className="w-10 h-10 rounded-lg overflow-hidden border border-border/50">
-                      <img src={job.companies.logo_url} alt={job.companies.name} className="w-full h-full object-cover" />
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-6 mt-6">
+              <AboutRoleSection description={job.description} />
+              
+              {job.responsibilities && job.responsibilities.length > 0 && (
+                <Card className="border-2">
+                  <CardHeader>
+                    <h3 className="text-xl font-black">Key Responsibilities</h3>
+                    <p className="text-sm text-muted-foreground">Main areas you'll be working on</p>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {job.responsibilities.slice(0, 5).map((responsibility: string, index: number) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <span className="text-primary mt-1">•</span>
+                          <span className="text-foreground/90">{responsibility}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+
+              {job.benefits && job.benefits.length > 0 && (
+                <Card className="border-2">
+                  <CardHeader>
+                    <h3 className="text-xl font-black">Top Benefits</h3>
+                    <p className="text-sm text-muted-foreground">What we offer</p>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {job.benefits.slice(0, 5).map((benefit: string, index: number) => (
+                        <li key={index} className="flex items-start gap-3">
+                          <span className="text-primary mt-1">✓</span>
+                          <span className="text-foreground/90">{benefit}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Details Tab */}
+            <TabsContent value="details" className="space-y-6 mt-6">
+              <SkillMatrix 
+                mustHaveSkills={job.requirements}
+                niceToHaveSkills={job.nice_to_have}
+              />
+              <ResponsibilityGrid responsibilities={job.responsibilities} />
+              <BenefitsShowcase benefits={job.benefits} />
+              <ApplicationTimeline />
+            </TabsContent>
+
+            {/* Company Tab */}
+            <TabsContent value="company" className="space-y-6 mt-6">
+              {job.companies && (
+                <CompanyShowcase company={job.companies} />
+              )}
+            </TabsContent>
+
+            {/* Activity Tab (Admin Only) */}
+            {canManageJob(role) && (
+              <TabsContent value="activity" className="space-y-6 mt-6">
+                <Card className="border-2">
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <Activity className="w-6 h-6 text-primary" />
+                      <div>
+                        <h3 className="text-xl font-black">Job Analytics</h3>
+                        <p className="text-sm text-muted-foreground">Performance metrics and insights</p>
+                      </div>
                     </div>
-                  )}
-                  <div>
-                    <h3 className="font-bold text-sm">{job.title}</h3>
-                    <p className="text-xs text-muted-foreground">{job.companies?.name}</p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 ml-auto">
-                  <Button onClick={handleSave} variant="outline" size="lg" className="gap-2">
-                    <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-current' : ''}`} />
-                    <span className="hidden sm:inline">{isSaved ? 'Saved' : 'Save'}</span>
-                  </Button>
-                  <Button onClick={handleApply} disabled={isApplied} size="lg">
-                    {isApplied ? 'Applied' : 'Apply Now'}
-                  </Button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="md:hidden fixed bottom-20 right-4 z-40">
-          <Button onClick={handleApply} disabled={isApplied} size="lg" className="rounded-full shadow-lg h-14 px-6">
-            {isApplied ? 'Applied ✓' : 'Apply Now'}
-          </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="p-4 rounded-lg bg-card/50 border">
+                        <p className="text-2xl font-bold">24</p>
+                        <p className="text-xs text-muted-foreground">Total Applications</p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-card/50 border">
+                        <p className="text-2xl font-bold">156</p>
+                        <p className="text-xs text-muted-foreground">Total Views</p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-card/50 border">
+                        <p className="text-2xl font-bold">6.5%</p>
+                        <p className="text-xs text-muted-foreground">Conversion Rate</p>
+                      </div>
+                      <div className="p-4 rounded-lg bg-card/50 border">
+                        <p className="text-2xl font-bold">{daysOpen}d</p>
+                        <p className="text-xs text-muted-foreground">Days Active</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+          </Tabs>
         </div>
       </div>
     </AppLayout>
