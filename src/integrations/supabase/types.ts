@@ -3327,6 +3327,66 @@ export type Database = {
           },
         ]
       }
+      company_departments: {
+        Row: {
+          color_hex: string | null
+          company_id: string
+          created_at: string | null
+          department_type: string
+          description: string | null
+          display_order: number | null
+          icon_name: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          parent_department_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          color_hex?: string | null
+          company_id: string
+          created_at?: string | null
+          department_type?: string
+          description?: string | null
+          display_order?: number | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          parent_department_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          color_hex?: string | null
+          company_id?: string
+          created_at?: string | null
+          department_type?: string
+          description?: string | null
+          display_order?: number | null
+          icon_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          parent_department_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_departments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_departments_parent_department_id_fkey"
+            columns: ["parent_department_id"]
+            isOneToOne: false
+            referencedRelation: "company_departments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_followers: {
         Row: {
           company_id: string
@@ -3361,40 +3421,73 @@ export type Database = {
       }
       company_members: {
         Row: {
+          bio: string | null
           company_id: string
           created_at: string | null
+          department_id: string | null
+          display_order_in_dept: number | null
+          employment_type: string | null
           id: string
           invited_at: string | null
           invited_by: string | null
           is_active: boolean | null
+          is_people_manager: boolean | null
+          job_title: string | null
           joined_at: string | null
+          linkedin_url: string | null
+          location: string | null
+          reports_to_member_id: string | null
           role: string
+          start_date: string | null
           updated_at: string | null
           user_id: string
+          visibility_in_org_chart: string | null
         }
         Insert: {
+          bio?: string | null
           company_id: string
           created_at?: string | null
+          department_id?: string | null
+          display_order_in_dept?: number | null
+          employment_type?: string | null
           id?: string
           invited_at?: string | null
           invited_by?: string | null
           is_active?: boolean | null
+          is_people_manager?: boolean | null
+          job_title?: string | null
           joined_at?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          reports_to_member_id?: string | null
           role: string
+          start_date?: string | null
           updated_at?: string | null
           user_id: string
+          visibility_in_org_chart?: string | null
         }
         Update: {
+          bio?: string | null
           company_id?: string
           created_at?: string | null
+          department_id?: string | null
+          display_order_in_dept?: number | null
+          employment_type?: string | null
           id?: string
           invited_at?: string | null
           invited_by?: string | null
           is_active?: boolean | null
+          is_people_manager?: boolean | null
+          job_title?: string | null
           joined_at?: string | null
+          linkedin_url?: string | null
+          location?: string | null
+          reports_to_member_id?: string | null
           role?: string
+          start_date?: string | null
           updated_at?: string | null
           user_id?: string
+          visibility_in_org_chart?: string | null
         }
         Relationships: [
           {
@@ -3402,6 +3495,20 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_members_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "company_departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_members_reports_to_member_id_fkey"
+            columns: ["reports_to_member_id"]
+            isOneToOne: false
+            referencedRelation: "company_members"
             referencedColumns: ["id"]
           },
         ]
@@ -7943,6 +8050,101 @@ export type Database = {
             columns: ["parent_comment_id"]
             isOneToOne: false
             referencedRelation: "objective_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      org_chart_candidate_placements: {
+        Row: {
+          candidate_user_id: string
+          company_id: string
+          created_at: string | null
+          created_by: string | null
+          department_id: string | null
+          id: string
+          placement_notes: string | null
+          placement_status: string | null
+          proposed_job_title: string
+          proposed_reports_to_member_id: string | null
+          updated_at: string | null
+          visibility: string | null
+        }
+        Insert: {
+          candidate_user_id: string
+          company_id: string
+          created_at?: string | null
+          created_by?: string | null
+          department_id?: string | null
+          id?: string
+          placement_notes?: string | null
+          placement_status?: string | null
+          proposed_job_title: string
+          proposed_reports_to_member_id?: string | null
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Update: {
+          candidate_user_id?: string
+          company_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          department_id?: string | null
+          id?: string
+          placement_notes?: string | null
+          placement_status?: string | null
+          proposed_job_title?: string
+          proposed_reports_to_member_id?: string | null
+          updated_at?: string | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_chart_candidate_placement_proposed_reports_to_member_i_fkey"
+            columns: ["proposed_reports_to_member_id"]
+            isOneToOne: false
+            referencedRelation: "company_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_chart_candidate_placements_candidate_user_id_fkey"
+            columns: ["candidate_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_chart_candidate_placements_candidate_user_id_fkey"
+            columns: ["candidate_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_chart_candidate_placements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_chart_candidate_placements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_chart_candidate_placements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_chart_candidate_placements_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "company_departments"
             referencedColumns: ["id"]
           },
         ]
@@ -13005,7 +13207,29 @@ export type Database = {
         Args: { p_candidate_id: string }
         Returns: Json
       }
+      get_department_hierarchy: {
+        Args: { p_company_id: string }
+        Returns: {
+          department_id: string
+          department_name: string
+          level: number
+          parent_department_id: string
+          path: string[]
+        }[]
+      }
       get_module_course_id: { Args: { _module_id: string }; Returns: string }
+      get_org_chart_tree: {
+        Args: { p_company_id: string }
+        Returns: {
+          department_id: string
+          job_title: string
+          level: number
+          member_id: string
+          path: string[]
+          reports_to_member_id: string
+          user_id: string
+        }[]
+      }
       has_company_role: {
         Args: { _company_id: string; _role: string; _user_id: string }
         Returns: boolean
