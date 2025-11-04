@@ -92,7 +92,7 @@ export function EmailInbox() {
     if (filter !== "inbox") return filteredEmails;
 
     return filteredEmails.filter((email) => {
-      const inboxType = email.inbox_type || "fyi";
+      const inboxType = email.inbox_type === 'primary' ? 'fyi' : (email.inbox_type || "fyi");
       
       switch (priorityTab) {
         case "important":
@@ -117,7 +117,7 @@ export function EmailInbox() {
     return {
       important: inboxEmails.filter(e => e.inbox_type === "important").length,
       actionRequired: inboxEmails.filter(e => e.inbox_type === "action").length,
-      fyi: inboxEmails.filter(e => e.inbox_type === "fyi").length,
+      fyi: inboxEmails.filter(e => e.inbox_type === "fyi" || e.inbox_type === "primary" || !e.inbox_type).length,
       newsletters: inboxEmails.filter(e => e.inbox_type === "newsletters").length,
       lowPriority: inboxEmails.filter(e => e.inbox_type === "low").length,
     };
