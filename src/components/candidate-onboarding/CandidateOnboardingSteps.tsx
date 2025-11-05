@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
@@ -19,7 +19,7 @@ import { useCountryDetection } from "@/hooks/useCountryDetection";
 import { Slider } from "@/components/ui/slider";
 import { CandidateApplicationTracker } from "./CandidateApplicationTracker";
 
-const STEPS = ["contact", "professional", "career", "compensation", "preferences"];
+const STEPS = ["contact", "professional", "career", "compensation", "preferences", "password"];
 
 export function CandidateOnboardingSteps() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -60,6 +60,9 @@ export function CandidateOnboardingSteps() {
   const [emailVerified, setEmailVerified] = useState(false);
   const [emailOtpCode, setEmailOtpCode] = useState("");
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     // Contact
@@ -212,81 +215,145 @@ export function CandidateOnboardingSteps() {
           return false;
         }
         break;
+      case 5: // Password
+        if (!password || password.length < 12) {
+          toast({ title: "Please create a strong password", variant: "destructive" });
+          return false;
+        }
+        if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+          toast({ title: "Password must meet all requirements", variant: "destructive" });
+          return false;
+        }
+        if (password !== confirmPassword) {
+          toast({ title: "Passwords do not match", variant: "destructive" });
+          return false;
+        }
+        break;
     }
     return true;
   };
 
   const handleSubmit = async () => {
-    if (!phoneVerified) {
-      toast({ title: "Please verify your phone number first", variant: "destructive" });
+    // Validate password
+    if (password.length < 12 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || 
+        !/[0-9]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      toast({ 
+        title: "Invalid password", 
+        description: "Please meet all password requirements",
+        variant: "destructive" 
+      });
       return;
     }
 
+    if (password !== confirmPassword) {
+      toast({ title: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+
+    setIsLoading(true);
+    
     try {
       const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
 
-      // Create or update profile with onboarding data
-      const profileData = {
-        full_name: formData.full_name,
+      // STEP 1: Create Supabase auth account with all onboarding data
+      const { data: authData, error: signupError } = await supabase.auth.signUp({
         email: formData.email,
-        phone: phoneNumber,
-        phone_verified: true,
-        email_verified: true,
-        location: formData.location,
-        current_title: formData.current_title,
-        linkedin_url: formData.linkedin_url,
-        career_preferences: formData.bio,
-        employment_type_preference: formData.employment_type,
-        notice_period: formData.notice_period,
-        current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
-        current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
-        salary_preference_hidden: formData.salary_preference_hidden,
-        desired_salary_min: formData.desired_salary_min,
-        desired_salary_max: formData.desired_salary_max,
-        freelance_hourly_rate_min: formData.freelance_hourly_rate_min,
-        freelance_hourly_rate_max: formData.freelance_hourly_rate_max,
-        remote_work_preference: formData.remote_work_preference,
-        remote_work_aspiration: formData.remote_work_aspiration,
-        preferred_work_locations: formData.preferred_work_locations,
-        resume_url: formData.resume_url,
-        resume_filename: formData.resume_filename,
-        application_status: 'applied',
-        onboarding_completed_at: new Date().toISOString(),
-      };
+        password: password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/home`,
+          data: {
+            full_name: formData.full_name,
+            phone: phoneNumber,
+            email_verified: true,
+            phone_verified: true,
+          }
+        }
+      });
 
-      // Check if user is logged in
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session) {
-        // Update existing profile
-        const { error } = await supabase
-          .from('profiles')
-          .update(profileData)
-          .eq('id', session.user.id);
+      if (signupError) throw signupError;
+      if (!authData.user) throw new Error("Failed to create account");
 
-        if (error) throw error;
-      } else {
-        // Store in candidate_profiles for later merge
-        const { error } = await supabase
-          .from('candidate_profiles')
-          .insert({
-            ...profileData,
-            session_id: sessionId,
-            onboarding_source: 'funnel',
-            // Auto-assign Darryl as default strategist
-            assigned_strategist_id: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
-          });
+      // STEP 2: Update profiles table with complete onboarding data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          phone: phoneNumber,
+          phone_verified: true,
+          email_verified: true,
+          location: formData.location,
+          current_title: formData.current_title,
+          linkedin_url: formData.linkedin_url,
+          career_preferences: formData.bio,
+          employment_type_preference: formData.employment_type,
+          notice_period: formData.notice_period,
+          current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
+          current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
+          salary_preference_hidden: formData.salary_preference_hidden,
+          desired_salary_min: formData.desired_salary_min,
+          desired_salary_max: formData.desired_salary_max,
+          freelance_hourly_rate_min: formData.freelance_hourly_rate_min,
+          freelance_hourly_rate_max: formData.freelance_hourly_rate_max,
+          remote_work_preference: formData.remote_work_preference,
+          remote_work_aspiration: formData.remote_work_aspiration,
+          preferred_work_locations: formData.preferred_work_locations,
+          resume_url: formData.resume_url,
+          resume_filename: formData.resume_filename,
+          onboarding_completed_at: new Date().toISOString(),
+        })
+        .eq('id', authData.user.id);
 
-        if (error) throw error;
+      if (profileError) {
+        console.error("Profile update error:", profileError);
       }
+
+      // STEP 3: Create candidate_profile entry for strategist assignment
+      await supabase
+        .from('candidate_profiles')
+        .insert({
+          email: formData.email,
+          full_name: formData.full_name,
+          user_id: authData.user.id,
+          phone: phoneNumber,
+          current_title: formData.current_title,
+          linkedin_url: formData.linkedin_url,
+          notice_period: formData.notice_period,
+          current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
+          current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
+          salary_preference_hidden: formData.salary_preference_hidden,
+          desired_salary_min: formData.desired_salary_min,
+          desired_salary_max: formData.desired_salary_max,
+          remote_work_aspiration: formData.remote_work_aspiration,
+          resume_filename: formData.resume_filename,
+          resume_url: formData.resume_url,
+          application_status: 'applied',
+          assigned_strategist_id: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
+          source_channel: 'integrated_funnel',
+        });
 
       await trackStep("complete");
 
-      // Move to success screen instead of redirecting
-      setCurrentStep(5);
+      toast({ 
+        title: "Account created successfully!", 
+        description: "Redirecting to your dashboard..." 
+      });
+
+      // Move to success screen
+      setCurrentStep(6);
+
+      // Auto-login and redirect after 2 seconds
+      setTimeout(() => {
+        navigate("/home");
+      }, 2000);
+
     } catch (error: any) {
-      console.error('Submission error:', error);
-      toast({ title: "Submission failed", description: error.message, variant: "destructive" });
+      console.error('Account creation error:', error);
+      toast({ 
+        title: "Account creation failed", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -939,14 +1006,86 @@ export function CandidateOnboardingSteps() {
           </div>
         );
 
-      case 5: // Success
+      case 5: // Password Creation
+        return (
+          <div className="space-y-4">
+            <div className="text-center mb-6">
+              <Lock className="w-12 h-12 text-primary mx-auto mb-3" />
+              <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">
+                Secure Your Account
+              </h2>
+              <p className="text-muted-foreground">
+                Create a strong password to complete your registration
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label>Password *</Label>
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter your password"
+                />
+              </div>
+
+              <div className="text-xs space-y-2 p-4 rounded-lg bg-accent/10 border border-border">
+                <p className={password.length >= 12 ? "text-success font-semibold" : "text-muted-foreground"}>
+                  {password.length >= 12 ? "✓" : "○"} At least 12 characters
+                </p>
+                <p className={/[A-Z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                  {/[A-Z]/.test(password) ? "✓" : "○"} One uppercase letter
+                </p>
+                <p className={/[a-z]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                  {/[a-z]/.test(password) ? "✓" : "○"} One lowercase letter
+                </p>
+                <p className={/[0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                  {/[0-9]/.test(password) ? "✓" : "○"} One number
+                </p>
+                <p className={/[^A-Za-z0-9]/.test(password) ? "text-success font-semibold" : "text-muted-foreground"}>
+                  {/[^A-Za-z0-9]/.test(password) ? "✓" : "○"} One special character
+                </p>
+              </div>
+
+              <div>
+                <Label>Confirm Password *</Label>
+                <Input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm your password"
+                />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-sm text-destructive mt-2">Passwords do not match</p>
+                )}
+                {confirmPassword && password === confirmPassword && (
+                  <p className="text-sm text-success mt-2 flex items-center">
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Passwords match
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            <div className="p-4 bg-primary/10 border border-primary/20 rounded-lg mt-4">
+              <p className="text-sm text-muted-foreground">
+                ✓ Email verified: {formData.email}<br/>
+                ✓ Phone verified: {phoneNumber}<br/>
+                ✓ Profile completed
+              </p>
+            </div>
+          </div>
+        );
+
+      case 6: // Success
         return (
           <div className="space-y-8 py-4">
             <div className="text-center">
               <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
-              <h2 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">Successfully Applied for Membership</h2>
+              <h2 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">Welcome to The Quantum Club!</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Thank you for applying to The Quantum Club. Your Talent Strategist is reviewing your profile now.
+                Your account has been created successfully. Your Talent Strategist will review your profile soon.
               </p>
             </div>
 
@@ -954,24 +1093,17 @@ export function CandidateOnboardingSteps() {
               <CandidateApplicationTracker />
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-              {formData.email ? (
-                <>
-                  <Button 
-                    size="lg" 
-                    onClick={() => navigate(`/auth?email=${encodeURIComponent(formData.email)}&from=onboarding`)}
-                  >
-                    Complete Sign Up
-                  </Button>
-                  <Button size="lg" variant="outline" onClick={() => navigate("/roles")}>
-                    View Open Roles
-                  </Button>
-                </>
-              ) : (
-                <Button size="lg" onClick={() => navigate("/home")}>
-                  Go to Dashboard
-                </Button>
-              )}
+            <div className="flex flex-col gap-4 items-center mt-8">
+              <p className="text-sm text-muted-foreground">
+                Redirecting to your dashboard...
+              </p>
+              <Button 
+                size="lg" 
+                onClick={() => navigate("/home")}
+                variant="outline"
+              >
+                Go to Dashboard Now
+              </Button>
             </div>
           </div>
         );
@@ -984,9 +1116,10 @@ export function CandidateOnboardingSteps() {
     { icon: Target, label: "Career" },
     { icon: DollarSign, label: "Compensation" },
     { icon: MapPin, label: "Preferences" },
+    { icon: Lock, label: "Password" },
   ];
 
-  if (currentStep === 5) {
+  if (currentStep === 6) {
     return (
       <Card className="p-8 glass-effect">
         {renderStep()}
@@ -1019,7 +1152,7 @@ export function CandidateOnboardingSteps() {
         <div className="w-full bg-muted rounded-full h-2">
           <div 
             className="bg-primary h-2 rounded-full transition-all duration-300"
-            style={{ width: `${(currentStep / 4) * 100}%` }}
+            style={{ width: `${(currentStep / 5) * 100}%` }}
           />
         </div>
       </div>
@@ -1038,7 +1171,7 @@ export function CandidateOnboardingSteps() {
           Back
         </Button>
         
-        {currentStep < 4 ? (
+        {currentStep < 5 ? (
           <Button onClick={handleNext}>
             {currentStep === 0 && !emailVerified ? "Send Verification Code" :
              currentStep === 4 && !phoneVerified ? "Send Verification Code" :
@@ -1046,8 +1179,8 @@ export function CandidateOnboardingSteps() {
             <ArrowRight className="w-4 h-4 ml-2" />
           </Button>
         ) : (
-          <Button onClick={handleSubmit} disabled={!phoneVerified}>
-            Submit Application
+          <Button onClick={handleSubmit} disabled={isLoading}>
+            {isLoading ? "Creating Account..." : "Create Account"}
             <CheckCircle className="w-4 h-4 ml-2" />
           </Button>
         )}

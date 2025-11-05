@@ -533,11 +533,15 @@ const Auth = () => {
 
           {!inviteCode && !needsEmailVerification && !mfaRequired && <div className="text-center text-sm pt-8 pb-4">
               <button type="button" onClick={() => {
-            setIsLogin(!isLogin);
-            setPassword("");
-            setConfirmPassword("");
+            if (isLogin) {
+              navigate("/candidate-onboarding");
+            } else {
+              setIsLogin(!isLogin);
+              setPassword("");
+              setConfirmPassword("");
+            }
           }} className="text-foreground/80 hover:text-foreground font-semibold transition-colors duration-300 underline-offset-4 hover:underline">
-                {isLogin ? "Need an account? Request invite" : "Already have an account? Sign in"}
+                {isLogin ? "Request Access" : "Already have an account? Sign in"}
               </button>
             </div>}
         </CardContent>
