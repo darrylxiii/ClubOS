@@ -13,6 +13,7 @@ serve(async (req) => {
 
   try {
     const { bookingId } = await req.json();
+    console.log(`[Sync] Processing calendar sync for booking: ${bookingId}`);
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -33,11 +34,14 @@ serve(async (req) => {
       .single();
 
     if (bookingError || !booking) {
+      console.error("[Sync] Booking not found:", bookingError);
       return new Response(
         JSON.stringify({ error: "Booking not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    console.log(`[Sync] Booking found: ${booking.guest_name}, primary_calendar_id=${booking.booking_links?.primary_calendar_id}`);
 
     // Get primary calendar connection
     const calendarId = booking.booking_links?.primary_calendar_id;
@@ -90,6 +94,8 @@ ${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links
       const functionName = calendar.provider === 'google' 
         ? 'google-calendar-events' 
         : 'microsoft-calendar-events';
+      
+      console.log(`[Sync] Calling ${functionName} to create event`);
 
       const { data: eventData, error: eventError } = await supabaseClient.functions.invoke(
         functionName,
@@ -97,17 +103,21 @@ ${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links
           body: {
             action: 'createEvent',
             connectionId: calendar.id,
+            accessToken: calendar.access_token,
             event: eventDetails,
           }
         }
       );
 
       if (eventError) {
+        console.error(`[Sync] ${functionName} returned error:`, eventError);
         throw eventError;
       }
 
-      if (eventData?.eventId) {
-        calendarEventId = eventData.eventId;
+      console.log(`[Sync] ${functionName} response:`, JSON.stringify(eventData));
+
+      if (eventData?.eventId || eventData?.id) {
+        calendarEventId = eventData.eventId || eventData.id;
         success = true;
         console.log(`[Sync] Successfully created ${calendar.provider} calendar event: ${calendarEventId}`);
       }
@@ -118,7 +128,8 @@ ${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links
 
     // Update booking with sync status
     if (success && calendarEventId) {
-      await supabaseClient
+      console.log(`[Sync] Updating booking ${bookingId} with calendar event ${calendarEventId}`);
+      const { error: updateError } = await supabaseClient
         .from("bookings")
         .update({
           synced_to_calendar: true,
@@ -126,10 +137,17 @@ ${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links
           calendar_provider: calendar.provider,
         })
         .eq("id", bookingId);
+      
+      if (updateError) {
+        console.error("[Sync] Error updating booking:", updateError);
+      } else {
+        console.log("[Sync] Booking updated successfully");
+      }
     }
 
     // Log sync attempt
-    await supabaseClient
+    console.log(`[Sync] Logging sync attempt: success=${success}, provider=${calendar.provider}`);
+    const { error: logError } = await supabaseClient
       .from("calendar_sync_log")
       .insert({
         booking_id: bookingId,
@@ -139,6 +157,10 @@ ${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links
         error_message: errorMessage,
         calendar_event_id: calendarEventId,
       });
+    
+    if (logError) {
+      console.warn("[Sync] Error logging sync attempt:", logError);
+    }
 
     return new Response(
       JSON.stringify({ 

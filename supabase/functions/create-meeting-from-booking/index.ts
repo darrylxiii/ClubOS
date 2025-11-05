@@ -13,6 +13,7 @@ serve(async (req) => {
 
   try {
     const { bookingId } = await req.json();
+    console.log(`[Meeting] Processing meeting creation for booking: ${bookingId}`);
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -34,11 +35,14 @@ serve(async (req) => {
       .single();
 
     if (bookingError || !booking) {
+      console.error("[Meeting] Booking not found:", bookingError);
       return new Response(
         JSON.stringify({ error: "Booking not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    console.log(`[Meeting] Booking found: ${booking.guest_name}, create_quantum_meeting=${booking.booking_links?.create_quantum_meeting}`);
 
     // Check if we should create a Quantum Club meeting
     if (!booking.booking_links?.create_quantum_meeting) {
@@ -58,34 +62,39 @@ serve(async (req) => {
       );
     }
 
-    // Determine meeting link
-    let meetingLink = booking.booking_links?.meeting_link;
-    
-    // If video conferencing type is set but no link, we could generate one
-    // For now, use the configured link or make it joinable later
-    if (!meetingLink && booking.booking_links?.video_conferencing_type) {
-      // Meeting will be joinable via Quantum Club interface
-      meetingLink = `${Deno.env.get("SUPABASE_URL")}/meetings/join?booking=${bookingId}`;
-    }
+    // Determine meeting settings based on booking link
+    const settings = {
+      duration_minutes: booking.booking_links?.duration_minutes || 30,
+      video_conferencing_provider: booking.booking_links?.video_conferencing_provider,
+      booking_id: bookingId,
+    };
 
-    // Create Quantum Club meeting
+    // Create Quantum Club meeting with correct column names
     const { data: meeting, error: meetingError } = await supabaseClient
       .from("meetings")
       .insert({
         title: `${booking.booking_links?.title || 'Meeting'} - ${booking.guest_name}`,
         description: booking.notes || `Booking with ${booking.guest_name} (${booking.guest_email})`,
-        start_time: booking.scheduled_start,
-        end_time: booking.scheduled_end,
-        meeting_link: meetingLink,
-        created_by: booking.user_id,
-        is_recurring: false,
-        enable_club_ai: booking.booking_links?.enable_club_ai || false,
-        metadata: {
-          booking_id: bookingId,
-          guest_name: booking.guest_name,
-          guest_email: booking.guest_email,
-          guest_phone: booking.guest_phone,
-          booking_type: 'external_booking',
+        scheduled_start: booking.scheduled_start,
+        scheduled_end: booking.scheduled_end,
+        timezone: booking.timezone || 'UTC',
+        host_id: booking.user_id,
+        status: 'scheduled',
+        access_type: 'invite_only',
+        allow_guests: true,
+        require_approval: false,
+        enable_notetaker: booking.booking_links?.enable_club_ai || false,
+        settings: settings,
+        host_settings: {
+          allowChat: true,
+          allowScreenShare: true,
+          allowReactions: true,
+          allowVideoControl: true,
+          allowMicControl: true,
+          allowThirdPartyAudio: true,
+          allowAddActivities: true,
+          accessType: 'open',
+          requireHostApproval: false,
         }
       })
       .select()
@@ -119,7 +128,7 @@ serve(async (req) => {
         success: true,
         meetingId: meeting.id,
         meetingCode: meeting.meeting_code,
-        enableClubAI: meeting.enable_club_ai,
+        enableNotetaker: meeting.enable_notetaker,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
