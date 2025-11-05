@@ -17,6 +17,7 @@ import { CompanySearch } from "@/components/CompanySearch";
 import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
 import { StealthModeToggle } from "@/components/StealthModeToggle";
 import { AvatarUpload } from "@/components/AvatarUpload";
+import { WorkAvailabilitySettings } from "@/components/settings/WorkAvailabilitySettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { PhoneVerification } from "@/components/PhoneVerification";
 import { EmailVerification } from "@/components/EmailVerification";
@@ -101,6 +102,16 @@ const Profile = () => {
   const [freelanceHourlyRate, setFreelanceHourlyRate] = useState<[number, number]>([100, 200]);
   const [fulltimeHoursPerWeek, setFulltimeHoursPerWeek] = useState<[number, number]>([35, 45]);
   const [freelanceHoursPerWeek, setFreelanceHoursPerWeek] = useState<[number, number]>([15, 25]);
+
+  // Work availability state
+  const [workTimezone, setWorkTimezone] = useState("Europe/Amsterdam");
+  const [workHoursStart, setWorkHoursStart] = useState("09:00:00");
+  const [workHoursEnd, setWorkHoursEnd] = useState("17:00:00");
+  const [workDays, setWorkDays] = useState<number[]>([1, 2, 3, 4, 5]);
+  const [workTimezoneFlexibilityHours, setWorkTimezoneFlexibilityHours] = useState(0);
+  const [referenceTimezone, setReferenceTimezone] = useState<string | null>(null);
+  const [workWeekendAvailability, setWorkWeekendAvailability] = useState(false);
+  const [workOvertimeWillingness, setWorkOvertimeWillingness] = useState(5);
 
   const [userResumes, setUserResumes] = useState<Array<{
     id: string;
@@ -205,7 +216,7 @@ const Profile = () => {
     } finally {
       setIsSaving(false);
     }
-  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, stealthModeEnabled, stealthModeLevel, allowStealthColdOutreach]);
+  }, [user, profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, stealthModeEnabled, stealthModeLevel, allowStealthColdOutreach, workTimezone, workHoursStart, workHoursEnd, workDays, workTimezoneFlexibilityHours, referenceTimezone, workWeekendAvailability, workOvertimeWillingness]);
 
   // Debounced auto-save
   const debouncedSave = useCallback(() => {
@@ -703,6 +714,16 @@ const Profile = () => {
         setStealthModeLevel(data.stealth_mode_level || 1);
         setAllowStealthColdOutreach(data.allow_stealth_cold_outreach !== false);
 
+        // Load work availability settings
+        setWorkTimezone(data.work_timezone || "Europe/Amsterdam");
+        setWorkHoursStart(data.work_hours_start || "09:00:00");
+        setWorkHoursEnd(data.work_hours_end || "17:00:00");
+        setWorkDays((data.work_days as number[]) || [1, 2, 3, 4, 5]);
+        setWorkTimezoneFlexibilityHours(data.work_timezone_flexibility_hours ?? 0);
+        setReferenceTimezone(data.reference_timezone || null);
+        setWorkWeekendAvailability(data.weekend_availability ?? false);
+        setWorkOvertimeWillingness(data.overtime_willingness ?? 5);
+
         // Load social media connections
         if (data.linkedin_connected) {
           setSocialConnections(prev => ({ ...prev, linkedin: true }));
@@ -779,6 +800,14 @@ const Profile = () => {
             stealth_mode_enabled: stealthModeEnabled,
             stealth_mode_level: stealthModeLevel,
             allow_stealth_cold_outreach: allowStealthColdOutreach,
+            work_timezone: workTimezone,
+            work_hours_start: workHoursStart,
+            work_hours_end: workHoursEnd,
+            work_days: workDays,
+            work_timezone_flexibility_hours: workTimezoneFlexibilityHours,
+            reference_timezone: referenceTimezone,
+            weekend_availability: workWeekendAvailability,
+            overtime_willingness: workOvertimeWillingness,
             updated_at: new Date().toISOString(),
           })
           .eq('id', user.id);
@@ -804,7 +833,7 @@ const Profile = () => {
 
     const debounceTimer = setTimeout(saveProfile, 1000);
     return () => clearTimeout(debounceTimer);
-  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, stealthModeEnabled, stealthModeLevel, allowStealthColdOutreach, user]);
+  }, [profileData, currentSalaryRange, desiredSalaryRange, blockedCompanies, privacySettings, phoneNumber, phoneVerified, preferredWorkLocations, remoteWorkPreference, employmentType, freelanceHourlyRate, fulltimeHoursPerWeek, freelanceHoursPerWeek, stealthModeEnabled, stealthModeLevel, allowStealthColdOutreach, user, workTimezone, workHoursStart, workHoursEnd, workDays, workTimezoneFlexibilityHours, referenceTimezone, workWeekendAvailability, workOvertimeWillingness]);
 
   // Load cities and calendar data
   useEffect(() => {
@@ -2339,6 +2368,28 @@ const Profile = () => {
 
           {/* Auth Diagnostics - for debugging */}
           {role === 'admin' && <AuthDiagnostics />}
+
+          {/* Work Availability & Timezone Preferences */}
+          <WorkAvailabilitySettings
+            workTimezone={workTimezone}
+            workHoursStart={workHoursStart}
+            workHoursEnd={workHoursEnd}
+            workDays={workDays}
+            timezoneFlexibilityHours={workTimezoneFlexibilityHours}
+            referenceTimezone={referenceTimezone}
+            weekendAvailability={workWeekendAvailability}
+            overtimeWillingness={workOvertimeWillingness}
+            onSettingsChange={(settings) => {
+              setWorkTimezone(settings.work_timezone);
+              setWorkHoursStart(settings.work_hours_start);
+              setWorkHoursEnd(settings.work_hours_end);
+              setWorkDays(settings.work_days);
+              setWorkTimezoneFlexibilityHours(settings.work_timezone_flexibility_hours);
+              setReferenceTimezone(settings.reference_timezone);
+              setWorkWeekendAvailability(settings.weekend_availability);
+              setWorkOvertimeWillingness(settings.overtime_willingness);
+            }}
+          />
 
           {/* Stealth Mode */}
           <StealthModeToggle

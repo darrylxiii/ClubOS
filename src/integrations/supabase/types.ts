@@ -10271,6 +10271,7 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           notice_period: string | null
+          overtime_willingness: number | null
           phone: string | null
           phone_verified: boolean | null
           preferred_currency: string
@@ -10278,6 +10279,7 @@ export type Database = {
           privacy_settings: Json | null
           profile_slug: string | null
           public_fields: Json | null
+          reference_timezone: string | null
           remote_work_preference: boolean | null
           resume_url: string | null
           spotify_connected: boolean | null
@@ -10288,6 +10290,12 @@ export type Database = {
           twitter_connected: boolean | null
           twitter_username: string | null
           updated_at: string | null
+          weekend_availability: boolean | null
+          work_days: number[] | null
+          work_hours_end: string | null
+          work_hours_start: string | null
+          work_timezone: string | null
+          work_timezone_flexibility_hours: number | null
         }
         Insert: {
           allow_stealth_cold_outreach?: boolean | null
@@ -10329,6 +10337,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
+          overtime_willingness?: number | null
           phone?: string | null
           phone_verified?: boolean | null
           preferred_currency?: string
@@ -10336,6 +10345,7 @@ export type Database = {
           privacy_settings?: Json | null
           profile_slug?: string | null
           public_fields?: Json | null
+          reference_timezone?: string | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
           spotify_connected?: boolean | null
@@ -10346,6 +10356,12 @@ export type Database = {
           twitter_connected?: boolean | null
           twitter_username?: string | null
           updated_at?: string | null
+          weekend_availability?: boolean | null
+          work_days?: number[] | null
+          work_hours_end?: string | null
+          work_hours_start?: string | null
+          work_timezone?: string | null
+          work_timezone_flexibility_hours?: number | null
         }
         Update: {
           allow_stealth_cold_outreach?: boolean | null
@@ -10387,6 +10403,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
+          overtime_willingness?: number | null
           phone?: string | null
           phone_verified?: boolean | null
           preferred_currency?: string
@@ -10394,6 +10411,7 @@ export type Database = {
           privacy_settings?: Json | null
           profile_slug?: string | null
           public_fields?: Json | null
+          reference_timezone?: string | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
           spotify_connected?: boolean | null
@@ -10404,6 +10422,12 @@ export type Database = {
           twitter_connected?: boolean | null
           twitter_username?: string | null
           updated_at?: string | null
+          weekend_availability?: boolean | null
+          work_days?: number[] | null
+          work_hours_end?: string | null
+          work_hours_start?: string | null
+          work_timezone?: string | null
+          work_timezone_flexibility_hours?: number | null
         }
         Relationships: [
           {
