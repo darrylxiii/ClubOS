@@ -264,7 +264,7 @@ const PrivacyPolicy = () => {
                 <h4 className="font-semibold mb-2">Third-Party Service Providers</h4>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground mt-2">
                   <li><strong>Hosting & Database:</strong> Supabase (EU region, GDPR-compliant)</li>
-                  <li><strong>AI Processing:</strong> Lovable AI (Google Gemini, OpenAI GPT models) - data processing agreements in place</li>
+                  <li><strong>AI Processing:</strong> Google Gemini and OpenAI GPT models - data processing agreements in place</li>
                   <li><strong>Calendar Sync:</strong> Google Cloud, Microsoft Azure</li>
                   <li><strong>ATS Integration:</strong> Greenhouse (for partner accounts)</li>
                   <li><strong>Email Services:</strong> Transactional email providers (anonymized where possible)</li>
