@@ -330,7 +330,7 @@ export function EmailInbox() {
   // Show empty state if no connections
   if (hasConnections === false && !loading) {
     return (
-      <div className="h-screen flex items-center justify-center p-8">
+      <div className="h-[100dvh] flex items-center justify-center p-4 sm:p-8">
         <Card className="max-w-md w-full">
           <CardHeader>
             <div className="flex justify-center mb-4">
@@ -360,7 +360,7 @@ export function EmailInbox() {
   // Show loading or syncing state
   if (hasConnections && emails.length === 0 && (loading || syncing)) {
     return (
-      <div className="h-screen flex items-center justify-center p-8">
+      <div className="h-[100dvh] flex items-center justify-center p-4 sm:p-8">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 space-y-4 text-center">
             <RefreshCw className="h-12 w-12 mx-auto animate-spin text-primary" />

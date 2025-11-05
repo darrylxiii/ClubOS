@@ -29,7 +29,7 @@ export const IncubatorBuildScreen = memo(({
   return (
     <div className="min-h-screen bg-background">
       {/* Split Screen Layout */}
-      <div className="grid lg:grid-cols-2 gap-0 h-screen">
+      <div className="grid lg:grid-cols-2 gap-0 h-[100dvh]">
         {/* LEFT: AI Console */}
         <div className="border-r bg-muted/10 overflow-hidden flex flex-col">
           <div className="p-4 border-b bg-background/95 backdrop-blur-sm">

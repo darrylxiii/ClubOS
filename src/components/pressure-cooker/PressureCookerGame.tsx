@@ -116,7 +116,7 @@ export const PressureCookerGame = memo(({ session, elapsedTime, onComplete }: Pr
   };
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="h-[100dvh] flex flex-col bg-background overflow-hidden">
       <div className="border-b bg-card p-4">
         <div className="max-w-7xl mx-auto space-y-2">
           <div className="flex items-center justify-between">

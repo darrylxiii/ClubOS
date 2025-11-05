@@ -229,7 +229,7 @@ export function VideoCallInterface({ conversationId, participantName, participan
 
   // Main call interface
   const content = (
-    <div className="fixed inset-0 z-[10001] bg-gradient-to-br from-gray-900 to-black w-screen h-screen"
+    <div className="fixed inset-0 z-[10001] bg-gradient-to-br from-gray-900 to-black w-full h-[100dvh]"
          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       
       {/* Connection Quality Badge */}
