@@ -1217,6 +1217,47 @@ export type Database = {
           },
         ]
       }
+      booking_calendar_check_failures: {
+        Row: {
+          booking_id: string | null
+          bypassed: boolean | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          provider: string
+          timeout: boolean | null
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          bypassed?: boolean | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          provider: string
+          timeout?: boolean | null
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          bypassed?: boolean | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          provider?: string
+          timeout?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_calendar_check_failures_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_calendar_syncs: {
         Row: {
           booking_id: string
@@ -13363,6 +13404,15 @@ export type Database = {
         Args: { _conversation_id: string }
         Returns: boolean
       }
+      check_booking_conflict: {
+        Args: {
+          p_exclude_booking_id?: string
+          p_scheduled_end: string
+          p_scheduled_start: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       check_profile_auth_integrity: {
         Args: never
         Returns: {
@@ -13467,7 +13517,23 @@ export type Database = {
         Args: { _file_path: string }
         Returns: boolean
       }
+      release_booking_slot_lock: {
+        Args: {
+          p_scheduled_end: string
+          p_scheduled_start: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       track_share_link_view: { Args: { _token: string }; Returns: string }
+      try_acquire_booking_slot_lock: {
+        Args: {
+          p_scheduled_end: string
+          p_scheduled_start: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       update_relationship_score: {
         Args: { p_related_user_id: string; p_user_id: string }
         Returns: undefined

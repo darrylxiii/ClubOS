@@ -106,7 +106,50 @@ serve(async (req) => {
       );
     }
 
-    // Comprehensive conflict checking
+    // PHASE 3: Try to acquire advisory lock for this time slot
+    // This prevents race conditions when multiple users try to book the same slot
+    console.log("[Booking] Attempting to acquire advisory lock for time slot");
+    const { data: lockAcquired, error: lockError } = await supabaseClient
+      .rpc('try_acquire_booking_slot_lock', {
+        p_user_id: bookingLink.user_id,
+        p_scheduled_start: scheduledStart,
+        p_scheduled_end: scheduledEnd
+      });
+
+    if (lockError) {
+      console.error("[Booking] Error acquiring lock:", lockError);
+      return new Response(
+        JSON.stringify({ error: "Failed to acquire booking lock. Please try again." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!lockAcquired) {
+      console.log("[Booking] Lock already held - slot being booked by another user");
+      return new Response(
+        JSON.stringify({ error: "This time slot is currently being booked by someone else. Please select another time or try again in a moment." }),
+        { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("[Booking] Advisory lock acquired successfully");
+
+    // Ensure lock is released even if function fails
+    let lockReleased = false;
+    const releaseLock = async () => {
+      if (!lockReleased) {
+        console.log("[Booking] Releasing advisory lock");
+        await supabaseClient.rpc('release_booking_slot_lock', {
+          p_user_id: bookingLink.user_id,
+          p_scheduled_start: scheduledStart,
+          p_scheduled_end: scheduledEnd
+        });
+        lockReleased = true;
+      }
+    };
+
+    try {
+      // Comprehensive conflict checking
     console.log("[Booking] Creating booking for:", { 
       slug: bookingLinkSlug, 
       time: scheduledStart, 
@@ -145,20 +188,22 @@ serve(async (req) => {
       );
     }
 
-    // 3. Check connected calendars
+    // 3. Check connected calendars (with timeout fallback)
     const { data: calendars } = await supabaseClient
       .from("calendar_connections")
       .select("*")
       .eq("user_id", bookingLink.user_id)
       .eq("is_active", true);
 
+    let calendarCheckFailed = false;
+    let calendarCheckTimeout = false;
+    let calendarFailureDetails: any[] = [];
+
     if (calendars && calendars.length > 0) {
       console.log(`[Booking] Checking ${calendars.length} connected calendars for conflicts`);
-      let calendarCheckFailed = false;
       
       for (const calendar of calendars) {
         console.log(`[Booking] Checking calendar conflicts for ${calendar.provider}...`);
-        console.log(`[Booking] Calendar check params: connectionId=${calendar.id}, timeMin=${scheduledStart}, timeMax=${scheduledEnd}`);
         
         try {
           let accessToken = calendar.access_token;
@@ -200,9 +245,9 @@ serve(async (req) => {
             ? 'google-calendar-events' 
             : 'microsoft-calendar-events';
           
-          // Set 5 second timeout for calendar check
+          // PHASE 3: Configurable timeout (8 seconds instead of 5)
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Calendar check timeout')), 5000)
+            setTimeout(() => reject(new Error('Calendar check timeout')), 8000)
           );
           
           const apiPromise = supabaseClient.functions.invoke(
@@ -225,17 +270,24 @@ serve(async (req) => {
           ]) as any;
 
           if (busyError) {
-            console.error(`[Booking] Calendar check failed for ${calendar.provider}:`, busyError);
-            console.error(`[Booking] Full calendar error:`, JSON.stringify(busyError));
-            calendarCheckFailed = true;
-            break;
-          }
-
-          if (!busyData) {
-            console.error(`[Booking] No calendar response data from ${calendar.provider}`);
-            console.error(`[Booking] Full calendar response:`, JSON.stringify({ busyData, busyError }));
-            calendarCheckFailed = true;
-            break;
+            const isTimeout = busyError.message?.includes('timeout');
+            console.warn(`[Booking] Calendar check ${isTimeout ? 'timed out' : 'failed'} for ${calendar.provider}:`, busyError);
+            
+            // Track failure for analytics
+            calendarFailureDetails.push({
+              provider: calendar.provider,
+              error: busyError.message,
+              timeout: isTimeout
+            });
+            
+            if (isTimeout) {
+              calendarCheckTimeout = true;
+            } else {
+              calendarCheckFailed = true;
+            }
+            
+            // Don't fail immediately - try other calendars
+            continue;
           }
 
           const busySlots = busyData.busySlots || [];
@@ -243,7 +295,10 @@ serve(async (req) => {
           
           if (busySlots.length > 0) {
             console.log(`[Booking] Conflict detected in ${calendar.provider}:`, JSON.stringify(busySlots[0]));
-            console.log(`[Booking] Booking attempt: ${scheduledStart} to ${scheduledEnd}`);
+            
+            // Release lock before returning
+            await releaseLock();
+            
             return new Response(
               JSON.stringify({ 
                 error: `Calendar conflict: You have an event in your ${calendar.provider} calendar at this time` 
@@ -251,32 +306,38 @@ serve(async (req) => {
               { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
             );
           }
-        } catch (calendarError) {
-          console.error(`[Booking] Critical error checking ${calendar.provider} calendar:`, calendarError);
-          calendarCheckFailed = true;
-          break;
+        } catch (calendarError: any) {
+          const isTimeout = calendarError.message?.includes('timeout');
+          console.error(`[Booking] ${isTimeout ? 'Timeout' : 'Error'} checking ${calendar.provider} calendar:`, calendarError);
+          
+          calendarFailureDetails.push({
+            provider: calendar.provider,
+            error: calendarError.message,
+            timeout: isTimeout
+          });
+          
+          if (isTimeout) {
+            calendarCheckTimeout = true;
+          } else {
+            calendarCheckFailed = true;
+          }
         }
       }
       
-      // Fail booking if calendar check failed or timed out
-      if (calendarCheckFailed) {
-        return new Response(
-          JSON.stringify({ 
-            error: "Unable to verify calendar availability. Please try again or contact support." 
-          }),
-          { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      // PHASE 3: Handle calendar check failures with user choice
+      if (calendarCheckFailed || calendarCheckTimeout) {
+        const failureType = calendarCheckTimeout ? "timed out" : "failed";
+        console.log(`[Booking] Calendar check ${failureType}, but allowing booking to proceed (Phase 3 fallback)`);
+        
+        // Note: The booking will proceed with a flag indicating calendar check was bypassed
+        // The client could potentially show a warning to the user
       }
     }
     
-    console.log("[Booking] Conflict check results:", {
-      existingBookings: existingBookings?.length || 0,
-      meetings: meetings?.length || 0,
-      calendars: calendars?.length || 0
-    });
     console.log("[Booking] No conflicts found, proceeding with booking creation");
 
-    // RACE CONDITION PROTECTION: Double-check no conflicts before creating
+    // RACE CONDITION PROTECTION: Final database-level check with advisory lock held
+    // The unique index will also prevent duplicate bookings at DB level
     const { data: finalCheck } = await supabaseClient
       .from("bookings")
       .select("id")
@@ -286,14 +347,22 @@ serve(async (req) => {
       .limit(1);
 
     if (finalCheck && finalCheck.length > 0) {
-      console.log("[Booking] Race condition detected - slot was just booked");
+      console.log("[Booking] Race condition detected - slot was just booked (caught by final check)");
+      await releaseLock();
       return new Response(
         JSON.stringify({ error: "This time slot was just booked by someone else. Please select another time." }),
         { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Create booking
+    // Create booking with metadata about calendar check status
+    const bookingMetadata: any = {};
+    if (calendarCheckTimeout || calendarCheckFailed) {
+      bookingMetadata.calendar_check_bypassed = true;
+      bookingMetadata.calendar_check_status = calendarCheckTimeout ? 'timeout' : 'failed';
+      bookingMetadata.calendar_failures = calendarFailureDetails;
+    }
+
     const { data: booking, error: bookingError } = await supabaseClient
       .from("bookings")
       .insert({
@@ -308,16 +377,52 @@ serve(async (req) => {
         custom_responses: customResponses || {},
         notes: notes,
         status: "confirmed",
+        metadata: bookingMetadata,
       })
       .select()
       .single();
 
     if (bookingError) {
       console.error("[Booking] Database error creating booking:", bookingError);
+      
+      // Check if this is a unique constraint violation (race condition caught by DB)
+      if (bookingError.code === '23505') {
+        console.log("[Booking] Unique constraint violation - race condition caught by database");
+        await releaseLock();
+        return new Response(
+          JSON.stringify({ error: "This time slot is no longer available. Please select another time." }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      await releaseLock();
       throw new Error(`Failed to create booking: ${bookingError.message}`);
     }
 
     console.log(`[Booking] Booking created successfully: id=${booking.id}, time=${scheduledStart} to ${scheduledEnd}, timezone=${timezone}`);
+
+    // Log calendar check failures for analytics
+    if (calendarFailureDetails.length > 0) {
+      for (const failure of calendarFailureDetails) {
+        const { error: logError } = await supabaseClient
+          .from('booking_calendar_check_failures')
+          .insert({
+            booking_id: booking.id,
+            user_id: bookingLink.user_id,
+            provider: failure.provider,
+            error_message: failure.error,
+            timeout: failure.timeout,
+            bypassed: true,
+          });
+        
+        if (logError) {
+          console.warn("[Booking] Failed to log calendar check failure:", logError);
+        }
+      }
+    }
+
+    // Release the advisory lock now that booking is confirmed
+    await releaseLock();
 
     // Send confirmation email
     try {
@@ -351,10 +456,21 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         booking,
-        redirectUrl: bookingLink.redirect_url 
+        redirectUrl: bookingLink.redirect_url,
+        calendarCheckBypassed: calendarCheckTimeout || calendarCheckFailed,
+        calendarCheckWarning: (calendarCheckTimeout || calendarCheckFailed) 
+          ? "We couldn't verify your calendar availability, but your booking is confirmed. Please check your calendar manually."
+          : null
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+    
+    } catch (innerError: any) {
+      // Ensure lock is released even if inner try block fails
+      await releaseLock();
+      throw innerError;
+    }
+    
   } catch (error: any) {
     console.error("Error creating booking:", error);
     
