@@ -436,21 +436,45 @@ serve(async (req) => {
       console.error("Error sending confirmation email:", emailError);
     }
 
-    // Sync to calendar (with improved error tracking)
-    console.log(`[Booking] Triggering calendar sync for booking ${booking.id}`);
-    try {
-      const syncResult = await supabaseClient.functions.invoke("sync-booking-to-calendar", {
-        body: { bookingId: booking.id }
-      });
-      
-      if (syncResult.error) {
-        console.error(`[Booking] Calendar sync error for booking ${booking.id}:`, syncResult.error);
-      } else {
-        console.log(`[Booking] Calendar sync completed for booking ${booking.id}:`, syncResult.data);
+    // Sync to calendar (with detailed logging)
+    console.log(`[Booking] ========== CALENDAR SYNC START ==========`);
+    console.log(`[Booking] Booking ID: ${booking.id}`);
+    console.log(`[Booking] Booking link primary_calendar_id: ${bookingLink.primary_calendar_id}`);
+    console.log(`[Booking] Booking link google_calendar_id: ${bookingLink.google_calendar_id}`);
+    console.log(`[Booking] Booking link microsoft_calendar_id: ${bookingLink.microsoft_calendar_id}`);
+    
+    if (bookingLink.primary_calendar_id) {
+      try {
+        const syncResult = await supabaseClient.functions.invoke("sync-booking-to-calendar", {
+          body: { bookingId: booking.id }
+        });
+        
+        console.log(`[Booking] Sync function raw result:`, JSON.stringify(syncResult, null, 2));
+        
+        if (syncResult.error) {
+          console.error(`[Booking] ❌ Calendar sync error:`, {
+            error: syncResult.error,
+            message: syncResult.error?.message,
+            details: syncResult.error?.details,
+          });
+        } else if (syncResult.data?.success) {
+          console.log(`[Booking] ✅ Calendar sync SUCCESS:`, {
+            eventId: syncResult.data.calendarEventId,
+            provider: syncResult.data.provider,
+          });
+        } else {
+          console.warn(`[Booking] ⚠️ Calendar sync returned unsuccessful:`, syncResult.data);
+        }
+      } catch (syncError: any) {
+        console.error(`[Booking] ❌ Calendar sync exception:`, {
+          message: syncError.message,
+          stack: syncError.stack,
+        });
       }
-    } catch (syncError: any) {
-      console.error(`[Booking] Calendar sync exception for booking ${booking.id}:`, syncError.message);
+    } else {
+      console.warn(`[Booking] ⚠️ No primary_calendar_id set - skipping calendar sync`);
     }
+    console.log(`[Booking] ========== CALENDAR SYNC END ==========`);
 
     // Create Quantum Club meeting (with improved error tracking)
     if (bookingLink.create_quantum_meeting) {

@@ -65,7 +65,7 @@ export function WaitlistForm({
         guest_name: formData.name,
         guest_email: formData.email,
         guest_phone: formData.phone || null,
-        preferred_date: format(preferredDate, "yyyy-MM-dd"),
+        preferred_dates: [format(preferredDate, "yyyy-MM-dd")],
         preferred_time_range: formData.preferred_time_range,
         notes: formData.notes || null,
       });

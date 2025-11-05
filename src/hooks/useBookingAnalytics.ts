@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface FunnelStep {
   step: "landing" | "calendar_view" | "time_select" | "form_view" | "form_submit" | "confirmation";
@@ -25,7 +26,7 @@ export function useBookingAnalytics(bookingLinkId: string) {
     if (currentStep.current && duration > 0) {
       try {
         const { error } = await supabase
-          .from("booking_funnel_analytics" as any)
+          .from("booking_funnel_analytics")
           .insert({
             booking_link_id: bookingLinkId,
             session_id: sessionId.current,
@@ -40,7 +41,13 @@ export function useBookingAnalytics(bookingLinkId: string) {
             },
           });
         
-        if (error) console.error("Error tracking funnel step:", error);
+        if (error) {
+          console.error("Error tracking funnel step:", error);
+          toast.error("Analytics tracking failed", { 
+            description: error.message,
+            duration: 2000 
+          });
+        }
       } catch (error) {
         console.error("Error tracking funnel step:", error);
       }
@@ -55,12 +62,19 @@ export function useBookingAnalytics(bookingLinkId: string) {
     if (!bookingLinkId) return;
 
     try {
-      const { error } = await supabase.rpc("track_slot_view" as any, {
+      const { error } = await supabase.rpc("track_slot_view", {
         p_booking_link_id: bookingLinkId,
         p_slot_start: slotStart,
+        p_timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error tracking slot view:", error);
+        toast.error("Slot tracking failed", { 
+          description: error.message,
+          duration: 2000 
+        });
+      }
     } catch (error) {
       console.error("Error tracking slot view:", error);
     }

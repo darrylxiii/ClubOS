@@ -59,12 +59,36 @@ serve(async (req) => {
       );
     }
 
-    const { data: calendar, error: calendarError } = await supabaseClient
-      .from("calendar_connections")
+    console.log(`[Sync] Attempting to fetch calendar connection with ID: ${calendarId}`);
+    
+    // Try calendar_accounts first (Phase 2 uses this table)
+    const { data: calendarAccount, error: accountError } = await supabaseClient
+      .from("calendar_accounts")
       .select("*")
       .eq("id", calendarId)
       .eq("is_active", true)
       .single();
+    
+    // Fallback to calendar_connections for backwards compatibility
+    const { data: calendarConnection, error: connectionError } = !calendarAccount 
+      ? await supabaseClient
+          .from("calendar_connections")
+          .select("*")
+          .eq("id", calendarId)
+          .eq("is_active", true)
+          .single()
+      : { data: null, error: null };
+    
+    const calendar = calendarAccount || calendarConnection;
+    const calendarError = accountError || connectionError;
+    
+    console.log(`[Sync] Calendar lookup results:`, {
+      foundInAccounts: !!calendarAccount,
+      foundInConnections: !!calendarConnection,
+      calendarId,
+      accountError: accountError?.message,
+      connectionError: connectionError?.message,
+    });
 
     if (calendarError || !calendar) {
       console.error("[Sync] ❌ Calendar connection not found or inactive:", calendarError);
