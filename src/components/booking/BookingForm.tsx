@@ -13,6 +13,7 @@ import { parseISO, setHours, setMinutes } from "date-fns";
 import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
 import { bookingFormSchema, type BookingFormData } from "@/lib/bookingSchemas";
 import { z } from "zod";
+import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 
 interface BookingFormProps {
   bookingLink: {
@@ -34,6 +35,7 @@ export function BookingForm({
   onComplete,
 }: BookingFormProps) {
   const { executeRecaptcha } = useGoogleReCaptcha();
+  const { trackStep } = useBookingAnalytics(bookingLink.id);
   const [loading, setLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<string>("");
   const [errors, setErrors] = useState<Partial<Record<keyof BookingFormData, string>>>({});
@@ -44,9 +46,17 @@ export function BookingForm({
     notes: "",
   });
 
+  // Track form view on mount
+  useState(() => {
+    trackStep("form_view");
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
+
+    // Phase 7: Track form submission attempt
+    trackStep("form_submit");
 
     // Phase 5: Zod validation with specific error messages
     try {
@@ -164,6 +174,7 @@ export function BookingForm({
       if (error) throw error;
 
       setLoadingStage("Confirmed!");
+      trackStep("confirmation"); // Phase 7: Track successful booking
       toast.success("Booking confirmed! Check your email for details.");
       onComplete(data.booking.id);
     } catch (error: any) {

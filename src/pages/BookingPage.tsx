@@ -18,6 +18,7 @@ import { TimezoneSelector } from "@/components/booking/TimezoneSelector";
 import { Sparkles } from "lucide-react";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
+import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 
 interface BookingLink {
   id: string;
@@ -59,6 +60,9 @@ export default function BookingPage() {
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  
+  // Phase 7: Analytics tracking
+  const analytics = useBookingAnalytics(bookingLink?.id || "");
 
   useEffect(() => {
     loadBookingLink();
@@ -105,6 +109,7 @@ export default function BookingPage() {
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
     setStep("time");
+    analytics.trackStep("calendar_view");
   };
 
   const handleTimeSelect = (time: string, date?: Date) => {

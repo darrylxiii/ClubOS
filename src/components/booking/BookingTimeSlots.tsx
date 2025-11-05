@@ -2,10 +2,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Clock, Loader2, RefreshCw } from "lucide-react";
+import { Clock, Loader2, RefreshCw, Bell, Users } from "lucide-react";
 import { format } from "date-fns";
 import { getUserTimezone, getDateRangeForTimezone, formatTimeSlot } from "@/lib/timezoneUtils";
 import { useSwipeable } from "react-swipeable";
+import { useBookingRealtime } from "@/hooks/useBookingRealtime";
+import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
+import { WaitlistForm } from "./WaitlistForm";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface BookingTimeSlotsProps {
   bookingLink: {
@@ -34,9 +38,28 @@ export function BookingTimeSlots({
   const [loadingStage, setLoadingStage] = useState<string>("Connecting...");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [retrying, setRetrying] = useState(false);
+  const [showWaitlist, setShowWaitlist] = useState(false);
+
+  // Phase 6: Real-time updates
+  const { liveBookingsCount } = useBookingRealtime({
+    bookingLinkId: bookingLink.id,
+    selectedDate,
+    onSlotBooked: () => {
+      toast.info("A slot was just booked. Refreshing availability...");
+      loadAvailableSlots();
+    },
+    onSlotCancelled: () => {
+      toast.success("A slot just became available!");
+      loadAvailableSlots();
+    },
+  });
+
+  // Phase 7: Analytics
+  const { trackStep, trackSlotView } = useBookingAnalytics(bookingLink.id);
 
   useEffect(() => {
     loadAvailableSlots();
+    trackStep("time_select");
   }, [selectedDate, bookingLink]);
 
   const loadAvailableSlots = async (isRetry = false) => {
@@ -91,6 +114,7 @@ export function BookingTimeSlots({
   const handleSlotClick = (slot: TimeSlot) => {
     const timeStr = format(new Date(slot.start), "h:mm a");
     setSelectedSlot(slot.start);
+    trackSlotView(slot.start); // Phase 7: Track slot view
     onTimeSelect(timeStr);
   };
 
@@ -126,40 +150,70 @@ export function BookingTimeSlots({
 
   if (slots.length === 0) {
     return (
-      <div className="text-center py-12 space-y-4">
-        <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <div className="space-y-2">
-          <h3 className="text-lg font-semibold">No times available</h3>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            All slots are booked for this date. Please select a different date or try refreshing.
-          </p>
+      <>
+        <div className="text-center py-12 space-y-6">
+          <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <div className="space-y-2">
+            <h3 className="text-lg font-semibold">No times available</h3>
+            <p className="text-muted-foreground text-sm max-w-md mx-auto">
+              All slots are booked for this date.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              variant="outline"
+              onClick={() => loadAvailableSlots(true)}
+              disabled={retrying}
+              className="min-h-[44px]"
+            >
+              {retrying ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Refreshing...
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh
+                </>
+              )}
+            </Button>
+            <Button
+              onClick={() => setShowWaitlist(true)}
+              className="min-h-[44px]"
+            >
+              <Bell className="mr-2 h-4 w-4" />
+              Join Waitlist
+            </Button>
+          </div>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => loadAvailableSlots(true)}
-          disabled={retrying}
-          className="min-h-[44px]"
-        >
-          {retrying ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Refreshing...
-            </>
-          ) : (
-            <>
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Refresh
-            </>
-          )}
-        </Button>
-      </div>
+
+        <Dialog open={showWaitlist} onOpenChange={setShowWaitlist}>
+          <DialogContent className="sm:max-w-md">
+            <WaitlistForm
+              bookingLinkId={bookingLink.id}
+              bookingLinkTitle={bookingLink.title}
+              preferredDate={selectedDate}
+              onSuccess={() => setShowWaitlist(false)}
+            />
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
   return (
     <div className="space-y-6" {...swipeHandlers}>
       <div className="text-center">
-        <h3 className="text-lg font-semibold mb-2">Select a Time</h3>
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <h3 className="text-lg font-semibold">Select a Time</h3>
+          {liveBookingsCount > 0 && (
+            <span className="flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+              <Users className="h-3 w-3" />
+              {liveBookingsCount} booking{liveBookingsCount !== 1 ? "s" : ""} today
+            </span>
+          )}
+        </div>
         <p className="text-sm text-muted-foreground">
           {format(selectedDate, "EEEE, MMMM d, yyyy")}
         </p>
