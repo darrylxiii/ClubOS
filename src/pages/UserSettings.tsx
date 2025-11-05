@@ -1513,24 +1513,6 @@ const Profile = () => {
               </Card>
             </TabsContent>
 
-            {/* Career Tab - containing salary, employment, contract, blocklist */}
-            <TabsContent value="career" className="space-y-6">
-              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Briefcase className="w-5 h-5 text-accent" />
-                    Employment & Compensation
-                  </CardTitle>
-                  <CardDescription>
-                    Manage your career preferences and compensation expectations
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">Career settings section coming soon...</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
             {/* Preferences Tab - with timezone, locations, stealth mode */}
             <TabsContent value="preferences" className="space-y-6">
               {/* Preferred Work Locations */}
