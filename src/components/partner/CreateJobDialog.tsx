@@ -151,6 +151,12 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
       return;
     }
 
+    // Validate job description is uploaded
+    if (!jobDescriptionFile) {
+      toast.error("Job description document is required");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -319,7 +325,13 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
 
           {/* Job Description Upload */}
           <div className="space-y-2">
-            <Label htmlFor="job-description">Job Description Document</Label>
+            <Label htmlFor="job-description" className="flex items-center gap-1">
+              Job Description Document
+              <span className="text-destructive">*</span>
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Upload a detailed job description (PDF, DOC, or DOCX) - Required for all candidates to view
+            </p>
             <div className="flex items-center gap-2">
               <Input
                 id="job-description"
@@ -327,6 +339,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
                 accept=".pdf,.doc,.docx"
                 onChange={handleJobDescriptionChange}
                 className="flex-1"
+                required
               />
               {jobDescriptionFile && (
                 <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
@@ -381,7 +394,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || uploading}>
+            <Button type="submit" disabled={loading || uploading || !jobDescriptionFile}>
               {uploading ? "Uploading..." : loading ? "Creating..." : "Create Job"}
             </Button>
           </div>

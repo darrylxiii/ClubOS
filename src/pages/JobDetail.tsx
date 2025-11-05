@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { JobProfileHero } from "@/components/jobs/JobProfileHero";
 import { AboutRoleSection } from "@/components/jobs/AboutRoleSection";
+import { JobDescriptionViewer } from "@/components/jobs/JobDescriptionViewer";
 import { SkillMatrix } from "@/components/jobs/SkillMatrix";
 import { ResponsibilityGrid } from "@/components/jobs/ResponsibilityGrid";
 import { BenefitsShowcase } from "@/components/jobs/BenefitsShowcase";
@@ -287,6 +288,12 @@ export default function JobDetail() {
             {/* Overview Tab */}
             <TabsContent value="overview" className="space-y-6 mt-6">
               <AboutRoleSection description={job.description} />
+              
+              <JobDescriptionViewer 
+                documentUrl={job.job_description_url}
+                jobTitle={job.title}
+                companyName={job.companies?.name || "Company"}
+              />
               
               {job.responsibilities && job.responsibilities.length > 0 && (
                 <Card className="border-2">
