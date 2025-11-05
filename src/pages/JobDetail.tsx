@@ -237,38 +237,40 @@ export default function JobDetail() {
         </div>
 
         {/* Hero Section */}
-        <JobProfileHero
-          job={{
-            id: job.id,
-            title: job.title,
-            location: job.location,
-            employment_type: job.employment_type,
-            salary_min: job.salary_min,
-            salary_max: job.salary_max,
-            currency: job.currency,
-            created_at: job.created_at,
-            status: job.status,
-            match_score: job.match_score,
-          }}
-          company={{
-            name: job.companies?.name || 'Unknown Company',
-            slug: job.companies?.slug,
-            logo_url: job.companies?.logo_url,
-            cover_image_url: job.companies?.cover_image_url,
-            tagline: job.companies?.tagline,
-          }}
-          metrics={{
-            applicants: 24,
-            views: 156,
-            daysOpen: daysOpen,
-          }}
-          isSaved={isSaved}
-          isApplied={isApplied}
-          isAdmin={canManageJob(role)}
-          onApply={handleApply}
-          onSave={handleSave}
-          onShare={handleShare}
-        />
+        <div className="container mx-auto px-6 max-w-6xl">
+          <JobProfileHero
+            job={{
+              id: job.id,
+              title: job.title,
+              location: job.location,
+              employment_type: job.employment_type,
+              salary_min: job.salary_min,
+              salary_max: job.salary_max,
+              currency: job.currency,
+              created_at: job.created_at,
+              status: job.status,
+              match_score: job.match_score,
+            }}
+            company={{
+              name: job.companies?.name || 'Unknown Company',
+              slug: job.companies?.slug,
+              logo_url: job.companies?.logo_url,
+              cover_image_url: job.companies?.cover_image_url,
+              tagline: job.companies?.tagline,
+            }}
+            metrics={{
+              applicants: 24,
+              views: 156,
+              daysOpen: daysOpen,
+            }}
+            isSaved={isSaved}
+            isApplied={isApplied}
+            isAdmin={canManageJob(role)}
+            onApply={handleApply}
+            onSave={handleSave}
+            onShare={handleShare}
+          />
+        </div>
 
         {/* Tab Navigation and Content */}
         <div className="container mx-auto px-6 py-6 max-w-6xl space-y-6">
