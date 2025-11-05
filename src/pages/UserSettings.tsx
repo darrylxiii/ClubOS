@@ -1635,6 +1635,28 @@ const Profile = () => {
             </CardContent>
           </Card>
 
+          {/* Work Availability & Timezone Preferences */}
+          <WorkAvailabilitySettings
+            workTimezone={workTimezone}
+            workHoursStart={workHoursStart}
+            workHoursEnd={workHoursEnd}
+            workDays={workDays}
+            timezoneFlexibilityHours={workTimezoneFlexibilityHours}
+            referenceTimezone={referenceTimezone}
+            weekendAvailability={workWeekendAvailability}
+            overtimeWillingness={workOvertimeWillingness}
+            onSettingsChange={(settings) => {
+              setWorkTimezone(settings.work_timezone);
+              setWorkHoursStart(settings.work_hours_start);
+              setWorkHoursEnd(settings.work_hours_end);
+              setWorkDays(settings.work_days);
+              setWorkTimezoneFlexibilityHours(settings.work_timezone_flexibility_hours);
+              setReferenceTimezone(settings.reference_timezone);
+              setWorkWeekendAvailability(settings.weekend_availability);
+              setWorkOvertimeWillingness(settings.overtime_willingness);
+            }}
+          />
+
           {/* Professional Details */}
           <Card id="preferences" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
             <CardHeader>
@@ -2477,28 +2499,6 @@ const Profile = () => {
 
           {/* Auth Diagnostics - for debugging */}
           {role === 'admin' && <AuthDiagnostics />}
-
-          {/* Work Availability & Timezone Preferences */}
-          <WorkAvailabilitySettings
-            workTimezone={workTimezone}
-            workHoursStart={workHoursStart}
-            workHoursEnd={workHoursEnd}
-            workDays={workDays}
-            timezoneFlexibilityHours={workTimezoneFlexibilityHours}
-            referenceTimezone={referenceTimezone}
-            weekendAvailability={workWeekendAvailability}
-            overtimeWillingness={workOvertimeWillingness}
-            onSettingsChange={(settings) => {
-              setWorkTimezone(settings.work_timezone);
-              setWorkHoursStart(settings.work_hours_start);
-              setWorkHoursEnd(settings.work_hours_end);
-              setWorkDays(settings.work_days);
-              setWorkTimezoneFlexibilityHours(settings.work_timezone_flexibility_hours);
-              setReferenceTimezone(settings.reference_timezone);
-              setWorkWeekendAvailability(settings.weekend_availability);
-              setWorkOvertimeWillingness(settings.overtime_willingness);
-            }}
-          />
 
           {/* Stealth Mode */}
           <StealthModeToggle
