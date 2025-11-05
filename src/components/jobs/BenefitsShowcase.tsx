@@ -9,13 +9,9 @@ import {
   Home,
   Bike,
   GraduationCap,
-  Gift,
-  ChevronDown
+  Gift
 } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
 
 interface BenefitsShowcaseProps {
   benefits?: string[];
@@ -79,37 +75,23 @@ const getBenefitCategory = (benefit: string) => {
 };
 
 export function BenefitsShowcase({ benefits = [] }: BenefitsShowcaseProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  
   if (benefits.length === 0) return null;
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="border-2 hover:border-primary transition-all hover-scale">
-        <CollapsibleTrigger className="w-full">
-          <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3 text-left">
-                <Gift className="w-6 h-6 text-primary flex-shrink-0" />
-                <div>
-                  <h3 className="text-xl font-black">Benefits & Perks</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {benefits.length} benefits included
-                  </p>
-                </div>
-              </div>
-              <ChevronDown
-                className={cn(
-                  "w-6 h-6 transition-transform flex-shrink-0",
-                  isOpen && "rotate-180"
-                )}
-              />
-            </div>
-          </CardHeader>
-        </CollapsibleTrigger>
+    <Card className="border-2 hover:border-primary transition-all hover-scale">
+      <CardHeader>
+        <div className="flex items-center gap-3">
+          <Gift className="w-6 h-6 text-primary flex-shrink-0" />
+          <div>
+            <h3 className="text-xl font-black">Benefits & Perks</h3>
+            <p className="text-sm text-muted-foreground">
+              {benefits.length} benefits included
+            </p>
+          </div>
+        </div>
+      </CardHeader>
 
-        <CollapsibleContent>
-          <CardContent className="border-t pt-6">
+      <CardContent className="border-t pt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {benefits.map((benefit) => {
                 const Icon = getBenefitIcon(benefit);
@@ -132,8 +114,6 @@ export function BenefitsShowcase({ benefits = [] }: BenefitsShowcaseProps) {
               })}
             </div>
           </CardContent>
-        </CollapsibleContent>
       </Card>
-    </Collapsible>
   );
 }
