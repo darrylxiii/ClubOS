@@ -10,6 +10,7 @@ import { ResponsibilityGrid } from "@/components/jobs/ResponsibilityGrid";
 import { BenefitsShowcase } from "@/components/jobs/BenefitsShowcase";
 import { ApplicationTimeline } from "@/components/jobs/ApplicationTimeline";
 import { CompanyShowcase } from "@/components/jobs/CompanyShowcase";
+import { EditJobDialog } from "@/components/partner/EditJobDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -20,7 +21,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { canManageJob } from "@/utils/jobNavigation";
 import { trackJobView, trackJobSave } from "@/services/analyticsTracking";
 import { toast } from "sonner";
-import { ArrowLeft, Settings, Loader2, Activity } from "lucide-react";
+import { ArrowLeft, Settings, Loader2, Activity, Edit } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function JobDetail() {
@@ -33,6 +34,8 @@ export default function JobDetail() {
   const [isSaved, setIsSaved] = useState(false);
   const [isApplied, setIsApplied] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [canEdit, setCanEdit] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -46,13 +49,14 @@ export default function JobDetail() {
     if (jobId) {
       loadJobDetails();
       checkUserStatus();
+      checkEditPermissions();
       
       // Phase 3: Track job view
       if (user) {
         trackJobView(user.id, jobId);
       }
     }
-  }, [jobId, user]);
+  }, [jobId, user, job]);
 
   const loadJobDetails = async () => {
     try {
@@ -113,6 +117,48 @@ export default function JobDetail() {
       setIsApplied(!!appliedData);
     } catch (error) {
       console.error('Error checking user status:', error);
+    }
+  };
+
+  const checkEditPermissions = async () => {
+    if (!user || !job) return;
+
+    try {
+      // Check if user is admin
+      const { data: adminRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (adminRole) {
+        setCanEdit(true);
+        return;
+      }
+
+      // Check if user is partner/strategist for the same company
+      const { data: partnerRole } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .in('role', ['partner', 'strategist'])
+        .maybeSingle();
+
+      if (partnerRole) {
+        // Check if user is member of the job's company
+        const { data: companyMember } = await supabase
+          .from('company_members')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('company_id', job.company_id)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        setCanEdit(!!companyMember);
+      }
+    } catch (error) {
+      console.error('Error checking edit permissions:', error);
     }
   };
 
@@ -239,12 +285,18 @@ export default function JobDetail() {
               </Button>
             </motion.div>
 
-            {canManageJob(role) && (
-              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-                <Button variant="outline" onClick={() => navigate(`/jobs/${jobId}/dashboard`)} className="gap-2">
-                  <Settings className="w-4 h-4" />
-                  Manage Job
+            {canEdit && (
+              <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="flex gap-2">
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(true)} className="gap-2">
+                  <Edit className="w-4 h-4" />
+                  Edit Job
                 </Button>
+                {canManageJob(role) && (
+                  <Button variant="outline" onClick={() => navigate(`/jobs/${jobId}/dashboard`)} className="gap-2">
+                    <Settings className="w-4 h-4" />
+                    Dashboard
+                  </Button>
+                )}
               </motion.div>
             )}
           </div>
@@ -409,6 +461,16 @@ export default function JobDetail() {
           </Tabs>
         </div>
       </div>
+
+      {/* Edit Job Dialog */}
+      {canEdit && job && (
+        <EditJobDialog
+          open={isEditDialogOpen}
+          onOpenChange={setIsEditDialogOpen}
+          job={job}
+          onJobUpdated={loadJobDetails}
+        />
+      )}
     </AppLayout>
   );
 }

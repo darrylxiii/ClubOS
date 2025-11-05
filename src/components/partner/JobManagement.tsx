@@ -19,7 +19,7 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedJobId, setSelectedJobId] = useState<string>("");
+  const [selectedJob, setSelectedJob] = useState<any>(null);
 
   useEffect(() => {
     fetchJobs();
@@ -29,7 +29,21 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
     try {
       const { data, error } = await supabase
         .from('jobs')
-        .select('*')
+        .select(`
+          *,
+          job_tools (
+            id,
+            is_required,
+            proficiency_level,
+            tools_and_skills (
+              id,
+              name,
+              slug,
+              logo_url,
+              category
+            )
+          )
+        `)
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
@@ -189,7 +203,7 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
                       size="sm" 
                       variant="outline"
                       onClick={() => {
-                        setSelectedJobId(job.id);
+                        setSelectedJob(job);
                         setEditDialogOpen(true);
                       }}
                     >
@@ -224,11 +238,11 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
         onJobCreated={fetchJobs}
       />
       
-      {selectedJobId && (
+      {selectedJob && (
         <EditJobDialog
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
-          jobId={selectedJobId}
+          job={selectedJob}
           onJobUpdated={fetchJobs}
         />
       )}

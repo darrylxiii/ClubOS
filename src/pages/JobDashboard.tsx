@@ -145,6 +145,18 @@ export default function JobDashboard() {
           companies (
             name,
             logo_url
+          ),
+          job_tools (
+            id,
+            is_required,
+            proficiency_level,
+            tools_and_skills (
+              id,
+              name,
+              slug,
+              logo_url,
+              category
+            )
           )
         `)
         .eq('id', jobId)
@@ -873,12 +885,14 @@ export default function JobDashboard() {
       )}
 
       {/* Edit Job Dialog */}
-      <EditJobDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        jobId={jobId!}
-        onJobUpdated={fetchJobDetails}
-      />
+      {job && (
+        <EditJobDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          job={job}
+          onJobUpdated={fetchJobDetails}
+        />
+      )}
     </AppLayout>
   );
 }
