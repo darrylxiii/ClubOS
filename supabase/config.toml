@@ -3,6 +3,12 @@ project_id = "dpjucecmoyfzrduhlctt"
 [functions.check-data-integrity]
 verify_jwt = false
 
+[functions.join-waitlist]
+verify_jwt = false
+
+[functions.promote-waitlist]
+verify_jwt = false
+
 [functions.incubator-ai-chat]
 verify_jwt = false
 

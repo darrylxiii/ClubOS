@@ -1,4 +1,4 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
@@ -13,75 +13,99 @@ serve(async (req) => {
   }
 
   try {
-    // Validate input
-    const waitlistSchema = z.object({
-      bookingLinkId: z.string().uuid('Invalid booking link ID'),
-      guestName: z.string().min(1, 'Name is required').max(200, 'Name too long'),
-      guestEmail: z.string().email('Invalid email format').max(255),
-      guestPhone: z.string().max(50).optional(),
-      preferredDates: z.array(z.string().datetime()).min(1, 'At least one preferred date required').max(10)
+    const schema = z.object({
+      bookingLinkId: z.string().uuid(),
+      guestName: z.string().min(1).max(200),
+      guestEmail: z.string().email().max(255),
+      guestPhone: z.string().max(50).nullable().optional(),
+      preferredDates: z.array(z.string()).optional(),
+      preferredTimeRange: z.enum(['morning', 'afternoon', 'evening']).optional(),
+      notes: z.string().max(500).nullable().optional(),
     });
 
-    const { bookingLinkId, guestName, guestEmail, guestPhone, preferredDates } = waitlistSchema.parse(await req.json());
+    const body = schema.parse(await req.json());
+    console.log('[Waitlist] Join request:', body.guestEmail, 'for link:', body.bookingLinkId);
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+    );
 
     // Verify booking link exists and allows waitlist
     const { data: bookingLink, error: linkError } = await supabase
       .from("booking_links")
-      .select("*")
-      .eq("id", bookingLinkId)
-      .eq("allow_waitlist", true)
+      .select("id, title, allow_waitlist")
+      .eq("id", body.bookingLinkId)
       .single();
 
     if (linkError || !bookingLink) {
-      throw new Error("Booking link not found or doesn't allow waitlist");
+      console.error('[Waitlist] Booking link not found:', body.bookingLinkId);
+      return new Response(
+        JSON.stringify({ error: "Booking link not found or doesn't allow waitlist" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!bookingLink.allow_waitlist) {
+      return new Response(
+        JSON.stringify({ error: "Waitlist not enabled for this booking link" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Check if already on waitlist
+    const { data: existing } = await supabase
+      .from("booking_waitlist")
+      .select("id")
+      .eq("booking_link_id", body.bookingLinkId)
+      .eq("guest_email", body.guestEmail)
+      .eq("notified", false)
+      .maybeSingle();
+
+    if (existing) {
+      console.log('[Waitlist] Already on waitlist:', body.guestEmail);
+      return new Response(
+        JSON.stringify({ message: "Already on waitlist", id: existing.id }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // Add to waitlist
-    const { data: waitlistEntry, error: waitlistError } = await supabase
+    const { data: waitlistEntry, error } = await supabase
       .from("booking_waitlist")
       .insert({
-        booking_link_id: bookingLinkId,
-        guest_name: guestName,
-        guest_email: guestEmail,
-        guest_phone: guestPhone || null,
-        preferred_dates: preferredDates,
+        booking_link_id: body.bookingLinkId,
+        guest_name: body.guestName,
+        guest_email: body.guestEmail,
+        guest_phone: body.guestPhone || null,
+        preferred_dates: body.preferredDates || [],
+        preferred_time_range: body.preferredTimeRange || null,
+        notes: body.notes || null,
       })
       .select()
       .single();
 
-    if (waitlistError) throw waitlistError;
+    if (error) {
+      console.error('[Waitlist] Insert error:', error);
+      throw error;
+    }
 
-    // Send confirmation email
-    await supabase.functions.invoke("send-waitlist-confirmation", {
-      body: {
-        email: guestEmail,
-        name: guestName,
-        bookingLink: bookingLink,
-      },
-    });
+    console.log('[Waitlist] Successfully added:', waitlistEntry.id);
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        waitlistEntry,
-        message: "Successfully joined waitlist. We'll notify you when a spot opens up.",
+      JSON.stringify({ 
+        success: true, 
+        id: waitlistEntry.id,
+        message: "Successfully joined waitlist. We'll notify you when a spot opens up."
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { status: 201, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
+
   } catch (error: any) {
-    console.error("Error joining waitlist:", error);
+    console.error("[Waitlist] Error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      JSON.stringify({ error: error.message || "Internal server error" }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

@@ -32,33 +32,40 @@ serve(async (req) => {
       throw new Error("Booking link not found");
     }
 
-    // Find waitlist entries for this date
+    // Find waitlist entries
+    const cancelledDateOnly = cancelledDate?.split('T')[0];
+    
     const { data: waitlistEntries, error: waitlistError } = await supabaseClient
       .from("booking_waitlist")
       .select("*")
       .eq("booking_link_id", bookingLinkId)
-      .eq("status", "waiting")
+      .eq("notified", false)
       .order("created_at", { ascending: true })
-      .limit(1);
+      .limit(5);
 
     if (waitlistError) throw waitlistError;
 
     if (!waitlistEntries || waitlistEntries.length === 0) {
+      console.log('[Waitlist Promote] No one on waitlist');
       return new Response(
-        JSON.stringify({ promoted: false, message: "No waitlist entries" }),
+        JSON.stringify({ promoted: false, reason: "No waitlist entries" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const waitlistEntry = waitlistEntries[0];
+    // Find best match (preferred date matches)
+    const waitlistEntry = waitlistEntries.find(entry => 
+      entry.preferred_dates?.includes(cancelledDateOnly)
+    ) || waitlistEntries[0];
+
+    console.log('[Waitlist Promote] Best match found:', waitlistEntry.guest_email);
 
     // Update waitlist status
     const { error: updateError } = await supabaseClient
       .from("booking_waitlist")
       .update({
-        status: "notified",
+        notified: true,
         notified_at: new Date().toISOString(),
-        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hour expiry
       })
       .eq("id", waitlistEntry.id);
 

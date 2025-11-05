@@ -1296,6 +1296,53 @@ export type Database = {
           },
         ]
       }
+      booking_funnel_analytics: {
+        Row: {
+          booking_link_id: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          referrer: string | null
+          session_id: string
+          step: string
+          step_duration_seconds: number | null
+          timezone: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          booking_link_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          referrer?: string | null
+          session_id: string
+          step: string
+          step_duration_seconds?: number | null
+          timezone?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          booking_link_id?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          referrer?: string | null
+          session_id?: string
+          step?: string
+          step_duration_seconds?: number | null
+          timezone?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_funnel_analytics_booking_link_id_fkey"
+            columns: ["booking_link_id"]
+            isOneToOne: false
+            referencedRelation: "booking_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_links: {
         Row: {
           advance_booking_days: number | null
@@ -1447,6 +1494,56 @@ export type Database = {
           },
         ]
       }
+      booking_slot_analytics: {
+        Row: {
+          booking_link_id: string | null
+          bookings_count: number | null
+          conversion_rate: number | null
+          created_at: string | null
+          date: string
+          day_of_week: number
+          hour: number
+          id: string
+          timezone: string
+          updated_at: string | null
+          views_count: number | null
+        }
+        Insert: {
+          booking_link_id?: string | null
+          bookings_count?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          date: string
+          day_of_week: number
+          hour: number
+          id?: string
+          timezone: string
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          booking_link_id?: string | null
+          bookings_count?: number | null
+          conversion_rate?: number | null
+          created_at?: string | null
+          date?: string
+          day_of_week?: number
+          hour?: number
+          id?: string
+          timezone?: string
+          updated_at?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_slot_analytics_booking_link_id_fkey"
+            columns: ["booking_link_id"]
+            isOneToOne: false
+            referencedRelation: "booking_links"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_waitlist: {
         Row: {
           booking_link_id: string
@@ -1455,8 +1552,11 @@ export type Database = {
           guest_name: string
           guest_phone: string | null
           id: string
+          notes: string | null
           notified: boolean | null
+          notified_at: string | null
           preferred_dates: Json
+          preferred_time_range: string | null
         }
         Insert: {
           booking_link_id: string
@@ -1465,8 +1565,11 @@ export type Database = {
           guest_name: string
           guest_phone?: string | null
           id?: string
+          notes?: string | null
           notified?: boolean | null
+          notified_at?: string | null
           preferred_dates?: Json
+          preferred_time_range?: string | null
         }
         Update: {
           booking_link_id?: string
@@ -1475,8 +1578,11 @@ export type Database = {
           guest_name?: string
           guest_phone?: string | null
           id?: string
+          notes?: string | null
           notified?: boolean | null
+          notified_at?: string | null
           preferred_dates?: Json
+          preferred_time_range?: string | null
         }
         Relationships: [
           {
@@ -1545,6 +1651,7 @@ export type Database = {
           cancellation_reason: string | null
           cancelled_at: string | null
           created_at: string
+          custom_answers: Json | null
           custom_responses: Json | null
           guest_email: string
           guest_name: string
@@ -1577,6 +1684,7 @@ export type Database = {
           cancellation_reason?: string | null
           cancelled_at?: string | null
           created_at?: string
+          custom_answers?: Json | null
           custom_responses?: Json | null
           guest_email: string
           guest_name: string
@@ -1609,6 +1717,7 @@ export type Database = {
           cancellation_reason?: string | null
           cancelled_at?: string | null
           created_at?: string
+          custom_answers?: Json | null
           custom_responses?: Json | null
           guest_email?: string
           guest_name?: string
@@ -13526,6 +13635,14 @@ export type Database = {
         Returns: boolean
       }
       track_share_link_view: { Args: { _token: string }; Returns: string }
+      track_slot_view: {
+        Args: {
+          p_booking_link_id: string
+          p_slot_start: string
+          p_timezone: string
+        }
+        Returns: undefined
+      }
       try_acquire_booking_slot_lock: {
         Args: {
           p_scheduled_end: string
