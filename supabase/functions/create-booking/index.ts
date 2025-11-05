@@ -51,6 +51,8 @@ serve(async (req) => {
       customResponses,
       notes,
     } = bookingSchema.parse(await req.json());
+    
+    console.log(`[Booking] Request received: slug=${bookingLinkSlug}, guest=${guestName}, time=${scheduledStart}, timezone=${timezone}`);
 
     // Use service role to bypass RLS for secure booking creation
     const supabaseClient = createClient(
@@ -315,7 +317,7 @@ serve(async (req) => {
       throw new Error(`Failed to create booking: ${bookingError.message}`);
     }
 
-    console.log("[Booking] Booking created successfully:", booking.id);
+    console.log(`[Booking] Booking created successfully: id=${booking.id}, time=${scheduledStart} to ${scheduledEnd}, timezone=${timezone}`);
 
     // Send confirmation email
     try {
@@ -332,12 +334,18 @@ serve(async (req) => {
     // Sync to calendar (don't wait for it)
     supabaseClient.functions.invoke("sync-booking-to-calendar", {
       body: { bookingId: booking.id }
-    }).catch(err => console.error("Error syncing to calendar:", err));
+    })
+    .then(() => console.log(`[Booking] Calendar sync initiated for booking ${booking.id}`))
+    .catch(err => console.error(`[Booking] Error syncing to calendar:`, err));
 
     // Create Quantum Club meeting (don't wait for it)
-    supabaseClient.functions.invoke("create-meeting-from-booking", {
-      body: { bookingId: booking.id }
-    }).catch(err => console.error("Error creating meeting:", err));
+    if (bookingLink.create_quantum_meeting) {
+      supabaseClient.functions.invoke("create-meeting-from-booking", {
+        body: { bookingId: booking.id }
+      })
+      .then(() => console.log(`[Booking] Meeting creation initiated for booking ${booking.id}`))
+      .catch(err => console.error(`[Booking] Error creating meeting:`, err));
+    }
 
     return new Response(
       JSON.stringify({ 

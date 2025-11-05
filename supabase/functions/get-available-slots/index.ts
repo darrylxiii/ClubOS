@@ -13,7 +13,8 @@ serve(async (req) => {
   }
 
   try {
-    const { bookingLinkSlug, dateRange, timezone = "UTC" } = await req.json();
+    const { bookingLinkSlug, dateRange, timezone = "Europe/Amsterdam" } = await req.json();
+    console.log(`[Slots] Request params: slug=${bookingLinkSlug}, dateRange=${JSON.stringify(dateRange)}, timezone=${timezone}`);
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -240,6 +241,8 @@ function generateAvailableSlots(
   const bufferAfter = bookingLink.buffer_after_minutes || 0;
   const minNoticeHours = bookingLink.min_notice_hours || 2;
   
+  console.log(`[Slots] Slot generation params: duration=${durationMinutes}min, buffer_before=${bufferBefore}min, buffer_after=${bufferAfter}min`);
+  
   const now = new Date();
   const minStartTime = new Date(now.getTime() + minNoticeHours * 60 * 60 * 1000);
 
@@ -284,8 +287,10 @@ function generateAvailableSlots(
         }
       }
       
-      // Move to next slot (30 min intervals)
-      slotTime = new Date(slotTime.getTime() + 30 * 60 * 1000);
+      // Move to next slot using the booking duration or 30min, whichever is smaller
+      // This ensures slots don't overlap and match the actual booking length
+      const slotInterval = Math.min(durationMinutes, 30);
+      slotTime = new Date(slotTime.getTime() + slotInterval * 60 * 1000);
     }
   }
   

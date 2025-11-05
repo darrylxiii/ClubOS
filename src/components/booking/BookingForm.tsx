@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Calendar, Clock } from "lucide-react";
 import { format, parse } from "date-fns";
+import { getUserTimezone, parseUserTimeSelection, createBookingTime } from "@/lib/timezoneUtils";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { parseISO, setHours, setMinutes } from "date-fns";
 import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
@@ -102,34 +103,23 @@ export function BookingForm({
         }
       }
 
-      // Parse the selected time properly with timezone awareness
-      // Format: "9:00 AM" or "14:30 PM"
-      const timeMatch = selectedTime.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+      // Parse and validate selected time with timezone utils
+      const userTimezone = getUserTimezone();
+      const parsedTime = parseUserTimeSelection(selectedDate, selectedTime, userTimezone);
       
-      if (!timeMatch) {
+      if (!parsedTime) {
         toast.error("Invalid time format. Please try again.");
         setLoading(false);
         return;
       }
 
-      let hours = parseInt(timeMatch[1], 10);
-      const minutes = parseInt(timeMatch[2], 10);
-      const period = timeMatch[3].toUpperCase();
-      
-      // Convert 12-hour to 24-hour format
-      if (period === "PM" && hours !== 12) {
-        hours += 12;
-      } else if (period === "AM" && hours === 12) {
-        hours = 0;
-      }
-
-      // Create start time with proper timezone handling
-      let scheduledStart = new Date(selectedDate);
-      scheduledStart = setHours(scheduledStart, hours);
-      scheduledStart = setMinutes(scheduledStart, minutes);
-      scheduledStart.setSeconds(0, 0);
-
-      const scheduledEnd = new Date(scheduledStart.getTime() + bookingLink.duration_minutes * 60 * 1000);
+      const { scheduledStart, scheduledEnd } = createBookingTime(
+        selectedDate,
+        parsedTime.hours,
+        parsedTime.minutes,
+        bookingLink.duration_minutes,
+        userTimezone
+      );
 
       const headers: Record<string, string> = {};
       if (RECAPTCHA_ENABLED && recaptchaToken) {
@@ -143,9 +133,9 @@ export function BookingForm({
           guestName: formData.name,
           guestEmail: formData.email,
           guestPhone: formData.phone || null,
-          scheduledStart: scheduledStart.toISOString(),
-          scheduledEnd: scheduledEnd.toISOString(),
-          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          scheduledStart,
+          scheduledEnd,
+          timezone: userTimezone,
           notes: formData.notes || null,
         },
       });

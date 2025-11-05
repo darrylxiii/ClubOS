@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Clock, Loader2 } from "lucide-react";
 import { format } from "date-fns";
-import { toZonedTime, formatInTimeZone } from "date-fns-tz";
+import { getUserTimezone, getDateRangeForTimezone, formatTimeSlot } from "@/lib/timezoneUtils";
 
 interface BookingTimeSlotsProps {
   bookingLink: {
@@ -39,21 +39,13 @@ export function BookingTimeSlots({
   const loadAvailableSlots = async () => {
     setLoading(true);
     try {
-      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      
-      // Create start and end dates in user's timezone
-      const startOfDay = new Date(selectedDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(selectedDate);
-      endOfDay.setHours(23, 59, 59, 999);
-      
-      const startDate = startOfDay.toISOString();
-      const endDate = endOfDay.toISOString();
+      const userTimezone = getUserTimezone();
+      const dateRange = getDateRangeForTimezone(selectedDate, userTimezone);
 
       const { data, error } = await supabase.functions.invoke("get-available-slots", {
         body: {
           bookingLinkSlug: bookingLink.slug,
-          dateRange: { start: startDate, end: endDate },
+          dateRange,
           timezone: userTimezone,
         },
       });
@@ -87,10 +79,9 @@ export function BookingTimeSlots({
     onTimeSelect(timeStr);
   };
 
-  const formatTimeSlot = (slot: TimeSlot) => {
-    const start = new Date(slot.start);
-    const end = new Date(slot.end);
-    return `${format(start, "h:mm a")} - ${format(end, "h:mm a")}`;
+  const formatTimeSlotDisplay = (slot: TimeSlot) => {
+    const userTimezone = getUserTimezone();
+    return formatTimeSlot(slot.start, slot.end, userTimezone);
   };
 
   if (loading) {
@@ -133,7 +124,7 @@ export function BookingTimeSlots({
               className="h-auto py-3 px-4 text-sm font-medium"
               onClick={() => handleSlotClick(slot)}
             >
-              {formatTimeSlot(slot)}
+              {formatTimeSlotDisplay(slot)}
             </Button>
           );
         })}
