@@ -436,20 +436,38 @@ serve(async (req) => {
       console.error("Error sending confirmation email:", emailError);
     }
 
-    // Sync to calendar (don't wait for it)
-    supabaseClient.functions.invoke("sync-booking-to-calendar", {
-      body: { bookingId: booking.id }
-    })
-    .then(() => console.log(`[Booking] Calendar sync initiated for booking ${booking.id}`))
-    .catch(err => console.error(`[Booking] Error syncing to calendar:`, err));
-
-    // Create Quantum Club meeting (don't wait for it)
-    if (bookingLink.create_quantum_meeting) {
-      supabaseClient.functions.invoke("create-meeting-from-booking", {
+    // Sync to calendar (with improved error tracking)
+    console.log(`[Booking] Triggering calendar sync for booking ${booking.id}`);
+    try {
+      const syncResult = await supabaseClient.functions.invoke("sync-booking-to-calendar", {
         body: { bookingId: booking.id }
-      })
-      .then(() => console.log(`[Booking] Meeting creation initiated for booking ${booking.id}`))
-      .catch(err => console.error(`[Booking] Error creating meeting:`, err));
+      });
+      
+      if (syncResult.error) {
+        console.error(`[Booking] Calendar sync error for booking ${booking.id}:`, syncResult.error);
+      } else {
+        console.log(`[Booking] Calendar sync completed for booking ${booking.id}:`, syncResult.data);
+      }
+    } catch (syncError: any) {
+      console.error(`[Booking] Calendar sync exception for booking ${booking.id}:`, syncError.message);
+    }
+
+    // Create Quantum Club meeting (with improved error tracking)
+    if (bookingLink.create_quantum_meeting) {
+      console.log(`[Booking] Triggering meeting creation for booking ${booking.id}`);
+      try {
+        const meetingResult = await supabaseClient.functions.invoke("create-meeting-from-booking", {
+          body: { bookingId: booking.id }
+        });
+        
+        if (meetingResult.error) {
+          console.error(`[Booking] Meeting creation error for booking ${booking.id}:`, meetingResult.error);
+        } else {
+          console.log(`[Booking] Meeting created for booking ${booking.id}:`, meetingResult.data);
+        }
+      } catch (meetingError: any) {
+        console.error(`[Booking] Meeting creation exception for booking ${booking.id}:`, meetingError.message);
+      }
     }
 
     return new Response(

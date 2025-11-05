@@ -13,7 +13,9 @@ serve(async (req) => {
 
   try {
     const { bookingId } = await req.json();
+    console.log(`[Sync] ========================================`);
     console.log(`[Sync] Processing calendar sync for booking: ${bookingId}`);
+    console.log(`[Sync] ========================================`);
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -41,13 +43,16 @@ serve(async (req) => {
       );
     }
     
-    console.log(`[Sync] Booking found: ${booking.guest_name}, primary_calendar_id=${booking.booking_links?.primary_calendar_id}`);
+    console.log(`[Sync] Booking found for guest: ${booking.guest_name}`);
+    console.log(`[Sync] Booking link ID: ${booking.booking_link_id}`);
+    console.log(`[Sync] Primary calendar ID: ${booking.booking_links?.primary_calendar_id}`);
+    console.log(`[Sync] User ID: ${booking.user_id}`);
 
     // Get primary calendar connection
     const calendarId = booking.booking_links?.primary_calendar_id;
     
     if (!calendarId) {
-      console.log("[Sync] No primary calendar set for this booking link");
+      console.log("[Sync] ❌ No primary calendar set for this booking link - sync skipped");
       return new Response(
         JSON.stringify({ success: false, message: "No calendar configured" }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -62,12 +67,16 @@ serve(async (req) => {
       .single();
 
     if (calendarError || !calendar) {
-      console.error("[Sync] Calendar connection not found or inactive");
+      console.error("[Sync] ❌ Calendar connection not found or inactive:", calendarError);
+      console.error("[Sync] Calendar ID searched:", calendarId);
       return new Response(
         JSON.stringify({ error: "Calendar not found" }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
+    console.log(`[Sync] ✅ Calendar connection found: ${calendar.provider} (${calendar.calendar_label})`);
+    console.log(`[Sync] Calendar active: ${calendar.is_active}`);
 
     // Prepare event details
     const eventDetails = {
@@ -95,7 +104,8 @@ ${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links
         ? 'google-calendar-events' 
         : 'microsoft-calendar-events';
       
-      console.log(`[Sync] Calling ${functionName} to create event`);
+      console.log(`[Sync] Calling edge function: ${functionName}`);
+      console.log(`[Sync] Event details:`, JSON.stringify(eventDetails, null, 2));
 
       const { data: eventData, error: eventError } = await supabaseClient.functions.invoke(
         functionName,
