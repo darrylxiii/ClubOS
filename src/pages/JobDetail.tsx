@@ -49,14 +49,20 @@ export default function JobDetail() {
     if (jobId) {
       loadJobDetails();
       checkUserStatus();
-      checkEditPermissions();
       
       // Phase 3: Track job view
       if (user) {
         trackJobView(user.id, jobId);
       }
     }
-  }, [jobId, user, job]);
+  }, [jobId, user]);
+
+  // Separate effect for checking edit permissions after job loads
+  useEffect(() => {
+    if (job && user) {
+      checkEditPermissions();
+    }
+  }, [job?.id, user?.id]);
 
   const loadJobDetails = async () => {
     try {

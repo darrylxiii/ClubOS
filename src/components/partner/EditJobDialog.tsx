@@ -68,7 +68,7 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
 
       fetchCompanies();
     }
-  }, [open, job]);
+  }, [open, job?.id]); // Only depend on open state and job ID, not entire job object
 
   const fetchCompanies = async () => {
     try {
