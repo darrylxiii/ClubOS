@@ -5,12 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Loader2, Calendar, Clock } from "lucide-react";
+import { Loader2, Calendar, Clock, CheckCircle2 } from "lucide-react";
 import { format, parse } from "date-fns";
 import { getUserTimezone, parseUserTimeSelection, createBookingTime } from "@/lib/timezoneUtils";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { parseISO, setHours, setMinutes } from "date-fns";
 import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
+import { bookingFormSchema, type BookingFormData } from "@/lib/bookingSchemas";
+import { z } from "zod";
 
 interface BookingFormProps {
   bookingLink: {
@@ -33,7 +35,9 @@ export function BookingForm({
 }: BookingFormProps) {
   const { executeRecaptcha } = useGoogleReCaptcha();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [loadingStage, setLoadingStage] = useState<string>("");
+  const [errors, setErrors] = useState<Partial<Record<keyof BookingFormData, string>>>({});
+  const [formData, setFormData] = useState<BookingFormData>({
     name: "",
     email: "",
     phone: "",
@@ -42,10 +46,22 @@ export function BookingForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
 
-    if (!formData.name || !formData.email) {
-      toast.error("Please provide your name and email");
-      return;
+    // Phase 5: Zod validation with specific error messages
+    try {
+      bookingFormSchema.parse(formData);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        const fieldErrors: Partial<Record<keyof BookingFormData, string>> = {};
+        err.errors.forEach((error) => {
+          const field = error.path[0] as keyof BookingFormData;
+          fieldErrors[field] = error.message;
+        });
+        setErrors(fieldErrors);
+        toast.error("Please fix the errors in the form");
+        return;
+      }
     }
 
     if (!selectedDate || !selectedTime) {
@@ -54,6 +70,7 @@ export function BookingForm({
     }
 
     setLoading(true);
+    setLoadingStage("Verifying availability...");
     
     // Phase 4: Client-side validation - verify slot is still available
     try {
@@ -89,26 +106,29 @@ export function BookingForm({
       // Execute reCAPTCHA only if enabled
       let recaptchaToken = "";
       if (RECAPTCHA_ENABLED) {
+        setLoadingStage("Security verification...");
         if (!executeRecaptcha) {
-          toast.error("reCAPTCHA not ready. Please try again.");
+          toast.error("reCAPTCHA not ready. Please refresh the page.");
           setLoading(false);
           return;
         }
         recaptchaToken = await executeRecaptcha("create_booking");
         
         if (!recaptchaToken) {
-          toast.error("Failed to verify. Please try again.");
+          toast.error("Security verification failed. Please try again.");
           setLoading(false);
           return;
         }
       }
 
+      setLoadingStage("Processing booking...");
+      
       // Parse and validate selected time with timezone utils
       const userTimezone = getUserTimezone();
       const parsedTime = parseUserTimeSelection(selectedDate, selectedTime, userTimezone);
       
       if (!parsedTime) {
-        toast.error("Invalid time format. Please try again.");
+        toast.error("Invalid time format. Please select a time slot again.");
         setLoading(false);
         return;
       }
@@ -126,6 +146,7 @@ export function BookingForm({
         headers["x-recaptcha-token"] = recaptchaToken;
       }
 
+      setLoadingStage("Creating your booking...");
       const { data, error } = await supabase.functions.invoke("create-booking", {
         headers,
         body: {
@@ -142,7 +163,8 @@ export function BookingForm({
 
       if (error) throw error;
 
-      toast.success("Booking confirmed!");
+      setLoadingStage("Confirmed!");
+      toast.success("Booking confirmed! Check your email for details.");
       onComplete(data.booking.id);
     } catch (error: any) {
       console.error("Booking error:", error);
@@ -185,6 +207,7 @@ export function BookingForm({
       }
     } finally {
       setLoading(false);
+      setLoadingStage("");
     }
   };
 
@@ -204,7 +227,7 @@ export function BookingForm({
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="name">
             Name <span className="text-destructive">*</span>
@@ -212,10 +235,17 @@ export function BookingForm({
           <Input
             id="name"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, name: e.target.value });
+              setErrors({ ...errors, name: undefined });
+            }}
             placeholder="Your full name"
             required
+            className={errors.name ? "border-destructive" : ""}
           />
+          {errors.name && (
+            <p className="text-sm text-destructive">{errors.name}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -226,10 +256,17 @@ export function BookingForm({
             id="email"
             type="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, email: e.target.value });
+              setErrors({ ...errors, email: undefined });
+            }}
             placeholder="you@example.com"
             required
+            className={errors.email ? "border-destructive" : ""}
           />
+          {errors.email && (
+            <p className="text-sm text-destructive">{errors.email}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -238,9 +275,16 @@ export function BookingForm({
             id="phone"
             type="tel"
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, phone: e.target.value });
+              setErrors({ ...errors, phone: undefined });
+            }}
             placeholder="+1 (555) 000-0000"
+            className={errors.phone ? "border-destructive" : ""}
           />
+          {errors.phone && (
+            <p className="text-sm text-destructive">{errors.phone}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -248,20 +292,36 @@ export function BookingForm({
           <Textarea
             id="notes"
             value={formData.notes}
-            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            onChange={(e) => {
+              setFormData({ ...formData, notes: e.target.value });
+              setErrors({ ...errors, notes: undefined });
+            }}
             placeholder="Anything else you'd like to share..."
             rows={3}
+            className={errors.notes ? "border-destructive" : ""}
           />
+          {errors.notes && (
+            <p className="text-sm text-destructive">{errors.notes}</p>
+          )}
         </div>
 
-        <Button type="submit" disabled={loading} className="w-full" size="lg">
+        {/* Phase 4: 44px touch target */}
+        <Button type="submit" disabled={loading} className="w-full min-h-[44px]" size="lg">
           {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Scheduling...
-            </>
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <div className="flex flex-col items-start">
+                <span className="text-sm font-medium">Processing...</span>
+                {loadingStage && (
+                  <span className="text-xs opacity-80">{loadingStage}</span>
+                )}
+              </div>
+            </div>
           ) : (
-            "Schedule Event"
+            <>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Confirm Booking
+            </>
           )}
         </Button>
 

@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { getUserTimezone, getDateRangeForTimezone, formatTimeSlot } from "@/lib/timezoneUtils";
+import { useSwipeable } from "react-swipeable";
 
 interface BookingTimeSlotsProps {
   bookingLink: {
@@ -30,18 +31,26 @@ export function BookingTimeSlots({
 }: BookingTimeSlotsProps) {
   const [slots, setSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingStage, setLoadingStage] = useState<string>("Connecting...");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [retrying, setRetrying] = useState(false);
 
   useEffect(() => {
     loadAvailableSlots();
   }, [selectedDate, bookingLink]);
 
-  const loadAvailableSlots = async () => {
+  const loadAvailableSlots = async (isRetry = false) => {
     setLoading(true);
+    if (isRetry) {
+      setRetrying(true);
+    }
+    
     try {
+      setLoadingStage("Connecting to server...");
       const userTimezone = getUserTimezone();
       const dateRange = getDateRangeForTimezone(selectedDate, userTimezone);
 
+      setLoadingStage("Checking availability...");
       const { data, error } = await supabase.functions.invoke("get-available-slots", {
         body: {
           bookingLinkSlug: bookingLink.slug,
@@ -55,21 +64,27 @@ export function BookingTimeSlots({
         throw new Error(error.message || "Failed to fetch slots");
       }
 
+      setLoadingStage("Loading times...");
       setSlots(data.slots || []);
     } catch (error: any) {
       console.error("Error loading slots:", error);
       
-      // Provide more specific error messages
+      // Specific error messages based on error type
       const errorMessage = error.message?.includes("timeout")
-        ? "Request timed out. Please try again."
-        : error.message?.includes("network")
-        ? "Network error. Please check your connection."
-        : "Failed to load available time slots. Please try again.";
+        ? "Connection timed out. Please check your internet and try again."
+        : error.message?.includes("network") || error.message?.includes("fetch")
+        ? "Network error. Please verify your internet connection."
+        : error.message?.includes("404")
+        ? "Booking link not found. Please verify the URL."
+        : error.message?.includes("403") || error.message?.includes("unauthorized")
+        ? "Access denied. This booking link may be inactive."
+        : "Unable to load time slots. Please try refreshing the page.";
       
       toast.error(errorMessage);
       setSlots([]);
     } finally {
       setLoading(false);
+      setRetrying(false);
     }
   };
 
@@ -84,29 +99,65 @@ export function BookingTimeSlots({
     return formatTimeSlot(slot.start, slot.end, userTimezone);
   };
 
+  // Swipe handlers for mobile navigation
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      // Could navigate to next date
+    },
+    onSwipedRight: () => {
+      // Could navigate to previous date
+    },
+    trackMouse: false,
+  });
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Loading available times...</p>
+      <div className="flex flex-col items-center justify-center py-16 space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <div className="text-center space-y-2">
+          <p className="text-base font-medium">{loadingStage}</p>
+          <p className="text-sm text-muted-foreground">
+            {retrying ? "Retrying connection..." : "This will just take a moment"}
+          </p>
+        </div>
       </div>
     );
   }
 
   if (slots.length === 0) {
     return (
-      <div className="text-center py-12">
+      <div className="text-center py-12 space-y-4">
         <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No times available</h3>
-        <p className="text-muted-foreground">
-          All slots are booked for this date. Please select a different date or join the waitlist.
-        </p>
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold">No times available</h3>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto">
+            All slots are booked for this date. Please select a different date or try refreshing.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => loadAvailableSlots(true)}
+          disabled={retrying}
+          className="min-h-[44px]"
+        >
+          {retrying ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Refreshing...
+            </>
+          ) : (
+            <>
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Refresh
+            </>
+          )}
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" {...swipeHandlers}>
       <div className="text-center">
         <h3 className="text-lg font-semibold mb-2">Select a Time</h3>
         <p className="text-sm text-muted-foreground">
@@ -114,14 +165,15 @@ export function BookingTimeSlots({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-96 overflow-y-auto px-2">
+      {/* Phase 4: Responsive grid - 1 col mobile, 2 tablet, 3 desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto px-1">
         {slots.map((slot, index) => {
           const isSelected = selectedSlot === slot.start;
           return (
             <Button
               key={index}
               variant={isSelected ? "default" : "outline"}
-              className="h-auto py-3 px-4 text-sm font-medium"
+              className="min-h-[44px] py-3 px-4 text-sm font-medium touch-manipulation"
               onClick={() => handleSlotClick(slot)}
             >
               {formatTimeSlotDisplay(slot)}
@@ -130,9 +182,21 @@ export function BookingTimeSlots({
         })}
       </div>
 
-      <p className="text-xs text-center text-muted-foreground mt-4">
-        All times shown in your local timezone ({Intl.DateTimeFormat().resolvedOptions().timeZone})
-      </p>
+      <div className="text-center space-y-2">
+        <p className="text-xs text-muted-foreground">
+          All times in {Intl.DateTimeFormat().resolvedOptions().timeZone}
+        </p>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => loadAvailableSlots(true)}
+          disabled={retrying}
+          className="text-xs h-8"
+        >
+          <RefreshCw className="mr-1 h-3 w-3" />
+          Refresh times
+        </Button>
+      </div>
     </div>
   );
 }

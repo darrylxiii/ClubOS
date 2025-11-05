@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { format, addDays, startOfWeek, isSameDay, parseISO } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useSwipeable } from "react-swipeable";
 
 interface BookingWeekViewProps {
   bookingLink: {
@@ -27,6 +28,7 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
   const [currentWeekStart, setCurrentWeekStart] = useState(() => startOfWeek(new Date(), { weekStartsOn: 1 }));
   const [slots, setSlots] = useState<Record<string, TimeSlot[]>>({});
   const [loading, setLoading] = useState(true);
+  const [loadingStage, setLoadingStage] = useState<string>("Loading week...");
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,10 +37,12 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
 
   const loadWeekSlots = async () => {
     setLoading(true);
+    setLoadingStage("Loading week availability...");
     const weekSlots: Record<string, TimeSlot[]> = {};
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     
     try {
+      setLoadingStage("Fetching time slots...");
       // Load slots for all days in parallel (Performance optimization)
       const slotPromises = Array.from({ length: 7 }, async (_, i) => {
         const date = addDays(currentWeekStart, i);
@@ -70,6 +74,7 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
         return { dateStr, slots: [] };
       });
 
+      setLoadingStage("Organizing times...");
       const results = await Promise.all(slotPromises);
       results.forEach(({ dateStr, slots: daySlots }) => {
         weekSlots[dateStr] = daySlots;
@@ -78,7 +83,10 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
       setSlots(weekSlots);
     } catch (error: any) {
       console.error("Error loading week slots:", error);
-      toast.error("Failed to load available times");
+      const errorMsg = error.message?.includes("timeout")
+        ? "Request timed out. Please try again."
+        : "Failed to load week view. Please refresh the page.";
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -98,30 +106,45 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
     setCurrentWeekStart(addDays(currentWeekStart, -7));
   };
 
+  // Phase 4: Swipe navigation for mobile
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: nextWeek,
+    onSwipedRight: prevWeek,
+    trackMouse: false,
+  });
+
   const hours = Array.from({ length: 14 }, (_, i) => i + 8); // 8 AM to 9 PM
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-        <p className="text-muted-foreground">Loading week view...</p>
+      <div className="flex flex-col items-center justify-center py-16 space-y-4">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+        <div className="text-center space-y-2">
+          <p className="text-base font-medium">{loadingStage}</p>
+          <p className="text-sm text-muted-foreground">Please wait...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" {...swipeHandlers}>
       <div className="flex items-center justify-between">
-        <Button variant="outline" size="sm" onClick={prevWeek}>
+        {/* Phase 4: 44px touch targets */}
+        <Button variant="outline" size="sm" onClick={prevWeek} className="min-h-[44px] min-w-[44px]">
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <h3 className="text-lg font-semibold">
+        <h3 className="text-base sm:text-lg font-semibold text-center">
           {format(currentWeekStart, "MMM d")} - {format(addDays(currentWeekStart, 6), "MMM d, yyyy")}
         </h3>
-        <Button variant="outline" size="sm" onClick={nextWeek}>
+        <Button variant="outline" size="sm" onClick={nextWeek} className="min-h-[44px] min-w-[44px]">
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
+      
+      <p className="text-xs text-center text-muted-foreground md:hidden">
+        Swipe left or right to navigate weeks
+      </p>
 
       <div className="overflow-x-auto -mx-4 px-4 md:mx-0 md:px-0">
         <div className="grid grid-cols-8 gap-2 min-w-[800px] md:min-w-0">
@@ -174,7 +197,7 @@ export function BookingWeekView({ bookingLink, onTimeSelect }: BookingWeekViewPr
                             key={idx}
                             variant={isSelected ? "default" : "outline"}
                             size="sm"
-                            className="w-full h-8 text-xs mb-1"
+                            className="w-full min-h-[44px] text-xs mb-1 touch-manipulation"
                             onClick={() => handleSlotClick(slot)}
                           >
                             {format(parseISO(slot.start), "h:mm")}
