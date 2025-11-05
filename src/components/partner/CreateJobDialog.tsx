@@ -10,6 +10,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { validatePostMediaFile } from "@/lib/fileValidation";
 import { FileText, X } from "lucide-react";
+import { ToolSelector } from "@/components/jobs/ToolSelector";
 
 interface CreateJobDialogProps {
   open: boolean;
@@ -25,6 +26,8 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [jobDescriptionFile, setJobDescriptionFile] = useState<File | null>(null);
   const [supportingDocuments, setSupportingDocuments] = useState<File[]>([]);
+  const [requiredTools, setRequiredTools] = useState<any[]>([]);
+  const [niceToHaveTools, setNiceToHaveTools] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -182,6 +185,31 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
       // Upload files if any
       if (data && (jobDescriptionFile || supportingDocuments.length > 0)) {
         await uploadFiles(data.id);
+      }
+
+      // Insert job tools
+      const toolInserts = [
+        ...requiredTools.map(tool => ({
+          job_id: data.id,
+          tool_id: tool.id,
+          is_required: true,
+        })),
+        ...niceToHaveTools.map(tool => ({
+          job_id: data.id,
+          tool_id: tool.id,
+          is_required: false,
+        })),
+      ];
+
+      if (toolInserts.length > 0) {
+        const { error: toolsError } = await supabase
+          .from("job_tools")
+          .insert(toolInserts);
+
+        if (toolsError) {
+          console.error("Error inserting tools:", toolsError);
+          // Don't fail the whole operation if tools fail
+        }
       }
 
       toast.success("Job created successfully");
@@ -388,6 +416,34 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
                 </div>
               )}
             </div>
+          </div>
+
+          {/* Required Tools & Technologies */}
+          <div className="space-y-2">
+            <Label>
+              Required Tools & Technologies <span className="text-destructive">*</span>
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              Select tools candidates must be proficient with
+            </p>
+            <ToolSelector
+              selectedTools={requiredTools}
+              onChange={setRequiredTools}
+              placeholder="Search tools (e.g., Notion, Figma, Python)..."
+            />
+          </div>
+
+          {/* Nice-to-Have Tools */}
+          <div className="space-y-2">
+            <Label>Nice-to-Have Tools</Label>
+            <p className="text-xs text-muted-foreground">
+              Bonus skills that would be beneficial
+            </p>
+            <ToolSelector
+              selectedTools={niceToHaveTools}
+              onChange={setNiceToHaveTools}
+              placeholder="Search additional tools..."
+            />
           </div>
 
           <div className="flex justify-end gap-2">

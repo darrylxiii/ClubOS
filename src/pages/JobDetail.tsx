@@ -5,6 +5,7 @@ import { JobProfileHero } from "@/components/jobs/JobProfileHero";
 import { AboutRoleSection } from "@/components/jobs/AboutRoleSection";
 import { JobDescriptionViewer } from "@/components/jobs/JobDescriptionViewer";
 import { SkillMatrix } from "@/components/jobs/SkillMatrix";
+import { ToolsShowcase } from "@/components/jobs/ToolsShowcase";
 import { ResponsibilityGrid } from "@/components/jobs/ResponsibilityGrid";
 import { BenefitsShowcase } from "@/components/jobs/BenefitsShowcase";
 import { ApplicationTimeline } from "@/components/jobs/ApplicationTimeline";
@@ -70,6 +71,18 @@ export default function JobDetail() {
             company_size,
             headquarters_location,
             website_url
+          ),
+          job_tools (
+            id,
+            is_required,
+            proficiency_level,
+            tools_and_skills (
+              id,
+              name,
+              slug,
+              logo_url,
+              category
+            )
           )
         `)
         .eq('id', jobId)
@@ -293,6 +306,11 @@ export default function JobDetail() {
                 documentUrl={job.job_description_url}
                 jobTitle={job.title}
                 companyName={job.companies?.name || "Company"}
+              />
+              
+              <ToolsShowcase
+                requiredTools={job.job_tools?.filter((jt: any) => jt.is_required).map((jt: any) => jt.tools_and_skills) || []}
+                niceToHaveTools={job.job_tools?.filter((jt: any) => !jt.is_required).map((jt: any) => jt.tools_and_skills) || []}
               />
               
               {job.responsibilities && job.responsibilities.length > 0 && (

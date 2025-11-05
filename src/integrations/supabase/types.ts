@@ -5921,6 +5921,48 @@ export type Database = {
         }
         Relationships: []
       }
+      job_tools: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_required: boolean | null
+          job_id: string
+          proficiency_level: string | null
+          tool_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_required?: boolean | null
+          job_id: string
+          proficiency_level?: string | null
+          tool_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_required?: boolean | null
+          job_id?: string
+          proficiency_level?: string | null
+          tool_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_tools_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_tools_tool_id_fkey"
+            columns: ["tool_id"]
+            isOneToOne: false
+            referencedRelation: "tools_and_skills"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       jobs: {
         Row: {
           benefits: Json | null
@@ -11665,6 +11707,45 @@ export type Database = {
           title?: string
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      tools_and_skills: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          logo_url: string | null
+          name: string
+          official_website: string | null
+          slug: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name: string
+          official_website?: string | null
+          slug: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          logo_url?: string | null
+          name?: string
+          official_website?: string | null
+          slug?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
