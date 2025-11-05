@@ -57,7 +57,7 @@ interface AppLayoutProps {
 }
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const { currentRole } = useRole();
   const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
@@ -87,11 +87,6 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
     () => getNavigationForRole(currentRole),
     [currentRole]
   );
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/auth";
-  };
 
   const getFirstName = () => {
     if (userProfile?.full_name) {
@@ -131,7 +126,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           userName={firstName}
           userInitial={firstName[0].toUpperCase()}
           userAvatarUrl={userProfile?.avatar_url || null}
-          onSignOut={handleSignOut}
+          onSignOut={signOut}
           profilePath={profilePath}
         />
       </Sidebar>

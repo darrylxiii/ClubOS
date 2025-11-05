@@ -28,17 +28,31 @@ export const useUserPresence = () => {
 
     // Set user offline when leaving
     const setOffline = async () => {
-      const { error } = await supabase
-        .from('user_presence')
-        .update({
-          status: 'offline',
-          last_seen: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        .eq('user_id', user.id);
+      try {
+        // Check if we still have a valid session
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          console.log('[Presence] No active session, skipping offline update');
+          return;
+        }
 
-      if (error) {
-        console.error('Error setting user offline:', error);
+        const { error } = await supabase
+          .from('user_presence')
+          .update({
+            status: 'offline',
+            last_seen: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('user_id', user.id);
+
+        if (error) {
+          // Only log non-session errors
+          if (!error.message.includes('session') && !error.message.includes('JWT')) {
+            console.error('Error setting user offline:', error);
+          }
+        }
+      } catch (err) {
+        // Silently fail - this is expected during sign-out
       }
     };
 
@@ -66,7 +80,7 @@ export const useUserPresence = () => {
       clearInterval(intervalId);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('beforeunload', setOffline);
-      setOffline();
+      // Don't call setOffline() here - it causes race conditions during sign-out
     };
   }, [user]);
 };

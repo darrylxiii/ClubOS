@@ -63,13 +63,45 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     console.log("[Auth] Signing out");
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      console.error("[Auth] Sign out error:", error);
+    
+    try {
+      // Step 1: Set user offline first (with session still valid)
+      if (user?.id) {
+        try {
+          await supabase
+            .from('user_presence')
+            .update({
+              status: 'offline',
+              last_seen: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq('user_id', user.id);
+        } catch (presenceError) {
+          // Non-critical, continue with sign out
+          console.log('[Auth] Presence update skipped');
+        }
+      }
+
+      // Step 2: Sign out from Supabase with global scope
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      if (error) {
+        console.error("[Auth] Sign out error:", error);
+        // Don't throw - still proceed with local cleanup
+      }
+
+      // Step 3: Clear local state
+      setSession(null);
+      setUser(null);
+
+      // Step 4: Navigate to auth page (let React Router handle it)
+      navigate("/auth", { replace: true });
+    } catch (error) {
+      console.error("[Auth] Sign out failed:", error);
+      // Force navigation even if sign out fails
+      setSession(null);
+      setUser(null);
+      navigate("/auth", { replace: true });
     }
-    setSession(null);
-    setUser(null);
-    navigate("/auth");
   };
 
   return (
