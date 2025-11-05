@@ -101,16 +101,16 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.send-email-verification]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-sms-verification]
-verify_jwt = true
+verify_jwt = false
 
 [functions.verify-email-code]
-verify_jwt = true
+verify_jwt = false
 
 [functions.verify-sms-code]
-verify_jwt = true
+verify_jwt = false
 
 # Public endpoints (intentionally no JWT for guest access)
 [functions.create-booking]
