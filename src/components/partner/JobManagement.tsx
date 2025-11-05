@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Plus, Briefcase, MapPin, DollarSign, LayoutDashboard, Edit, Trash2 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
-import { EditJobDialog } from "./EditJobDialog";
+import { EditJobSheet } from "./EditJobSheet";
 
 interface JobManagementProps {
   companyId: string;
@@ -239,7 +239,7 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
       />
       
       {selectedJob && (
-        <EditJobDialog
+        <EditJobSheet
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           job={selectedJob}

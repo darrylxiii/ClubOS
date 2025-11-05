@@ -22,7 +22,7 @@ import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { AddStageDialog } from "@/components/partner/AddStageDialog";
 import { AdminJobTools } from "@/components/partner/AdminJobTools";
-import { EditJobDialog } from "@/components/partner/EditJobDialog";
+import { EditJobSheet } from "@/components/partner/EditJobSheet";
 import { JobDocuments } from "@/components/partner/JobDocuments";
 import { JobAnalytics } from "@/components/partner/JobAnalytics";
 import {
@@ -884,9 +884,9 @@ export default function JobDashboard() {
         />
       )}
 
-      {/* Edit Job Dialog */}
+      {/* Edit Job Sheet */}
       {job && (
-        <EditJobDialog
+        <EditJobSheet
           open={editDialogOpen}
           onOpenChange={setEditDialogOpen}
           job={job}

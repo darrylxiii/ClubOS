@@ -10,7 +10,7 @@ import { ResponsibilityGrid } from "@/components/jobs/ResponsibilityGrid";
 import { BenefitsShowcase } from "@/components/jobs/BenefitsShowcase";
 import { ApplicationTimeline } from "@/components/jobs/ApplicationTimeline";
 import { CompanyShowcase } from "@/components/jobs/CompanyShowcase";
-import { EditJobDialog } from "@/components/partner/EditJobDialog";
+import { EditJobSheet } from "@/components/partner/EditJobSheet";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -468,9 +468,9 @@ export default function JobDetail() {
         </div>
       </div>
 
-      {/* Edit Job Dialog */}
+      {/* Edit Job Sheet */}
       {canEdit && job && (
-        <EditJobDialog
+        <EditJobSheet
           open={isEditDialogOpen}
           onOpenChange={setIsEditDialogOpen}
           job={job}
