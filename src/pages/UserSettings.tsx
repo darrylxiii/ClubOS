@@ -1535,14 +1535,15 @@ const Profile = () => {
             <TabsContent value="preferences" className="space-y-6">
               {/* Preferred Work Locations */}
               <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-accent" />
-                Preferred Work Locations
-              </CardTitle>
-              <CardDescription>
-                Specify where you'd like to work - add multiple cities or toggle remote
-              </CardDescription>
-            </CardHeader>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-accent" />
+                    Preferred Work Locations
+                  </CardTitle>
+                  <CardDescription>
+                    Specify where you'd like to work - add multiple cities or toggle remote
+                  </CardDescription>
+                </CardHeader>
             <CardContent className="space-y-4">
               {/* Remote Toggle */}
               <div className="flex items-center justify-between p-4 border-2 border-accent/20 rounded-lg bg-accent/5">
@@ -2729,7 +2730,39 @@ const Profile = () => {
               </div>
             </CardContent>
           </Card>
-          
+            </TabsContent>
+
+            {/* Privacy Tab - placeholder for now */}
+            <TabsContent value="privacy" className="space-y-6">
+              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Privacy Settings</CardTitle>
+                  <CardDescription>Coming soon</CardDescription>
+                </CardHeader>
+              </Card>
+            </TabsContent>
+
+            {/* Resume Tab - placeholder for now */}
+            <TabsContent value="resume" className="space-y-6">
+              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Resume</CardTitle>
+                  <CardDescription>Coming soon</CardDescription>
+                </CardHeader>
+              </Card>
+            </TabsContent>
+
+            {/* Connections Tab - placeholder for now */}
+            <TabsContent value="connections" className="space-y-6">
+              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle>Connections</CardTitle>
+                  <CardDescription>Coming soon</CardDescription>
+                </CardHeader>
+              </Card>
+            </TabsContent>
+          </Tabs>
+
           <div className="text-center pb-6">
             <p className="text-sm text-muted-foreground">
               ✨ All changes are automatically saved
