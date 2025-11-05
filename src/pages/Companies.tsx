@@ -291,7 +291,7 @@ export default function Companies() {
         </div>
 
         {/* Overall Metrics Dashboard */}
-        {overallMetrics && <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {overallMetrics && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
             <Card className="border-2 hover-scale">
               <CardHeader className="pb-3">
                 <CardDescription className="text-xs uppercase tracking-wide">Companies</CardDescription>
@@ -346,7 +346,7 @@ export default function Companies() {
         {/* Filters & Search */}
         <Card className="border-2">
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="md:col-span-2 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input type="text" placeholder="Search companies, industries, locations..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
@@ -492,7 +492,7 @@ export default function Companies() {
                     <CollapsibleContent>
                       <CardContent className="border-t pt-6 space-y-6">
                         {/* Detailed Analytics */}
-                        {metrics && <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {metrics && <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <Card className="bg-card/50">
                               <CardHeader className="pb-2">
                                 <CardDescription className="text-xs flex items-center gap-1">

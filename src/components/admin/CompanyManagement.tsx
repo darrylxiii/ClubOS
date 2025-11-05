@@ -192,7 +192,7 @@ export function CompanyManagement() {
     <div className="space-y-6">
       {/* Overall Statistics */}
       {overallStats && (
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-3">
               <CardDescription>Total Companies</CardDescription>
@@ -346,7 +346,7 @@ export function CompanyManagement() {
                         <div className="space-y-4">
                           {/* Detailed Stats */}
                           {stats && (
-                            <div className="grid grid-cols-4 gap-4 pb-4 border-b">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-4 border-b">
                               <div>
                                 <div className="text-xs text-muted-foreground mb-1">Profile Views</div>
                                 <div className="flex items-center gap-2">
@@ -379,7 +379,7 @@ export function CompanyManagement() {
                           )}
 
                           {/* Company Details */}
-                          <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                             {company.headquarters_location && (
                               <div>
                                 <div className="text-xs text-muted-foreground mb-1">Location</div>

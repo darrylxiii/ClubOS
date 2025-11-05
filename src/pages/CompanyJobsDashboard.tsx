@@ -254,7 +254,7 @@ const CompanyJobsDashboard = () => {
         </div>
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="grid w-full grid-cols-3 max-w-full sm:max-w-md">
+          <TabsList className="grid w-full grid-cols-3 max-w-full sm:max-w-md h-auto min-h-[44px]">
             <TabsTrigger value="jobs" className="text-xs sm:text-sm">
               <Briefcase className="w-4 h-4 sm:mr-2" />
               <span className="hidden sm:inline">Jobs</span>

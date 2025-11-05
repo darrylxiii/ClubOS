@@ -38,7 +38,7 @@ export default function CandidateAnalytics() {
     return (
       <div className="container mx-auto py-8 space-y-6">
         <Skeleton className="h-10 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-32" />
           ))}
@@ -137,7 +137,7 @@ export default function CandidateAnalytics() {
 
       {/* Detailed Analytics Tabs */}
       <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto min-h-[44px]">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="applications">Applications</TabsTrigger>
           <TabsTrigger value="interviews">Interviews</TabsTrigger>
@@ -146,7 +146,7 @@ export default function CandidateAnalytics() {
         </TabsList>
 
         <TabsContent value="profile" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader>
                 <CardTitle>Profile Views Trend</CardTitle>

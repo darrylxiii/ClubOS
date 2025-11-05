@@ -361,7 +361,7 @@ export default function CompanySettings() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Website</Label>
                   <Input
@@ -380,7 +380,7 @@ export default function CompanySettings() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Company Size</Label>
                   <Select
@@ -531,7 +531,7 @@ export default function CompanySettings() {
               <CardDescription>Customize your company's brand colors</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 <div>
                   <Label>Primary Color</Label>
                   <div className="flex gap-2">
@@ -579,7 +579,7 @@ export default function CompanySettings() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label>Heading Font</Label>
                   <Input
