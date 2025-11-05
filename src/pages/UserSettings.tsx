@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,8 +9,9 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, Loader2, MapPin, Globe, Eye, Download } from "lucide-react";
+import { User, Briefcase, DollarSign, Settings, Upload, Bell, Shield, Calendar, CheckCircle2, XCircle, FileText, Sparkles, X, Ban, Loader2, MapPin, Globe, Eye, Download, Lock, Link as LinkIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
@@ -30,6 +32,8 @@ import { AuthDiagnostics } from "@/components/AuthDiagnostics";
 const Profile = () => {
   const { user } = useAuth();
   const { role } = useUserRole();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = searchParams.get('tab') || 'profile';
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileData, setProfileData] = useState({
     firstName: "",
@@ -1316,6 +1320,11 @@ const Profile = () => {
     // Auto-save handles everything, no manual save needed
   };
 
+  const handleTabChange = (value: string) => {
+    setSearchParams({ tab: value });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <AppLayout>
       <div className="container mx-auto px-4 py-8">
@@ -1343,90 +1352,189 @@ const Profile = () => {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Role Switcher (only shows if user has multiple roles) */}
           <AdminRoleSwitcher />
-          
-          {/* Personal Information */}
-          <Card id="personal" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="w-5 h-5 text-accent" />
-                Personal Information
-              </CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {user && (
-                <AvatarUpload
-                  avatarUrl={avatarUrl}
-                  onAvatarChange={setAvatarUrl}
-                  userId={user.id}
-                  required={true}
-                />
-              )}
-              
-              <Separator />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    name="firstName"
-                    value={profileData.firstName}
-                    onChange={handleInputChange}
-                    className="bg-background/50"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    name="lastName"
-                    value={profileData.lastName}
-                    onChange={handleInputChange}
-                    className="bg-background/50"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <EmailVerification
-                  email={profileData.email}
-                  emailVerified={emailVerified}
-                  onEmailChange={handleInputChange}
-                  onVerificationComplete={handleEmailVerificationComplete}
-                />
-                <PhoneVerification
-                  phoneNumber={phoneNumber}
-                  phoneVerified={phoneVerified}
-                  onPhoneChange={handlePhoneChange}
-                  onVerificationComplete={handleVerificationComplete}
-                />
-              </div>
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6 mb-6">
+              <TabsTrigger value="profile" className="gap-2">
+                <User className="w-4 h-4" />
+                <span className="hidden sm:inline">Profile</span>
+              </TabsTrigger>
+              <TabsTrigger value="career" className="gap-2">
+                <Briefcase className="w-4 h-4" />
+                <span className="hidden sm:inline">Career</span>
+              </TabsTrigger>
+              <TabsTrigger value="preferences" className="gap-2">
+                <Settings className="w-4 h-4" />
+                <span className="hidden sm:inline">Preferences</span>
+              </TabsTrigger>
+              <TabsTrigger value="privacy" className="gap-2">
+                <Shield className="w-4 h-4" />
+                <span className="hidden sm:inline">Privacy</span>
+              </TabsTrigger>
+              <TabsTrigger value="resume" className="gap-2">
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">Resume</span>
+              </TabsTrigger>
+              <TabsTrigger value="connections" className="gap-2">
+                <LinkIcon className="w-4 h-4" />
+                <span className="hidden sm:inline">Connections</span>
+              </TabsTrigger>
+            </TabsList>
 
-              <div>
-                <Label htmlFor="location">Current Location</Label>
-                <Select value={profileData.location} onValueChange={(value) => {
-                  setProfileData({ ...profileData, location: value });
-                  debouncedSave();
-                }}>
-                  <SelectTrigger className="bg-background/50">
-                    <SelectValue placeholder="Select your current location" />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {cities.map((city) => (
-                      <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
-                        {city.name}, {city.country}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
+            {/* Profile Tab */}
+            <TabsContent value="profile" className="space-y-6">
+              {/* Personal Information */}
+              <Card id="personal" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <User className="w-5 h-5 text-accent" />
+                    Personal Information
+                  </CardTitle>
+                  <CardDescription>Update your personal details</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {user && (
+                    <AvatarUpload
+                      avatarUrl={avatarUrl}
+                      onAvatarChange={setAvatarUrl}
+                      userId={user.id}
+                      required={true}
+                    />
+                  )}
+                  
+                  <Separator />
 
-          {/* Preferred Work Locations */}
-          <Card id="work-locations" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
-            <CardHeader>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        name="firstName"
+                        value={profileData.firstName}
+                        onChange={handleInputChange}
+                        className="bg-background/50"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        name="lastName"
+                        value={profileData.lastName}
+                        onChange={handleInputChange}
+                        className="bg-background/50"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <EmailVerification
+                      email={profileData.email}
+                      emailVerified={emailVerified}
+                      onEmailChange={handleInputChange}
+                      onVerificationComplete={handleEmailVerificationComplete}
+                    />
+                    <PhoneVerification
+                      phoneNumber={phoneNumber}
+                      phoneVerified={phoneVerified}
+                      onPhoneChange={handlePhoneChange}
+                      onVerificationComplete={handleVerificationComplete}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="location">Current Location</Label>
+                    <Select value={profileData.location} onValueChange={(value) => {
+                      setProfileData({ ...profileData, location: value });
+                      debouncedSave();
+                    }}>
+                      <SelectTrigger className="bg-background/50">
+                        <SelectValue placeholder="Select your current location" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {cities.map((city) => (
+                          <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
+                            {city.name}, {city.country}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Professional Details */}
+              <Card id="preferences" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="w-5 h-5 text-accent" />
+                    Professional Details
+                  </CardTitle>
+                  <CardDescription>Your career information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label htmlFor="currentTitle">Current Title</Label>
+                    <Input
+                      id="currentTitle"
+                      name="currentTitle"
+                      value={profileData.currentTitle}
+                      onChange={handleInputChange}
+                      className="bg-background/50"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                    <Input
+                      id="linkedin"
+                      name="linkedin"
+                      type="url"
+                      value={profileData.linkedin}
+                      onChange={handleInputChange}
+                      placeholder="https://linkedin.com/in/yourprofile"
+                      className="bg-background/50"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="preferences">Career Preferences</Label>
+                    <Textarea
+                      id="preferences"
+                      name="preferences"
+                      value={profileData.preferences}
+                      onChange={handleInputChange}
+                      placeholder="e.g., Remote work, specific industries, company size..."
+                      rows={4}
+                      className="bg-background/50 resize-none"
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Career Tab - containing salary, employment, contract, blocklist */}
+            <TabsContent value="career" className="space-y-6">
+              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Briefcase className="w-5 h-5 text-accent" />
+                    Employment & Compensation
+                  </CardTitle>
+                  <CardDescription>
+                    Manage your career preferences and compensation expectations
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">Career settings section coming soon...</p>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            {/* Preferences Tab - with timezone, locations, stealth mode */}
+            <TabsContent value="preferences" className="space-y-6">
+              {/* Preferred Work Locations */}
+              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-accent" />
                 Preferred Work Locations
