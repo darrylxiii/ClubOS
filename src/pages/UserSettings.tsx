@@ -1657,8 +1657,24 @@ const Profile = () => {
             }}
           />
 
+          {/* Stealth Mode */}
+          <StealthModeToggle
+            stealthModeEnabled={stealthModeEnabled}
+            stealthModeLevel={stealthModeLevel}
+            allowStealthColdOutreach={allowStealthColdOutreach}
+            onStealthModeChange={handleStealthModeChange}
+            onStealthLevelChange={handleStealthLevelChange}
+            onColdOutreachChange={handleColdOutreachChange}
+          />
+
+          {/* AI Task Scheduling */}
+          <TaskSchedulingPreferences />
+        </TabsContent>
+
+        {/* Career Tab - containing salary, employment, contract, blocklist */}
+        <TabsContent value="career" className="space-y-6">
           {/* Professional Details */}
-          <Card id="preferences" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+          <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-accent" />
@@ -1706,193 +1722,9 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          {/* Social Connections */}
-          <SocialConnections
-            socialConnections={socialConnections}
-            musicConnections={musicConnections}
-            onUpdate={async () => {
-              const { data } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user?.id)
-                .single();
-              
-              if (data) {
-                setMusicConnections({
-                  spotifyConnected: (data as any).spotify_connected || false,
-                  appleMusicConnected: (data as any).apple_music_connected || false,
-                  spotifyPlaylists: (data as any).spotify_playlists || [],
-                  appleMusicPlaylists: (data as any).apple_music_playlists || [],
-                });
-                
-                // Update social connections
-                if (data.linkedin_connected) {
-                  setSocialConnections(prev => ({ ...prev, linkedin: true }));
-                }
-                if (data.instagram_connected && data.instagram_username) {
-                  setSocialConnections(prev => ({ 
-                    ...prev, 
-                    instagram: true, 
-                    instagramUsername: data.instagram_username 
-                  }));
-                }
-                if (data.twitter_connected && data.twitter_username) {
-                  setSocialConnections(prev => ({ 
-                    ...prev, 
-                    twitter: true, 
-                    twitterUsername: data.twitter_username 
-                  }));
-                }
-                if (data.github_connected && data.github_username) {
-                  setSocialConnections(prev => ({ 
-                    ...prev, 
-                    github: true, 
-                    githubUsername: data.github_username 
-                  }));
-                }
-              }
-            }}
-            onConnectSocial={handleConnectSocial}
-            onDisconnectSocial={handleDisconnectSocial}
-          />
-
-          {/* Resume/CV */}
-          <Card id="resume" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="w-5 h-5 text-accent" />
-                Resume/CV
-              </CardTitle>
-              <CardDescription>Upload and manage your resumes</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Upload new resume */}
-              <div className="border-2 border-dashed border-accent/30 rounded-lg hover:border-accent/50 transition-colors">
-                <input
-                  type="file"
-                  id="resume-upload"
-                  accept=".pdf,.doc,.docx"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <label htmlFor="resume-upload" className="cursor-pointer block p-8 text-center">
-                  <Upload className="w-12 h-12 mx-auto mb-4 text-accent" />
-                  <p className="text-sm font-medium mb-1">
-                    Click to upload new resume
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    PDF, DOC, or DOCX (Max 10MB)
-                  </p>
-                </label>
-              </div>
-
-              {/* List of uploaded resumes */}
-              {userResumes.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="text-sm font-medium">Your Resumes</h4>
-                  {userResumes.map((resume) => (
-                    <div key={resume.id} className="flex items-center justify-between p-3 border rounded-lg bg-card/30">
-                      <div className="flex items-center gap-3 flex-1">
-                        <FileText className="w-5 h-5 text-accent" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{resume.display_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {(resume.file_size / 1024 / 1024).toFixed(2)} MB • 
-                            {new Date(resume.uploaded_at).toLocaleDateString()}
-                            {resume.is_primary && <span className="ml-2 text-accent">• Primary</span>}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {!resume.is_primary && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleSetPrimaryResume(resume.id)}
-                            title="Set as primary"
-                          >
-                            <CheckCircle2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handlePreviewResume(resume.file_path, resume.file_name, resume.mime_type)}
-                          title="Preview"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDownloadResume(resume.file_path, resume.file_name)}
-                          title="Download"
-                        >
-                          <Download className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleDeleteResume(resume.id, resume.file_path)}
-                          title="Delete"
-                        >
-                          <X className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* The Quantum Club Resume */}
-          <Card id="tqc-resume" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-accent" />
-                The Quantum Club Resume
-              </CardTitle>
-              <CardDescription>
-                Create an AI-powered executive resume optimized for elite opportunities
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="p-6 border-2 border-accent/30 rounded-lg bg-accent/5">
-                  <div className="flex items-start gap-4">
-                    <div className="p-3 bg-accent/10 rounded-lg">
-                      <FileText className="w-6 h-6 text-accent" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold mb-2">Premium Resume Builder</h4>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Our AI analyzes your experience and creates a tailored resume that highlights your executive presence and achievements for premium positions.
-                      </p>
-                      <ul className="text-sm text-muted-foreground space-y-2 mb-4">
-                        <li>✓ Executive-level formatting and tone</li>
-                        <li>✓ ATS-optimized for top-tier recruiters</li>
-                        <li>✓ Highlights leadership and strategic impact</li>
-                        <li>✓ Multiple versions for different roles</li>
-                      </ul>
-                      <Button 
-                        type="button"
-                        disabled
-                        className="bg-gradient-accent text-background"
-                      >
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Coming Soon - Create TQC Resume
-                      </Button>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        This feature will be available soon
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+          {/* Resume/CV - moved to Resume tab */}
+          {/* Social Connections - moved to Connections tab */}
+          
           {/* Compensation Bands */}
           <Card id="salary" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
             <CardHeader>
@@ -2344,9 +2176,6 @@ const Profile = () => {
             </CardContent>
           </Card>
 
-          {/* AI Task Scheduling */}
-          <TaskSchedulingPreferences />
-
           {/* Notifications & Privacy Settings */}
           <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
             <CardHeader>
@@ -2499,16 +2328,6 @@ const Profile = () => {
 
           {/* Auth Diagnostics - for debugging */}
           {role === 'admin' && <AuthDiagnostics />}
-
-          {/* Stealth Mode */}
-          <StealthModeToggle
-            stealthModeEnabled={stealthModeEnabled}
-            stealthModeLevel={stealthModeLevel}
-            allowStealthColdOutreach={allowStealthColdOutreach}
-            onStealthModeChange={handleStealthModeChange}
-            onStealthLevelChange={handleStealthLevelChange}
-            onColdOutreachChange={handleColdOutreachChange}
-          />
 
           {/* Profile Sharing Settings */}
           <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
@@ -2742,24 +2561,196 @@ const Profile = () => {
               </Card>
             </TabsContent>
 
-            {/* Resume Tab - placeholder for now */}
+            {/* Resume Tab */}
             <TabsContent value="resume" className="space-y-6">
-              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
+              {/* Resume/CV */}
+              <Card id="resume" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
                 <CardHeader>
-                  <CardTitle>Resume</CardTitle>
-                  <CardDescription>Coming soon</CardDescription>
+                  <CardTitle className="flex items-center gap-2">
+                    <Upload className="w-5 h-5 text-accent" />
+                    Resume/CV
+                  </CardTitle>
+                  <CardDescription>Upload and manage your resumes</CardDescription>
                 </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Upload new resume */}
+                  <div className="border-2 border-dashed border-accent/30 rounded-lg hover:border-accent/50 transition-colors">
+                    <input
+                      type="file"
+                      id="resume-upload"
+                      accept=".pdf,.doc,.docx"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                    <label htmlFor="resume-upload" className="cursor-pointer block p-8 text-center">
+                      <Upload className="w-12 h-12 mx-auto mb-4 text-accent" />
+                      <p className="text-sm font-medium mb-1">
+                        Click to upload new resume
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        PDF, DOC, or DOCX (Max 10MB)
+                      </p>
+                    </label>
+                  </div>
+
+                  {/* List of uploaded resumes */}
+                  {userResumes.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">Your Resumes</h4>
+                      {userResumes.map((resume) => (
+                        <div key={resume.id} className="flex items-center justify-between p-3 border rounded-lg bg-card/30">
+                          <div className="flex items-center gap-3 flex-1">
+                            <FileText className="w-5 h-5 text-accent" />
+                            <div className="flex-1">
+                              <p className="text-sm font-medium">{resume.display_name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {(resume.file_size / 1024 / 1024).toFixed(2)} MB • 
+                                {new Date(resume.uploaded_at).toLocaleDateString()}
+                                {resume.is_primary && <span className="ml-2 text-accent">• Primary</span>}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {!resume.is_primary && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleSetPrimaryResume(resume.id)}
+                                title="Set as primary"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handlePreviewResume(resume.file_path, resume.file_name, resume.mime_type)}
+                              title="Preview"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDownloadResume(resume.file_path, resume.file_name)}
+                              title="Download"
+                            >
+                              <Download className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteResume(resume.id, resume.file_path)}
+                              title="Delete"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* The Quantum Club Resume */}
+              <Card id="tqc-resume" className="border-0 shadow-glow bg-card/50 backdrop-blur-sm scroll-mt-8">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-accent" />
+                    The Quantum Club Resume
+                  </CardTitle>
+                  <CardDescription>
+                    Create an AI-powered executive resume optimized for elite opportunities
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-6 border-2 border-accent/30 rounded-lg bg-accent/5">
+                      <div className="flex items-start gap-4">
+                        <div className="p-3 bg-accent/10 rounded-lg">
+                          <FileText className="w-6 h-6 text-accent" />
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-2">Premium Resume Builder</h4>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Our AI analyzes your experience and creates a tailored resume that highlights your executive presence and achievements for premium positions.
+                          </p>
+                          <ul className="text-sm text-muted-foreground space-y-2 mb-4">
+                            <li>✓ Executive-level formatting and tone</li>
+                            <li>✓ ATS-optimized for top-tier recruiters</li>
+                            <li>✓ Highlights leadership and strategic impact</li>
+                            <li>✓ Multiple versions for different roles</li>
+                          </ul>
+                          <Button 
+                            type="button"
+                            disabled
+                            className="bg-gradient-accent text-background"
+                          >
+                            <Sparkles className="w-4 h-4 mr-2" />
+                            Coming Soon - Create TQC Resume
+                          </Button>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            This feature will be available soon
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
               </Card>
             </TabsContent>
 
-            {/* Connections Tab - placeholder for now */}
+            {/* Connections Tab */}
             <TabsContent value="connections" className="space-y-6">
-              <Card className="border-0 shadow-glow bg-card/50 backdrop-blur-sm">
-                <CardHeader>
-                  <CardTitle>Connections</CardTitle>
-                  <CardDescription>Coming soon</CardDescription>
-                </CardHeader>
-              </Card>
+              <SocialConnections
+                socialConnections={socialConnections}
+                musicConnections={musicConnections}
+                onUpdate={async () => {
+                  const { data } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user?.id)
+                    .single();
+                  
+                  if (data) {
+                    setMusicConnections({
+                      spotifyConnected: (data as any).spotify_connected || false,
+                      appleMusicConnected: (data as any).apple_music_connected || false,
+                      spotifyPlaylists: (data as any).spotify_playlists || [],
+                      appleMusicPlaylists: (data as any).apple_music_playlists || [],
+                    });
+                    
+                    // Update social connections
+                    if (data.linkedin_connected) {
+                      setSocialConnections(prev => ({ ...prev, linkedin: true }));
+                    }
+                    if (data.instagram_connected && data.instagram_username) {
+                      setSocialConnections(prev => ({ 
+                        ...prev, 
+                        instagram: true, 
+                        instagramUsername: data.instagram_username 
+                      }));
+                    }
+                    if (data.twitter_connected && data.twitter_username) {
+                      setSocialConnections(prev => ({ 
+                        ...prev, 
+                        twitter: true, 
+                        twitterUsername: data.twitter_username 
+                      }));
+                    }
+                    if (data.github_connected && data.github_username) {
+                      setSocialConnections(prev => ({ 
+                        ...prev, 
+                        github: true, 
+                        githubUsername: data.github_username 
+                      }));
+                    }
+                  }
+                }}
+                onConnectSocial={handleConnectSocial}
+                onDisconnectSocial={handleDisconnectSocial}
+              />
             </TabsContent>
           </Tabs>
 
