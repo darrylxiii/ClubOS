@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,20 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
     company_id: '',
   });
 
+  // Memoize tool arrays to prevent unnecessary re-renders
+  const { requiredToolsData, niceToHaveToolsData } = useMemo(() => {
+    if (!job?.job_tools) return { requiredToolsData: [], niceToHaveToolsData: [] };
+    
+    return {
+      requiredToolsData: job.job_tools
+        .filter((jt: any) => jt.is_required)
+        .map((jt: any) => jt.tools_and_skills),
+      niceToHaveToolsData: job.job_tools
+        .filter((jt: any) => !jt.is_required)
+        .map((jt: any) => jt.tools_and_skills)
+    };
+  }, [job?.job_tools]);
+
   useEffect(() => {
     if (open && job) {
       // Pre-populate form with job data
@@ -54,21 +68,12 @@ export const EditJobDialog = ({ open, onOpenChange, job, onJobUpdated }: EditJob
       });
 
       // Pre-populate tools
-      if (job.job_tools) {
-        const required = job.job_tools
-          .filter((jt: any) => jt.is_required)
-          .map((jt: any) => jt.tools_and_skills);
-        const niceToHave = job.job_tools
-          .filter((jt: any) => !jt.is_required)
-          .map((jt: any) => jt.tools_and_skills);
-        
-        setRequiredTools(required);
-        setNiceToHaveTools(niceToHave);
-      }
+      setRequiredTools(requiredToolsData);
+      setNiceToHaveTools(niceToHaveToolsData);
 
       fetchCompanies();
     }
-  }, [open, job?.id]); // Only depend on open state and job ID, not entire job object
+  }, [open, job?.id, requiredToolsData, niceToHaveToolsData]);
 
   const fetchCompanies = async () => {
     try {

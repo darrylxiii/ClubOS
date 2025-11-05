@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, memo, useMemo } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +36,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   other: "Other",
 };
 
-export function ToolSelector({ selectedTools, onChange, placeholder = "Search tools..." }: ToolSelectorProps) {
+export const ToolSelector = memo(function ToolSelector({ selectedTools, onChange, placeholder = "Search tools..." }: ToolSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isOpen, setIsOpen] = useState(false);
@@ -122,7 +122,11 @@ export function ToolSelector({ selectedTools, onChange, placeholder = "Search to
                     className="flex items-center gap-3 p-3 hover:bg-accent cursor-pointer border-b last:border-b-0"
                     onClick={() => toggleTool(tool)}
                   >
-                    <Checkbox checked={isSelected} />
+                    <Checkbox 
+                      checked={isSelected}
+                      onCheckedChange={() => {}}
+                      className="pointer-events-none"
+                    />
                     {tool.logo_url && (
                       <img
                         src={tool.logo_url}
@@ -181,4 +185,9 @@ export function ToolSelector({ selectedTools, onChange, placeholder = "Search to
       )}
     </div>
   );
-}
+}, (prevProps, nextProps) => {
+  // Custom comparison - only re-render if tool IDs or placeholder change
+  const prevIds = prevProps.selectedTools.map(t => t.id).sort().join(',');
+  const nextIds = nextProps.selectedTools.map(t => t.id).sort().join(',');
+  return prevIds === nextIds && prevProps.placeholder === nextProps.placeholder;
+});
