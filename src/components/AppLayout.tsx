@@ -108,8 +108,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      {/* Global Header - Fixed Top */}
-      <header className="fixed top-0 left-0 right-0 h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[90] flex items-center justify-end px-4 gap-2 shadow-[var(--shadow-glass-md)] md:left-20">
+      {/* Global Header - Fixed Top - Mobile Optimized */}
+      <header className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[90] flex items-center justify-end px-2 sm:px-4 gap-1 sm:gap-2 shadow-[var(--shadow-glass-md)] md:left-20">
         <ThemeToggle />
         <GlobalRoleSwitcher />
         <MotionToggle />
@@ -136,13 +136,13 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         />
       </Sidebar>
 
-      {/* Main Content - Adjusted for sidebar */}
+      {/* Main Content - Adjusted for sidebar - Mobile Optimized */}
       <main className={cn(
         "flex-1 w-full md:ml-20",
         location.pathname === '/messages' ? 'overflow-hidden' : 'overflow-y-auto'
       )}>
         <div className={cn(
-          "min-h-screen pt-16",
+          "min-h-screen pt-14 sm:pt-16",
           location.pathname !== '/messages' && 'pb-4'
         )}>{children}</div>
       </main>

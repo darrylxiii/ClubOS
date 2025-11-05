@@ -381,28 +381,30 @@ export function EmailInbox() {
   }
 
   return (
-    <div className="flex flex-col h-full md:h-screen">
-      {/* Top Bar */}
-      <div className="border-b border-border p-3 md:p-4 flex items-center gap-2 md:gap-4 flex-wrap">
+    <div className="flex flex-col h-[calc(100dvh-3.5rem)] sm:h-[calc(100dvh-4rem)]">
+      {/* Top Bar - Mobile Optimized */}
+      <div className="border-b border-border p-2 sm:p-3 md:p-4 flex items-center gap-2 flex-wrap">
         <AdvancedSearchInput
           value={searchQuery}
           onChange={setSearchQuery}
           placeholder="Search emails..."
-          className="flex-1 min-w-[200px] max-w-2xl"
+          className="flex-1 min-w-[150px] sm:min-w-[200px] max-w-2xl"
         />
         <Button
           variant="outline"
           size="sm"
           onClick={syncEmails}
           disabled={syncing}
+          className="min-h-[44px]"
         >
-          <RefreshCw className={`h-4 w-4 mr-2 ${syncing ? "animate-spin" : ""}`} />
-          {syncing ? "Syncing..." : "Sync"}
+          <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""} sm:mr-2`} />
+          <span className="hidden sm:inline">{syncing ? "Syncing..." : "Sync"}</span>
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShowShortcuts(true)}
+          className="min-h-[44px] min-w-[44px]"
         >
           <HelpCircle className="h-4 w-4" />
         </Button>
@@ -418,13 +420,13 @@ export function EmailInbox() {
       )}
 
       {/* Main Content - Mobile responsive layout */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
         {/* Sidebar - Collapsible on mobile */}
         <div className={cn(
-          "md:block",
+          "md:block md:w-64 flex-shrink-0",
           selectedEmail && "hidden md:block"
         )}>
-          <div className="space-y-4 p-4">
+          <div className="space-y-2 sm:space-y-4 p-2 sm:p-4 h-full overflow-y-auto">
             <EmailSidebar
               currentFilter={filter}
               onFilterChange={setFilter}
@@ -438,7 +440,7 @@ export function EmailInbox() {
 
         {/* Email List - Hidden when email selected on mobile */}
         <div className={cn(
-          "w-full md:w-96 border-r border-border",
+          "w-full md:w-96 border-r border-border overflow-y-auto flex-shrink-0",
           selectedEmail && "hidden md:block"
         )}>
           <EmailList
@@ -468,12 +470,12 @@ export function EmailInbox() {
 
         {/* Email Detail - Full screen on mobile, flex on desktop */}
         {selectedEmail && (
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0">
             {/* Mobile back button */}
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden m-2"
+              className="md:hidden m-2 min-h-[44px]"
               onClick={() => setSelectedEmail(null)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />

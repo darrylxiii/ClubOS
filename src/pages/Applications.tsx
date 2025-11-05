@@ -102,10 +102,19 @@ export default function Applications() {
           </div>
 
           <Tabs defaultValue="active" className="w-full">
-            <TabsList className="grid w-full max-w-2xl grid-cols-3">
-              <TabsTrigger value="active">Active ({activeApplications.length})</TabsTrigger>
-              <TabsTrigger value="rejected">Rejected ({rejectedApplications.length})</TabsTrigger>
-              <TabsTrigger value="archived">Archived ({archivedApplications.length})</TabsTrigger>
+            <TabsList className="grid w-full max-w-2xl grid-cols-3 h-auto min-h-[44px]">
+              <TabsTrigger value="active" className="min-h-[44px] text-xs sm:text-sm">
+                <span className="hidden sm:inline">Active ({activeApplications.length})</span>
+                <span className="sm:hidden">Active</span>
+              </TabsTrigger>
+              <TabsTrigger value="rejected" className="min-h-[44px] text-xs sm:text-sm">
+                <span className="hidden sm:inline">Rejected ({rejectedApplications.length})</span>
+                <span className="sm:hidden">Rejected</span>
+              </TabsTrigger>
+              <TabsTrigger value="archived" className="min-h-[44px] text-xs sm:text-sm">
+                <span className="hidden sm:inline">Archived ({archivedApplications.length})</span>
+                <span className="sm:hidden">Archived</span>
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="active" className="space-y-6 mt-6">
@@ -206,10 +215,11 @@ function ApplicationCard({ application }: { application: Application }) {
             </div>
           </div>
           
-          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
             <Button 
               size="icon" 
               variant="ghost"
+              className="min-h-[44px] min-w-[44px]"
               onClick={(e) => {
                 e.stopPropagation();
                 toast.info("Share application feature coming soon");
@@ -220,6 +230,7 @@ function ApplicationCard({ application }: { application: Application }) {
             <Button 
               size="icon" 
               variant="ghost"
+              className="min-h-[44px] min-w-[44px]"
               onClick={(e) => {
                 e.stopPropagation();
                 toast.info("Export application history feature coming soon");
@@ -232,8 +243,8 @@ function ApplicationCard({ application }: { application: Application }) {
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {/* Top Row: 2 Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Top Row: 2 Cards - Mobile First Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Strategist Contact Card */}
           <StrategistContactCard 
             strategist={application.talent_strategist}
@@ -253,8 +264,8 @@ function ApplicationCard({ application }: { application: Application }) {
           )}
         </div>
 
-        {/* Bottom Row: 3 Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {/* Bottom Row: 3 Cards - Mobile First Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {/* Progression Heatmap */}
           <ProgressionHeatmap
             currentStage={application.current_stage_index}
