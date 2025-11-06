@@ -8608,7 +8608,7 @@ export type Database = {
           ip_address: unknown
           phone: string
           user_agent: string | null
-          user_id: string
+          user_id: string | null
           verified_at: string | null
         }
         Insert: {
@@ -8619,7 +8619,7 @@ export type Database = {
           ip_address?: unknown
           phone: string
           user_agent?: string | null
-          user_id: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Update: {
@@ -8630,7 +8630,7 @@ export type Database = {
           ip_address?: unknown
           phone?: string
           user_agent?: string | null
-          user_id?: string
+          user_id?: string | null
           verified_at?: string | null
         }
         Relationships: []
