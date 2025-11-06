@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail, Lock } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, User, Briefcase, Target, DollarSign, MapPin, Phone, Upload, X, Mail, Lock, AlertCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useEmailVerification } from "@/hooks/useEmailVerification";
@@ -19,6 +19,16 @@ import { useCountryDetection } from "@/hooks/useCountryDetection";
 import { Slider } from "@/components/ui/slider";
 import { CandidateApplicationTracker } from "./CandidateApplicationTracker";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const STEPS = ["contact", "professional", "career", "compensation", "preferences", "password"];
 
@@ -64,6 +74,8 @@ export function CandidateOnboardingSteps() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmailExistsDialog, setShowEmailExistsDialog] = useState(false);
+  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
 
   const [formData, setFormData] = useState({
     // Contact
@@ -138,15 +150,60 @@ export function CandidateOnboardingSteps() {
     }
   };
 
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      setIsCheckingEmail(true);
+      const { data, error } = await supabase.functions.invoke('check-email-exists', {
+        body: { email }
+      });
+
+      if (error) {
+        console.error('Error checking email:', error);
+        return false;
+      }
+
+      return data?.exists || false;
+    } catch (error) {
+      console.error('Error checking email:', error);
+      return false;
+    } finally {
+      setIsCheckingEmail(false);
+    }
+  };
+
+  const handleNavigateToLogin = () => {
+    const encodedEmail = encodeURIComponent(formData.email);
+    navigate(`/auth?email=${encodedEmail}`);
+  };
+
   const handleNext = async () => {
-    // Email verification on first step
-    if (currentStep === 0 && !emailVerified) {
-      const success = await sendEmailOTP(formData.email);
-      if (success) {
+    // Step 0: Contact info - check email and verify
+    if (currentStep === 0) {
+      if (!formData.email || !formData.full_name || !formData.phone || !formData.location) {
         toast({ 
-          title: "Verification code sent", 
-          description: "Please check your email and enter the code below" 
+          title: "Missing information", 
+          description: "Please fill in all required fields",
+          variant: "destructive"
         });
+        return;
+      }
+
+      // Check if email already exists
+      if (!emailVerified) {
+        const emailExists = await checkEmailExists(formData.email);
+        if (emailExists) {
+          setShowEmailExistsDialog(true);
+          return;
+        }
+
+        // Email is available, send verification code
+        const success = await sendEmailOTP(formData.email);
+        if (success) {
+          toast({ 
+            title: "Verification code sent", 
+            description: "Please check your email and enter the code below" 
+          });
+        }
       }
       return;
     }
@@ -1197,8 +1254,9 @@ export function CandidateOnboardingSteps() {
         </Button>
         
         {currentStep < 5 ? (
-          <Button onClick={handleNext}>
-            {currentStep === 0 && !emailVerified ? "Send Verification Code" :
+          <Button onClick={handleNext} disabled={isCheckingEmail}>
+            {isCheckingEmail ? "Checking..." :
+             currentStep === 0 && !emailVerified ? "Send Verification Code" :
              currentStep === 4 && !phoneVerified ? "Send Verification Code" :
              "Continue"}
             <ArrowRight className="w-4 h-4 ml-2" />
@@ -1210,6 +1268,47 @@ export function CandidateOnboardingSteps() {
           </Button>
         )}
       </div>
+
+      {/* Email Already Exists Dialog */}
+      <AlertDialog open={showEmailExistsDialog} onOpenChange={setShowEmailExistsDialog}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <div className="flex items-center justify-center mb-4">
+              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-accent" />
+              </div>
+            </div>
+            <AlertDialogTitle className="text-center text-2xl">
+              Account Already Exists
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-center space-y-4">
+              <p className="text-base">
+                An account with <span className="font-semibold text-foreground">{formData.email}</span> already exists.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Would you like to log in instead, or try a different email?
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel 
+              onClick={() => {
+                setFormData(prev => ({ ...prev, email: "" }));
+                setShowEmailExistsDialog(false);
+              }}
+              className="w-full sm:w-auto"
+            >
+              Try Different Email
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleNavigateToLogin}
+              className="w-full sm:w-auto bg-gradient-accent hover:opacity-90"
+            >
+              Go to Login
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

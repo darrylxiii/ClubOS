@@ -29,6 +29,7 @@ const Auth = () => {
   } = useTheme();
   const [searchParams] = useSearchParams();
   const inviteCode = searchParams.get("invite");
+  const prefillEmail = searchParams.get("email");
   const [isLogin, setIsLogin] = useState(!inviteCode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -68,6 +69,15 @@ const Auth = () => {
       validateInviteCode(inviteCode);
     }
   }, [inviteCode]);
+
+  // Pre-fill email from URL params
+  useEffect(() => {
+    if (prefillEmail) {
+      setEmail(decodeURIComponent(prefillEmail));
+      setIsLogin(true);
+      toast.info("Please enter your password to log in");
+    }
+  }, [prefillEmail]);
   const validateInviteCode = async (code: string) => {
     try {
       const {
