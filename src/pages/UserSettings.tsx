@@ -28,6 +28,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { SocialConnections } from "@/components/SocialConnections";
 import { AccountLinking } from "@/components/AccountLinking";
 import { AuthDiagnostics } from "@/components/AuthDiagnostics";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 
 const Profile = () => {
   const { user } = useAuth();
@@ -1444,21 +1445,15 @@ const Profile = () => {
 
                   <div>
                     <Label htmlFor="location">Current Location</Label>
-                    <Select value={profileData.location} onValueChange={(value) => {
-                      setProfileData({ ...profileData, location: value });
-                      debouncedSave();
-                    }}>
-                      <SelectTrigger className="bg-background/50">
-                        <SelectValue placeholder="Select your current location" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-[300px]">
-                        {cities.map((city) => (
-                          <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
-                            {city.name}, {city.country}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <LocationAutocomplete
+                      value={profileData.location}
+                      onChange={(value) => {
+                        setProfileData({ ...profileData, location: value });
+                        debouncedSave();
+                      }}
+                      placeholder="Type to search cities worldwide..."
+                      className="bg-background/50"
+                    />
                   </div>
                 </CardContent>
               </Card>

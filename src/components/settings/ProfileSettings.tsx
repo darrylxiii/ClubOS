@@ -11,6 +11,7 @@ import { AvatarUpload } from '@/components/AvatarUpload';
 import { EmailVerification } from '@/components/EmailVerification';
 import { PhoneVerification } from '@/components/PhoneVerification';
 import { Switch } from '@/components/ui/switch';
+import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
 
 interface ProfileSettingsProps {
   user: any;
@@ -131,18 +132,11 @@ export const ProfileSettings = ({
 
           <div className="space-y-2">
             <Label htmlFor="location">Current Location</Label>
-            <Select value={locationCity} onValueChange={setLocationCity}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your current location" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {cities.map((city) => (
-                  <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
-                    {city.name}, {city.country}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <LocationAutocomplete
+              value={locationCity}
+              onChange={setLocationCity}
+              placeholder="Type to search cities worldwide..."
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

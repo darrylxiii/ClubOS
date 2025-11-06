@@ -8,6 +8,7 @@ import { User, Briefcase } from 'lucide-react';
 import { AvatarUpload } from '@/components/AvatarUpload';
 import { PhoneVerification } from '@/components/PhoneVerification';
 import { EmailVerification } from '@/components/EmailVerification';
+import { LocationAutocomplete } from '@/components/ui/location-autocomplete';
 
 interface ProfileTabProps {
   user: any;
@@ -113,24 +114,15 @@ export const ProfileTab = ({
 
           <div>
             <Label htmlFor="location">Current Location</Label>
-            <Select 
-              value={profileData.location} 
-              onValueChange={(value) => {
+            <LocationAutocomplete
+              value={profileData.location}
+              onChange={(value) => {
                 setProfileData({ ...profileData, location: value });
                 debouncedSave();
               }}
-            >
-              <SelectTrigger className="bg-background/50">
-                <SelectValue placeholder="Select your current location" />
-              </SelectTrigger>
-              <SelectContent className="max-h-[300px]">
-                {cities.map((city) => (
-                  <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
-                    {city.name}, {city.country}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder="Type to search cities worldwide..."
+              className="bg-background/50"
+            />
           </div>
         </CardContent>
       </Card>

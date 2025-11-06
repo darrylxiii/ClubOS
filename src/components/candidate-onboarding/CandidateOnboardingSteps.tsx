@@ -18,6 +18,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 import { useCountryDetection } from "@/hooks/useCountryDetection";
 import { Slider } from "@/components/ui/slider";
 import { CandidateApplicationTracker } from "./CandidateApplicationTracker";
+import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 
 const STEPS = ["contact", "professional", "career", "compensation", "preferences", "password"];
 
@@ -573,18 +574,14 @@ export function CandidateOnboardingSteps() {
 
             <div>
               <Label>Current Location (Optional)</Label>
-              <Select value={formData.location} onValueChange={(value) => setFormData({ ...formData, location: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select your current location" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[300px]">
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={`${city.name}, ${city.country}`}>
-                      {city.name}, {city.country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <LocationAutocomplete
+                value={formData.location}
+                onChange={(value) => setFormData({ ...formData, location: value })}
+                placeholder="Type to search cities worldwide..."
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                Start typing to see suggestions from cities worldwide
+              </p>
             </div>
           </div>
         );
