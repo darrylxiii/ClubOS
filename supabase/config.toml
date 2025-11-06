@@ -112,6 +112,9 @@ verify_jwt = false
 [functions.verify-sms-code]
 verify_jwt = false
 
+[functions.check-email-exists]
+verify_jwt = false
+
 # Public endpoints (intentionally no JWT for guest access)
 [functions.create-booking]
 verify_jwt = false
