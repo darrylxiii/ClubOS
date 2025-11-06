@@ -25,21 +25,28 @@ export function VirtualEmailList({
   const virtualizer = useVirtualizer({
     count: emails.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 100, // Estimated height of each email row
-    overscan: 5, // Render 5 extra items above/below visible area
+    estimateSize: () => 100,
+    overscan: 5,
+    getItemKey: (index) => emails[index]?.id || index,
   });
 
   return (
     <div
       ref={parentRef}
       className="flex-1 overflow-auto scroll-smooth"
-      style={{ height: "100%", overflow: "auto" }}
+      style={{ 
+        height: "100%", 
+        overflow: "auto",
+        WebkitOverflowScrolling: "touch",
+      }}
     >
       <div
         style={{
           height: `${virtualizer.getTotalSize()}px`,
           width: "100%",
           position: "relative",
+          minHeight: "80px",
+          contain: "layout style paint",
         }}
       >
         {virtualizer.getVirtualItems().map((virtualRow) => {
@@ -53,6 +60,7 @@ export function VirtualEmailList({
                 left: 0,
                 width: "100%",
                 transform: `translateY(${virtualRow.start}px)`,
+                willChange: "transform",
               }}
             >
               <EmailRow

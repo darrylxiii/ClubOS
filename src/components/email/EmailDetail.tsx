@@ -84,28 +84,29 @@ export function EmailDetail({
     : null;
 
   return (
-    <div key={email.id} className="flex-1 flex flex-col bg-background transition-all duration-200 ease-in-out">
-      {/* Header */}
-      <div className="border-b border-border p-4 flex items-center gap-2">
-        <Button variant="ghost" size="sm" onClick={onReply}>
-          <Reply className="h-4 w-4 mr-2" />
-          Reply
+    <div key={email.id} className="flex-1 flex flex-col bg-background transition-all duration-200 ease-in-out overflow-hidden">
+      {/* Header - Responsive */}
+      <div className="border-b border-border p-2 sm:p-3 md:p-4 flex items-center gap-1 sm:gap-2 flex-wrap flex-shrink-0">
+        <Button variant="ghost" size="sm" onClick={onReply} className="min-h-[44px]">
+          <Reply className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Reply</span>
         </Button>
-        <Button variant="ghost" size="sm" onClick={onForward}>
-          <Forward className="h-4 w-4 mr-2" />
-          Forward
+        <Button variant="ghost" size="sm" onClick={onForward} className="min-h-[44px]">
+          <Forward className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Forward</span>
         </Button>
-        <div className="flex-1" />
-        <Button variant="ghost" size="icon" onClick={onArchive}>
+        <div className="flex-1 min-w-0" />
+        <Button variant="ghost" size="icon" onClick={onArchive} className="min-h-[44px] min-w-[44px] flex-shrink-0">
           <Archive className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" size="icon" onClick={onDelete}>
+        <Button variant="ghost" size="icon" onClick={onDelete} className="min-h-[44px] min-w-[44px] flex-shrink-0">
           <Trash2 className="h-4 w-4" />
         </Button>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => onToggleStar(!email.is_starred)}
+          className="min-h-[44px] min-w-[44px] flex-shrink-0"
         >
           <Star
             className={
@@ -117,11 +118,11 @@ export function EmailDetail({
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px] flex-shrink-0">
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="z-50 bg-popover">
             <DropdownMenuItem onClick={onMarkAsUnread}>
               <Mail className="mr-2 h-4 w-4" />
               Mark as unread
@@ -142,14 +143,14 @@ export function EmailDetail({
         </DropdownMenu>
       </div>
 
-      <ScrollArea className="flex-1">
-        <div className="p-6 space-y-6 max-w-full overflow-hidden">
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6 max-w-full overflow-hidden">
           {/* Subject */}
-          <h1 className="text-2xl font-semibold">{email.subject}</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold break-words">{email.subject}</h1>
 
-          {/* Sender Info */}
-          <div className="flex items-center gap-3">
-            <Avatar className="h-12 w-12">
+          {/* Sender Info - Responsive */}
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
               {email.from_avatar_url && (
                 <AvatarImage src={email.from_avatar_url} alt={email.from_name || email.from_email} />
               )}
@@ -157,21 +158,26 @@ export function EmailDetail({
                 {getInitials(email.from_name || email.from_email)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <div className="font-medium">
+            <div className="flex-1 min-w-0 overflow-hidden">
+              <div className="font-medium truncate">
                 {email.from_name || email.from_email}
               </div>
-              <div className="text-sm text-muted-foreground">
+              <div className="text-sm text-muted-foreground truncate">
                 {email.from_email}
               </div>
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-xs sm:text-sm text-muted-foreground flex-shrink-0 hidden sm:block">
               {format(new Date(email.email_date), "MMM d, yyyy 'at' h:mm a")}
             </div>
           </div>
 
+          {/* Mobile date */}
+          <div className="text-xs text-muted-foreground sm:hidden">
+            {format(new Date(email.email_date), "MMM d, yyyy 'at' h:mm a")}
+          </div>
+
           {/* To/Cc */}
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-muted-foreground break-words">
             <span>To: </span>
             {email.to_emails.map((to, i) => (
               <span key={i}>
@@ -240,12 +246,13 @@ export function EmailDetail({
           )}
 
           {/* Email Body */}
-          <div className="prose prose-sm dark:prose-invert max-w-none overflow-x-auto break-words">
+          <div className="prose prose-sm dark:prose-invert max-w-full overflow-x-auto break-words">
             <style>{`
               .email-body-wrapper {
                 max-width: 100% !important;
                 overflow-x: auto !important;
                 overflow-y: visible !important;
+                word-break: break-word !important;
               }
               .email-body-wrapper * {
                 max-width: 100% !important;
@@ -286,22 +293,27 @@ export function EmailDetail({
             {sanitizedHtml ? (
               <div 
                 className="email-body-wrapper break-words overflow-hidden bg-transparent dark:bg-transparent"
-                style={{ unicodeBidi: 'normal' }}
+                style={{ 
+                  unicodeBidi: 'normal',
+                  maxWidth: '100%',
+                  overflowWrap: 'break-word',
+                  wordBreak: 'break-word',
+                }}
                 dangerouslySetInnerHTML={{ __html: sanitizedHtml }} 
               />
             ) : (
-              <pre className="whitespace-pre-wrap font-sans break-words overflow-x-auto">
+              <pre className="whitespace-pre-wrap font-sans break-words overflow-x-auto max-w-full">
                 {email.body_text || email.snippet}
               </pre>
             )}
           </div>
 
-          {/* Attachments */}
+          {/* Attachments - Responsive Grid */}
           {email.has_attachments && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm font-medium">
-                <Paperclip className="h-4 w-4" />
-                {email.attachment_count} attachment(s)
+                <Paperclip className="h-4 w-4 flex-shrink-0" />
+                <span>{email.attachment_count} attachment(s)</span>
               </div>
             </div>
           )}

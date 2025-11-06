@@ -420,11 +420,11 @@ export function EmailInbox() {
       )}
 
       {/* Main Content - Mobile responsive layout */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0">
-        {/* Sidebar - Collapsible on mobile */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
+        {/* Sidebar - Collapsible on mobile and tablet when email selected */}
         <div className={cn(
-          "md:block md:w-64 flex-shrink-0",
-          selectedEmail && "hidden md:block"
+          "md:block md:w-60 lg:w-64 flex-shrink-0 border-r border-border",
+          selectedEmail && "hidden lg:block"
         )}>
           <div className="space-y-2 sm:space-y-4 p-2 sm:p-4 h-full overflow-y-auto">
             <EmailSidebar
@@ -438,9 +438,9 @@ export function EmailInbox() {
           </div>
         </div>
 
-        {/* Email List - Hidden when email selected on mobile */}
+        {/* Email List - Hidden when email selected on mobile/tablet */}
         <div className={cn(
-          "w-full md:w-96 border-r border-border overflow-y-auto flex-shrink-0",
+          "w-full md:w-80 lg:w-96 xl:w-[420px] border-r border-border overflow-y-auto flex-shrink-0 min-w-0",
           selectedEmail && "hidden md:block"
         )}>
           <EmailList
@@ -470,12 +470,12 @@ export function EmailInbox() {
 
         {/* Email Detail - Full screen on mobile, flex on desktop */}
         {selectedEmail && (
-          <div className="flex-1 overflow-y-auto min-h-0">
+          <div className="flex-1 overflow-hidden min-w-0 flex flex-col">
             {/* Mobile back button */}
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden m-2 min-h-[44px]"
+              className="md:hidden m-2 min-h-[44px] flex-shrink-0"
               onClick={() => setSelectedEmail(null)}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />

@@ -91,7 +91,7 @@ export function EmailRow({
         />
       </button>
 
-      <Avatar className="h-10 w-10">
+      <Avatar className="h-10 w-10 flex-shrink-0">
         {email.from_avatar_url ? (
           <AvatarImage 
             src={email.from_avatar_url} 
@@ -107,40 +107,49 @@ export function EmailRow({
         </AvatarFallback>
       </Avatar>
 
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
+      <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex items-center gap-2 mb-1 min-w-0">
           <span
             className={cn(
-              "font-medium truncate",
+              "font-medium truncate flex-1 min-w-0",
               !email.is_read && "font-semibold"
             )}
           >
             {email.from_name || email.from_email}
           </span>
           {email.ai_priority_score !== undefined && email.ai_priority_score >= 60 && (
-            <PriorityBadge
-              score={email.ai_priority_score}
-              reason={email.ai_priority_reason}
-              size="sm"
-            />
+            <div className="hidden xs:block flex-shrink-0">
+              <PriorityBadge
+                score={email.ai_priority_score}
+                reason={email.ai_priority_reason}
+                size="sm"
+              />
+            </div>
           )}
-          <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
+          <span className="hidden sm:inline text-xs text-muted-foreground whitespace-nowrap flex-shrink-0">
             {formatDistanceToNow(new Date(email.email_date), {
               addSuffix: true,
             })}
           </span>
         </div>
 
+        {/* Mobile timestamp */}
+        <div className="sm:hidden text-xs text-muted-foreground mb-1">
+          {formatDistanceToNow(new Date(email.email_date), {
+            addSuffix: true,
+          })}
+        </div>
+
         <div
           className={cn(
-            "text-sm truncate mb-1",
+            "text-sm truncate mb-1 min-w-0",
             !email.is_read ? "font-medium" : "text-muted-foreground"
           )}
         >
           {email.subject}
         </div>
 
-        <div className="text-xs text-muted-foreground truncate">
+        <div className="text-xs text-muted-foreground truncate min-w-0">
           {email.ai_summary || email.snippet}
         </div>
 
