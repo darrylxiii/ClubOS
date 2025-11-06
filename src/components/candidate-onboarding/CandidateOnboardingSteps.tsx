@@ -307,6 +307,34 @@ export function CandidateOnboardingSteps() {
         console.error("Profile update error:", profileError);
       }
 
+      // STEP 2.5: Move resume from onboarding folder to user's folder
+      if (formData.resume_url) {
+        try {
+          const oldPath = formData.resume_url.split('/resumes/')[1];
+          const fileName = oldPath.split('/')[1]; // Get filename from onboarding/filename
+          const newPath = `${authData.user.id}/${fileName}`;
+          
+          // Copy file to user's folder
+          const { error: copyError } = await supabase.storage
+            .from('resumes')
+            .copy(oldPath, newPath);
+          
+          if (!copyError) {
+            // Delete from onboarding folder
+            await supabase.storage.from('resumes').remove([oldPath]);
+            
+            // Update URL to new location
+            const { data: { publicUrl } } = supabase.storage
+              .from('resumes')
+              .getPublicUrl(newPath);
+            
+            formData.resume_url = publicUrl;
+          }
+        } catch (error) {
+          console.error('Error moving resume:', error);
+        }
+      }
+
       // STEP 3: Create candidate_profile entry for strategist assignment
       await supabase
         .from('candidate_profiles')
@@ -410,7 +438,7 @@ export function CandidateOnboardingSteps() {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${sessionId}_${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = `onboarding/${fileName}`;
 
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
