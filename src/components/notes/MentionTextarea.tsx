@@ -38,7 +38,7 @@ export const MentionTextarea = ({
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const mirrorDivRef = useRef<HTMLDivElement | null>(null);
+  
 
   // Filter team members based on search
   const filteredMembers = teamMembers.filter(member =>
@@ -52,68 +52,33 @@ export const MentionTextarea = ({
 
   // Extract mentioned user IDs from content
   const extractMentions = (content: string): string[] => {
-    const mentionPattern = /@\[([a-f0-9-]{36})\]/g;
+    const mentionPattern = /@\[([a-f0-9-]{36})\]\([^)]+\)/g;
     const matches = [...content.matchAll(mentionPattern)];
     return [...new Set(matches.map(match => match[1]))];
   };
 
-  // Calculate accurate cursor position for dropdown placement
-  const getCaretCoordinates = (textarea: HTMLTextAreaElement, position: number) => {
-    // Create or get mirror div
-    if (!mirrorDivRef.current) {
-      const div = document.createElement('div');
-      const computed = getComputedStyle(textarea);
-      
-      // Copy relevant styles for accurate measurement
-      const styles = [
-        'fontFamily', 'fontSize', 'fontWeight', 'letterSpacing',
-        'lineHeight', 'padding', 'border', 'boxSizing', 'whiteSpace',
-        'wordWrap', 'width'
-      ];
-      
-      styles.forEach(prop => {
-        (div.style as any)[prop] = (computed as any)[prop];
-      });
-      
-      div.style.position = 'absolute';
-      div.style.visibility = 'hidden';
-      div.style.height = 'auto';
-      div.style.overflowWrap = 'break-word';
-      div.style.top = '0';
-      div.style.left = '-9999px';
-      
-      document.body.appendChild(div);
-      mirrorDivRef.current = div;
-    }
+  // Calculate dropdown position based on @ symbol location
+  const getDropdownPosition = (textarea: HTMLTextAreaElement, atPosition: number) => {
+    const rect = textarea.getBoundingClientRect();
+    const style = window.getComputedStyle(textarea);
+    const lineHeight = parseInt(style.lineHeight) || 20;
+    const paddingTop = parseInt(style.paddingTop) || 12;
+    const paddingLeft = parseInt(style.paddingLeft) || 12;
     
-    const mirrorDiv = mirrorDivRef.current;
+    // Count lines before @ symbol
+    const textBeforeAt = textarea.value.slice(0, atPosition);
+    const lines = textBeforeAt.split('\n');
+    const currentLineNumber = lines.length - 1;
     
-    // Mirror text up to cursor position
-    const textBeforeCursor = textarea.value.slice(0, position);
-    mirrorDiv.textContent = textBeforeCursor;
+    // Calculate vertical position
+    const top = rect.top + window.scrollY + paddingTop + (currentLineNumber * lineHeight) + lineHeight + 4;
     
-    // Add span at cursor position to measure
-    const span = document.createElement('span');
-    span.textContent = '|';
-    mirrorDiv.appendChild(span);
+    // Calculate horizontal position
+    const left = rect.left + window.scrollX + paddingLeft;
     
-    const spanRect = span.getBoundingClientRect();
-    const textareaRect = textarea.getBoundingClientRect();
-    
-    return {
-      top: spanRect.top - textareaRect.top + textarea.scrollTop,
-      left: spanRect.left - textareaRect.left + textarea.scrollLeft
-    };
+    return { top, left };
   };
 
-  // Cleanup mirror div on unmount
-  useEffect(() => {
-    return () => {
-      if (mirrorDivRef.current && document.body.contains(mirrorDivRef.current)) {
-        document.body.removeChild(mirrorDivRef.current);
-      }
-    };
-  }, []);
 
   const handleTextChange = (newValue: string) => {
     const textarea = textareaRef.current;
@@ -133,12 +98,8 @@ export const MentionTextarea = ({
       if (!textAfterAt.includes(' ') && !textAfterAt.includes('\n')) {
         setMentionSearch(textAfterAt);
         
-        // Calculate dropdown position at @ symbol
-        const rect = textarea.getBoundingClientRect();
-        const caretCoords = getCaretCoordinates(textarea, lastAtIndex);
-        
-        const calculatedTop = rect.top + window.scrollY + caretCoords.top + 24;
-        const calculatedLeft = rect.left + window.scrollX + caretCoords.left;
+        // Calculate dropdown position using simplified method
+        const position = getDropdownPosition(textarea, lastAtIndex);
         
         // Ensure dropdown stays within viewport
         const dropdownWidth = 320;
@@ -147,8 +108,8 @@ export const MentionTextarea = ({
         const maxTop = window.innerHeight + window.scrollY - dropdownHeight - 20;
         
         setDropdownPosition({
-          top: Math.min(calculatedTop, maxTop),
-          left: Math.min(calculatedLeft, maxLeft)
+          top: Math.min(position.top, maxTop),
+          left: Math.min(position.left, maxLeft)
         });
         
         setShowMentions(true);
@@ -245,16 +206,11 @@ export const MentionTextarea = ({
     const handleScroll = () => {
       if (showMentions && textareaRef.current) {
         const textarea = textareaRef.current;
-        const cursorPos = textarea.selectionStart;
-        const textBeforeCursor = value.slice(0, cursorPos);
+        const textBeforeCursor = value.slice(0, textarea.selectionStart);
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
         
         if (lastAtIndex !== -1) {
-          const rect = textarea.getBoundingClientRect();
-          const caretCoords = getCaretCoordinates(textarea, lastAtIndex);
-          
-          const calculatedTop = rect.top + window.scrollY + caretCoords.top + 24;
-          const calculatedLeft = rect.left + window.scrollX + caretCoords.left;
+          const position = getDropdownPosition(textarea, lastAtIndex);
           
           const dropdownWidth = 320;
           const dropdownHeight = 300;
@@ -262,8 +218,8 @@ export const MentionTextarea = ({
           const maxTop = window.innerHeight + window.scrollY - dropdownHeight - 20;
           
           setDropdownPosition({
-            top: Math.min(calculatedTop, maxTop),
-            left: Math.min(calculatedLeft, maxLeft)
+            top: Math.min(position.top, maxTop),
+            left: Math.min(position.left, maxLeft)
           });
         }
       }
@@ -353,7 +309,7 @@ export const MentionTextarea = ({
       {showMentions && filteredMembers.length > 0 && createPortal(
         <div
           ref={dropdownRef}
-          className="fixed z-[99999] w-80 bg-popover border border-border rounded-lg shadow-2xl overflow-hidden"
+          className="fixed z-[99999] w-80 bg-popover border border-border rounded-lg shadow-2xl overflow-hidden backdrop-blur-sm"
           style={{
             top: `${dropdownPosition.top}px`,
             left: `${dropdownPosition.left}px`,
