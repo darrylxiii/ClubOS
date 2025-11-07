@@ -255,6 +255,30 @@ export type Database = {
           },
         ]
       }
+      activity_timeline: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_action_log: {
         Row: {
           action_data: Json | null
@@ -4961,6 +4985,35 @@ export type Database = {
             columns: ["discussion_id"]
             isOneToOne: false
             referencedRelation: "module_discussions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dismissed_jobs: {
+        Row: {
+          created_at: string | null
+          job_id: string
+          reason: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          job_id: string
+          reason?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          job_id?: string
+          reason?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dismissed_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
