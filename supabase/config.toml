@@ -184,3 +184,7 @@ verify_jwt = false
 
 [functions.send-email]
 verify_jwt = true
+
+# Note mention notification (triggered by database)
+[functions.send-note-mention-notification]
+verify_jwt = false
