@@ -299,7 +299,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
             notes.map(note => {
               const Icon = getNoteIcon(note.note_type);
               return (
-                <Card key={note.id} className={note.pinned ? 'border-primary' : ''}>
+                <Card key={note.id} id={`note-${note.id}`} className={note.pinned ? 'border-primary' : ''}>
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
@@ -361,9 +361,9 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
               .filter(n => n.note_type === type)
               .map(note => {
                 const Icon = getNoteIcon(note.note_type);
-                return (
-                  <Card key={note.id}>
-                    <CardContent className="pt-6">
+              return (
+                <Card key={note.id} id={`note-${note.id}`}>
+                  <CardContent className="pt-6">
                       <div className="text-sm whitespace-pre-wrap">
                         {renderNoteContentWithMentions(note.content)}
                       </div>

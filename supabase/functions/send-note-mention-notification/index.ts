@@ -113,7 +113,7 @@ Deno.serve(async (req) => {
             message: `${creator?.full_name || 'Someone'} mentioned you in a note about ${candidateName}`,
             type: 'mention',
             category: 'notes',
-            action_url: `/candidate/${candidateId}`,
+            action_url: `/candidate/${candidateId}?tab=team-assessment&section=notes&noteId=${noteId}`,
             metadata: {
               note_id: noteId,
               candidate_id: candidateId,
