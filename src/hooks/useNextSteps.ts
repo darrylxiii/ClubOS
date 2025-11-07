@@ -1,39 +1,44 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { 
+  detectCandidateStage, 
+  getNextStepsForStage,
+  getStageCompletionPercent,
+  getStageInfo,
+  getCompletedTasksCount,
+  getTotalTasksCount,
+  CandidateStage,
+  type UserJourneyData,
+  type JourneyTask
+} from '@/lib/candidateJourney';
 
-export interface NextStepTask {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  completed: boolean;
-  action: () => void;
-  taskKey: string;
-}
-
-export interface NextStepsData {
-  resumeUploaded: boolean;
-  calendarConnected: boolean;
-  hasApplications: boolean;
-  emailVerified: boolean;
-  phoneVerified: boolean;
-  hasLinkedIn: boolean;
-  hasBio: boolean;
-  hasAvatar: boolean;
+export interface NextStepsState {
+  tasks: JourneyTask[];
+  stage: CandidateStage;
+  stageInfo: {
+    name: string;
+    description: string;
+    color: string;
+  };
+  stageCompletion: number;
+  overallProgress: {
+    completed: number;
+    total: number;
+    percent: number;
+  };
+  userData: UserJourneyData | null;
 }
 
 export const useNextSteps = () => {
   const { user } = useAuth();
-  const [data, setData] = useState<NextStepsData>({
-    resumeUploaded: false,
-    calendarConnected: false,
-    hasApplications: false,
-    emailVerified: false,
-    phoneVerified: false,
-    hasLinkedIn: false,
-    hasBio: false,
-    hasAvatar: false,
+  const [state, setState] = useState<NextStepsState>({
+    tasks: [],
+    stage: CandidateStage.NEW_USER,
+    stageInfo: getStageInfo(CandidateStage.NEW_USER),
+    stageCompletion: 0,
+    overallProgress: { completed: 0, total: getTotalTasksCount(), percent: 0 },
+    userData: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -47,10 +52,10 @@ export const useNextSteps = () => {
       setLoading(true);
 
       // Fetch all data in parallel
-      const [profileRes, calendarRes, applicationsRes] = await Promise.all([
+      const [profileRes, calendarRes, applicationsRes, userMetaRes] = await Promise.all([
         supabase
           .from('profiles')
-          .select('resume_url, email_verified, phone_verified, linkedin_url, career_preferences, avatar_url')
+          .select('resume_url, email_verified, phone_verified, linkedin_url, career_preferences, avatar_url, created_at')
           .eq('id', user.id)
           .single(),
         supabase
@@ -61,22 +66,60 @@ export const useNextSteps = () => {
         supabase
           .from('applications')
           .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
+          .eq('user_id', user.id),
+        supabase
+          .from('profiles')
+          .select('created_at, updated_at')
+          .eq('id', user.id)
+          .single()
       ]);
 
       const profile = profileRes.data;
       const calendarCount = calendarRes.count || 0;
       const applicationsCount = applicationsRes.count || 0;
 
-      setData({
+      // Build user journey data
+      const userData: UserJourneyData = {
+        userId: user.id,
+        signupDate: profile?.created_at ? new Date(profile.created_at) : new Date(),
         resumeUploaded: !!profile?.resume_url,
         calendarConnected: calendarCount > 0,
-        hasApplications: applicationsCount > 0,
+        applicationsCount: applicationsCount,
+        interviewsScheduled: 0, // TODO: fetch from interviews table when available
         emailVerified: profile?.email_verified || false,
         phoneVerified: profile?.phone_verified || false,
-        hasLinkedIn: !!profile?.linkedin_url,
-        hasBio: !!profile?.career_preferences,
         hasAvatar: !!profile?.avatar_url,
+        hasLinkedIn: !!profile?.linkedin_url,
+        hasBio: !!(profile?.career_preferences && profile.career_preferences.length > 50),
+        hasCareerPreferences: !!profile?.career_preferences,
+        referralsCount: 0, // TODO: fetch from referrals table when available
+        notificationsConfigured: false, // TODO: check notification settings
+        clubSyncEnabled: false, // TODO: check club sync status
+        lastActive: userMetaRes.data?.updated_at ? new Date(userMetaRes.data.updated_at) : new Date(),
+      };
+
+      // Detect current stage
+      const currentStage = detectCandidateStage(userData);
+      
+      // Get next steps for this stage
+      const nextSteps = getNextStepsForStage(currentStage, userData);
+      
+      // Calculate progress
+      const stageCompletion = getStageCompletionPercent(currentStage, userData);
+      const completedCount = getCompletedTasksCount(userData);
+      const totalCount = getTotalTasksCount();
+      
+      setState({
+        tasks: nextSteps,
+        stage: currentStage,
+        stageInfo: getStageInfo(currentStage),
+        stageCompletion,
+        overallProgress: {
+          completed: completedCount,
+          total: totalCount,
+          percent: Math.round((completedCount / totalCount) * 100)
+        },
+        userData,
       });
     } catch (error) {
       console.error('Error fetching next steps:', error);
@@ -111,7 +154,7 @@ export const useNextSteps = () => {
   }, [fetchCompletionStatus]);
 
   return {
-    data,
+    ...state,
     loading,
     refetch: fetchCompletionStatus,
     markTaskComplete,
