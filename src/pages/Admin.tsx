@@ -12,6 +12,7 @@ import { AdminApplicationHub } from "@/components/admin/AdminApplicationHub";
 import { DataIntegrityChecker } from "@/components/admin/DataIntegrityChecker";
 import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
 import { SSOManagement } from "@/components/admin/SSOManagement";
+import { APIKeyManager } from "@/components/admin/APIKeyManager";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -68,12 +69,13 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7 max-w-6xl sticky top-4 z-20">
+            <TabsList className="grid w-full grid-cols-8 max-w-6xl sticky top-4 z-20">
               <TabsTrigger value="companies" onClick={(e) => e.currentTarget.blur()}>Companies</TabsTrigger>
               <TabsTrigger value="users" onClick={(e) => e.currentTarget.blur()}>Users & Roles</TabsTrigger>
               <TabsTrigger value="applications" onClick={(e) => e.currentTarget.blur()}>Applications</TabsTrigger>
               <TabsTrigger value="achievements" onClick={(e) => e.currentTarget.blur()}>Achievements</TabsTrigger>
               <TabsTrigger value="assessments" onClick={(e) => e.currentTarget.blur()}>Assessments</TabsTrigger>
+              <TabsTrigger value="api" onClick={(e) => e.currentTarget.blur()}>API</TabsTrigger>
               <TabsTrigger value="security" onClick={(e) => e.currentTarget.blur()}>Security</TabsTrigger>
               <TabsTrigger value="system" onClick={(e) => e.currentTarget.blur()}>System Health</TabsTrigger>
             </TabsList>
@@ -96,6 +98,10 @@ const Admin = () => {
 
           <TabsContent value="assessments" className="space-y-4">
             <AssessmentResultsManager />
+          </TabsContent>
+
+          <TabsContent value="api" className="space-y-4">
+            <APIKeyManager />
           </TabsContent>
 
           <TabsContent value="security" className="space-y-4">

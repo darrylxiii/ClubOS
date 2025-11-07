@@ -6,6 +6,18 @@ verify_jwt = true
 [functions.gdpr-delete]
 verify_jwt = true
 
+[functions.api-v1-jobs]
+verify_jwt = false
+
+[functions.api-v1-applications]
+verify_jwt = false
+
+[functions.api-v1-candidates]
+verify_jwt = false
+
+[functions.webhook-dispatcher]
+verify_jwt = false
+
 [functions.check-data-integrity]
 verify_jwt = false
 
