@@ -18,13 +18,10 @@ export const adminCandidateService = {
 
   // Get all candidates with filters
   async getAllCandidates(filters: UnifiedCandidateFilters = {}) {
-    let query = supabase
-      .from('candidate_profiles')
+    let query: any = supabase
+      .from('unified_candidate_view')
       .select('*');
     
-    if (filters.mergeStatus) {
-      query = query.eq('invitation_status', filters.mergeStatus);
-    }
     if (filters.strategistId) {
       query = query.eq('assigned_strategist_id', filters.strategistId);
     }
@@ -35,13 +32,28 @@ export const adminCandidateService = {
     }
     
     const { data, error } = await query.order('created_at', { ascending: false });
-    return { data, error };
+    
+    // Apply client-side filtering for merge status if needed
+    let filteredData = data;
+    if (data && filters.mergeStatus) {
+      if (filters.mergeStatus === 'merged') {
+        filteredData = data.filter((c: any) => c.invitation_status === 'registered');
+      } else if (filters.mergeStatus === 'unlinked') {
+        filteredData = data.filter((c: any) => 
+          !c.invitation_status || c.invitation_status === 'not_invited' || c.invitation_status === 'pending'
+        );
+      } else {
+        filteredData = data.filter((c: any) => c.invitation_status === filters.mergeStatus);
+      }
+    }
+    
+    return { data: filteredData, error };
   },
 
   // Export candidates to CSV
   async exportCandidatesCSV(candidateIds: string[]) {
     const { data, error } = await supabase
-      .from('candidate_profiles')
+      .from('unified_candidate_view')
       .select('*')
       .in('id', candidateIds);
     
@@ -51,10 +63,10 @@ export const adminCandidateService = {
     const headers = [
       'Name', 'Email', 'Phone', 'Current Title', 'Company', 'Years Experience',
       'Desired Salary Min', 'Desired Salary Max', 'Currency', 'LinkedIn', 
-      'Status', 'Created At'
+      'Created At'
     ];
     
-    const rows = data.map(c => [
+    const rows = data.map((c: any) => [
       c.full_name || c.email,
       c.email,
       c.phone || '',
@@ -65,7 +77,6 @@ export const adminCandidateService = {
       c.desired_salary_max || '',
       c.preferred_currency || '',
       c.linkedin_url ? 'Yes' : 'No',
-      c.invitation_status || 'unlinked',
       c.created_at
     ]);
     
@@ -124,7 +135,7 @@ export const adminCandidateService = {
   async getMergeStats() {
     const { data, error } = await supabase
       .from('candidate_profiles')
-      .select('invitation_status');
+      .select('invitation_status, profile_completeness');
     
     if (error || !data) return { data: null, error };
 
@@ -132,7 +143,10 @@ export const adminCandidateService = {
       total: data.length,
       merged: data.filter(c => c.invitation_status === 'registered').length,
       invited: data.filter(c => c.invitation_status === 'invited').length,
-      unlinked: data.filter(c => !c.invitation_status || c.invitation_status === 'pending').length,
+      unlinked: data.filter(c => !c.invitation_status || c.invitation_status === 'pending' || c.invitation_status === 'not_invited').length,
+      avgCompleteness: data.length > 0 
+        ? Math.round(data.reduce((sum, c) => sum + (c.profile_completeness || 0), 0) / data.length)
+        : 0
     };
 
     return { data: stats, error: null };

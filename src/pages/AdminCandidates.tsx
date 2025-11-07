@@ -42,12 +42,12 @@ export default function AdminCandidates() {
 
   const filteredCandidates = candidates.filter(c =>
     !searchTerm || 
-    c.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.display_email?.toLowerCase().includes(searchTerm.toLowerCase())
+    c.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    c.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleExport = async () => {
-    const ids = filteredCandidates.map(c => c.candidate_id);
+    const ids = filteredCandidates.map(c => c.id);
     const { data, error } = await adminCandidateService.exportCandidatesCSV(ids);
     if (error) {
       toast.error('Export failed');
@@ -132,7 +132,7 @@ export default function AdminCandidates() {
           <div className="grid gap-4">
             {filteredCandidates.map((candidate) => (
               <UnifiedCandidateCard
-                key={candidate.candidate_id}
+                key={candidate.id}
                 candidate={candidate}
               />
             ))}

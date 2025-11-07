@@ -37,11 +37,12 @@ export function UnifiedCandidateCard({
 
   const getMergeStatusColor = (status: string) => {
     switch (status) {
-      case 'merged':
+      case 'registered':
         return 'default';
       case 'invited':
         return 'secondary';
-      case 'unlinked':
+      case 'not_invited':
+      case 'pending':
         return 'outline';
       default:
         return 'outline';
@@ -60,9 +61,9 @@ export function UnifiedCandidateCard({
         <div className="flex items-start gap-4">
           {/* Avatar */}
           <Avatar className="w-16 h-16">
-            <AvatarImage src={candidate.display_avatar} />
+            <AvatarImage src={candidate.avatar_url} />
             <AvatarFallback className="text-lg">
-              {candidate.display_name?.substring(0, 2).toUpperCase() || "?"}
+              {candidate.full_name?.substring(0, 2).toUpperCase() || candidate.email?.substring(0, 2).toUpperCase() || "?"}
             </AvatarFallback>
           </Avatar>
 
@@ -70,7 +71,7 @@ export function UnifiedCandidateCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1 min-w-0">
-                <h3 className="font-semibold text-lg truncate">{candidate.display_name}</h3>
+                <h3 className="font-semibold text-lg truncate">{candidate.full_name || candidate.email}</h3>
                 {candidate.current_title && (
                   <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                     <Briefcase className="w-3 h-3" />
@@ -88,7 +89,7 @@ export function UnifiedCandidateCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => navigate(`/candidates/${candidate.candidate_id}`)}>
+                  <DropdownMenuItem onClick={() => navigate(`/candidates/${candidate.id}`)}>
                     <Eye className="w-4 h-4 mr-2" />
                     View Full Profile
                   </DropdownMenuItem>
@@ -98,7 +99,7 @@ export function UnifiedCandidateCard({
                       Edit Data
                     </DropdownMenuItem>
                   )}
-                  {candidate.merge_status === 'unlinked' && onSendInvitation && (
+                  {['not_invited', 'pending'].includes(candidate.invitation_status) && onSendInvitation && (
                     <DropdownMenuItem onClick={onSendInvitation}>
                       <Mail className="w-4 h-4 mr-2" />
                       Send Invitation
@@ -110,10 +111,10 @@ export function UnifiedCandidateCard({
 
             {/* Contact Info */}
             <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mb-3">
-              {candidate.display_email && (
+              {candidate.email && (
                 <div className="flex items-center gap-1">
                   <Mail className="w-3 h-3" />
-                  {candidate.display_email}
+                  {candidate.email}
                 </div>
               )}
               {candidate.phone && (
@@ -132,9 +133,11 @@ export function UnifiedCandidateCard({
 
             {/* Badges */}
             <div className="flex flex-wrap gap-2 mb-3">
-              <Badge variant={getMergeStatusColor(candidate.merge_status)}>
+              <Badge variant={getMergeStatusColor(candidate.invitation_status)}>
                 <Link2Icon className="w-3 h-3 mr-1" />
-                {candidate.merge_status}
+                {candidate.invitation_status === 'registered' ? 'Registered' : 
+                 candidate.invitation_status === 'invited' ? 'Invited' : 
+                 candidate.invitation_status === 'not_invited' ? 'Not Invited' : 'Pending'}
               </Badge>
               
               {candidate.final_desired_salary_min && (
@@ -162,16 +165,16 @@ export function UnifiedCandidateCard({
             </div>
 
             {/* Skills Preview */}
-            {candidate.candidate_skills && candidate.candidate_skills.length > 0 && (
+            {candidate.skills && candidate.skills.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-3">
-                {candidate.candidate_skills.slice(0, 5).map((skill: any, index: number) => (
+                {candidate.skills.slice(0, 5).map((skill: any, index: number) => (
                   <Badge key={index} variant="outline" className="text-xs">
                     {typeof skill === 'string' ? skill : skill.name}
                   </Badge>
                 ))}
-                {candidate.candidate_skills.length > 5 && (
+                {candidate.skills.length > 5 && (
                   <Badge variant="outline" className="text-xs">
-                    +{candidate.candidate_skills.length - 5} more
+                    +{candidate.skills.length - 5} more
                   </Badge>
                 )}
               </div>
@@ -181,11 +184,11 @@ export function UnifiedCandidateCard({
             <div className="space-y-1">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Data Completeness</span>
-                <span className={`font-medium ${getCompletenessColor(candidate.data_completeness_score || 0)}`}>
-                  {candidate.data_completeness_score || 0}%
+                <span className={`font-medium ${getCompletenessColor(candidate.profile_completeness || 0)}`}>
+                  {candidate.profile_completeness || 0}%
                 </span>
               </div>
-              <Progress value={candidate.data_completeness_score || 0} className="h-2" />
+              <Progress value={candidate.profile_completeness || 0} className="h-2" />
             </div>
           </div>
         </div>
