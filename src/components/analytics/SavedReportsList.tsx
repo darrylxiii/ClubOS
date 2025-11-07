@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Trash2, Calendar, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import type { SavedReport } from "@/types/analytics";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,19 +19,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
-interface SavedReport {
-  id: string;
-  name: string;
-  description: string | null;
-  report_type: string;
-  visualization_type: string;
-  is_scheduled: boolean;
-  schedule_cron: string | null;
-  recipients: string[] | null;
-  last_run_at: string | null;
-  created_at: string;
-}
-
 interface SavedReportsListProps {
   companyId: string;
 }
@@ -38,24 +26,24 @@ interface SavedReportsListProps {
 export function SavedReportsList({ companyId }: SavedReportsListProps) {
   const { toast } = useToast();
 
-  const { data: reports, isLoading, refetch } = useQuery({
+  const { data: reports, isLoading, refetch } = useQuery<SavedReport[]>({
     queryKey: ['saved-reports', companyId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('saved_reports' as any)
+      const { data, error } = await (supabase as any)
+        .from('saved_reports')
         .select('*')
         .eq('company_id', companyId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []) as any as SavedReport[];
+      return (data || []) as SavedReport[];
     },
     enabled: !!companyId,
   });
 
   const handleRunReport = async (reportId: string) => {
     try {
-      const { error } = await supabase.rpc('execute_report' as any, {
+      const { error } = await (supabase as any).rpc('execute_report', {
         p_report_id: reportId,
       });
 
@@ -79,8 +67,8 @@ export function SavedReportsList({ companyId }: SavedReportsListProps) {
 
   const handleDeleteReport = async (reportId: string) => {
     try {
-      const { error } = await supabase
-        .from('saved_reports' as any)
+      const { error } = await (supabase as any)
+        .from('saved_reports')
         .delete()
         .eq('id', reportId);
 
