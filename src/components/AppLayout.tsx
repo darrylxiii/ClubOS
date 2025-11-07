@@ -4,8 +4,8 @@ import { useLocation } from "react-router-dom";
 import quantumClubLogoDarkShort from "@/assets/quantum-logo-dark-transparent.png"; // QC icon - black for light theme
 import quantumClubLogoLightShort from "@/assets/quantum-logo-light-transparent.png"; // QC icon - white for dark theme
 // Full logos (for expanded state) - these are the full text logos
-import quantumClubLogoDark from "@/assets/quantum-club-logo-optimized.png"; // Full logo - black for light theme
-import quantumClubLogoLight from "@/assets/quantum-logo-dark-optimized.png"; // Full logo - white for dark theme
+import quantumClubLogoDark from "@/assets/quantum-club-logo.png"; // Full logo - black for light theme
+import quantumClubLogoLight from "@/assets/quantum-logo-dark.png"; // Full logo - white for dark theme
 import {
   Briefcase,
   Building2,

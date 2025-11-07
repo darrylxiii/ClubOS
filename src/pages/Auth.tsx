@@ -14,8 +14,8 @@ import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
-import quantumLogoLight from "@/assets/quantum-club-logo-optimized.png";
-import quantumLogoDark from "@/assets/quantum-logo-dark-optimized.png";
+import quantumLogoLight from "@/assets/quantum-club-logo.png";
+import quantumLogoDark from "@/assets/quantum-logo-dark.png";
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(12, "Password must be at least 12 characters").regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[a-z]/, "Password must contain at least one lowercase letter").regex(/[0-9]/, "Password must contain at least one number").regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 const Auth = () => {
@@ -335,7 +335,7 @@ const Auth = () => {
           <div className="flex items-center justify-center mb-2">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-accent blur-2xl opacity-30 rounded-full"></div>
-              <img src={resolvedTheme === 'light' ? quantumLogoLight : quantumLogoDark} alt="The Quantum Club" className="relative w-32 h-32 drop-shadow-2xl" loading="eager" decoding="async" fetchPriority="high" />
+              <img src={resolvedTheme === 'light' ? quantumLogoLight : quantumLogoDark} alt="The Quantum Club" className="relative w-32 h-32 drop-shadow-2xl" loading="eager" decoding="async" />
             </div>
           </div>
 
