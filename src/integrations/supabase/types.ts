@@ -883,6 +883,141 @@ export type Database = {
         }
         Relationships: []
       }
+      api_keys: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          rate_limit_per_hour: number
+          scopes: string[]
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          rate_limit_per_hour?: number
+          scopes?: string[]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          rate_limit_per_hour?: number
+          scopes?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_keys_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_rate_limits: {
+        Row: {
+          api_key_id: string
+          created_at: string
+          hour_bucket: string
+          id: string
+          request_count: number
+        }
+        Insert: {
+          api_key_id: string
+          created_at?: string
+          hour_bucket: string
+          id?: string
+          request_count?: number
+        }
+        Update: {
+          api_key_id?: string
+          created_at?: string
+          hour_bucket?: string
+          id?: string
+          request_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_rate_limits_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      api_usage_logs: {
+        Row: {
+          api_key_id: string
+          created_at: string
+          endpoint: string
+          error_message: string | null
+          id: string
+          ip_address: unknown
+          method: string
+          response_time_ms: number | null
+          status_code: number
+          user_agent: string | null
+        }
+        Insert: {
+          api_key_id: string
+          created_at?: string
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown
+          method: string
+          response_time_ms?: number | null
+          status_code: number
+          user_agent?: string | null
+        }
+        Update: {
+          api_key_id?: string
+          created_at?: string
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          ip_address?: unknown
+          method?: string
+          response_time_ms?: number | null
+          status_code?: number
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_usage_logs_api_key_id_fkey"
+            columns: ["api_key_id"]
+            isOneToOne: false
+            referencedRelation: "api_keys"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           application_source:
@@ -13601,6 +13736,109 @@ export type Database = {
           },
         ]
       }
+      webhook_deliveries: {
+        Row: {
+          attempts: number
+          created_at: string
+          delivered_at: string | null
+          event_type: string
+          http_status_code: number | null
+          id: string
+          next_retry_at: string | null
+          payload: Json
+          response_body: string | null
+          status: string
+          updated_at: string
+          webhook_endpoint_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          event_type: string
+          http_status_code?: number | null
+          id?: string
+          next_retry_at?: string | null
+          payload: Json
+          response_body?: string | null
+          status?: string
+          updated_at?: string
+          webhook_endpoint_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          event_type?: string
+          http_status_code?: number | null
+          id?: string
+          next_retry_at?: string | null
+          payload?: Json
+          response_body?: string | null
+          status?: string
+          updated_at?: string
+          webhook_endpoint_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_webhook_endpoint_id_fkey"
+            columns: ["webhook_endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_endpoints: {
+        Row: {
+          company_id: string
+          consecutive_failures: number
+          created_at: string
+          events: string[]
+          id: string
+          is_active: boolean
+          last_failure_at: string | null
+          last_success_at: string | null
+          secret: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          company_id: string
+          consecutive_failures?: number
+          created_at?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          secret: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          company_id?: string
+          consecutive_failures?: number
+          created_at?: string
+          events?: string[]
+          id?: string
+          is_active?: boolean
+          last_failure_at?: string | null
+          last_success_at?: string | null
+          secret?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_endpoints_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       webrtc_signals: {
         Row: {
           created_at: string
@@ -13787,6 +14025,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      check_rate_limit: {
+        Args: { p_api_key_id: string; p_limit: number }
+        Returns: boolean
+      }
       check_verification_rate_limit: {
         Args: { _action: string; _user_id: string; _verification_type: string }
         Returns: Json
@@ -13810,6 +14052,16 @@ export type Database = {
           fixed_name: string
           user_id: string
         }[]
+      }
+      generate_api_key: {
+        Args: {
+          p_company_id: string
+          p_created_by?: string
+          p_name: string
+          p_rate_limit_per_hour?: number
+          p_scopes: string[]
+        }
+        Returns: Json
       }
       generate_invite_code: { Args: never; Returns: string }
       generate_meeting_code: { Args: never; Returns: string }
@@ -13895,6 +14147,10 @@ export type Database = {
       owns_message_attachment: {
         Args: { _file_path: string }
         Returns: boolean
+      }
+      queue_webhook_delivery: {
+        Args: { p_company_id: string; p_event_type: string; p_payload: Json }
+        Returns: undefined
       }
       release_booking_slot_lock: {
         Args: {
