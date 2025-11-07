@@ -313,13 +313,17 @@ export const MentionTextarea = ({
         )}>
           {displayParts.map((part, index) => (
             part.type === 'mention' ? (
-              <span key={index} className="inline">
-                <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded-md font-semibold">
+              <span key={index} className="inline-block relative">
+                {/* Invisible text matching the raw format: @[uuid]( */}
+                <span className="text-transparent select-none">
+                  @[{part.userId}](
+                </span>
+                {/* Visible badge showing @Name, positioned to overlay the Name part */}
+                <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded-md font-semibold -ml-1">
                   @{part.content}
                 </span>
-                <span className="text-transparent select-none pointer-events-none" aria-hidden="true">
-                  [{part.userId}]()
-                </span>
+                {/* Invisible closing parenthesis */}
+                <span className="text-transparent select-none">)</span>
               </span>
             ) : (
               <span key={index} className="text-foreground">{part.content}</span>
