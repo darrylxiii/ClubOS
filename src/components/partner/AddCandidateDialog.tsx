@@ -171,7 +171,7 @@ export const AddCandidateDialog = ({
           id,
           candidate_id,
           current_stage_index,
-          candidate_profiles!inner(
+          candidate_profiles!applications_candidate_id_fkey(
             id,
             full_name,
             email,
@@ -292,6 +292,7 @@ export const AddCandidateDialog = ({
       // Create application
       const { error: appError } = await supabase.from("applications").insert({
         user_id: userId, // Can be null for standalone candidates
+        candidate_id: candidateId, // Link to candidate profile
         job_id: jobId,
         position: jobTitle,
         company_name: formData.currentCompany || "External Candidate",
