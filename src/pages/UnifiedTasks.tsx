@@ -32,6 +32,8 @@ import { ObjectivesBoard } from "@/components/objectives/ObjectivesBoard";
 import { ObjectivesList } from "@/components/objectives/ObjectivesList";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { TaskSchedulingPreferences } from "@/components/TaskSchedulingPreferences";
+import { BoardNavigationBar } from "@/components/task-boards/BoardNavigationBar";
+import { BoardContextHeader } from "@/components/task-boards/BoardContextHeader";
 
 interface SystemPreferences {
   active_system: string;
@@ -272,6 +274,12 @@ const UnifiedTasks = () => {
 
         {/* Divider */}
         <div className="border-t border-border/50" />
+
+        {/* Board Navigation & Context */}
+        <div className="space-y-4">
+          <BoardNavigationBar />
+          <BoardContextHeader />
+        </div>
 
         {/* Tasks Section */}
         <div className="space-y-4">
