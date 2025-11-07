@@ -82,7 +82,7 @@ export const HorizontalFilters = memo(({
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpanded}>
-      <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-lg border-y border-border/40">
+      <div className="sticky top-0 z-20 bg-card/30 backdrop-blur-xl border border-border/30 rounded-xl">
         <div className="flex items-center justify-between gap-4 p-4">
           {/* Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1">
@@ -320,7 +320,7 @@ export const HorizontalFilters = memo(({
 
         {/* Expanded Filter Content - Hidden by default, shown when isExpanded */}
         <CollapsibleContent>
-          <div className="px-4 pb-4 border-t border-border/40 pt-4 bg-card/20">
+          <div className="px-4 pb-4 border-t border-border/30 pt-4 bg-background/20">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">
                 Showing <span className="font-semibold text-foreground">{filteredJobsCount}</span> of{" "}

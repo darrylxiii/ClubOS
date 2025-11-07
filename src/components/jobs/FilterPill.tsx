@@ -28,8 +28,8 @@ export const FilterPill = ({
       variant={isActive ? "glass" : "outline"}
       size="sm"
       className={cn(
-        "gap-2 whitespace-nowrap relative transition-all duration-300",
-        isActive && "ring-2 ring-border/40 bg-card/40",
+        "gap-2 whitespace-nowrap relative transition-all duration-300 bg-background/30 border-border/30 hover:bg-background/40 hover:border-border/40",
+        isActive && "ring-1 ring-border/40 bg-background/40",
         className
       )}
       onClick={onClick}
