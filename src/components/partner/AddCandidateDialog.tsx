@@ -65,6 +65,7 @@ export const AddCandidateDialog = ({
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateMatchType, setDuplicateMatchType] = useState<"name" | "linkedin" | "both">("name");
   const [proceedWithDuplicate, setProceedWithDuplicate] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -102,6 +103,7 @@ export const AddCandidateDialog = ({
 
     if (open) {
       loadTeamMembers();
+      setSubmitError(null);
     }
   }, [open]);
 
@@ -341,24 +343,8 @@ export const AddCandidateDialog = ({
       const candidateId = candidateProfile.id;
       const userId = matchingUser?.id || null;
 
-      // Pre-flight: Verify permissions before attempting INSERT
-      console.log('🔐 [Add Candidate] Checking INSERT permissions:', {
-        userId: adminUser.id,
-        jobId,
-        candidateId
-      });
-
-      const { data: permCheck } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', adminUser.id)
-        .in('role', ['admin', 'partner', 'strategist']);
-
-      console.log('🔐 [Add Candidate] User roles:', permCheck);
-
-      if (!permCheck || permCheck.length === 0) {
-        throw new Error('PERMISSION_ERROR: No admin/partner/strategist role found for current user');
-      }
+      // Check permissions via RLS - let the database handle authorization
+      console.log('🔐 [Add Candidate] Authenticated user:', adminUser.id, adminUser.email);
 
       // Create application with .select() to get the created record
       const { data: newApplication, error: appError } = await supabase
@@ -531,39 +517,32 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
     } catch (error: any) {
       console.error("Error adding candidate:", error);
       
+      // Set visible error message
+      let errorMsg = "An unexpected error occurred. Please try again.";
+      
       if (error.message?.startsWith('PERMISSION_ERROR:')) {
-        toast.error("Permission Denied", {
-          description: error.message.replace('PERMISSION_ERROR: ', ''),
-          duration: 8000
-        });
+        errorMsg = error.message.replace('PERMISSION_ERROR: ', '');
       } else if (error.message?.startsWith('FK_ERROR:')) {
-        toast.error("Invalid Reference", {
-          description: error.message.replace('FK_ERROR: ', ''),
-          duration: 6000
-        });
+        errorMsg = error.message.replace('FK_ERROR: ', '');
       } else if (error.message?.startsWith('DB_ERROR:')) {
-        toast.error("Database Error", {
-          description: error.message.replace('DB_ERROR: ', ''),
-          duration: 6000
-        });
+        errorMsg = error.message.replace('DB_ERROR: ', '');
       } else if (error.message?.includes('duplicate') || error.code === '23505') {
-        toast.error("Duplicate Candidate", {
-          description: "A candidate with this information already exists.",
-          duration: 5000
-        });
+        errorMsg = "A candidate with this information already exists.";
       } else if (error.code === '23503') {
-        toast.error("Invalid Job", {
-          description: "The selected job no longer exists. Please refresh and try again."
-        });
-      } else if (error.message?.includes('permission') || error.message?.includes('RLS')) {
-        toast.error("Permission Denied", {
-          description: "You don't have permission to add candidates. Please contact an admin."
-        });
+        errorMsg = "Unable to link candidate data. The job may no longer exist.";
+      } else if (error.message?.includes('permission') || error.message?.includes('RLS') || error.code === '42501') {
+        errorMsg = "You don't have permission to add candidates. Please contact an administrator to verify your account has been set up correctly.";
       } else {
-        toast.error("Failed to add candidate", {
-          description: error.message || "Please try again or contact support."
-        });
+        errorMsg = error.message || "Failed to add candidate. Please try again.";
       }
+      
+      setSubmitError(errorMsg);
+      
+      // Also show toast
+      toast.error("Failed to Add Candidate", {
+        description: errorMsg,
+        duration: 8000
+      });
     } finally {
       setLoading(false);
     }
@@ -701,6 +680,36 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             </div>
           </div>
         </DialogHeader>
+
+        {submitError && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-destructive" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-destructive mb-1">
+                  Failed to Add Candidate
+                </h4>
+                <p className="text-sm text-destructive/90">
+                  {submitError}
+                </p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setSubmitError(null)}
+                className="flex-shrink-0 h-6 w-6 p-0"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+                </svg>
+              </Button>
+            </div>
+          </div>
+        )}
 
         <Tabs value={addMode} onValueChange={(v) => setAddMode(v as "manual" | "linkedin")} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
