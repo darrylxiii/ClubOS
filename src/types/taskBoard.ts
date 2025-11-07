@@ -39,7 +39,7 @@ export interface TaskBoardMember {
     full_name: string;
     email: string;
     avatar_url: string | null;
-  };
+  } | null;
 }
 
 export interface TaskBoardInvitation {

@@ -25,22 +25,32 @@ export function BoardMembersView({ boardId, canManage }: BoardMembersViewProps) 
 
   const loadMembers = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch members
+      const { data: membersData, error: membersError } = await supabase
         .from('task_board_members')
-        .select(`
-          *,
-          profiles!task_board_members_user_id_fkey (
-            full_name,
-            email,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('board_id', boardId)
         .eq('is_active', true)
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
-      setMembers(data || []);
+      if (membersError) throw membersError;
+
+      // Fetch profiles for all member user_ids
+      const userIds = membersData?.map(m => m.user_id) || [];
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Merge members with profiles
+      const membersWithProfiles = membersData?.map(member => ({
+        ...member,
+        profiles: profilesData?.find(p => p.id === member.user_id) || null
+      })) || [];
+
+      setMembers(membersWithProfiles as TaskBoardMember[]);
     } catch (error) {
       console.error('Failed to load members:', error);
       toast.error('Failed to load members');

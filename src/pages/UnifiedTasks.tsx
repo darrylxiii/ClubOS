@@ -18,6 +18,7 @@ import {
   Plus
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { TaskBoardProvider } from "@/contexts/TaskBoardContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { UnifiedTaskBoard } from "@/components/unified-tasks/UnifiedTaskBoard";
