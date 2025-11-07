@@ -304,10 +304,40 @@ const Jobs = () => {
     }
   };
 
+  // Apply filters to jobs
+  const filteredJobs = useMemo(() => {
+    return jobsWithConvertedSalary.filter(job => {
+      // Location filter
+      if (filters.locations.length > 0) {
+        const matchesLocation = filters.locations.some(loc => 
+          job.location.toLowerCase().includes(loc.toLowerCase())
+        );
+        if (!matchesLocation) return false;
+      }
+
+      // Salary filter
+      if (job.salaryMax && (job.salaryMax < filters.salaryMin || job.salaryMin > filters.salaryMax)) {
+        return false;
+      }
+
+      // Employment type filter
+      if (filters.employmentTypes.length > 0 && !filters.employmentTypes.includes(job.type)) {
+        return false;
+      }
+
+      // Remote filter
+      if (filters.remoteOnly && !job.location.toLowerCase().includes('remote')) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [jobsWithConvertedSalary, filters]);
+
   // Saved jobs with currency conversion
   const savedJobs = useMemo(() => {
-    return jobsWithConvertedSalary.filter(job => savedJobIds.includes(job.id));
-  }, [jobsWithConvertedSalary, savedJobIds]);
+    return filteredJobs.filter(job => savedJobIds.includes(job.id));
+  }, [filteredJobs, savedJobIds]);
   const navigate = useNavigate();
 
   // If user is Partner or Admin, show Partner-specific view
@@ -323,28 +353,50 @@ const Jobs = () => {
   return <AppLayout>
       <OceanBackgroundVideo />
       
-      <div className="relative z-10 container mx-auto px-4 py-8 pb-safe space-y-6">
-        {/* Header */}
-        <div className="space-y-4 border-b-2 border-foreground pb-8">
-          <p className="text-caps text-muted-foreground">Curated Roles</p>
-          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
-            Elite Opportunities
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl">Connecting only the 0.1% with each other</p>
-        </div>
+      <div className="relative z-10 container mx-auto px-4 py-8 pb-safe">
+        <div className="flex gap-6">
+          {/* Filter Sidebar */}
+          <div className="hidden lg:block w-80 flex-shrink-0">
+            <JobFilterSidebar
+              filters={filters}
+              onFiltersChange={setFilters}
+              onReset={() => setFilters({
+                locations: [],
+                salaryMin: 0,
+                salaryMax: 500000,
+                employmentTypes: [],
+                remoteOnly: false,
+                hybridIncluded: false,
+                experienceYears: [0, 20],
+              })}
+              totalJobs={jobs.length}
+              filteredJobsCount={filteredJobs.length}
+            />
+          </div>
 
-        {/* Search and Filters */}
-        <Tabs defaultValue="all" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="all">
-              All Jobs ({sortedJobs.length})
-            </TabsTrigger>
-            <TabsTrigger value="saved">
-              Saved Jobs ({savedJobs.length})
-            </TabsTrigger>
-          </TabsList>
+          {/* Main Content */}
+          <div className="flex-1 space-y-6">
+            {/* Header */}
+            <div className="space-y-4 border-b-2 border-foreground pb-8">
+              <p className="text-caps text-muted-foreground">Curated Roles</p>
+              <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
+                Elite Opportunities
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-2xl">Connecting only the 0.1% with each other</p>
+            </div>
 
-          <TabsContent value="all" className="space-y-6">
+            {/* Search and Filters */}
+            <Tabs defaultValue="all" className="space-y-6">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="all">
+                  All Jobs ({filteredJobs.length})
+                </TabsTrigger>
+                <TabsTrigger value="saved">
+                  Saved Jobs ({savedJobs.length})
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="all" className="space-y-6">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
@@ -423,10 +475,10 @@ const Jobs = () => {
             {/* Job Listings */}
             {loading ? <div className="text-center py-12">
                 <p className="text-muted-foreground">Loading jobs...</p>
-              </div> : sortedJobs.length === 0 ? <div className="text-center py-12">
-                <p className="text-muted-foreground">No jobs available</p>
-              </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {jobsWithConvertedSalary.map(job => {
+              </div> : filteredJobs.length === 0 ? <div className="text-center py-12">
+                <p className="text-muted-foreground">No jobs match your filters</p>
+              </div> : <div className="grid grid-cols-1 gap-6">
+                {filteredJobs.map(job => {
               return <JobCard 
                 key={job.id} 
                 id={job.id}
@@ -448,9 +500,9 @@ const Jobs = () => {
               />;
             })}
               </div>}
-          </TabsContent>
+              </TabsContent>
 
-          <TabsContent value="saved" className="space-y-6">
+              <TabsContent value="saved" className="space-y-6">
             <div className="flex flex-col gap-4">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
@@ -555,18 +607,20 @@ const Jobs = () => {
               />;
             })}
               </div>}
-          </TabsContent>
-        </Tabs>
-
-        {selectedJob && <ReferralDialog open={referralDialogOpen} onOpenChange={setReferralDialogOpen} jobId={selectedJob.id} jobTitle={selectedJob.title} companyName={selectedJob.company} />}
-        <AIPageCopilot 
-          currentPage="/jobs" 
-          contextData={{ jobsCount: sortedJobs.length }}
-          onAction={(action) => {
-            if (action === 'search_jobs') navigate('/club-ai');
-          }}
-        />
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
       </div>
+
+      {selectedJob && <ReferralDialog open={referralDialogOpen} onOpenChange={setReferralDialogOpen} jobId={selectedJob.id} jobTitle={selectedJob.title} companyName={selectedJob.company} />}
+      <AIPageCopilot 
+        currentPage="/jobs" 
+        contextData={{ jobsCount: sortedJobs.length }}
+        onAction={(action) => {
+          if (action === 'search_jobs') navigate('/club-ai');
+        }}
+      />
     </AppLayout>;
 };
 export default Jobs;

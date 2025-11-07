@@ -1,5 +1,7 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Settings as SettingsIcon } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -13,6 +15,8 @@ import { SecuritySettings } from "@/components/settings/SecuritySettings";
 import { ConnectionsSettings } from "@/components/settings/ConnectionsSettings";
 import { PrivacySettings } from "@/components/settings/PrivacySettings";
 import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
+import { CalendarIntegrationSettings } from "@/components/settings/CalendarIntegrationSettings";
+import { ResumeUploadModal } from "@/components/candidate/ResumeUploadModal";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
 
 const Settings = () => {
@@ -93,6 +97,7 @@ const Settings = () => {
   const [industryPreference, setIndustryPreference] = useState('any');
   const [workTimezone, setWorkTimezone] = useState('Europe/Amsterdam');
   const [availableHoursPerWeek, setAvailableHoursPerWeek] = useState(40);
+  const [resumeModalOpen, setResumeModalOpen] = useState(false);
 
   // Initialize exchange rate tracking
   useExchangeRates();
@@ -576,6 +581,7 @@ const Settings = () => {
               onDisconnectSocial={handleDisconnectSocial}
               onUpdate={handleSocialUpdate}
             />
+            <CalendarIntegrationSettings />
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-4">
@@ -604,6 +610,21 @@ const Settings = () => {
 
           <TabsContent value="security" className="space-y-4">
             <SecuritySettings />
+            
+            {/* Documents Section */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Documents</CardTitle>
+                <CardDescription>
+                  Upload and manage your resumes, cover letters, and certificates
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => setResumeModalOpen(true)}>
+                  Upload Document
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="preferences" className="space-y-4">
@@ -628,6 +649,15 @@ const Settings = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      <ResumeUploadModal 
+        open={resumeModalOpen} 
+        onOpenChange={setResumeModalOpen}
+        onUploadComplete={() => {
+          toast.success('Document uploaded successfully');
+          setResumeModalOpen(false);
+        }}
+      />
     </AppLayout>
   );
 };
