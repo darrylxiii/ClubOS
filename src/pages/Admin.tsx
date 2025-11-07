@@ -1,7 +1,6 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Shield } from "lucide-react";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
 import { UnifiedUserManagement } from "@/components/admin/UnifiedUserManagement";
@@ -11,6 +10,8 @@ import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsMa
 import { AssessmentResultsManager } from "@/components/admin/AssessmentResultsManager";
 import { AdminApplicationHub } from "@/components/admin/AdminApplicationHub";
 import { DataIntegrityChecker } from "@/components/admin/DataIntegrityChecker";
+import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
+import { SSOManagement } from "@/components/admin/SSOManagement";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -73,7 +74,7 @@ const Admin = () => {
               <TabsTrigger value="applications" onClick={(e) => e.currentTarget.blur()}>Applications</TabsTrigger>
               <TabsTrigger value="achievements" onClick={(e) => e.currentTarget.blur()}>Achievements</TabsTrigger>
               <TabsTrigger value="assessments" onClick={(e) => e.currentTarget.blur()}>Assessments</TabsTrigger>
-              <TabsTrigger value="analytics" onClick={(e) => e.currentTarget.blur()}>Analytics</TabsTrigger>
+              <TabsTrigger value="security" onClick={(e) => e.currentTarget.blur()}>Security</TabsTrigger>
               <TabsTrigger value="system" onClick={(e) => e.currentTarget.blur()}>System Health</TabsTrigger>
             </TabsList>
 
@@ -97,20 +98,9 @@ const Admin = () => {
             <AssessmentResultsManager />
           </TabsContent>
 
-          <TabsContent value="analytics" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Assessment Analytics</CardTitle>
-                <CardDescription>
-                  Platform-wide assessment performance metrics and insights
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  Analytics dashboard coming soon. Track completion rates, average scores, and candidate engagement.
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="security" className="space-y-4">
+            <AuditLogViewer />
+            <SSOManagement />
           </TabsContent>
 
           <TabsContent value="system" className="space-y-4">

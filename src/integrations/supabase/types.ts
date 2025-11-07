@@ -1024,6 +1024,54 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_events: {
+        Row: {
+          action: string
+          actor_email: string | null
+          actor_id: string | null
+          actor_role: string | null
+          created_at: string | null
+          event_type: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string | null
+          result: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string | null
+          event_type: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          result?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          actor_email?: string | null
+          actor_id?: string | null
+          actor_role?: string | null
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          result?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       blind_spot_sessions: {
         Row: {
           awareness_gaps: Json | null
@@ -4665,6 +4713,78 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      data_export_requests: {
+        Row: {
+          completed_at: string | null
+          error_message: string | null
+          expires_at: string | null
+          export_url: string | null
+          id: string
+          metadata: Json | null
+          requested_at: string | null
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          export_url?: string | null
+          id?: string
+          metadata?: Json | null
+          requested_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          error_message?: string | null
+          expires_at?: string | null
+          export_url?: string | null
+          id?: string
+          metadata?: Json | null
+          requested_at?: string | null
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      deletion_requests: {
+        Row: {
+          cancelled_at: string | null
+          completed_at: string | null
+          id: string
+          metadata: Json | null
+          reason: string | null
+          requested_at: string | null
+          scheduled_for: string
+          status: string | null
+          user_id: string | null
+        }
+        Insert: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          requested_at?: string | null
+          scheduled_for: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          cancelled_at?: string | null
+          completed_at?: string | null
+          id?: string
+          metadata?: Json | null
+          reason?: string | null
+          requested_at?: string | null
+          scheduled_for?: string
+          status?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
       }
       discussion_replies: {
         Row: {
@@ -11175,6 +11295,56 @@ export type Database = {
         }
         Relationships: []
       }
+      sso_connections: {
+        Row: {
+          certificate: string | null
+          company_id: string | null
+          created_at: string | null
+          entity_id: string
+          id: string
+          idp_name: string
+          idp_type: string
+          is_active: boolean | null
+          metadata_xml: string | null
+          sso_url: string
+          updated_at: string | null
+        }
+        Insert: {
+          certificate?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          entity_id: string
+          id?: string
+          idp_name: string
+          idp_type: string
+          is_active?: boolean | null
+          metadata_xml?: string | null
+          sso_url: string
+          updated_at?: string | null
+        }
+        Update: {
+          certificate?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          entity_id?: string
+          id?: string
+          idp_name?: string
+          idp_type?: string
+          is_active?: boolean | null
+          metadata_xml?: string | null
+          sso_url?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sso_connections_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stories: {
         Row: {
           caption: string | null
@@ -13704,6 +13874,22 @@ export type Database = {
       }
       log_achievement_event: {
         Args: { _event_data?: Json; _event_type: string; _user_id: string }
+        Returns: string
+      }
+      log_audit_event: {
+        Args: {
+          p_action: string
+          p_actor_email: string
+          p_actor_id: string
+          p_actor_role: string
+          p_event_type: string
+          p_ip_address?: unknown
+          p_metadata?: Json
+          p_resource_id: string
+          p_resource_type: string
+          p_result?: string
+          p_user_agent?: string
+        }
         Returns: string
       }
       owns_message_attachment: {

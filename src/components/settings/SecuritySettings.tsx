@@ -4,6 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Lock, Shield } from 'lucide-react';
 import { TwoFactorSettings } from '@/components/TwoFactorSettings';
 import { AccountLinking } from '@/components/AccountLinking';
+import { GDPRControls } from './GDPRControls';
 
 export const SecuritySettings = () => {
   return (
@@ -34,6 +35,8 @@ export const SecuritySettings = () => {
       </Card>
 
       <AccountLinking />
+      
+      <GDPRControls />
     </div>
   );
 };

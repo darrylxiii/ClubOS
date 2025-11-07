@@ -1,5 +1,11 @@
 project_id = "dpjucecmoyfzrduhlctt"
 
+[functions.gdpr-export]
+verify_jwt = true
+
+[functions.gdpr-delete]
+verify_jwt = true
+
 [functions.check-data-integrity]
 verify_jwt = false
 
