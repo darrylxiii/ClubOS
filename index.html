@@ -1,12 +1,16 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-5NB2QWND');</script>
+    <!-- Google Tag Manager - Deferred for better FCP -->
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-5NB2QWND');
+    });
+    </script>
     <!-- End Google Tag Manager -->
     
     <meta charset="UTF-8" />
@@ -46,15 +50,14 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
     
-    <!-- Preload LCP images with explicit type for immediate discovery -->
-    <link rel="preload" as="image" href="/src/assets/quantum-club-logo-optimized.png" type="image/png" fetchpriority="high">
-    <link rel="preload" as="image" href="/src/assets/quantum-logo-dark-optimized.png" type="image/png" fetchpriority="high">
-    
     <!-- Preload critical font to prevent layout shift -->
     <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2" crossorigin>
     
     <!-- Module preload hint for critical JS - helps browser discover and download earlier -->
     <link rel="modulepreload" href="/src/main.tsx">
+    
+    <!-- Reduce render-blocking impact of web font loading -->
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
     
     <!-- Inline critical CSS hint for better performance -->
     <style>
