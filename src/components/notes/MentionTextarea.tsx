@@ -267,7 +267,7 @@ export const MentionTextarea = ({
   // Render content with highlighted mentions
   const renderDisplayContent = () => {
     const mentionPattern = /@\[([a-f0-9-]{36})\]\(([^)]+)\)/g;
-    const parts: Array<{ type: 'text' | 'mention'; content: string }> = [];
+    const parts: Array<{ type: 'text' | 'mention'; content: string; userId?: string }> = [];
     let lastIndex = 0;
     let match;
 
@@ -280,10 +280,11 @@ export const MentionTextarea = ({
         });
       }
       
-      // Add mention
+      // Add mention with userId for invisible text rendering
       parts.push({
         type: 'mention',
-        content: match[2] // The name part
+        content: match[2], // The name part
+        userId: match[1]   // The UUID part (for invisible text)
       });
       
       lastIndex = match.index + match[0].length;
@@ -312,11 +313,13 @@ export const MentionTextarea = ({
         )}>
           {displayParts.map((part, index) => (
             part.type === 'mention' ? (
-              <span
-                key={index}
-                className="bg-primary/20 text-primary px-1.5 py-0.5 rounded-md font-semibold"
-              >
-                @{part.content}
+              <span key={index} className="inline">
+                <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded-md font-semibold">
+                  @{part.content}
+                </span>
+                <span className="text-transparent select-none pointer-events-none" aria-hidden="true">
+                  [{part.userId}]()
+                </span>
               </span>
             ) : (
               <span key={index} className="text-foreground">{part.content}</span>
