@@ -19,6 +19,7 @@ import { ProfileCompletion } from "@/components/ProfileCompletion";
 import { LivePulse } from "@/components/LivePulse";
 import { ProfileViewers } from "@/components/ProfileViewers";
 import { Link } from "react-router-dom";
+import { NextStepsCard } from "@/components/clubhome/NextStepsCard";
 
 export const CandidateHome = () => {
   const { user } = useAuth();
@@ -125,40 +126,7 @@ export const CandidateHome = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Next Steps */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Next Steps
-            </CardTitle>
-            <CardDescription>Recommended actions to boost your profile</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex items-center justify-between p-3 border border-border/20 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)]">
-              <div className="flex items-center gap-3">
-                <FileText className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Upload your resume</span>
-              </div>
-              <Button size="sm" variant="glass">Add</Button>
-            </div>
-            <div className="flex items-center justify-between p-3 border border-border/20 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)]">
-              <div className="flex items-center gap-3">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Connect calendar</span>
-              </div>
-              <Button size="sm" variant="glass">Connect</Button>
-            </div>
-            <div className="flex items-center justify-between p-3 border border-border/20 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)]">
-              <div className="flex items-center gap-3">
-                <Target className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm">Apply to matched jobs</span>
-              </div>
-              <Button size="sm" variant="glass" asChild>
-                <Link to="/jobs">View</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <NextStepsCard />
 
         {/* Top Matches */}
         <Card>
