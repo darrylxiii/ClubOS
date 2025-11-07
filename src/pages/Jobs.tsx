@@ -18,6 +18,7 @@ import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { logger } from "@/lib/logger";
 import { useNavigate } from "react-router-dom";
+import { JobFilterSidebar, type JobFilters } from "@/components/jobs/JobFilterSidebar";
 
 type SortOption = "match" | "newest" | "salary";
 const Jobs = () => {
@@ -33,6 +34,15 @@ const Jobs = () => {
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [clubSyncEnabled, setClubSyncEnabled] = useState(false);
   const [loadingSavedJobs, setLoadingSavedJobs] = useState(true);
+  const [filters, setFilters] = useState<JobFilters>({
+    locations: [],
+    salaryMin: 0,
+    salaryMax: 500000,
+    employmentTypes: [],
+    remoteOnly: false,
+    hybridIncluded: false,
+    experienceYears: [0, 20],
+  });
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<{
     id: string;
