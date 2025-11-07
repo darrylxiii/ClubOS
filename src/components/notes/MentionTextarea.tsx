@@ -45,6 +45,14 @@ export const MentionTextarea = ({
     member.full_name.toLowerCase().includes(mentionSearch.toLowerCase()) ||
     member.email.toLowerCase().includes(mentionSearch.toLowerCase())
   );
+  
+  console.log('[MentionTextarea] Render state', {
+    showMentions,
+    mentionSearch,
+    teamMembersCount: teamMembers.length,
+    filteredMembersCount: filteredMembers.length,
+    dropdownPosition
+  });
 
   useEffect(() => {
     setSelectedIndex(0);
@@ -87,12 +95,29 @@ export const MentionTextarea = ({
     const cursorPos = textarea.selectionStart;
     setCursorPosition(cursorPos);
 
+    console.log('[MentionTextarea] handleTextChange called', {
+      newValue,
+      cursorPos,
+      teamMembersCount: teamMembers.length
+    });
+
     // Check if user typed @ to trigger mention dropdown
     const textBeforeCursor = newValue.slice(0, cursorPos);
     const lastAtIndex = textBeforeCursor.lastIndexOf('@');
     
+    console.log('[MentionTextarea] Searching for @', {
+      textBeforeCursor,
+      lastAtIndex
+    });
+    
     if (lastAtIndex !== -1) {
       const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
+      
+      console.log('[MentionTextarea] Found @ symbol', {
+        textAfterAt,
+        hasSpace: textAfterAt.includes(' '),
+        hasNewline: textAfterAt.includes('\n')
+      });
       
       // Show mentions if @ is followed by text without spaces
       if (!textAfterAt.includes(' ') && !textAfterAt.includes('\n')) {
@@ -107,16 +132,25 @@ export const MentionTextarea = ({
         const maxLeft = window.innerWidth - dropdownWidth - 20;
         const maxTop = window.innerHeight + window.scrollY - dropdownHeight - 20;
         
-        setDropdownPosition({
+        const finalPosition = {
           top: Math.min(position.top, maxTop),
           left: Math.min(position.left, maxLeft)
+        };
+        
+        console.log('[MentionTextarea] Setting dropdown position and showing', {
+          position,
+          finalPosition,
+          mentionSearch: textAfterAt
         });
         
+        setDropdownPosition(finalPosition);
         setShowMentions(true);
       } else {
+        console.log('[MentionTextarea] Hiding mentions - space or newline found');
         setShowMentions(false);
       }
     } else {
+      console.log('[MentionTextarea] Hiding mentions - no @ found');
       setShowMentions(false);
     }
 
