@@ -146,73 +146,78 @@ export const AddCandidateDialog = ({
   };
 
   const checkForDuplicates = async () => {
-    // Only check if we have at least name
     if (!formData.fullName && !formData.linkedinUrl) return [];
 
     try {
-      // Build OR conditions for name and/or LinkedIn URL
-      const conditions: string[] = [];
+      let duplicates: any[] = [];
       
-      if (formData.fullName) {
-        conditions.push(`candidate_profiles.full_name.ilike.%${formData.fullName.trim()}%`);
-      }
-      
+      // Check by LinkedIn URL first (most reliable)
       if (formData.linkedinUrl) {
-        // Normalize LinkedIn URL (remove trailing slashes, query params)
         const normalizedUrl = formData.linkedinUrl.trim().split('?')[0].replace(/\/$/, '');
-        conditions.push(`candidate_profiles.linkedin_url.ilike.%${normalizedUrl}%`);
-      }
-
-      if (conditions.length === 0) return [];
-
-      const { data: existingApplications, error } = await supabase
-        .from('applications')
-        .select(`
-          id,
-          candidate_id,
-          current_stage_index,
-          candidate_profiles!applications_candidate_id_fkey(
+        const { data: linkedinMatches } = await supabase
+          .from('applications')
+          .select(`
             id,
-            full_name,
-            email,
-            linkedin_url,
-            current_title,
-            current_company
-          )
-        `)
-        .eq('job_id', jobId)
-        .or(conditions.join(','))
-        .limit(5);
-
-      if (error) {
-        console.error('Error checking duplicates:', error);
-        return [];
-      }
-
-      // Determine match type
-      let matchType: "name" | "linkedin" | "both" = "name";
-      if (existingApplications && existingApplications.length > 0) {
-        const hasNameMatch = formData.fullName && existingApplications.some(
-          app => app.candidate_profiles?.full_name?.toLowerCase().includes(formData.fullName.toLowerCase())
-        );
-        const hasLinkedInMatch = formData.linkedinUrl && existingApplications.some(
-          app => app.candidate_profiles?.linkedin_url?.toLowerCase().includes(formData.linkedinUrl.toLowerCase())
-        );
+            candidate_id,
+            current_stage_index,
+            candidate_profiles!applications_candidate_id_fkey(
+              id,
+              full_name,
+              email,
+              linkedin_url,
+              current_title,
+              current_company
+            )
+          `)
+          .eq('job_id', jobId)
+          .ilike('candidate_profiles.linkedin_url', `%${normalizedUrl}%`)
+          .limit(3);
         
-        if (hasNameMatch && hasLinkedInMatch) {
-          matchType = "both";
-        } else if (hasLinkedInMatch) {
-          matchType = "linkedin";
-        } else {
-          matchType = "name";
+        if (linkedinMatches && linkedinMatches.length > 0) {
+          duplicates = linkedinMatches.filter(d => d.candidate_profiles);
+          if (duplicates.length > 0) {
+            setDuplicateMatchType('linkedin');
+            return duplicates;
+          }
         }
-        
-        setDuplicateMatchType(matchType);
       }
-
-      return existingApplications || [];
+      
+      // Check by name if no LinkedIn matches
+      if (formData.fullName) {
+        const { data: nameMatches } = await supabase
+          .from('applications')
+          .select(`
+            id,
+            candidate_id,
+            current_stage_index,
+            candidate_profiles!applications_candidate_id_fkey(
+              id,
+              full_name,
+              email,
+              linkedin_url,
+              current_title,
+              current_company
+            )
+          `)
+          .eq('job_id', jobId)
+          .ilike('candidate_profiles.full_name', `%${formData.fullName.trim()}%`)
+          .limit(3);
+        
+        if (nameMatches && nameMatches.length > 0) {
+          duplicates = nameMatches.filter(d => d.candidate_profiles);
+          if (duplicates.length > 0) {
+            setDuplicateMatchType('name');
+            return duplicates;
+          }
+        }
+      }
+      
+      return [];
     } catch (error) {
       console.error('Duplicate check error:', error);
+      toast.warning("Could not check for duplicates", {
+        description: "Please verify manually that this candidate doesn't already exist"
+      });
       return [];
     }
   };
@@ -259,31 +264,37 @@ export const AddCandidateDialog = ({
         if (nameMatch) matchingUser = nameMatch;
       }
 
-      // Create or update candidate profile, linking to user if found
+      // Create candidate profile, linking to user if found
       const { data: candidateProfile, error: profileError } = await supabase
         .from("candidate_profiles")
-        .upsert({
-          user_id: matchingUser?.id || null, // Link to user if match found
+        .insert({
+          user_id: matchingUser?.id || null,
           full_name: formData.fullName,
           email: formData.email,
           phone: formData.phone,
           linkedin_url: formData.linkedinUrl,
           current_company: formData.currentCompany,
           current_title: formData.currentTitle,
-          avatar_url: matchingUser?.avatar_url || null, // Use user's avatar if available
+          avatar_url: matchingUser?.avatar_url || null,
           source_channel: 'manual',
           created_by: adminUser.id,
           tags: matchingUser ? ['manually_added', 'linked_to_user'] : ['manually_added']
-        }, {
-          onConflict: 'email',
-          ignoreDuplicates: false
         })
         .select()
         .single();
 
       if (profileError) {
         console.error('Profile error:', profileError);
-        throw profileError;
+        
+        // Specific error messages
+        if (profileError.code === '23505') {
+          throw new Error('A candidate with this email already exists. Please check for duplicates.');
+        }
+        if (profileError.message?.includes('RLS') || profileError.code === '42501') {
+          throw new Error('You do not have permission to add candidates. Please contact an admin.');
+        }
+        
+        throw new Error(profileError.message || 'Failed to create candidate profile');
       }
 
       const candidateId = candidateProfile.id;
@@ -430,16 +441,65 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       setProceedWithDuplicate(false);
       setDuplicateCandidates([]);
       setShowDuplicateDialog(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding candidate:", error);
-      toast.error("Failed to add candidate. Please try again.");
+      
+      // Specific error messages based on error type
+      if (error.message?.includes('email already exists') || error.message?.includes('duplicate')) {
+        toast.error("Duplicate Email", {
+          description: "A candidate with this email already exists in the system."
+        });
+      } else if (error.code === '23503') {
+        toast.error("Invalid Job", {
+          description: "The selected job no longer exists. Please refresh and try again."
+        });
+      } else if (error.message?.includes('permission') || error.message?.includes('RLS')) {
+        toast.error("Permission Denied", {
+          description: "You don't have permission to add candidates. Please contact an admin."
+        });
+      } else {
+        toast.error("Failed to add candidate", {
+          description: error.message || "Please try again or contact support."
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const validateForm = (): boolean => {
+    if (!formData.fullName.trim()) {
+      toast.error("Full name is required");
+      return false;
+    }
+    
+    if (!formData.email.trim()) {
+      toast.error("Email is required");
+      return false;
+    }
+    
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+    
+    if (formData.linkedinUrl && !formData.linkedinUrl.startsWith('http')) {
+      toast.warning("LinkedIn URL should start with http:// or https://");
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -455,11 +515,18 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         }
       }
 
-      // Proceed with submission
-      await proceedWithSubmission();
+      // Show loading toast
+      const addingToast = toast.loading("Adding candidate to pipeline...");
+      
+      try {
+        await proceedWithSubmission();
+        toast.dismiss(addingToast);
+      } catch (error) {
+        toast.dismiss(addingToast);
+        throw error;
+      }
     } catch (error) {
       console.error("Error in submission flow:", error);
-      toast.error("Failed to add candidate. Please try again.");
       setLoading(false);
     }
   };
@@ -591,7 +658,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-accent" />
-                Email
+                Email *
               </Label>
               <Input
                 id="email"
@@ -601,6 +668,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                   setFormData({ ...formData, email: e.target.value })
                 }
                 placeholder="john@example.com"
+                required
               />
             </div>
           </div>
