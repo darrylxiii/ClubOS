@@ -6,6 +6,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Building2, Users, Briefcase, TrendingUp, Clock, Award } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { AppLayout } from "@/components/AppLayout";
 
 interface Analytics {
   totalJobs: number;
@@ -132,22 +133,25 @@ const GlobalAnalytics = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <Skeleton className="h-10 w-64 mb-8" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
+      <AppLayout>
+        <div className="container mx-auto py-8">
+          <Skeleton className="h-10 w-64 mb-8" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-32" />
+            ))}
+          </div>
+          <Skeleton className="h-96 w-full" />
         </div>
-        <Skeleton className="h-96 w-full" />
-      </div>
+      </AppLayout>
     );
   }
 
   if (!analytics) return null;
 
   return (
-    <div className="container mx-auto py-8">
+    <AppLayout>
+      <div className="container mx-auto py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Global Analytics</h1>
         <p className="text-muted-foreground">
@@ -298,6 +302,7 @@ const GlobalAnalytics = () => {
         </TabsContent>
       </Tabs>
     </div>
+    </AppLayout>
   );
 };
 
