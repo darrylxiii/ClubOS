@@ -112,12 +112,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
             >
               {/* Full "Quantum CLUB" text logo when EXPANDED (wide sidebar) */}
               <img
-                src={logoLight}
+                src={logoLightShort}
                 alt="The Quantum Club"
                 className="hidden dark:block h-20"
               />
               <img
-                src={logoDark}
+                src={logoDarkShort}
                 alt="The Quantum Club"
                 className="dark:hidden block h-20"
               />
@@ -133,12 +133,12 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
             >
               {/* Small QC icon when COLLAPSED (slim sidebar) */}
               <img
-                src={logoLightShort}
+                src={logoLight}
                 alt="QC"
                 className="hidden dark:block h-12"
               />
               <img
-                src={logoDarkShort}
+                src={logoDark}
                 alt="QC"
                 className="dark:hidden block h-12"
               />
