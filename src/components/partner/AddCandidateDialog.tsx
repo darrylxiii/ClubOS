@@ -146,12 +146,13 @@ export const AddCandidateDialog = ({
   };
 
   const checkForDuplicates = async () => {
+    // Only check if we have at least one identifier
     if (!formData.fullName && !formData.linkedinUrl && !formData.email) return [];
 
     try {
       let duplicates: any[] = [];
       
-      // Check by EMAIL first (most common and reliable)
+      // Check by EMAIL (if provided)
       if (formData.email) {
         const { data: emailMatches } = await supabase
           .from('candidate_profiles')
@@ -299,8 +300,8 @@ export const AddCandidateDialog = ({
         .insert({
           user_id: matchingUser?.id || null,
           full_name: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
+          email: formData.email || null,
+          phone: formData.phone || null,
           linkedin_url: formData.linkedinUrl,
           current_company: formData.currentCompany,
           current_title: formData.currentTitle,
@@ -322,7 +323,8 @@ export const AddCandidateDialog = ({
         
         // Specific error messages
         if (profileError.code === '23505') {
-          throw new Error(`A candidate with this email (${formData.email}) already exists. Please check for duplicates or update the existing candidate.`);
+          const identifier = formData.email || formData.linkedinUrl || formData.fullName;
+          throw new Error(`A candidate matching "${identifier}" already exists. Please check for duplicates or update the existing candidate.`);
         }
         if (profileError.message?.includes('RLS') || profileError.code === '42501') {
           throw new Error('You do not have permission to add candidates. Please contact an admin.');
@@ -514,16 +516,13 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       return false;
     }
     
-    if (!formData.email.trim()) {
-      toast.error("Email is required");
-      return false;
-    }
-    
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Please enter a valid email address");
-      return false;
+    // Email validation (optional but must be valid if provided)
+    if (formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast.error("Please enter a valid email address");
+        return false;
+      }
     }
     
     if (formData.linkedinUrl && !formData.linkedinUrl.startsWith('http')) {
@@ -728,7 +727,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-accent" />
-                Email *
+                Email
               </Label>
               <Input
                 id="email"
@@ -738,7 +737,6 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                   setFormData({ ...formData, email: e.target.value })
                 }
                 placeholder="john@example.com"
-                required
               />
             </div>
           </div>
