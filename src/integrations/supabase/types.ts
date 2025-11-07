@@ -2958,6 +2958,39 @@ export type Database = {
         }
         Relationships: []
       }
+      career_paths: {
+        Row: {
+          avg_years: number | null
+          created_at: string | null
+          from_role: string
+          id: string
+          required_skills: string[] | null
+          salary_range_max: number | null
+          salary_range_min: number | null
+          to_role: string
+        }
+        Insert: {
+          avg_years?: number | null
+          created_at?: string | null
+          from_role: string
+          id?: string
+          required_skills?: string[] | null
+          salary_range_max?: number | null
+          salary_range_min?: number | null
+          to_role: string
+        }
+        Update: {
+          avg_years?: number | null
+          created_at?: string | null
+          from_role?: string
+          id?: string
+          required_skills?: string[] | null
+          salary_range_max?: number | null
+          salary_range_min?: number | null
+          to_role?: string
+        }
+        Relationships: []
+      }
       career_trend_insights: {
         Row: {
           category: string
@@ -6211,6 +6244,41 @@ export type Database = {
             columns: ["assessment_result_id"]
             isOneToOne: false
             referencedRelation: "assessment_results"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_prep_materials: {
+        Row: {
+          company_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          material_type: string
+          role_type: string | null
+        }
+        Insert: {
+          company_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          material_type: string
+          role_type?: string | null
+        }
+        Update: {
+          company_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          material_type?: string
+          role_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_prep_materials_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
             referencedColumns: ["id"]
           },
         ]
@@ -11172,6 +11240,42 @@ export type Database = {
           new_roles?: Json | null
           old_roles?: Json | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      salary_benchmarks: {
+        Row: {
+          currency: string | null
+          experience_years: unknown
+          id: string
+          location: string
+          role_title: string
+          salary_max: number | null
+          salary_min: number | null
+          sample_size: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          currency?: string | null
+          experience_years?: unknown
+          id?: string
+          location: string
+          role_title: string
+          salary_max?: number | null
+          salary_min?: number | null
+          sample_size?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          currency?: string | null
+          experience_years?: unknown
+          id?: string
+          location?: string
+          role_title?: string
+          salary_max?: number | null
+          salary_min?: number | null
+          sample_size?: number | null
+          updated_at?: string | null
         }
         Relationships: []
       }
