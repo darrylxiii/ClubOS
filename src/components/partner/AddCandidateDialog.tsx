@@ -33,7 +33,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Award } from "lucide-react";
+import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Award, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DuplicateCandidateDialog } from "./DuplicateCandidateDialog";
 
@@ -248,9 +248,9 @@ export const AddCandidateDialog = ({
   const proceedWithSubmission = async () => {
     try {
       console.log('🎯 [Add Candidate] Starting submission:', {
-        email: formData.email,
         fullName: formData.fullName,
         linkedinUrl: formData.linkedinUrl,
+        email: formData.email,
         jobId,
         jobTitle,
         timestamp: new Date().toISOString()
@@ -260,57 +260,21 @@ export const AddCandidateDialog = ({
       const { data: { user: adminUser } } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
 
-      // Try to find matching user profile by email, phone, or name
-      let matchingUser = null;
-      
-      // First try email (most reliable)
-      if (formData.email) {
-        const { data: emailMatch } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url, email, phone")
-          .ilike("email", formData.email)
-          .maybeSingle();
-        
-        if (emailMatch) matchingUser = emailMatch;
-      }
-      
-      // Then try phone if no email match
-      if (!matchingUser && formData.phone) {
-        const { data: phoneMatch } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url, email, phone")
-          .ilike("phone", formData.phone)
-          .maybeSingle();
-        
-        if (phoneMatch) matchingUser = phoneMatch;
-      }
-      
-      // Finally try name match (least reliable, only if exact match)
-      if (!matchingUser && formData.fullName) {
-        const { data: nameMatch } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url, email, phone")
-          .ilike("full_name", formData.fullName)
-          .maybeSingle();
-        
-        if (nameMatch) matchingUser = nameMatch;
-      }
-
-      // Create candidate profile, linking to user if found
+      // STEP 1: Create STANDALONE candidate profile (NO USER LINKING)
       const { data: candidateProfile, error: profileError } = await supabase
         .from("candidate_profiles")
         .insert({
-          user_id: matchingUser?.id || null,
+          user_id: null, // ALWAYS null for manual additions
           full_name: formData.fullName,
           email: formData.email || null,
           phone: formData.phone || null,
-          linkedin_url: formData.linkedinUrl,
-          current_company: formData.currentCompany,
-          current_title: formData.currentTitle,
-          avatar_url: matchingUser?.avatar_url || null,
-          source_channel: 'manual',
+          linkedin_url: formData.linkedinUrl || null,
+          current_company: formData.currentCompany || null,
+          current_title: formData.currentTitle || null,
+          avatar_url: null, // No avatar for manual entries
+          source_channel: 'manual_admin',
           created_by: adminUser.id,
-          tags: matchingUser ? ['manually_added', 'linked_to_user'] : ['manually_added']
+          tags: ['manually_added', 'standalone_profile']
         })
         .select()
         .single();
@@ -335,23 +299,19 @@ export const AddCandidateDialog = ({
         throw new Error(profileError.message || 'Failed to create candidate profile');
       }
 
-      console.log('✅ [Add Candidate] Profile created:', {
+      console.log('✅ [Add Candidate] Standalone profile created:', {
         candidateId: candidateProfile.id,
-        email: candidateProfile.email
+        fullName: candidateProfile.full_name
       });
 
       const candidateId = candidateProfile.id;
-      const userId = matchingUser?.id || null;
 
-      // Check permissions via RLS - let the database handle authorization
-      console.log('🔐 [Add Candidate] Authenticated user:', adminUser.id, adminUser.email);
-
-      // Create application with .select() to get the created record
+      // STEP 2: Create application (also with null user_id for standalone candidates)
       const { data: newApplication, error: appError } = await supabase
         .from("applications")
         .insert({
-          user_id: userId, // Can be null for standalone candidates
-          candidate_id: candidateId, // Link to candidate profile
+          user_id: null, // ALWAYS null for manually-added candidates
+          candidate_id: candidateId,
           job_id: jobId,
           position: jobTitle,
           company_name: formData.currentCompany || "External Candidate",
@@ -362,7 +322,7 @@ export const AddCandidateDialog = ({
               name: "Admin Added",
               status: "in_progress",
               started_at: new Date().toISOString(),
-              notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nLinkedIn: ${formData.linkedinUrl}\nCurrent: ${formData.currentTitle} at ${formData.currentCompany}\n\n${formData.notes}`,
+              notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nLinkedIn: ${formData.linkedinUrl || 'N/A'}\nCurrent: ${formData.currentTitle || 'N/A'} at ${formData.currentCompany || 'N/A'}\n\n${formData.notes}`,
             },
           ],
         })
@@ -408,25 +368,23 @@ export const AddCandidateDialog = ({
         jobId: newApplication.job_id
       });
 
-      // Use the application we just created (no need to query again)
       const application = newApplication;
 
+      // STEP 3: Log candidate addition as interaction
       if (application) {
-        // Log candidate addition as interaction
         await supabase.from("candidate_interactions").insert({
           candidate_id: candidateId,
           application_id: application.id,
           interaction_type: 'status_change',
           interaction_direction: 'internal',
           title: 'Candidate Added to Pipeline',
-          content: `🎯 **Admin-Added Candidate**${matchingUser ? ' 🔗 **Linked to User Account**' : ''}${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
+          content: `🎯 **Admin-Added Candidate**${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
 
 **Name:** ${formData.fullName}
-**Email:** ${formData.email}
+**Email:** ${formData.email || 'N/A'}
 **Phone:** ${formData.phone || "N/A"}
 **LinkedIn:** ${formData.linkedinUrl || "N/A"}
 **Current Position:** ${formData.currentTitle || "N/A"} at ${formData.currentCompany || "N/A"}
-${matchingUser ? `\n**User Profile:** Linked to existing platform user\n**Profile Match:** ${matchingUser.email === formData.email ? 'Email' : matchingUser.phone === formData.phone ? 'Phone' : 'Name'}` : ''}
 ${linkedinImported ? '\n**Source:** LinkedIn profile imported' : ''}
 ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.length > 1 ? 's' : ''}` : ''}
 
@@ -469,11 +427,11 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           action: 'candidate_added',
           stage_data: {
             candidate_name: formData.fullName,
-            candidate_email: formData.email,
+            candidate_email: formData.email || 'N/A',
             starting_stage: formData.startStageIndex,
             starting_stage_name: startingStageName,
             linkedin_imported: linkedinImported,
-            user_linked: !!matchingUser
+            user_linked: false // Always false for manual additions
           },
           metadata: {
             candidate_id: candidateId,
@@ -484,16 +442,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         });
       }
 
-      toast.success(
-        matchingUser 
-          ? "Candidate linked to user account!" 
-          : "Candidate added successfully", 
-        {
-          description: matchingUser
-            ? `${formData.fullName} has been linked to their existing platform account`
-            : `${formData.fullName} has been added to the pipeline`,
-        }
-      );
+      toast.success("Candidate added successfully", {
+        description: `${formData.fullName} has been added to the pipeline as a standalone candidate`,
+      });
 
       onCandidateAdded();
       onOpenChange(false);
@@ -552,6 +503,21 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
     if (!formData.fullName.trim()) {
       toast.error("Full name is required");
       return false;
+    }
+    
+    // At least ONE contact method required (LinkedIn preferred)
+    if (!formData.linkedinUrl && !formData.email && !formData.phone) {
+      toast.error("Please provide at least one contact method", {
+        description: "LinkedIn URL (preferred), email, or phone number"
+      });
+      return false;
+    }
+    
+    // Warning if no LinkedIn
+    if (!formData.linkedinUrl) {
+      toast.warning("LinkedIn URL recommended", {
+        description: "Adding a LinkedIn profile helps with candidate enrichment"
+      });
     }
     
     // Email validation (optional but must be valid if provided)
@@ -675,11 +641,25 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                 Add Candidate
               </DialogTitle>
               <DialogDescription className="text-base">
-                Manually add a candidate to <strong>{jobTitle}</strong>
+                Add a candidate to <strong>{jobTitle}</strong>. Provide at least a LinkedIn URL or email to get started. You can merge with their user account later if they sign up.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
+
+        {/* Info banner explaining workflow */}
+        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+          <div className="flex items-start gap-2">
+            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-blue-900 dark:text-blue-100">
+              <strong>Step 1: Add candidate manually</strong>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                Add candidates to track them in your pipeline. If they sign up later, 
+                you can merge their profile with their account.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {submitError && (
           <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4">
@@ -793,9 +773,26 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="linkedinUrl" className="flex items-center gap-2">
+                <Linkedin className="w-4 h-4 text-accent" />
+                LinkedIn Profile (Recommended)
+              </Label>
+              <Input
+                id="linkedinUrl"
+                value={formData.linkedinUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, linkedinUrl: e.target.value })
+                }
+                placeholder="https://linkedin.com/in/johndoe"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-accent" />
-                Email
+                Email Address (Optional)
               </Label>
               <Input
                 id="email"
@@ -807,13 +804,11 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                 placeholder="john@example.com"
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="phone" className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-accent" />
-                Phone
+                Phone Number (Optional)
               </Label>
               <Input
                 id="phone"
@@ -822,21 +817,6 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                   setFormData({ ...formData, phone: e.target.value })
                 }
                 placeholder="+1 234 567 8900"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="linkedinUrl" className="flex items-center gap-2">
-                <Linkedin className="w-4 h-4 text-accent" />
-                LinkedIn URL
-              </Label>
-              <Input
-                id="linkedinUrl"
-                value={formData.linkedinUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, linkedinUrl: e.target.value })
-                }
-                placeholder="https://linkedin.com/in/johndoe"
               />
             </div>
           </div>
