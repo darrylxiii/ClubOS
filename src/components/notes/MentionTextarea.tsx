@@ -219,11 +219,11 @@ export const MentionTextarea = ({
       />
 
       {/* Mention dropdown */}
-      {showMentions && filteredMembers.length > 0 && (
-        <div
-          ref={dropdownRef}
-          className="absolute z-50 mt-1 w-80 bg-popover border border-border rounded-lg shadow-lg overflow-hidden"
-        >
+        {showMentions && filteredMembers.length > 0 && (
+          <div
+            ref={dropdownRef}
+            className="absolute z-[100] mt-1 w-80 bg-popover border border-border rounded-lg shadow-lg overflow-hidden"
+          >
           <div className="p-2 border-b border-border bg-muted/50">
             <p className="text-xs font-medium text-muted-foreground">
               Mention someone

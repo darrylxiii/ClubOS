@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Lock, Users, Globe, Pin, Plus, Save, Trash2, AtSign } from "lucide-react";
 import { format } from "date-fns";
@@ -35,9 +36,12 @@ interface Props {
 }
 
 export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
+  const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [teamMembersLoading, setTeamMembersLoading] = useState(false);
   const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
   const [newNote, setNewNote] = useState({
     type: 'tqc_internal' as 'tqc_internal' | 'partner_shared' | 'general',
@@ -52,8 +56,20 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
   }, [candidateId]);
 
   const loadTeamMembers = async () => {
-    const members = await getTeamMembersForMentions();
-    setTeamMembers(members);
+    setTeamMembersLoading(true);
+    try {
+      const members = await getTeamMembersForMentions();
+      setTeamMembers(members);
+      
+      if (members.length === 0) {
+        console.warn('No team members found for mentions');
+      }
+    } catch (error) {
+      console.error('Error loading team members:', error);
+      toast.error('Failed to load team members for mentions');
+    } finally {
+      setTeamMembersLoading(false);
+    }
   };
 
   const loadNotes = async () => {
@@ -79,6 +95,12 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
       return;
     }
 
+    if (!user?.id) {
+      toast.error('You must be logged in to create notes');
+      return;
+    }
+
+    setSaving(true);
     try {
       const { data, error } = await supabase
         .from('candidate_notes')
@@ -87,7 +109,8 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
           note_type: newNote.type,
           title: newNote.title.trim() || null,
           content: newNote.content,
-          tags: newNote.tags
+          tags: newNote.tags,
+          created_by: user.id
         }] as any)
         .select()
         .single();
@@ -104,9 +127,11 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
       setNewNote({ type: 'tqc_internal', title: '', content: '', tags: [] });
       setMentionedUserIds([]);
       loadNotes();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving note:', error);
-      toast.error('Failed to save note');
+      toast.error(error.message || 'Failed to save note');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -224,16 +249,21 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
                 Type @ to mention
               </Badge>
             </label>
-            <MentionTextarea
-              value={newNote.content}
-              onChange={(content, mentions) => {
-                setNewNote(prev => ({ ...prev, content }));
-                setMentionedUserIds(mentions);
-              }}
-              placeholder="Add your notes here... Type @ to mention team members"
-              rows={4}
-              teamMembers={teamMembers}
-            />
+              <MentionTextarea
+                value={newNote.content}
+                onChange={(content, mentions) => {
+                  setNewNote(prev => ({ ...prev, content }));
+                  setMentionedUserIds(mentions);
+                }}
+                placeholder={
+                  teamMembersLoading 
+                    ? "Loading team members..." 
+                    : "Add your notes here... Type @ to mention team members"
+                }
+                rows={4}
+                teamMembers={teamMembers}
+                disabled={saving || teamMembersLoading}
+              />
             {mentionedUserIds.length > 0 && (
               <p className="text-xs text-muted-foreground mt-2">
                 Mentioning {mentionedUserIds.length} {mentionedUserIds.length === 1 ? 'person' : 'people'}
@@ -241,10 +271,10 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
             )}
           </div>
 
-          <Button onClick={handleSave} className="w-full">
-            <Save className="w-4 h-4 mr-2" />
-            Save Note
-          </Button>
+            <Button onClick={handleSave} className="w-full" disabled={saving || !user}>
+              <Save className="w-4 h-4 mr-2" />
+              {saving ? 'Saving...' : 'Save Note'}
+            </Button>
         </CardContent>
       </Card>
 

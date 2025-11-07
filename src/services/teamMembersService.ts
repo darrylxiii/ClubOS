@@ -13,38 +13,47 @@ export interface TeamMember {
  */
 export const getTeamMembersForMentions = async (): Promise<TeamMember[]> => {
   try {
+    // Query from user_roles -> profiles (follows foreign key direction)
     const { data, error } = await supabase
-      .from('profiles')
+      .from('user_roles')
       .select(`
-        id,
-        full_name,
-        email,
-        avatar_url,
-        user_roles!inner(role)
+        user_id,
+        role,
+        profiles!user_roles_user_id_fkey (
+          id,
+          full_name,
+          email,
+          avatar_url
+        )
       `)
-      .in('user_roles.role', ['admin', 'strategist', 'partner'])
-      .order('full_name', { ascending: true });
+      .in('role', ['admin', 'strategist', 'partner']);
 
     if (error) throw error;
 
-    // Flatten the user_roles array and deduplicate users
+    // Transform and deduplicate users
     const uniqueMembers = new Map<string, TeamMember>();
     
-    (data || []).forEach((profile: any) => {
-      if (!uniqueMembers.has(profile.id)) {
+    (data || []).forEach((roleRecord: any) => {
+      const profile = roleRecord.profiles;
+      if (profile && !uniqueMembers.has(profile.id)) {
         uniqueMembers.set(profile.id, {
           id: profile.id,
           full_name: profile.full_name || 'Unknown User',
           email: profile.email || '',
           avatar_url: profile.avatar_url,
-          role: profile.user_roles?.[0]?.role
+          role: roleRecord.role
         });
       }
     });
 
-    return Array.from(uniqueMembers.values());
+    // Sort by full name
+    const members = Array.from(uniqueMembers.values());
+    members.sort((a, b) => a.full_name.localeCompare(b.full_name));
+
+    return members;
   } catch (error) {
     console.error('Error fetching team members:', error);
+    // Return empty array as fallback - don't break the UI
     return [];
   }
 };
