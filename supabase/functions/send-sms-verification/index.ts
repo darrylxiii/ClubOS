@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { logSecurityEvent } from "../_shared/security-logger.ts";
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
@@ -13,9 +15,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Cryptographically secure OTP generation
 const generateCode = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  const randomNum = 100000 + (array[0] % 900000);
+  return randomNum.toString();
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  phone: z.string().min(10, 'Phone number too short').max(20, 'Phone number too long'),
+});
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -39,7 +50,9 @@ const handler = async (req: Request): Promise<Response> => {
       user = authUser;
     }
 
-    const { phone } = await req.json();
+    // Validate input
+    const body = await req.json();
+    const { phone } = requestSchema.parse(body);
     // Extract first IP from x-forwarded-for header (may contain multiple IPs)
     const forwardedFor = req.headers.get('x-forwarded-for');
     const ipAddress = forwardedFor ? forwardedFor.split(',')[0].trim() : 'unknown';
@@ -125,6 +138,15 @@ const handler = async (req: Request): Promise<Response> => {
         user_agent: userAgent
       });
     }
+
+    // Security logging
+    await logSecurityEvent({
+      eventType: 'sms_verification_sent',
+      details: { phone, authenticated: !!user },
+      ipAddress,
+      userAgent,
+      userId: user?.id,
+    });
 
     const result = await twilioResponse.json();
     console.log("SMS sent successfully:", result.sid);

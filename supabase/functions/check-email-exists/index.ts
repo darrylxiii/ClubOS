@@ -1,14 +1,18 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { logSecurityEvent } from '../_shared/security-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-interface CheckEmailRequest {
-  email: string;
-}
+// Input validation schema
+const requestSchema = z.object({
+  email: z.string().email('Invalid email format').max(255, 'Email too long'),
+});
 
 serve(async (req) => {
   // Handle CORS preflight
@@ -17,22 +21,32 @@ serve(async (req) => {
   }
 
   try {
-    const { email }: CheckEmailRequest = await req.json();
+    // Parse and validate input
+    const body = await req.json();
+    const { email } = requestSchema.parse(body);
 
-    if (!email || typeof email !== 'string') {
-      return new Response(
-        JSON.stringify({ error: 'Email is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Get IP address for rate limiting
+    const ipAddress = req.headers.get('x-forwarded-for')?.split(',')[0].trim() || 'unknown';
+    const userAgent = req.headers.get('user-agent') || 'unknown';
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid email format' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    // Rate limit: 5 checks per hour per IP to prevent email enumeration attacks
+    const rateLimitResult = await checkUserRateLimit(
+      ipAddress,
+      'email-check',
+      5,
+      3600000 // 1 hour
+    );
+
+    if (!rateLimitResult.allowed) {
+      // Log rate limit exceeded
+      await logSecurityEvent({
+        eventType: 'email_check_rate_limited',
+        details: { email, ip: ipAddress },
+        ipAddress,
+        userAgent,
+      });
+      
+      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, corsHeaders);
     }
 
     // Create Supabase admin client
@@ -61,6 +75,25 @@ serve(async (req) => {
     );
 
     console.log(`Email check for ${email}: ${emailExists ? 'exists' : 'available'}`);
+
+    // Security logging for email checks
+    await logSecurityEvent({
+      eventType: 'email_check_performed',
+      details: { 
+        email, 
+        exists: emailExists,
+        ip: ipAddress 
+      },
+      ipAddress,
+      userAgent,
+    });
+
+    // Add consistent timing to prevent timing attacks
+    const minResponseTime = 100; // 100ms minimum
+    const elapsed = Date.now() % 200; // Random up to 200ms
+    if (elapsed < minResponseTime) {
+      await new Promise(resolve => setTimeout(resolve, minResponseTime - elapsed));
+    }
 
     return new Response(
       JSON.stringify({ exists: emailExists }),

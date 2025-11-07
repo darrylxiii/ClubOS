@@ -313,6 +313,8 @@ export function CandidateOnboardingSteps() {
     try {
       const timeToComplete = Math.floor((Date.now() - startTime) / 1000);
 
+      console.log('[Onboarding] Starting account creation for:', formData.email);
+
       // STEP 1: Create Supabase auth account with all onboarding data
       const { data: authData, error: signupError } = await supabase.auth.signUp({
         email: formData.email,
@@ -328,8 +330,34 @@ export function CandidateOnboardingSteps() {
         }
       });
 
-      if (signupError) throw signupError;
-      if (!authData.user) throw new Error("Failed to create account");
+      if (signupError) {
+        console.error('[Onboarding] Signup error:', signupError);
+        throw signupError;
+      }
+      
+      if (!authData.user) {
+        console.error('[Onboarding] No user returned from signup');
+        throw new Error("Failed to create account");
+      }
+
+      console.log('[Onboarding] Auth account created, user ID:', authData.user.id);
+
+      // STEP 1.5: Wait for trigger to create profile (fix race condition)
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Verify profile exists before updating
+      const { data: existingProfile, error: profileCheckError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', authData.user.id)
+        .single();
+
+      if (profileCheckError || !existingProfile) {
+        console.error('[Onboarding] Profile not found after signup:', profileCheckError);
+        throw new Error("Profile creation failed. Please contact support.");
+      }
+
+      console.log('[Onboarding] Profile verified, updating with onboarding data');
 
       // STEP 2: Update profiles table with complete onboarding data
       const { error: profileError } = await supabase
@@ -361,8 +389,11 @@ export function CandidateOnboardingSteps() {
         .eq('id', authData.user.id);
 
       if (profileError) {
-        console.error("Profile update error:", profileError);
+        console.error("[Onboarding] Profile update error:", profileError);
+        throw new Error(`Profile update failed: ${profileError.message}`);
       }
+
+      console.log('[Onboarding] Profile updated successfully');
 
       // STEP 2.5: Move resume from onboarding folder to user's folder
       if (formData.resume_url) {
@@ -393,7 +424,9 @@ export function CandidateOnboardingSteps() {
       }
 
       // STEP 3: Create candidate_profile entry for strategist assignment
-      await supabase
+      console.log('[Onboarding] Creating candidate profile');
+      
+      const { error: candidateProfileError } = await supabase
         .from('candidate_profiles')
         .insert({
           email: formData.email,
@@ -416,6 +449,13 @@ export function CandidateOnboardingSteps() {
           source_channel: 'integrated_funnel',
         });
 
+      if (candidateProfileError) {
+        console.error('[Onboarding] Candidate profile creation error:', candidateProfileError);
+        throw new Error(`Failed to create candidate profile: ${candidateProfileError.message}`);
+      }
+
+      console.log('[Onboarding] Candidate profile created successfully');
+
       await trackStep("complete");
 
       toast({ 
@@ -432,10 +472,35 @@ export function CandidateOnboardingSteps() {
       }, 2000);
 
     } catch (error: any) {
-      console.error('Account creation error:', error);
+      console.error('[Onboarding] Account creation error:', error);
+      
+      // Log detailed error to database for debugging
+      try {
+        await supabase.from('funnel_analytics').insert({
+          session_id: sessionId,
+          step_number: 999, // Error step
+          step_name: 'account_creation_error',
+          action: 'error',
+          error_details: {
+            message: error.message,
+            code: error.code,
+            details: error.details,
+            hint: error.hint,
+            step: 'handleSubmit',
+            formData: {
+              email: formData.email,
+              full_name: formData.full_name,
+              phone: phoneNumber,
+            }
+          }
+        });
+      } catch (logError) {
+        console.error('[Onboarding] Failed to log error:', logError);
+      }
+
       toast({ 
         title: "Account creation failed", 
-        description: error.message, 
+        description: error.message || "An unexpected error occurred. Please try again or contact support.", 
         variant: "destructive" 
       });
     } finally {

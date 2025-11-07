@@ -1,8 +1,10 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { CodeBox, Heading, Paragraph, Spacer, Card } from "../_shared/email-templates/components.ts";
+import { logSecurityEvent } from "../_shared/security-logger.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -13,9 +15,18 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Cryptographically secure OTP generation
 const generateCode = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  const randomNum = 100000 + (array[0] % 900000);
+  return randomNum.toString();
 };
+
+// Input validation schema
+const requestSchema = z.object({
+  email: z.string().email('Invalid email format').max(255, 'Email too long'),
+});
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -35,7 +46,9 @@ const handler = async (req: Request): Promise<Response> => {
       user = authUser;
     }
 
-    const { email } = await req.json();
+    // Validate input
+    const body = await req.json();
+    const { email } = requestSchema.parse(body);
     // Extract first IP from x-forwarded-for header (may contain multiple IPs)
     const forwardedFor = req.headers.get('x-forwarded-for') || 'unknown';
     const ipAddress = forwardedFor.split(',')[0].trim();
@@ -145,6 +158,15 @@ const handler = async (req: Request): Promise<Response> => {
         user_agent: userAgent
       });
     }
+
+    // Security logging
+    await logSecurityEvent({
+      eventType: 'email_verification_sent',
+      details: { email, authenticated: !!user },
+      ipAddress,
+      userAgent,
+      userId: user?.id,
+    });
 
     const result = await emailResponse.json();
     console.log("Verification email sent successfully:", result);
