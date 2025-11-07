@@ -10559,6 +10559,7 @@ export type Database = {
           avatar_url: string | null
           blocked_companies: Json | null
           career_preferences: string | null
+          club_sync_enabled: boolean | null
           company_id: string | null
           company_size_preference: string | null
           contract_end_date: string | null
@@ -10598,7 +10599,9 @@ export type Database = {
           phone: string | null
           phone_verified: boolean | null
           preferred_currency: string
+          preferred_job_types: string[] | null
           preferred_language: string | null
+          preferred_locations: string[] | null
           preferred_work_locations: Json | null
           privacy_settings: Json | null
           profile_slug: string | null
@@ -10606,6 +10609,10 @@ export type Database = {
           reference_timezone: string | null
           remote_work_preference: boolean | null
           resume_url: string | null
+          salary_expectation_currency: string | null
+          salary_expectation_max: number | null
+          salary_expectation_min: number | null
+          skills: string[] | null
           spotify_connected: boolean | null
           spotify_playlists: Json | null
           spotify_user_id: string | null
@@ -10620,6 +10627,7 @@ export type Database = {
           work_hours_start: string | null
           work_timezone: string | null
           work_timezone_flexibility_hours: number | null
+          years_of_experience: number | null
         }
         Insert: {
           allow_stealth_cold_outreach?: boolean | null
@@ -10630,6 +10638,7 @@ export type Database = {
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
+          club_sync_enabled?: boolean | null
           company_id?: string | null
           company_size_preference?: string | null
           contract_end_date?: string | null
@@ -10669,7 +10678,9 @@ export type Database = {
           phone?: string | null
           phone_verified?: boolean | null
           preferred_currency?: string
+          preferred_job_types?: string[] | null
           preferred_language?: string | null
+          preferred_locations?: string[] | null
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
           profile_slug?: string | null
@@ -10677,6 +10688,10 @@ export type Database = {
           reference_timezone?: string | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
+          salary_expectation_currency?: string | null
+          salary_expectation_max?: number | null
+          salary_expectation_min?: number | null
+          skills?: string[] | null
           spotify_connected?: boolean | null
           spotify_playlists?: Json | null
           spotify_user_id?: string | null
@@ -10691,6 +10706,7 @@ export type Database = {
           work_hours_start?: string | null
           work_timezone?: string | null
           work_timezone_flexibility_hours?: number | null
+          years_of_experience?: number | null
         }
         Update: {
           allow_stealth_cold_outreach?: boolean | null
@@ -10701,6 +10717,7 @@ export type Database = {
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
+          club_sync_enabled?: boolean | null
           company_id?: string | null
           company_size_preference?: string | null
           contract_end_date?: string | null
@@ -10740,7 +10757,9 @@ export type Database = {
           phone?: string | null
           phone_verified?: boolean | null
           preferred_currency?: string
+          preferred_job_types?: string[] | null
           preferred_language?: string | null
+          preferred_locations?: string[] | null
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
           profile_slug?: string | null
@@ -10748,6 +10767,10 @@ export type Database = {
           reference_timezone?: string | null
           remote_work_preference?: boolean | null
           resume_url?: string | null
+          salary_expectation_currency?: string | null
+          salary_expectation_max?: number | null
+          salary_expectation_min?: number | null
+          skills?: string[] | null
           spotify_connected?: boolean | null
           spotify_playlists?: Json | null
           spotify_user_id?: string | null
@@ -10762,6 +10785,7 @@ export type Database = {
           work_hours_start?: string | null
           work_timezone?: string | null
           work_timezone_flexibility_hours?: number | null
+          years_of_experience?: number | null
         }
         Relationships: [
           {
@@ -11097,6 +11121,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      saved_jobs: {
+        Row: {
+          created_at: string | null
+          id: string
+          job_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          job_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          job_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "saved_jobs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       saved_posts: {
         Row: {

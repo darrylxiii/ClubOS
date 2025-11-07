@@ -32,6 +32,7 @@ const Jobs = () => {
   const [sortBy, setSortBy] = useState<SortOption>("match");
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
   const [clubSyncEnabled, setClubSyncEnabled] = useState(false);
+  const [loadingSavedJobs, setLoadingSavedJobs] = useState(true);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<{
     id: string;
@@ -42,18 +43,52 @@ const Jobs = () => {
   const [loading, setLoading] = useState(true);
   const [userCurrency, setUserCurrency] = useState<Currency>('EUR');
 
-  // Fetch user's preferred currency
+  // Fetch user's preferred currency and settings
   useEffect(() => {
-    const fetchUserCurrency = async () => {
+    const fetchUserSettings = async () => {
       if (!user) return;
-      const {
-        data
-      } = await supabase.from('profiles').select('preferred_currency').eq('id', user.id).single();
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('preferred_currency, club_sync_enabled')
+        .eq('id', user.id)
+        .single();
+      
       if (data?.preferred_currency) {
         setUserCurrency(data.preferred_currency as Currency);
       }
+      if (data?.club_sync_enabled !== undefined) {
+        setClubSyncEnabled(data.club_sync_enabled);
+      }
     };
-    fetchUserCurrency();
+    fetchUserSettings();
+  }, [user]);
+
+  // Fetch saved jobs from database
+  useEffect(() => {
+    const fetchSavedJobs = async () => {
+      if (!user) {
+        setLoadingSavedJobs(false);
+        return;
+      }
+      
+      try {
+        const { data, error } = await supabase
+          .from('saved_jobs')
+          .select('job_id')
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        
+        setSavedJobIds(data?.map(sj => sj.job_id) || []);
+      } catch (error) {
+        console.error('Error fetching saved jobs:', error);
+      } finally {
+        setLoadingSavedJobs(false);
+      }
+    };
+    
+    fetchSavedJobs();
   }, [user]);
 
   // Fetch jobs from database with match scores
@@ -219,19 +254,44 @@ const Jobs = () => {
       description: "Elite auto-apply initiated. You'll be notified of next steps."
     });
   };
-  const toggleSaveJob = (jobId: string, jobTitle: string) => {
-    setSavedJobIds(prev => {
-      const isSaved = prev.includes(jobId);
+  const toggleSaveJob = async (jobId: string, jobTitle: string) => {
+    if (!user) {
+      toast.error('Please sign in to save jobs');
+      return;
+    }
+
+    const isSaved = savedJobIds.includes(jobId);
+    
+    try {
       if (isSaved) {
+        // Remove from database
+        const { error } = await supabase
+          .from('saved_jobs')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('job_id', jobId);
+        
+        if (error) throw error;
+        
+        setSavedJobIds(prev => prev.filter(id => id !== jobId));
         toast.info(`Removed ${jobTitle} from saved jobs`);
-        return prev.filter(id => id !== jobId);
       } else {
+        // Add to database
+        const { error } = await supabase
+          .from('saved_jobs')
+          .insert({ user_id: user.id, job_id: jobId });
+        
+        if (error) throw error;
+        
+        setSavedJobIds(prev => [...prev, jobId]);
         toast.success(`Saved ${jobTitle}!`, {
           description: "You can view all saved jobs in the Saved tab."
         });
-        return [...prev, jobId];
       }
-    });
+    } catch (error) {
+      console.error('Error toggling saved job:', error);
+      toast.error('Failed to save job. Please try again.');
+    }
   };
 
   // Saved jobs with currency conversion
@@ -323,11 +383,28 @@ const Jobs = () => {
                 </div>
                 <Switch 
                   checked={clubSyncEnabled} 
-                  onCheckedChange={checked => {
-                    setClubSyncEnabled(checked);
-                    toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
-                      description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
-                    });
+                  onCheckedChange={async (checked) => {
+                    if (!user) {
+                      toast.error('Please sign in to use Club Sync');
+                      return;
+                    }
+                    
+                    try {
+                      const { error } = await supabase
+                        .from('profiles')
+                        .update({ club_sync_enabled: checked })
+                        .eq('id', user.id);
+                      
+                      if (error) throw error;
+                      
+                      setClubSyncEnabled(checked);
+                      toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
+                        description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
+                      });
+                    } catch (error) {
+                      console.error('Error updating Club Sync:', error);
+                      toast.error('Failed to update Club Sync setting');
+                    }
                   }} 
                 />
               </div>
@@ -412,11 +489,28 @@ const Jobs = () => {
                 </div>
                 <Switch 
                   checked={clubSyncEnabled} 
-                  onCheckedChange={checked => {
-                    setClubSyncEnabled(checked);
-                    toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
-                      description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
-                    });
+                  onCheckedChange={async (checked) => {
+                    if (!user) {
+                      toast.error('Please sign in to use Club Sync');
+                      return;
+                    }
+                    
+                    try {
+                      const { error } = await supabase
+                        .from('profiles')
+                        .update({ club_sync_enabled: checked })
+                        .eq('id', user.id);
+                      
+                      if (error) throw error;
+                      
+                      setClubSyncEnabled(checked);
+                      toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
+                        description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
+                      });
+                    } catch (error) {
+                      console.error('Error updating Club Sync:', error);
+                      toast.error('Failed to update Club Sync setting');
+                    }
                   }} 
                 />
               </div>
