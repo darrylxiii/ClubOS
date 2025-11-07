@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Lock, Users, Globe, Pin, Plus, Save, Trash2 } from "lucide-react";
+import { Lock, Users, Globe, Pin, Plus, Save, Trash2, AtSign } from "lucide-react";
 import { format } from "date-fns";
+import { MentionTextarea } from "@/components/notes/MentionTextarea";
+import { getTeamMembersForMentions, type TeamMember } from "@/services/teamMembersService";
+import { renderNoteContentWithMentions } from "@/utils/mentionRenderer";
 
 interface Note {
   id: string;
@@ -35,6 +37,8 @@ interface Props {
 export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
   const [newNote, setNewNote] = useState({
     type: 'tqc_internal' as 'tqc_internal' | 'partner_shared' | 'general',
     title: '',
@@ -44,7 +48,13 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
 
   useEffect(() => {
     loadNotes();
+    loadTeamMembers();
   }, [candidateId]);
+
+  const loadTeamMembers = async () => {
+    const members = await getTeamMembersForMentions();
+    setTeamMembers(members);
+  };
 
   const loadNotes = async () => {
     const { data, error } = await supabase
@@ -70,7 +80,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
     }
 
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('candidate_notes')
         .insert([{
           candidate_id: candidateId,
@@ -78,12 +88,21 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
           title: newNote.title.trim() || null,
           content: newNote.content,
           tags: newNote.tags
-        }] as any);
+        }] as any)
+        .select()
+        .single();
 
       if (error) throw error;
 
-      toast.success('Note saved');
+      // Mentions are automatically processed by database trigger
+      toast.success(
+        mentionedUserIds.length > 0 
+          ? `Note saved and ${mentionedUserIds.length} ${mentionedUserIds.length === 1 ? 'person' : 'people'} mentioned`
+          : 'Note saved'
+      );
+      
       setNewNote({ type: 'tqc_internal', title: '', content: '', tags: [] });
+      setMentionedUserIds([]);
       loadNotes();
     } catch (error) {
       console.error('Error saving note:', error);
@@ -198,13 +217,28 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Content</label>
-            <Textarea
-              placeholder="Add your notes here..."
-              rows={4}
+            <label className="text-sm font-medium mb-2 flex items-center gap-2">
+              Content
+              <Badge variant="outline" className="text-xs">
+                <AtSign className="w-3 h-3 mr-1" />
+                Type @ to mention
+              </Badge>
+            </label>
+            <MentionTextarea
               value={newNote.content}
-              onChange={(e) => setNewNote(prev => ({ ...prev, content: e.target.value }))}
+              onChange={(content, mentions) => {
+                setNewNote(prev => ({ ...prev, content }));
+                setMentionedUserIds(mentions);
+              }}
+              placeholder="Add your notes here... Type @ to mention team members"
+              rows={4}
+              teamMembers={teamMembers}
             />
+            {mentionedUserIds.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-2">
+                Mentioning {mentionedUserIds.length} {mentionedUserIds.length === 1 ? 'person' : 'people'}
+              </p>
+            )}
           </div>
 
           <Button onClick={handleSave} className="w-full">
@@ -275,9 +309,9 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
                       <h4 className="font-semibold mb-2">{note.title}</h4>
                     )}
                     
-                    <p className="text-sm whitespace-pre-wrap text-muted-foreground mb-3">
-                      {note.content}
-                    </p>
+                    <div className="text-sm whitespace-pre-wrap text-muted-foreground mb-3">
+                      {renderNoteContentWithMentions(note.content)}
+                    </div>
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>
@@ -300,7 +334,9 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
                 return (
                   <Card key={note.id}>
                     <CardContent className="pt-6">
-                      <p className="text-sm whitespace-pre-wrap">{note.content}</p>
+                      <div className="text-sm whitespace-pre-wrap">
+                        {renderNoteContentWithMentions(note.content)}
+                      </div>
                       <p className="text-xs text-muted-foreground mt-2">
                         {format(new Date(note.created_at), 'MMM d, yyyy')}
                       </p>

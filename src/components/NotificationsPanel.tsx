@@ -292,7 +292,7 @@ export const NotificationsPanel = () => {
           >
             Unread {unreadCount > 0 && `(${unreadCount})`}
           </Badge>
-          {['message', 'interview', 'application', 'system'].map(type => (
+          {['mention', 'message', 'interview', 'application', 'system'].map(type => (
             <Badge
               key={type}
               variant={filter === type ? 'default' : 'outline'}
