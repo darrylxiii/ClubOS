@@ -5,9 +5,10 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, DollarSign, Briefcase, Home, X } from "lucide-react";
+import { MapPin, DollarSign, Briefcase, Home, X, Building2, FolderTree, ChevronDown, ChevronUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 export interface JobFilters {
   locations: string[];
@@ -17,6 +18,8 @@ export interface JobFilters {
   remoteOnly: boolean;
   hybridIncluded: boolean;
   experienceYears: [number, number];
+  companies: string[];
+  departments: string[];
 }
 
 interface JobFilterSidebarProps {
@@ -25,6 +28,8 @@ interface JobFilterSidebarProps {
   onReset: () => void;
   totalJobs: number;
   filteredJobsCount: number;
+  availableCompanies: string[];
+  availableDepartments: string[];
 }
 
 const EMPLOYMENT_TYPES = [
@@ -44,9 +49,12 @@ export function JobFilterSidebar({
   onFiltersChange,
   onReset,
   totalJobs,
-  filteredJobsCount
+  filteredJobsCount,
+  availableCompanies,
+  availableDepartments
 }: JobFilterSidebarProps) {
   const [locationInput, setLocationInput] = useState("");
+  const [isOpen, setIsOpen] = useState(true);
 
   const handleLocationAdd = () => {
     if (locationInput.trim() && !filters.locations.includes(locationInput.trim())) {
@@ -91,6 +99,22 @@ export function JobFilterSidebar({
     return `€${value}`;
   };
 
+  const handleCompanyToggle = (company: string) => {
+    const newCompanies = filters.companies.includes(company)
+      ? filters.companies.filter(c => c !== company)
+      : [...filters.companies, company];
+    
+    onFiltersChange({ ...filters, companies: newCompanies });
+  };
+
+  const handleDepartmentToggle = (department: string) => {
+    const newDepartments = filters.departments.includes(department)
+      ? filters.departments.filter(d => d !== department)
+      : [...filters.departments, department];
+    
+    onFiltersChange({ ...filters, departments: newDepartments });
+  };
+
   const hasActiveFilters = 
     filters.locations.length > 0 ||
     filters.salaryMin > 0 ||
@@ -99,33 +123,44 @@ export function JobFilterSidebar({
     filters.remoteOnly ||
     filters.hybridIncluded ||
     filters.experienceYears[0] > 0 ||
-    filters.experienceYears[1] < 20;
+    filters.experienceYears[1] < 20 ||
+    filters.companies.length > 0 ||
+    filters.departments.length > 0;
 
   return (
-    <Card className="sticky top-6 border-border/20">
-      <CardHeader className="space-y-1">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg font-bold flex items-center gap-2">
-            <Briefcase className="w-5 h-5" />
-            Filters
-          </CardTitle>
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onReset}
-              className="h-8 text-xs"
-            >
-              Reset All
-            </Button>
-          )}
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {filteredJobsCount} of {totalJobs} jobs
-        </p>
-      </CardHeader>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="sticky top-6 border-border/20">
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-bold flex items-center gap-2">
+              <Briefcase className="w-5 h-5" />
+              Filters
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onReset}
+                  className="h-8 text-xs"
+                >
+                  Reset All
+                </Button>
+              )}
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            {filteredJobsCount} of {totalJobs} jobs
+          </p>
+        </CardHeader>
 
-      <CardContent className="space-y-6">
+        <CollapsibleContent>
+          <CardContent className="space-y-6">
         {/* Location Filter */}
         <div className="space-y-3">
           <Label className="flex items-center gap-2 text-sm font-semibold">
@@ -320,7 +355,71 @@ export function JobFilterSidebar({
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+
+        <Separator />
+
+        {/* Companies Filter */}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2 text-sm font-semibold">
+            <Building2 className="w-4 h-4" />
+            Companies
+          </Label>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {availableCompanies.length > 0 ? (
+              availableCompanies.map(company => (
+                <div key={company} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`company-${company}`}
+                    checked={filters.companies.includes(company)}
+                    onCheckedChange={() => handleCompanyToggle(company)}
+                  />
+                  <Label
+                    htmlFor={`company-${company}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {company}
+                  </Label>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No companies available</p>
+            )}
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Departments Filter */}
+        <div className="space-y-3">
+          <Label className="flex items-center gap-2 text-sm font-semibold">
+            <FolderTree className="w-4 h-4" />
+            Departments
+          </Label>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {availableDepartments.length > 0 ? (
+              availableDepartments.map(department => (
+                <div key={department} className="flex items-center space-x-2">
+                  <Checkbox
+                    id={`department-${department}`}
+                    checked={filters.departments.includes(department)}
+                    onCheckedChange={() => handleDepartmentToggle(department)}
+                  />
+                  <Label
+                    htmlFor={`department-${department}`}
+                    className="text-sm cursor-pointer"
+                  >
+                    {department}
+                  </Label>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No departments available</p>
+            )}
+          </div>
+        </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }

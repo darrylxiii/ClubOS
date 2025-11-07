@@ -42,6 +42,8 @@ const Jobs = () => {
     remoteOnly: false,
     hybridIncluded: false,
     experienceYears: [0, 20],
+    companies: [],
+    departments: [],
   });
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<{
@@ -304,6 +306,19 @@ const Jobs = () => {
     }
   };
 
+  // Extract unique companies and departments
+  const availableCompanies = useMemo(() => {
+    const companies = new Set(jobs.map(job => job.company).filter(Boolean));
+    return Array.from(companies).sort();
+  }, [jobs]);
+
+  const availableDepartments = useMemo(() => {
+    const departments = new Set(
+      jobs.flatMap(job => job.tags || []).filter(Boolean)
+    );
+    return Array.from(departments).sort();
+  }, [jobs]);
+
   // Apply filters to jobs
   const filteredJobs = useMemo(() => {
     return jobsWithConvertedSalary.filter(job => {
@@ -328,6 +343,20 @@ const Jobs = () => {
       // Remote filter
       if (filters.remoteOnly && !job.location.toLowerCase().includes('remote')) {
         return false;
+      }
+
+      // Company filter
+      if (filters.companies.length > 0 && !filters.companies.includes(job.company)) {
+        return false;
+      }
+
+      // Department filter (check if any of the job's tags match selected departments)
+      if (filters.departments.length > 0) {
+        const jobDepartments = job.tags || [];
+        const matchesDepartment = filters.departments.some(dept => 
+          jobDepartments.includes(dept)
+        );
+        if (!matchesDepartment) return false;
       }
 
       return true;
@@ -368,9 +397,13 @@ const Jobs = () => {
                 remoteOnly: false,
                 hybridIncluded: false,
                 experienceYears: [0, 20],
+                companies: [],
+                departments: [],
               })}
               totalJobs={jobs.length}
               filteredJobsCount={filteredJobs.length}
+              availableCompanies={availableCompanies}
+              availableDepartments={availableDepartments}
             />
           </div>
 
