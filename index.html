@@ -50,6 +50,10 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
     
+    <!-- Async CSS loading to improve FCP -->
+    <link rel="preload" href="/src/index.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/src/index.css"></noscript>
+    
     <!-- Preload critical font to prevent layout shift -->
     <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2" crossorigin>
     
@@ -82,13 +86,14 @@
         line-gap-override: 0%;
       }
       
-  body { 
-    margin: 0; 
-    font-family: Inter, 'Inter-fallback', system-ui, -apple-system, sans-serif;
-    font-size: 16px;
-    line-height: 1.5;
-    background-color: hsl(30 20% 96%);
-  }
+      body { 
+        margin: 0; 
+        font-family: Inter, 'Inter-fallback', system-ui, -apple-system, sans-serif;
+        font-size: 16px;
+        line-height: 1.5;
+        background-color: hsl(30 20% 96%);
+        color: hsl(30 10% 20%);
+      }
       
       #root { 
         min-height: 100vh;
@@ -100,6 +105,22 @@
       .absolute {
         contain: layout style paint;
         will-change: transform;
+      }
+      
+      /* Critical above-the-fold button styles */
+      button {
+        font-family: inherit;
+        cursor: pointer;
+      }
+      
+      /* Prevent FOUC */
+      .fade-in {
+        animation: fadeIn 0.2s ease-in;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
       }
     </style>
 
