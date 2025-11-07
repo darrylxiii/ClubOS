@@ -181,9 +181,9 @@ export const MentionTextarea = ({
   const displayParts = renderDisplayContent();
 
   return (
-    <div className="relative">
+    <div className="relative isolate">
       {/* Display layer with formatted mentions */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md">
+      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md bg-background">
         <div className={cn(
           "w-full min-h-full p-3 text-sm whitespace-pre-wrap break-words",
           className
@@ -197,7 +197,7 @@ export const MentionTextarea = ({
                 @{part.content}
               </span>
             ) : (
-              <span key={index}>{part.content}</span>
+              <span key={index} className="text-foreground">{part.content}</span>
             )
           ))}
         </div>
@@ -218,19 +218,17 @@ export const MentionTextarea = ({
         )}
       />
 
-      {/* Mention dropdown - positioned directly below cursor */}
+      {/* Mention dropdown - positioned below textarea */}
         {showMentions && filteredMembers.length > 0 && (
           <div
             ref={dropdownRef}
-            className="fixed z-[9999] w-80 bg-popover border border-border rounded-lg shadow-2xl overflow-hidden"
+            className="absolute z-[9999] w-80 bg-popover border border-border rounded-lg shadow-2xl overflow-hidden"
             style={{
-              top: textareaRef.current ? 
-                textareaRef.current.getBoundingClientRect().bottom + window.scrollY + 4 : 0,
-              left: textareaRef.current ? 
-                textareaRef.current.getBoundingClientRect().left + window.scrollX : 0,
+              top: textareaRef.current ? textareaRef.current.offsetHeight + 4 : 0,
+              left: 0,
             }}
           >
-          <div className="p-2 border-b border-border bg-muted/50">
+          <div className="p-2 border-b border-border bg-muted">
             <p className="text-xs font-medium text-muted-foreground">
               Mention someone
             </p>
