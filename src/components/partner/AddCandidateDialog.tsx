@@ -146,12 +146,32 @@ export const AddCandidateDialog = ({
   };
 
   const checkForDuplicates = async () => {
-    if (!formData.fullName && !formData.linkedinUrl) return [];
+    if (!formData.fullName && !formData.linkedinUrl && !formData.email) return [];
 
     try {
       let duplicates: any[] = [];
       
-      // Check by LinkedIn URL first (most reliable)
+      // Check by EMAIL first (most common and reliable)
+      if (formData.email) {
+        const { data: emailMatches } = await supabase
+          .from('candidate_profiles')
+          .select('id, full_name, email, linkedin_url, current_title, current_company')
+          .ilike('email', formData.email.trim())
+          .limit(3);
+        
+        if (emailMatches && emailMatches.length > 0) {
+          // Format for duplicate dialog compatibility
+          duplicates = emailMatches.map(profile => ({
+            id: null,
+            candidate_id: profile.id,
+            candidate_profiles: profile
+          }));
+          setDuplicateMatchType('email' as any);
+          return duplicates;
+        }
+      }
+      
+      // Check by LinkedIn URL (if no email match)
       if (formData.linkedinUrl) {
         const normalizedUrl = formData.linkedinUrl.trim().split('?')[0].replace(/\/$/, '');
         const { data: linkedinMatches } = await supabase
@@ -182,7 +202,7 @@ export const AddCandidateDialog = ({
         }
       }
       
-      // Check by name if no LinkedIn matches
+      // Check by name (least reliable, only if no email/LinkedIn matches)
       if (formData.fullName) {
         const { data: nameMatches } = await supabase
           .from('applications')
@@ -224,6 +244,15 @@ export const AddCandidateDialog = ({
 
   const proceedWithSubmission = async () => {
     try {
+      console.log('🎯 [Add Candidate] Starting submission:', {
+        email: formData.email,
+        fullName: formData.fullName,
+        linkedinUrl: formData.linkedinUrl,
+        jobId,
+        jobTitle,
+        timestamp: new Date().toISOString()
+      });
+
       // Get current admin user
       const { data: { user: adminUser } } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
@@ -284,11 +313,16 @@ export const AddCandidateDialog = ({
         .single();
 
       if (profileError) {
-        console.error('Profile error:', profileError);
+        console.error('❌ [Add Candidate] Profile creation failed:', {
+          code: profileError.code,
+          message: profileError.message,
+          details: profileError.details,
+          hint: profileError.hint
+        });
         
         // Specific error messages
         if (profileError.code === '23505') {
-          throw new Error('A candidate with this email already exists. Please check for duplicates.');
+          throw new Error(`A candidate with this email (${formData.email}) already exists. Please check for duplicates or update the existing candidate.`);
         }
         if (profileError.message?.includes('RLS') || profileError.code === '42501') {
           throw new Error('You do not have permission to add candidates. Please contact an admin.');
@@ -296,6 +330,11 @@ export const AddCandidateDialog = ({
         
         throw new Error(profileError.message || 'Failed to create candidate profile');
       }
+
+      console.log('✅ [Add Candidate] Profile created:', {
+        candidateId: candidateProfile.id,
+        email: candidateProfile.email
+      });
 
       const candidateId = candidateProfile.id;
       const userId = matchingUser?.id || null;
@@ -320,6 +359,8 @@ export const AddCandidateDialog = ({
       });
 
       if (appError) throw appError;
+
+      console.log('✅ [Add Candidate] Application created successfully');
 
       // Find the application we just created
       let applicationQuery = supabase
@@ -525,8 +566,37 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         toast.dismiss(addingToast);
         throw error;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in submission flow:", error);
+      
+      // Provide specific, actionable error messages
+      if (error.message?.includes('email already exists') || error.message?.includes('duplicate') || error.code === '23505') {
+        toast.error("Duplicate Email Detected", {
+          description: "A candidate with this email already exists. Please search for the existing candidate or use a different email.",
+          duration: 6000
+        });
+      } else if (error.code === '23503') {
+        toast.error("Database Error", {
+          description: "Unable to link candidate data. Please try again or contact support if the issue persists.",
+          duration: 5000
+        });
+      } else if (error.message?.includes('permission') || error.message?.includes('RLS') || error.code === '42501') {
+        toast.error("Permission Denied", {
+          description: "You don't have permission to add candidates. Please contact an administrator.",
+          duration: 5000
+        });
+      } else if (error.message?.includes('unique constraint')) {
+        toast.error("Duplicate Candidate", {
+          description: "This candidate already exists in the system. Please check existing applications.",
+          duration: 5000
+        });
+      } else {
+        toast.error("Failed to Add Candidate", {
+          description: error.message || "An unexpected error occurred. Please try again or contact support.",
+          duration: 5000
+        });
+      }
+      
       setLoading(false);
     }
   };
