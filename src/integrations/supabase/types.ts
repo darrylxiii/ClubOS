@@ -12004,6 +12004,173 @@ export type Database = {
           },
         ]
       }
+      task_board_invitations: {
+        Row: {
+          accepted_at: string | null
+          board_id: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          invitation_token: string
+          invited_by: string
+          invitee_email: string
+          invitee_user_id: string | null
+          message: string | null
+          role: Database["public"]["Enums"]["board_member_role"]
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          board_id: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_by: string
+          invitee_email: string
+          invitee_user_id?: string | null
+          message?: string | null
+          role?: Database["public"]["Enums"]["board_member_role"]
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          board_id?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_by?: string
+          invitee_email?: string
+          invitee_user_id?: string | null
+          message?: string | null
+          role?: Database["public"]["Enums"]["board_member_role"]
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_board_invitations_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "task_boards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_board_invitations_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "user_accessible_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_board_members: {
+        Row: {
+          accepted_at: string | null
+          board_id: string
+          created_at: string | null
+          id: string
+          invited_at: string | null
+          invited_by: string | null
+          is_active: boolean | null
+          last_viewed_at: string | null
+          role: Database["public"]["Enums"]["board_member_role"]
+          user_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          board_id: string
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean | null
+          last_viewed_at?: string | null
+          role?: Database["public"]["Enums"]["board_member_role"]
+          user_id: string
+        }
+        Update: {
+          accepted_at?: string | null
+          board_id?: string
+          created_at?: string | null
+          id?: string
+          invited_at?: string | null
+          invited_by?: string | null
+          is_active?: boolean | null
+          last_viewed_at?: string | null
+          role?: Database["public"]["Enums"]["board_member_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_board_members_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "task_boards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "task_board_members_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "user_accessible_boards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      task_boards: {
+        Row: {
+          allow_member_invites: boolean | null
+          color: string | null
+          company_id: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_archived: boolean | null
+          name: string
+          owner_id: string
+          updated_at: string | null
+          visibility: Database["public"]["Enums"]["board_visibility"]
+        }
+        Insert: {
+          allow_member_invites?: boolean | null
+          color?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_archived?: boolean | null
+          name: string
+          owner_id: string
+          updated_at?: string | null
+          visibility?: Database["public"]["Enums"]["board_visibility"]
+        }
+        Update: {
+          allow_member_invites?: boolean | null
+          color?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_archived?: boolean | null
+          name?: string
+          owner_id?: string
+          updated_at?: string | null
+          visibility?: Database["public"]["Enums"]["board_visibility"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_boards_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_dependencies: {
         Row: {
           created_at: string
@@ -12583,6 +12750,7 @@ export type Database = {
         Row: {
           ai_confidence_score: number | null
           auto_scheduled: boolean | null
+          board_id: string | null
           company_name: string | null
           completed_at: string | null
           created_at: string | null
@@ -12611,6 +12779,7 @@ export type Database = {
         Insert: {
           ai_confidence_score?: number | null
           auto_scheduled?: boolean | null
+          board_id?: string | null
           company_name?: string | null
           completed_at?: string | null
           created_at?: string | null
@@ -12639,6 +12808,7 @@ export type Database = {
         Update: {
           ai_confidence_score?: number | null
           auto_scheduled?: boolean | null
+          board_id?: string | null
           company_name?: string | null
           completed_at?: string | null
           created_at?: string | null
@@ -12665,6 +12835,20 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "unified_tasks_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "task_boards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "unified_tasks_board_id_fkey"
+            columns: ["board_id"]
+            isOneToOne: false
+            referencedRelation: "user_accessible_boards"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "unified_tasks_objective_id_fkey"
             columns: ["objective_id"]
@@ -13983,6 +14167,34 @@ export type Database = {
         }
         Relationships: []
       }
+      user_accessible_boards: {
+        Row: {
+          allow_member_invites: boolean | null
+          color: string | null
+          company_id: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string | null
+          is_archived: boolean | null
+          member_count: number | null
+          my_role: Database["public"]["Enums"]["board_member_role"] | null
+          name: string | null
+          owner_id: string | null
+          task_count: number | null
+          updated_at: string | null
+          visibility: Database["public"]["Enums"]["board_visibility"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_boards_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       calculate_objective_completion: {
@@ -14001,8 +14213,16 @@ export type Database = {
         }
         Returns: number
       }
+      can_access_board: {
+        Args: { _board_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_access_conversation_storage: {
         Args: { _conversation_id: string }
+        Returns: boolean
+      }
+      can_manage_board: {
+        Args: { _board_id: string; _user_id: string }
         Returns: boolean
       }
       check_booking_conflict: {
@@ -14070,6 +14290,10 @@ export type Database = {
       generate_share_token: { Args: never; Returns: string }
       generate_task_number: { Args: never; Returns: string }
       generate_unified_task_number: { Args: never; Returns: string }
+      get_board_role: {
+        Args: { _board_id: string; _user_id: string }
+        Returns: Database["public"]["Enums"]["board_member_role"]
+      }
       get_candidate_complete_data: {
         Args: { p_candidate_id: string }
         Returns: Json
@@ -14216,6 +14440,8 @@ export type Database = {
         | "linkedin"
         | "careers_page"
         | "other"
+      board_member_role: "owner" | "admin" | "editor" | "viewer"
+      board_visibility: "personal" | "shared" | "company"
       club_sync_status_enum: "not_offered" | "pending" | "accepted" | "declined"
       company_achievement_type: "custom" | "platform_generated"
     }
@@ -14373,6 +14599,8 @@ export const Constants = {
         "careers_page",
         "other",
       ],
+      board_member_role: ["owner", "admin", "editor", "viewer"],
+      board_visibility: ["personal", "shared", "company"],
       club_sync_status_enum: ["not_offered", "pending", "accepted", "declined"],
       company_achievement_type: ["custom", "platform_generated"],
     },

@@ -175,17 +175,20 @@ const UnifiedTasks = () => {
 
   if (loading || !preferences) {
     return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center">Loading...</div>
-        </div>
-      </AppLayout>
+      <TaskBoardProvider>
+        <AppLayout>
+          <div className="container mx-auto px-4 py-8">
+            <div className="text-center">Loading...</div>
+          </div>
+        </AppLayout>
+      </TaskBoardProvider>
     );
   }
 
   const currentObjective = objectives.find(obj => obj.id === selectedObjective);
 
   return (
+    <TaskBoardProvider>
     <AppLayout>
       <div className="container mx-auto px-4 py-8 space-y-6 animate-fade-in">
         {/* Header */}
@@ -400,6 +403,7 @@ const UnifiedTasks = () => {
         />
       </div>
     </AppLayout>
+    </TaskBoardProvider>
   );
 };
 
