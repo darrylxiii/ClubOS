@@ -51,7 +51,8 @@ export const MentionTextarea = ({
     mentionSearch,
     teamMembersCount: teamMembers.length,
     filteredMembersCount: filteredMembers.length,
-    dropdownPosition
+    dropdownPosition,
+    willRenderDropdown: showMentions && filteredMembers.length > 0
   });
 
   useEffect(() => {
@@ -78,11 +79,11 @@ export const MentionTextarea = ({
     const lines = textBeforeAt.split('\n');
     const currentLineNumber = lines.length - 1;
     
-    // Calculate vertical position
-    const top = rect.top + window.scrollY + paddingTop + (currentLineNumber * lineHeight) + lineHeight + 4;
+    // Calculate vertical position (use rect.top directly for fixed positioning - NO window.scrollY!)
+    const top = rect.top + paddingTop + (currentLineNumber * lineHeight) + lineHeight + 4;
     
     // Calculate horizontal position
-    const left = rect.left + window.scrollX + paddingLeft;
+    const left = rect.left + paddingLeft;
     
     return { top, left };
   };
@@ -126,11 +127,11 @@ export const MentionTextarea = ({
         // Calculate dropdown position using simplified method
         const position = getDropdownPosition(textarea, lastAtIndex);
         
-        // Ensure dropdown stays within viewport
+        // Ensure dropdown stays within viewport (for fixed positioning, compare against window height/width directly)
         const dropdownWidth = 320;
         const dropdownHeight = 300;
         const maxLeft = window.innerWidth - dropdownWidth - 20;
-        const maxTop = window.innerHeight + window.scrollY - dropdownHeight - 20;
+        const maxTop = window.innerHeight - dropdownHeight - 20;
         
         const finalPosition = {
           top: Math.min(position.top, maxTop),
@@ -249,7 +250,7 @@ export const MentionTextarea = ({
           const dropdownWidth = 320;
           const dropdownHeight = 300;
           const maxLeft = window.innerWidth - dropdownWidth - 20;
-          const maxTop = window.innerHeight + window.scrollY - dropdownHeight - 20;
+          const maxTop = window.innerHeight - dropdownHeight - 20;
           
           setDropdownPosition({
             top: Math.min(position.top, maxTop),
