@@ -2875,7 +2875,7 @@ export type Database = {
           desired_salary_max: number | null
           desired_salary_min: number | null
           education: Json | null
-          email: string
+          email: string | null
           engagement_score: number | null
           enrichment_data: Json | null
           enrichment_last_run: string | null
@@ -2948,7 +2948,7 @@ export type Database = {
           desired_salary_max?: number | null
           desired_salary_min?: number | null
           education?: Json | null
-          email: string
+          email?: string | null
           engagement_score?: number | null
           enrichment_data?: Json | null
           enrichment_last_run?: string | null
@@ -3021,7 +3021,7 @@ export type Database = {
           desired_salary_max?: number | null
           desired_salary_min?: number | null
           education?: Json | null
-          email?: string
+          email?: string | null
           engagement_score?: number | null
           enrichment_data?: Json | null
           enrichment_last_run?: string | null
