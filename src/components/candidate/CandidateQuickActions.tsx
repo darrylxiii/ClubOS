@@ -8,7 +8,9 @@ import {
   Calendar,
   MessageSquare,
   Sparkles,
-  TrendingUp
+  TrendingUp,
+  DollarSign,
+  Target
 } from "lucide-react";
 
 interface QuickAction {
@@ -47,12 +49,28 @@ export function CandidateQuickActions({
       condition: true
     },
     {
-      icon: FileText,
-      label: "Complete Profile",
-      description: `${profileCompletion}% complete`,
-      path: "/profile",
+      icon: DollarSign,
+      label: "Salary Insights",
+      description: "Market intelligence",
+      path: "/salary-insights",
       variant: "outline",
-      condition: profileCompletion < 100
+      condition: true
+    },
+    {
+      icon: MessageSquare,
+      label: "Interview Prep",
+      description: "Practice & tips",
+      path: "/interview-prep",
+      variant: "outline",
+      condition: true
+    },
+    {
+      icon: Target,
+      label: "Career Path",
+      description: "Plan your growth",
+      path: "/career-path",
+      variant: "outline",
+      condition: true
     },
     {
       icon: TrendingUp,
@@ -62,22 +80,6 @@ export function CandidateQuickActions({
       variant: "outline",
       badge: pendingApplications > 0 ? `${pendingApplications}` : undefined,
       condition: pendingApplications > 0
-    },
-    {
-      icon: Calendar,
-      label: "Schedule Interview",
-      description: `${upcomingInterviews} upcoming`,
-      path: "/scheduling",
-      variant: "outline",
-      condition: upcomingInterviews > 0
-    },
-    {
-      icon: MessageSquare,
-      label: "Message Strategist",
-      description: "Get expert guidance",
-      path: "/messages",
-      variant: "outline",
-      condition: true
     },
     {
       icon: Sparkles,
