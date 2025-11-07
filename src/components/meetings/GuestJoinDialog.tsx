@@ -64,7 +64,7 @@ export function GuestJoinDialog({ meetingCode, onJoinApproved }: GuestJoinDialog
 
     setIsSubmitting(true);
 
-    console.log('[GuestJoin] 📝 Submitting join request | Name:', guestName, '| Session:', sessionToken);
+    console.log('[GuestJoin] 📝 Submitting join request | Name:', guestName);
 
     try {
       // Find meeting by code

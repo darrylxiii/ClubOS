@@ -104,7 +104,6 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
           id: r.id,
           name: r.guest_name,
           email: r.guest_email,
-          session: r.session_token,
           requested_at: r.requested_at
         })));
       }
@@ -149,7 +148,7 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
         throw new Error('Failed to fetch request details');
       }
 
-      console.log('[HostApproval] 👤 Approving guest:', request.guest_name, '| Session:', request.session_token);
+      console.log('[HostApproval] 👤 Approving guest:', request.guest_name);
 
       // First, mark any existing participant with this session as left
       console.log('[HostApproval] 🔄 Marking old sessions as left...');
@@ -212,7 +211,6 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
       if (error) throw error;
 
       console.log('[HostApproval] ✅ Guest approved and added to participants:', request.guest_name);
-      console.log('[HostApproval] 🎯 Guest session token:', request.session_token);
       setRequests(prev => prev.filter(r => r.id !== requestId));
     } catch (error: any) {
       console.error('[HostApproval] ❌ Failed to approve:', error);
