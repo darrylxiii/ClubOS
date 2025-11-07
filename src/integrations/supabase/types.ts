@@ -315,6 +315,13 @@ export type Database = {
             foreignKeyName: "ai_action_log_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "ai_action_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -456,6 +463,13 @@ export type Database = {
             foreignKeyName: "ai_generated_content_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "ai_generated_content_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -500,6 +514,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "ai_meeting_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
           {
             foreignKeyName: "ai_meeting_suggestions_user_id_fkey"
             columns: ["user_id"]
@@ -804,6 +825,13 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "ai_suggestions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
           {
             foreignKeyName: "ai_suggestions_user_id_fkey"
             columns: ["user_id"]
@@ -1118,6 +1146,13 @@ export type Database = {
             foreignKeyName: "applications_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
           },
@@ -1127,6 +1162,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "jobs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_sourced_by_fkey"
+            columns: ["sourced_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "applications_sourced_by_fkey"
@@ -1148,6 +1190,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "candidate_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_applications_candidate_profiles"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
           },
           {
             foreignKeyName: "fk_applications_candidate_profiles"
@@ -2144,6 +2193,13 @@ export type Database = {
             foreignKeyName: "candidate_application_logs_candidate_profile_id_fkey"
             columns: ["candidate_profile_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_application_logs_candidate_profile_id_fkey"
+            columns: ["candidate_profile_id"]
+            isOneToOne: false
             referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
           },
@@ -2309,6 +2365,13 @@ export type Database = {
             foreignKeyName: "candidate_documents_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_documents_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
           },
@@ -2403,6 +2466,13 @@ export type Database = {
             foreignKeyName: "candidate_interactions_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_interactions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
           },
@@ -2472,8 +2542,22 @@ export type Database = {
             foreignKeyName: "candidate_invitations_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_invitations_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_invitations_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "candidate_invitations_invited_by_fkey"
@@ -2485,6 +2569,115 @@ export type Database = {
           {
             foreignKeyName: "candidate_invitations_invited_by_fkey"
             columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      candidate_merge_log: {
+        Row: {
+          candidate_id: string | null
+          completed_at: string | null
+          confidence_score: number | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          match_type: string | null
+          merge_status: string
+          merge_type: string
+          merged_by: string | null
+          merged_fields: Json | null
+          profile_id: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          completed_at?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          match_type?: string | null
+          merge_status?: string
+          merge_type: string
+          merged_by?: string | null
+          merged_fields?: Json | null
+          profile_id?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          completed_at?: string | null
+          confidence_score?: number | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          match_type?: string | null
+          merge_status?: string
+          merge_type?: string
+          merged_by?: string | null
+          merged_fields?: Json | null
+          profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_merge_log_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_merge_log_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_merge_log_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_merge_log_merged_by_fkey"
+            columns: ["merged_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "candidate_merge_log_merged_by_fkey"
+            columns: ["merged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_merge_log_merged_by_fkey"
+            columns: ["merged_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_merge_log_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "candidate_merge_log_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_merge_log_profile_id_fkey"
+            columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
@@ -2549,8 +2742,22 @@ export type Database = {
             foreignKeyName: "candidate_notes_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_notes_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "candidate_notes_created_by_fkey"
@@ -2619,6 +2826,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "candidate_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_profile_views_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
           },
           {
             foreignKeyName: "candidate_profile_views_candidate_id_fkey"
@@ -2857,6 +3071,13 @@ export type Database = {
           years_of_experience?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "candidate_profiles_assigned_strategist_id_fkey"
+            columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
           {
             foreignKeyName: "candidate_profiles_assigned_strategist_id_fkey"
             columns: ["assigned_strategist_id"]
@@ -3240,6 +3461,13 @@ export type Database = {
             foreignKeyName: "club_sync_requests_requested_by_fkey"
             columns: ["requested_by"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "club_sync_requests_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -3249,6 +3477,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_sync_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "club_sync_requests_reviewed_by_fkey"
@@ -3761,6 +3996,13 @@ export type Database = {
             foreignKeyName: "company_candidate_feedback_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "company_candidate_feedback_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
           },
@@ -3777,6 +4019,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "jobs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_candidate_feedback_provided_by_fkey"
+            columns: ["provided_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "company_candidate_feedback_provided_by_fkey"
@@ -4896,6 +5145,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "academies"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "courses_created_by_fkey"
@@ -7302,6 +7558,13 @@ export type Database = {
             foreignKeyName: "meeting_invitations_invitee_user_id_fkey"
             columns: ["invitee_user_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "meeting_invitations_invitee_user_id_fkey"
+            columns: ["invitee_user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -8250,6 +8513,13 @@ export type Database = {
             foreignKeyName: "module_chat_messages_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "module_chat_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -8599,6 +8869,13 @@ export type Database = {
             foreignKeyName: "note_mentions_mentioned_user_id_fkey"
             columns: ["mentioned_user_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "note_mentions_mentioned_user_id_fkey"
+            columns: ["mentioned_user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -8876,6 +9153,13 @@ export type Database = {
             foreignKeyName: "org_chart_candidate_placements_candidate_user_id_fkey"
             columns: ["candidate_user_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "org_chart_candidate_placements_candidate_user_id_fkey"
+            columns: ["candidate_user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -8892,6 +9176,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "companies"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "org_chart_candidate_placements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "org_chart_candidate_placements_created_by_fkey"
@@ -11198,6 +11489,13 @@ export type Database = {
             foreignKeyName: "role_candidate_feedback_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "role_candidate_feedback_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
             referencedRelation: "unified_candidate_view"
             referencedColumns: ["id"]
           },
@@ -11207,6 +11505,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "jobs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_candidate_feedback_provided_by_fkey"
+            columns: ["provided_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
           },
           {
             foreignKeyName: "role_candidate_feedback_provided_by_fkey"
@@ -12965,6 +13270,13 @@ export type Database = {
             foreignKeyName: "unified_task_assignees_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "unified_task_assignees_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -14339,6 +14651,25 @@ export type Database = {
       }
     }
     Views: {
+      potential_merges: {
+        Row: {
+          already_merged: boolean | null
+          candidate_completeness: number | null
+          candidate_created_at: string | null
+          candidate_email: string | null
+          candidate_id: string | null
+          candidate_name: string | null
+          confidence_score: number | null
+          invitation_status: string | null
+          linked_user_id: string | null
+          match_type: string | null
+          profile_created_at: string | null
+          profile_email: string | null
+          profile_id: string | null
+          profile_name: string | null
+        }
+        Relationships: []
+      }
       public_profiles: {
         Row: {
           avatar_url: string | null
