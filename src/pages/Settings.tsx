@@ -87,6 +87,12 @@ const Settings = () => {
 
   // Preferences
   const [preferredCurrency, setPreferredCurrency] = useState<'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH'>('EUR');
+  const [preferredLanguage, setPreferredLanguage] = useState('en');
+  const [jobAlertFrequency, setJobAlertFrequency] = useState('daily');
+  const [companySizePreference, setCompanySizePreference] = useState('any');
+  const [industryPreference, setIndustryPreference] = useState('any');
+  const [workTimezone, setWorkTimezone] = useState('Europe/Amsterdam');
+  const [availableHoursPerWeek, setAvailableHoursPerWeek] = useState(40);
 
   // Initialize exchange rate tracking
   useExchangeRates();
@@ -205,6 +211,14 @@ const Settings = () => {
 
         // Currency
         setPreferredCurrency((data.preferred_currency as 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') || 'EUR');
+        
+        // New preferences
+        setPreferredLanguage(data.preferred_language || 'en');
+        setJobAlertFrequency(data.job_alert_frequency || 'daily');
+        setCompanySizePreference(data.company_size_preference || 'any');
+        setIndustryPreference(data.industry_preference || 'any');
+        setWorkTimezone(data.work_timezone || 'Europe/Amsterdam');
+        setAvailableHoursPerWeek(data.available_hours_per_week || 40);
 
         // Social connections
         if (data.linkedin_connected) {
@@ -302,6 +316,12 @@ const Settings = () => {
           allow_stealth_cold_outreach: allowStealthColdOutreach,
           privacy_settings: privacySettings,
           preferred_currency: preferredCurrency,
+          preferred_language: preferredLanguage,
+          job_alert_frequency: jobAlertFrequency,
+          company_size_preference: companySizePreference,
+          industry_preference: industryPreference,
+          work_timezone: workTimezone,
+          available_hours_per_week: availableHoursPerWeek,
           updated_at: new Date().toISOString()
         } as any)
         .eq('id', user.id);
@@ -590,6 +610,20 @@ const Settings = () => {
             <PreferencesSettings
               preferredCurrency={preferredCurrency}
               onCurrencyChange={handleCurrencyChange}
+              preferredLanguage={preferredLanguage}
+              onLanguageChange={(lang) => { setPreferredLanguage(lang); debouncedSave(); }}
+              jobAlertFrequency={jobAlertFrequency}
+              onJobAlertFrequencyChange={(freq) => { setJobAlertFrequency(freq); debouncedSave(); }}
+              companySizePreference={companySizePreference}
+              onCompanySizeChange={(size) => { setCompanySizePreference(size); debouncedSave(); }}
+              industryPreference={industryPreference}
+              onIndustryChange={(industry) => { setIndustryPreference(industry); debouncedSave(); }}
+              workTimezone={workTimezone}
+              onTimezoneChange={(tz) => { setWorkTimezone(tz); debouncedSave(); }}
+              availableHoursPerWeek={availableHoursPerWeek}
+              onAvailableHoursChange={(hours) => { setAvailableHoursPerWeek(hours); debouncedSave(); }}
+              onSave={saveProfile}
+              saving={saving}
             />
           </TabsContent>
         </Tabs>

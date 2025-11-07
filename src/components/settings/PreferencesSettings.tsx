@@ -3,17 +3,45 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
 import { Globe } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface PreferencesSettingsProps {
   preferredCurrency: 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH';
   onCurrencyChange: (currency: 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') => void;
+  preferredLanguage: string;
+  onLanguageChange: (language: string) => void;
+  jobAlertFrequency: string;
+  onJobAlertFrequencyChange: (frequency: string) => void;
+  companySizePreference: string;
+  onCompanySizeChange: (size: string) => void;
+  industryPreference: string;
+  onIndustryChange: (industry: string) => void;
+  workTimezone: string;
+  onTimezoneChange: (timezone: string) => void;
+  availableHoursPerWeek: number;
+  onAvailableHoursChange: (hours: number) => void;
+  onSave: () => void;
+  saving: boolean;
 }
 
 export const PreferencesSettings = ({
   preferredCurrency,
-  onCurrencyChange
+  onCurrencyChange,
+  preferredLanguage,
+  onLanguageChange,
+  jobAlertFrequency,
+  onJobAlertFrequencyChange,
+  companySizePreference,
+  onCompanySizeChange,
+  industryPreference,
+  onIndustryChange,
+  workTimezone,
+  onTimezoneChange,
+  availableHoursPerWeek,
+  onAvailableHoursChange,
+  onSave,
+  saving
 }: PreferencesSettingsProps) => {
   return (
     <div className="space-y-4">
@@ -30,13 +58,16 @@ export const PreferencesSettings = ({
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>Language</Label>
-            <Select defaultValue="en">
+            <Select value={preferredLanguage} onValueChange={onLanguageChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="en">English</SelectItem>
                 <SelectItem value="nl">Nederlands</SelectItem>
+                <SelectItem value="de">Deutsch</SelectItem>
+                <SelectItem value="fr">Français</SelectItem>
+                <SelectItem value="es">Español</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -44,19 +75,25 @@ export const PreferencesSettings = ({
           <Separator />
 
           <div className="space-y-2">
-            <Label>Timezone</Label>
-            <Select defaultValue="europe/amsterdam">
+            <Label>Work Timezone</Label>
+            <Select value={workTimezone || 'Europe/Amsterdam'} onValueChange={onTimezoneChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="europe/amsterdam">Europe/Amsterdam</SelectItem>
-                <SelectItem value="america/new_york">America/New_York</SelectItem>
-                <SelectItem value="asia/tokyo">Asia/Tokyo</SelectItem>
-                <SelectItem value="europe/london">Europe/London</SelectItem>
-                <SelectItem value="america/los_angeles">America/Los_Angeles</SelectItem>
+                <SelectItem value="Europe/Amsterdam">Europe/Amsterdam (CET/CEST)</SelectItem>
+                <SelectItem value="America/New_York">America/New_York (EST/EDT)</SelectItem>
+                <SelectItem value="Asia/Tokyo">Asia/Tokyo (JST)</SelectItem>
+                <SelectItem value="Europe/London">Europe/London (GMT/BST)</SelectItem>
+                <SelectItem value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</SelectItem>
+                <SelectItem value="Asia/Dubai">Asia/Dubai (GST)</SelectItem>
+                <SelectItem value="Asia/Singapore">Asia/Singapore (SGT)</SelectItem>
+                <SelectItem value="Australia/Sydney">Australia/Sydney (AEDT)</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              Your preferred timezone for meetings and work hours
+            </p>
           </div>
 
           <Separator />
@@ -82,10 +119,11 @@ export const PreferencesSettings = ({
           </div>
 
           <Button 
-            onClick={() => toast.success("Preferences saved")}
+            onClick={onSave}
+            disabled={saving}
             className="w-full"
           >
-            Save Preferences
+            {saving ? 'Saving...' : 'Save Display Preferences'}
           </Button>
         </CardContent>
       </Card>
@@ -103,54 +141,92 @@ export const PreferencesSettings = ({
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label>Job Alert Frequency</Label>
-            <Select defaultValue="daily">
+            <Select value={jobAlertFrequency} onValueChange={onJobAlertFrequencyChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="realtime">Real-time</SelectItem>
+                <SelectItem value="realtime">Real-time notifications</SelectItem>
                 <SelectItem value="daily">Daily digest</SelectItem>
                 <SelectItem value="weekly">Weekly digest</SelectItem>
-                <SelectItem value="never">Never</SelectItem>
+                <SelectItem value="monthly">Monthly digest</SelectItem>
+                <SelectItem value="never">Never send alerts</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              How often you want to receive job match notifications
+            </p>
           </div>
 
           <Separator />
 
           <div className="space-y-2">
             <Label>Preferred Company Size</Label>
-            <Select defaultValue="any">
+            <Select value={companySizePreference || 'any'} onValueChange={onCompanySizeChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="any">Any size</SelectItem>
-                <SelectItem value="startup">Startup (1-50)</SelectItem>
-                <SelectItem value="scaleup">Scale-up (51-500)</SelectItem>
-                <SelectItem value="enterprise">Enterprise (500+)</SelectItem>
+                <SelectItem value="startup">Startup (1-50 employees)</SelectItem>
+                <SelectItem value="scaleup">Scale-up (51-500 employees)</SelectItem>
+                <SelectItem value="enterprise">Enterprise (500+ employees)</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              Your preferred company stage and size
+            </p>
           </div>
 
           <Separator />
 
           <div className="space-y-2">
             <Label>Industry Preferences</Label>
-            <Select defaultValue="any">
+            <Select value={industryPreference || 'any'} onValueChange={onIndustryChange}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="any">All industries</SelectItem>
-                <SelectItem value="tech">Technology</SelectItem>
-                <SelectItem value="finance">Finance</SelectItem>
-                <SelectItem value="healthcare">Healthcare</SelectItem>
-                <SelectItem value="ecommerce">E-commerce</SelectItem>
-                <SelectItem value="consulting">Consulting</SelectItem>
+                <SelectItem value="tech">Technology & Software</SelectItem>
+                <SelectItem value="finance">Finance & Banking</SelectItem>
+                <SelectItem value="healthcare">Healthcare & Life Sciences</SelectItem>
+                <SelectItem value="ecommerce">E-commerce & Retail</SelectItem>
+                <SelectItem value="consulting">Consulting & Professional Services</SelectItem>
+                <SelectItem value="manufacturing">Manufacturing & Industrial</SelectItem>
+                <SelectItem value="media">Media & Entertainment</SelectItem>
+                <SelectItem value="education">Education & EdTech</SelectItem>
               </SelectContent>
             </Select>
+            <p className="text-xs text-muted-foreground">
+              Your preferred industry sectors
+            </p>
           </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label>Available Hours Per Week</Label>
+            <Input
+              type="number"
+              min="1"
+              max="168"
+              value={availableHoursPerWeek || ''}
+              onChange={(e) => onAvailableHoursChange(parseInt(e.target.value) || 0)}
+              placeholder="e.g., 40"
+            />
+            <p className="text-xs text-muted-foreground">
+              How many hours per week you can commit (for freelance/contract work)
+            </p>
+          </div>
+
+          <Button 
+            onClick={onSave}
+            disabled={saving}
+            className="w-full"
+          >
+            {saving ? 'Saving...' : 'Save Career Preferences'}
+          </Button>
         </CardContent>
       </Card>
     </div>

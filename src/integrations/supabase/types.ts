@@ -2423,9 +2423,11 @@ export type Database = {
           ai_summary: string | null
           application_status: string | null
           assigned_strategist_id: string | null
+          available_hours_per_week: number | null
           avatar_url: string | null
           blocked_companies: Json | null
           certifications: Json | null
+          company_size_preference: string | null
           created_at: string
           created_by: string | null
           current_company: string | null
@@ -2450,8 +2452,10 @@ export type Database = {
           header_media_type: string | null
           header_media_url: string | null
           id: string
+          industry_preference: string | null
           internal_rating: number | null
           invitation_status: string | null
+          job_alert_frequency: string | null
           languages: Json | null
           last_activity_at: string | null
           last_invite_sent_at: string | null
@@ -2465,6 +2469,7 @@ export type Database = {
           phone: string | null
           portfolio_url: string | null
           preferred_currency: string | null
+          preferred_language: string | null
           profile_completeness: number | null
           rejection_reason: string | null
           remote_preference: string | null
@@ -2491,9 +2496,11 @@ export type Database = {
           ai_summary?: string | null
           application_status?: string | null
           assigned_strategist_id?: string | null
+          available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           certifications?: Json | null
+          company_size_preference?: string | null
           created_at?: string
           created_by?: string | null
           current_company?: string | null
@@ -2518,8 +2525,10 @@ export type Database = {
           header_media_type?: string | null
           header_media_url?: string | null
           id?: string
+          industry_preference?: string | null
           internal_rating?: number | null
           invitation_status?: string | null
+          job_alert_frequency?: string | null
           languages?: Json | null
           last_activity_at?: string | null
           last_invite_sent_at?: string | null
@@ -2533,6 +2542,7 @@ export type Database = {
           phone?: string | null
           portfolio_url?: string | null
           preferred_currency?: string | null
+          preferred_language?: string | null
           profile_completeness?: number | null
           rejection_reason?: string | null
           remote_preference?: string | null
@@ -2559,9 +2569,11 @@ export type Database = {
           ai_summary?: string | null
           application_status?: string | null
           assigned_strategist_id?: string | null
+          available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           certifications?: Json | null
+          company_size_preference?: string | null
           created_at?: string
           created_by?: string | null
           current_company?: string | null
@@ -2586,8 +2598,10 @@ export type Database = {
           header_media_type?: string | null
           header_media_url?: string | null
           id?: string
+          industry_preference?: string | null
           internal_rating?: number | null
           invitation_status?: string | null
+          job_alert_frequency?: string | null
           languages?: Json | null
           last_activity_at?: string | null
           last_invite_sent_at?: string | null
@@ -2601,6 +2615,7 @@ export type Database = {
           phone?: string | null
           portfolio_url?: string | null
           preferred_currency?: string | null
+          preferred_language?: string | null
           profile_completeness?: number | null
           rejection_reason?: string | null
           remote_preference?: string | null
@@ -10236,10 +10251,12 @@ export type Database = {
           apple_music_connected: boolean | null
           apple_music_playlists: Json | null
           apple_music_user_id: string | null
+          available_hours_per_week: number | null
           avatar_url: string | null
           blocked_companies: Json | null
           career_preferences: string | null
           company_id: string | null
+          company_size_preference: string | null
           contract_end_date: string | null
           created_at: string | null
           current_salary_max: number | null
@@ -10264,8 +10281,10 @@ export type Database = {
           header_media_type: string | null
           header_media_url: string | null
           id: string
+          industry_preference: string | null
           instagram_connected: boolean | null
           instagram_username: string | null
+          job_alert_frequency: string | null
           linkedin_connected: boolean | null
           linkedin_profile_data: Json | null
           linkedin_url: string | null
@@ -10275,6 +10294,7 @@ export type Database = {
           phone: string | null
           phone_verified: boolean | null
           preferred_currency: string
+          preferred_language: string | null
           preferred_work_locations: Json | null
           privacy_settings: Json | null
           profile_slug: string | null
@@ -10302,10 +10322,12 @@ export type Database = {
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
           apple_music_user_id?: string | null
+          available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
           company_id?: string | null
+          company_size_preference?: string | null
           contract_end_date?: string | null
           created_at?: string | null
           current_salary_max?: number | null
@@ -10330,8 +10352,10 @@ export type Database = {
           header_media_type?: string | null
           header_media_url?: string | null
           id: string
+          industry_preference?: string | null
           instagram_connected?: boolean | null
           instagram_username?: string | null
+          job_alert_frequency?: string | null
           linkedin_connected?: boolean | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
@@ -10341,6 +10365,7 @@ export type Database = {
           phone?: string | null
           phone_verified?: boolean | null
           preferred_currency?: string
+          preferred_language?: string | null
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
           profile_slug?: string | null
@@ -10368,10 +10393,12 @@ export type Database = {
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
           apple_music_user_id?: string | null
+          available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
           company_id?: string | null
+          company_size_preference?: string | null
           contract_end_date?: string | null
           created_at?: string | null
           current_salary_max?: number | null
@@ -10396,8 +10423,10 @@ export type Database = {
           header_media_type?: string | null
           header_media_url?: string | null
           id?: string
+          industry_preference?: string | null
           instagram_connected?: boolean | null
           instagram_username?: string | null
+          job_alert_frequency?: string | null
           linkedin_connected?: boolean | null
           linkedin_profile_data?: Json | null
           linkedin_url?: string | null
@@ -10407,6 +10436,7 @@ export type Database = {
           phone?: string | null
           phone_verified?: boolean | null
           preferred_currency?: string
+          preferred_language?: string | null
           preferred_work_locations?: Json | null
           privacy_settings?: Json | null
           profile_slug?: string | null
