@@ -1,0 +1,53 @@
+
+-- Phase 1.1b: Complete Function Search Path Hardening
+-- Set search_path for all remaining security definer functions
+
+ALTER FUNCTION public.auto_generate_referral_code() SET search_path = public;
+ALTER FUNCTION public.calculate_objective_completion(uuid) SET search_path = public;
+ALTER FUNCTION public.calculate_post_score(uuid, uuid, timestamp with time zone, uuid, integer, integer, integer) SET search_path = public;
+ALTER FUNCTION public.check_and_award_achievements() SET search_path = public;
+ALTER FUNCTION public.check_booking_conflict(uuid, timestamp with time zone, timestamp with time zone, uuid) SET search_path = public;
+ALTER FUNCTION public.check_company_achievement_limit() SET search_path = public;
+ALTER FUNCTION public.check_invite_limit() SET search_path = public;
+ALTER FUNCTION public.check_profile_auth_integrity() SET search_path = public;
+ALTER FUNCTION public.check_verification_rate_limit(uuid, text, text) SET search_path = public;
+ALTER FUNCTION public.cleanup_expired_verifications() SET search_path = public;
+ALTER FUNCTION public.cleanup_post_reposts() SET search_path = public;
+ALTER FUNCTION public.create_default_email_labels() SET search_path = public;
+ALTER FUNCTION public.create_message_notifications() SET search_path = public;
+ALTER FUNCTION public.create_read_receipt() SET search_path = public;
+ALTER FUNCTION public.evaluate_user_achievements(uuid) SET search_path = public;
+ALTER FUNCTION public.fix_profile_auth_mismatches() SET search_path = public;
+ALTER FUNCTION public.generate_invite_code() SET search_path = public;
+ALTER FUNCTION public.generate_meeting_code() SET search_path = public;
+ALTER FUNCTION public.generate_profile_slug(text) SET search_path = public;
+ALTER FUNCTION public.generate_referral_code() SET search_path = public;
+ALTER FUNCTION public.generate_share_token() SET search_path = public;
+ALTER FUNCTION public.generate_task_number() SET search_path = public;
+ALTER FUNCTION public.generate_unified_task_number() SET search_path = public;
+ALTER FUNCTION public.get_candidate_complete_data(uuid) SET search_path = public;
+ALTER FUNCTION public.get_module_course_id(uuid) SET search_path = public;
+ALTER FUNCTION public.handle_new_user() SET search_path = public;
+ALTER FUNCTION public.initialize_user_preference() SET search_path = public;
+ALTER FUNCTION public.log_achievement_event(uuid, text, jsonb) SET search_path = public;
+ALTER FUNCTION public.log_profile_view_interaction() SET search_path = public;
+ALTER FUNCTION public.mark_feedback_completed() SET search_path = public;
+ALTER FUNCTION public.notify_new_message() SET search_path = public;
+ALTER FUNCTION public.release_booking_slot_lock(uuid, timestamp with time zone, timestamp with time zone) SET search_path = public;
+ALTER FUNCTION public.set_meeting_code() SET search_path = public;
+ALTER FUNCTION public.set_task_number() SET search_path = public;
+ALTER FUNCTION public.set_unified_task_number() SET search_path = public;
+ALTER FUNCTION public.track_slot_view(uuid, timestamp with time zone, text) SET search_path = public;
+ALTER FUNCTION public.try_acquire_booking_slot_lock(uuid, timestamp with time zone, timestamp with time zone) SET search_path = public;
+ALTER FUNCTION public.update_achievement_analytics() SET search_path = public;
+ALTER FUNCTION public.update_booking_analytics() SET search_path = public;
+ALTER FUNCTION public.update_candidate_last_activity() SET search_path = public;
+ALTER FUNCTION public.update_conversation_analytics() SET search_path = public;
+ALTER FUNCTION public.update_conversation_last_message() SET search_path = public;
+ALTER FUNCTION public.update_conversation_stats() SET search_path = public;
+ALTER FUNCTION public.update_objective_completion_trigger() SET search_path = public;
+ALTER FUNCTION public.update_profile_strength_stats() SET search_path = public;
+ALTER FUNCTION public.update_relationship_score(uuid, uuid) SET search_path = public;
+ALTER FUNCTION public.update_reply_count() SET search_path = public;
+ALTER FUNCTION public.update_user_streak() SET search_path = public;
+ALTER FUNCTION public.use_invite_code(text, uuid) SET search_path = public;
