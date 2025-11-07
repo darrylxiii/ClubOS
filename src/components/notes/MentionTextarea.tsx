@@ -182,17 +182,17 @@ export const MentionTextarea = ({
 
   return (
     <div className="relative">
-      {/* Display layer (visual only) */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* Display layer with formatted mentions */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-md">
         <div className={cn(
-          "w-full min-h-full p-3 text-sm whitespace-pre-wrap break-words font-mono opacity-0",
+          "w-full min-h-full p-3 text-sm whitespace-pre-wrap break-words",
           className
         )}>
           {displayParts.map((part, index) => (
             part.type === 'mention' ? (
               <span
                 key={index}
-                className="bg-primary/20 text-primary px-1 py-0.5 rounded font-medium"
+                className="bg-primary/20 text-primary px-1.5 py-0.5 rounded-md font-semibold"
               >
                 @{part.content}
               </span>
@@ -203,7 +203,7 @@ export const MentionTextarea = ({
         </div>
       </div>
 
-      {/* Actual textarea */}
+      {/* Actual textarea (text transparent to show formatted overlay) */}
       <Textarea
         ref={textareaRef}
         value={value}
@@ -213,16 +213,22 @@ export const MentionTextarea = ({
         rows={rows}
         disabled={disabled}
         className={cn(
-          "relative z-10 bg-transparent resize-none",
+          "relative z-10 bg-transparent resize-none text-transparent caret-foreground selection:bg-primary/30",
           className
         )}
       />
 
-      {/* Mention dropdown */}
+      {/* Mention dropdown - positioned directly below cursor */}
         {showMentions && filteredMembers.length > 0 && (
           <div
             ref={dropdownRef}
-            className="absolute z-[100] mt-1 w-80 bg-popover border border-border rounded-lg shadow-lg overflow-hidden"
+            className="fixed z-[9999] w-80 bg-popover border border-border rounded-lg shadow-2xl overflow-hidden"
+            style={{
+              top: textareaRef.current ? 
+                textareaRef.current.getBoundingClientRect().bottom + window.scrollY + 4 : 0,
+              left: textareaRef.current ? 
+                textareaRef.current.getBoundingClientRect().left + window.scrollX : 0,
+            }}
           >
           <div className="p-2 border-b border-border bg-muted/50">
             <p className="text-xs font-medium text-muted-foreground">
