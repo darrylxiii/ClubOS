@@ -18,17 +18,15 @@ import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 import { logger } from "@/lib/logger";
 import { useNavigate } from "react-router-dom";
-import { JobFilterSidebar, type JobFilters } from "@/components/jobs/JobFilterSidebar";
+import { HorizontalFilters } from "@/components/jobs/HorizontalFilters";
+import type { JobFilters } from "@/components/jobs/JobFilterSidebar";
+import { cn } from "@/lib/utils";
 
 type SortOption = "match" | "newest" | "salary";
+
 const Jobs = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    role,
-    companyId: userCompanyId
-  } = useUserRole();
+  const { user } = useAuth();
+  const { role, companyId: userCompanyId } = useUserRole();
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("match");
   const [savedJobIds, setSavedJobIds] = useState<string[]>([]);
@@ -45,6 +43,7 @@ const Jobs = () => {
     companies: [],
     departments: [],
   });
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
   const [referralDialogOpen, setReferralDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<{
     id: string;
@@ -108,7 +107,6 @@ const Jobs = () => {
     const fetchJobs = async () => {
       setLoading(true);
       try {
-        // Fetch jobs with match scores if user is logged in
         const jobsQuery = supabase.from('jobs').select(`
           id,
           title,
@@ -185,13 +183,10 @@ const Jobs = () => {
 
       console.log(`Calculating match scores for ${jobsNeedingScores.length} jobs...`);
 
-      // Calculate scores in batches to avoid overwhelming the server
       for (const job of jobsNeedingScores.slice(0, 5)) {
         try {
           const { data, error } = await supabase.functions.invoke('calculate-enhanced-match', {
-            body: {
-              jobId: job.id
-            }
+            body: { jobId: job.id }
           });
 
           if (error) {
@@ -199,7 +194,6 @@ const Jobs = () => {
             continue;
           }
 
-          // Update local state with new score
           if (data?.score) {
             setJobs(prevJobs =>
               prevJobs.map(j =>
@@ -213,10 +207,10 @@ const Jobs = () => {
       }
     };
 
-    // Delay calculation slightly to avoid blocking initial render
     const timer = setTimeout(calculateMissingMatchScores, 1000);
     return () => clearTimeout(timer);
   }, [jobs, user]);
+
   const sortedJobs = useMemo(() => {
     return [...jobs].sort((a, b) => {
       switch (sortBy) {
@@ -232,7 +226,7 @@ const Jobs = () => {
     });
   }, [jobs, sortBy]);
 
-  // Memoize currency conversions to prevent recalculation on every render
+  // Memoize currency conversions
   const jobsWithConvertedSalary = useMemo(() => {
     return sortedJobs.map(job => {
       if (!job.salaryMax) {
@@ -248,24 +242,24 @@ const Jobs = () => {
       };
     });
   }, [sortedJobs, userCurrency]);
+
   const handleApply = (jobTitle: string) => {
     toast.success(`Applied to ${jobTitle}!`, {
       description: "Your application has been submitted successfully."
     });
   };
+
   const handleRefer = (jobId: string, jobTitle: string, company: string) => {
-    setSelectedJob({
-      id: jobId,
-      title: jobTitle,
-      company
-    });
+    setSelectedJob({ id: jobId, title: jobTitle, company });
     setReferralDialogOpen(true);
   };
+
   const handleClubSync = (jobTitle: string) => {
     toast.success(`Club Sync activated for ${jobTitle}!`, {
       description: "Elite auto-apply initiated. You'll be notified of next steps."
     });
   };
+
   const toggleSaveJob = async (jobId: string, jobTitle: string) => {
     if (!user) {
       toast.error('Please sign in to save jobs');
@@ -276,7 +270,6 @@ const Jobs = () => {
     
     try {
       if (isSaved) {
-        // Remove from database
         const { error } = await supabase
           .from('saved_jobs')
           .delete()
@@ -288,7 +281,6 @@ const Jobs = () => {
         setSavedJobIds(prev => prev.filter(id => id !== jobId));
         toast.info(`Removed ${jobTitle} from saved jobs`);
       } else {
-        // Add to database
         const { error } = await supabase
           .from('saved_jobs')
           .insert({ user_id: user.id, job_id: jobId });
@@ -322,7 +314,6 @@ const Jobs = () => {
   // Apply filters to jobs
   const filteredJobs = useMemo(() => {
     return jobsWithConvertedSalary.filter(job => {
-      // Location filter
       if (filters.locations.length > 0) {
         const matchesLocation = filters.locations.some(loc => 
           job.location.toLowerCase().includes(loc.toLowerCase())
@@ -330,27 +321,22 @@ const Jobs = () => {
         if (!matchesLocation) return false;
       }
 
-      // Salary filter
       if (job.salaryMax && (job.salaryMax < filters.salaryMin || job.salaryMin > filters.salaryMax)) {
         return false;
       }
 
-      // Employment type filter
       if (filters.employmentTypes.length > 0 && !filters.employmentTypes.includes(job.type)) {
         return false;
       }
 
-      // Remote filter
       if (filters.remoteOnly && !job.location.toLowerCase().includes('remote')) {
         return false;
       }
 
-      // Company filter
       if (filters.companies.length > 0 && !filters.companies.includes(job.company)) {
         return false;
       }
 
-      // Department filter (check if any of the job's tags match selected departments)
       if (filters.departments.length > 0) {
         const jobDepartments = job.tags || [];
         const matchesDepartment = filters.departments.some(dept => 
@@ -367,59 +353,124 @@ const Jobs = () => {
   const savedJobs = useMemo(() => {
     return filteredJobs.filter(job => savedJobIds.includes(job.id));
   }, [filteredJobs, savedJobIds]);
+
   const navigate = useNavigate();
 
   // If user is Partner or Admin, show Partner-specific view
   if ((role === 'partner' || role === 'admin') && (userCompanyId || role === 'admin')) {
-    return <AppLayout>
+    return (
+      <AppLayout>
         <div className="container mx-auto px-4 py-8">
           <PartnerJobsHome companyId={userCompanyId || null} />
         </div>
-      </AppLayout>;
+      </AppLayout>
+    );
   }
 
-  // Candidate view (default)
-  return <AppLayout>
+  // Candidate view (default) - NEW ELITE ARCHITECTURE
+  return (
+    <AppLayout>
       <OceanBackgroundVideo />
       
       <div className="relative z-10 container mx-auto px-4 py-8 pb-safe">
-        <div className="flex gap-6">
-          {/* Filter Sidebar */}
-          <div className="hidden lg:block w-80 flex-shrink-0">
-            <JobFilterSidebar
-              filters={filters}
-              onFiltersChange={setFilters}
-              onReset={() => setFilters({
-                locations: [],
-                salaryMin: 0,
-                salaryMax: 500000,
-                employmentTypes: [],
-                remoteOnly: false,
-                hybridIncluded: false,
-                experienceYears: [0, 20],
-                companies: [],
-                departments: [],
-              })}
-              totalJobs={jobs.length}
-              filteredJobsCount={filteredJobs.length}
-              availableCompanies={availableCompanies}
-              availableDepartments={availableDepartments}
+        <div className="space-y-6">
+          {/* Search Bar - Full Width */}
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <Input 
+              type="text" 
+              placeholder="Search elite opportunities by title, company, or skills..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              className="pl-12 h-14 text-base bg-card/30 backdrop-blur-xl border-border/40"
             />
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1 space-y-6">
-            {/* Header */}
-            <div className="space-y-4 border-b-2 border-foreground pb-8">
-              <p className="text-caps text-muted-foreground">Curated Roles</p>
-              <h1 className="text-4xl font-black uppercase tracking-tight mb-2">
-                Elite Opportunities
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl">Connecting only the 0.1% with each other</p>
-            </div>
+          {/* Elite Opportunities Header */}
+          <div className="text-center space-y-3 py-8 border-b-2 border-border/40">
+            <p className="text-caps text-muted-foreground tracking-widest">
+              CURATED ROLES
+            </p>
+            <h1 className="text-5xl font-black uppercase tracking-tight">
+              Elite Opportunities
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Connecting only the 0.1% with each other
+            </p>
+          </div>
 
-            {/* Search and Filters */}
-            <Tabs defaultValue="all" className="space-y-6">
+          {/* Club Sync - Compact Inline */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-card/20 backdrop-blur-xl border border-border/30 hover:bg-card/25 transition-all duration-300">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-lg bg-background/30 border border-border/10">
+                <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-foreground" : "text-muted-foreground/60"}`} />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold">Club Sync</span>
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 bg-background/30 px-2 py-0.5 rounded">
+                    AUTO-APPLY
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  Auto-apply to 90%+ matches
+                </span>
+              </div>
+            </div>
+            <Switch 
+              checked={clubSyncEnabled} 
+              onCheckedChange={async (checked) => {
+                if (!user) {
+                  toast.error('Please sign in to use Club Sync');
+                  return;
+                }
+                
+                try {
+                  const { error } = await supabase
+                    .from('profiles')
+                    .update({ club_sync_enabled: checked })
+                    .eq('id', user.id);
+                  
+                  if (error) throw error;
+                  
+                  setClubSyncEnabled(checked);
+                  toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
+                    description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
+                  });
+                } catch (error) {
+                  console.error('Error updating Club Sync:', error);
+                  toast.error('Failed to update Club Sync setting');
+                }
+              }} 
+            />
+          </div>
+
+          {/* Horizontal Filters Bar */}
+          <HorizontalFilters
+            filters={filters}
+            onFiltersChange={setFilters}
+            onReset={() => setFilters({
+              locations: [],
+              salaryMin: 0,
+              salaryMax: 500000,
+              employmentTypes: [],
+              remoteOnly: false,
+              hybridIncluded: false,
+              experienceYears: [0, 20],
+              companies: [],
+              departments: [],
+            })}
+            totalJobs={jobs.length}
+            filteredJobsCount={filteredJobs.length}
+            availableCompanies={availableCompanies}
+            availableDepartments={availableDepartments}
+            isExpanded={filtersExpanded}
+            onToggleExpanded={setFiltersExpanded}
+          />
+
+          {/* Tabs */}
+          <Tabs defaultValue="all" className="space-y-6">
+            <div className="flex items-center justify-between">
               <TabsList className="grid w-full max-w-md grid-cols-2">
                 <TabsTrigger value="all">
                   All Jobs ({filteredJobs.length})
@@ -429,231 +480,160 @@ const Jobs = () => {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="all" className="space-y-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input type="text" placeholder="Search jobs by title, company, or skills..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="shrink-0">
-                      <SlidersHorizontal className="w-4 h-4 mr-2" />
-                      Sort by: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-background border-border z-50" align="end">
-                    <DropdownMenuItem onClick={() => setSortBy("match")} className="cursor-pointer">
-                      <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
-                      Match %
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("newest")} className="cursor-pointer">
-                      <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
-                      Newest
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("salary")} className="cursor-pointer">
-                      <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
-                      Salary (High to Low)
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Club Sync Toggle */}
-              <div className="flex items-center gap-4 p-5 rounded-xl border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300">
-                <div className="p-3 rounded-xl bg-background/30 border border-border/10">
-                  <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-foreground" : "text-muted-foreground/60"}`} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold tracking-tight">Club Sync</span>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 bg-background/30 px-2 py-0.5 rounded">
-                      AUTO-APPLY
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground/70">
-                    Automatically apply to all matches above 90%
-                  </p>
-                </div>
-                <Switch 
-                  checked={clubSyncEnabled} 
-                  onCheckedChange={async (checked) => {
-                    if (!user) {
-                      toast.error('Please sign in to use Club Sync');
-                      return;
-                    }
-                    
-                    try {
-                      const { error } = await supabase
-                        .from('profiles')
-                        .update({ club_sync_enabled: checked })
-                        .eq('id', user.id);
-                      
-                      if (error) throw error;
-                      
-                      setClubSyncEnabled(checked);
-                      toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
-                        description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
-                      });
-                    } catch (error) {
-                      console.error('Error updating Club Sync:', error);
-                      toast.error('Failed to update Club Sync setting');
-                    }
-                  }} 
-                />
-              </div>
+              {/* Sort Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <SlidersHorizontal className="w-4 h-4" />
+                    Sort: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="bg-card/95 backdrop-blur-xl border-border z-50" align="end">
+                  <DropdownMenuItem onClick={() => setSortBy("match")} className="cursor-pointer">
+                    <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
+                    Match %
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("newest")} className="cursor-pointer">
+                    <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
+                    Newest
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setSortBy("salary")} className="cursor-pointer">
+                    <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
+                    Salary (High to Low)
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
-            {/* Job Listings */}
-            {loading ? <div className="text-center py-12">
-                <p className="text-muted-foreground">Loading jobs...</p>
-              </div> : filteredJobs.length === 0 ? <div className="text-center py-12">
-                <p className="text-muted-foreground">No jobs match your filters</p>
-              </div> : <div className="grid grid-cols-1 gap-6">
-                {filteredJobs.map(job => {
-              return <JobCard 
-                key={job.id} 
-                id={job.id}
-                title={job.title} 
-                company={job.company} 
-                companyLogo={job.companyLogo}
-                companySlug={job.companySlug}
-                location={job.location} 
-                type={job.type} 
-                postedDate={job.postedDate} 
-                tags={job.tags} 
-                salary={job.convertedSalary} 
-                matchScore={job.matchScore} 
-                isSaved={savedJobIds.includes(job.id)} 
-                onApply={() => handleApply(job.title)} 
-                onRefer={() => handleRefer(job.id, job.title, job.company)} 
-                onClubSync={() => handleClubSync(job.title)} 
-                onToggleSave={() => toggleSaveJob(job.id, job.title)} 
-              />;
-            })}
-              </div>}
-              </TabsContent>
-
-              <TabsContent value="saved" className="space-y-6">
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input type="text" placeholder="Search saved jobs..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10" />
+            <TabsContent value="all" className="space-y-6">
+              {loading ? (
+                <div className={cn(
+                  "grid gap-6 transition-all duration-300",
+                  filtersExpanded 
+                    ? "grid-cols-1 md:grid-cols-2" 
+                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                )}>
+                  {[...Array(6)].map((_, i) => (
+                    <div key={i} className="h-80 rounded-2xl bg-card/10 backdrop-blur-sm animate-pulse" />
+                  ))}
                 </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="shrink-0">
-                      <SlidersHorizontal className="w-4 h-4 mr-2" />
-                      Sort by: {sortBy === "match" ? "Match %" : sortBy === "newest" ? "Newest" : "Salary"}
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="bg-background border-border z-50" align="end">
-                    <DropdownMenuItem onClick={() => setSortBy("match")} className="cursor-pointer">
-                      <Check className={`w-4 h-4 mr-2 ${sortBy === "match" ? "opacity-100" : "opacity-0"}`} />
-                      Match %
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("newest")} className="cursor-pointer">
-                      <Check className={`w-4 h-4 mr-2 ${sortBy === "newest" ? "opacity-100" : "opacity-0"}`} />
-                      Newest
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setSortBy("salary")} className="cursor-pointer">
-                      <Check className={`w-4 h-4 mr-2 ${sortBy === "salary" ? "opacity-100" : "opacity-0"}`} />
-                      Salary (High to Low)
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Club Sync Toggle */}
-              <div className="flex items-center gap-4 p-5 rounded-xl border-0 bg-card/20 backdrop-blur-xl hover:bg-card/25 transition-all duration-300">
-                <div className="p-3 rounded-xl bg-background/30 border border-border/10">
-                  <Zap className={`w-5 h-5 ${clubSyncEnabled ? "text-foreground" : "text-muted-foreground/60"}`} />
+              ) : (
+                <div className={cn(
+                  "grid gap-6 transition-all duration-300",
+                  filtersExpanded 
+                    ? "grid-cols-1 md:grid-cols-2" 
+                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                )}>
+                  {filteredJobs
+                    .filter(job => 
+                      job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                      job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                      job.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                    )
+                    .map(job => (
+                      <JobCard 
+                        key={job.id} 
+                        id={job.id} 
+                        title={job.title} 
+                        company={job.company} 
+                        companyLogo={job.companyLogo} 
+                        companySlug={job.companySlug} 
+                        location={job.location} 
+                        type={job.type} 
+                        postedDate={job.postedDate} 
+                        tags={job.tags} 
+                        salary={job.convertedSalary || undefined} 
+                        matchScore={job.matchScore ?? undefined} 
+                        isSaved={savedJobIds.includes(job.id)} 
+                        onApply={() => handleApply(job.title)} 
+                        onRefer={() => handleRefer(job.id, job.title, job.company)} 
+                        onClubSync={() => handleClubSync(job.title)} 
+                        onToggleSave={() => toggleSaveJob(job.id, job.title)} 
+                      />
+                    ))}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold tracking-tight">Club Sync</span>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/60 bg-background/30 px-2 py-0.5 rounded">
-                      AUTO-APPLY
-                    </span>
+              )}
+            </TabsContent>
+
+            <TabsContent value="saved" className="space-y-6">
+              {loadingSavedJobs ? (
+                <div className={cn(
+                  "grid gap-6 transition-all duration-300",
+                  filtersExpanded 
+                    ? "grid-cols-1 md:grid-cols-2" 
+                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                )}>
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="h-80 rounded-2xl bg-card/10 backdrop-blur-sm animate-pulse" />
+                  ))}
+                </div>
+              ) : savedJobs.length === 0 ? (
+                <div className="text-center py-24">
+                  <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-muted/20 flex items-center justify-center">
+                    <Search className="w-12 h-12 text-muted-foreground" />
                   </div>
-                  <p className="text-sm text-muted-foreground/70">
-                    Automatically apply to all matches above 90%
-                  </p>
+                  <h3 className="text-2xl font-bold mb-2">No saved jobs yet</h3>
+                  <p className="text-muted-foreground">Start exploring and save opportunities that interest you</p>
                 </div>
-                <Switch 
-                  checked={clubSyncEnabled} 
-                  onCheckedChange={async (checked) => {
-                    if (!user) {
-                      toast.error('Please sign in to use Club Sync');
-                      return;
-                    }
-                    
-                    try {
-                      const { error } = await supabase
-                        .from('profiles')
-                        .update({ club_sync_enabled: checked })
-                        .eq('id', user.id);
-                      
-                      if (error) throw error;
-                      
-                      setClubSyncEnabled(checked);
-                      toast.success(checked ? "Club Sync enabled" : "Club Sync disabled", {
-                        description: checked ? "You'll automatically apply to roles with 90%+ match" : "Auto-apply has been turned off"
-                      });
-                    } catch (error) {
-                      console.error('Error updating Club Sync:', error);
-                      toast.error('Failed to update Club Sync setting');
-                    }
-                  }} 
-                />
-              </div>
-            </div>
-
-            {/* Saved Job Listings */}
-            {savedJobs.length === 0 ? <div className="text-center py-12">
-                <p className="text-muted-foreground">No saved jobs yet</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Click the bookmark icon on any job to save it here
-                </p>
-              </div> : <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {savedJobs.map(job => {
-              return <JobCard 
-                key={job.id} 
-                id={job.id}
-                title={job.title} 
-                company={job.company} 
-                companyLogo={job.companyLogo}
-                companySlug={job.companySlug}
-                location={job.location} 
-                type={job.type} 
-                postedDate={job.postedDate} 
-                tags={job.tags} 
-                salary={job.convertedSalary} 
-                matchScore={job.matchScore} 
-                isSaved={true} 
-                onApply={() => handleApply(job.title)} 
-                onRefer={() => handleRefer(job.id, job.title, job.company)} 
-                onClubSync={() => handleClubSync(job.title)} 
-                onToggleSave={() => toggleSaveJob(job.id, job.title)} 
-              />;
-            })}
-              </div>}
-              </TabsContent>
-            </Tabs>
-          </div>
+              ) : (
+                <div className={cn(
+                  "grid gap-6 transition-all duration-300",
+                  filtersExpanded 
+                    ? "grid-cols-1 md:grid-cols-2" 
+                    : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+                )}>
+                  {savedJobs
+                    .filter(job => 
+                      job.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                      job.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                      job.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+                    )
+                    .map(job => (
+                      <JobCard 
+                        key={job.id} 
+                        id={job.id} 
+                        title={job.title} 
+                        company={job.company} 
+                        companyLogo={job.companyLogo} 
+                        companySlug={job.companySlug} 
+                        location={job.location} 
+                        type={job.type} 
+                        postedDate={job.postedDate} 
+                        tags={job.tags} 
+                        salary={job.convertedSalary || undefined} 
+                        matchScore={job.matchScore ?? undefined} 
+                        isSaved={true} 
+                        onApply={() => handleApply(job.title)} 
+                        onRefer={() => handleRefer(job.id, job.title, job.company)} 
+                        onClubSync={() => handleClubSync(job.title)} 
+                        onToggleSave={() => toggleSaveJob(job.id, job.title)} 
+                      />
+                    ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
-      {selectedJob && <ReferralDialog open={referralDialogOpen} onOpenChange={setReferralDialogOpen} jobId={selectedJob.id} jobTitle={selectedJob.title} companyName={selectedJob.company} />}
+      {selectedJob && (
+        <ReferralDialog 
+          open={referralDialogOpen} 
+          onOpenChange={setReferralDialogOpen} 
+          jobId={selectedJob.id} 
+          jobTitle={selectedJob.title} 
+          companyName={selectedJob.company} 
+        />
+      )}
       <AIPageCopilot 
         currentPage="/jobs" 
-        contextData={{ jobsCount: sortedJobs.length }}
+        contextData={{ jobsCount: jobs.length }}
         onAction={(action) => {
           if (action === 'search_jobs') navigate('/club-ai');
         }}
       />
-    </AppLayout>;
+    </AppLayout>
+  );
 };
+
 export default Jobs;
