@@ -82,7 +82,7 @@ export const HorizontalFilters = memo(({
 
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggleExpanded}>
-      <div className="sticky top-0 z-20 bg-card/30 backdrop-blur-xl border border-border/30 rounded-xl">
+      <div className="sticky top-0 z-20 bg-card/30 backdrop-blur-xl border border-border/30 rounded-xl shadow-none">
         <div className="flex items-center justify-between gap-4 p-4">
           {/* Filter Pills */}
           <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide flex-1">
@@ -305,17 +305,6 @@ export const HorizontalFilters = memo(({
               </Button>
             )}
           </div>
-
-          {/* Collapse Toggle */}
-          <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="sm" className="shrink-0">
-              {isExpanded ? (
-                <ChevronUp className="w-4 h-4" />
-              ) : (
-                <ChevronDown className="w-4 h-4" />
-              )}
-            </Button>
-          </CollapsibleTrigger>
         </div>
 
         {/* Expanded Filter Content - Hidden by default, shown when isExpanded */}
