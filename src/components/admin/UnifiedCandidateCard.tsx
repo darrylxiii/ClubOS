@@ -11,7 +11,10 @@ import {
   MoreVertical,
   DollarSign,
   FileText,
-  Link2Icon
+  Link2Icon,
+  Clock,
+  Users,
+  Briefcase as BriefcaseIcon
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { 
@@ -21,19 +24,34 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
+import { getActivityColor, getActivityLabel, ActivityThresholds } from "./ActivitySettingsDialog";
 
 interface UnifiedCandidateCardProps {
   candidate: any;
   onEdit?: () => void;
   onSendInvitation?: () => void;
+  activityThresholds: ActivityThresholds;
 }
 
 export function UnifiedCandidateCard({ 
   candidate, 
   onEdit, 
-  onSendInvitation 
+  onSendInvitation,
+  activityThresholds
 }: UnifiedCandidateCardProps) {
   const navigate = useNavigate();
+
+  const activityColor = getActivityColor(candidate.last_interaction_date, activityThresholds);
+  const activityLabel = getActivityLabel(candidate.last_interaction_date);
+
+  const getActivityBgColor = (color: string) => {
+    switch (color) {
+      case 'green': return 'bg-green-100 text-green-700 border-green-200';
+      case 'yellow': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
+      case 'red': return 'bg-red-100 text-red-700 border-red-200';
+      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
 
   const getMergeStatusColor = (status: string) => {
     switch (status) {
@@ -139,6 +157,25 @@ export function UnifiedCandidateCard({
                  candidate.invitation_status === 'invited' ? 'Invited' : 
                  candidate.invitation_status === 'not_invited' ? 'Not Invited' : 'Pending'}
               </Badge>
+
+              <Badge variant="outline" className={getActivityBgColor(activityColor)}>
+                <Clock className="w-3 h-3 mr-1" />
+                {activityLabel}
+              </Badge>
+
+              {candidate.profile_views !== undefined && (
+                <Badge variant="outline">
+                  <Eye className="w-3 h-3 mr-1" />
+                  {candidate.profile_views} views
+                </Badge>
+              )}
+
+              {candidate.total_applications !== undefined && candidate.total_applications > 0 && (
+                <Badge variant="secondary">
+                  <BriefcaseIcon className="w-3 h-3 mr-1" />
+                  {candidate.total_applications} {candidate.total_applications === 1 ? 'application' : 'applications'}
+                </Badge>
+              )}
               
               {candidate.final_desired_salary_min && (
                 <Badge variant="outline">
