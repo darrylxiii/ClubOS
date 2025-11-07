@@ -341,45 +341,89 @@ export const AddCandidateDialog = ({
       const candidateId = candidateProfile.id;
       const userId = matchingUser?.id || null;
 
-      // Create application
-      const { error: appError } = await supabase.from("applications").insert({
-        user_id: userId, // Can be null for standalone candidates
-        candidate_id: candidateId, // Link to candidate profile
-        job_id: jobId,
-        position: jobTitle,
-        company_name: formData.currentCompany || "External Candidate",
-        current_stage_index: parseInt(formData.startStageIndex),
-        status: "active",
-        stages: [
-          {
-            name: "Admin Added",
-            status: "in_progress",
-            started_at: new Date().toISOString(),
-            notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nLinkedIn: ${formData.linkedinUrl}\nCurrent: ${formData.currentTitle} at ${formData.currentCompany}\n\n${formData.notes}`,
-          },
-        ],
+      // Pre-flight: Verify permissions before attempting INSERT
+      console.log('🔐 [Add Candidate] Checking INSERT permissions:', {
+        userId: adminUser.id,
+        jobId,
+        candidateId
       });
 
-      if (appError) throw appError;
+      const { data: permCheck } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', adminUser.id)
+        .in('role', ['admin', 'partner', 'strategist']);
 
-      console.log('✅ [Add Candidate] Application created successfully');
+      console.log('🔐 [Add Candidate] User roles:', permCheck);
 
-      // Find the application we just created
-      let applicationQuery = supabase
-        .from("applications")
-        .select("id")
-        .eq("job_id", jobId)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      
-      // Add user_id filter
-      if (userId) {
-        applicationQuery = applicationQuery.eq("user_id", userId);
-      } else {
-        applicationQuery = applicationQuery.is("user_id", null);
+      if (!permCheck || permCheck.length === 0) {
+        throw new Error('PERMISSION_ERROR: No admin/partner/strategist role found for current user');
       }
-      
-      const { data: application } = await applicationQuery.maybeSingle();
+
+      // Create application with .select() to get the created record
+      const { data: newApplication, error: appError } = await supabase
+        .from("applications")
+        .insert({
+          user_id: userId, // Can be null for standalone candidates
+          candidate_id: candidateId, // Link to candidate profile
+          job_id: jobId,
+          position: jobTitle,
+          company_name: formData.currentCompany || "External Candidate",
+          current_stage_index: parseInt(formData.startStageIndex),
+          status: "active",
+          stages: [
+            {
+              name: "Admin Added",
+              status: "in_progress",
+              started_at: new Date().toISOString(),
+              notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nLinkedIn: ${formData.linkedinUrl}\nCurrent: ${formData.currentTitle} at ${formData.currentCompany}\n\n${formData.notes}`,
+            },
+          ],
+        })
+        .select('id, job_id, candidate_id, current_stage_index, created_at')
+        .single();
+
+      if (appError) {
+        console.error('❌ [Add Candidate] Application INSERT failed:', {
+          code: appError.code,
+          message: appError.message,
+          details: appError.details,
+          hint: appError.hint,
+          postgresError: appError
+        });
+
+        // Delete orphaned candidate profile
+        console.log('🧹 [Add Candidate] Cleaning up orphaned candidate profile:', candidateId);
+        await supabase
+          .from('candidate_profiles')
+          .delete()
+          .eq('id', candidateId);
+
+        // Throw specific error based on type
+        if (appError.code === '42501' || appError.message?.toLowerCase().includes('rls') || appError.message?.toLowerCase().includes('permission')) {
+          throw new Error('PERMISSION_ERROR: You do not have permission to add applications. Your user role may not be properly configured. Please contact an administrator.');
+        } else if (appError.code === '23503') {
+          throw new Error('FK_ERROR: Invalid job or candidate reference. Please refresh the page and try again.');
+        } else {
+          throw new Error(`DB_ERROR: Failed to create application - ${appError.message} (code: ${appError.code || 'unknown'})`);
+        }
+      }
+
+      if (!newApplication) {
+        console.error('❌ [Add Candidate] Application was not created (no data returned)');
+        // Clean up orphaned candidate profile
+        await supabase.from('candidate_profiles').delete().eq('id', candidateId);
+        throw new Error('Application was not created. Please try again or contact support.');
+      }
+
+      console.log('✅ [Add Candidate] Application created successfully:', {
+        applicationId: newApplication.id,
+        candidateId: newApplication.candidate_id,
+        jobId: newApplication.job_id
+      });
+
+      // Use the application we just created (no need to query again)
+      const application = newApplication;
 
       if (application) {
         // Log candidate addition as interaction
@@ -487,10 +531,25 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
     } catch (error: any) {
       console.error("Error adding candidate:", error);
       
-      // Specific error messages based on error type
-      if (error.message?.includes('email already exists') || error.message?.includes('duplicate')) {
-        toast.error("Duplicate Email", {
-          description: "A candidate with this email already exists in the system."
+      if (error.message?.startsWith('PERMISSION_ERROR:')) {
+        toast.error("Permission Denied", {
+          description: error.message.replace('PERMISSION_ERROR: ', ''),
+          duration: 8000
+        });
+      } else if (error.message?.startsWith('FK_ERROR:')) {
+        toast.error("Invalid Reference", {
+          description: error.message.replace('FK_ERROR: ', ''),
+          duration: 6000
+        });
+      } else if (error.message?.startsWith('DB_ERROR:')) {
+        toast.error("Database Error", {
+          description: error.message.replace('DB_ERROR: ', ''),
+          duration: 6000
+        });
+      } else if (error.message?.includes('duplicate') || error.code === '23505') {
+        toast.error("Duplicate Candidate", {
+          description: "A candidate with this information already exists.",
+          duration: 5000
         });
       } else if (error.code === '23503') {
         toast.error("Invalid Job", {
