@@ -341,13 +341,6 @@ export const MentionTextarea = ({
         placeholder={placeholder}
         rows={rows}
         disabled={disabled}
-        spellCheck={false}
-        autoCorrect="off"
-        autoComplete="off"
-        autoCapitalize="off"
-        data-gramm="false"
-        data-gramm_editor="false"
-        data-enable-grammarly="false"
         className={cn(
           "relative z-10 bg-transparent resize-none text-transparent caret-foreground selection:bg-primary/30",
           className
