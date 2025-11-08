@@ -12,6 +12,53 @@ serve(async (req) => {
   }
 
   try {
+    // SECURITY: Authenticate request - only internal/cron can trigger
+    const authHeader = req.headers.get('Authorization');
+    const internalToken = Deno.env.get('WEBHOOK_DISPATCHER_TOKEN');
+    
+    // Check for internal token or valid JWT
+    const token = authHeader?.replace('Bearer ', '');
+    if (!token || (internalToken && token !== internalToken)) {
+      // If internal token is set, it must match
+      // Otherwise, try to validate as user JWT
+      if (!internalToken) {
+        // No internal token configured, require valid user auth
+        const supabaseAuth = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+        );
+        
+        const { data: { user }, error } = await supabaseAuth.auth.getUser(token);
+        if (error || !user) {
+          console.error('Unauthorized webhook dispatch attempt');
+          return new Response(
+            JSON.stringify({ error: 'Unauthorized - valid authentication required' }),
+            { status: 401, headers: corsHeaders }
+          );
+        }
+        
+        // Check if user has admin role
+        const { data: roles } = await supabaseAuth
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+        
+        if (!roles?.some(r => r.role === 'admin')) {
+          console.error('Forbidden: User is not admin');
+          return new Response(
+            JSON.stringify({ error: 'Forbidden - admin access required' }),
+            { status: 403, headers: corsHeaders }
+          );
+        }
+      } else {
+        console.error('Invalid internal token for webhook dispatch');
+        return new Response(
+          JSON.stringify({ error: 'Unauthorized - invalid token' }),
+          { status: 401, headers: corsHeaders }
+        );
+      }
+    }
+
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
