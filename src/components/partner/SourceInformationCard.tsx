@@ -31,26 +31,32 @@ export function SourceInformationCard({ candidateId }: Props) {
 
   const loadSourceInfo = async () => {
     try {
-      // Get candidate profile
-      const { data: profile } = await supabase
+      // Get candidate profile by ID (not user_id)
+      const { data: profile, error: profileError } = await supabase
         .from('candidate_profiles')
         .select('created_at, source_channel, created_by')
-        .eq('user_id', candidateId)
-        .single();
+        .eq('id', candidateId)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Error loading profile:', profileError);
+        setLoading(false);
+        return;
+      }
 
       if (!profile) {
         setLoading(false);
         return;
       }
 
-      // Get source info from applications (most recent)
+      // Get source info from applications (most recent) by candidate_id
       const { data: application } = await supabase
         .from('applications')
         .select('sourced_by, source_context, created_at')
-        .or(`user_id.eq.${candidateId},candidate_id.in.(SELECT id FROM candidate_profiles WHERE user_id = '${candidateId}')`)
+        .eq('candidate_id', candidateId)
         .order('created_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
 
       let sourcedBy = undefined;
       const sourcerId = application?.sourced_by || profile.created_by;
