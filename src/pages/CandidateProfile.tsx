@@ -50,7 +50,7 @@ export default function CandidateProfile() {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>(defaultTab || (role === 'admin' || role === 'partner' ? "team-assessment" : "overview"));
+  const [activeTab, setActiveTab] = useState<string>(defaultTab || "overview");
   
   const isTeamView = role === 'admin' || role === 'partner';
 
@@ -358,7 +358,7 @@ export default function CandidateProfile() {
             </TabsList>
 
             {/* Assessments Tab - Available for all users */}
-            {candidate.user_id && (
+            {candidate.user_id && activeTab === "assessments" && (
               <TabsContent value="assessments" className="space-y-6">
                 <AssessmentHistory 
                   userId={candidate.user_id}
@@ -368,7 +368,7 @@ export default function CandidateProfile() {
             )}
 
             {/* Settings Tab - Admin Only */}
-            {isTeamView && candidate.user_id && (
+            {isTeamView && candidate.user_id && activeTab === "settings" && (
               <TabsContent value="settings" className="space-y-6">
                 <UserSettingsViewer 
                   userId={candidate.user_id} 
@@ -379,7 +379,7 @@ export default function CandidateProfile() {
             )}
 
             {/* Team Assessment Tab - Combines Decision, Documents, Notes, Internal - Admin/Partner Only */}
-            {isTeamView && (
+            {isTeamView && activeTab === "team-assessment" && (
               <TabsContent value="team-assessment" className="space-y-6">
                 <CandidateDecisionDashboard candidate={candidate} />
                 
@@ -415,6 +415,7 @@ export default function CandidateProfile() {
             )}
 
             {/* Overview Tab */}
+            {activeTab === "overview" && (
             <TabsContent value="overview" className="space-y-6">
               {/* AI Summary */}
               {candidate.ai_summary && (
@@ -503,8 +504,10 @@ export default function CandidateProfile() {
                 <SourceInformationCard candidateId={id!} />
               )}
             </TabsContent>
+            )}
 
             {/* Experience Tab - Combines Experience, Education, Social */}
+            {activeTab === "experience" && (
             <TabsContent value="experience" className="space-y-6">
               {/* Work History */}
               {candidate.work_history && candidate.work_history.length > 0 && (
@@ -607,16 +610,17 @@ export default function CandidateProfile() {
                 </Card>
               )}
             </TabsContent>
+            )}
 
             {/* Work Authorization Tab - Admin Only */}
-            {isTeamView && (
+            {isTeamView && activeTab === "workauth" && (
               <TabsContent value="workauth" className="space-y-6">
                 <CandidateWorkAuthCard candidate={candidate} />
               </TabsContent>
             )}
 
             {/* Pipeline Tab - Combines Pipeline & Jobs - Admin Only */}
-            {isTeamView && (
+            {isTeamView && activeTab === "pipeline" && (
               <TabsContent value="pipeline" className="space-y-6">
                 <CandidatePipelineStatus 
                   candidateId={id!}
@@ -629,7 +633,7 @@ export default function CandidateProfile() {
             )}
 
             {/* Activity Tab - Combines Analytics & Activity - Admin Only */}
-            {isTeamView && (
+            {isTeamView && activeTab === "activity" && (
               <TabsContent value="activity" className="space-y-6">
                 <CandidateInteractionLog 
                   candidateId={id!}
