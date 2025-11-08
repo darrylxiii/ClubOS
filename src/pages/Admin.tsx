@@ -2,6 +2,8 @@ import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
 import { UnifiedUserManagement } from "@/components/admin/UnifiedUserManagement";
 import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
@@ -68,9 +70,10 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-7 max-w-6xl sticky top-4 z-20">
+            <TabsList className="grid w-full grid-cols-8 max-w-7xl sticky top-4 z-20">
               <TabsTrigger value="companies" onClick={(e) => e.currentTarget.blur()}>Companies</TabsTrigger>
               <TabsTrigger value="users" onClick={(e) => e.currentTarget.blur()}>Users & Roles</TabsTrigger>
+              <TabsTrigger value="merge" onClick={(e) => e.currentTarget.blur()}>Merge</TabsTrigger>
               <TabsTrigger value="applications" onClick={(e) => e.currentTarget.blur()}>Applications</TabsTrigger>
               <TabsTrigger value="achievements" onClick={(e) => e.currentTarget.blur()}>Achievements</TabsTrigger>
               <TabsTrigger value="assessments" onClick={(e) => e.currentTarget.blur()}>Assessments</TabsTrigger>
@@ -84,6 +87,21 @@ const Admin = () => {
 
           <TabsContent value="users" className="space-y-4">
             <UnifiedUserManagement />
+          </TabsContent>
+
+          <TabsContent value="merge" className="space-y-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <p className="text-muted-foreground">
+                    Access the full merge dashboard to manually link candidates to user accounts
+                  </p>
+                  <Button onClick={() => window.location.href = '/admin/merge-dashboard'}>
+                    Open Merge Dashboard
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="applications" className="space-y-4">

@@ -14,6 +14,7 @@ const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
 const FunnelAnalytics = lazy(() => import("@/pages/FunnelAnalytics"));
 const SocialManagement = lazy(() => import("@/pages/SocialManagement"));
 const AdminRejections = lazy(() => import("@/pages/AdminRejections"));
+const MergeDashboard = lazy(() => import("@/pages/admin/MergeDashboard"));
 
 /**
  * Admin-specific routes
@@ -33,6 +34,9 @@ export const adminRoutes = (
     
     {/* Club Sync */}
     <Route path="/admin/club-sync-requests" element={<ProtectedRoute><ClubSyncRequestsPage /></ProtectedRoute>} />
+    
+    {/* Merge Dashboard */}
+    <Route path="/admin/merge-dashboard" element={<ProtectedRoute><MergeDashboard /></ProtectedRoute>} />
     
     {/* Analytics */}
     <Route path="/admin/analytics" element={<ProtectedRoute><GlobalAnalytics /></ProtectedRoute>} />
