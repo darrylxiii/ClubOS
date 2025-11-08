@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,11 +35,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   const [uploading, setUploading] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
-  useEffect(() => {
-    loadDocuments();
-  }, [candidateId]);
-
-  const loadDocuments = async () => {
+  const loadDocuments = useCallback(async () => {
     const { data, error } = await supabase
       .from('candidate_documents')
       .select('*')
@@ -74,7 +70,11 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
     setDocuments(documentsWithUrls);
     setLoading(false);
-  };
+  }, [candidateId]);
+
+  useEffect(() => {
+    loadDocuments();
+  }, [loadDocuments]);
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];

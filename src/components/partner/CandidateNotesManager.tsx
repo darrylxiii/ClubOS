@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -45,11 +45,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
     tags: [] as string[]
   });
 
-  useEffect(() => {
-    loadNotes();
-  }, [candidateId]);
-
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
     const { data, error } = await supabase
       .from('candidate_notes')
       .select('*, profiles(full_name)')
@@ -64,7 +60,11 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
 
     setNotes((data as any) || []);
     setLoading(false);
-  };
+  }, [candidateId]);
+
+  useEffect(() => {
+    loadNotes();
+  }, [loadNotes]);
 
   const handleSave = async () => {
     if (!newNote.content.trim()) {
