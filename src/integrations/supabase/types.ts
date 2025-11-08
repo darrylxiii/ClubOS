@@ -1136,27 +1136,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "applications_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "candidate_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "applications_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "potential_merges"
-            referencedColumns: ["candidate_id"]
-          },
-          {
-            foreignKeyName: "applications_candidate_id_fkey"
-            columns: ["candidate_id"]
-            isOneToOne: false
-            referencedRelation: "unified_candidate_view"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "applications_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
