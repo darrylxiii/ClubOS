@@ -113,6 +113,7 @@ export default function JobDetail() {
     if (!user || !jobId) return;
 
     try {
+      // Check if user has applied
       const { data: appliedData } = await supabase
         .from('applications')
         .select('id')
@@ -121,6 +122,16 @@ export default function JobDetail() {
         .maybeSingle();
 
       setIsApplied(!!appliedData);
+
+      // Check if job is saved
+      const { data: savedData } = await supabase
+        .from('saved_jobs')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('job_id', jobId)
+        .maybeSingle();
+
+      setIsSaved(!!savedData);
     } catch (error) {
       console.error('Error checking user status:', error);
     }
@@ -207,24 +218,42 @@ export default function JobDetail() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user) {
       toast.error('Please sign in to save jobs');
       navigate('/auth');
       return;
     }
 
-    setIsSaved(!isSaved);
-    
-    // Phase 3: Track job save
-    if (jobId) {
-      trackJobSave(user.id, jobId, !isSaved);
-    }
-    
-    if (isSaved) {
-      toast.info('Job removed from saved jobs');
-    } else {
-      toast.success('Job saved successfully!');
+    try {
+      if (isSaved) {
+        // Remove from database
+        const { error } = await supabase
+          .from('saved_jobs')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('job_id', jobId);
+        
+        if (error) throw error;
+        
+        setIsSaved(false);
+        toast.info('Job removed from saved jobs');
+        trackJobSave(user.id, jobId!, false);
+      } else {
+        // Add to database
+        const { error } = await supabase
+          .from('saved_jobs')
+          .insert({ user_id: user.id, job_id: jobId });
+        
+        if (error) throw error;
+        
+        setIsSaved(true);
+        toast.success('Job saved successfully!');
+        trackJobSave(user.id, jobId!, true);
+      }
+    } catch (error) {
+      console.error('Error saving job:', error);
+      toast.error('Failed to save job. Please try again.');
     }
   };
 

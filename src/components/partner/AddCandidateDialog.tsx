@@ -33,7 +33,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Award } from "lucide-react";
+import { UserPlus, Sparkles, Mail, Phone, Linkedin, FileText, Zap, Check, ChevronsUpDown, Award, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DuplicateCandidateDialog } from "./DuplicateCandidateDialog";
 
@@ -65,6 +65,7 @@ export const AddCandidateDialog = ({
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateMatchType, setDuplicateMatchType] = useState<"name" | "linkedin" | "both">("name");
   const [proceedWithDuplicate, setProceedWithDuplicate] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     email: "",
     fullName: "",
@@ -102,6 +103,7 @@ export const AddCandidateDialog = ({
 
     if (open) {
       loadTeamMembers();
+      setSubmitError(null);
     }
   }, [open]);
 
@@ -146,202 +148,256 @@ export const AddCandidateDialog = ({
   };
 
   const checkForDuplicates = async () => {
-    // Only check if we have at least name
-    if (!formData.fullName && !formData.linkedinUrl) return [];
+    // Only check if we have at least one identifier
+    if (!formData.fullName && !formData.linkedinUrl && !formData.email) return [];
 
     try {
-      // Build OR conditions for name and/or LinkedIn URL
-      const conditions: string[] = [];
+      let duplicates: any[] = [];
       
-      if (formData.fullName) {
-        conditions.push(`candidate_profiles.full_name.ilike.%${formData.fullName.trim()}%`);
-      }
-      
-      if (formData.linkedinUrl) {
-        // Normalize LinkedIn URL (remove trailing slashes, query params)
-        const normalizedUrl = formData.linkedinUrl.trim().split('?')[0].replace(/\/$/, '');
-        conditions.push(`candidate_profiles.linkedin_url.ilike.%${normalizedUrl}%`);
-      }
-
-      if (conditions.length === 0) return [];
-
-      const { data: existingApplications, error } = await supabase
-        .from('applications')
-        .select(`
-          id,
-          candidate_id,
-          current_stage_index,
-          candidate_profiles!inner(
+      // Check by EMAIL (if provided) - query through applications to ignore orphaned profiles
+      if (formData.email) {
+        const { data: emailMatches } = await supabase
+          .from('applications')
+          .select(`
             id,
-            full_name,
-            email,
-            linkedin_url,
-            current_title,
-            current_company
-          )
-        `)
-        .eq('job_id', jobId)
-        .or(conditions.join(','))
-        .limit(5);
-
-      if (error) {
-        console.error('Error checking duplicates:', error);
-        return [];
-      }
-
-      // Determine match type
-      let matchType: "name" | "linkedin" | "both" = "name";
-      if (existingApplications && existingApplications.length > 0) {
-        const hasNameMatch = formData.fullName && existingApplications.some(
-          app => app.candidate_profiles?.full_name?.toLowerCase().includes(formData.fullName.toLowerCase())
-        );
-        const hasLinkedInMatch = formData.linkedinUrl && existingApplications.some(
-          app => app.candidate_profiles?.linkedin_url?.toLowerCase().includes(formData.linkedinUrl.toLowerCase())
-        );
+            candidate_id,
+            current_stage_index,
+            candidate_profiles!applications_candidate_id_fkey(
+              id,
+              full_name,
+              email,
+              linkedin_url,
+              current_title,
+              current_company
+            )
+          `)
+          .eq('job_id', jobId)
+          .ilike('candidate_profiles.email', formData.email.trim())
+          .neq('status', 'rejected')
+          .limit(3);
         
-        if (hasNameMatch && hasLinkedInMatch) {
-          matchType = "both";
-        } else if (hasLinkedInMatch) {
-          matchType = "linkedin";
-        } else {
-          matchType = "name";
+        if (emailMatches && emailMatches.length > 0) {
+          duplicates = emailMatches.filter(d => d.candidate_profiles);
+          if (duplicates.length > 0) {
+            setDuplicateMatchType('email' as any);
+            return duplicates;
+          }
         }
-        
-        setDuplicateMatchType(matchType);
       }
-
-      return existingApplications || [];
+      
+      // Check by LinkedIn URL (if no email match)
+      if (formData.linkedinUrl) {
+        const normalizedUrl = formData.linkedinUrl.trim().split('?')[0].replace(/\/$/, '');
+        const { data: linkedinMatches } = await supabase
+          .from('applications')
+          .select(`
+            id,
+            candidate_id,
+            current_stage_index,
+            candidate_profiles!applications_candidate_id_fkey(
+              id,
+              full_name,
+              email,
+              linkedin_url,
+              current_title,
+              current_company
+            )
+          `)
+          .eq('job_id', jobId)
+          .ilike('candidate_profiles.linkedin_url', `%${normalizedUrl}%`)
+          .limit(3);
+        
+        if (linkedinMatches && linkedinMatches.length > 0) {
+          duplicates = linkedinMatches.filter(d => d.candidate_profiles);
+          if (duplicates.length > 0) {
+            setDuplicateMatchType('linkedin');
+            return duplicates;
+          }
+        }
+      }
+      
+      // Check by name (least reliable, only if no email/LinkedIn matches)
+      if (formData.fullName) {
+        const { data: nameMatches } = await supabase
+          .from('applications')
+          .select(`
+            id,
+            candidate_id,
+            current_stage_index,
+            candidate_profiles!applications_candidate_id_fkey(
+              id,
+              full_name,
+              email,
+              linkedin_url,
+              current_title,
+              current_company
+            )
+          `)
+          .eq('job_id', jobId)
+          .ilike('candidate_profiles.full_name', `%${formData.fullName.trim()}%`)
+          .limit(3);
+        
+        if (nameMatches && nameMatches.length > 0) {
+          duplicates = nameMatches.filter(d => d.candidate_profiles);
+          if (duplicates.length > 0) {
+            setDuplicateMatchType('name');
+            return duplicates;
+          }
+        }
+      }
+      
+      return [];
     } catch (error) {
       console.error('Duplicate check error:', error);
+      toast.warning("Could not check for duplicates", {
+        description: "Please verify manually that this candidate doesn't already exist"
+      });
       return [];
     }
   };
 
   const proceedWithSubmission = async () => {
     try {
+      console.log('🎯 [Add Candidate] Starting submission:', {
+        fullName: formData.fullName,
+        linkedinUrl: formData.linkedinUrl,
+        email: formData.email,
+        jobId,
+        jobTitle,
+        timestamp: new Date().toISOString()
+      });
+
       // Get current admin user
       const { data: { user: adminUser } } = await supabase.auth.getUser();
       if (!adminUser) throw new Error("Not authenticated");
 
-      // Try to find matching user profile by email, phone, or name
-      let matchingUser = null;
-      
-      // First try email (most reliable)
-      if (formData.email) {
-        const { data: emailMatch } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url, email, phone")
-          .ilike("email", formData.email)
-          .maybeSingle();
-        
-        if (emailMatch) matchingUser = emailMatch;
-      }
-      
-      // Then try phone if no email match
-      if (!matchingUser && formData.phone) {
-        const { data: phoneMatch } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url, email, phone")
-          .ilike("phone", formData.phone)
-          .maybeSingle();
-        
-        if (phoneMatch) matchingUser = phoneMatch;
-      }
-      
-      // Finally try name match (least reliable, only if exact match)
-      if (!matchingUser && formData.fullName) {
-        const { data: nameMatch } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url, email, phone")
-          .ilike("full_name", formData.fullName)
-          .maybeSingle();
-        
-        if (nameMatch) matchingUser = nameMatch;
-      }
-
-      // Create or update candidate profile, linking to user if found
+      // STEP 1: Create STANDALONE candidate profile (NO USER LINKING)
       const { data: candidateProfile, error: profileError } = await supabase
         .from("candidate_profiles")
-        .upsert({
-          user_id: matchingUser?.id || null, // Link to user if match found
+        .insert({
+          user_id: null, // ALWAYS null for manual additions
           full_name: formData.fullName,
-          email: formData.email,
-          phone: formData.phone,
-          linkedin_url: formData.linkedinUrl,
-          current_company: formData.currentCompany,
-          current_title: formData.currentTitle,
-          avatar_url: matchingUser?.avatar_url || null, // Use user's avatar if available
-          source_channel: 'manual',
+          email: formData.email || null,
+          phone: formData.phone || null,
+          linkedin_url: formData.linkedinUrl || null,
+          current_company: formData.currentCompany || null,
+          current_title: formData.currentTitle || null,
+          avatar_url: null, // No avatar for manual entries
+          source_channel: 'manual_admin',
           created_by: adminUser.id,
-          tags: matchingUser ? ['manually_added', 'linked_to_user'] : ['manually_added']
-        }, {
-          onConflict: 'email',
-          ignoreDuplicates: false
+          tags: ['manually_added', 'standalone_profile']
         })
         .select()
         .single();
 
       if (profileError) {
-        console.error('Profile error:', profileError);
-        throw profileError;
+        console.error('❌ [Add Candidate] Profile creation failed:', {
+          code: profileError.code,
+          message: profileError.message,
+          details: profileError.details,
+          hint: profileError.hint
+        });
+        
+        // Specific error messages
+        if (profileError.code === '23505') {
+          const identifier = formData.email || formData.linkedinUrl || formData.fullName;
+          throw new Error(`A candidate matching "${identifier}" already exists. Please check for duplicates or update the existing candidate.`);
+        }
+        if (profileError.message?.includes('RLS') || profileError.code === '42501') {
+          throw new Error('You do not have permission to add candidates. Please contact an admin.');
+        }
+        
+        throw new Error(profileError.message || 'Failed to create candidate profile');
       }
 
-      const candidateId = candidateProfile.id;
-      const userId = matchingUser?.id || null;
-
-      // Create application
-      const { error: appError } = await supabase.from("applications").insert({
-        user_id: userId, // Can be null for standalone candidates
-        job_id: jobId,
-        position: jobTitle,
-        company_name: formData.currentCompany || "External Candidate",
-        current_stage_index: parseInt(formData.startStageIndex),
-        status: "active",
-        stages: [
-          {
-            name: "Admin Added",
-            status: "in_progress",
-            started_at: new Date().toISOString(),
-            notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email}\nPhone: ${formData.phone}\nLinkedIn: ${formData.linkedinUrl}\nCurrent: ${formData.currentTitle} at ${formData.currentCompany}\n\n${formData.notes}`,
-          },
-        ],
+      console.log('✅ [Add Candidate] Standalone profile created:', {
+        candidateId: candidateProfile.id,
+        fullName: candidateProfile.full_name
       });
 
-      if (appError) throw appError;
+      const candidateId = candidateProfile.id;
 
-      // Find the application we just created
-      let applicationQuery = supabase
+      // STEP 2: Create application (also with null user_id for standalone candidates)
+      const { data: newApplication, error: appError } = await supabase
         .from("applications")
-        .select("id")
-        .eq("job_id", jobId)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      
-      // Add user_id filter
-      if (userId) {
-        applicationQuery = applicationQuery.eq("user_id", userId);
-      } else {
-        applicationQuery = applicationQuery.is("user_id", null);
-      }
-      
-      const { data: application } = await applicationQuery.maybeSingle();
+        .insert({
+          user_id: null, // ALWAYS null for manually-added candidates
+          candidate_id: candidateId,
+          job_id: jobId,
+          position: jobTitle,
+          company_name: formData.currentCompany || "External Candidate",
+          current_stage_index: parseInt(formData.startStageIndex),
+          status: "active",
+          stages: [
+            {
+              name: "Admin Added",
+              status: "in_progress",
+              started_at: new Date().toISOString(),
+              notes: `Candidate: ${formData.fullName}\nEmail: ${formData.email || 'N/A'}\nPhone: ${formData.phone || 'N/A'}\nLinkedIn: ${formData.linkedinUrl || 'N/A'}\nCurrent: ${formData.currentTitle || 'N/A'} at ${formData.currentCompany || 'N/A'}\n\n${formData.notes}`,
+            },
+          ],
+        })
+        .select('id, job_id, candidate_id, current_stage_index, created_at')
+        .single();
 
+      if (appError) {
+        console.error('❌ [Add Candidate] Application INSERT failed:', {
+          code: appError.code,
+          message: appError.message,
+          details: appError.details,
+          hint: appError.hint,
+          postgresError: appError
+        });
+
+        // Delete orphaned candidate profile
+        console.log('🧹 [Add Candidate] Cleaning up orphaned candidate profile:', candidateId);
+        await supabase
+          .from('candidate_profiles')
+          .delete()
+          .eq('id', candidateId);
+
+        // Throw specific error based on type
+        if (appError.code === '23505' && appError.message?.includes('idx_unique_active_application_per_job')) {
+          throw new Error(`DUPLICATE_IN_JOB: This candidate is already in the "${jobTitle}" pipeline. To add them again, first reject or withdraw their existing application.`);
+        } else if (appError.code === '42501' || appError.message?.toLowerCase().includes('rls') || appError.message?.toLowerCase().includes('permission')) {
+          throw new Error('PERMISSION_ERROR: You do not have permission to add applications. Your user role may not be properly configured. Please contact an administrator.');
+        } else if (appError.code === '23503') {
+          throw new Error('FK_ERROR: Invalid job or candidate reference. Please refresh the page and try again.');
+        } else {
+          throw new Error(`DB_ERROR: Failed to create application - ${appError.message} (code: ${appError.code || 'unknown'})`);
+        }
+      }
+
+      if (!newApplication) {
+        console.error('❌ [Add Candidate] Application was not created (no data returned)');
+        // Clean up orphaned candidate profile
+        await supabase.from('candidate_profiles').delete().eq('id', candidateId);
+        throw new Error('Application was not created. Please try again or contact support.');
+      }
+
+      console.log('✅ [Add Candidate] Application created successfully:', {
+        applicationId: newApplication.id,
+        candidateId: newApplication.candidate_id,
+        jobId: newApplication.job_id
+      });
+
+      const application = newApplication;
+
+      // STEP 3: Log candidate addition as interaction
       if (application) {
-        // Log candidate addition as interaction
         await supabase.from("candidate_interactions").insert({
           candidate_id: candidateId,
           application_id: application.id,
           interaction_type: 'status_change',
           interaction_direction: 'internal',
           title: 'Candidate Added to Pipeline',
-          content: `🎯 **Admin-Added Candidate**${matchingUser ? ' 🔗 **Linked to User Account**' : ''}${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
+          content: `🎯 **Admin-Added Candidate**${linkedinImported ? ' 📎 **LinkedIn Import**' : ''}
 
 **Name:** ${formData.fullName}
-**Email:** ${formData.email}
+**Email:** ${formData.email || 'N/A'}
 **Phone:** ${formData.phone || "N/A"}
 **LinkedIn:** ${formData.linkedinUrl || "N/A"}
 **Current Position:** ${formData.currentTitle || "N/A"} at ${formData.currentCompany || "N/A"}
-${matchingUser ? `\n**User Profile:** Linked to existing platform user\n**Profile Match:** ${matchingUser.email === formData.email ? 'Email' : matchingUser.phone === formData.phone ? 'Phone' : 'Name'}` : ''}
 ${linkedinImported ? '\n**Source:** LinkedIn profile imported' : ''}
 ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.length > 1 ? 's' : ''}` : ''}
 
@@ -384,11 +440,11 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
           action: 'candidate_added',
           stage_data: {
             candidate_name: formData.fullName,
-            candidate_email: formData.email,
+            candidate_email: formData.email || 'N/A',
             starting_stage: formData.startStageIndex,
             starting_stage_name: startingStageName,
             linkedin_imported: linkedinImported,
-            user_linked: !!matchingUser
+            user_linked: false // Always false for manual additions
           },
           metadata: {
             candidate_id: candidateId,
@@ -399,16 +455,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         });
       }
 
-      toast.success(
-        matchingUser 
-          ? "Candidate linked to user account!" 
-          : "Candidate added successfully", 
-        {
-          description: matchingUser
-            ? `${formData.fullName} has been linked to their existing platform account`
-            : `${formData.fullName} has been added to the pipeline`,
-        }
-      );
+      toast.success("Candidate added successfully", {
+        description: `${formData.fullName} has been added to the pipeline as a standalone candidate`,
+      });
 
       onCandidateAdded();
       onOpenChange(false);
@@ -429,16 +478,87 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       setProceedWithDuplicate(false);
       setDuplicateCandidates([]);
       setShowDuplicateDialog(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error adding candidate:", error);
-      toast.error("Failed to add candidate. Please try again.");
+      
+      // Set visible error message
+      let errorMsg = "An unexpected error occurred. Please try again.";
+      
+      if (error.message?.startsWith('DUPLICATE_IN_JOB:')) {
+        errorMsg = error.message.replace('DUPLICATE_IN_JOB: ', '');
+      } else if (error.message?.startsWith('PERMISSION_ERROR:')) {
+        errorMsg = error.message.replace('PERMISSION_ERROR: ', '');
+      } else if (error.message?.startsWith('FK_ERROR:')) {
+        errorMsg = error.message.replace('FK_ERROR: ', '');
+      } else if (error.message?.startsWith('DB_ERROR:')) {
+        errorMsg = error.message.replace('DB_ERROR: ', '');
+      } else if (error.message?.includes('duplicate') || error.code === '23505') {
+        errorMsg = "A candidate with this information already exists.";
+      } else if (error.code === '23503') {
+        errorMsg = "Unable to link candidate data. The job may no longer exist.";
+      } else if (error.message?.includes('permission') || error.message?.includes('RLS') || error.code === '42501') {
+        errorMsg = "You don't have permission to add candidates. Please contact an administrator to verify your account has been set up correctly.";
+      } else {
+        errorMsg = error.message || "Failed to add candidate. Please try again.";
+      }
+      
+      setSubmitError(errorMsg);
+      
+      // Also show toast
+      toast.error("Failed to Add Candidate", {
+        description: errorMsg,
+        duration: 8000
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  const validateForm = (): boolean => {
+    if (!formData.fullName.trim()) {
+      toast.error("Full name is required");
+      return false;
+    }
+    
+    // At least ONE contact method required (LinkedIn preferred)
+    if (!formData.linkedinUrl && !formData.email && !formData.phone) {
+      toast.error("Please provide at least one contact method", {
+        description: "LinkedIn URL (preferred), email, or phone number"
+      });
+      return false;
+    }
+    
+    // Warning if no LinkedIn
+    if (!formData.linkedinUrl) {
+      toast.warning("LinkedIn URL recommended", {
+        description: "Adding a LinkedIn profile helps with candidate enrichment"
+      });
+    }
+    
+    // Email validation (optional but must be valid if provided)
+    if (formData.email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.email)) {
+        toast.error("Please enter a valid email address");
+        return false;
+      }
+    }
+    
+    if (formData.linkedinUrl && !formData.linkedinUrl.startsWith('http')) {
+      toast.warning("LinkedIn URL should start with http:// or https://");
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -454,11 +574,47 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         }
       }
 
-      // Proceed with submission
-      await proceedWithSubmission();
-    } catch (error) {
+      // Show loading toast
+      const addingToast = toast.loading("Adding candidate to pipeline...");
+      
+      try {
+        await proceedWithSubmission();
+        toast.dismiss(addingToast);
+      } catch (error) {
+        toast.dismiss(addingToast);
+        throw error;
+      }
+    } catch (error: any) {
       console.error("Error in submission flow:", error);
-      toast.error("Failed to add candidate. Please try again.");
+      
+      // Provide specific, actionable error messages
+      if (error.message?.includes('email already exists') || error.message?.includes('duplicate') || error.code === '23505') {
+        toast.error("Duplicate Email Detected", {
+          description: "A candidate with this email already exists. Please search for the existing candidate or use a different email.",
+          duration: 6000
+        });
+      } else if (error.code === '23503') {
+        toast.error("Database Error", {
+          description: "Unable to link candidate data. Please try again or contact support if the issue persists.",
+          duration: 5000
+        });
+      } else if (error.message?.includes('permission') || error.message?.includes('RLS') || error.code === '42501') {
+        toast.error("Permission Denied", {
+          description: "You don't have permission to add candidates. Please contact an administrator.",
+          duration: 5000
+        });
+      } else if (error.message?.includes('unique constraint')) {
+        toast.error("Duplicate Candidate", {
+          description: "This candidate already exists in the system. Please check existing applications.",
+          duration: 5000
+        });
+      } else {
+        toast.error("Failed to Add Candidate", {
+          description: error.message || "An unexpected error occurred. Please try again or contact support.",
+          duration: 5000
+        });
+      }
+      
       setLoading(false);
     }
   };
@@ -467,7 +623,12 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
     setShowDuplicateDialog(false);
     setProceedWithDuplicate(true);
     setLoading(true);
-    await proceedWithSubmission();
+    try {
+      await proceedWithSubmission();
+    } catch (error) {
+      // Error already handled in proceedWithSubmission
+      setLoading(false);
+    }
   };
 
   const handleDuplicateCancel = () => {
@@ -484,6 +645,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         onOpenChange={setShowDuplicateDialog}
         duplicates={duplicateCandidates}
         matchType={duplicateMatchType}
+        jobTitle={jobTitle}
         onProceed={handleDuplicateProceed}
         onCancel={handleDuplicateCancel}
       />
@@ -500,11 +662,55 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                 Add Candidate
               </DialogTitle>
               <DialogDescription className="text-base">
-                Manually add a candidate to <strong>{jobTitle}</strong>
+                Add a candidate to <strong>{jobTitle}</strong>. Provide at least a LinkedIn URL or email to get started. You can merge with their user account later if they sign up.
               </DialogDescription>
             </div>
           </div>
         </DialogHeader>
+
+        {/* Info banner explaining workflow */}
+        <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+          <div className="flex items-start gap-2">
+            <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-blue-900 dark:text-blue-100">
+              <strong>Step 1: Add candidate manually</strong>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                Add candidates to track them in your pipeline. If they sign up later, 
+                you can merge their profile with their account.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {submitError && (
+          <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4 mb-4">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-destructive" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+                </svg>
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-semibold text-destructive mb-1">
+                  Failed to Add Candidate
+                </h4>
+                <p className="text-sm text-destructive/90">
+                  {submitError}
+                </p>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setSubmitError(null)}
+                className="flex-shrink-0 h-6 w-6 p-0"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"/>
+                </svg>
+              </Button>
+            </div>
+          </div>
+        )}
 
         <Tabs value={addMode} onValueChange={(v) => setAddMode(v as "manual" | "linkedin")} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -588,9 +794,26 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
             </div>
 
             <div className="space-y-2">
+              <Label htmlFor="linkedinUrl" className="flex items-center gap-2">
+                <Linkedin className="w-4 h-4 text-accent" />
+                LinkedIn Profile (Recommended)
+              </Label>
+              <Input
+                id="linkedinUrl"
+                value={formData.linkedinUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, linkedinUrl: e.target.value })
+                }
+                placeholder="https://linkedin.com/in/johndoe"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="w-4 h-4 text-accent" />
-                Email
+                Email Address (Optional)
               </Label>
               <Input
                 id="email"
@@ -602,13 +825,11 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                 placeholder="john@example.com"
               />
             </div>
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="phone" className="flex items-center gap-2">
                 <Phone className="w-4 h-4 text-accent" />
-                Phone
+                Phone Number (Optional)
               </Label>
               <Input
                 id="phone"
@@ -617,21 +838,6 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
                   setFormData({ ...formData, phone: e.target.value })
                 }
                 placeholder="+1 234 567 8900"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="linkedinUrl" className="flex items-center gap-2">
-                <Linkedin className="w-4 h-4 text-accent" />
-                LinkedIn URL
-              </Label>
-              <Input
-                id="linkedinUrl"
-                value={formData.linkedinUrl}
-                onChange={(e) =>
-                  setFormData({ ...formData, linkedinUrl: e.target.value })
-                }
-                placeholder="https://linkedin.com/in/johndoe"
               />
             </div>
           </div>

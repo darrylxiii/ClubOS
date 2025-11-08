@@ -60,10 +60,23 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Fetch candidate profile - using maybeSingle to handle missing data gracefully
+    // Fetch candidate profile with all relevant matching fields
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, current_title, location, desired_salary_min, desired_salary_max')
+      .select(`
+        id, 
+        current_title, 
+        location, 
+        desired_salary_min, 
+        desired_salary_max,
+        years_of_experience,
+        skills,
+        preferred_job_types,
+        preferred_locations,
+        salary_expectation_min,
+        salary_expectation_max,
+        salary_expectation_currency
+      `)
       .eq('id', user.id)
       .maybeSingle();
 
@@ -71,10 +84,17 @@ Deno.serve(async (req) => {
       log('error', 'Error fetching profile', { profileError, userId: user.id });
     }
 
-    // Fetch job - using maybeSingle to handle missing data gracefully
+    // Fetch job with skills and requirements
     const { data: job, error: jobError } = await supabase
       .from('jobs')
-      .select('*, companies(name, values)')
+      .select(`
+        *, 
+        companies(name, values),
+        job_tools(
+          is_required,
+          tools_and_skills(name)
+        )
+      `)
       .eq('id', jobId)
       .maybeSingle();
 
@@ -98,18 +118,29 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate match factors
+    // Extract job skills from job_tools relation
+    const jobSkills = job.job_tools
+      ?.filter((jt: any) => jt.is_required)
+      .map((jt: any) => jt.tools_and_skills?.name)
+      .filter(Boolean) || [];
+    
+    const candidateSkills = profile.skills || [];
+
+    // Calculate match factors with real data
     const factors: MatchFactors = {
-      skillOverlap: 75, // Default - profile skills not stored in profiles table
-      experienceMatch: 80, // Default - years_experience not in profiles table
+      skillOverlap: calculateSkillMatch(candidateSkills, jobSkills),
+      experienceMatch: calculateExperienceMatch(
+        profile.years_of_experience, 
+        job.years_of_experience_required || 0
+      ),
       salaryAlignment: calculateSalaryMatch(
-        profile.desired_salary_min, 
-        profile.desired_salary_max, 
+        profile.salary_expectation_min || profile.desired_salary_min, 
+        profile.salary_expectation_max || profile.desired_salary_max, 
         job.salary_min, 
         job.salary_max
       ),
-      cultureFit: 75, // Default for now
-      assessmentFit: 70  // Default for now
+      cultureFit: calculateLocationMatch(profile.location, profile.preferred_locations, job.location, job.remote_work_policy),
+      assessmentFit: calculateJobTypeMatch(profile.preferred_job_types, job.employment_type)
     };
 
     // Weighted scoring
@@ -154,27 +185,102 @@ Deno.serve(async (req) => {
 });
 
 function calculateSkillMatch(candidateSkills: string[], jobSkills: string[]): number {
-  if (!jobSkills.length) return 100;
+  if (!jobSkills || jobSkills.length === 0) return 100;
+  if (!candidateSkills || candidateSkills.length === 0) return 20;
+  
   const normalizedCandidateSkills = candidateSkills.map(s => s.toLowerCase());
   const normalizedJobSkills = jobSkills.map(s => s.toLowerCase());
+  
   const matches = normalizedJobSkills.filter(skill => 
     normalizedCandidateSkills.some(cs => cs.includes(skill) || skill.includes(cs))
   );
-  return Math.round((matches.length / normalizedJobSkills.length) * 100);
+  
+  // Give partial credit for having some skills
+  const matchRatio = matches.length / jobSkills.length;
+  const baseScore = matchRatio * 100;
+  const bonusForExtraSkills = Math.min(candidateSkills.length / jobSkills.length, 0.2) * 100;
+  
+  return Math.round(Math.min(baseScore + bonusForExtraSkills, 100));
 }
 
 function calculateExperienceMatch(candidateExp: number | null, requiredExp: number): number {
-  if (!requiredExp) return 100;
-  if (!candidateExp) return 50;
-  if (candidateExp >= requiredExp) return 100;
-  return Math.max(50, Math.round((candidateExp / requiredExp) * 100));
+  if (!requiredExp || requiredExp === 0) return 100;
+  if (!candidateExp || candidateExp === 0) return 30;
+  
+  const ratio = candidateExp / requiredExp;
+  
+  // Perfect match or more experience
+  if (ratio >= 1.2) return 100; // Extra points for senior candidates
+  if (ratio >= 1) return 95;
+  if (ratio >= 0.8) return 85;
+  if (ratio >= 0.6) return 75;
+  if (ratio >= 0.4) return 60;
+  if (ratio >= 0.2) return 45;
+  return 30;
 }
 
 function calculateSalaryMatch(candidateMin: number | null, candidateMax: number | null, jobMin: number | null, jobMax: number | null): number {
-  if (!candidateMin || !jobMax) return 80;
-  if (candidateMin <= jobMax && (!candidateMax || candidateMax >= (jobMin || 0))) return 100;
-  if (candidateMin > jobMax) return Math.max(40, 100 - ((candidateMin - jobMax) / jobMax * 100));
-  return 80;
+  // If no salary data from either side, assume neutral
+  if (!jobMin && !jobMax) return 100;
+  if (!candidateMin && !candidateMax) return 70; // Slight penalty for not specifying
+  
+  const candMid = ((candidateMin || 0) + (candidateMax || candidateMin || 100000)) / 2;
+  const jobMid = ((jobMin || 0) + (jobMax || jobMin || 100000)) / 2;
+  
+  // Check if ranges overlap
+  const candLow = candidateMin || candMid * 0.8;
+  const candHigh = candidateMax || candMid * 1.2;
+  const jobLow = jobMin || jobMid * 0.8;
+  const jobHigh = jobMax || jobMid * 1.2;
+  
+  const hasOverlap = !(candHigh < jobLow || candLow > jobHigh);
+  
+  if (hasOverlap) {
+    // Calculate how much they overlap
+    const overlapLow = Math.max(candLow, jobLow);
+    const overlapHigh = Math.min(candHigh, jobHigh);
+    const overlapSize = overlapHigh - overlapLow;
+    const totalRange = Math.max(candHigh, jobHigh) - Math.min(candLow, jobLow);
+    const overlapRatio = overlapSize / totalRange;
+    
+    return Math.round(70 + (overlapRatio * 30)); // 70-100 range
+  }
+  
+  // No overlap - calculate distance
+  const diff = Math.abs(candMid - jobMid) / Math.max(jobMid, candMid);
+  if (diff <= 0.15) return 65;
+  if (diff <= 0.25) return 55;
+  if (diff <= 0.40) return 40;
+  return 25;
+}
+
+function calculateLocationMatch(userLocation: string | null, preferredLocations: string[] | null, jobLocation: string | null, remotePolicy: string | null): number {
+  // Remote jobs score high
+  if (remotePolicy === 'fully_remote' || jobLocation?.toLowerCase().includes('remote')) return 100;
+  
+  // If user has no location preferences, assume flexible
+  if (!preferredLocations || preferredLocations.length === 0) return 80;
+  
+  // Check if job location matches any preferred location
+  const jobLoc = (jobLocation || '').toLowerCase();
+  const hasMatch = preferredLocations.some(loc => 
+    jobLoc.includes(loc.toLowerCase()) || loc.toLowerCase().includes(jobLoc)
+  );
+  
+  if (hasMatch) return 100;
+  if (remotePolicy === 'hybrid') return 70;
+  return 50;
+}
+
+function calculateJobTypeMatch(preferredTypes: string[] | null, jobType: string | null): number {
+  // If no preferences set, assume flexible
+  if (!preferredTypes || preferredTypes.length === 0) return 85;
+  if (!jobType) return 70;
+  
+  const normalizedJobType = jobType.toLowerCase();
+  const hasMatch = preferredTypes.some(type => type.toLowerCase() === normalizedJobType);
+  
+  return hasMatch ? 100 : 60;
 }
 
 function generateMatchExplanation(factors: MatchFactors, score: number): string {

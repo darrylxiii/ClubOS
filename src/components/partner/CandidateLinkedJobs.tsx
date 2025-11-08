@@ -23,6 +23,7 @@ export const CandidateLinkedJobs = ({ candidateId, candidateEmail }: CandidateLi
 
   const loadJobs = async () => {
     try {
+      // Query by candidate_id to support standalone candidates (without user accounts)
       const { data, error } = await supabase
         .from("applications")
         .select(`
@@ -44,7 +45,7 @@ export const CandidateLinkedJobs = ({ candidateId, candidateEmail }: CandidateLi
             )
           )
         `)
-        .eq("profiles.email", candidateEmail)
+        .eq("candidate_id", candidateId)
         .order("applied_at", { ascending: false });
 
       if (error) throw error;

@@ -35,34 +35,56 @@ import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 import { AssessmentHistory } from "@/components/candidate/AssessmentHistory";
 
 export default function CandidateProfile() {
-  const { candidateId } = useParams<{ candidateId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const fromJobId = searchParams.get('fromJob');
   const fromStage = searchParams.get('stage');
   const fromStageIndex = searchParams.get('stageIndex');
+  const defaultTab = searchParams.get('tab');
+  const section = searchParams.get('section');
+  const noteId = searchParams.get('noteId');
   const { user } = useAuth();
   const { role } = useUserRole();
   const [candidate, setCandidate] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(defaultTab || (role === 'admin' || role === 'partner' ? "team-assessment" : "overview"));
   
   const isTeamView = role === 'admin' || role === 'partner';
 
   useEffect(() => {
     loadCandidate();
-  }, [candidateId]);
+  }, [id]);
+
+  // Handle deep linking to specific sections/notes
+  useEffect(() => {
+    if (section === 'notes' && noteId && activeTab === 'team-assessment') {
+      // Small delay to ensure DOM is rendered
+      const timer = setTimeout(() => {
+        const noteElement = document.getElementById(`note-${noteId}`);
+        if (noteElement) {
+          noteElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          noteElement.classList.add('ring-2', 'ring-primary', 'animate-pulse');
+          setTimeout(() => {
+            noteElement.classList.remove('animate-pulse');
+          }, 2000);
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [section, noteId, activeTab]);
 
   const loadCandidate = async () => {
-    if (!candidateId) return;
+    if (!id) return;
 
     try {
       // Load candidate profile
       const { data: candidateData, error } = await supabase
         .from("candidate_profiles")
         .select("*")
-        .eq("id", candidateId)
+        .eq("id", id)
         .single();
 
       if (error) throw error;
@@ -82,7 +104,7 @@ export default function CandidateProfile() {
       // Track profile view for team members
       if (isTeamView && user) {
         await supabase.from("candidate_profile_views").insert({
-          candidate_id: candidateId,
+          candidate_id: id,
           viewer_id: user.id,
           view_context: "full_profile",
           view_source: "candidate_profile_page",
@@ -132,7 +154,7 @@ export default function CandidateProfile() {
         {fromJobId && (
           <div className="container mx-auto px-4 pt-6">
             <CandidatePipelineContextBanner
-              candidateId={candidateId!}
+              candidateId={id!}
               candidateName={candidate.full_name}
               jobId={fromJobId}
               currentStage={fromStage || undefined}
@@ -192,7 +214,7 @@ export default function CandidateProfile() {
                   Edit Profile
                 </Button>
                 <CandidateQuickActions 
-                  candidateId={candidateId!} 
+                  candidateId={id!} 
                   candidateEmail={candidate.email}
                   candidateName={candidate.full_name || 'Candidate'}
                   onRefresh={loadCandidate}
@@ -323,7 +345,7 @@ export default function CandidateProfile() {
 
         {/* Main Content */}
         <div className="container mx-auto px-4 py-6">
-          <Tabs defaultValue={isTeamView ? "team-assessment" : "overview"} className="space-y-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="assessments">Assessments</TabsTrigger>
@@ -367,7 +389,7 @@ export default function CandidateProfile() {
                   </CardHeader>
                   <CardContent>
                     <CandidateDocumentsViewer 
-                      candidateId={candidateId!} 
+                      candidateId={id!} 
                       canUpload={isTeamView}
                     />
                   </CardContent>
@@ -379,11 +401,11 @@ export default function CandidateProfile() {
                   </CardHeader>
                   <CardContent className="space-y-6">
                     <CandidateNotesManager 
-                      candidateId={candidateId!}
+                      candidateId={id!}
                       userRole={role as any}
                     />
                     <CandidateInternalRatingCard 
-                      candidateId={candidateId!}
+                      candidateId={id!}
                       candidate={candidate}
                       onUpdate={loadCandidate}
                     />
@@ -478,7 +500,7 @@ export default function CandidateProfile() {
 
               {/* Source Information - For Team Only */}
               {isTeamView && (
-                <SourceInformationCard candidateId={candidateId!} />
+                <SourceInformationCard candidateId={id!} />
               )}
             </TabsContent>
 
@@ -597,11 +619,10 @@ export default function CandidateProfile() {
             {isTeamView && (
               <TabsContent value="pipeline" className="space-y-6">
                 <CandidatePipelineStatus 
-                  candidateId={candidateId!} 
-                  candidateEmail={candidate.email}
+                  candidateId={id!}
                 />
                 <CandidateLinkedJobs 
-                  candidateId={candidateId!} 
+                  candidateId={id!} 
                   candidateEmail={candidate.email}
                 />
               </TabsContent>
@@ -611,9 +632,9 @@ export default function CandidateProfile() {
             {isTeamView && (
               <TabsContent value="activity" className="space-y-6">
                 <CandidateInteractionLog 
-                  candidateEmail={candidate.email}
+                  candidateId={id!}
                 />
-                <CandidateAnalytics candidateId={candidateId!} />
+                <CandidateAnalytics candidateId={id!} />
               </TabsContent>
             )}
           </Tabs>
