@@ -42,6 +42,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
   const [saving, setSaving] = useState(false);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [teamMembersLoading, setTeamMembersLoading] = useState(false);
+  const [teamMembersLoaded, setTeamMembersLoaded] = useState(false);
   const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
   const [newNote, setNewNote] = useState({
     type: 'tqc_internal' as 'tqc_internal' | 'partner_shared' | 'general',
@@ -52,21 +53,20 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
 
   useEffect(() => {
     loadNotes();
-    loadTeamMembers();
   }, [candidateId]);
 
   const loadTeamMembers = async () => {
+    if (teamMembersLoaded) return;
+    
     setTeamMembersLoading(true);
+    setTeamMembersLoaded(true);
+    
     try {
       const members = await getTeamMembersForMentions();
       setTeamMembers(members);
-      
-      if (members.length === 0) {
-        console.warn('No team members found for mentions');
-      }
     } catch (error) {
       console.error('Error loading team members:', error);
-      toast.error('Failed to load team members for mentions');
+      // Don't show toast - graceful degradation
     } finally {
       setTeamMembersLoading(false);
     }
@@ -255,6 +255,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
                   setNewNote(prev => ({ ...prev, content }));
                   setMentionedUserIds(mentions);
                 }}
+                onFocus={loadTeamMembers}
                 placeholder={
                   teamMembersLoading 
                     ? "Loading team members..." 
@@ -262,7 +263,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
                 }
                 rows={4}
                 teamMembers={teamMembers}
-                disabled={saving || teamMembersLoading}
+                disabled={saving}
               />
             {mentionedUserIds.length > 0 && (
               <p className="text-xs text-muted-foreground mt-2">

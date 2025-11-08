@@ -20,6 +20,7 @@ interface MentionTextareaProps {
   teamMembers: TeamMember[];
   disabled?: boolean;
   className?: string;
+  onFocus?: () => void;
 }
 
 export const MentionTextarea = ({
@@ -29,7 +30,8 @@ export const MentionTextarea = ({
   rows = 4,
   teamMembers,
   disabled,
-  className
+  className,
+  onFocus
 }: MentionTextareaProps) => {
   const [showMentions, setShowMentions] = useState(false);
   const [mentionSearch, setMentionSearch] = useState('');
@@ -338,6 +340,7 @@ export const MentionTextarea = ({
         value={value}
         onChange={(e) => handleTextChange(e.target.value)}
         onKeyDown={handleKeyDown}
+        onFocus={onFocus}
         placeholder={placeholder}
         rows={rows}
         disabled={disabled}

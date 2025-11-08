@@ -13,11 +13,21 @@ export interface TeamMember {
  */
 export const getTeamMembersForMentions = async (): Promise<TeamMember[]> => {
   try {
+    // Add timeout to prevent indefinite hangs
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Team members query timeout')), 5000);
+    });
+
     // Step 1: Get user IDs with specific roles
-    const { data: roleData, error: roleError } = await supabase
+    const roleQuery = supabase
       .from('user_roles')
       .select('user_id, role')
       .in('role', ['admin', 'strategist', 'partner']);
+
+    const { data: roleData, error: roleError } = await Promise.race([
+      roleQuery,
+      timeoutPromise
+    ]) as any;
 
     if (roleError) throw roleError;
     if (!roleData || roleData.length === 0) return [];
