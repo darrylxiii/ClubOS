@@ -8434,6 +8434,55 @@ export type Database = {
           },
         ]
       }
+      note_mentions: {
+        Row: {
+          created_at: string | null
+          id: string
+          mentioned_user_id: string
+          note_id: string
+          notified_at: string | null
+          read_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mentioned_user_id: string
+          note_id: string
+          notified_at?: string | null
+          read_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mentioned_user_id?: string
+          note_id?: string
+          notified_at?: string | null
+          read_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_mentions_mentioned_user_id_fkey"
+            columns: ["mentioned_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_mentions_mentioned_user_id_fkey"
+            columns: ["mentioned_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "note_mentions_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -14264,6 +14313,10 @@ export type Database = {
           unlocked: boolean
         }[]
       }
+      extract_mentions_from_note: {
+        Args: { p_content: string }
+        Returns: string[]
+      }
       fix_profile_auth_mismatches: {
         Args: never
         Returns: {
@@ -14383,6 +14436,30 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      search_candidate_notes: {
+        Args: {
+          p_candidate_id: string
+          p_note_type?: string
+          p_search_term?: string
+          p_user_id?: string
+        }
+        Returns: {
+          candidate_id: string
+          content: string
+          created_at: string
+          created_by: string
+          creator_email: string
+          creator_name: string
+          id: string
+          mention_count: number
+          note_type: string
+          pinned: boolean
+          tags: string[]
+          title: string
+          updated_at: string
+          visibility: string
+        }[]
       }
       track_share_link_view: { Args: { _token: string }; Returns: string }
       track_slot_view: {
