@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/hooks/useUserRole";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { CandidatePipelineStatus } from "@/components/partner/CandidatePipelineStatus";
 import { CandidateLinkedJobs } from "@/components/partner/CandidateLinkedJobs";
 import { CandidateInteractionLog } from "@/components/partner/CandidateInteractionLog";
@@ -381,17 +382,22 @@ export default function CandidateProfile() {
             {/* Team Assessment Tab - Combines Decision, Documents, Notes, Internal - Admin/Partner Only */}
             {isTeamView && (
               <TabsContent value="team-assessment" className="space-y-6">
-                <CandidateDecisionDashboard candidate={candidate} />
+                <ErrorBoundary>
+                  <CandidateDecisionDashboard candidate={candidate} />
+                </ErrorBoundary>
                 
                 <Card>
                   <CardHeader>
                     <CardTitle>Documents</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <CandidateDocumentsViewer 
-                      candidateId={id!} 
-                      canUpload={isTeamView}
-                    />
+                    <ErrorBoundary>
+                      <CandidateDocumentsViewer 
+                        candidateId={id!} 
+                        canUpload={isTeamView}
+                        activeTab={activeTab}
+                      />
+                    </ErrorBoundary>
                   </CardContent>
                 </Card>
 
@@ -400,10 +406,13 @@ export default function CandidateProfile() {
                     <CardTitle>Internal Notes & Rating</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <CandidateNotesManager 
-                      candidateId={id!}
-                      userRole={role as any}
-                    />
+                    <ErrorBoundary>
+                      <CandidateNotesManager 
+                        candidateId={id!}
+                        userRole={role as any}
+                        activeTab={activeTab}
+                      />
+                    </ErrorBoundary>
                     <CandidateInternalRatingCard 
                       candidateId={id!}
                       candidate={candidate}
@@ -618,23 +627,37 @@ export default function CandidateProfile() {
             {/* Pipeline Tab - Combines Pipeline & Jobs - Admin Only */}
             {isTeamView && (
               <TabsContent value="pipeline" className="space-y-6">
-                <CandidatePipelineStatus 
-                  candidateId={id!}
-                />
-                <CandidateLinkedJobs 
-                  candidateId={id!} 
-                  candidateEmail={candidate.email}
-                />
+                <ErrorBoundary>
+                  <CandidatePipelineStatus 
+                    candidateId={id!}
+                    activeTab={activeTab}
+                  />
+                </ErrorBoundary>
+                <ErrorBoundary>
+                  <CandidateLinkedJobs 
+                    candidateId={id!} 
+                    candidateEmail={candidate.email}
+                    activeTab={activeTab}
+                  />
+                </ErrorBoundary>
               </TabsContent>
             )}
 
             {/* Activity Tab - Combines Analytics & Activity - Admin Only */}
             {isTeamView && (
               <TabsContent value="activity" className="space-y-6">
-                <CandidateInteractionLog 
-                  candidateId={id!}
-                />
-                <CandidateAnalytics candidateId={id!} />
+                <ErrorBoundary>
+                  <CandidateInteractionLog 
+                    candidateId={id!}
+                    activeTab={activeTab}
+                  />
+                </ErrorBoundary>
+                <ErrorBoundary>
+                  <CandidateAnalytics 
+                    candidateId={id!}
+                    activeTab={activeTab}
+                  />
+                </ErrorBoundary>
               </TabsContent>
             )}
           </Tabs>

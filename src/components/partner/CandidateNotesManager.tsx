@@ -31,9 +31,10 @@ interface Note {
 interface Props {
   candidateId: string;
   userRole: 'admin' | 'strategist' | 'partner' | 'candidate';
+  activeTab?: string;
 }
 
-export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
+export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Props) => {
   const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,8 +47,11 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
   });
 
   useEffect(() => {
-    loadNotes();
-  }, [candidateId]);
+    // Only load when the team-assessment tab is active
+    if (activeTab === 'team-assessment') {
+      loadNotes();
+    }
+  }, [candidateId, activeTab]);
 
   const loadNotes = async () => {
     const { data, error } = await supabase

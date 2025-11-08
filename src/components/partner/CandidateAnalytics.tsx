@@ -7,9 +7,10 @@ import { Eye, TrendingUp, Target, Activity, Users } from "lucide-react";
 
 interface CandidateAnalyticsProps {
   candidateId: string;
+  activeTab?: string;
 }
 
-export const CandidateAnalytics = ({ candidateId }: CandidateAnalyticsProps) => {
+export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalyticsProps) => {
   const [analytics, setAnalytics] = useState({
     profileViews: 0,
     uniqueViewers: 0,
@@ -20,8 +21,11 @@ export const CandidateAnalytics = ({ candidateId }: CandidateAnalyticsProps) => 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadAnalytics();
-  }, [candidateId]);
+    // Only load when the activity tab is active
+    if (activeTab === 'activity') {
+      loadAnalytics();
+    }
+  }, [candidateId, activeTab]);
 
   const loadAnalytics = async () => {
     try {

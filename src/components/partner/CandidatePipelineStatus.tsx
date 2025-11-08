@@ -11,9 +11,10 @@ import { EnhancedCandidateActionDialog } from "./EnhancedCandidateActionDialog";
 
 interface CandidatePipelineStatusProps {
   candidateId: string;
+  activeTab?: string;
 }
 
-export const CandidatePipelineStatus = ({ candidateId }: CandidatePipelineStatusProps) => {
+export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePipelineStatusProps) => {
   const [applications, setApplications] = useState<any[]>([]);
   const [candidateName, setCandidateName] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -22,8 +23,11 @@ export const CandidatePipelineStatus = ({ candidateId }: CandidatePipelineStatus
   const [actionType, setActionType] = useState<'advance' | 'decline'>('advance');
 
   useEffect(() => {
-    loadApplications();
-  }, [candidateId]);
+    // Only load when the pipeline tab is active
+    if (activeTab === 'pipeline') {
+      loadApplications();
+    }
+  }, [candidateId, activeTab]);
 
   const loadApplications = async () => {
     try {

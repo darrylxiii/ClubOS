@@ -28,6 +28,7 @@ import { format, formatDistanceToNow } from "date-fns";
 interface CandidateInteractionLogProps {
   candidateId: string;
   applicationId?: string;
+  activeTab?: string;
 }
 
 interface Interaction {
@@ -85,6 +86,7 @@ const interactionColors = {
 export const CandidateInteractionLog = ({
   candidateId,
   applicationId,
+  activeTab,
 }: CandidateInteractionLogProps) => {
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -96,8 +98,11 @@ export const CandidateInteractionLog = ({
   });
 
   useEffect(() => {
-    loadInteractions();
-  }, [candidateId]);
+    // Only load when the activity tab is active
+    if (activeTab === 'activity') {
+      loadInteractions();
+    }
+  }, [candidateId, activeTab]);
 
   const loadInteractions = async () => {
     try {

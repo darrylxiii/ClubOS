@@ -10,16 +10,20 @@ import { useNavigate } from "react-router-dom";
 interface CandidateLinkedJobsProps {
   candidateId: string;
   candidateEmail: string;
+  activeTab?: string;
 }
 
-export const CandidateLinkedJobs = ({ candidateId, candidateEmail }: CandidateLinkedJobsProps) => {
+export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: CandidateLinkedJobsProps) => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadJobs();
-  }, [candidateId, candidateEmail]);
+    // Only load when the pipeline tab is active
+    if (activeTab === 'pipeline') {
+      loadJobs();
+    }
+  }, [candidateId, candidateEmail, activeTab]);
 
   const loadJobs = async () => {
     try {

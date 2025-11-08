@@ -27,17 +27,21 @@ interface Document {
 interface Props {
   candidateId: string;
   canUpload: boolean;
+  activeTab?: string;
 }
 
-export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
+export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: Props) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
 
   useEffect(() => {
-    loadDocuments();
-  }, [candidateId]);
+    // Only load when the team-assessment tab is active
+    if (activeTab === 'team-assessment') {
+      loadDocuments();
+    }
+  }, [candidateId, activeTab]);
 
   const loadDocuments = async () => {
     const { data, error } = await supabase
