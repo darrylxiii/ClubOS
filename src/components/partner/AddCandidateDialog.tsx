@@ -154,23 +154,34 @@ export const AddCandidateDialog = ({
     try {
       let duplicates: any[] = [];
       
-      // Check by EMAIL (if provided)
+      // Check by EMAIL (if provided) - query through applications to ignore orphaned profiles
       if (formData.email) {
         const { data: emailMatches } = await supabase
-          .from('candidate_profiles')
-          .select('id, full_name, email, linkedin_url, current_title, current_company')
-          .ilike('email', formData.email.trim())
+          .from('applications')
+          .select(`
+            id,
+            candidate_id,
+            current_stage_index,
+            candidate_profiles!applications_candidate_id_fkey(
+              id,
+              full_name,
+              email,
+              linkedin_url,
+              current_title,
+              current_company
+            )
+          `)
+          .eq('job_id', jobId)
+          .ilike('candidate_profiles.email', formData.email.trim())
+          .neq('status', 'rejected')
           .limit(3);
         
         if (emailMatches && emailMatches.length > 0) {
-          // Format for duplicate dialog compatibility
-          duplicates = emailMatches.map(profile => ({
-            id: null,
-            candidate_id: profile.id,
-            candidate_profiles: profile
-          }));
-          setDuplicateMatchType('email' as any);
-          return duplicates;
+          duplicates = emailMatches.filter(d => d.candidate_profiles);
+          if (duplicates.length > 0) {
+            setDuplicateMatchType('email' as any);
+            return duplicates;
+          }
         }
       }
       
