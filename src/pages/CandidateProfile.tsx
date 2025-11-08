@@ -619,8 +619,7 @@ export default function CandidateProfile() {
             {isTeamView && (
               <TabsContent value="pipeline" className="space-y-6">
                 <CandidatePipelineStatus 
-                  candidateId={id!} 
-                  candidateEmail={candidate.email}
+                  candidateId={id!}
                 />
                 <CandidateLinkedJobs 
                   candidateId={id!} 
@@ -633,7 +632,7 @@ export default function CandidateProfile() {
             {isTeamView && (
               <TabsContent value="activity" className="space-y-6">
                 <CandidateInteractionLog 
-                  candidateEmail={candidate.email}
+                  candidateId={id!}
                 />
                 <CandidateAnalytics candidateId={id!} />
               </TabsContent>

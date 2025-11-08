@@ -26,7 +26,7 @@ import {
 import { format, formatDistanceToNow } from "date-fns";
 
 interface CandidateInteractionLogProps {
-  candidateEmail: string;
+  candidateId: string;
   applicationId?: string;
 }
 
@@ -83,11 +83,10 @@ const interactionColors = {
 };
 
 export const CandidateInteractionLog = ({
-  candidateEmail,
+  candidateId,
   applicationId,
 }: CandidateInteractionLogProps) => {
   const [interactions, setInteractions] = useState<Interaction[]>([]);
-  const [candidateId, setCandidateId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [addingNote, setAddingNote] = useState(false);
   const [newNote, setNewNote] = useState({
@@ -97,53 +96,40 @@ export const CandidateInteractionLog = ({
   });
 
   useEffect(() => {
-    loadCandidateAndInteractions();
-  }, [candidateEmail]);
+    loadInteractions();
+  }, [candidateId]);
 
-  const loadCandidateAndInteractions = async () => {
+  const loadInteractions = async () => {
     try {
-      // Find candidate by email
-      const { data: candidate, error: candidateError } = await supabase
-        .from("candidate_profiles")
-        .select("id")
-        .eq("email", candidateEmail)
-        .maybeSingle();
+      // Load interactions directly by candidateId
+      const { data: interactionsData, error: interactionsError } = await supabase
+        .from("candidate_interactions")
+        .select("*")
+        .eq("candidate_id", candidateId)
+        .order("created_at", { ascending: false });
 
-      if (candidateError) throw candidateError;
+      if (interactionsError) throw interactionsError;
 
-      if (candidate) {
-        setCandidateId(candidate.id);
+      // Load profile names separately for each interaction
+      const interactionsWithProfiles = await Promise.all(
+        (interactionsData || []).map(async (interaction) => {
+          if (interaction.created_by) {
+            const { data: profile } = await supabase
+              .from("profiles")
+              .select("full_name, avatar_url")
+              .eq("id", interaction.created_by)
+              .single();
 
-        // Load interactions
-        const { data: interactionsData, error: interactionsError } = await supabase
-          .from("candidate_interactions")
-          .select("*")
-          .eq("candidate_id", candidate.id)
-          .order("created_at", { ascending: false });
+            return {
+              ...interaction,
+              profiles: profile,
+            };
+          }
+          return interaction;
+        })
+      );
 
-        if (interactionsError) throw interactionsError;
-
-        // Load profile names separately for each interaction
-        const interactionsWithProfiles = await Promise.all(
-          (interactionsData || []).map(async (interaction) => {
-            if (interaction.created_by) {
-              const { data: profile } = await supabase
-                .from("profiles")
-                .select("full_name, avatar_url")
-                .eq("id", interaction.created_by)
-                .single();
-
-              return {
-                ...interaction,
-                profiles: profile,
-              };
-            }
-            return interaction;
-          })
-        );
-
-        setInteractions(interactionsWithProfiles as Interaction[]);
-      }
+      setInteractions(interactionsWithProfiles as Interaction[]);
     } catch (error) {
       console.error("Error loading interactions:", error);
     } finally {
@@ -178,7 +164,7 @@ export const CandidateInteractionLog = ({
 
       toast.success("Note added successfully");
       setNewNote({ type: "note", title: "", content: "" });
-      loadCandidateAndInteractions();
+      loadInteractions();
     } catch (error) {
       console.error("Error adding note:", error);
       toast.error("Failed to add note");
