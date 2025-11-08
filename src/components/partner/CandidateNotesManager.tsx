@@ -8,11 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { Lock, Users, Globe, Pin, Plus, Save, Trash2, AtSign } from "lucide-react";
+import { Lock, Users, Globe, Pin, Plus, Save, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { MentionTextarea } from "@/components/notes/MentionTextarea";
-import { getTeamMembersForMentions, type TeamMember } from "@/services/teamMembersService";
-import { renderNoteContentWithMentions } from "@/utils/mentionRenderer";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Note {
   id: string;
@@ -40,10 +38,6 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [teamMembersLoading, setTeamMembersLoading] = useState(false);
-  const [teamMembersLoaded, setTeamMembersLoaded] = useState(false);
-  const [mentionedUserIds, setMentionedUserIds] = useState<string[]>([]);
   const [newNote, setNewNote] = useState({
     type: 'tqc_internal' as 'tqc_internal' | 'partner_shared' | 'general',
     title: '',
@@ -54,23 +48,6 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
   useEffect(() => {
     loadNotes();
   }, [candidateId]);
-
-  const loadTeamMembers = async () => {
-    if (teamMembersLoaded) return;
-    
-    setTeamMembersLoading(true);
-    setTeamMembersLoaded(true);
-    
-    try {
-      const members = await getTeamMembersForMentions();
-      setTeamMembers(members);
-    } catch (error) {
-      console.error('Error loading team members:', error);
-      // Don't show toast - graceful degradation
-    } finally {
-      setTeamMembersLoading(false);
-    }
-  };
 
   const loadNotes = async () => {
     const { data, error } = await supabase
@@ -117,15 +94,9 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
 
       if (error) throw error;
 
-      // Mentions are automatically processed by database trigger
-      toast.success(
-        mentionedUserIds.length > 0 
-          ? `Note saved and ${mentionedUserIds.length} ${mentionedUserIds.length === 1 ? 'person' : 'people'} mentioned`
-          : 'Note saved'
-      );
+      toast.success('Note saved');
       
       setNewNote({ type: 'tqc_internal', title: '', content: '', tags: [] });
-      setMentionedUserIds([]);
       loadNotes();
     } catch (error: any) {
       console.error('Error saving note:', error);
@@ -242,34 +213,16 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 flex items-center gap-2">
+            <label className="text-sm font-medium mb-2 block">
               Content
-              <Badge variant="outline" className="text-xs">
-                <AtSign className="w-3 h-3 mr-1" />
-                Type @ to mention
-              </Badge>
             </label>
-              <MentionTextarea
-                value={newNote.content}
-                onChange={(content, mentions) => {
-                  setNewNote(prev => ({ ...prev, content }));
-                  setMentionedUserIds(mentions);
-                }}
-                onFocus={loadTeamMembers}
-                placeholder={
-                  teamMembersLoading 
-                    ? "Loading team members..." 
-                    : "Add your notes here... Type @ to mention team members"
-                }
-                rows={4}
-                teamMembers={teamMembers}
-                disabled={saving}
-              />
-            {mentionedUserIds.length > 0 && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Mentioning {mentionedUserIds.length} {mentionedUserIds.length === 1 ? 'person' : 'people'}
-              </p>
-            )}
+            <Textarea
+              value={newNote.content}
+              onChange={(e) => setNewNote(prev => ({ ...prev, content: e.target.value }))}
+              placeholder="Add your notes here..."
+              rows={4}
+              disabled={saving}
+            />
           </div>
 
             <Button onClick={handleSave} className="w-full" disabled={saving || !user}>
@@ -341,7 +294,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
                     )}
                     
                     <div className="text-sm whitespace-pre-wrap text-muted-foreground mb-3">
-                      {renderNoteContentWithMentions(note.content)}
+                      {note.content.replace(/@\[([a-f0-9-]{36})\]\(([^)]+)\)/g, '@$2')}
                     </div>
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -366,7 +319,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
                 <Card key={note.id} id={`note-${note.id}`}>
                   <CardContent className="pt-6">
                       <div className="text-sm whitespace-pre-wrap">
-                        {renderNoteContentWithMentions(note.content)}
+                        {note.content.replace(/@\[([a-f0-9-]{36})\]\(([^)]+)\)/g, '@$2')}
                       </div>
                       <p className="text-xs text-muted-foreground mt-2">
                         {format(new Date(note.created_at), 'MMM d, yyyy')}
