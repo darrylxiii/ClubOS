@@ -24,30 +24,6 @@ export const TeamActivityCard = ({ jobId }: TeamActivityCardProps) => {
     return name.substring(0, 2).toUpperCase();
   };
 
-  const getRoleColor = (role: string | null) => {
-    switch (role?.toLowerCase()) {
-      case "admin":
-        return "bg-primary/20 text-primary";
-      case "strategist":
-        return "bg-accent/20 text-accent";
-      case "partner":
-        return "bg-secondary/20 text-secondary";
-      default:
-        return "bg-muted text-muted-foreground";
-    }
-  };
-
-  const getRoleBadgeVariant = (role: string | null): "default" | "secondary" | "outline" => {
-    switch (role?.toLowerCase()) {
-      case "admin":
-        return "default";
-      case "strategist":
-        return "secondary";
-      default:
-        return "outline";
-    }
-  };
-
   if (loading) {
     return (
       <Card className="border-2 border-primary/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
@@ -104,7 +80,7 @@ export const TeamActivityCard = ({ jobId }: TeamActivityCardProps) => {
                         {member.profiles.avatar_url ? (
                           <AvatarImage src={member.profiles.avatar_url} alt={member.profiles.full_name || "User"} />
                         ) : null}
-                        <AvatarFallback className={getRoleColor(member.profiles.role)}>
+                        <AvatarFallback className="bg-primary/20 text-primary">
                           {getInitials(member.profiles.full_name)}
                         </AvatarFallback>
                       </Avatar>
@@ -112,11 +88,6 @@ export const TeamActivityCard = ({ jobId }: TeamActivityCardProps) => {
                     <TooltipContent side="bottom" className="max-w-xs">
                       <div className="space-y-1">
                         <p className="font-semibold">{member.profiles.full_name || "Unknown User"}</p>
-                        {member.profiles.role && (
-                          <Badge variant={getRoleBadgeVariant(member.profiles.role)} className="text-xs">
-                            {member.profiles.role}
-                          </Badge>
-                        )}
                         <p className="text-xs text-muted-foreground">
                           Last active: {formatDistanceToNow(new Date(member.last_activity), { addSuffix: true })}
                         </p>
