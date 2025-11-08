@@ -50,7 +50,7 @@ export default function CandidateProfile() {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>(defaultTab || (role === 'admin' || role === 'partner' ? "team-assessment" : "overview"));
+  const [activeTab, setActiveTab] = useState<string>(defaultTab || "overview");
   
   const isTeamView = role === 'admin' || role === 'partner';
 
@@ -619,8 +619,7 @@ export default function CandidateProfile() {
             {isTeamView && (
               <TabsContent value="pipeline" className="space-y-6">
                 <CandidatePipelineStatus 
-                  candidateId={id!} 
-                  candidateEmail={candidate.email}
+                  candidateId={id!}
                 />
                 <CandidateLinkedJobs 
                   candidateId={id!} 
@@ -633,7 +632,7 @@ export default function CandidateProfile() {
             {isTeamView && (
               <TabsContent value="activity" className="space-y-6">
                 <CandidateInteractionLog 
-                  candidateEmail={candidate.email}
+                  candidateId={id!}
                 />
                 <CandidateAnalytics candidateId={id!} />
               </TabsContent>
