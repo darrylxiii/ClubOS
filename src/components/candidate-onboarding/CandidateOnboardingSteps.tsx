@@ -179,7 +179,7 @@ export function CandidateOnboardingSteps() {
   const handleNext = async () => {
     // Step 0: Contact info - check email and verify
     if (currentStep === 0) {
-      if (!formData.email || !formData.full_name || !formData.phone || !formData.location) {
+      if (!formData.email || !formData.full_name) {
         toast({ 
           title: "Missing information", 
           description: "Please fill in all required fields",

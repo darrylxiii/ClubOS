@@ -51,7 +51,6 @@ export const ONBOARDING_REQUIRED_FIELDS: (keyof OnboardingFormData)[] = [
   'firstName',
   'lastName',
   'email',
-  'location',
   'currentTitle',
   'desiredSalary',
 ];
