@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRole } from "@/hooks/useUserRole";
@@ -20,51 +20,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    fetchRoles();
-  }, [user]);
-
-  useEffect(() => {
-    if (!user || availableRoles.length === 0) return;
-    
-    // Use a ref to track the current role without causing re-subscriptions
-    let lastKnownRole = currentRole;
-    
-    // Subscribe to role preference changes from OTHER sessions/devices only
-    const channel = supabase
-      .channel('role-preference-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'user_preferences',
-          filter: `user_id=eq.${user.id}`
-        },
-        (payload) => {
-          const newRole = payload.new.preferred_role_view as UserRole;
-          // CRITICAL FIX: Only update if the role is actually different to prevent infinite loops
-          // Compare against the ref instead of state to avoid stale closure issues
-          if (newRole && availableRoles.includes(newRole) && newRole !== lastKnownRole) {
-            console.log('[RoleContext] External preference change detected, updating to:', newRole);
-            lastKnownRole = newRole;
-            setCurrentRole(newRole);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, availableRoles]); // FIXED: Removed currentRole from dependencies to prevent re-subscriptions
-
-  const fetchRoles = async () => {
+  const fetchRoles = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
@@ -148,7 +104,46 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
+
+  useEffect(() => {
+    if (!user || availableRoles.length === 0) return;
+    
+    // Use a ref to track the current role without causing re-subscriptions
+    let lastKnownRole = currentRole;
+    
+    // Subscribe to role preference changes from OTHER sessions/devices only
+    const channel = supabase
+      .channel('role-preference-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_preferences',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          const newRole = payload.new.preferred_role_view as UserRole;
+          // CRITICAL FIX: Only update if the role is actually different to prevent infinite loops
+          // Compare against the ref instead of state to avoid stale closure issues
+          if (newRole && availableRoles.includes(newRole) && newRole !== lastKnownRole) {
+            console.log('[RoleContext] External preference change detected, updating to:', newRole);
+            lastKnownRole = newRole;
+            setCurrentRole(newRole);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, availableRoles]); // FIXED: Removed currentRole from dependencies to prevent re-subscriptions
 
   const switchRole = async (newRole: UserRole) => {
     // Prevent switching to the same role
