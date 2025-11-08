@@ -24,11 +24,44 @@ export default defineConfig(({ mode }) => ({
     },
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['@radix-ui/react-avatar', '@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu'],
+        manualChunks: (id) => {
+          // Core React libraries
+          if (id.includes('node_modules/react') || 
+              id.includes('node_modules/react-dom') || 
+              id.includes('node_modules/react-router-dom')) {
+            return 'react-vendor';
+          }
+          
+          // Radix UI components - split by category
+          if (id.includes('@radix-ui')) {
+            return 'ui-vendor';
+          }
+          
+          // Chart/data viz libraries
+          if (id.includes('recharts') || id.includes('d3-')) {
+            return 'charts';
+          }
+          
+          // Form libraries
+          if (id.includes('react-hook-form') || id.includes('zod')) {
+            return 'forms';
+          }
+          
+          // Supabase
+          if (id.includes('@supabase')) {
+            return 'supabase';
+          }
+          
+          // Framer Motion
+          if (id.includes('framer-motion')) {
+            return 'motion';
+          }
         },
       },
     },
+    // Target modern browsers for smaller bundles
+    target: 'es2020',
+    // Enable CSS code splitting
+    cssCodeSplit: true,
   },
 }));
