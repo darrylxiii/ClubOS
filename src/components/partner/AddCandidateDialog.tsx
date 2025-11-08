@@ -357,7 +357,9 @@ export const AddCandidateDialog = ({
           .eq('id', candidateId);
 
         // Throw specific error based on type
-        if (appError.code === '42501' || appError.message?.toLowerCase().includes('rls') || appError.message?.toLowerCase().includes('permission')) {
+        if (appError.code === '23505' && appError.message?.includes('idx_unique_active_application_per_job')) {
+          throw new Error(`DUPLICATE_IN_JOB: This candidate is already in the "${jobTitle}" pipeline. To add them again, first reject or withdraw their existing application.`);
+        } else if (appError.code === '42501' || appError.message?.toLowerCase().includes('rls') || appError.message?.toLowerCase().includes('permission')) {
           throw new Error('PERMISSION_ERROR: You do not have permission to add applications. Your user role may not be properly configured. Please contact an administrator.');
         } else if (appError.code === '23503') {
           throw new Error('FK_ERROR: Invalid job or candidate reference. Please refresh the page and try again.');
@@ -482,7 +484,9 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
       // Set visible error message
       let errorMsg = "An unexpected error occurred. Please try again.";
       
-      if (error.message?.startsWith('PERMISSION_ERROR:')) {
+      if (error.message?.startsWith('DUPLICATE_IN_JOB:')) {
+        errorMsg = error.message.replace('DUPLICATE_IN_JOB: ', '');
+      } else if (error.message?.startsWith('PERMISSION_ERROR:')) {
         errorMsg = error.message.replace('PERMISSION_ERROR: ', '');
       } else if (error.message?.startsWith('FK_ERROR:')) {
         errorMsg = error.message.replace('FK_ERROR: ', '');
@@ -619,7 +623,12 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
     setShowDuplicateDialog(false);
     setProceedWithDuplicate(true);
     setLoading(true);
-    await proceedWithSubmission();
+    try {
+      await proceedWithSubmission();
+    } catch (error) {
+      // Error already handled in proceedWithSubmission
+      setLoading(false);
+    }
   };
 
   const handleDuplicateCancel = () => {
@@ -636,6 +645,7 @@ ${creditTo.length > 0 ? `\n**Credit:** ${creditTo.length} team member${creditTo.
         onOpenChange={setShowDuplicateDialog}
         duplicates={duplicateCandidates}
         matchType={duplicateMatchType}
+        jobTitle={jobTitle}
         onProceed={handleDuplicateProceed}
         onCancel={handleDuplicateCancel}
       />
