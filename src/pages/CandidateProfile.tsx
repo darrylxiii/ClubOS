@@ -36,7 +36,7 @@ import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 import { AssessmentHistory } from "@/components/candidate/AssessmentHistory";
 
 export default function CandidateProfile() {
-  const { id } = useParams<{ id: string }>();
+  const { candidateId: id } = useParams<{ candidateId: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const fromJobId = searchParams.get('fromJob');
