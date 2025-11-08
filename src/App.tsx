@@ -57,8 +57,6 @@ const CandidateProfile = lazy(() => import("./pages/CandidateProfile"));
 const Referrals = lazy(() => import("./pages/Referrals"));
 const InterviewPrep = lazy(() => import("./pages/InterviewPrep"));
 const InterviewPrepChat = lazy(() => import("./pages/InterviewPrepChat"));
-const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
-const CareerPath = lazy(() => import("./pages/CareerPath"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
 const MeetingIntelligence = lazy(() => import("./pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("./pages/MeetingInsights"));
@@ -323,22 +321,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <InterviewPrepChat />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/salary-insights"
-              element={
-                <ProtectedRoute>
-                  <SalaryInsights />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/career-path"
-              element={
-                <ProtectedRoute>
-                  <CareerPath />
                 </ProtectedRoute>
               }
             />

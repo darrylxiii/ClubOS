@@ -1,384 +1,472 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect, useRef } from "react";
+import { useElevenLabsConversation } from "@/hooks/useElevenLabsConversation";
+import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
-import { 
-  Building2, 
-  FileText, 
-  MessageSquare, 
-  Lightbulb,
-  Star,
-  CheckCircle2,
-  Sparkles
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
+import { Mic, MicOff, AlertCircle, CheckCircle2, Building2, Briefcase, Target, Trophy, Clock, MessageSquare, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
-interface Application {
-  id: string;
-  job: {
-    title: string;
-    company: {
-      id: string;
-      name: string;
-    };
-  };
+interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
 }
 
-export default function InterviewPrep() {
-  const { user } = useAuth();
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-  const [starAnswers, setStarAnswers] = useState({
-    situation: "",
-    task: "",
-    action: "",
-    result: ""
+interface ScoringResult {
+  overallScore: number;
+  relevanceScore: number;
+  clarityScore: number;
+  confidenceScore: number;
+  technicalScore: number;
+  starMethodScore: number;
+  feedback: string;
+  strengths: string[];
+  improvements: string[];
+}
+
+const InterviewPrep = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [conversationStarted, setConversationStarted] = useState(false);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [scoringResult, setScoringResult] = useState<ScoringResult | null>(null);
+  const [interviewDuration, setInterviewDuration] = useState(0);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [conversationId, setConversationId] = useState<string>("");
+  const timerRef = useRef<NodeJS.Timeout>();
+
+  const conversation = useElevenLabsConversation({
+    onConnect: () => {
+      console.log("Voice conversation connected");
+      setIsConnecting(false);
+      toast.success("Voice interview ready! Start speaking.");
+    },
+    onDisconnect: () => {
+      console.log("Voice conversation disconnected");
+    },
+    onMessage: (message) => {
+      console.log("Received message:", message);
+      
+      // Add messages to transcript
+      if (message.type === 'user_transcript' || message.type === 'agent_response') {
+        const role = message.type === 'user_transcript' ? 'user' : 'assistant';
+        const content = message.message || message.text || '';
+        
+        if (content.trim()) {
+          setMessages(prev => [...prev, {
+            role,
+            content,
+            timestamp: new Date()
+          }]);
+        }
+      }
+    },
+    onError: (error) => {
+      console.error("Voice conversation error:", error);
+      toast.error("Voice conversation error. Please try again.");
+      setIsConnecting(false);
+      setIsRecording(false);
+    },
   });
-  const [loading, setLoading] = useState(true);
+
+  // Mock company/job data - will be replaced with real data from database
+  const mockJobData = {
+    company: "Google",
+    position: "Senior Software Engineer",
+    description: "Build scalable distributed systems with a focus on cloud infrastructure and microservices architecture.",
+    skills: ["Python", "Go", "Kubernetes", "System Design"],
+    interviewType: "Technical Deep Dive"
+  };
 
   useEffect(() => {
-    if (user) {
-      fetchApplications();
-    }
-  }, [user]);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
-  const fetchApplications = async () => {
-    if (!user) return;
-
+  const startInterview = async () => {
     try {
-      const { data, error } = await supabase
-        .from('applications')
-        .select(`
-          id,
-          jobs:job_id (
-            title,
-            companies:company_id (
-              id,
-              name
-            )
-          )
-        `)
-        .eq('candidate_id', user.id)
-        .in('status', ['active', 'interview']);
+      setIsConnecting(true);
+      setConversationStarted(true);
+      
+      // Request microphone access first
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      // For now, show a helpful message about setting up ElevenLabs
+      toast.error(
+        "To enable voice interviews, you need to:\n" +
+        "1. Create an AI Agent in your ElevenLabs dashboard\n" +
+        "2. Configure it with interview prompts\n" +
+        "3. Add the agent ID to the code\n\n" +
+        "For now, using text-based interview mode.",
+        { duration: 8000 }
+      );
+      
+      // Fall back to text mode
+      setMessages([{
+        role: 'assistant',
+        content: `Hello! I'm your interviewer for the ${mockJobData.position} position at ${mockJobData.company}. Let's start with a brief introduction - tell me about yourself and why you're interested in this role.`,
+        timestamp: new Date()
+      }]);
+      
+      setIsRecording(true);
+      setIsConnecting(false);
+      
+      // Start timer
+      timerRef.current = setInterval(() => {
+        setInterviewDuration(prev => prev + 1);
+      }, 1000);
+
+    } catch (error) {
+      console.error("Error starting interview:", error);
+      toast.error("Failed to start interview. Please check your microphone permissions.");
+      setIsConnecting(false);
+      setConversationStarted(false);
+      setIsRecording(false);
+    }
+  };
+
+  const endInterview = async () => {
+    // End the voice conversation
+    await conversation.endSession();
+    
+    setIsRecording(false);
+    setConversationStarted(false);
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    if (messages.length < 2) {
+      toast.error("Interview too short to analyze");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    
+    try {
+      // Analyze the conversation using Lovable AI
+      const transcript = messages.map(m => `${m.role}: ${m.content}`).join('\n\n');
+      
+      const { data, error } = await supabase.functions.invoke('analyze-interview', {
+        body: {
+          transcript,
+          jobData: mockJobData
+        }
+      });
 
       if (error) throw error;
 
-      const formatted = data?.map(app => ({
-        id: app.id,
-        job: {
-          title: (app.jobs as any)?.title || 'Unknown Position',
-          company: {
-            id: (app.jobs as any)?.companies?.id || '',
-            name: (app.jobs as any)?.companies?.name || 'Unknown Company'
-          }
-        }
-      })) || [];
-
-      setApplications(formatted);
-      if (formatted.length > 0) {
-        setSelectedApp(formatted[0]);
-      }
+      setScoringResult(data.analysis);
+      toast.success("Interview analysis complete!");
     } catch (error) {
-      console.error('Error fetching applications:', error);
+      console.error('Error analyzing interview:', error);
+      toast.error('Failed to analyze interview');
     } finally {
-      setLoading(false);
+      setIsAnalyzing(false);
     }
   };
 
-  const saveStarAnswer = () => {
-    toast.success("STAR answer saved to your preparation notes");
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const commonQuestions = [
-    {
-      category: "Behavioral",
-      questions: [
-        "Tell me about a time you faced a significant challenge at work",
-        "Describe a situation where you had to work with a difficult team member",
-        "Give an example of when you showed leadership",
-        "Tell me about a time you failed and what you learned"
-      ]
-    },
-    {
-      category: "Technical",
-      questions: [
-        "Explain your approach to solving complex technical problems",
-        "Describe your experience with [specific technology]",
-        "How do you ensure code quality in your projects?",
-        "Walk me through your development process"
-      ]
-    },
-    {
-      category: "Culture Fit",
-      questions: [
-        "Why do you want to work here?",
-        "What are you looking for in your next role?",
-        "How do you handle feedback?",
-        "Describe your ideal work environment"
-      ]
-    }
-  ];
-
-  if (loading) {
-    return (
-      <div className="container mx-auto p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/3"></div>
-          <div className="h-64 bg-muted rounded"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (applications.length === 0) {
-    return (
-      <div className="container mx-auto p-6">
-        <Card className="border-2 border-foreground">
-          <CardContent className="pt-6">
-            <div className="text-center py-12 space-y-4">
-              <MessageSquare className="w-16 h-16 mx-auto text-muted-foreground opacity-50" />
-              <h3 className="text-xl font-bold">No Active Interviews</h3>
-              <p className="text-muted-foreground max-w-md mx-auto">
-                Start applying to jobs to access company-specific interview preparation materials
-              </p>
-              <Button onClick={() => window.location.href = '/jobs'}>
-                Browse Jobs
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-green-500";
+    if (score >= 60) return "text-yellow-500";
+    return "text-red-500";
+  };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-black uppercase mb-2">Interview Preparation</h1>
-        <p className="text-muted-foreground">
-          Get ready for your upcoming interviews with practice questions and tips
-        </p>
-      </div>
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-4xl font-black uppercase tracking-tight mb-2">Interview Prep Room</h1>
+          <p className="text-muted-foreground">
+            Practice realistic interviews with AI-powered feedback
+          </p>
+        </div>
 
-      {/* Application Selector */}
-      <Card className="border-2 border-foreground">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
-            <div className="w-1 h-6 bg-foreground"></div>
-            Select Interview
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            {applications.map(app => (
-              <Button
-                key={app.id}
-                variant={selectedApp?.id === app.id ? "default" : "outline"}
-                onClick={() => setSelectedApp(app)}
-                className="justify-start"
-              >
-                <Building2 className="w-4 h-4 mr-2" />
-                {app.job.company.name} - {app.job.title}
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Job Info */}
+          <div className="lg:col-span-1 space-y-4">
+            <Card className="border-0 bg-card/30 backdrop-blur-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building2 className="w-5 h-5 text-accent" />
+                  Interview Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Company</p>
+                  <p className="font-semibold text-lg">{mockJobData.company}</p>
+                </div>
+                <Separator />
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Position</p>
+                  <p className="font-semibold">{mockJobData.position}</p>
+                </div>
+                <Separator />
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Interview Type</p>
+                  <Badge variant="secondary">{mockJobData.interviewType}</Badge>
+                </div>
+                <Separator />
+                <div>
+                  <p className="text-sm text-muted-foreground mb-2">Key Skills</p>
+                  <div className="flex flex-wrap gap-2">
+                    {mockJobData.skills.map((skill) => (
+                      <Badge key={skill} variant="outline">{skill}</Badge>
+                    ))}
+                  </div>
+                </div>
+                <Separator />
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Job Description</p>
+                  <p className="text-sm">{mockJobData.description}</p>
+                </div>
+              </CardContent>
+            </Card>
 
-      {selectedApp && (
-        <Tabs defaultValue="questions" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="questions">Practice Questions</TabsTrigger>
-            <TabsTrigger value="star">STAR Method</TabsTrigger>
-            <TabsTrigger value="tips">Tips & Tricks</TabsTrigger>
-          </TabsList>
-
-          {/* Practice Questions Tab */}
-          <TabsContent value="questions" className="space-y-4">
-            {commonQuestions.map(category => (
-              <Card key={category.category} className="border-2 border-foreground">
+            {conversationStarted && (
+              <Card className="border-0 bg-card/30 backdrop-blur-md">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <MessageSquare className="w-5 h-5" />
-                    {category.category} Questions
+                    <Clock className="w-5 h-5 text-accent" />
+                    Duration
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    {category.questions.map((q, idx) => (
+                  <p className="text-3xl font-bold text-accent">{formatTime(interviewDuration)}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Middle Column - Interview Interface */}
+          <div className="lg:col-span-2 space-y-4">
+            {!conversationStarted && !scoringResult && (
+              <Card className="border-0 bg-card/30 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5 text-accent" />
+                    Ready to Start?
+                  </CardTitle>
+                  <CardDescription>
+                    Click below to begin your mock interview. The AI interviewer will ask you questions based on the job description.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      <strong>Setup Required:</strong> To enable voice interviews, you need to create an AI Agent in your ElevenLabs dashboard and configure it. For now, the system uses text-based mode.
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <Button 
+                    onClick={startInterview}
+                    className="w-full bg-gradient-accent text-background hover:opacity-90"
+                    size="lg"
+                    disabled={isConnecting}
+                  >
+                    {isConnecting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        Connecting...
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="w-5 h-5 mr-2" />
+                        Start Interview
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+
+            {conversationStarted && (
+              <Card className="border-0 bg-card/30 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5 text-accent" />
+                    Conversation
+                    {isRecording && (
+                      <Badge variant="destructive" className="ml-auto">
+                        <span className="animate-pulse">● Recording</span>
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-4 max-h-[400px] overflow-y-auto">
+                    {messages.map((message, index) => (
                       <div
-                        key={idx}
-                        className="p-4 rounded-lg bg-background/30 border border-border/30 hover:bg-background/40 transition-all"
+                        key={index}
+                        className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
-                        <div className="flex items-start gap-3">
-                          <Badge variant="outline" className="shrink-0 mt-0.5">
-                            Q{idx + 1}
-                          </Badge>
-                          <p className="text-sm">{q}</p>
+                        <div
+                          className={`max-w-[80%] p-4 rounded-lg ${
+                            message.role === 'user'
+                              ? 'bg-accent text-background'
+                              : 'bg-muted'
+                          }`}
+                        >
+                          <p className="text-sm font-medium mb-1">
+                            {message.role === 'user' ? 'You' : 'Interviewer'}
+                          </p>
+                          <p className="text-sm">{message.content}</p>
+                          <p className="text-xs mt-2 opacity-70">
+                            {message.timestamp.toLocaleTimeString()}
+                          </p>
                         </div>
                       </div>
                     ))}
                   </div>
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={endInterview}
+                      variant="ghost"
+                      className="w-full"
+                    >
+                      <MicOff className="w-4 h-4 mr-2" />
+                      End Interview & Get Feedback
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
-            ))}
-          </TabsContent>
+            )}
 
-          {/* STAR Method Tab */}
-          <TabsContent value="star" className="space-y-4">
-            <Card className="border-2 border-foreground">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Star className="w-5 h-5" />
-                  STAR Method Builder
-                </CardTitle>
-                <CardDescription>
-                  Structure your behavioral interview answers effectively
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-bold mb-2 block">
-                      Situation
-                      <span className="text-muted-foreground font-normal ml-2">
-                        Set the context
-                      </span>
-                    </label>
-                    <Textarea
-                      value={starAnswers.situation}
-                      onChange={(e) => setStarAnswers({...starAnswers, situation: e.target.value})}
-                      placeholder="Describe the situation you were in..."
-                      rows={3}
-                    />
+            {isAnalyzing && (
+              <Card className="border-0 bg-card/30 backdrop-blur-md">
+                <CardHeader>
+                  <CardTitle>Analyzing Interview...</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Our AI is evaluating your interview performance across multiple dimensions...
+                    </p>
+                    <Progress value={66} className="w-full" />
                   </div>
+                </CardContent>
+              </Card>
+            )}
 
-                  <div>
-                    <label className="text-sm font-bold mb-2 block">
-                      Task
-                      <span className="text-muted-foreground font-normal ml-2">
-                        What needed to be done?
-                      </span>
-                    </label>
-                    <Textarea
-                      value={starAnswers.task}
-                      onChange={(e) => setStarAnswers({...starAnswers, task: e.target.value})}
-                      placeholder="Explain what you needed to accomplish..."
-                      rows={3}
-                    />
-                  </div>
+            {scoringResult && (
+              <div className="space-y-4">
+                <Card className="border-0 bg-card/30 backdrop-blur-md">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Trophy className="w-5 h-5 text-accent" />
+                      Interview Score
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center mb-6">
+                      <p className={`text-6xl font-bold ${getScoreColor(scoringResult.overallScore)}`}>
+                        {scoringResult.overallScore}%
+                      </p>
+                      <p className="text-muted-foreground mt-2">Overall Performance</p>
+                    </div>
 
-                  <div>
-                    <label className="text-sm font-bold mb-2 block">
-                      Action
-                      <span className="text-muted-foreground font-normal ml-2">
-                        What did you do?
-                      </span>
-                    </label>
-                    <Textarea
-                      value={starAnswers.action}
-                      onChange={(e) => setStarAnswers({...starAnswers, action: e.target.value})}
-                      placeholder="Describe the specific actions you took..."
-                      rows={3}
-                    />
-                  </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">{scoringResult.relevanceScore}%</p>
+                        <p className="text-xs text-muted-foreground">Relevance</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">{scoringResult.clarityScore}%</p>
+                        <p className="text-xs text-muted-foreground">Clarity</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">{scoringResult.confidenceScore}%</p>
+                        <p className="text-xs text-muted-foreground">Confidence</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">{scoringResult.technicalScore}%</p>
+                        <p className="text-xs text-muted-foreground">Technical</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">{scoringResult.starMethodScore}%</p>
+                        <p className="text-xs text-muted-foreground">STAR Method</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-2xl font-bold">{formatTime(interviewDuration)}</p>
+                        <p className="text-xs text-muted-foreground">Duration</p>
+                      </div>
+                    </div>
 
-                  <div>
-                    <label className="text-sm font-bold mb-2 block">
-                      Result
-                      <span className="text-muted-foreground font-normal ml-2">
-                        What was the outcome?
-                      </span>
-                    </label>
-                    <Textarea
-                      value={starAnswers.result}
-                      onChange={(e) => setStarAnswers({...starAnswers, result: e.target.value})}
-                      placeholder="Share the results and what you learned..."
-                      rows={3}
-                    />
-                  </div>
-                </div>
+                    <Separator className="my-6" />
 
-                <Button onClick={saveStarAnswer} className="w-full">
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Save Answer
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    <div className="space-y-4">
+                      <div>
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          Strengths
+                        </h4>
+                        <ul className="space-y-1">
+                          {scoringResult.strengths.map((strength, index) => (
+                            <li key={index} className="text-sm text-muted-foreground pl-6">
+                              • {strength}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
 
-          {/* Tips Tab */}
-          <TabsContent value="tips" className="space-y-4">
-            <Card className="border-2 border-foreground">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5" />
-                  Interview Success Tips
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-lg bg-success/10 border border-success/30">
-                    <h4 className="font-bold mb-2 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4" />
-                      Before the Interview
-                    </h4>
-                    <ul className="text-sm space-y-1 text-muted-foreground">
-                      <li>• Research the company thoroughly</li>
-                      <li>• Prepare 3-5 questions to ask</li>
-                      <li>• Test your tech setup (for remote)</li>
-                      <li>• Review the job description</li>
-                    </ul>
-                  </div>
+                      <div>
+                        <h4 className="font-semibold mb-2 flex items-center gap-2">
+                          <Target className="w-4 h-4 text-yellow-500" />
+                          Areas for Improvement
+                        </h4>
+                        <ul className="space-y-1">
+                          {scoringResult.improvements.map((improvement, index) => (
+                            <li key={index} className="text-sm text-muted-foreground pl-6">
+                              • {improvement}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
 
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                    <h4 className="font-bold mb-2 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4" />
-                      During the Interview
-                    </h4>
-                    <ul className="text-sm space-y-1 text-muted-foreground">
-                      <li>• Listen actively to questions</li>
-                      <li>• Take time to think before answering</li>
-                      <li>• Use specific examples</li>
-                      <li>• Show enthusiasm for the role</li>
-                    </ul>
-                  </div>
+                      <div>
+                        <h4 className="font-semibold mb-2">Detailed Feedback</h4>
+                        <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          {scoringResult.feedback}
+                        </p>
+                      </div>
+                    </div>
 
-                  <div className="p-4 rounded-lg bg-primary/10 border border-primary/30">
-                    <h4 className="font-bold mb-2 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4" />
-                      Body Language
-                    </h4>
-                    <ul className="text-sm space-y-1 text-muted-foreground">
-                      <li>• Maintain eye contact</li>
-                      <li>• Smile naturally</li>
-                      <li>• Sit up straight</li>
-                      <li>• Use hand gestures moderately</li>
-                    </ul>
-                  </div>
-
-                  <div className="p-4 rounded-lg bg-success/10 border border-success/30">
-                    <h4 className="font-bold mb-2 flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4" />
-                      After the Interview
-                    </h4>
-                    <ul className="text-sm space-y-1 text-muted-foreground">
-                      <li>• Send a thank-you email within 24h</li>
-                      <li>• Reflect on what went well</li>
-                      <li>• Note areas for improvement</li>
-                      <li>• Follow up if no response in a week</li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      )}
-    </div>
+                    <Button 
+                      onClick={() => {
+                        setScoringResult(null);
+                        setMessages([]);
+                        setInterviewDuration(0);
+                      }}
+                      className="w-full mt-6"
+                      variant="outline"
+                    >
+                      Start New Interview
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </AppLayout>
   );
-}
+};
+
+export default InterviewPrep;

@@ -117,8 +117,8 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
               </TableHeader>
               <TableBody>
                 {applications.map((app) => {
-                  // Use candidate_profiles if available, fallback to profiles
-                  const candidate = app.candidate_profiles || app.profiles;
+                  const candidate = app.candidate_profiles;
+                  const profile = app.profiles;
                   const lastActivity = candidate?.last_activity_at;
                   const companyId = app.jobs?.company_id || app.job?.company_id;
                   const visibility = getVisibleFields(app, companyId, role || 'partner');
@@ -148,9 +148,9 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
                                 }
                               </p>
                             )}
-                            {visibility.desiredSalary && candidate?.desired_salary_min && (
+                            {visibility.desiredSalary && (profile?.desired_salary_min || candidate?.desired_salary_min) && (
                               <p className="text-xs text-primary font-medium">
-                                Target: {candidate?.preferred_currency || 'USD'} {candidate?.desired_salary_min?.toLocaleString()}
+                                Target: {profile?.preferred_currency || candidate?.preferred_currency || 'USD'} {(profile?.desired_salary_min || candidate?.desired_salary_min)?.toLocaleString()}
                               </p>
                             )}
                           </div>

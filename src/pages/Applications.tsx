@@ -271,7 +271,7 @@ function ApplicationCard({ application }: { application: Application }) {
             currentStage={application.current_stage_index}
             totalStages={application.stages.length}
             daysInProcess={daysInProcess}
-            averageDays={application.stages.length * 5} // Estimate 5 days per stage
+            averageDays={21}
           />
 
           {/* Competition Insight */}
@@ -286,8 +286,8 @@ function ApplicationCard({ application }: { application: Application }) {
           <TimelineDeadlines
             appliedDate={application.applied_at}
             nextStageName={nextStage?.title}
-            estimatedDaysToNext={nextStage ? 5 : undefined}
-            finalDecisionDate={application.stages[application.stages.length - 1]?.scheduledDate}
+            estimatedDaysToNext={5}
+            finalDecisionDate="2025-10-25"
           />
         </div>
 

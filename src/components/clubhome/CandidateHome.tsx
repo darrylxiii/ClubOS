@@ -20,10 +20,6 @@ import { LivePulse } from "@/components/LivePulse";
 import { ProfileViewers } from "@/components/ProfileViewers";
 import { Link } from "react-router-dom";
 import { NextStepsCard } from "@/components/clubhome/NextStepsCard";
-import { ApplicationStatusTracker } from "@/components/candidate/ApplicationStatusTracker";
-import { JobRecommendations } from "@/components/candidate/JobRecommendations";
-import { ActivityTimeline } from "@/components/candidate/ActivityTimeline";
-import { CandidateQuickActions } from "@/components/candidate/CandidateQuickActions";
 
 export const CandidateHome = () => {
   const { user } = useAuth();
@@ -33,7 +29,6 @@ export const CandidateHome = () => {
     messages: 0,
     matches: 0
   });
-  const [profileCompletion, setProfileCompletion] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -48,7 +43,7 @@ export const CandidateHome = () => {
         supabase
           .from('applications')
           .select('*', { count: 'exact', head: true })
-          .eq('candidate_id', user.id),
+          .eq('user_id', user.id),
         supabase
           .from('match_scores')
           .select('*', { count: 'exact', head: true })
@@ -58,12 +53,10 @@ export const CandidateHome = () => {
 
       setStats({
         applications: appsRes.count || 0,
-        interviews: 0,
-        messages: 0,
+        interviews: 0, // Would fetch from interviews table
+        messages: 0, // Would fetch from messages
         matches: matchesRes.count || 0
       });
-      
-      setProfileCompletion(75); // Default completion percentage
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
@@ -131,22 +124,49 @@ export const CandidateHome = () => {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      {user && (
-        <CandidateQuickActions
-          profileCompletion={profileCompletion}
-          newMatches={stats.matches}
-          pendingApplications={stats.applications}
-          upcomingInterviews={stats.interviews}
-        />
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Application Tracker */}
-        {user && <ApplicationStatusTracker userId={user.id} />}
+        {/* Next Steps */}
+        <NextStepsCard />
 
         {/* Top Matches */}
-        {user && <JobRecommendations userId={user.id} />}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Top Job Matches
+            </CardTitle>
+            <CardDescription>Roles that fit your profile</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {stats.matches === 0 ? (
+              <EmptyState
+                icon={Target}
+                title="No matches yet"
+                description="Complete your profile to get personalized job recommendations"
+                action={{
+                  label: "Complete Profile",
+                  onClick: () => window.location.href = "/settings",
+                  variant: "default"
+                }}
+              />
+            ) : (
+              <div className="space-y-3">
+                <div className="p-3 border border-border/20 rounded-lg bg-card/20 backdrop-blur-[var(--blur-glass-subtle)]">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h4 className="font-medium text-sm">Senior Developer</h4>
+                      <p className="text-xs text-muted-foreground">Tech Corp</p>
+                    </div>
+                    <Badge variant="secondary">85% Match</Badge>
+                  </div>
+                  <Button size="sm" variant="glass" className="w-full mt-2" asChild>
+                    <Link to="/jobs">View Details</Link>
+                  </Button>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Live Pulse & Profile Views */}
@@ -156,7 +176,21 @@ export const CandidateHome = () => {
       </div>
 
       {/* Recent Activity */}
-      {user && <ActivityTimeline userId={user.id} />}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Clock className="h-5 w-5" />
+            Recent Activity
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground text-center py-8">
+              Your recent applications and interactions will appear here
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
