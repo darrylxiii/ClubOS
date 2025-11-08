@@ -358,7 +358,7 @@ export default function CandidateProfile() {
             </TabsList>
 
             {/* Assessments Tab - Available for all users */}
-            {candidate.user_id && activeTab === "assessments" && (
+            {candidate.user_id && (
               <TabsContent value="assessments" className="space-y-6">
                 <AssessmentHistory 
                   userId={candidate.user_id}
@@ -368,7 +368,7 @@ export default function CandidateProfile() {
             )}
 
             {/* Settings Tab - Admin Only */}
-            {isTeamView && candidate.user_id && activeTab === "settings" && (
+            {isTeamView && candidate.user_id && (
               <TabsContent value="settings" className="space-y-6">
                 <UserSettingsViewer 
                   userId={candidate.user_id} 
@@ -379,7 +379,7 @@ export default function CandidateProfile() {
             )}
 
             {/* Team Assessment Tab - Combines Decision, Documents, Notes, Internal - Admin/Partner Only */}
-            {isTeamView && activeTab === "team-assessment" && (
+            {isTeamView && (
               <TabsContent value="team-assessment" className="space-y-6">
                 <CandidateDecisionDashboard candidate={candidate} />
                 
@@ -415,7 +415,6 @@ export default function CandidateProfile() {
             )}
 
             {/* Overview Tab */}
-            {activeTab === "overview" && (
             <TabsContent value="overview" className="space-y-6">
               {/* AI Summary */}
               {candidate.ai_summary && (
@@ -504,10 +503,8 @@ export default function CandidateProfile() {
                 <SourceInformationCard candidateId={id!} />
               )}
             </TabsContent>
-            )}
 
             {/* Experience Tab - Combines Experience, Education, Social */}
-            {activeTab === "experience" && (
             <TabsContent value="experience" className="space-y-6">
               {/* Work History */}
               {candidate.work_history && candidate.work_history.length > 0 && (
@@ -610,17 +607,16 @@ export default function CandidateProfile() {
                 </Card>
               )}
             </TabsContent>
-            )}
 
             {/* Work Authorization Tab - Admin Only */}
-            {isTeamView && activeTab === "workauth" && (
+            {isTeamView && (
               <TabsContent value="workauth" className="space-y-6">
                 <CandidateWorkAuthCard candidate={candidate} />
               </TabsContent>
             )}
 
             {/* Pipeline Tab - Combines Pipeline & Jobs - Admin Only */}
-            {isTeamView && activeTab === "pipeline" && (
+            {isTeamView && (
               <TabsContent value="pipeline" className="space-y-6">
                 <CandidatePipelineStatus 
                   candidateId={id!}
@@ -633,7 +629,7 @@ export default function CandidateProfile() {
             )}
 
             {/* Activity Tab - Combines Analytics & Activity - Admin Only */}
-            {isTeamView && activeTab === "activity" && (
+            {isTeamView && (
               <TabsContent value="activity" className="space-y-6">
                 <CandidateInteractionLog 
                   candidateId={id!}
