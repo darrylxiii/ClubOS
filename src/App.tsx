@@ -73,6 +73,7 @@ const Scheduling = lazy(() => import("./pages/Scheduling"));
 const JobDashboard = lazy(() => import("./pages/JobDashboard"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminCandidates = lazy(() => import("./pages/AdminCandidates"));
+const MergeDashboard = lazy(() => import("./pages/admin/MergeDashboard"));
 const ClubSyncRequestsPage = lazy(() => import("./pages/admin/ClubSyncRequestsPage"));
 const CompanyManagement = lazy(() => import("./pages/admin/CompanyManagement"));
 const GlobalAnalytics = lazy(() => import("./pages/admin/GlobalAnalytics"));
@@ -438,6 +439,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ClubSyncRequestsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/merge-dashboard"
+              element={
+                <ProtectedRoute>
+                  <MergeDashboard />
                 </ProtectedRoute>
               }
             />
