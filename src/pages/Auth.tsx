@@ -335,7 +335,7 @@ const Auth = () => {
           <div className="flex items-center justify-center mb-2">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-accent blur-2xl opacity-30 rounded-full"></div>
-              <img src={resolvedTheme === 'light' ? quantumLogoLight : quantumLogoDark} alt="The Quantum Club" className="relative w-32 h-32 drop-shadow-2xl" loading="eager" decoding="async" />
+              <img src={resolvedTheme === 'light' ? quantumLogoLight : quantumLogoDark} alt="The Quantum Club" className="relative w-32 h-32 drop-shadow-2xl" loading="eager" decoding="async" fetchPriority="high" width="128" height="128" />
             </div>
           </div>
 

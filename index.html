@@ -46,14 +46,19 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"></noscript>
     
-    <!-- Preload LCP image with explicit type for immediate discovery -->
-    <link rel="preload" as="image" href="/quantum-logo.svg?v=2" type="image/svg+xml" fetchpriority="high">
+    <!-- Preload critical LCP images for Auth page - both theme variants -->
+    <link rel="preload" as="image" href="/src/assets/quantum-club-logo.png" type="image/png" fetchpriority="high" imagesrcset="/src/assets/quantum-club-logo.png 1x" imagesizes="128px">
+    <link rel="preload" as="image" href="/src/assets/quantum-logo-dark.png" type="image/png" fetchpriority="high" imagesrcset="/src/assets/quantum-logo-dark.png 1x" imagesizes="128px">
     
     <!-- Preload critical font to prevent layout shift -->
     <link rel="preload" as="font" type="font/woff2" href="https://fonts.gstatic.com/s/inter/v20/UcC73FwrK3iLTeHuS_nVMrMxCp50SjIa1ZL7W0Q5nw.woff2" crossorigin>
     
     <!-- Module preload hint for critical JS - helps browser discover and download earlier -->
     <link rel="modulepreload" href="/src/main.tsx">
+    
+    <!-- Preconnect to critical third-party origins -->
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://dpjucecmoyfzrduhlctt.supabase.co">
     
     <!-- Inline critical CSS hint for better performance -->
     <style>
