@@ -1,16 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { Lock, Users, Globe, Pin, Plus, Save, Trash2 } from "lucide-react";
 import { format } from "date-fns";
-import { Textarea } from "@/components/ui/textarea";
 
 interface Note {
   id: string;
@@ -34,10 +33,8 @@ interface Props {
 }
 
 export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
-  const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [newNote, setNewNote] = useState({
     type: 'tqc_internal' as 'tqc_internal' | 'partner_shared' | 'general',
     title: '',
@@ -45,7 +42,11 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
     tags: [] as string[]
   });
 
-  const loadNotes = useCallback(async () => {
+  useEffect(() => {
+    loadNotes();
+  }, [candidateId]);
+
+  const loadNotes = async () => {
     const { data, error } = await supabase
       .from('candidate_notes')
       .select('*, profiles(full_name)')
@@ -60,11 +61,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
 
     setNotes((data as any) || []);
     setLoading(false);
-  }, [candidateId]);
-
-  useEffect(() => {
-    loadNotes();
-  }, [loadNotes]);
+  };
 
   const handleSave = async () => {
     if (!newNote.content.trim()) {
@@ -72,37 +69,25 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
       return;
     }
 
-    if (!user?.id) {
-      toast.error('You must be logged in to create notes');
-      return;
-    }
-
-    setSaving(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('candidate_notes')
         .insert([{
           candidate_id: candidateId,
           note_type: newNote.type,
           title: newNote.title.trim() || null,
           content: newNote.content,
-          tags: newNote.tags,
-          created_by: user.id
-        }] as any)
-        .select()
-        .single();
+          tags: newNote.tags
+        }] as any);
 
       if (error) throw error;
 
       toast.success('Note saved');
-      
       setNewNote({ type: 'tqc_internal', title: '', content: '', tags: [] });
       loadNotes();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving note:', error);
-      toast.error(error.message || 'Failed to save note');
-    } finally {
-      setSaving(false);
+      toast.error('Failed to save note');
     }
   };
 
@@ -213,22 +198,19 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">
-              Content
-            </label>
+            <label className="text-sm font-medium mb-2 block">Content</label>
             <Textarea
-              value={newNote.content}
-              onChange={(e) => setNewNote(prev => ({ ...prev, content: e.target.value }))}
               placeholder="Add your notes here..."
               rows={4}
-              disabled={saving}
+              value={newNote.content}
+              onChange={(e) => setNewNote(prev => ({ ...prev, content: e.target.value }))}
             />
           </div>
 
-            <Button onClick={handleSave} className="w-full" disabled={saving || !user}>
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Saving...' : 'Save Note'}
-            </Button>
+          <Button onClick={handleSave} className="w-full">
+            <Save className="w-4 h-4 mr-2" />
+            Save Note
+          </Button>
         </CardContent>
       </Card>
 
@@ -253,7 +235,7 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
             notes.map(note => {
               const Icon = getNoteIcon(note.note_type);
               return (
-                <Card key={note.id} id={`note-${note.id}`} className={note.pinned ? 'border-primary' : ''}>
+                <Card key={note.id} className={note.pinned ? 'border-primary' : ''}>
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
@@ -293,9 +275,9 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
                       <h4 className="font-semibold mb-2">{note.title}</h4>
                     )}
                     
-                    <div className="text-sm whitespace-pre-wrap text-muted-foreground mb-3">
-                      {note.content.replace(/@\[([a-f0-9-]{36})\]\(([^)]+)\)/g, '@$2')}
-                    </div>
+                    <p className="text-sm whitespace-pre-wrap text-muted-foreground mb-3">
+                      {note.content}
+                    </p>
 
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>
@@ -315,12 +297,10 @@ export const CandidateNotesManager = ({ candidateId, userRole }: Props) => {
               .filter(n => n.note_type === type)
               .map(note => {
                 const Icon = getNoteIcon(note.note_type);
-              return (
-                <Card key={note.id} id={`note-${note.id}`}>
-                  <CardContent className="pt-6">
-                      <div className="text-sm whitespace-pre-wrap">
-                        {note.content.replace(/@\[([a-f0-9-]{36})\]\(([^)]+)\)/g, '@$2')}
-                      </div>
+                return (
+                  <Card key={note.id}>
+                    <CardContent className="pt-6">
+                      <p className="text-sm whitespace-pre-wrap">{note.content}</p>
                       <p className="text-xs text-muted-foreground mt-2">
                         {format(new Date(note.created_at), 'MMM d, yyyy')}
                       </p>

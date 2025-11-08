@@ -11,11 +11,11 @@ import { EnhancedCandidateActionDialog } from "./EnhancedCandidateActionDialog";
 
 interface CandidatePipelineStatusProps {
   candidateId: string;
+  candidateEmail: string;
 }
 
-export const CandidatePipelineStatus = ({ candidateId }: CandidatePipelineStatusProps) => {
+export const CandidatePipelineStatus = ({ candidateId, candidateEmail }: CandidatePipelineStatusProps) => {
   const [applications, setApplications] = useState<any[]>([]);
-  const [candidateName, setCandidateName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [actionDialogOpen, setActionDialogOpen] = useState(false);
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
@@ -23,22 +23,23 @@ export const CandidatePipelineStatus = ({ candidateId }: CandidatePipelineStatus
 
   useEffect(() => {
     loadApplications();
-  }, [candidateId]);
+  }, [candidateId, candidateEmail]);
 
   const loadApplications = async () => {
     try {
-      // Get candidate name
+      // Find candidate profile
       const { data: candidate } = await supabase
-        .from('candidate_profiles')
-        .select('full_name')
-        .eq('id', candidateId)
-        .single();
-      
-      if (candidate) {
-        setCandidateName(candidate.full_name || 'Unknown');
+        .from("candidate_profiles")
+        .select("id")
+        .eq("email", candidateEmail)
+        .maybeSingle();
+
+      if (!candidate) {
+        setLoading(false);
+        return;
       }
 
-      // Load all applications for this candidate directly
+      // Load all applications for this candidate with sourcer info
       const { data: appsData, error } = await supabase
         .from("applications")
         .select(`
@@ -52,7 +53,7 @@ export const CandidatePipelineStatus = ({ candidateId }: CandidatePipelineStatus
             companies:company_id (name, logo_url)
           )
         `)
-        .eq("candidate_id", candidateId)
+        .or(`user_id.eq.${candidateId},candidate_id.eq.${candidate.id}`)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -136,8 +137,8 @@ export const CandidatePipelineStatus = ({ candidateId }: CandidatePipelineStatus
       const { data: candidateProfile } = await supabase
         .from('candidate_profiles')
         .select('full_name')
-        .eq('id', candidateId)
-        .single();
+        .eq('email', candidateEmail)
+        .maybeSingle();
 
       if (user) {
         await supabase.from('pipeline_audit_logs').insert({
@@ -145,7 +146,7 @@ export const CandidatePipelineStatus = ({ candidateId }: CandidatePipelineStatus
           user_id: user.id,
           action: 'stage_changed_manual',
           stage_data: {
-            candidate_name: candidateProfile?.full_name || 'Unknown',
+            candidate_name: candidateProfile?.full_name || candidateEmail,
             from_stage_index: currentStageIndex,
             to_stage_index: newStageIndex,
             from_stage_name: stages[currentStageIndex]?.name,
@@ -323,7 +324,7 @@ export const CandidatePipelineStatus = ({ candidateId }: CandidatePipelineStatus
           open={actionDialogOpen}
           onOpenChange={setActionDialogOpen}
           candidateId={candidateId}
-          candidateName={candidateName}
+          candidateName={candidateEmail}
           applicationId={selectedApplication.id}
           jobId={selectedApplication.job_id}
           jobTitle={selectedApplication.jobs?.title || selectedApplication.position}

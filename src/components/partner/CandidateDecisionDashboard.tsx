@@ -14,17 +14,6 @@ interface Props {
 }
 
 export const CandidateDecisionDashboard = ({ candidate, applications }: Props) => {
-  // Early return if no candidate data
-  if (!candidate) {
-    return (
-      <Card>
-        <CardContent className="py-8 text-center text-muted-foreground">
-          No candidate data available
-        </CardContent>
-      </Card>
-    );
-  }
-
   // Calculate overall assessment score (0-100)
   const calculateOverallScore = () => {
     const scores = [

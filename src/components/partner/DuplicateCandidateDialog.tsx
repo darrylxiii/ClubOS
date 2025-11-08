@@ -28,8 +28,7 @@ interface DuplicateCandidateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   duplicates: DuplicateCandidate[];
-  matchType: "name" | "linkedin" | "both" | "email";
-  jobTitle?: string;
+  matchType: "name" | "linkedin" | "both";
   onProceed: () => void;
   onCancel: () => void;
 }
@@ -41,14 +40,11 @@ export const DuplicateCandidateDialog = ({
   onOpenChange,
   duplicates,
   matchType,
-  jobTitle,
   onProceed,
   onCancel,
 }: DuplicateCandidateDialogProps) => {
   const getMatchTypeText = () => {
     switch (matchType) {
-      case "email":
-        return "with the same email address";
       case "name":
         return "with the same name";
       case "linkedin":
@@ -68,10 +64,10 @@ export const DuplicateCandidateDialog = ({
             </div>
             <div className="flex-1">
               <DialogTitle className="text-2xl font-black uppercase text-orange-500">
-                Candidate Already in Pipeline
+                Duplicate Candidate Detected
               </DialogTitle>
               <DialogDescription className="text-base mt-1">
-                {duplicates.length === 1 ? "A candidate" : `${duplicates.length} candidates`} {getMatchTypeText()} already {duplicates.length === 1 ? "exists" : "exist"} in <strong className="text-foreground">{jobTitle || "this job"}</strong>
+                {duplicates.length === 1 ? "A candidate" : `${duplicates.length} candidates`} {getMatchTypeText()} already {duplicates.length === 1 ? "exists" : "exist"} in this job pipeline
               </DialogDescription>
             </div>
           </div>
@@ -146,12 +142,10 @@ export const DuplicateCandidateDialog = ({
           ))}
         </div>
 
-        <div className="p-4 rounded-lg border border-orange-500/30 bg-orange-500/5 space-y-2">
+        <div className="p-4 rounded-lg border border-orange-500/30 bg-orange-500/5">
           <p className="text-sm text-muted-foreground">
-            <strong className="text-orange-600 dark:text-orange-400">⚠️ Note:</strong> This candidate is already active in <strong>{jobTitle || "this job"}</strong>'s pipeline.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            The same person can apply to <strong>multiple different jobs</strong>, but can only have one active application per job. If you need to re-add them, first reject or withdraw their existing application.
+            <strong className="text-orange-600 dark:text-orange-400">⚠️ Warning:</strong> Adding this candidate again may create duplicate records in your pipeline. 
+            Please verify this is a different person before proceeding.
           </p>
         </div>
 
@@ -161,16 +155,15 @@ export const DuplicateCandidateDialog = ({
             variant="outline"
             onClick={onCancel}
           >
-            Go Back
+            Cancel
           </Button>
           <Button
             type="button"
             onClick={onProceed}
-            variant="outline"
-            className="gap-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            className="gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
           >
             <AlertTriangle className="w-4 h-4" />
-            Try Adding Anyway
+            Add Anyway
           </Button>
         </DialogFooter>
       </DialogContent>

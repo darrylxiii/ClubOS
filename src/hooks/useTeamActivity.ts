@@ -21,6 +21,7 @@ interface TeamMember {
     full_name: string | null;
     avatar_url: string | null;
     email: string | null;
+    role: string | null;
   };
 }
 
@@ -32,45 +33,26 @@ export const useTeamActivity = (jobId: string) => {
   const fetchTeamMembers = async () => {
     try {
       setLoading(true);
-      
-      // First get audit logs
-      const { data: logs, error: logsError } = await supabase
+      const { data, error } = await supabase
         .from('pipeline_audit_logs')
-        .select('user_id, created_at, action')
+        .select(`
+          user_id,
+          created_at,
+          action,
+          profiles!inner (
+            id,
+            full_name,
+            avatar_url,
+            email,
+            role
+          )
+        `)
         .eq('job_id', jobId)
         .in('action', TEAM_ACTIVITY_ACTIONS)
         .order('created_at', { ascending: false })
         .limit(100);
 
-      if (logsError) throw logsError;
-      if (!logs || logs.length === 0) {
-        setTeamMembers([]);
-        return;
-      }
-
-      // Get unique user IDs
-      const uniqueUserIds = [...new Set(logs.map(log => log.user_id))];
-
-      // Fetch profiles for these users
-      const { data: profiles, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url, email')
-        .in('id', uniqueUserIds);
-
-      if (profilesError) throw profilesError;
-
-      // Create a map of user_id to profile
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-
-      // Combine logs with profiles
-      const data = logs
-        .filter(log => profileMap.has(log.user_id))
-        .map(log => ({
-          user_id: log.user_id,
-          created_at: log.created_at,
-          action: log.action,
-          profiles: profileMap.get(log.user_id)!
-        }));
+      if (error) throw error;
 
       // Get unique users by user_id, keeping the most recent activity
       const uniqueUsersMap = new Map<string, TeamMember>();

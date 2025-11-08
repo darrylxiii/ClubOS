@@ -241,7 +241,7 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
 
           <TabsContent value="interactions" className="mt-4">
             <CandidateInteractionLog
-              candidateId={application?.candidate_id || ""}
+              candidateEmail={application?.profiles?.email || ""}
               applicationId={application?.id}
             />
           </TabsContent>

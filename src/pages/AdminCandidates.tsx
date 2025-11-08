@@ -13,7 +13,6 @@ import { UnifiedCandidateCard } from "@/components/admin/UnifiedCandidateCard";
 import { CandidatesTable } from "@/components/admin/CandidatesTable";
 import { BulkActionsToolbar } from "@/components/admin/BulkActionsToolbar";
 import { MergeStatusDashboard } from "@/components/admin/MergeStatusDashboard";
-import { ActivitySettingsDialog, getActivityThresholds, ActivityThresholds } from "@/components/admin/ActivitySettingsDialog";
 import { toast } from "sonner";
 
 export default function AdminCandidates() {
@@ -29,7 +28,6 @@ export default function AdminCandidates() {
   const [perPage, setPerPage] = useState(20);
   const [experienceRange, setExperienceRange] = useState<number[]>([0, 20]);
   const [salaryRange, setSalaryRange] = useState<number[]>([0, 300000]);
-  const [activityThresholds, setActivityThresholds] = useState<ActivityThresholds>(getActivityThresholds());
 
   useEffect(() => {
     loadCandidates();
@@ -165,13 +163,10 @@ export default function AdminCandidates() {
               Unified view of all candidate profiles and user data
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <ActivitySettingsDialog onThresholdsChange={setActivityThresholds} />
-            <Badge variant="outline" className="text-lg px-4 py-2">
-              <Users className="w-4 h-4 mr-2" />
-              {filteredCandidates.length} candidates
-            </Badge>
-          </div>
+          <Badge variant="outline" className="text-lg px-4 py-2">
+            <Users className="w-4 h-4 mr-2" />
+            {filteredCandidates.length} candidates
+          </Badge>
         </div>
 
         <MergeStatusDashboard />
@@ -293,7 +288,6 @@ export default function AdminCandidates() {
                   <UnifiedCandidateCard
                     key={candidate.id}
                     candidate={candidate}
-                    activityThresholds={activityThresholds}
                   />
                 ))}
               </div>
@@ -303,7 +297,6 @@ export default function AdminCandidates() {
                 selectedIds={selectedIds}
                 onSelectionChange={handleSelectionChange}
                 onSelectAll={handleSelectAll}
-                activityThresholds={activityThresholds}
               />
             )}
 

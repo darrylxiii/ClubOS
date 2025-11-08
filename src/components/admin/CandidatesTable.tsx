@@ -17,16 +17,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Mail, Phone, MoreVertical, Eye, FileText, Clock, Briefcase } from "lucide-react";
+import { Mail, Phone, MoreVertical, Eye, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { getActivityColor, getActivityLabel, ActivityThresholds } from "./ActivitySettingsDialog";
 
 interface CandidatesTableProps {
   candidates: any[];
   selectedIds: string[];
   onSelectionChange: (id: string, checked: boolean) => void;
   onSelectAll: (checked: boolean) => void;
-  activityThresholds: ActivityThresholds;
 }
 
 export function CandidatesTable({
@@ -34,18 +32,8 @@ export function CandidatesTable({
   selectedIds,
   onSelectionChange,
   onSelectAll,
-  activityThresholds,
 }: CandidatesTableProps) {
   const navigate = useNavigate();
-
-  const getActivityBgColor = (color: string) => {
-    switch (color) {
-      case 'green': return 'bg-green-100 text-green-700 border-green-200';
-      case 'yellow': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'red': return 'bg-red-100 text-red-700 border-red-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -79,8 +67,6 @@ export function CandidatesTable({
             <TableHead>Contact</TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Activity</TableHead>
-            <TableHead>Metrics</TableHead>
             <TableHead>Experience</TableHead>
             <TableHead>Completeness</TableHead>
             <TableHead className="w-12"></TableHead>
@@ -142,34 +128,6 @@ export function CandidatesTable({
                    candidate.invitation_status === 'invited' ? 'Invited' : 
                    candidate.invitation_status === 'not_invited' ? 'Not Invited' : 'Pending'}
                 </Badge>
-              </TableCell>
-              <TableCell>
-                <Badge 
-                  variant="outline" 
-                  className={getActivityBgColor(getActivityColor(candidate.last_interaction_date, activityThresholds))}
-                >
-                  <Clock className="w-3 h-3 mr-1" />
-                  {getActivityLabel(candidate.last_interaction_date)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                <div className="flex flex-col gap-1">
-                  {candidate.profile_views !== undefined && (
-                    <div className="flex items-center gap-1 text-xs">
-                      <Eye className="w-3 h-3" />
-                      <span>{candidate.profile_views} views</span>
-                    </div>
-                  )}
-                  {candidate.total_applications !== undefined && candidate.total_applications > 0 && (
-                    <div className="flex items-center gap-1 text-xs">
-                      <Briefcase className="w-3 h-3" />
-                      <span>{candidate.total_applications} apps</span>
-                    </div>
-                  )}
-                  {(!candidate.profile_views && !candidate.total_applications) && (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  )}
-                </div>
               </TableCell>
               <TableCell>
                 {candidate.years_of_experience ? (

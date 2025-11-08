@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import { 
   Bell, Mail, Calendar, Briefcase, CheckCircle, 
-  AlertCircle, Info, Archive, ExternalLink, Trash2, AtSign
+  AlertCircle, Info, Archive, ExternalLink, Trash2 
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -29,8 +29,6 @@ interface NotificationCardProps {
 
 const getNotificationIcon = (type: string) => {
   switch (type) {
-    case 'mention':
-      return <AtSign className="w-5 h-5" />;
     case 'message':
       return <Mail className="w-5 h-5" />;
     case 'interview':

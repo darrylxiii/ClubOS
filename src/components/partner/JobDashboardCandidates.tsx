@@ -61,16 +61,6 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
         .from('applications')
         .select(`
           *,
-          candidate_profiles!applications_candidate_id_fkey (
-            id,
-            user_id,
-            full_name,
-            email,
-            phone,
-            avatar_url,
-            current_title,
-            current_company
-          ),
           jobs!applications_job_id_fkey (
             id,
             title,
@@ -88,10 +78,44 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
 
       if (error) throw error;
 
-      // Map candidate_profiles to profiles for backward compatibility
-      const enrichedData = (data || []).map(app => ({
-        ...app,
-        profiles: app.candidate_profiles || (app.user_id ? null : null)
+      // Enrich with candidate profile data through candidate_interactions first, then profiles
+      const enrichedData = await Promise.all((data || []).map(async (app) => {
+        let profileData = null;
+        
+        // First try to get candidate_profile through candidate_interactions
+        const { data: interaction } = await supabase
+          .from('candidate_interactions')
+          .select(`
+            candidate_id,
+            candidate_profiles!candidate_interactions_candidate_id_fkey (
+              id,
+              user_id,
+              full_name,
+              email,
+              phone,
+              avatar_url
+            )
+          `)
+          .eq('application_id', app.id)
+          .maybeSingle();
+        
+        if (interaction?.candidate_profiles) {
+          profileData = interaction.candidate_profiles;
+        } else if (app.user_id) {
+          // Fallback to user profile if no candidate_profile found
+          const { data: userProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", app.user_id)
+            .maybeSingle();
+          profileData = userProfile;
+        }
+        
+        return {
+          ...app,
+          candidate_id: interaction?.candidate_id,
+          profiles: profileData
+        };
       }));
 
       setApplications(enrichedData || []);

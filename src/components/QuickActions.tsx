@@ -8,9 +8,7 @@ import {
   FileText, 
   Sparkles,
   Plus,
-  Search,
-  DollarSign,
-  Target
+  Search
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -27,24 +25,24 @@ export const QuickActions = () => {
       variant: "default" as const,
     },
     {
-      icon: DollarSign,
-      label: "Salary Insights",
-      description: "Know your market value",
-      action: () => navigate("/salary-insights"),
-      variant: "outline" as const,
-    },
-    {
       icon: MessageSquare,
-      label: "Interview Prep",
-      description: "Practice & succeed",
-      action: () => navigate("/interview-prep"),
+      label: "Message Strategist",
+      description: "Get expert guidance",
+      action: () => navigate("/messages"),
       variant: "outline" as const,
     },
     {
-      icon: Target,
-      label: "Career Path",
-      description: "Plan your growth",
-      action: () => navigate("/career-path"),
+      icon: Calendar,
+      label: "Schedule Meeting",
+      description: "Book a consultation",
+      action: () => navigate("/scheduling"),
+      variant: "outline" as const,
+    },
+    {
+      icon: Sparkles,
+      label: "Ask AI",
+      description: "Get instant help",
+      action: () => navigate("/club-ai"),
       variant: "outline" as const,
     },
   ];
