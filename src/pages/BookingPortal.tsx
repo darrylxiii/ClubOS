@@ -31,6 +31,8 @@ export default function BookingPortal() {
       setLoading(true);
       setError(null);
 
+      console.log("[BookingPortal] Loading booking:", bookingId);
+
       // Fetch booking with booking link details
       const { data: bookingData, error: bookingError } = await supabase
         .from("bookings")
@@ -48,15 +50,24 @@ export default function BookingPortal() {
         .eq("id", bookingId)
         .single();
 
-      if (bookingError) throw bookingError;
-      if (!bookingData) throw new Error("Booking not found");
+      if (bookingError) {
+        console.error("[BookingPortal] Database error:", bookingError);
+        throw new Error(`Database error: ${bookingError.message}`);
+      }
+      
+      if (!bookingData) {
+        console.error("[BookingPortal] Booking not found:", bookingId);
+        throw new Error("Booking not found");
+      }
 
+      console.log("[BookingPortal] Booking loaded successfully:", bookingData);
       setBooking(bookingData);
       setBookingLink(bookingData.booking_links);
     } catch (err: any) {
-      console.error("Error loading booking:", err);
-      setError(err.message || "Failed to load booking");
-      toast.error("Failed to load booking details");
+      console.error("[BookingPortal] Error loading booking:", err);
+      const errorMessage = err.message || "Failed to load booking";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

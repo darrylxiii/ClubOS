@@ -420,7 +420,11 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route path="/booking/:bookingId" element={<BookingPortal />} />
+            <Route path="/booking/:bookingId" element={
+              <RouteErrorBoundary>
+                <BookingPortal />
+              </RouteErrorBoundary>
+            } />
             <Route
               path="/admin"
               element={
