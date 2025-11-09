@@ -38,51 +38,51 @@ const DOCUMENT_TYPES = {
   'resume': { 
     label: 'CV/Resume', 
     icon: FileText, 
-    gradient: 'from-accent-gold/20 via-accent-gold/10 to-transparent', 
-    badge: 'bg-accent-gold/10 text-accent-gold border-accent-gold/30',
-    glow: 'hover:shadow-[0_0_20px_rgba(201,162,78,0.15)]'
+    gradient: 'from-blue-500/20 via-blue-500/10 to-transparent', 
+    badge: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+    glow: 'hover:shadow-md'
   },
   'cover_letter': { 
     label: 'Cover Letter', 
     icon: FileText, 
-    gradient: 'from-blue-500/20 via-blue-500/10 to-transparent', 
-    badge: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-    glow: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]'
+    gradient: 'from-slate-500/20 via-slate-500/10 to-transparent', 
+    badge: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
+    glow: 'hover:shadow-md'
   },
   'portfolio': { 
     label: 'Portfolio', 
     icon: FileImage, 
     gradient: 'from-purple-500/20 via-purple-500/10 to-transparent', 
     badge: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
-    glow: 'hover:shadow-[0_0_20px_rgba(168,85,247,0.15)]'
+    glow: 'hover:shadow-md'
   },
   'certificate': { 
     label: 'Certificate', 
     icon: Award, 
     gradient: 'from-green-500/20 via-green-500/10 to-transparent', 
     badge: 'bg-green-500/10 text-green-400 border-green-500/30',
-    glow: 'hover:shadow-[0_0_20px_rgba(34,197,94,0.15)]'
+    glow: 'hover:shadow-md'
   },
   'report': { 
     label: 'Report', 
     icon: FileCheck, 
     gradient: 'from-orange-500/20 via-orange-500/10 to-transparent', 
     badge: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
-    glow: 'hover:shadow-[0_0_20px_rgba(249,115,22,0.15)]'
+    glow: 'hover:shadow-md'
   },
   'reference': { 
     label: 'Reference', 
     icon: File, 
     gradient: 'from-pink-500/20 via-pink-500/10 to-transparent', 
     badge: 'bg-pink-500/10 text-pink-400 border-pink-500/30',
-    glow: 'hover:shadow-[0_0_20px_rgba(236,72,153,0.15)]'
+    glow: 'hover:shadow-md'
   },
   'other': { 
     label: 'Other', 
     icon: FolderOpen, 
     gradient: 'from-muted/20 via-muted/10 to-transparent', 
     badge: 'bg-muted/10 text-muted-foreground border-muted/30',
-    glow: 'hover:shadow-[0_0_20px_rgba(100,100,100,0.1)]'
+    glow: 'hover:shadow-md'
   },
 } as const;
 
@@ -315,7 +315,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-center space-y-3">
-          <div className="w-8 h-8 border-2 border-accent-gold border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-sm text-muted-foreground">Loading documents</p>
         </div>
       </div>
@@ -326,14 +326,14 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
     <div className="space-y-6">
       {/* Upload Section */}
       {canUpload && (
-        <Card className="border-border/40 bg-gradient-to-br from-card/50 to-background backdrop-blur-sm">
+        <Card className="border-border/40 bg-card/50">
           <CardContent className="pt-6">
             <div
               className={`
-                relative overflow-hidden rounded-xl border-2 transition-all duration-300
+                relative overflow-hidden rounded-xl border-2 transition-all duration-200
                 ${dragActive 
-                  ? 'border-accent-gold bg-accent-gold/5 shadow-[0_0_30px_rgba(201,162,78,0.2)]' 
-                  : 'border-dashed border-border/60 hover:border-accent-gold/50 hover:bg-accent-gold/5'
+                  ? 'border-primary bg-primary/5' 
+                  : 'border-dashed border-border/60 hover:border-primary/50'
                 }
               `}
               onDragEnter={handleDrag}
@@ -353,7 +353,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                 <div className="relative">
                   <Upload className={`
                     w-14 h-14 mx-auto mb-4 transition-all duration-300
-                    ${dragActive ? 'text-accent-gold scale-110' : 'text-foreground/60'}
+                    ${dragActive ? 'text-primary scale-110' : 'text-foreground/60'}
                   `} />
                   <div className="space-y-2">
                     <p className="text-base font-semibold text-foreground">
@@ -363,16 +363,13 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                       PDF, DOC, DOCX, JPG, PNG up to 10MB
                     </p>
                     {dragActive && (
-                      <p className="text-sm font-medium text-accent-gold animate-pulse">
+                      <p className="text-sm font-medium text-primary animate-pulse">
                         Release to upload
                       </p>
                     )}
                   </div>
                 </div>
               </label>
-              
-              {/* Decorative gradient overlay */}
-              <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/0 via-accent-gold/5 to-transparent pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
             </div>
           </CardContent>
         </Card>
@@ -541,7 +538,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                 Cancel
               </Button>
               <Button
-                className="flex-1 bg-accent-gold hover:bg-accent-gold/90 text-background"
+                className="flex-1"
                 onClick={handleUploadWithType}
                 disabled={uploading || !selectedType}
               >
