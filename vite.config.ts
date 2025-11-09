@@ -37,10 +37,7 @@ export default defineConfig(({ mode }) => ({
             return 'ui-vendor';
           }
           
-          // Chart/data viz libraries
-          if (id.includes('recharts') || id.includes('d3-')) {
-            return 'charts';
-          }
+          // Chart/data viz libraries - let Vite handle automatically to avoid circular deps
           
           // Form libraries
           if (id.includes('react-hook-form') || id.includes('zod')) {
