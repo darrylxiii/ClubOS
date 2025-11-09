@@ -17,6 +17,8 @@ import { BookingAvailabilitySettings } from "@/components/scheduling/BookingAvai
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookingAnalyticsDashboard } from "@/components/booking/BookingAnalyticsDashboard";
 import { CalendarConnectionStatus } from "@/components/scheduling/CalendarConnectionStatus";
+import { UpcomingMeetingsTimeline } from "@/components/booking/UpcomingMeetingsTimeline";
+import { BookingQuickStats } from "@/components/booking/BookingQuickStats";
 import { BarChart3 } from "lucide-react";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 
@@ -599,15 +601,19 @@ export default function Scheduling() {
         {/* Calendar Connection Status */}
         <CalendarConnectionStatus />
 
-        <Tabs defaultValue="links" className="w-full">
+        <Tabs defaultValue="dashboard" className="w-full">
           <TabsList>
+            <TabsTrigger value="dashboard">
+              <Calendar className="h-4 w-4 mr-2" />
+              Dashboard
+            </TabsTrigger>
             <TabsTrigger value="links">
               <LinkIcon className="h-4 w-4 mr-2" />
               Booking Links
             </TabsTrigger>
             <TabsTrigger value="bookings">
-              <Calendar className="h-4 w-4 mr-2" />
-              Upcoming Bookings
+              <Users className="h-4 w-4 mr-2" />
+              All Bookings
             </TabsTrigger>
             <TabsTrigger value="analytics">
               <BarChart3 className="h-4 w-4 mr-2" />
@@ -615,9 +621,14 @@ export default function Scheduling() {
             </TabsTrigger>
             <TabsTrigger value="availability">
               <Clock className="h-4 w-4 mr-2" />
-              Availability Settings
+              Availability
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard" className="space-y-6 mt-6">
+            <BookingQuickStats />
+            <UpcomingMeetingsTimeline />
+          </TabsContent>
 
           <TabsContent value="links" className="space-y-4 mt-6">
             {bookingLinks.length === 0 ? (
@@ -729,60 +740,66 @@ export default function Scheduling() {
           </TabsContent>
 
           <TabsContent value="bookings" className="space-y-4 mt-6">
-            {upcomingBookings.length === 0 ? (
-              <Card>
-                <CardContent className="flex flex-col items-center justify-center py-12">
-                  <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
-                  <p className="text-lg font-medium">No upcoming bookings</p>
-                  <p className="text-muted-foreground">Your confirmed meetings will appear here</p>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4">
-                {upcomingBookings.map((booking) => {
-                  const startDate = new Date(booking.scheduled_start);
-                  const endDate = new Date(booking.scheduled_end);
-                  
-                  return (
-                    <Card key={booking.id}>
-                      <CardHeader>
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <CardTitle>{booking.guest_name}</CardTitle>
-                            <CardDescription>{booking.guest_email}</CardDescription>
-                          </div>
-                          <Badge>{booking.status}</Badge>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex items-center gap-4 text-sm">
-                          <span className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4" />
-                            {startDate.toLocaleDateString("en-US", {
-                              weekday: "short",
-                              month: "short",
-                              day: "numeric",
-                            })}
-                          </span>
-                          <span className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            {startDate.toLocaleTimeString("en-US", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                            {" - "}
-                            {endDate.toLocaleTimeString("en-US", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+            <Card>
+              <CardHeader>
+                <CardTitle>All Bookings</CardTitle>
+                <CardDescription>Complete list of confirmed meetings</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {upcomingBookings.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12">
+                    <Calendar className="h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-lg font-medium">No upcoming bookings</p>
+                    <p className="text-muted-foreground">Your confirmed meetings will appear here</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {upcomingBookings.map((booking) => {
+                      const startDate = new Date(booking.scheduled_start);
+                      const endDate = new Date(booking.scheduled_end);
+                      
+                      return (
+                        <Card key={booking.id}>
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <CardTitle>{booking.guest_name}</CardTitle>
+                                <CardDescription>{booking.guest_email}</CardDescription>
+                              </div>
+                              <Badge>{booking.status}</Badge>
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="flex items-center gap-2">
+                                <Calendar className="h-4 w-4" />
+                                {startDate.toLocaleDateString("en-US", {
+                                  weekday: "short",
+                                  month: "short",
+                                  day: "numeric",
+                                })}
+                              </span>
+                              <span className="flex items-center gap-2">
+                                <Clock className="h-4 w-4" />
+                                {startDate.toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                                {" - "}
+                                {endDate.toLocaleTimeString("en-US", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="analytics" className="mt-6">
@@ -797,7 +814,10 @@ export default function Scheduling() {
       
       <AIPageCopilot 
         currentPage="/scheduling" 
-        contextData={{ bookingLinksCount: bookingLinks.length }}
+        contextData={{ 
+          bookingLinksCount: bookingLinks.length,
+          upcomingBookingsCount: upcomingBookings.length 
+        }}
       />
     </AppLayout>
   );

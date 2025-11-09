@@ -70,6 +70,7 @@ const CompanyJobsDashboard = lazy(() => import("./pages/CompanyJobsDashboard"));
 const Companies = lazy(() => import("./pages/Companies"));
 const CompanyPage = lazy(() => import("./pages/CompanyPage"));
 const Scheduling = lazy(() => import("./pages/Scheduling"));
+const BookingPortal = lazy(() => import("./pages/BookingPortal"));
 const JobDashboard = lazy(() => import("./pages/JobDashboard"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminCandidates = lazy(() => import("./pages/AdminCandidates"));
@@ -419,6 +420,7 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route path="/booking/:bookingId" element={<BookingPortal />} />
             <Route
               path="/admin"
               element={
