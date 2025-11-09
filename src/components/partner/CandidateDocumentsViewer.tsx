@@ -35,7 +35,7 @@ interface Props {
 }
 
 const DOCUMENT_TYPES = {
-  'resume': { 
+  'cv': { 
     label: 'CV/Resume', 
     icon: FileText, 
     gradient: 'from-blue-500/20 via-blue-500/10 to-transparent', 
@@ -63,13 +63,6 @@ const DOCUMENT_TYPES = {
     badge: 'bg-green-500/10 text-green-400 border-green-500/30',
     glow: 'hover:shadow-md'
   },
-  'report': { 
-    label: 'Report', 
-    icon: FileCheck, 
-    gradient: 'from-orange-500/20 via-orange-500/10 to-transparent', 
-    badge: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
-    glow: 'hover:shadow-md'
-  },
   'reference': { 
     label: 'Reference', 
     icon: File, 
@@ -94,7 +87,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedType, setSelectedType] = useState<string>('resume');
+  const [selectedType, setSelectedType] = useState<string>('cv');
   const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
@@ -256,7 +249,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
       
       setShowTypeSelector(false);
       setSelectedFile(null);
-      setSelectedType('resume');
+      setSelectedType('cv');
     } catch (error: any) {
       console.error('Upload error:', error);
       
