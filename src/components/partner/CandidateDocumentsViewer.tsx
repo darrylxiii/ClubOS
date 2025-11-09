@@ -3,13 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   FileText, Upload, Download, Eye, Trash2, 
-  CheckCircle2, FileCheck, User 
+  CheckCircle2, FileCheck, User, FileImage, Award, File, FolderOpen 
 } from "lucide-react";
 import { format } from "date-fns";
+import { Progress } from "@/components/ui/progress";
 
 interface Document {
   id: string;
@@ -29,21 +32,74 @@ interface Document {
 interface Props {
   candidateId: string;
   canUpload: boolean;
-  activeTab?: string;
 }
 
-export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: Props) => {
+const DOCUMENT_TYPES = {
+  'resume': { 
+    label: 'CV/Resume', 
+    icon: FileText, 
+    gradient: 'from-accent-gold/20 via-accent-gold/10 to-transparent', 
+    badge: 'bg-accent-gold/10 text-accent-gold border-accent-gold/30',
+    glow: 'hover:shadow-[0_0_20px_rgba(201,162,78,0.15)]'
+  },
+  'cover_letter': { 
+    label: 'Cover Letter', 
+    icon: FileText, 
+    gradient: 'from-blue-500/20 via-blue-500/10 to-transparent', 
+    badge: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
+    glow: 'hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]'
+  },
+  'portfolio': { 
+    label: 'Portfolio', 
+    icon: FileImage, 
+    gradient: 'from-purple-500/20 via-purple-500/10 to-transparent', 
+    badge: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
+    glow: 'hover:shadow-[0_0_20px_rgba(168,85,247,0.15)]'
+  },
+  'certificate': { 
+    label: 'Certificate', 
+    icon: Award, 
+    gradient: 'from-green-500/20 via-green-500/10 to-transparent', 
+    badge: 'bg-green-500/10 text-green-400 border-green-500/30',
+    glow: 'hover:shadow-[0_0_20px_rgba(34,197,94,0.15)]'
+  },
+  'report': { 
+    label: 'Report', 
+    icon: FileCheck, 
+    gradient: 'from-orange-500/20 via-orange-500/10 to-transparent', 
+    badge: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
+    glow: 'hover:shadow-[0_0_20px_rgba(249,115,22,0.15)]'
+  },
+  'reference': { 
+    label: 'Reference', 
+    icon: File, 
+    gradient: 'from-pink-500/20 via-pink-500/10 to-transparent', 
+    badge: 'bg-pink-500/10 text-pink-400 border-pink-500/30',
+    glow: 'hover:shadow-[0_0_20px_rgba(236,72,153,0.15)]'
+  },
+  'other': { 
+    label: 'Other', 
+    icon: FolderOpen, 
+    gradient: 'from-muted/20 via-muted/10 to-transparent', 
+    badge: 'bg-muted/10 text-muted-foreground border-muted/30',
+    glow: 'hover:shadow-[0_0_20px_rgba(100,100,100,0.1)]'
+  },
+} as const;
+
+export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+  const [showTypeSelector, setShowTypeSelector] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedType, setSelectedType] = useState<string>('resume');
+  const [dragActive, setDragActive] = useState(false);
 
   useEffect(() => {
-    // Only load when the team-assessment tab is active
-    if (activeTab === 'team-assessment') {
-      loadDocuments();
-    }
-  }, [candidateId, activeTab]);
+    loadDocuments();
+  }, [candidateId]);
 
   const loadDocuments = async () => {
     const { data, error } = await supabase
@@ -65,13 +121,12 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
       return;
     }
 
-    // Generate signed URLs and flatten uploader data
     const documentsWithUrls = await Promise.all(
       (data || []).map(async (doc: any) => {
         try {
           const { data: urlData } = await supabase.storage
             .from('resumes')
-            .createSignedUrl(doc.file_url, 3600); // 1 hour expiry
+            .createSignedUrl(doc.file_url, 3600);
           
           return {
             ...doc,
@@ -94,55 +149,91 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
     setLoading(false);
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
 
-    // Validate file size (max 10MB)
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      handleFileSelection(file);
+    }
+  };
+
+  const handleFileSelection = (file: File) => {
     if (file.size > 10 * 1024 * 1024) {
       toast.error('File size must be less than 10MB');
       return;
     }
+    setSelectedFile(file);
+    setShowTypeSelector(true);
+  };
+
+  const handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleFileSelection(file);
+    }
+  };
+
+  const handleUploadWithType = async () => {
+    if (!selectedFile) return;
 
     setUploading(true);
+    setUploadProgress(10);
+    
     try {
-      // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Upload to storage
-      const filePath = `${candidateId}/${Date.now()}-${file.name}`;
+      setUploadProgress(30);
+
+      const filePath = `${candidateId}/${Date.now()}-${selectedFile.name}`;
       const { error: uploadError } = await supabase.storage
         .from('resumes')
-        .upload(filePath, file);
+        .upload(filePath, selectedFile);
 
       if (uploadError) throw uploadError;
 
-      // Insert document record with file path (not public URL)
+      setUploadProgress(70);
+
       const { error: insertError } = await supabase
         .from('candidate_documents')
         .insert({
           candidate_id: candidateId,
-          document_type: file.type.includes('pdf') ? 'cv' : 'other',
-          file_name: file.name,
-          file_url: filePath, // Store path, not public URL
-          file_size_kb: Math.round(file.size / 1024),
-          mime_type: file.type,
+          document_type: selectedType,
+          file_name: selectedFile.name,
+          file_url: filePath,
+          file_size_kb: Math.round(selectedFile.size / 1024),
+          mime_type: selectedFile.type,
           uploaded_by: user.id,
         });
 
       if (insertError) throw insertError;
 
-      toast.success('Document uploaded successfully');
-      await loadDocuments(); // Reload to get the new document
+      setUploadProgress(100);
+      toast.success(`${DOCUMENT_TYPES[selectedType as keyof typeof DOCUMENT_TYPES]?.label} uploaded successfully`);
+      await loadDocuments();
       
-      // Reset file input
-      event.target.value = '';
+      setShowTypeSelector(false);
+      setSelectedFile(null);
+      setSelectedType('resume');
     } catch (error: any) {
       console.error('Upload error:', error);
       toast.error(error.message || 'Failed to upload document');
     } finally {
       setUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -157,14 +248,12 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
     if (!doc) return;
 
     try {
-      // Delete from storage first
       const { error: storageError } = await supabase.storage
         .from('resumes')
         .remove([doc.file_url.split('resumes/')[1] || doc.file_url]);
 
       if (storageError) console.error('Storage deletion error:', storageError);
 
-      // Delete from database
       const { error: dbError } = await supabase
         .from('candidate_documents')
         .delete()
@@ -180,51 +269,68 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
     }
   };
 
-  const getDocumentIcon = (type: string) => {
-    switch (type) {
-      case 'cv': return FileText;
-      case 'certificate': return FileCheck;
-      default: return FileText;
-    }
-  };
-
-  const getDocumentTypeColor = (type: string) => {
-    switch (type) {
-      case 'cv': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
-      case 'certificate': return 'bg-green-500/10 text-green-600 border-green-500/20';
-      case 'cover_letter': return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
-      default: return 'bg-muted/50 text-foreground border-border';
-    }
-  };
-
   if (loading) {
-    return <div className="text-center py-8">Loading documents...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-center space-y-3">
+          <div className="w-8 h-8 border-2 border-accent-gold border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-sm text-muted-foreground">Loading documents</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       {/* Upload Section */}
       {canUpload && (
-        <Card>
+        <Card className="border-border/40 bg-gradient-to-br from-card/50 to-background backdrop-blur-sm">
           <CardContent className="pt-6">
-            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-muted-foreground transition-colors">
+            <div
+              className={`
+                relative overflow-hidden rounded-xl border-2 transition-all duration-300
+                ${dragActive 
+                  ? 'border-accent-gold bg-accent-gold/5 shadow-[0_0_30px_rgba(201,162,78,0.2)]' 
+                  : 'border-dashed border-border/60 hover:border-accent-gold/50 hover:bg-accent-gold/5'
+                }
+              `}
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+            >
               <input
                 type="file"
                 id="document-upload"
                 className="hidden"
-                accept=".pdf,.doc,.docx"
-                onChange={handleFileUpload}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                onChange={handleFileInputChange}
                 disabled={uploading}
               />
-              <label htmlFor="document-upload" className="cursor-pointer">
-                <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-sm font-medium mb-1">
-                  {uploading ? 'Uploading...' : 'Click to upload document'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  PDF, DOC, DOCX up to 10MB
-                </p>
+              <label htmlFor="document-upload" className="cursor-pointer block p-12 text-center">
+                <div className="relative">
+                  <Upload className={`
+                    w-14 h-14 mx-auto mb-4 transition-all duration-300
+                    ${dragActive ? 'text-accent-gold scale-110' : 'text-muted-foreground'}
+                  `} />
+                  <div className="space-y-2">
+                    <p className="text-base font-semibold text-foreground">
+                      {uploading ? 'Uploading document...' : 'Drop file here or click to browse'}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      PDF, DOC, DOCX, JPG, PNG up to 10MB
+                    </p>
+                    {dragActive && (
+                      <p className="text-sm font-medium text-accent-gold animate-pulse">
+                        Release to upload
+                      </p>
+                    )}
+                  </div>
+                </div>
               </label>
+              
+              {/* Decorative gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/0 via-accent-gold/5 to-transparent pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300" />
             </div>
           </CardContent>
         </Card>
@@ -233,36 +339,53 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
       {/* Documents Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {documents.map((doc) => {
-          const Icon = getDocumentIcon(doc.document_type);
+          const typeInfo = DOCUMENT_TYPES[doc.document_type as keyof typeof DOCUMENT_TYPES] || DOCUMENT_TYPES.other;
+          const Icon = typeInfo.icon;
+          
           return (
-            <Card key={doc.id} className="hover:shadow-lg transition-shadow">
+            <Card 
+              key={doc.id} 
+              className={`
+                group relative overflow-hidden border-border/40 bg-gradient-to-br ${typeInfo.gradient}
+                backdrop-blur-sm transition-all duration-300 ${typeInfo.glow}
+              `}
+            >
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <Badge variant="outline" className={getDocumentTypeColor(doc.document_type)}>
-                    {doc.document_type.toUpperCase()}
+                <div className="flex items-start justify-between gap-2">
+                  <Badge variant="outline" className={`${typeInfo.badge} border font-medium`}>
+                    {typeInfo.label}
                   </Badge>
                   {doc.is_verified && (
-                    <CheckCircle2 className="w-4 h-4 text-green-600" />
+                    <div className="flex items-center gap-1 text-green-400">
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span className="text-xs font-medium">Verified</span>
+                    </div>
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
-                  <Icon className="w-8 h-8 text-muted-foreground flex-shrink-0" />
+                  <div className="p-2 rounded-lg bg-background/50 backdrop-blur-sm">
+                    <Icon className="w-6 h-6 text-foreground" />
+                  </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{doc.file_name}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {Math.round(doc.file_size_kb)}KB • v{doc.version_number}
+                    <p className="font-semibold text-sm truncate text-foreground mb-1">
+                      {doc.file_name}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {format(new Date(doc.uploaded_at), 'MMM d, yyyy HH:mm')}
-                    </p>
-                    {doc.uploader_name && (
-                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
-                        <User className="w-3 h-3" />
-                        {doc.uploader_name}
+                    <div className="space-y-1">
+                      <p className="text-xs text-muted-foreground">
+                        {Math.round(doc.file_size_kb)}KB • Version {doc.version_number}
                       </p>
-                    )}
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(doc.uploaded_at), 'MMM d, yyyy • HH:mm')}
+                      </p>
+                      {doc.uploader_name && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <User className="w-3 h-3" />
+                          {doc.uploader_name}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -270,65 +393,135 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex-1"
+                    className="flex-1 group-hover:border-accent-gold/50 transition-colors"
                     onClick={() => setPreviewDoc(doc)}
                   >
-                    <Eye className="w-3 h-3 mr-1" />
+                    <Eye className="w-3.5 h-3.5 mr-1.5" />
                     View
                   </Button>
                   <Button
                     size="sm"
                     variant="outline"
+                    className="group-hover:border-accent-gold/50 transition-colors"
                     onClick={() => handleDownload(doc)}
                   >
-                    <Download className="w-3 h-3" />
+                    <Download className="w-3.5 h-3.5" />
                   </Button>
                   {canUpload && (
                     <Button
                       size="sm"
                       variant="outline"
+                      className="hover:border-red-500/50 hover:text-red-500 transition-colors"
                       onClick={() => handleDelete(doc.id)}
                     >
-                      <Trash2 className="w-3 h-3" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   )}
                 </div>
-
-                {/* Parsing Results Preview */}
-                {doc.parsing_results && (
-                  <div className="text-xs text-muted-foreground bg-muted/30 rounded p-2">
-                    <p className="font-medium mb-1">AI Parsed:</p>
-                    <p className="line-clamp-2">
-                      {JSON.stringify(doc.parsing_results).substring(0, 80)}...
-                    </p>
-                  </div>
-                )}
               </CardContent>
+              
+              {/* Decorative glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-accent-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
             </Card>
           );
         })}
       </div>
 
       {documents.length === 0 && (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">No documents uploaded yet</p>
+        <Card className="border-border/40">
+          <CardContent className="py-16 text-center">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted/20 flex items-center justify-center">
+              <FileText className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <p className="text-base font-medium text-foreground mb-1">No documents yet</p>
+            <p className="text-sm text-muted-foreground">Upload the first document to get started</p>
           </CardContent>
         </Card>
       )}
+
+      {/* Document Type Selection Dialog */}
+      <Dialog open={showTypeSelector} onOpenChange={setShowTypeSelector}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Document Type</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {selectedFile && (
+              <div className="p-4 rounded-lg bg-muted/20 border border-border/40">
+                <p className="text-sm font-medium text-foreground mb-1">Selected file:</p>
+                <p className="text-sm text-muted-foreground truncate">{selectedFile.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {Math.round(selectedFile.size / 1024)}KB
+                </p>
+              </div>
+            )}
+            
+            <div className="space-y-3">
+              <Label htmlFor="document-type" className="text-sm font-medium">
+                Document Type
+              </Label>
+              <Select value={selectedType} onValueChange={setSelectedType}>
+                <SelectTrigger id="document-type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.entries(DOCUMENT_TYPES).map(([key, value]) => (
+                    <SelectItem key={key} value={key}>
+                      <div className="flex items-center gap-2">
+                        <value.icon className="w-4 h-4" />
+                        {value.label}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {uploading && (
+              <div className="space-y-2">
+                <Progress value={uploadProgress} />
+                <p className="text-xs text-center text-muted-foreground">
+                  Uploading... {uploadProgress}%
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowTypeSelector(false);
+                  setSelectedFile(null);
+                }}
+                disabled={uploading}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-accent-gold hover:bg-accent-gold/90 text-background"
+                onClick={handleUploadWithType}
+                disabled={uploading}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Preview Dialog */}
       <Dialog open={!!previewDoc} onOpenChange={() => setPreviewDoc(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle>{previewDoc?.file_name}</DialogTitle>
+            <DialogTitle className="truncate">{previewDoc?.file_name}</DialogTitle>
           </DialogHeader>
-          <div className="overflow-auto">
+          <div className="overflow-auto rounded-lg border border-border/40">
             {previewDoc && (
               <iframe
                 src={previewDoc.file_url}
-                className="w-full h-[70vh] border rounded"
+                className="w-full h-[70vh]"
                 title="Document preview"
               />
             )}

@@ -395,7 +395,6 @@ export default function CandidateProfile() {
                       <CandidateDocumentsViewer 
                         candidateId={id!} 
                         canUpload={isTeamView}
-                        activeTab={activeTab}
                       />
                     </ErrorBoundary>
                   </CardContent>
