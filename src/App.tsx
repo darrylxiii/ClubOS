@@ -135,13 +135,15 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
-              <AuthProvider>
-              <RoleProvider>
-                <NavigationHistoryProvider>
-                  <MotionProvider>
-                    <VideoPlayerProvider>
-                    <Suspense fallback={<PageLoader />}>
-                      <Routes>
+              <ErrorBoundary>
+                <AuthProvider>
+                  <ErrorBoundary>
+                    <RoleProvider>
+                      <NavigationHistoryProvider>
+                        <MotionProvider>
+                          <VideoPlayerProvider>
+                            <Suspense fallback={<PageLoader />}>
+                              <Routes>
                 <Route path="/" element={
                   <RouteErrorBoundary>
                     <Navigate to="/auth" replace />
@@ -719,11 +721,13 @@ const App = () => (
               <FloatingVideoPlayer />
             </VideoPlayerProvider>
           </MotionProvider>
-          </NavigationHistoryProvider>
-        </RoleProvider>
-        </AuthProvider>
-        </BrowserRouter>
-          </TooltipProvider>
+        </NavigationHistoryProvider>
+      </RoleProvider>
+      </ErrorBoundary>
+      </AuthProvider>
+      </ErrorBoundary>
+      </BrowserRouter>
+        </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
   </ErrorBoundary>
