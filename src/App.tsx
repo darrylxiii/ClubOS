@@ -109,7 +109,7 @@ const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 
 // Loading fallback component
 const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-eclipse">
+  <div className="flex items-center justify-center min-h-screen bg-background">
     <Loader2 className="h-8 w-8 animate-spin text-primary" />
   </div>
 );
@@ -510,9 +510,11 @@ const App = () => (
             <Route
               path="/feed"
               element={
-                <ProtectedRoute>
-                  <Feed />
-                </ProtectedRoute>
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <Feed />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
               }
             />
             <Route path="/post/:id" element={<Post />} />
