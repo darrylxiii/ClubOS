@@ -169,6 +169,8 @@ ${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links
           synced_to_calendar: true,
           calendar_event_id: calendarEventId,
           calendar_provider: calendar.provider,
+          calendar_sync_status: 'synced',
+          last_sync_attempt: new Date().toISOString(),
         })
         .eq("id", bookingId);
       
@@ -177,6 +179,16 @@ ${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links
       } else {
         console.log("[Sync] Booking updated successfully");
       }
+    } else {
+      // Mark sync as failed
+      await supabaseClient
+        .from("bookings")
+        .update({
+          calendar_sync_status: 'failed',
+          last_sync_attempt: new Date().toISOString(),
+          sync_error_message: errorMessage,
+        })
+        .eq("id", bookingId);
     }
 
     // Log sync attempt
