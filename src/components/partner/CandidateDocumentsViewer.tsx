@@ -104,13 +104,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   const loadDocuments = async () => {
     const { data, error } = await supabase
       .from('candidate_documents')
-      .select(`
-        *,
-        uploader:uploaded_by (
-          full_name,
-          email
-        )
-      `)
+      .select('*')
       .eq('candidate_id', candidateId)
       .order('uploaded_at', { ascending: false });
 
@@ -121,6 +115,15 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
       return;
     }
 
+    // Fetch uploader info separately
+    const uploaderIds = [...new Set((data || []).map(doc => doc.uploaded_by).filter(Boolean))];
+    const { data: uploaders } = await supabase
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', uploaderIds);
+
+    const uploaderMap = new Map(uploaders?.map(u => [u.id, u]) || []);
+
     const documentsWithUrls = await Promise.all(
       (data || []).map(async (doc: any) => {
         try {
@@ -128,18 +131,21 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
             .from('resumes')
             .createSignedUrl(doc.file_url, 3600);
           
+          const uploader = uploaderMap.get(doc.uploaded_by);
+          
           return {
             ...doc,
             file_url: urlData?.signedUrl || doc.file_url,
-            uploader_name: doc.uploader?.full_name,
-            uploader_email: doc.uploader?.email,
+            uploader_name: uploader?.full_name,
+            uploader_email: uploader?.email,
           };
         } catch (error) {
           console.error('Error creating signed URL:', error);
+          const uploader = uploaderMap.get(doc.uploaded_by);
           return {
             ...doc,
-            uploader_name: doc.uploader?.full_name,
-            uploader_email: doc.uploader?.email,
+            uploader_name: uploader?.full_name,
+            uploader_email: uploader?.email,
           };
         }
       })
