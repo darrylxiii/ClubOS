@@ -22,6 +22,11 @@ export class RouteErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
+    console.error('Route Error Caught:', {
+      error: error.message,
+      stack: error.stack,
+      componentStack: errorInfo.componentStack
+    });
     logger.error('Route chunk failed to load', error, { 
       componentStack: errorInfo.componentStack 
     });

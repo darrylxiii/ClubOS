@@ -142,12 +142,36 @@ const App = () => (
                     <VideoPlayerProvider>
                     <Suspense fallback={<PageLoader />}>
                       <Routes>
-                <Route path="/" element={<Navigate to="/auth" replace />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="/book/:slug" element={<BookingPage />} />
-                <Route path="/share/:token" element={<SharedProfile />} />
+                <Route path="/" element={
+                  <RouteErrorBoundary>
+                    <Navigate to="/auth" replace />
+                  </RouteErrorBoundary>
+                } />
+                <Route path="/auth" element={
+                  <RouteErrorBoundary>
+                    <Auth />
+                  </RouteErrorBoundary>
+                } />
+                <Route path="/privacy" element={
+                  <RouteErrorBoundary>
+                    <PrivacyPolicy />
+                  </RouteErrorBoundary>
+                } />
+                <Route path="/terms" element={
+                  <RouteErrorBoundary>
+                    <TermsOfService />
+                  </RouteErrorBoundary>
+                } />
+                <Route path="/book/:slug" element={
+                  <RouteErrorBoundary>
+                    <BookingPage />
+                  </RouteErrorBoundary>
+                } />
+                <Route path="/share/:token" element={
+                  <RouteErrorBoundary>
+                    <SharedProfile />
+                  </RouteErrorBoundary>
+                } />
           <Route path="/partner-funnel" element={<PartnerFunnel />} />
           <Route path="/partnership-submitted/:companyName" element={<PartnershipSubmitted />} />
           <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
