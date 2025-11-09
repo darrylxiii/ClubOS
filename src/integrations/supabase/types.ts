@@ -2494,9 +2494,12 @@ export type Database = {
       }
       candidate_documents: {
         Row: {
+          archived: boolean | null
+          archived_at: string | null
           candidate_id: string
           created_at: string | null
           document_type: string
+          expiry_date: string | null
           file_name: string
           file_size_kb: number | null
           file_url: string
@@ -2508,14 +2511,18 @@ export type Database = {
           updated_at: string | null
           uploaded_at: string | null
           uploaded_by: string | null
+          uploaded_by_role: string | null
           verification_notes: string | null
           version_number: number | null
           visible_to_candidate: boolean | null
         }
         Insert: {
+          archived?: boolean | null
+          archived_at?: string | null
           candidate_id: string
           created_at?: string | null
           document_type: string
+          expiry_date?: string | null
           file_name: string
           file_size_kb?: number | null
           file_url: string
@@ -2527,14 +2534,18 @@ export type Database = {
           updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null
+          uploaded_by_role?: string | null
           verification_notes?: string | null
           version_number?: number | null
           visible_to_candidate?: boolean | null
         }
         Update: {
+          archived?: boolean | null
+          archived_at?: string | null
           candidate_id?: string
           created_at?: string | null
           document_type?: string
+          expiry_date?: string | null
           file_name?: string
           file_size_kb?: number | null
           file_url?: string
@@ -2546,6 +2557,7 @@ export type Database = {
           updated_at?: string | null
           uploaded_at?: string | null
           uploaded_by?: string | null
+          uploaded_by_role?: string | null
           verification_notes?: string | null
           version_number?: number | null
           visible_to_candidate?: boolean | null
@@ -14998,6 +15010,7 @@ export type Database = {
       }
     }
     Functions: {
+      archive_expired_documents: { Args: never; Returns: undefined }
       calculate_objective_completion: {
         Args: { objective_uuid: string }
         Returns: number

@@ -4,15 +4,18 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   FileText, Upload, Download, Eye, Trash2, 
-  CheckCircle2, FileCheck, User, FileImage, Award, File, FolderOpen, Loader2 
+  CheckCircle2, FileCheck, User, FileImage, Award, File, FolderOpen, Loader2,
+  Calendar, AlertTriangle, Archive, ArchiveRestore
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { Progress } from "@/components/ui/progress";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Document {
   id: string;
@@ -27,6 +30,10 @@ interface Document {
   parsing_results?: any;
   uploader_name?: string;
   uploader_email?: string;
+  expiry_date?: string | null;
+  archived?: boolean;
+  archived_at?: string | null;
+  uploaded_by_role?: string | null;
 }
 
 interface Props {
@@ -80,6 +87,7 @@ const DOCUMENT_TYPES = {
 } as const;
 
 export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
+  const { role } = useUserRole();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -89,17 +97,27 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedType, setSelectedType] = useState<string>('cv');
   const [dragActive, setDragActive] = useState(false);
+  const [expiryDate, setExpiryDate] = useState<string>('');
+  const [showArchived, setShowArchived] = useState(false);
+  
+  const isAdminOrPartner = role === 'admin' || role === 'partner' || role === 'strategist';
 
   useEffect(() => {
     loadDocuments();
-  }, [candidateId]);
+  }, [candidateId, showArchived]);
 
   const loadDocuments = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from('candidate_documents')
       .select('*')
-      .eq('candidate_id', candidateId)
-      .order('uploaded_at', { ascending: false });
+      .eq('candidate_id', candidateId);
+    
+    // Filter out archived documents unless showArchived is true
+    if (!showArchived) {
+      query = query.or('archived.is.null,archived.eq.false');
+    }
+    
+    const { data, error } = await query.order('uploaded_at', { ascending: false });
 
     if (error) {
       console.error('Error loading documents:', error);
@@ -239,6 +257,8 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
           file_size_kb: Math.round(selectedFile.size / 1024),
           mime_type: selectedFile.type,
           uploaded_by: user.id,
+          uploaded_by_role: role,
+          expiry_date: expiryDate || null,
         });
 
       if (insertError) throw insertError;
@@ -250,6 +270,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
       setShowTypeSelector(false);
       setSelectedFile(null);
       setSelectedType('cv');
+      setExpiryDate('');
     } catch (error: any) {
       console.error('Upload error:', error);
       
@@ -274,6 +295,39 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
   const handleDownload = async (doc: Document) => {
     window.open(doc.file_url, '_blank');
+  };
+
+  const handleArchiveToggle = async (docId: string, currentArchived: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('candidate_documents')
+        .update({
+          archived: !currentArchived,
+          archived_at: !currentArchived ? new Date().toISOString() : null,
+        })
+        .eq('id', docId);
+
+      if (error) throw error;
+
+      toast.success(currentArchived ? 'Document restored' : 'Document archived');
+      await loadDocuments();
+    } catch (error) {
+      console.error('Archive error:', error);
+      toast.error('Failed to update document');
+    }
+  };
+
+  const getExpiryStatus = (expiryDate: string | null | undefined) => {
+    if (!expiryDate) return null;
+    
+    const daysUntilExpiry = differenceInDays(new Date(expiryDate), new Date());
+    
+    if (daysUntilExpiry < 0) {
+      return { type: 'expired', label: 'Expired', className: 'bg-red-500/10 text-red-400 border-red-500/30' };
+    } else if (daysUntilExpiry <= 30) {
+      return { type: 'expiring', label: `${daysUntilExpiry}d left`, className: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30' };
+    }
+    return null;
   };
 
   const handleDelete = async (docId: string) => {
@@ -317,6 +371,29 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
   return (
     <div className="space-y-6">
+      {/* Archive Toggle */}
+      {isAdminOrPartner && documents.length > 0 && (
+        <div className="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowArchived(!showArchived)}
+          >
+            {showArchived ? (
+              <>
+                <Eye className="w-4 h-4 mr-2" />
+                Hide Archived
+              </>
+            ) : (
+              <>
+                <Archive className="w-4 h-4 mr-2" />
+                Show Archived
+              </>
+            )}
+          </Button>
+        </div>
+      )}
+
       {/* Upload Section */}
       {canUpload && (
         <Card className="border-border/40 bg-card/50">
@@ -373,6 +450,9 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
         {documents.map((doc) => {
           const typeInfo = DOCUMENT_TYPES[doc.document_type as keyof typeof DOCUMENT_TYPES] || DOCUMENT_TYPES.other;
           const Icon = typeInfo.icon;
+          const expiryStatus = getExpiryStatus(doc.expiry_date);
+          const canManageDocument = isAdminOrPartner && 
+            (doc.uploaded_by_role === 'admin' || doc.uploaded_by_role === 'partner' || doc.uploaded_by_role === 'strategist');
           
           return (
             <Card 
@@ -380,13 +460,32 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
               className={`
                 group relative overflow-hidden border-border/40 bg-gradient-to-br ${typeInfo.gradient}
                 backdrop-blur-sm transition-all duration-300 ${typeInfo.glow}
+                ${doc.archived ? 'opacity-60' : ''}
               `}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
-                  <Badge variant="outline" className={`${typeInfo.badge} border font-medium`}>
-                    {typeInfo.label}
-                  </Badge>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant="outline" className={`${typeInfo.badge} border font-medium`}>
+                      {typeInfo.label}
+                    </Badge>
+                    {doc.archived && (
+                      <Badge variant="outline" className="bg-muted/10 text-muted-foreground border-muted/30">
+                        <Archive className="w-3 h-3 mr-1" />
+                        Archived
+                      </Badge>
+                    )}
+                    {expiryStatus && (
+                      <Badge variant="outline" className={`${expiryStatus.className} border`}>
+                        {expiryStatus.type === 'expired' ? (
+                          <AlertTriangle className="w-3 h-3 mr-1" />
+                        ) : (
+                          <Calendar className="w-3 h-3 mr-1" />
+                        )}
+                        {expiryStatus.label}
+                      </Badge>
+                    )}
+                  </div>
                   {doc.is_verified && (
                     <div className="flex items-center gap-1 text-green-400">
                       <CheckCircle2 className="w-4 h-4" />
@@ -417,6 +516,12 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                           {doc.uploader_name}
                         </p>
                       )}
+                      {doc.expiry_date && (
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3 h-3" />
+                          Expires: {format(new Date(doc.expiry_date), 'MMM d, yyyy')}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -425,7 +530,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="flex-1 group-hover:border-accent-gold/50 transition-colors"
+                    className="flex-1 group-hover:border-primary/50 transition-colors"
                     onClick={() => setPreviewDoc(doc)}
                   >
                     <Eye className="w-3.5 h-3.5 mr-1.5" />
@@ -434,11 +539,26 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="group-hover:border-accent-gold/50 transition-colors"
+                    className="group-hover:border-primary/50 transition-colors"
                     onClick={() => handleDownload(doc)}
                   >
                     <Download className="w-3.5 h-3.5" />
                   </Button>
+                  {canManageDocument && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="hover:border-primary/50 transition-colors"
+                      onClick={() => handleArchiveToggle(doc.id, doc.archived || false)}
+                      title={doc.archived ? 'Restore document' : 'Archive document'}
+                    >
+                      {doc.archived ? (
+                        <ArchiveRestore className="w-3.5 h-3.5" />
+                      ) : (
+                        <Archive className="w-3.5 h-3.5" />
+                      )}
+                    </Button>
+                  )}
                   {canUpload && (
                     <Button
                       size="sm"
@@ -451,9 +571,6 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                   )}
                 </div>
               </CardContent>
-              
-              {/* Decorative glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-accent-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
             </Card>
           );
         })}
@@ -508,6 +625,25 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                 </SelectContent>
               </Select>
             </div>
+
+            {isAdminOrPartner && (
+              <div className="space-y-3">
+                <Label htmlFor="expiry-date" className="text-sm font-medium">
+                  Expiry Date (Optional)
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Documents will be automatically archived after this date for GDPR compliance
+                </p>
+                <Input
+                  id="expiry-date"
+                  type="date"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                  className="w-full"
+                />
+              </div>
+            )}
 
             {uploading && (
               <div className="space-y-2">
