@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   FileText, Upload, Download, Eye, Trash2, 
-  CheckCircle2, FileCheck 
+  CheckCircle2, FileCheck, User 
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -22,6 +22,8 @@ interface Document {
   is_verified: boolean;
   version_number: number;
   parsing_results?: any;
+  uploader_name?: string;
+  uploader_email?: string;
 }
 
 interface Props {
@@ -46,7 +48,13 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
   const loadDocuments = async () => {
     const { data, error } = await supabase
       .from('candidate_documents')
-      .select('*')
+      .select(`
+        *,
+        uploader:uploaded_by (
+          full_name,
+          email
+        )
+      `)
       .eq('candidate_id', candidateId)
       .order('uploaded_at', { ascending: false });
 
@@ -57,9 +65,9 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
       return;
     }
 
-    // Generate signed URLs for all documents
+    // Generate signed URLs and flatten uploader data
     const documentsWithUrls = await Promise.all(
-      (data || []).map(async (doc) => {
+      (data || []).map(async (doc: any) => {
         try {
           const { data: urlData } = await supabase.storage
             .from('resumes')
@@ -68,10 +76,16 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
           return {
             ...doc,
             file_url: urlData?.signedUrl || doc.file_url,
+            uploader_name: doc.uploader?.full_name,
+            uploader_email: doc.uploader?.email,
           };
         } catch (error) {
           console.error('Error creating signed URL:', error);
-          return doc;
+          return {
+            ...doc,
+            uploader_name: doc.uploader?.full_name,
+            uploader_email: doc.uploader?.email,
+          };
         }
       })
     );
@@ -241,8 +255,14 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload, activeTab }: 
                       {Math.round(doc.file_size_kb)}KB • v{doc.version_number}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {format(new Date(doc.uploaded_at), 'MMM d, yyyy')}
+                      {format(new Date(doc.uploaded_at), 'MMM d, yyyy HH:mm')}
                     </p>
+                    {doc.uploader_name && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                        <User className="w-3 h-3" />
+                        {doc.uploader_name}
+                      </p>
+                    )}
                   </div>
                 </div>
 
