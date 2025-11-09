@@ -26,6 +26,7 @@ import {
   GraduationCap,
   ClipboardCheck,
   Mail,
+  Link2,
   type LucideIcon,
 } from "lucide-react";
 
@@ -141,6 +142,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Building,
       items: [
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
+        { name: "Merge Dashboard", icon: Link2, path: "/admin/merge-dashboard" },
         { name: "Companies", icon: Building, path: "/companies" },
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
         { name: "Applications", icon: FileText, path: "/applications" },
