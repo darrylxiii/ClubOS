@@ -17,10 +17,10 @@ const Assessments = memo(() => {
         />
         
         {/* Header */}
-        <div className="space-y-3 text-center max-w-2xl mx-auto">
-          <h1 className="text-4xl font-bold">Assessments</h1>
+        <div className="space-y-3 text-center max-w-3xl mx-auto">
+          <h1 className="text-5xl font-bold tracking-tight">Assessment Center</h1>
           <p className="text-lg text-muted-foreground">
-            Discover your strengths, personality, and ideal job matches through our curated assessments.
+            Discover your strengths and unlock opportunities through our comprehensive assessment suite
           </p>
         </div>
 
@@ -32,8 +32,8 @@ const Assessments = memo(() => {
         </div>
 
         {/* Coming Soon Note */}
-        <div className="text-center text-sm text-muted-foreground">
-          More assessments coming soon! 🚀
+        <div className="text-center text-sm text-muted-foreground mt-8">
+          More assessments coming soon
         </div>
       </div>
     </AppLayout>

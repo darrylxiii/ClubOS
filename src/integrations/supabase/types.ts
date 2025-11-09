@@ -1207,16 +1207,116 @@ export type Database = {
           },
         ]
       }
+      assessment_analytics: {
+        Row: {
+          assessment_id: string
+          avg_score: number | null
+          avg_time_spent: number | null
+          completion_rate: number | null
+          created_at: string
+          date: string
+          id: string
+          total_attempts: number
+          total_completions: number
+          updated_at: string
+        }
+        Insert: {
+          assessment_id: string
+          avg_score?: number | null
+          avg_time_spent?: number | null
+          completion_rate?: number | null
+          created_at?: string
+          date: string
+          id?: string
+          total_attempts?: number
+          total_completions?: number
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string
+          avg_score?: number | null
+          avg_time_spent?: number | null
+          completion_rate?: number | null
+          created_at?: string
+          date?: string
+          id?: string
+          total_attempts?: number
+          total_completions?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      assessment_assignments: {
+        Row: {
+          assessment_id: string
+          assessment_type: string
+          assigned_at: string
+          assigned_by: string
+          assigned_to: string
+          company_id: string | null
+          completed_at: string | null
+          created_at: string
+          due_date: string | null
+          id: string
+          job_id: string | null
+          notes: string | null
+          reminder_sent_at: string | null
+          result_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assessment_id: string
+          assessment_type: string
+          assigned_at?: string
+          assigned_by: string
+          assigned_to: string
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          reminder_sent_at?: string | null
+          result_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string
+          assessment_type?: string
+          assigned_at?: string
+          assigned_by?: string
+          assigned_to?: string
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          job_id?: string | null
+          notes?: string | null
+          reminder_sent_at?: string | null
+          result_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       assessment_results: {
         Row: {
           assessment_id: string
           assessment_name: string
           assessment_type: string
+          assignment_id: string | null
+          attempt_number: number | null
           completed_at: string
           created_at: string
           id: string
+          is_latest: boolean | null
           results_data: Json
           score: number | null
+          time_spent_seconds: number | null
           updated_at: string
           user_id: string
         }
@@ -1224,11 +1324,15 @@ export type Database = {
           assessment_id: string
           assessment_name: string
           assessment_type: string
+          assignment_id?: string | null
+          attempt_number?: number | null
           completed_at?: string
           created_at?: string
           id?: string
+          is_latest?: boolean | null
           results_data?: Json
           score?: number | null
+          time_spent_seconds?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1236,13 +1340,70 @@ export type Database = {
           assessment_id?: string
           assessment_name?: string
           assessment_type?: string
+          assignment_id?: string | null
+          attempt_number?: number | null
           completed_at?: string
           created_at?: string
           id?: string
+          is_latest?: boolean | null
           results_data?: Json
           score?: number | null
+          time_spent_seconds?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_results_assignment_id_fkey"
+            columns: ["assignment_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_assignments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_templates: {
+        Row: {
+          category: string
+          configuration: Json
+          created_at: string
+          created_by: string
+          description: string | null
+          estimated_time: number
+          icon: string | null
+          id: string
+          is_active: boolean
+          is_public: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          configuration?: Json
+          created_at?: string
+          created_by: string
+          description?: string | null
+          estimated_time?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_public?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          configuration?: Json
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          estimated_time?: number
+          icon?: string | null
+          id?: string
+          is_active?: boolean
+          is_public?: boolean
+          title?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -15034,6 +15195,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      update_expired_assignments: { Args: never; Returns: undefined }
       update_relationship_score: {
         Args: { p_related_user_id: string; p_user_id: string }
         Returns: undefined

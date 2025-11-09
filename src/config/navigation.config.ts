@@ -148,6 +148,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Applications", icon: FileText, path: "/applications" },
         { name: "Global Rejections", icon: TrendingUp, path: "/admin/rejections" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
+        { name: "Assessments Hub", icon: ClipboardCheck, path: "/admin/assessments-hub" },
         { name: "Feedback Database", icon: MessagesSquare, path: "/feedback-database" },
         { name: "Club Sync Requests", icon: Zap, path: "/admin/club-sync-requests" },
         { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },

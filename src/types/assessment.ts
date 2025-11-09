@@ -303,3 +303,77 @@ export interface ValuesPokerResult {
   cultureFitScores: { [key: string]: number };
   redFlags: string[];
 }
+
+// Assessment Template Types (Custom Assessments)
+export interface AssessmentTemplate {
+  id: string;
+  created_by: string;
+  title: string;
+  description: string;
+  category: 'personality' | 'skills' | 'culture' | 'technical' | 'custom' | 'strategic';
+  icon: string;
+  estimated_time: number;
+  is_active: boolean;
+  is_public: boolean;
+  configuration: AssessmentConfiguration;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AssessmentConfiguration {
+  questions: AssessmentQuestion[];
+  scoring_rules?: ScoringRule[];
+  pass_threshold?: number;
+}
+
+export interface AssessmentQuestion {
+  id: string;
+  type: 'multiple_choice' | 'scale' | 'scenario' | 'text' | 'ranking' | 'file' | 'video' | 'code';
+  question_text: string;
+  help_text?: string;
+  options?: string[];
+  correct_answers?: string[];
+  point_value: number;
+  skills_measured?: string[];
+  time_limit?: number;
+  required: boolean;
+}
+
+export interface ScoringRule {
+  skill: string;
+  weight: number;
+}
+
+// Assessment Assignment Types
+export interface AssessmentAssignment {
+  id: string;
+  assessment_id: string;
+  assessment_type: 'built-in' | 'custom';
+  assigned_to: string;
+  assigned_by: string;
+  assigned_at: string;
+  due_date?: string;
+  status: 'pending' | 'in_progress' | 'completed' | 'expired';
+  completed_at?: string;
+  result_id?: string;
+  notes?: string;
+  company_id?: string;
+  job_id?: string;
+  reminder_sent_at?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// Assessment Analytics Types
+export interface AssessmentAnalytics {
+  id: string;
+  assessment_id: string;
+  date: string;
+  total_attempts: number;
+  total_completions: number;
+  avg_score?: number;
+  avg_time_spent?: number;
+  completion_rate?: number;
+  created_at: string;
+  updated_at: string;
+}
