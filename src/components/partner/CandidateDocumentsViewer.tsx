@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   FileText, Upload, Download, Eye, Trash2, 
-  CheckCircle2, FileCheck, User, FileImage, Award, File, FolderOpen 
+  CheckCircle2, FileCheck, User, FileImage, Award, File, FolderOpen, Loader2 
 } from "lucide-react";
 import { format } from "date-fns";
 import { Progress } from "@/components/ui/progress";
@@ -192,6 +192,28 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
     }
   };
 
+  const sanitizeFilename = (filename: string): string => {
+    // Remove file extension
+    const lastDotIndex = filename.lastIndexOf('.');
+    const name = lastDotIndex > 0 ? filename.substring(0, lastDotIndex) : filename;
+    const ext = lastDotIndex > 0 ? filename.substring(lastDotIndex) : '';
+    
+    // Sanitize the name part:
+    // 1. Remove any soft hyphens and zero-width characters
+    // 2. Replace spaces and special chars with hyphens
+    // 3. Remove consecutive hyphens
+    // 4. Convert to lowercase for consistency
+    const sanitized = name
+      .replace(/[\u00AD\u200B-\u200D\uFEFF]/g, '') // Remove invisible chars
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
+      .replace(/[^a-zA-Z0-9._-]/g, '-') // Replace special chars
+      .replace(/-+/g, '-') // Remove consecutive hyphens
+      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
+      .toLowerCase();
+    
+    return `${sanitized}${ext}`;
+  };
+
   const handleUploadWithType = async () => {
     if (!selectedFile) return;
 
@@ -204,7 +226,8 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
       setUploadProgress(30);
 
-      const filePath = `${candidateId}/${Date.now()}-${selectedFile.name}`;
+      const sanitizedName = sanitizeFilename(selectedFile.name);
+      const filePath = `${candidateId}/${Date.now()}-${sanitizedName}`;
       const { error: uploadError } = await supabase.storage
         .from('resumes')
         .upload(filePath, selectedFile);
@@ -236,7 +259,20 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
       setSelectedType('resume');
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast.error(error.message || 'Failed to upload document');
+      
+      // Provide specific error messages
+      let errorMessage = 'Failed to upload document';
+      if (error.message?.includes('Invalid key')) {
+        errorMessage = 'Invalid filename. Please rename the file and try again.';
+      } else if (error.message?.includes('size')) {
+        errorMessage = 'File is too large. Maximum size is 10MB.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+      setShowTypeSelector(false);
+      setSelectedFile(null);
     } finally {
       setUploading(false);
       setUploadProgress(0);
@@ -317,13 +353,13 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
                 <div className="relative">
                   <Upload className={`
                     w-14 h-14 mx-auto mb-4 transition-all duration-300
-                    ${dragActive ? 'text-accent-gold scale-110' : 'text-muted-foreground'}
+                    ${dragActive ? 'text-accent-gold scale-110' : 'text-foreground/60'}
                   `} />
                   <div className="space-y-2">
                     <p className="text-base font-semibold text-foreground">
                       {uploading ? 'Uploading document...' : 'Drop file here or click to browse'}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-foreground/70">
                       PDF, DOC, DOCX, JPG, PNG up to 10MB
                     </p>
                     {dragActive && (
@@ -507,10 +543,19 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
               <Button
                 className="flex-1 bg-accent-gold hover:bg-accent-gold/90 text-background"
                 onClick={handleUploadWithType}
-                disabled={uploading}
+                disabled={uploading || !selectedType}
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Upload Document
+                  </>
+                )}
               </Button>
             </div>
           </div>
