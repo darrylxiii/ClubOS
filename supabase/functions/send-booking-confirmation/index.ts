@@ -16,8 +16,6 @@ serve(async (req) => {
   try {
     const { booking, bookingLink } = await req.json();
     
-    console.log("[Email] Sending confirmation for booking:", booking.id);
-    
     // Initialize Supabase client to fetch owner profile
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
@@ -57,14 +55,7 @@ serve(async (req) => {
     const confirmationMessage = bookingLink.confirmation_message || 
       `Your meeting has been scheduled for ${formattedDate} at ${formattedTime}.`;
 
-    // Construct meeting link (Quantum Club if available, otherwise fallback)
-    const meetingLink = booking.quantum_meeting_link || 
-                       booking.video_meeting_link || 
-                       bookingLink.meeting_link;
-    
-    console.log("[Email] Meeting link:", meetingLink);
-
-    // Generate .ics calendar file content with meeting link
+    // Generate .ics calendar file content
     const icsContent = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
@@ -77,8 +68,7 @@ serve(async (req) => {
       `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
       `UID:${booking.id}@quantumclub.com`,
       `SUMMARY:${bookingLink.title}`,
-      `DESCRIPTION:${bookingLink.description || 'Meeting scheduled via Quantum Club'}${meetingLink ? '\\n\\nJoin meeting: ' + meetingLink : ''}`,
-      `LOCATION:${meetingLink || 'Online'}`,
+      `DESCRIPTION:${bookingLink.description || 'Meeting scheduled via Quantum Club'}`,
       `ORGANIZER;CN=Quantum Club:MAILTO:no-reply@quantumclub.com`,
       `ATTENDEE;CN=${booking.guest_name};RSVP=TRUE:MAILTO:${booking.guest_email}`,
       'STATUS:CONFIRMED',
@@ -116,20 +106,9 @@ serve(async (req) => {
           ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
           ${bookingLink.description ? InfoRow({ icon: '📝', label: 'Description', value: bookingLink.description }) : ''}
           ${booking.notes ? InfoRow({ icon: '💬', label: 'Your Notes', value: booking.notes }) : ''}
-          ${meetingLink ? InfoRow({ icon: '🎥', label: 'Meeting Link', value: meetingLink }) : ''}
         `
       })}
       ${Spacer(32)}
-      ${meetingLink ? `
-      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-        <tr>
-          <td align="center" style="padding-bottom: 32px;">
-            ${Button({ url: meetingLink, text: '🚀 Join Quantum Club Meeting', variant: 'primary' })}
-          </td>
-        </tr>
-      </table>
-      ${Spacer(16)}
-      ` : ''}
       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(201, 162, 78, 0.05) 0%, rgba(201, 162, 78, 0.02) 100%); border-radius: 16px; padding: 32px; border: 1px solid rgba(201, 162, 78, 0.15);">
         <tr>
           <td align="center">
@@ -229,19 +208,8 @@ serve(async (req) => {
             ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
             ${bookingLink.description ? InfoRow({ icon: '📝', label: 'Description', value: bookingLink.description }) : ''}
             ${booking.notes ? InfoRow({ icon: '💬', label: 'Guest Notes', value: booking.notes }) : ''}
-            ${meetingLink ? InfoRow({ icon: '🎥', label: 'Meeting Link', value: meetingLink }) : ''}
           `
         })}
-        ${Spacer(32)}
-        ${meetingLink ? `
-        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-          <tr>
-            <td align="center" style="padding-bottom: 24px;">
-              ${Button({ url: meetingLink, text: '🚀 Join Meeting', variant: 'primary' })}
-            </td>
-          </tr>
-        </table>
-        ` : ''}
         ${Spacer(32)}
         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(201, 162, 78, 0.05) 0%, rgba(201, 162, 78, 0.02) 100%); border-radius: 16px; padding: 32px; border: 1px solid rgba(201, 162, 78, 0.15);">
           <tr>

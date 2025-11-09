@@ -1779,7 +1779,6 @@ export type Database = {
           advance_booking_days: number | null
           allow_waitlist: boolean | null
           auto_generate_meeting_link: boolean | null
-          auto_record: boolean | null
           buffer_after_minutes: number | null
           buffer_before_minutes: number | null
           color: string | null
@@ -1796,13 +1795,11 @@ export type Database = {
           max_bookings_per_day: number | null
           max_uses: number | null
           min_notice_hours: number | null
-          preferred_video_provider: string | null
           primary_calendar_id: string | null
           redirect_url: string | null
           requires_approval: boolean | null
           routing_rules: Json | null
           scheduling_type: string | null
-          share_recording_with_guest: boolean | null
           single_use: boolean | null
           slug: string
           team_members: string[] | null
@@ -1816,7 +1813,6 @@ export type Database = {
           advance_booking_days?: number | null
           allow_waitlist?: boolean | null
           auto_generate_meeting_link?: boolean | null
-          auto_record?: boolean | null
           buffer_after_minutes?: number | null
           buffer_before_minutes?: number | null
           color?: string | null
@@ -1833,13 +1829,11 @@ export type Database = {
           max_bookings_per_day?: number | null
           max_uses?: number | null
           min_notice_hours?: number | null
-          preferred_video_provider?: string | null
           primary_calendar_id?: string | null
           redirect_url?: string | null
           requires_approval?: boolean | null
           routing_rules?: Json | null
           scheduling_type?: string | null
-          share_recording_with_guest?: boolean | null
           single_use?: boolean | null
           slug: string
           team_members?: string[] | null
@@ -1853,7 +1847,6 @@ export type Database = {
           advance_booking_days?: number | null
           allow_waitlist?: boolean | null
           auto_generate_meeting_link?: boolean | null
-          auto_record?: boolean | null
           buffer_after_minutes?: number | null
           buffer_before_minutes?: number | null
           color?: string | null
@@ -1870,13 +1863,11 @@ export type Database = {
           max_bookings_per_day?: number | null
           max_uses?: number | null
           min_notice_hours?: number | null
-          preferred_video_provider?: string | null
           primary_calendar_id?: string | null
           redirect_url?: string | null
           requires_approval?: boolean | null
           routing_rules?: Json | null
           scheduling_type?: string | null
-          share_recording_with_guest?: boolean | null
           single_use?: boolean | null
           slug?: string
           team_members?: string[] | null
@@ -1900,35 +1891,29 @@ export type Database = {
         Row: {
           booking_id: string
           created_at: string | null
-          error_message: string | null
           id: string
           reminder_type: string
-          scheduled_for: string
+          send_before_minutes: number
           sent_at: string | null
           status: string | null
-          updated_at: string | null
         }
         Insert: {
           booking_id: string
           created_at?: string | null
-          error_message?: string | null
           id?: string
           reminder_type: string
-          scheduled_for: string
+          send_before_minutes: number
           sent_at?: string | null
           status?: string | null
-          updated_at?: string | null
         }
         Update: {
           booking_id?: string
           created_at?: string | null
-          error_message?: string | null
           id?: string
           reminder_type?: string
-          scheduled_for?: string
+          send_before_minutes?: number
           sent_at?: string | null
           status?: string | null
-          updated_at?: string | null
         }
         Relationships: [
           {
@@ -2094,29 +2079,22 @@ export type Database = {
           booking_link_id: string
           calendar_event_id: string | null
           calendar_provider: string | null
-          calendar_sync_status: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
           created_at: string
           custom_answers: Json | null
           custom_responses: Json | null
-          enable_recording: boolean | null
           guest_email: string
           guest_name: string
           guest_phone: string | null
           id: string
-          last_sync_attempt: string | null
           meeting_id: string | null
-          metadata: Json | null
           no_show: boolean | null
           notes: string | null
-          quantum_meeting_code: string | null
-          quantum_meeting_link: string | null
           reminder_sent: boolean | null
           scheduled_end: string
           scheduled_start: string
           status: string
-          sync_error_message: string | null
           synced_to_calendar: boolean | null
           timezone: string
           updated_at: string
@@ -2134,29 +2112,22 @@ export type Database = {
           booking_link_id: string
           calendar_event_id?: string | null
           calendar_provider?: string | null
-          calendar_sync_status?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           created_at?: string
           custom_answers?: Json | null
           custom_responses?: Json | null
-          enable_recording?: boolean | null
           guest_email: string
           guest_name: string
           guest_phone?: string | null
           id?: string
-          last_sync_attempt?: string | null
           meeting_id?: string | null
-          metadata?: Json | null
           no_show?: boolean | null
           notes?: string | null
-          quantum_meeting_code?: string | null
-          quantum_meeting_link?: string | null
           reminder_sent?: boolean | null
           scheduled_end: string
           scheduled_start: string
           status?: string
-          sync_error_message?: string | null
           synced_to_calendar?: boolean | null
           timezone: string
           updated_at?: string
@@ -2174,29 +2145,22 @@ export type Database = {
           booking_link_id?: string
           calendar_event_id?: string | null
           calendar_provider?: string | null
-          calendar_sync_status?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
           created_at?: string
           custom_answers?: Json | null
           custom_responses?: Json | null
-          enable_recording?: boolean | null
           guest_email?: string
           guest_name?: string
           guest_phone?: string | null
           id?: string
-          last_sync_attempt?: string | null
           meeting_id?: string | null
-          metadata?: Json | null
           no_show?: boolean | null
           notes?: string | null
-          quantum_meeting_code?: string | null
-          quantum_meeting_link?: string | null
           reminder_sent?: boolean | null
           scheduled_end?: string
           scheduled_start?: string
           status?: string
-          sync_error_message?: string | null
           synced_to_calendar?: boolean | null
           timezone?: string
           updated_at?: string

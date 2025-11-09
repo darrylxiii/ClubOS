@@ -378,7 +378,6 @@ serve(async (req) => {
         notes: notes,
         status: "confirmed",
         metadata: bookingMetadata,
-        calendar_sync_status: 'pending',
       })
       .select()
       .single();
@@ -477,51 +476,21 @@ serve(async (req) => {
     }
     console.log(`[Booking] ========== CALENDAR SYNC END ==========`);
 
-    // PHASE 5: Create Quantum Club meeting if enabled
+    // Create Quantum Club meeting (with improved error tracking)
     if (bookingLink.create_quantum_meeting) {
-      console.log("[Booking] Creating Quantum Club meeting...");
+      console.log(`[Booking] Triggering meeting creation for booking ${booking.id}`);
       try {
         const meetingResult = await supabaseClient.functions.invoke("create-meeting-from-booking", {
-          body: { 
-            bookingId: booking.id,
-            guestName: guestName,
-            guestEmail: guestEmail
-          }
+          body: { bookingId: booking.id }
         });
         
         if (meetingResult.error) {
-          console.error("[Booking] Failed to create meeting:", meetingResult.error);
-        } else if (meetingResult.data?.success) {
-          console.log("[Booking] ✅ Quantum Club meeting created:", meetingResult.data.meetingId);
-          
-          // Update booking with Quantum Club meeting link
-          const meetingLink = `https://app.thequantumclub.com/meet/${meetingResult.data.meetingCode}`;
-          
-          await supabaseClient
-            .from("bookings")
-            .update({
-              quantum_meeting_link: meetingLink,
-              quantum_meeting_code: meetingResult.data.meetingCode,
-              enable_recording: bookingLink.auto_record || false
-            })
-            .eq("id", booking.id);
-          
-          console.log("[Booking] Updated booking with meeting link:", meetingLink);
-          
-          // Refresh booking data to include meeting link
-          const { data: updatedBooking } = await supabaseClient
-            .from("bookings")
-            .select("*")
-            .eq("id", booking.id)
-            .single();
-          
-          if (updatedBooking) {
-            booking.quantum_meeting_link = updatedBooking.quantum_meeting_link;
-            booking.quantum_meeting_code = updatedBooking.quantum_meeting_code;
-          }
+          console.error(`[Booking] Meeting creation error for booking ${booking.id}:`, meetingResult.error);
+        } else {
+          console.log(`[Booking] Meeting created for booking ${booking.id}:`, meetingResult.data);
         }
-      } catch (meetingError) {
-        console.error("[Booking] Exception creating meeting:", meetingError);
+      } catch (meetingError: any) {
+        console.error(`[Booking] Meeting creation exception for booking ${booking.id}:`, meetingError.message);
       }
     }
 

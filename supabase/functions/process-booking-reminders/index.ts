@@ -17,7 +17,6 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Get pending reminders that need to be sent
-    const now = new Date();
     const { data: reminders, error: remindersError } = await supabase
       .from("booking_reminders")
       .select(`
@@ -28,14 +27,12 @@ serve(async (req) => {
         )
       `)
       .eq("status", "pending")
-      .lte("scheduled_for", now.toISOString());
+      .lte(
+        "send_before_minutes",
+        "EXTRACT(EPOCH FROM (scheduled_start - NOW())) / 60"
+      );
 
-    if (remindersError) {
-      console.error("[Reminders] Error fetching reminders:", remindersError);
-      throw remindersError;
-    }
-
-    console.log(`[Reminders] Found ${reminders?.length || 0} pending reminders to process`);
+    if (remindersError) throw remindersError;
 
     const results = [];
 
@@ -43,21 +40,21 @@ serve(async (req) => {
       try {
         const booking = reminder.bookings as any;
         
-        console.log(`[Reminders] Processing reminder ${reminder.id} for booking ${booking.id}`);
-        
-        // Send email reminder (default)
-        await supabase.functions.invoke("send-booking-reminder-email", {
-          body: {
-            email: booking.guest_email,
-            name: booking.guest_name,
-            bookingLink: booking.booking_links,
-            booking: booking,
-          },
-        });
+        // Send email reminder
+        if (reminder.reminder_type === "email" || reminder.reminder_type === "both") {
+          await supabase.functions.invoke("send-booking-reminder-email", {
+            body: {
+              email: booking.guest_email,
+              name: booking.guest_name,
+              bookingLink: booking.booking_links,
+              booking: booking,
+            },
+          });
+        }
 
-        // Send SMS reminder if phone provided (future feature)
-        if (booking.guest_phone) {
-          try {
+        // Send SMS reminder
+        if (reminder.reminder_type === "sms" || reminder.reminder_type === "both") {
+          if (booking.guest_phone) {
             await supabase.functions.invoke("send-booking-reminder-sms", {
               body: {
                 phone: booking.guest_phone,
@@ -65,8 +62,6 @@ serve(async (req) => {
                 booking: booking,
               },
             });
-          } catch (smsError) {
-            console.warn(`[Reminders] SMS sending failed (not critical):`, smsError);
           }
         }
 
@@ -76,43 +71,27 @@ serve(async (req) => {
           .update({ status: "sent", sent_at: new Date().toISOString() })
           .eq("id", reminder.id);
 
-        console.log(`[Reminders] ✅ Reminder ${reminder.id} sent successfully`);
         results.push({ id: reminder.id, status: "sent" });
       } catch (error: any) {
-        console.error(`[Reminders] ❌ Error sending reminder ${reminder.id}:`, error);
+        console.error(`Error sending reminder ${reminder.id}:`, error);
         await supabase
           .from("booking_reminders")
-          .update({ 
-            status: "failed",
-            error_message: error.message 
-          })
+          .update({ status: "failed" })
           .eq("id", reminder.id);
         results.push({ id: reminder.id, status: "failed", error: error.message });
       }
     }
 
-    console.log(`[Reminders] Processing complete. Success: ${results.filter(r => r.status === 'sent').length}, Failed: ${results.filter(r => r.status === 'failed').length}`);
-
     return new Response(
-      JSON.stringify({ 
-        success: true,
-        processed: results.length, 
-        sent: results.filter(r => r.status === 'sent').length,
-        failed: results.filter(r => r.status === 'failed').length,
-        results 
-      }),
+      JSON.stringify({ processed: results.length, results }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200,
       }
     );
   } catch (error: any) {
-    console.error("[Reminders] Fatal error processing reminders:", error);
+    console.error("Error processing reminders:", error);
     return new Response(
-      JSON.stringify({ 
-        success: false,
-        error: error.message 
-      }),
+      JSON.stringify({ error: error.message }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

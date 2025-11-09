@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { bookingId, guestName, guestEmail } = await req.json();
+    const { bookingId } = await req.json();
     console.log(`[Meeting] Processing meeting creation for booking: ${bookingId}`);
 
     const supabaseClient = createClient(
@@ -105,7 +105,7 @@ serve(async (req) => {
       throw meetingError;
     }
 
-    console.log(`[Meeting] Created Quantum Club meeting: ${meeting.id}, code: ${meeting.meeting_code}`);
+    console.log(`[Meeting] Created Quantum Club meeting: ${meeting.id}`);
 
     // Add host as participant
     await supabaseClient
@@ -115,19 +115,6 @@ serve(async (req) => {
         user_id: booking.user_id,
         role: 'host',
         status: 'accepted',
-      });
-
-    // Add guest as participant with auto-approval (no approval needed for bookings)
-    console.log(`[Meeting] Adding guest participant: ${guestName} (${guestEmail})`);
-    await supabaseClient
-      .from("meeting_participants")
-      .insert({
-        meeting_id: meeting.id,
-        guest_name: guestName,
-        guest_email: guestEmail,
-        role: 'guest',
-        status: 'accepted', // Auto-accept for bookings
-        invited_at: new Date().toISOString(),
       });
 
     // Update booking with meeting ID
