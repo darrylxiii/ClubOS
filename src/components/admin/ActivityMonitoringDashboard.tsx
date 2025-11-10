@@ -12,6 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface UserActivity {
   user_id: string;
@@ -40,6 +41,56 @@ interface ActivityStats {
 // User type classification based on roles
 const INTERNAL_ROLES = ['admin', 'strategist', 'recruiter'];
 const EXTERNAL_ROLES = ['user', 'partner', 'company_admin'];
+
+// System actions that should be hidden from users
+const SYSTEM_ACTIONS = ['heartbeat', 'page_focus', 'page_view'];
+
+// User-friendly action labels
+const ACTION_LABELS: Record<string, string> = {
+  profile_update: 'Updated profile',
+  message_sent: 'Sent message',
+  document_upload: 'Uploaded document',
+  interview_scheduled: 'Scheduled interview',
+  candidate_viewed: 'Viewed candidate',
+  application_submitted: 'Submitted application',
+  pipeline_updated: 'Updated pipeline',
+};
+
+// Format time in a concise, user-friendly way
+const formatTimeAgo = (date: string): string => {
+  const now = Date.now();
+  const activityTime = new Date(date).getTime();
+  const diffMs = now - activityTime;
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffMinutes < 1) return 'just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
+  return `${Math.floor(diffDays / 30)}mo ago`;
+};
+
+// Calculate session duration for online users
+const getSessionDuration = (lastActivity: string): string | null => {
+  const now = Date.now();
+  const activityTime = new Date(lastActivity).getTime();
+  const diffMinutes = Math.floor((now - activityTime) / (1000 * 60));
+  
+  if (diffMinutes < 2) {
+    // User is online, estimate session duration (this is approximate)
+    return 'active now';
+  }
+  return null;
+};
+
+// Format activity level label
+const formatActivityLevel = (level: string): string => {
+  return level.replace('_', ' ');
+};
 
 export function ActivityMonitoringDashboard() {
   const [users, setUsers] = useState<UserActivity[]>([]);
@@ -479,8 +530,8 @@ export function ActivityMonitoringDashboard() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={cn(getActivityLevelColor(user.activity_level), "capitalize")}>
-                        {user.activity_level.replace('_', ' ')}
+                      <Badge className={cn(getActivityLevelColor(user.activity_level), "whitespace-nowrap")}>
+                        {formatActivityLevel(user.activity_level)}
                       </Badge>
                     </TableCell>
                     <TableCell>
@@ -501,14 +552,36 @@ export function ActivityMonitoringDashboard() {
                       <div className="text-sm">{user.company_name || '-'}</div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm">
-                        {formatDistanceToNow(new Date(user.last_activity_at), { addSuffix: true })}
-                      </div>
-                      {user.last_action_type && (
-                        <div className="text-xs text-muted-foreground">
-                          {user.last_action_type}
-                        </div>
-                      )}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="text-sm cursor-help">
+                              {formatTimeAgo(user.last_activity_at)}
+                              {user.online_status === 'online' && (
+                                <div className="text-xs text-green-500 font-medium">
+                                  {getSessionDuration(user.last_activity_at)}
+                                </div>
+                              )}
+                              {user.last_action_type && !SYSTEM_ACTIONS.includes(user.last_action_type) && (
+                                <div className="text-xs text-muted-foreground">
+                                  {ACTION_LABELS[user.last_action_type] || user.last_action_type}
+                                </div>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <div className="space-y-1">
+                              <p className="font-medium">Last Activity Details</p>
+                              <p className="text-xs">Time: {new Date(user.last_activity_at).toLocaleString()}</p>
+                              {user.last_action_type && !SYSTEM_ACTIONS.includes(user.last_action_type) && (
+                                <p className="text-xs">Action: {ACTION_LABELS[user.last_action_type] || user.last_action_type}</p>
+                              )}
+                              <p className="text-xs">Total Actions: {user.total_actions}</p>
+                              <p className="text-xs">Activity Score: {user.activity_score.toFixed(2)}</p>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-muted-foreground">
