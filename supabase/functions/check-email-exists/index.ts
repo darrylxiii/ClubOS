@@ -61,18 +61,20 @@ serve(async (req) => {
       }
     );
 
-    // Check if user exists by attempting to retrieve user by email
-    const { data: users, error } = await supabaseAdmin.auth.admin.listUsers();
+    // Check if user exists by querying profiles table
+    // This is more efficient than listing all users
+    const { count, error } = await supabaseAdmin
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('email', email.toLowerCase());
 
     if (error) {
       console.error('Error checking email:', error);
       throw error;
     }
 
-    // Check if email exists in the user list
-    const emailExists = users.users.some(
-      user => user.email?.toLowerCase() === email.toLowerCase()
-    );
+    // Email exists if count is greater than 0
+    const emailExists = (count ?? 0) > 0;
 
     console.log(`Email check for ${email}: ${emailExists ? 'exists' : 'available'}`);
 
