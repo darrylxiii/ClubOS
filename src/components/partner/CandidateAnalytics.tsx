@@ -8,10 +8,9 @@ import { Eye, TrendingUp, Target, Activity, Users } from "lucide-react";
 interface CandidateAnalyticsProps {
   candidateId: string;
   activeTab?: string;
-  compact?: boolean;
 }
 
-export const CandidateAnalytics = ({ candidateId, activeTab, compact = false }: CandidateAnalyticsProps) => {
+export const CandidateAnalytics = ({ candidateId, activeTab }: CandidateAnalyticsProps) => {
   const [analytics, setAnalytics] = useState({
     profileViews: 0,
     uniqueViewers: 0,
@@ -22,11 +21,11 @@ export const CandidateAnalytics = ({ candidateId, activeTab, compact = false }: 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Always load in compact mode, otherwise only when tab is active
-    if (compact || activeTab === 'activity' || !activeTab) {
+    // Only load when the activity tab is active
+    if (activeTab === 'activity') {
       loadAnalytics();
     }
-  }, [candidateId, activeTab, compact]);
+  }, [candidateId, activeTab]);
 
   const loadAnalytics = async () => {
     try {

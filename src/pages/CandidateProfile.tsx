@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { CollapsibleSection } from "@/components/ui/collapsible-section";
 import { 
   ArrowLeft, User, Briefcase, MapPin, Mail, Phone, Linkedin, 
   Github, Globe, Calendar, Target, TrendingUp, Eye, Activity, 
-  Star, Clock, FileText, Edit, GraduationCap, Award, Settings,
-  ClipboardList, Heart, Brain
+  Star, Clock, FileText, Edit
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -52,46 +51,9 @@ export default function CandidateProfile() {
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>(defaultTab || "overview");
   
   const isTeamView = role === 'admin' || role === 'partner';
-
-  // Manage expanded sections with localStorage persistence
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    if (id) {
-      const saved = localStorage.getItem(`candidate_${id}_sections`);
-      if (saved) {
-        setExpandedSections(JSON.parse(saved));
-      } else {
-        // Default expansion state
-        setExpandedSections({
-          assessment: true,
-          summary: true,
-          skills: true,
-          experience: true,
-          education: true,
-          internal: true,
-          workauth: false,
-          documents: false,
-          pipeline: false,
-          activity: false,
-          assessments: false,
-          settings: false,
-        });
-      }
-    }
-  }, [id]);
-
-  useEffect(() => {
-    if (id) {
-      localStorage.setItem(`candidate_${id}_sections`, JSON.stringify(expandedSections));
-    }
-  }, [expandedSections, id]);
-
-  const toggleSection = (key: string) => {
-    setExpandedSections(prev => ({ ...prev, [key]: !prev[key] }));
-  };
 
   useEffect(() => {
     loadCandidate();
@@ -99,7 +61,7 @@ export default function CandidateProfile() {
 
   // Handle deep linking to specific sections/notes
   useEffect(() => {
-    if (section === 'notes' && noteId) {
+    if (section === 'notes' && noteId && activeTab === 'team-assessment') {
       // Small delay to ensure DOM is rendered
       const timer = setTimeout(() => {
         const noteElement = document.getElementById(`note-${noteId}`);
@@ -113,7 +75,7 @@ export default function CandidateProfile() {
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [section, noteId]);
+  }, [section, noteId, activeTab]);
 
   const loadCandidate = async () => {
     if (!id) return;
@@ -382,67 +344,110 @@ export default function CandidateProfile() {
           </CardContent>
         </Card>
 
-        {/* Main Content - One Page Layout */}
+        {/* Main Content */}
         <div className="container mx-auto px-4 py-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* LEFT COLUMN */}
-            <div className="space-y-6">
-              {/* AI Assessment Dashboard */}
-              {isTeamView && (
-                <CollapsibleSection
-                  title="AI-Powered Assessment"
-                  icon={<Target className="w-5 h-5" />}
-                  importance="critical"
-                  defaultExpanded={true}
-                  storageKey={`candidate_${id}_section_assessment`}
-                >
-                  <ErrorBoundary>
-                    <CandidateDecisionDashboard candidate={candidate} />
-                  </ErrorBoundary>
-                </CollapsibleSection>
-              )}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="assessments">Assessments</TabsTrigger>
+              {isTeamView && <TabsTrigger value="team-assessment">Team View</TabsTrigger>}
+              <TabsTrigger value="experience">Experience</TabsTrigger>
+              {isTeamView && <TabsTrigger value="settings">Settings</TabsTrigger>}
+              {isTeamView && <TabsTrigger value="workauth">Work Auth</TabsTrigger>}
+              {isTeamView && <TabsTrigger value="pipeline">Pipeline</TabsTrigger>}
+              {isTeamView && <TabsTrigger value="activity">Activity</TabsTrigger>}
+            </TabsList>
 
-              {/* Professional Summary */}
-              <CollapsibleSection
-                title="Professional Summary"
-                icon={<User className="w-5 h-5" />}
-                defaultExpanded={expandedSections.summary}
-                onToggle={() => toggleSection('summary')}
-                storageKey={`candidate_${id}_section_summary`}
-              >
-                {candidate.ai_summary && (
-                  <div className="mb-4">
+            {/* Assessments Tab - Available for all users */}
+            {candidate.user_id && (
+              <TabsContent value="assessments" className="space-y-6">
+                <AssessmentHistory 
+                  userId={candidate.user_id}
+                  viewMode={isTeamView ? (role === 'admin' ? 'admin' : 'partner') : 'candidate'}
+                />
+              </TabsContent>
+            )}
+
+            {/* Settings Tab - Admin Only */}
+            {isTeamView && candidate.user_id && (
+              <TabsContent value="settings" className="space-y-6">
+                <UserSettingsViewer 
+                  userId={candidate.user_id} 
+                  userName={candidate.full_name}
+                  source="candidate_profile"
+                />
+              </TabsContent>
+            )}
+
+            {/* Team Assessment Tab - Combines Decision, Documents, Notes, Internal - Admin/Partner Only */}
+            {isTeamView && (
+              <TabsContent value="team-assessment" className="space-y-6">
+                <ErrorBoundary>
+                  <CandidateDecisionDashboard candidate={candidate} />
+                </ErrorBoundary>
+                
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Documents</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ErrorBoundary>
+                      <CandidateDocumentsViewer 
+                        candidateId={id!} 
+                        canUpload={isTeamView}
+                      />
+                    </ErrorBoundary>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Internal Notes & Rating</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <ErrorBoundary>
+                      <CandidateNotesManager 
+                        candidateId={id!}
+                        userRole={role as any}
+                        activeTab={activeTab}
+                      />
+                    </ErrorBoundary>
+                    <CandidateInternalRatingCard 
+                      candidateId={id!}
+                      candidate={candidate}
+                      onUpdate={loadCandidate}
+                    />
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            )}
+
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-6">
+              {/* AI Summary */}
+              {candidate.ai_summary && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Target className="w-5 h-5" />
+                      AI Summary
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <p className="text-muted-foreground whitespace-pre-wrap">
                       {candidate.ai_summary}
                     </p>
-                  </div>
-                )}
-                {candidate.years_of_experience && (
-                  <div className="flex items-center gap-2 text-sm">
-                    <Briefcase className="w-4 h-4 text-muted-foreground" />
-                    <span>{candidate.years_of_experience} years of experience</span>
-                  </div>
-                )}
-                {candidate.current_title && candidate.current_company && (
-                  <div className="flex items-center gap-2 text-sm mt-2">
-                    <Star className="w-4 h-4 text-muted-foreground" />
-                    <span>{candidate.current_title} at {candidate.current_company}</span>
-                  </div>
-                )}
-              </CollapsibleSection>
+                  </CardContent>
+                </Card>
+              )}
 
-              {/* Skills & Expertise */}
-              <CollapsibleSection
-                title="Skills & Expertise"
-                icon={<Brain className="w-5 h-5" />}
-                badge={candidate.skills?.length || 0}
-                defaultExpanded={expandedSections.skills}
-                onToggle={() => toggleSection('skills')}
-                storageKey={`candidate_${id}_section_skills`}
-              >
-                {candidate.skills && candidate.skills.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="font-medium mb-2">Technical Skills</h4>
+              {/* Skills */}
+              {candidate.skills && candidate.skills.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Skills</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <div className="flex flex-wrap gap-2">
                       {candidate.skills.map((skill: any, index: number) => (
                         <Badge key={index} variant="secondary">
@@ -450,11 +455,17 @@ export default function CandidateProfile() {
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
-                {candidate.languages && candidate.languages.length > 0 && (
-                  <div className="mb-4">
-                    <h4 className="font-medium mb-2">Languages</h4>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Languages */}
+              {candidate.languages && candidate.languages.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Languages</CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <div className="flex flex-wrap gap-2">
                       {candidate.languages.map((lang: any, index: number) => (
                         <Badge key={index} variant="outline">
@@ -462,34 +473,54 @@ export default function CandidateProfile() {
                         </Badge>
                       ))}
                     </div>
-                  </div>
-                )}
-                {candidate.certifications && candidate.certifications.length > 0 && (
-                  <div>
-                    <h4 className="font-medium mb-2">Certifications</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {candidate.certifications.map((cert: any, index: number) => (
-                        <Badge key={index} variant="outline">
-                          <Award className="w-3 h-3 mr-1" />
-                          {cert.name || cert}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CollapsibleSection>
+                  </CardContent>
+                </Card>
+              )}
 
-              {/* Work Experience */}
+              {/* Career Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Career Preferences</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {candidate.desired_salary_min && candidate.desired_salary_max && (
+                    <div>
+                      <p className="text-sm font-medium mb-1">Salary Expectations</p>
+                      <p className="text-muted-foreground">
+                        {candidate.preferred_currency || 'EUR'} {candidate.desired_salary_min.toLocaleString()} - {candidate.desired_salary_max.toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                  {candidate.notice_period && (
+                    <div>
+                      <p className="text-sm font-medium mb-1">Notice Period</p>
+                      <p className="text-muted-foreground">{candidate.notice_period}</p>
+                    </div>
+                  )}
+                  {candidate.remote_preference && (
+                    <div>
+                      <p className="text-sm font-medium mb-1">Remote Preference</p>
+                      <p className="text-muted-foreground capitalize">{candidate.remote_preference}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Source Information - For Team Only */}
+              {isTeamView && (
+                <SourceInformationCard candidateId={id!} />
+              )}
+            </TabsContent>
+
+            {/* Experience Tab - Combines Experience, Education, Social */}
+            <TabsContent value="experience" className="space-y-6">
+              {/* Work History */}
               {candidate.work_history && candidate.work_history.length > 0 && (
-                <CollapsibleSection
-                  title="Work Experience"
-                  icon={<Briefcase className="w-5 h-5" />}
-                  badge={candidate.work_history.length}
-                  defaultExpanded={expandedSections.experience}
-                  onToggle={() => toggleSection('experience')}
-                  storageKey={`candidate_${id}_section_experience`}
-                >
-                  <div className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Work Experience</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
                     {candidate.work_history.map((job: any, index: number) => (
                       <div key={index} className="space-y-2">
                         <div className="flex items-start justify-between">
@@ -506,24 +537,20 @@ export default function CandidateProfile() {
                             {job.description}
                           </p>
                         )}
-                        {index < candidate.work_history.length - 1 && <Separator className="my-4" />}
+                        {index < candidate.work_history.length - 1 && <Separator />}
                       </div>
                     ))}
-                  </div>
-                </CollapsibleSection>
+                  </CardContent>
+                </Card>
               )}
 
               {/* Education */}
               {candidate.education && candidate.education.length > 0 && (
-                <CollapsibleSection
-                  title="Education"
-                  icon={<GraduationCap className="w-5 h-5" />}
-                  badge={candidate.education.length}
-                  defaultExpanded={expandedSections.education}
-                  onToggle={() => toggleSection('education')}
-                  storageKey={`candidate_${id}_section_education`}
-                >
-                  <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Education</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
                     {candidate.education.map((edu: any, index: number) => (
                       <div key={index} className="space-y-1">
                         <h4 className="font-semibold">{edu.degree || edu.field_of_study}</h4>
@@ -533,161 +560,106 @@ export default function CandidateProfile() {
                         </p>
                       </div>
                     ))}
-                  </div>
-                </CollapsibleSection>
+                  </CardContent>
+                </Card>
               )}
 
-              {/* Source Information - For Team Only */}
-              {isTeamView && (
-                <SourceInformationCard candidateId={id!} />
+              {/* Certifications */}
+              {candidate.certifications && candidate.certifications.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Certifications</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {candidate.certifications.map((cert: any, index: number) => (
+                      <div key={index} className="flex items-start gap-2">
+                        <Badge variant="secondary">{cert.name || cert}</Badge>
+                        {cert.issuer && (
+                          <span className="text-sm text-muted-foreground">by {cert.issuer}</span>
+                        )}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
               )}
-            </div>
 
-            {/* RIGHT COLUMN - Team Assessment & Context */}
+              {/* Social Links Section */}
+              {(candidate.linkedin_url || candidate.github_url || candidate.portfolio_url) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Social Profiles</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    {candidate.linkedin_url && (
+                      <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer" 
+                         className="flex items-center gap-2 text-sm hover:underline">
+                        <Linkedin className="w-4 h-4" />
+                        LinkedIn Profile
+                      </a>
+                    )}
+                    {candidate.github_url && (
+                      <a href={candidate.github_url} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center gap-2 text-sm hover:underline">
+                        <Github className="w-4 h-4" />
+                        GitHub Profile
+                      </a>
+                    )}
+                    {candidate.portfolio_url && (
+                      <a href={candidate.portfolio_url} target="_blank" rel="noopener noreferrer"
+                         className="flex items-center gap-2 text-sm hover:underline">
+                        <Globe className="w-4 h-4" />
+                        Portfolio Website
+                      </a>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Work Authorization Tab - Admin Only */}
             {isTeamView && (
-              <div className="space-y-6">
-                {/* Internal Assessment */}
-                <CollapsibleSection
-                  title="Internal Assessment"
-                  icon={<Star className="w-5 h-5" />}
-                  importance="high"
-                  defaultExpanded={expandedSections.internal}
-                  onToggle={() => toggleSection('internal')}
-                  storageKey={`candidate_${id}_section_internal`}
-                >
-                  <div className="space-y-6">
-                    <ErrorBoundary>
-                      <CandidateNotesManager 
-                        candidateId={id!}
-                        userRole={role as any}
-                        compact
-                      />
-                    </ErrorBoundary>
-                    <Separator />
-                    <CandidateInternalRatingCard 
-                      candidateId={id!}
-                      candidate={candidate}
-                      onUpdate={loadCandidate}
-                    />
-                  </div>
-                </CollapsibleSection>
-
-                {/* Work Authorization */}
-                <CollapsibleSection
-                  title="Work Authorization"
-                  icon={<Globe className="w-5 h-5" />}
-                  defaultExpanded={expandedSections.workauth}
-                  onToggle={() => toggleSection('workauth')}
-                  storageKey={`candidate_${id}_section_workauth`}
-                >
-                  <CandidateWorkAuthCard candidate={candidate} />
-                </CollapsibleSection>
-
-                {/* Documents */}
-                <CollapsibleSection
-                  title="Documents"
-                  icon={<FileText className="w-5 h-5" />}
-                  defaultExpanded={expandedSections.documents}
-                  onToggle={() => toggleSection('documents')}
-                  storageKey={`candidate_${id}_section_documents`}
-                >
-                  <ErrorBoundary>
-                    <CandidateDocumentsViewer 
-                      candidateId={id!} 
-                      canUpload={isTeamView}
-                      compact
-                    />
-                  </ErrorBoundary>
-                </CollapsibleSection>
-
-                {/* Pipeline & Applications */}
-                <CollapsibleSection
-                  title="Pipeline & Applications"
-                  icon={<TrendingUp className="w-5 h-5" />}
-                  defaultExpanded={expandedSections.pipeline}
-                  onToggle={() => toggleSection('pipeline')}
-                  storageKey={`candidate_${id}_section_pipeline`}
-                >
-                  <div className="space-y-6">
-                    <ErrorBoundary>
-                      <CandidatePipelineStatus 
-                        candidateId={id!}
-                        compact
-                      />
-                    </ErrorBoundary>
-                    <ErrorBoundary>
-                      <CandidateLinkedJobs 
-                        candidateId={id!} 
-                        candidateEmail={candidate.email}
-                        compact
-                      />
-                    </ErrorBoundary>
-                  </div>
-                </CollapsibleSection>
-
-                {/* Activity & Analytics */}
-                <CollapsibleSection
-                  title="Activity & Analytics"
-                  icon={<Activity className="w-5 h-5" />}
-                  defaultExpanded={expandedSections.activity}
-                  onToggle={() => toggleSection('activity')}
-                  storageKey={`candidate_${id}_section_activity`}
-                >
-                  <div className="space-y-6">
-                    <ErrorBoundary>
-                      <CandidateInteractionLog 
-                        candidateId={id!}
-                        compact
-                        maxItems={5}
-                      />
-                    </ErrorBoundary>
-                    <ErrorBoundary>
-                      <CandidateAnalytics 
-                        candidateId={id!}
-                        compact
-                      />
-                    </ErrorBoundary>
-                  </div>
-                </CollapsibleSection>
-              </div>
-            )}
-          </div>
-
-          {/* Full-width sections */}
-          <div className="mt-6 space-y-6">
-            {/* Assessments */}
-            {candidate.user_id && (
-              <CollapsibleSection
-                title="Assessments"
-                icon={<ClipboardList className="w-5 h-5" />}
-                defaultExpanded={expandedSections.assessments}
-                onToggle={() => toggleSection('assessments')}
-                storageKey={`candidate_${id}_section_assessments`}
-              >
-                <AssessmentHistory 
-                  userId={candidate.user_id}
-                  viewMode={isTeamView ? (role === 'admin' ? 'admin' : 'partner') : 'candidate'}
-                />
-              </CollapsibleSection>
+              <TabsContent value="workauth" className="space-y-6">
+                <CandidateWorkAuthCard candidate={candidate} />
+              </TabsContent>
             )}
 
-            {/* Advanced Settings - Admin Only */}
-            {isTeamView && candidate.user_id && (
-              <CollapsibleSection
-                title="Advanced Settings"
-                icon={<Settings className="w-5 h-5" />}
-                defaultExpanded={expandedSections.settings}
-                onToggle={() => toggleSection('settings')}
-                storageKey={`candidate_${id}_section_settings`}
-              >
-                <UserSettingsViewer 
-                  userId={candidate.user_id} 
-                  userName={candidate.full_name}
-                  source="candidate_profile"
-                />
-              </CollapsibleSection>
+            {/* Pipeline Tab - Combines Pipeline & Jobs - Admin Only */}
+            {isTeamView && (
+              <TabsContent value="pipeline" className="space-y-6">
+                <ErrorBoundary>
+                  <CandidatePipelineStatus 
+                    candidateId={id!}
+                    activeTab={activeTab}
+                  />
+                </ErrorBoundary>
+                <ErrorBoundary>
+                  <CandidateLinkedJobs 
+                    candidateId={id!} 
+                    candidateEmail={candidate.email}
+                    activeTab={activeTab}
+                  />
+                </ErrorBoundary>
+              </TabsContent>
             )}
-          </div>
+
+            {/* Activity Tab - Combines Analytics & Activity - Admin Only */}
+            {isTeamView && (
+              <TabsContent value="activity" className="space-y-6">
+                <ErrorBoundary>
+                  <CandidateInteractionLog 
+                    candidateId={id!}
+                    activeTab={activeTab}
+                  />
+                </ErrorBoundary>
+                <ErrorBoundary>
+                  <CandidateAnalytics 
+                    candidateId={id!}
+                    activeTab={activeTab}
+                  />
+                </ErrorBoundary>
+              </TabsContent>
+            )}
+          </Tabs>
         </div>
       </div>
 

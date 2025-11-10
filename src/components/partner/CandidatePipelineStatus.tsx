@@ -12,10 +12,9 @@ import { EnhancedCandidateActionDialog } from "./EnhancedCandidateActionDialog";
 interface CandidatePipelineStatusProps {
   candidateId: string;
   activeTab?: string;
-  compact?: boolean;
 }
 
-export const CandidatePipelineStatus = ({ candidateId, activeTab, compact = false }: CandidatePipelineStatusProps) => {
+export const CandidatePipelineStatus = ({ candidateId, activeTab }: CandidatePipelineStatusProps) => {
   const [applications, setApplications] = useState<any[]>([]);
   const [candidateName, setCandidateName] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -24,11 +23,11 @@ export const CandidatePipelineStatus = ({ candidateId, activeTab, compact = fals
   const [actionType, setActionType] = useState<'advance' | 'decline'>('advance');
 
   useEffect(() => {
-    // Always load in compact mode, otherwise only when tab is active
-    if (compact || activeTab === 'pipeline' || !activeTab) {
+    // Only load when the pipeline tab is active
+    if (activeTab === 'pipeline') {
       loadApplications();
     }
-  }, [candidateId, activeTab, compact]);
+  }, [candidateId, activeTab]);
 
   const loadApplications = async () => {
     try {

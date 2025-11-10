@@ -32,11 +32,9 @@ interface Props {
   candidateId: string;
   userRole: 'admin' | 'strategist' | 'partner' | 'candidate';
   activeTab?: string;
-  compact?: boolean;
-  maxItems?: number;
 }
 
-export const CandidateNotesManager = ({ candidateId, userRole, activeTab, compact = false, maxItems = 3 }: Props) => {
+export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Props) => {
   const { user } = useAuth();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
