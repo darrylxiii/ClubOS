@@ -14936,39 +14936,36 @@ export type Database = {
       public_talent_strategists: {
         Row: {
           availability: string | null
+          bio: string | null
           created_at: string | null
-          email: string | null
           full_name: string | null
           id: string | null
-          linkedin_url: string | null
-          phone: string | null
           photo_url: string | null
           specialties: string[] | null
           title: string | null
+          updated_at: string | null
         }
         Insert: {
           availability?: string | null
+          bio?: string | null
           created_at?: string | null
-          email?: string | null
           full_name?: string | null
           id?: string | null
-          linkedin_url?: string | null
-          phone?: string | null
           photo_url?: string | null
           specialties?: string[] | null
           title?: string | null
+          updated_at?: string | null
         }
         Update: {
           availability?: string | null
+          bio?: string | null
           created_at?: string | null
-          email?: string | null
           full_name?: string | null
           id?: string | null
-          linkedin_url?: string | null
-          phone?: string | null
           photo_url?: string | null
           specialties?: string[] | null
           title?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
