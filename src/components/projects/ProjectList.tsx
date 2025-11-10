@@ -20,7 +20,7 @@ export function ProjectList({ userRole, isFreelancer }: ProjectListProps) {
   const { data: projects, isLoading } = useQuery({
     queryKey: ["projects", "open"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("projects")
         .select("*")
         .eq("status", "open")

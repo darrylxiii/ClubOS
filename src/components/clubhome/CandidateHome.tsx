@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ProfileCompletion } from "@/components/ProfileCompletion";
 import { CandidateQuickActions } from "@/components/candidate/CandidateQuickActions";
 import { ApplicationStatusTracker } from "@/components/candidate/ApplicationStatusTracker";
@@ -75,6 +78,43 @@ export const CandidateHome = () => {
         </div>
         <QuickTipsCarousel tips={quickTips} />
       </section>
+
+      {/* Club Projects Banner */}
+      <Card className="bg-gradient-to-br from-primary/10 via-purple-500/5 to-blue-500/5 border-primary/20">
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Badge variant="secondary" className="gap-1">
+                  <Briefcase className="h-3 w-3" />
+                  New Feature
+                </Badge>
+              </div>
+              <h3 className="text-xl font-bold mb-2">💼 Introducing Club Projects</h3>
+              <p className="text-muted-foreground mb-4">
+                Earn while you search. Join our premium freelance marketplace and get matched 
+                with high-value projects using Club AI.
+              </p>
+              <div className="flex flex-wrap gap-2 text-sm text-muted-foreground mb-4">
+                <div className="flex items-center gap-1">
+                  ✓ AI-powered matching
+                </div>
+                <div className="flex items-center gap-1">
+                  ✓ €100-150/hr avg rate
+                </div>
+                <div className="flex items-center gap-1">
+                  ✓ &lt;24h time to hire
+                </div>
+              </div>
+              <Button asChild>
+                <Link to="/projects">
+                  Explore Projects
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

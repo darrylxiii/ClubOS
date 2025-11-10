@@ -20,7 +20,7 @@ export default function ProjectsPage() {
     queryKey: ["freelance-profile", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("freelance_profiles")
         .select("*")
         .eq("id", user.id)

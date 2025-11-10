@@ -108,6 +108,12 @@ const BookingManagement = lazy(() => import("./pages/BookingManagement"));
 const CompanySettings = lazy(() => import("./pages/CompanySettings"));
 const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 
+// Club Projects
+const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
+const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
+const ProjectApplyPage = lazy(() => import("./pages/ProjectApplyPage"));
+const FreelancerSetup = lazy(() => import("./pages/FreelancerSetup"));
+
 // Loading fallback component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen bg-background">
@@ -233,6 +239,41 @@ const App = () => (
                 </RouteErrorBoundary>
               }
             />
+            
+            {/* Club Projects Routes */}
+            <Route
+              path="/projects"
+              element={
+                <ProtectedRoute>
+                  <ProjectsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:projectId"
+              element={
+                <ProtectedRoute>
+                  <ProjectDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/:projectId/apply"
+              element={
+                <ProtectedRoute>
+                  <ProjectApplyPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/projects/freelancer/setup"
+              element={
+                <ProtectedRoute>
+                  <FreelancerSetup />
+                </ProtectedRoute>
+              }
+            />
+            
             <Route
               path="/applications"
               element={
