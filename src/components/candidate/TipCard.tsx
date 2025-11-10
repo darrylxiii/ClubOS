@@ -24,8 +24,11 @@ export function TipCard({ tip, index }: TipCardProps) {
   const navigate = useNavigate();
   const IconComponent = (Icons as any)[tip.icon] || Icons.Sparkles;
 
+  // Check if link is a placeholder (resources page doesn't exist yet)
+  const isPlaceholder = tip.actionLink?.startsWith('/resources/');
+  
   const handleClick = () => {
-    if (tip.actionLink) {
+    if (tip.actionLink && !isPlaceholder) {
       navigate(tip.actionLink);
     }
   };
@@ -40,11 +43,11 @@ export function TipCard({ tip, index }: TipCardProps) {
     >
       <Card
         className={cn(
-          "h-full p-6 cursor-pointer transition-all duration-300",
+          "h-full p-6 transition-all duration-300",
           "bg-background/40 backdrop-blur-lg",
-          "border border-primary/10 hover:border-primary/50",
-          "hover:shadow-lg hover:shadow-primary/20",
-          "flex flex-col"
+          "border border-primary/10",
+          "flex flex-col",
+          !isPlaceholder && "cursor-pointer hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20"
         )}
         onClick={handleClick}
       >
@@ -87,11 +90,17 @@ export function TipCard({ tip, index }: TipCardProps) {
         {/* CTA Button */}
         {tip.actionLabel && (
           <Button 
-            variant="ghost" 
+            variant={isPlaceholder ? "outline" : "ghost"}
             size="sm" 
-            className="w-full group-hover:bg-primary/10 transition-colors"
+            className={cn(
+              "w-full transition-colors",
+              isPlaceholder 
+                ? "border-muted-foreground/20 text-muted-foreground cursor-not-allowed opacity-60" 
+                : "group-hover:bg-primary/10"
+            )}
+            disabled={isPlaceholder}
           >
-            {tip.actionLabel} →
+            {isPlaceholder ? "Coming Soon" : `${tip.actionLabel} →`}
           </Button>
         )}
       </Card>
