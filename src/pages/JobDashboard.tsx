@@ -14,8 +14,7 @@ import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
 import { TeamActivityCard } from "@/components/partner/TeamActivityCard";
 import { RejectedCandidatesTab } from "@/components/partner/RejectedCandidatesTab";
 import { EnhancedCandidateActionDialog } from "@/components/partner/EnhancedCandidateActionDialog";
-import { StageDetailCard } from "@/components/partner/StageDetailCard";
-import { StageCandidatesList } from "@/components/partner/StageCandidatesList";
+import { ExpandablePipelineStage } from "@/components/partner/ExpandablePipelineStage";
 import { CandidateActionDialog } from "@/components/partner/CandidateActionDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PipelineDisplaySettings, defaultSettings, type DisplaySettings } from "@/components/partner/PipelineDisplaySettings";
@@ -68,6 +67,7 @@ export default function JobDashboard() {
   } | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [rejectedCount, setRejectedCount] = useState(0);
+  const [expandedStageIndices, setExpandedStageIndices] = useState<Set<number>>(new Set());
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -90,6 +90,18 @@ export default function JobDashboard() {
       }
     }
   }, [jobId]);
+
+  const toggleStageExpansion = (stageIndex: number) => {
+    setExpandedStageIndices(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(stageIndex)) {
+        newSet.delete(stageIndex);
+      } else {
+        newSet.add(stageIndex);
+      }
+      return newSet;
+    });
+  };
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
@@ -596,15 +608,21 @@ export default function JobDashboard() {
                       const count = metrics?.stageBreakdown[stage.order] || 0;
                       const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
                       const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
+                      const stageApplications = applications.filter(app => app.current_stage_index === stage.order);
                       
                       return (
-                        <StageDetailCard
+                        <ExpandablePipelineStage
                           key={`stage-${index}`}
                           stage={stage}
+                          stageIndex={stage.order}
                           candidateCount={count}
                           avgDays={avgDays}
                           conversionRate={nextConversion}
+                          applications={stageApplications}
+                          isExpanded={expandedStageIndices.has(stage.order)}
+                          onToggleExpand={() => toggleStageExpansion(stage.order)}
                           displaySettings={displaySettings}
+                          totalStages={stages.length}
                           onEdit={(updatedStage) => {
                             // Save inline edits
                             const updatedStages = [...stages];
@@ -660,10 +678,20 @@ export default function JobDashboard() {
                               toast.error("Failed to delete stage");
                             }
                           }}
-                          onViewAnalytics={() => {
-                            toast.info("Stage analytics coming soon");
+                          onAdvanceCandidate={(candidate) => {
+                            setSelectedCandidateForAction({ candidate, action: 'advance' });
                           }}
-                          onViewCandidates={() => setSelectedStageForCandidates(stage)}
+                          onRejectCandidate={(candidate) => {
+                            setSelectedCandidateForAction({ candidate, action: 'decline' });
+                          }}
+                          onViewProfile={(candidate) => {
+                            const candidateId = (candidate as any).candidate_id || (candidate as any).user_id;
+                            if (!candidateId) {
+                              toast.error('Unable to load candidate profile');
+                              return;
+                            }
+                            navigate(`/candidates/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(stage.name)}&stageIndex=${stage.order || 0}`);
+                          }}
                         />
                       );
                     })}
@@ -700,11 +728,8 @@ export default function JobDashboard() {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="candidates" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border border-border/20">
-            <TabsTrigger value="candidates" className="data-[state=active]:bg-muted/50">
-              Candidates
-            </TabsTrigger>
+        <Tabs defaultValue="rejected" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border border-border/20">
             <TabsTrigger value="rejected" className="data-[state=active]:bg-muted/50">
               Rejected ({rejectedCount})
             </TabsTrigger>
@@ -721,17 +746,6 @@ export default function JobDashboard() {
               Audit Log
             </TabsTrigger>
           </TabsList>
-
-          <TabsContent value="candidates" className="space-y-4">
-            <JobDashboardCandidates
-              jobId={job.id}
-              stages={stages}
-              onUpdate={() => {
-                fetchJobDetails();
-              }}
-              needsClubCheck={metrics?.needsClubCheck || 0}
-            />
-          </TabsContent>
 
           <TabsContent value="rejected" className="space-y-4">
             <RejectedCandidatesTab
@@ -814,52 +828,6 @@ export default function JobDashboard() {
         companyId={job?.company_id || ''}
       />
 
-      {/* Stage Candidates Dialog */}
-      {selectedStageForCandidates && (
-        <Dialog open={!!selectedStageForCandidates} onOpenChange={() => setSelectedStageForCandidates(null)}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Badge variant="outline" className="mr-2">
-                  {selectedStageForCandidates.name}
-                </Badge>
-                Candidates in Stage
-              </DialogTitle>
-            </DialogHeader>
-            <StageCandidatesList
-              candidates={applications.filter(app => {
-                const stageIndex = job?.pipeline_stages?.findIndex(
-                  (s: any) => s.name === selectedStageForCandidates.name
-                );
-                return app.current_stage_index === stageIndex;
-              })}
-              stageIndex={job?.pipeline_stages?.findIndex(
-                (s: any) => s.name === selectedStageForCandidates.name
-              ) || 0}
-              stageName={selectedStageForCandidates.name}
-              totalStages={job?.pipeline_stages?.length || 0}
-              onAdvance={(candidate) => {
-                setSelectedCandidateForAction({ candidate, action: 'advance' });
-                setSelectedStageForCandidates(null);
-              }}
-              onReject={(candidate) => {
-                setSelectedCandidateForAction({ candidate, action: 'decline' });
-                setSelectedStageForCandidates(null);
-              }}
-              onViewDetails={(candidate) => {
-                // Use candidate_id from the enriched data if available, otherwise try fallbacks
-                const candidateId = (candidate as any).candidate_id || (candidate as any).user_id;
-                if (!candidateId) {
-                  toast.error('Unable to load candidate profile');
-                  return;
-                }
-                navigate(`/candidates/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(selectedStageForCandidates.name)}&stageIndex=${selectedStageForCandidates.order || 0}`);
-                setSelectedStageForCandidates(null);
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* Candidate Action Dialog */}
       {selectedCandidateForAction && (

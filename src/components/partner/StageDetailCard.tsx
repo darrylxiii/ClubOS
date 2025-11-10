@@ -63,7 +63,8 @@ interface StageDetailCardProps {
   onDuplicate?: () => void;
   onDelete?: () => void;
   onViewAnalytics?: () => void;
-  onViewCandidates?: () => void;
+  isExpandable?: boolean;
+  isExpanded?: boolean;
 }
 
 export function StageDetailCard({
@@ -76,11 +77,12 @@ export function StageDetailCard({
   onDuplicate,
   onDelete,
   onViewAnalytics,
-  onViewCandidates,
+  isExpandable = false,
+  isExpanded = false,
 }: StageDetailCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isEditingInline, setIsEditingInline] = useState(false);
   const [editedStage, setEditedStage] = useState(stage);
+  const [internalExpanded, setInternalExpanded] = useState(false);
   
   const {
     attributes,
@@ -177,7 +179,7 @@ export function StageDetailCard({
             <GripVertical className="h-5 w-5 text-muted-foreground" />
           </div>
 
-          <div className="flex items-center justify-between gap-3 flex-1" onClick={() => setIsExpanded(!isExpanded)}>
+          <div className="flex items-center justify-between gap-3 flex-1" onClick={isExpandable ? undefined : () => setInternalExpanded(!internalExpanded)}>
             <div className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
               {/* Stage Badge */}
               <Badge 
@@ -302,9 +304,12 @@ export function StageDetailCard({
                 </>
               )}
               {hasDetails && (
-                <DropdownMenuItem onClick={() => setIsExpanded(!isExpanded)}>
+                <DropdownMenuItem onClick={(e) => {
+                  e.stopPropagation();
+                  setInternalExpanded(!internalExpanded);
+                }}>
                   <Eye className="h-4 w-4 mr-2" />
-                  {isExpanded ? 'Hide' : 'View'} Full Details
+                  {internalExpanded ? 'Hide' : 'View'} Full Details
                 </DropdownMenuItem>
               )}
               {onDuplicate && (
@@ -328,15 +333,29 @@ export function StageDetailCard({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Expand Button */}
-          {hasDetails && (
+          {/* Expand Indicator for Candidates */}
+          {isExpandable && (
+            <div className="opacity-50">
+              {isExpanded ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </div>
+          )}
+          
+          {/* Expand Button for Stage Details */}
+          {hasDetails && !isExpandable && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setInternalExpanded(!internalExpanded);
+              }}
               className="h-8 w-8 p-0"
             >
-              {isExpanded ? (
+              {internalExpanded ? (
                 <ChevronUp className="w-4 h-4" />
               ) : (
                 <ChevronDown className="w-4 h-4" />
@@ -452,7 +471,7 @@ export function StageDetailCard({
         )}
 
         {/* Expandable Details */}
-        {isExpanded && !isEditingInline && hasDetails && (
+        {internalExpanded && !isEditingInline && hasDetails && (
           <div className="space-y-4 pt-4 border-t animate-fade-in">
             {/* Stage Type Details */}
             {displaySettings.showLocationMeeting && (
@@ -578,21 +597,6 @@ export function StageDetailCard({
                 </div>
               </div>
             )}
-          </div>
-        )}
-
-        {/* Candidates View Button */}
-        {isExpanded && !isEditingInline && onViewCandidates && (
-          <div className="border-t border-border/50 pt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onViewCandidates}
-              className="w-full"
-            >
-              <Users className="w-4 h-4 mr-2" />
-              View {candidateCount} Candidates in Stage
-            </Button>
           </div>
         )}
       </CardContent>
