@@ -32,9 +32,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           console.log("[Auth] Auth state changed:", event, session?.user?.id);
           
-          // Track login event
+          // Track login event (non-blocking - don't await)
           if (event === 'SIGNED_IN' && session?.user?.id) {
-            await trackLogin(session.user.id, 'email');
+            trackLogin(session.user.id, 'email').catch(err => {
+              console.log('[Auth] Login tracking failed (non-critical):', err.message);
+            });
           }
           
           // Ignore refresh token errors - they're expected when tokens expire
@@ -83,25 +85,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("[Auth] Signing out");
     
     try {
-      // Step 1: Track logout and update presence (with session still valid)
+      // Step 1: Track logout and update presence (non-blocking)
       if (user?.id) {
-        try {
-          // Track logout with session duration
-          await trackLogout(user.id);
-          
-          // Update presence
-          await supabase
-            .from('user_presence')
-            .update({
-              status: 'offline',
-              last_seen: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            })
-            .eq('user_id', user.id);
-        } catch (presenceError) {
-          // Non-critical, continue with sign out
-          console.log('[Auth] Presence/logout tracking skipped');
-        }
+        // Fire and forget - don't block sign out
+        const trackingPromises = [
+          trackLogout(user.id).catch(err => 
+            console.log('[Auth] Logout tracking failed (non-critical):', err.message)
+          ),
+          (async () => {
+            try {
+              await supabase
+                .from('user_presence')
+                .update({
+                  status: 'offline',
+                  last_seen: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                })
+                .eq('user_id', user.id);
+            } catch (err) {
+              console.log('[Auth] Presence update failed (non-critical)');
+            }
+          })()
+        ];
+        
+        // Don't await - let it run in background
+        Promise.all(trackingPromises).catch(() => {
+          // Ignore all tracking errors
+        });
       }
 
       // Step 2: Sign out from Supabase with global scope

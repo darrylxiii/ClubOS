@@ -91,57 +91,67 @@ export const trackEvent = async (
  * Track login event
  */
 export const trackLogin = async (userId: string, method: 'email' | 'google' | 'linkedin' = 'email') => {
-  // Reset session tracking on login
-  sessionStorage.removeItem('activity_session_id');
-  sessionStorage.removeItem('activity_session_start');
-  
-  const sessionId = getSessionId();
-  
-  // Track login event
-  await trackEvent(userId, 'login', {
-    eventCategory: 'auth',
-    actionData: { method },
-  });
+  try {
+    // Reset session tracking on login
+    sessionStorage.removeItem('activity_session_id');
+    sessionStorage.removeItem('activity_session_start');
+    
+    const sessionId = getSessionId();
+    
+    // Track login event
+    await trackEvent(userId, 'login', {
+      eventCategory: 'auth',
+      actionData: { method },
+    });
 
-  // Update activity tracking with login flag
-  await (supabase as any).rpc('update_user_activity_tracking', {
-    p_user_id: userId,
-    p_action_type: 'login',
-    p_increment_actions: true,
-    p_session_id: sessionId,
-    p_is_login: true,
-    p_is_logout: false,
-    p_session_duration_minutes: null,
-  });
+    // Update activity tracking with login flag
+    await (supabase as any).rpc('update_user_activity_tracking', {
+      p_user_id: userId,
+      p_action_type: 'login',
+      p_increment_actions: true,
+      p_session_id: sessionId,
+      p_is_login: true,
+      p_is_logout: false,
+      p_session_duration_minutes: null,
+    });
+  } catch (error) {
+    console.error('[Session Tracking] Failed to track login:', error);
+    throw error; // Re-throw so caller can handle
+  }
 };
 
 /**
  * Track logout event
  */
 export const trackLogout = async (userId: string) => {
-  const sessionDuration = getSessionDuration();
-  const sessionId = getSessionId();
+  try {
+    const sessionDuration = getSessionDuration();
+    const sessionId = getSessionId();
 
-  // Track logout event
-  await trackEvent(userId, 'logout', {
-    eventCategory: 'auth',
-    actionData: { session_duration_minutes: sessionDuration },
-  });
+    // Track logout event
+    await trackEvent(userId, 'logout', {
+      eventCategory: 'auth',
+      actionData: { session_duration_minutes: sessionDuration },
+    });
 
-  // Update activity tracking with logout flag
-  await (supabase as any).rpc('update_user_activity_tracking', {
-    p_user_id: userId,
-    p_action_type: 'logout',
-    p_increment_actions: true,
-    p_session_id: sessionId,
-    p_is_login: false,
-    p_is_logout: true,
-    p_session_duration_minutes: sessionDuration,
-  });
+    // Update activity tracking with logout flag
+    await (supabase as any).rpc('update_user_activity_tracking', {
+      p_user_id: userId,
+      p_action_type: 'logout',
+      p_increment_actions: true,
+      p_session_id: sessionId,
+      p_is_login: false,
+      p_is_logout: true,
+      p_session_duration_minutes: sessionDuration,
+    });
 
-  // Clear session tracking
-  sessionStorage.removeItem('activity_session_id');
-  sessionStorage.removeItem('activity_session_start');
+    // Clear session tracking
+    sessionStorage.removeItem('activity_session_id');
+    sessionStorage.removeItem('activity_session_start');
+  } catch (error) {
+    console.error('[Session Tracking] Failed to track logout:', error);
+    throw error; // Re-throw so caller can handle
+  }
 };
 
 /**
