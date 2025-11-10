@@ -466,7 +466,7 @@ const PrivacyPolicy = () => {
           <LegalSection id="ai-decisions" title="AI & Automated Decision-Making">
             <div className="space-y-4">
               <div>
-                <h4 className="font-semibold mb-2">Club AI (QUIN)</h4>
+                <h4 className="font-semibold mb-2">Club AI</h4>
                 <p className="text-muted-foreground">
                   Powered by Lovable AI (Google Gemini, OpenAI GPT models). Used for: career guidance, 
                   interview preparation, resume analysis, meeting intelligence. AI outputs are assistive, not definitive.

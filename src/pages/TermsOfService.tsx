@@ -76,7 +76,7 @@ const TermsOfService = () => {
               <p><strong>"Candidate":</strong> Talent professionals seeking career opportunities through TQC</p>
               <p><strong>"Partner" / "Client":</strong> Companies hiring through The Quantum Club</p>
               <p><strong>"Strategist":</strong> TQC employee facilitating candidate-partner placements</p>
-              <p><strong>"Club AI" / "QUIN":</strong> AI assistant features powered by enterprise AI models (Google Gemini, OpenAI)</p>
+              <p><strong>"Club AI":</strong> AI assistant features powered by enterprise AI models (Google Gemini, OpenAI)</p>
               <p><strong>"Club Sync":</strong> Auto-application feature that applies to matching roles on your behalf</p>
               <p><strong>"Dossier":</strong> Candidate profile package shared with partners (with consent)</p>
               <p><strong>"Club Pilot":</strong> Intelligent task prioritization and scheduling system</p>
@@ -160,7 +160,7 @@ const TermsOfService = () => {
               <div>
                 <h4 className="font-semibold mb-2">TQC Intellectual Property</h4>
                 <p className="text-muted-foreground">
-                  All platform code, design, branding, AI models, algorithms, and trademarks (including "QUIN" 
+                  All platform code, design, branding, AI models, algorithms, and trademarks (including "Club AI" 
                   and "Club Pilot") are the exclusive property of The Quantum Club B.V. Unauthorized use is prohibited.
                 </p>
               </div>

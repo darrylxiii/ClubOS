@@ -28,7 +28,7 @@ export function SmartReplyButtons({ smartReplies, onSelectReply }: SmartReplyBut
       <div className="flex items-center gap-2 mb-3">
         <Sparkles className="h-4 w-4 text-primary" />
         <h3 className="text-sm font-semibold">AI Smart Replies</h3>
-        <Badge variant="secondary" className="text-xs">Powered by QUIN</Badge>
+        <Badge variant="secondary" className="text-xs">Powered by Club AI</Badge>
       </div>
       
       <div className="space-y-2">

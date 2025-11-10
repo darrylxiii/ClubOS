@@ -1,29 +1,17 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Briefcase, 
-  Calendar, 
-  MessageSquare, 
-  Target, 
-  TrendingUp,
-  FileText,
-  Clock
-} from "lucide-react";
-import { EmptyState } from "@/components/EmptyState";
+import { useAuth } from "@/contexts/AuthContext";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ProfileCompletion } from "@/components/ProfileCompletion";
-import { LivePulse } from "@/components/LivePulse";
-import { ProfileViewers } from "@/components/ProfileViewers";
-import { Link } from "react-router-dom";
-import { NextStepsCard } from "@/components/clubhome/NextStepsCard";
+import { CandidateQuickActions } from "@/components/candidate/CandidateQuickActions";
 import { ApplicationStatusTracker } from "@/components/candidate/ApplicationStatusTracker";
 import { JobRecommendations } from "@/components/candidate/JobRecommendations";
+import { LivePulse } from "@/components/LivePulse";
+import { ProfileViewers } from "@/components/ProfileViewers";
 import { ActivityTimeline } from "@/components/candidate/ActivityTimeline";
-import { CandidateQuickActions } from "@/components/candidate/CandidateQuickActions";
+import { QuickTipsCarousel } from "@/components/candidate/QuickTipsCarousel";
+import { quickTips } from "@/data/quickTips";
+import { Briefcase, Calendar, MessageSquare, Target } from "lucide-react";
 
 export const CandidateHome = () => {
   const { user } = useAuth();
@@ -34,10 +22,11 @@ export const CandidateHome = () => {
     matches: 0
   });
   const [profileCompletion, setProfileCompletion] = useState(0);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchCandidateStats();
+    if (user) {
+      fetchCandidateStats();
+    }
   }, [user]);
 
   const fetchCandidateStats = async () => {
@@ -63,11 +52,9 @@ export const CandidateHome = () => {
         matches: matchesRes.count || 0
       });
       
-      setProfileCompletion(75); // Default completion percentage
+      setProfileCompletion(75);
     } catch (error) {
       console.error('Error fetching stats:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -75,6 +62,19 @@ export const CandidateHome = () => {
     <div className="space-y-6">
       {/* Profile Completion */}
       <ProfileCompletion />
+
+      {/* NEW: Quick Tips & Resources Carousel */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold">Quick Tips & Resources</h2>
+            <p className="text-sm text-muted-foreground">
+              Expert advice to accelerate your career journey
+            </p>
+          </div>
+        </div>
+        <QuickTipsCarousel tips={quickTips} />
+      </section>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

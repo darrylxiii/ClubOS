@@ -90,7 +90,7 @@ export const CANDIDATE_JOURNEY_TASKS: JourneyTask[] = [
   {
     id: 'upload_resume',
     title: 'Upload Your Resume',
-    description: 'Let QUIN analyze your experience',
+    description: 'Let Club AI analyze your experience',
     stage: CandidateStage.NEW_USER,
     priority: 3,
     icon: FileText,

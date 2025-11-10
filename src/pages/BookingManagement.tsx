@@ -412,7 +412,7 @@ export default function BookingManagement() {
               </div>
 
               <div className="flex items-center justify-between">
-                <Label>Enable QUIN AI Assistant</Label>
+                <Label>Enable Club AI Assistant</Label>
                 <Switch
                   checked={formData.enable_club_ai}
                   onCheckedChange={(checked) => setFormData({ ...formData, enable_club_ai: checked })}
@@ -485,7 +485,7 @@ export default function BookingManagement() {
                             {link.is_active ? "Active" : "Inactive"}
                           </Badge>
                           {link.enable_club_ai && (
-                            <Badge variant="outline">QUIN AI</Badge>
+                            <Badge variant="outline">Club AI</Badge>
                           )}
                         </div>
                         <CardDescription>{link.description}</CardDescription>
