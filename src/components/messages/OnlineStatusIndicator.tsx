@@ -20,12 +20,12 @@ export const OnlineStatusIndicator = ({ userId, className }: OnlineStatusIndicat
         {
           event: '*',
           schema: 'public',
-          table: 'user_presence',
+          table: 'user_activity_tracking',
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
           const newStatus = payload.new as any;
-          setStatus(newStatus.status);
+          setStatus(newStatus.online_status);
         }
       )
       .subscribe();
@@ -37,13 +37,13 @@ export const OnlineStatusIndicator = ({ userId, className }: OnlineStatusIndicat
 
   const loadStatus = async () => {
     const { data } = await supabase
-      .from('user_presence')
-      .select('status')
+      .from('user_activity_tracking')
+      .select('online_status')
       .eq('user_id', userId)
       .maybeSingle();
 
     if (data) {
-      setStatus(data.status as any);
+      setStatus(data.online_status as any);
     }
   };
 

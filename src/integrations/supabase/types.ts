@@ -13715,6 +13715,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity_tracking: {
+        Row: {
+          activity_level: string
+          activity_score: number | null
+          created_at: string | null
+          last_action_type: string | null
+          last_activity_at: string
+          last_login_at: string | null
+          online_status: string
+          session_count: number | null
+          total_actions: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          activity_level?: string
+          activity_score?: number | null
+          created_at?: string | null
+          last_action_type?: string | null
+          last_activity_at?: string
+          last_login_at?: string | null
+          online_status?: string
+          session_count?: number | null
+          total_actions?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          activity_level?: string
+          activity_score?: number | null
+          created_at?: string | null
+          last_action_type?: string | null
+          last_activity_at?: string
+          last_login_at?: string | null
+          online_status?: string
+          session_count?: number | null
+          total_actions?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_badges: {
         Row: {
           badge_id: string | null
@@ -15038,6 +15080,10 @@ export type Database = {
     }
     Functions: {
       archive_expired_documents: { Args: never; Returns: undefined }
+      calculate_activity_level: {
+        Args: { last_activity: string }
+        Returns: string
+      }
       calculate_name_similarity: {
         Args: { name1: string; name2: string }
         Returns: number
@@ -15278,6 +15324,18 @@ export type Database = {
       update_expired_assignments: { Args: never; Returns: undefined }
       update_relationship_score: {
         Args: { p_related_user_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      update_user_activity_tracking: {
+        Args: {
+          p_action_type?: string
+          p_increment_actions?: boolean
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      update_user_online_status: {
+        Args: { p_status: string; p_user_id: string }
         Returns: undefined
       }
       use_invite_code: {

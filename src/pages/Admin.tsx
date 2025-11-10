@@ -14,6 +14,8 @@ import { AdminApplicationHub } from "@/components/admin/AdminApplicationHub";
 import { DataIntegrityChecker } from "@/components/admin/DataIntegrityChecker";
 import { AuditLogViewer } from "@/components/admin/AuditLogViewer";
 import { SSOManagement } from "@/components/admin/SSOManagement";
+import { ActivityMonitoringDashboard } from "@/components/admin/ActivityMonitoringDashboard";
+import { CompanyEngagementLeaderboard } from "@/components/admin/CompanyEngagementLeaderboard";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -70,9 +72,10 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-8 max-w-7xl sticky top-4 z-20">
+            <TabsList className="grid w-full grid-cols-9 max-w-7xl sticky top-4 z-20">
               <TabsTrigger value="companies" onClick={(e) => e.currentTarget.blur()}>Companies</TabsTrigger>
               <TabsTrigger value="users" onClick={(e) => e.currentTarget.blur()}>Users & Roles</TabsTrigger>
+              <TabsTrigger value="activity" onClick={(e) => e.currentTarget.blur()}>Activity</TabsTrigger>
               <TabsTrigger value="merge" onClick={(e) => e.currentTarget.blur()}>Merge</TabsTrigger>
               <TabsTrigger value="applications" onClick={(e) => e.currentTarget.blur()}>Applications</TabsTrigger>
               <TabsTrigger value="achievements" onClick={(e) => e.currentTarget.blur()}>Achievements</TabsTrigger>
@@ -87,6 +90,11 @@ const Admin = () => {
 
           <TabsContent value="users" className="space-y-4">
             <UnifiedUserManagement />
+          </TabsContent>
+
+          <TabsContent value="activity" className="space-y-4">
+            <ActivityMonitoringDashboard />
+            <CompanyEngagementLeaderboard />
           </TabsContent>
 
           <TabsContent value="merge" className="space-y-4">

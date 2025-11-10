@@ -14,6 +14,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
+import { ActivityTracker } from "@/components/ActivityTracker";
 import { lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
 
@@ -139,11 +140,12 @@ const App = () => (
                 <AuthProvider>
                   <ErrorBoundary>
                     <RoleProvider>
-                      <NavigationHistoryProvider>
-                        <MotionProvider>
-                          <VideoPlayerProvider>
-                            <Suspense fallback={<PageLoader />}>
-                              <Routes>
+                      <ActivityTracker>
+                        <NavigationHistoryProvider>
+                          <MotionProvider>
+                            <VideoPlayerProvider>
+                              <Suspense fallback={<PageLoader />}>
+                                <Routes>
                 <Route path="/" element={
                   <RouteErrorBoundary>
                     <Navigate to="/auth" replace />
@@ -722,6 +724,7 @@ const App = () => (
             </VideoPlayerProvider>
           </MotionProvider>
         </NavigationHistoryProvider>
+      </ActivityTracker>
       </RoleProvider>
       </ErrorBoundary>
       </AuthProvider>
