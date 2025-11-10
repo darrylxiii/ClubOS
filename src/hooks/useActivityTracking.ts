@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { getSessionId, trackEvent } from '@/services/sessionTracking';
 
 /**
  * Hook to automatically track user activity
@@ -13,10 +14,16 @@ export const useActivityTracking = () => {
     if (!user?.id) return;
 
     try {
-      await supabase.rpc('update_user_activity_tracking', {
+      const sessionId = getSessionId();
+      
+      await (supabase as any).rpc('update_user_activity_tracking', {
         p_user_id: user.id,
         p_action_type: actionType || null,
         p_increment_actions: true,
+        p_session_id: sessionId,
+        p_is_login: false,
+        p_is_logout: false,
+        p_session_duration_minutes: null,
       });
     } catch (error) {
       console.error('Error tracking activity:', error);
@@ -42,7 +49,11 @@ export const useActivityTracking = () => {
     // Set user as online when component mounts
     updateOnlineStatus('online');
 
-    // Track activity on mount
+    // Track page view with detailed event
+    trackEvent(user.id, 'page_view', {
+      eventCategory: 'navigation',
+      pagePath: window.location.pathname,
+    });
     trackActivity('page_view');
 
     // Update activity periodically (every 60 seconds for enterprise-level accuracy)

@@ -30,16 +30,17 @@ export async function trackPageView(userId: string, pagePath: string, category?:
     // Using insert with cast to bypass type checking until types regenerate
     await (supabase as any).from('user_activity_events').insert({
       user_id: userId,
-      event_type: 'page_view',
-      event_category: category || 'general',
-      page_path: pagePath,
-      referrer: document.referrer,
-      device_type: getDeviceType(),
       session_id: getSessionId(),
-      event_metadata: {
+      event_type: 'page_view',
+      event_category: category || 'navigation',
+      page_path: pagePath,
+      referrer: document.referrer || null,
+      device_type: getDeviceType(),
+      action_data: {
         viewport_width: window.innerWidth,
         viewport_height: window.innerHeight,
-      }
+      },
+      duration_seconds: null,
     });
   } catch (error) {
     console.error('Failed to track page view:', error);
@@ -75,15 +76,17 @@ export async function trackJobInteraction(
   try {
     await (supabase as any).from('user_activity_events').insert({
       user_id: userId,
+      session_id: getSessionId(),
       event_type: 'job_interaction',
-      event_category: 'job',
-      event_metadata: {
+      event_category: 'jobs',
+      page_path: window.location.pathname,
+      device_type: getDeviceType(),
+      action_data: {
         job_id: jobId,
         action,
       },
-      page_path: window.location.pathname,
-      session_id: getSessionId(),
-      device_type: getDeviceType(),
+      duration_seconds: null,
+      referrer: null,
     });
   } catch (error) {
     console.error('Failed to track job interaction:', error);

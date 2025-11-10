@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { trackLogin, trackLogout } from "@/services/sessionTracking";
 
 interface AuthContextType {
   user: User | null;
@@ -26,10 +27,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       // Set up auth state listener FIRST
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        (event, session) => {
+        async (event, session) => {
           if (!mounted) return;
           
           console.log("[Auth] Auth state changed:", event, session?.user?.id);
+          
+          // Track login event
+          if (event === 'SIGNED_IN' && session?.user?.id) {
+            await trackLogin(session.user.id, 'email');
+          }
           
           // Ignore refresh token errors - they're expected when tokens expire
           if (event === 'SIGNED_OUT' && !session) {
@@ -77,9 +83,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     console.log("[Auth] Signing out");
     
     try {
-      // Step 1: Set user offline first (with session still valid)
+      // Step 1: Track logout and update presence (with session still valid)
       if (user?.id) {
         try {
+          // Track logout with session duration
+          await trackLogout(user.id);
+          
+          // Update presence
           await supabase
             .from('user_presence')
             .update({
@@ -90,7 +100,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             .eq('user_id', user.id);
         } catch (presenceError) {
           // Non-critical, continue with sign out
-          console.log('[Auth] Presence update skipped');
+          console.log('[Auth] Presence/logout tracking skipped');
         }
       }
 

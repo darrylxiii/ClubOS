@@ -22,6 +22,12 @@ interface UserActivity {
   total_actions: number;
   activity_score: number;
   last_action_type: string | null;
+  last_login_at: string | null;
+  session_count: number;
+  total_session_duration_minutes: number;
+  current_session_duration_minutes: number;
+  activity_score_24h: number;
+  activity_score_7d: number;
   // Joined data
   email: string;
   full_name: string | null;
@@ -209,6 +215,12 @@ export function ActivityMonitoringDashboard() {
           total_actions: activity.total_actions || 0,
           activity_score: activity.activity_score || 0,
           last_action_type: activity.last_action_type,
+          last_login_at: (activity as any).last_login_at || null,
+          session_count: (activity as any).session_count || 0,
+          total_session_duration_minutes: (activity as any).total_session_duration_minutes || 0,
+          current_session_duration_minutes: (activity as any).current_session_duration_minutes || 0,
+          activity_score_24h: (activity as any).activity_score_24h || 0,
+          activity_score_7d: (activity as any).activity_score_7d || 0,
           email: profile?.email || 'Unknown',
           full_name: profile?.full_name || null,
           roles: userRoles,
@@ -557,9 +569,9 @@ export function ActivityMonitoringDashboard() {
                           <TooltipTrigger asChild>
                             <div className="text-sm cursor-help">
                               {formatTimeAgo(user.last_activity_at)}
-                              {user.online_status === 'online' && (
+                              {user.online_status === 'online' && user.current_session_duration_minutes > 0 && (
                                 <div className="text-xs text-green-500 font-medium">
-                                  {getSessionDuration(user.last_activity_at)}
+                                  Session: {Math.round(user.current_session_duration_minutes)}m
                                 </div>
                               )}
                               {user.last_action_type && !SYSTEM_ACTIONS.includes(user.last_action_type) && (
@@ -571,13 +583,26 @@ export function ActivityMonitoringDashboard() {
                           </TooltipTrigger>
                           <TooltipContent>
                             <div className="space-y-1">
-                              <p className="font-medium">Last Activity Details</p>
-                              <p className="text-xs">Time: {new Date(user.last_activity_at).toLocaleString()}</p>
+                              <p className="font-medium">Activity Details</p>
+                              <p className="text-xs">Last Activity: {new Date(user.last_activity_at).toLocaleString()}</p>
+                              {user.last_login_at && (
+                                <p className="text-xs">Last Login: {new Date(user.last_login_at).toLocaleString()}</p>
+                              )}
+                              {user.session_count > 0 && (
+                                <p className="text-xs">Total Sessions: {user.session_count}</p>
+                              )}
+                              {user.total_session_duration_minutes > 0 && (
+                                <p className="text-xs">Total Time: {Math.round(user.total_session_duration_minutes)} min</p>
+                              )}
+                              {user.current_session_duration_minutes > 0 && (
+                                <p className="text-xs">Current Session: {Math.round(user.current_session_duration_minutes)} min</p>
+                              )}
                               {user.last_action_type && !SYSTEM_ACTIONS.includes(user.last_action_type) && (
                                 <p className="text-xs">Action: {ACTION_LABELS[user.last_action_type] || user.last_action_type}</p>
                               )}
                               <p className="text-xs">Total Actions: {user.total_actions}</p>
-                              <p className="text-xs">Activity Score: {user.activity_score.toFixed(2)}</p>
+                              <p className="text-xs">Activity Score (24h): {user.activity_score_24h}</p>
+                              <p className="text-xs">Activity Score (7d): {user.activity_score_7d}</p>
                             </div>
                           </TooltipContent>
                         </Tooltip>
