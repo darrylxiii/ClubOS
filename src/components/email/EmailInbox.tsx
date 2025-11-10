@@ -10,7 +10,6 @@ import { EmailList } from "./EmailList";
 import { EmailDetail } from "./EmailDetail";
 import { EmailComposer } from "./EmailComposer";
 import { KeyboardShortcutsDialog } from "./KeyboardShortcutsDialog";
-import { NeedsAttentionWidget } from "./NeedsAttentionWidget";
 import { AdvancedSearchInput } from "./AdvancedSearchInput";
 import { PriorityInboxTabs } from "./intelligence/PriorityInboxTabs";
 import { AICommandPalette } from "./intelligence/AICommandPalette";
@@ -423,24 +422,21 @@ export function EmailInbox() {
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
         {/* Sidebar - Collapsible on mobile and tablet when email selected */}
         <div className={cn(
-          "md:block md:w-60 lg:w-64 flex-shrink-0 border-r border-border",
+          "w-48 sm:w-52 md:w-56 lg:w-60 xl:w-64 max-w-[240px] flex-shrink-0 border-r border-border overflow-x-hidden",
           selectedEmail && "hidden lg:block"
         )}>
-          <div className="space-y-2 sm:space-y-4 p-2 sm:p-4 h-full overflow-y-auto">
-            <EmailSidebar
-              currentFilter={filter}
-              onFilterChange={setFilter}
-              labels={labels}
-              unreadCount={unreadCount}
-              onCompose={() => setComposerOpen(true)}
-            />
-            <NeedsAttentionWidget />
-          </div>
+          <EmailSidebar
+            currentFilter={filter}
+            onFilterChange={setFilter}
+            labels={labels}
+            unreadCount={unreadCount}
+            onCompose={() => setComposerOpen(true)}
+          />
         </div>
 
         {/* Email List - Hidden when email selected on mobile/tablet */}
         <div className={cn(
-          "w-full md:w-80 lg:w-96 xl:w-[420px] border-r border-border overflow-y-auto flex-shrink-0 min-w-0",
+          "w-full sm:w-72 md:w-80 lg:w-96 xl:w-[420px] border-r border-border overflow-y-auto flex-shrink-0 min-w-0",
           selectedEmail && "hidden md:block"
         )}>
           <EmailList

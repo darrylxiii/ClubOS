@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatDistanceToNow } from "date-fns";
+import { NeedsAttentionWidget } from "./NeedsAttentionWidget";
 
 interface EmailSidebarProps {
   currentFilter: string;
@@ -69,55 +70,62 @@ export function EmailSidebar({
   ];
 
   return (
-    <div className="w-64 border-r border-border bg-background flex flex-col">
-      <div className="p-4 space-y-3">
-        <Button onClick={onCompose} className="w-full" size="lg">
-          <Plus className="mr-2 h-4 w-4" />
+    <div className="flex flex-col h-full min-w-0">
+      <div className="p-2 sm:p-3 md:p-4 space-y-2 sm:space-y-3 flex-shrink-0">
+        <Button onClick={onCompose} className="w-full text-xs sm:text-sm" size="sm">
+          <Plus className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
           Compose
         </Button>
         {lastSync && (
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="text-[10px] sm:text-xs text-muted-foreground text-center truncate px-1">
             Last sync: {formatDistanceToNow(new Date(lastSync), { addSuffix: true })}
           </p>
         )}
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="space-y-1 p-2">
+        <div className="space-y-0.5 sm:space-y-1 p-1 sm:p-2">
           {folders.map((folder) => (
             <Button
               key={folder.id}
               variant={currentFilter === folder.id ? "secondary" : "ghost"}
-              className="w-full justify-start"
+              className="w-full justify-start text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 min-w-0"
               onClick={() => onFilterChange(folder.id)}
             >
-              <folder.icon className="mr-2 h-4 w-4" />
-              <span className="flex-1 text-left">{folder.label}</span>
+              <folder.icon className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+              <span className="flex-1 text-left truncate">{folder.label}</span>
               {folder.count !== undefined && folder.count > 0 && (
-                <Badge variant="secondary" className="ml-2">
+                <Badge variant="secondary" className="ml-1 sm:ml-2 text-[10px] sm:text-xs flex-shrink-0">
                   {folder.count}
                 </Badge>
               )}
             </Button>
           ))}
 
+          {/* Needs Attention Widget */}
+          <div className="border-t border-border my-2 sm:my-3" />
+          <div className="px-1 sm:px-2">
+            <NeedsAttentionWidget />
+          </div>
+          <div className="border-t border-border my-2 sm:my-3" />
+
           {labels.length > 0 && (
             <>
-              <div className="px-3 py-2 mt-4 text-xs font-semibold text-muted-foreground">
+              <div className="px-2 sm:px-3 py-1.5 sm:py-2 mt-2 sm:mt-4 text-[10px] sm:text-xs font-semibold text-muted-foreground">
                 Labels
               </div>
               {labels.map((label) => (
                 <Button
                   key={label.id}
                   variant="ghost"
-                  className="w-full justify-start"
+                  className="w-full justify-start text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 min-w-0"
                   onClick={() => onFilterChange(`label:${label.id}`)}
                 >
                   <div
-                    className="w-3 h-3 rounded-full mr-2"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full mr-1.5 sm:mr-2 flex-shrink-0"
                     style={{ backgroundColor: label.color }}
                   />
-                  <span className="flex-1 text-left">{label.name}</span>
+                  <span className="flex-1 text-left truncate">{label.name}</span>
                 </Button>
               ))}
             </>

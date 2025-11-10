@@ -121,46 +121,50 @@ export function NeedsAttentionWidget() {
   if (followUps.length === 0 && meetings.length === 0) return null;
 
   return (
-    <Card className="p-4 border-amber-500/30 bg-gradient-to-br from-amber-500/5 to-background">
-      <div className="flex items-center gap-2 mb-3">
-        <AlertCircle className="h-4 w-4 text-amber-500" />
-        <h3 className="text-sm font-semibold">Needs Attention</h3>
-        <Badge variant="secondary" className="text-xs">{followUps.length + meetings.length}</Badge>
+    <Card className="p-2 sm:p-3 border-border bg-gradient-to-br from-accent/30 to-background overflow-hidden">
+      <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+        <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500 flex-shrink-0" />
+        <h3 className="text-xs sm:text-sm font-semibold truncate">Needs Attention</h3>
+        <Badge variant="secondary" className="text-[10px] sm:text-xs flex-shrink-0">
+          {followUps.length + meetings.length}
+        </Badge>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1 sm:space-y-2">
         {followUps.map((followUp) => {
           const Icon = getFollowUpIcon(followUp.follow_up_type);
           return (
-            <div key={followUp.id} className="group flex items-start gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-              <div className={`p-1.5 rounded-full ${getFollowUpColor(followUp.follow_up_type)}`}>
-                <Icon className="h-3 w-3" />
+            <div key={followUp.id} className="group flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-accent/50 transition-colors">
+              <div className={`p-1 sm:p-1.5 rounded-full ${getFollowUpColor(followUp.follow_up_type)} flex-shrink-0`}>
+                <Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{followUp.emails.subject}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs sm:text-sm font-medium truncate">{followUp.emails.subject}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                   {followUp.emails.from_name} · {formatDistanceToNow(new Date(followUp.follow_up_date), { addSuffix: true })}
                 </p>
                 {followUp.metadata?.reason && (
-                  <p className="text-xs text-muted-foreground italic mt-1">{followUp.metadata.reason}</p>
+                  <p className="text-[10px] sm:text-xs text-muted-foreground italic mt-0.5 sm:mt-1 truncate">
+                    {followUp.metadata.reason}
+                  </p>
                 )}
               </div>
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-0.5 sm:gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => completeFollowUp(followUp.id)}
-                  className="h-6 w-6 p-0"
+                  className="h-5 w-5 sm:h-6 sm:w-6 p-0"
                 >
-                  <CheckCircle className="h-3 w-3" />
+                  <CheckCircle className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                 </Button>
                 <Button
                   size="sm"
                   variant="ghost"
                   onClick={() => dismissFollowUp(followUp.id)}
-                  className="h-6 w-6 p-0"
+                  className="h-5 w-5 sm:h-6 sm:w-6 p-0"
                 >
-                  <X className="h-3 w-3" />
+                  <X className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                 </Button>
               </div>
             </div>
@@ -168,13 +172,13 @@ export function NeedsAttentionWidget() {
         })}
 
         {meetings.map((meeting) => (
-          <div key={meeting.id} className="flex items-start gap-2 p-2 rounded-lg hover:bg-accent/50 transition-colors">
-            <div className="p-1.5 rounded-full bg-blue-500/10 text-blue-500">
-              <Calendar className="h-3 w-3" />
+          <div key={meeting.id} className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-accent/50 transition-colors">
+            <div className="p-1 sm:p-1.5 rounded-full bg-blue-500/10 text-blue-500 flex-shrink-0">
+              <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{meeting.meeting_title || meeting.emails.subject}</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs sm:text-sm font-medium truncate">{meeting.meeting_title || meeting.emails.subject}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
                 {meeting.emails.from_name} · {formatDistanceToNow(new Date(meeting.meeting_date), { addSuffix: true })}
               </p>
             </div>
