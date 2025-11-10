@@ -6,6 +6,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Helper function to strip markdown code blocks from JSON responses
+function stripMarkdownCodeBlocks(text: string): string {
+  // Remove ```json and ``` markers
+  return text
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/, '')
+    .replace(/```\s*$/, '')
+    .trim();
+}
+
 const SYSTEM_PROMPT = `You are an AI Executive Assistant for The Quantum Club, a luxury executive career platform.
 
 Analyze this email comprehensively and provide:
@@ -135,7 +145,9 @@ Body: ${email.body_text || email.snippet || ""}
     }
 
     const aiData = await aiResponse.json();
-    const analysis = JSON.parse(aiData.choices[0].message.content);
+    const rawContent = aiData.choices[0].message.content;
+    const cleanedContent = stripMarkdownCodeBlocks(rawContent);
+    const analysis = JSON.parse(cleanedContent);
 
     // Calculate priority score
     let priorityScore = 50;
