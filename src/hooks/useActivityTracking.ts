@@ -45,10 +45,10 @@ export const useActivityTracking = () => {
     // Track activity on mount
     trackActivity('page_view');
 
-    // Update activity periodically (every 5 minutes)
+    // Update activity periodically (every 60 seconds for enterprise-level accuracy)
     const activityInterval = setInterval(() => {
       trackActivity('heartbeat');
-    }, 5 * 60 * 1000);
+    }, 60 * 1000);
 
     // Track page visibility changes
     const handleVisibilityChange = () => {

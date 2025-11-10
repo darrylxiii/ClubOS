@@ -94,6 +94,19 @@ export function ActivityMonitoringDashboard() {
     filterUsers();
   }, [users, searchQuery, roleFilter, activityLevelFilter, onlineStatusFilter, userTypeFilter, companyFilter]);
 
+  // Calculate online status dynamically
+  const calculateStatus = (lastActivity: string | null): 'online' | 'away' | 'offline' => {
+    if (!lastActivity) return 'offline';
+    
+    const lastActivityTime = new Date(lastActivity).getTime();
+    const now = Date.now();
+    const minutesAgo = (now - lastActivityTime) / (1000 * 60);
+    
+    if (minutesAgo < 2) return 'online';
+    if (minutesAgo < 30) return 'away';
+    return 'offline';
+  };
+
   const fetchData = async () => {
     try {
       // Fetch activity tracking data
@@ -141,7 +154,7 @@ export function ActivityMonitoringDashboard() {
           user_id: activity.user_id,
           last_activity_at: activity.last_activity_at,
           activity_level: activity.activity_level as any,
-          online_status: activity.online_status as any,
+          online_status: calculateStatus(activity.last_activity_at),
           total_actions: activity.total_actions || 0,
           activity_score: activity.activity_score || 0,
           last_action_type: activity.last_action_type,

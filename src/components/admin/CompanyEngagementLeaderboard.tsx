@@ -45,6 +45,19 @@ export function CompanyEngagementLeaderboard() {
     };
   }, []);
 
+  // Calculate online status dynamically
+  const calculateStatus = (lastActivity: string | null): 'online' | 'away' | 'offline' => {
+    if (!lastActivity) return 'offline';
+    
+    const lastActivityTime = new Date(lastActivity).getTime();
+    const now = Date.now();
+    const minutesAgo = (now - lastActivityTime) / (1000 * 60);
+    
+    if (minutesAgo < 2) return 'online';
+    if (minutesAgo < 30) return 'away';
+    return 'offline';
+  };
+
   const fetchEngagementData = async () => {
     try {
       // Fetch all activity data with user profiles
@@ -99,7 +112,8 @@ export function CompanyEngagementLeaderboard() {
         data.total_users++;
 
         if (activity) {
-          if (activity.online_status === 'online') {
+          const dynamicStatus = calculateStatus(activity.last_activity_at);
+          if (dynamicStatus === 'online') {
             data.online_users++;
           }
           if (new Date(activity.last_activity_at) > oneDayAgo) {

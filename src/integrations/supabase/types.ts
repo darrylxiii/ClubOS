@@ -15077,6 +15077,29 @@ export type Database = {
           },
         ]
       }
+      user_activity_dashboard_view: {
+        Row: {
+          activity_level: string | null
+          avatar_url: string | null
+          company_id: string | null
+          email: string | null
+          full_name: string | null
+          last_activity_at: string | null
+          online_status: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+          total_actions: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       archive_expired_documents: { Args: never; Returns: undefined }
@@ -15091,6 +15114,10 @@ export type Database = {
       calculate_objective_completion: {
         Args: { objective_uuid: string }
         Returns: number
+      }
+      calculate_online_status: {
+        Args: { last_activity: string }
+        Returns: string
       }
       calculate_post_score: {
         Args: {
@@ -15272,6 +15299,7 @@ export type Database = {
         Args: { p_company_id: string; p_event_type: string; p_payload: Json }
         Returns: undefined
       }
+      refresh_activity_dashboard_view: { Args: never; Returns: undefined }
       release_booking_slot_lock: {
         Args: {
           p_scheduled_end: string

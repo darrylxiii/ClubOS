@@ -7,11 +7,27 @@ interface OnlineStatusIndicatorProps {
   className?: string;
 }
 
+// Calculate online status dynamically based on last activity
+const calculateStatus = (lastActivity: string | null): 'online' | 'away' | 'busy' | 'offline' => {
+  if (!lastActivity) return 'offline';
+  
+  const lastActivityTime = new Date(lastActivity).getTime();
+  const now = Date.now();
+  const minutesAgo = (now - lastActivityTime) / (1000 * 60);
+  
+  if (minutesAgo < 2) return 'online';
+  if (minutesAgo < 30) return 'away';
+  return 'offline';
+};
+
 export const OnlineStatusIndicator = ({ userId, className }: OnlineStatusIndicatorProps) => {
   const [status, setStatus] = useState<'online' | 'away' | 'busy' | 'offline'>('offline');
 
   useEffect(() => {
     loadStatus();
+
+    // Update status every 30 seconds for real-time accuracy
+    const interval = setInterval(loadStatus, 30000);
 
     const channel = supabase
       .channel(`presence-${userId}`)
@@ -23,14 +39,14 @@ export const OnlineStatusIndicator = ({ userId, className }: OnlineStatusIndicat
           table: 'user_activity_tracking',
           filter: `user_id=eq.${userId}`,
         },
-        (payload) => {
-          const newStatus = payload.new as any;
-          setStatus(newStatus.online_status);
+        () => {
+          loadStatus();
         }
       )
       .subscribe();
 
     return () => {
+      clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, [userId]);
@@ -38,12 +54,12 @@ export const OnlineStatusIndicator = ({ userId, className }: OnlineStatusIndicat
   const loadStatus = async () => {
     const { data } = await supabase
       .from('user_activity_tracking')
-      .select('online_status')
+      .select('last_activity_at')
       .eq('user_id', userId)
       .maybeSingle();
 
     if (data) {
-      setStatus(data.online_status as any);
+      setStatus(calculateStatus(data.last_activity_at));
     }
   };
 
