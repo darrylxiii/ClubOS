@@ -121,7 +121,7 @@ export function NeedsAttentionWidget() {
   if (followUps.length === 0 && meetings.length === 0) return null;
 
   return (
-    <Card className="p-2 sm:p-3 border-border bg-gradient-to-br from-accent/30 to-background overflow-hidden">
+    <Card className="p-2 sm:p-3 border-border bg-gradient-to-br from-accent/30 to-background overflow-hidden max-w-full">
       <div className="flex items-center gap-1.5 sm:gap-2 mb-2 sm:mb-3">
         <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-amber-500 flex-shrink-0" />
         <h3 className="text-xs sm:text-sm font-semibold truncate">Needs Attention</h3>
@@ -130,21 +130,21 @@ export function NeedsAttentionWidget() {
         </Badge>
       </div>
 
-      <div className="space-y-1 sm:space-y-2">
+      <div className="space-y-1">
         {followUps.map((followUp) => {
           const Icon = getFollowUpIcon(followUp.follow_up_type);
           return (
-            <div key={followUp.id} className="group flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-accent/50 transition-colors">
+            <div key={followUp.id} className="group flex items-start gap-1.5 sm:gap-2 p-1.5 rounded-lg hover:bg-accent/50 transition-colors overflow-hidden">
               <div className={`p-1 sm:p-1.5 rounded-full ${getFollowUpColor(followUp.follow_up_type)} flex-shrink-0`}>
                 <Icon className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs sm:text-sm font-medium truncate">{followUp.emails.subject}</p>
-                <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+                <p className="text-xs sm:text-sm font-medium line-clamp-2">{followUp.emails.subject}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
                   {followUp.emails.from_name} · {formatDistanceToNow(new Date(followUp.follow_up_date), { addSuffix: true })}
                 </p>
                 {followUp.metadata?.reason && (
-                  <p className="text-[10px] sm:text-xs text-muted-foreground italic mt-0.5 sm:mt-1 truncate">
+                  <p className="text-[10px] sm:text-xs text-muted-foreground italic mt-0.5 sm:mt-1 line-clamp-2">
                     {followUp.metadata.reason}
                   </p>
                 )}
@@ -172,13 +172,13 @@ export function NeedsAttentionWidget() {
         })}
 
         {meetings.map((meeting) => (
-          <div key={meeting.id} className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 rounded-lg hover:bg-accent/50 transition-colors">
+          <div key={meeting.id} className="flex items-start gap-1.5 sm:gap-2 p-1.5 rounded-lg hover:bg-accent/50 transition-colors overflow-hidden">
             <div className="p-1 sm:p-1.5 rounded-full bg-blue-500/10 text-blue-500 flex-shrink-0">
               <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm font-medium truncate">{meeting.meeting_title || meeting.emails.subject}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground truncate">
+              <p className="text-xs sm:text-sm font-medium line-clamp-2">{meeting.meeting_title || meeting.emails.subject}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground overflow-hidden text-ellipsis whitespace-nowrap">
                 {meeting.emails.from_name} · {formatDistanceToNow(new Date(meeting.meeting_date), { addSuffix: true })}
               </p>
             </div>

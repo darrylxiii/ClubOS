@@ -426,7 +426,7 @@ export function EmailInbox() {
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
         {/* Sidebar - Collapsible on mobile and tablet when email selected */}
         <div className={cn(
-          "w-48 sm:w-52 md:w-56 lg:w-60 xl:w-64 max-w-[240px] flex-shrink-0 border-r border-border overflow-x-hidden",
+          "w-56 sm:w-60 md:w-64 lg:w-72 xl:w-80 max-w-[320px] flex-shrink-0 border-r border-border overflow-x-hidden",
           selectedEmail && "hidden lg:block"
         )}>
           <EmailSidebar

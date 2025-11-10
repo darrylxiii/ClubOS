@@ -86,20 +86,20 @@ export function EmailSidebar({
       <ScrollArea className="flex-1">
         <div className="space-y-0.5 sm:space-y-1 p-1 sm:p-2">
           {folders.map((folder) => (
-            <Button
-              key={folder.id}
-              variant={currentFilter === folder.id ? "secondary" : "ghost"}
-              className="w-full justify-start text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 min-w-0"
-              onClick={() => onFilterChange(folder.id)}
-            >
-              <folder.icon className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
-              <span className="flex-1 text-left truncate">{folder.label}</span>
-              {folder.count !== undefined && folder.count > 0 && (
-                <Badge variant="secondary" className="ml-1 sm:ml-2 text-[10px] sm:text-xs flex-shrink-0">
-                  {folder.count}
-                </Badge>
-              )}
-            </Button>
+          <Button
+            key={folder.id}
+            variant={currentFilter === folder.id ? "secondary" : "ghost"}
+            className="w-full justify-start text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-3 min-w-0 flex items-center gap-2"
+            onClick={() => onFilterChange(folder.id)}
+          >
+            <folder.icon className="h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+            <span className="flex-1 text-left truncate">{folder.label}</span>
+            {folder.count !== undefined && folder.count > 0 && (
+              <Badge variant="secondary" className="ml-auto text-[10px] sm:text-xs flex-shrink-0 min-w-fit">
+                {folder.count}
+              </Badge>
+            )}
+          </Button>
           ))}
 
           {/* Needs Attention Widget */}
