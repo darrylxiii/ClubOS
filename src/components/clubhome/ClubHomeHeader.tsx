@@ -6,6 +6,9 @@ import { Shield, Users, User, Sparkles } from "lucide-react";
 import { UserRole } from "@/hooks/useUserRole";
 import { NotificationBell } from "@/components/NotificationBell";
 import { RoleSwitcher } from "@/components/RoleSwitcher";
+import { useProfile } from "@/hooks/useProfile";
+import { TypewriterGreeting } from "./TypewriterGreeting";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ClubHomeHeaderProps {
   role: UserRole;
@@ -13,6 +16,10 @@ interface ClubHomeHeaderProps {
 
 export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
   const { user } = useAuth();
+  const { profile, loading: profileLoading } = useProfile({ 
+    userId: user?.id, 
+    autoLoad: true 
+  });
 
   const getRoleIcon = () => {
     switch (role) {
@@ -47,6 +54,17 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
     return "Good evening";
   };
 
+  const getFirstName = () => {
+    if (profile?.full_name) {
+      return profile.full_name.split(' ')[0];
+    }
+    if (user?.email) {
+      const emailName = user.email.split('@')[0];
+      return emailName.charAt(0).toUpperCase() + emailName.slice(1);
+    }
+    return 'there';
+  };
+
   return (
     <div className="bg-card rounded-lg border p-6 space-y-4">
       <div className="flex items-center justify-between">
@@ -59,9 +77,14 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
           </Avatar>
           
           <div>
-            <h1 className="text-2xl font-black uppercase tracking-tight">
-              {getGreeting()}
-            </h1>
+            {profileLoading ? (
+              <Skeleton className="h-8 w-48 mb-2" />
+            ) : (
+              <TypewriterGreeting 
+                greeting={getGreeting()} 
+                firstName={getFirstName()} 
+              />
+            )}
             <div className="flex items-center gap-2 mt-1">
               <Badge variant="secondary" className="gap-1">
                 {getRoleIcon()}
