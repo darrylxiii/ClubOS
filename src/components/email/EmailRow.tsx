@@ -61,8 +61,8 @@ export function EmailRow({
     <div
       {...swipeHandlers}
       className={cn(
-        "flex items-center gap-3 p-3 border-b border-border hover:bg-accent/50 cursor-pointer transition-all duration-200 ease-in-out",
-        isSelected && "bg-accent",
+        "flex items-center gap-2 sm:gap-3 p-2 sm:p-3 border-b border-border hover:bg-accent/50 cursor-pointer transition-all duration-200 ease-in-out",
+        isSelected && "bg-accent/70 border-l-2 border-l-primary",
         !email.is_read && "bg-muted/30",
         getPriorityColor(email.ai_priority)
       )}
@@ -91,7 +91,7 @@ export function EmailRow({
         />
       </button>
 
-      <Avatar className="h-10 w-10 flex-shrink-0">
+      <Avatar className="h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0">
         {email.from_avatar_url ? (
           <AvatarImage 
             src={email.from_avatar_url} 
@@ -108,10 +108,10 @@ export function EmailRow({
       </Avatar>
 
       <div className="flex-1 min-w-0 overflow-hidden">
-        <div className="flex items-center gap-2 mb-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1 min-w-0 overflow-hidden">
           <span
             className={cn(
-              "font-medium truncate flex-1 min-w-0",
+              "font-medium truncate flex-1 min-w-0 max-w-[150px] sm:max-w-[200px] md:max-w-full text-sm sm:text-base",
               !email.is_read && "font-semibold"
             )}
           >
@@ -142,14 +142,14 @@ export function EmailRow({
 
         <div
           className={cn(
-            "text-sm truncate mb-1 min-w-0",
+            "text-xs sm:text-sm truncate mb-1 min-w-0 overflow-hidden",
             !email.is_read ? "font-medium" : "text-muted-foreground"
           )}
         >
           {email.subject}
         </div>
 
-        <div className="text-xs text-muted-foreground truncate min-w-0">
+        <div className="text-xs text-muted-foreground line-clamp-2 min-w-0 overflow-hidden">
           {email.ai_summary || email.snippet}
         </div>
 

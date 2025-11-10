@@ -440,7 +440,7 @@ export function EmailInbox() {
 
         {/* Email List - Hidden when email selected on mobile/tablet */}
         <div className={cn(
-          "w-full sm:w-72 md:w-80 lg:w-96 xl:w-[420px] border-r border-border overflow-y-auto flex-shrink-0 min-w-0",
+          "w-full sm:w-80 md:w-96 lg:w-[420px] xl:w-[480px] border-r border-border overflow-y-auto overflow-x-hidden flex-shrink-0 min-w-0",
           selectedEmail && "hidden md:block"
         )}>
           <EmailList

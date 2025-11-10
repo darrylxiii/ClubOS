@@ -42,18 +42,18 @@ export function EmailThread({
   const hasUnread = emails.some((e) => !e.is_read);
 
   return (
-    <div className="border-b border-border">
+    <div className="border-b border-border overflow-hidden">
       <div
-        className="flex items-center gap-2 p-3 hover:bg-accent/50 cursor-pointer"
+        className="flex items-center gap-2 p-2 sm:p-3 hover:bg-accent/50 cursor-pointer overflow-hidden"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         {isExpanded ? (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
         ) : (
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
         )}
         
-        <div className="flex-1">
+        <div className="flex-1 min-w-0 overflow-hidden">
           <EmailRow
             email={latestEmail}
             isSelected={latestEmail.id === selectedEmailId}
@@ -64,13 +64,13 @@ export function EmailThread({
           />
         </div>
         
-        <Badge variant="secondary" className="text-xs">
+        <Badge variant="secondary" className="text-xs flex-shrink-0 whitespace-nowrap">
           {emails.length} messages
         </Badge>
       </div>
 
       {isExpanded && (
-        <div className="ml-8 border-l-2 border-muted">
+        <div className="ml-6 sm:ml-8 border-l-2 border-muted overflow-hidden">
           {emails.slice(1).map((email) => (
             <EmailRow
               key={email.id}

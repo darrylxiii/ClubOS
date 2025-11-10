@@ -118,8 +118,8 @@ export function EmailList({
   return (
     <div className="h-full flex flex-col">
       {selectedIds.size > 0 && (
-        <div className="border-b border-border p-2 flex items-center gap-2 bg-muted/50">
-          <span className="text-sm text-muted-foreground ml-2">
+        <div className="border-b border-border p-2 flex items-center gap-2 bg-muted/50 flex-shrink-0 overflow-x-auto">
+          <span className="text-xs sm:text-sm text-muted-foreground ml-2 whitespace-nowrap">
             {selectedIds.size} selected
           </span>
           <Button
@@ -153,14 +153,14 @@ export function EmailList({
         </div>
       )}
 
-      <div className="border-b border-border p-2 flex items-center">
+      <div className="border-b border-border p-2 flex items-center flex-shrink-0">
         <Checkbox
           checked={selectedIds.size === emails.length && emails.length > 0}
           onCheckedChange={toggleSelectAll}
           className="ml-2"
         />
-        <span className="text-sm text-muted-foreground ml-3">
-          {emails.length} emails
+        <span className="text-xs sm:text-sm text-muted-foreground/70 ml-3">
+          {emails.length} email{emails.length !== 1 ? 's' : ''}
         </span>
       </div>
 
