@@ -423,38 +423,103 @@ export function CandidateOnboardingSteps() {
         }
       }
 
-      // STEP 3: Create candidate_profile entry for strategist assignment
-      console.log('[Onboarding] Creating candidate profile');
-      
-      const { error: candidateProfileError } = await supabase
-        .from('candidate_profiles')
-        .insert({
-          email: formData.email,
-          full_name: formData.full_name,
-          user_id: authData.user.id,
-          phone: phoneNumber,
-          current_title: formData.current_title,
-          linkedin_url: formData.linkedin_url,
-          notice_period: formData.notice_period,
-          current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
-          current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
-          salary_preference_hidden: formData.salary_preference_hidden,
-          desired_salary_min: formData.desired_salary_min,
-          desired_salary_max: formData.desired_salary_max,
-          remote_work_aspiration: formData.remote_work_aspiration,
-          resume_filename: formData.resume_filename,
-          resume_url: formData.resume_url,
-          application_status: 'applied',
-          assigned_strategist_id: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
-          source_channel: 'integrated_funnel',
-        });
+      // STEP 3: Check for existing candidate profile and merge if found
+      console.log('[Onboarding] Checking for existing candidate profile');
 
-      if (candidateProfileError) {
-        console.error('[Onboarding] Candidate profile creation error:', candidateProfileError);
-        throw new Error(`Failed to create candidate profile: ${candidateProfileError.message}`);
+      const { data: existingCandidate, error: checkError } = await supabase
+        .from('candidate_profiles')
+        .select('id, user_id, email, full_name')
+        .eq('email', formData.email)
+        .maybeSingle();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        throw new Error(`Failed to check candidate profile: ${checkError.message}`);
       }
 
-      console.log('[Onboarding] Candidate profile created successfully');
+      if (existingCandidate) {
+        console.log('[Onboarding] Found existing candidate profile, initiating merge');
+        
+        // Verify it's not already linked to another account
+        if (existingCandidate.user_id && existingCandidate.user_id !== authData.user.id) {
+          throw new Error('This email is already linked to another account. Please contact support at hello@thequantumclub.com');
+        }
+        
+        // Call the merge edge function (same as invitation flow)
+        const { error: mergeError } = await supabase.functions.invoke('merge-candidate-profile', {
+          body: {
+            candidateId: existingCandidate.id,
+            userId: authData.user.id,
+            mergeType: 'auto',
+          }
+        });
+        
+        if (mergeError) {
+          console.error('[Onboarding] Merge failed:', mergeError);
+          throw new Error(`Failed to link your profile: ${mergeError.message}`);
+        }
+        
+        console.log('[Onboarding] Profile merged successfully');
+        
+        // Update the merged candidate profile with new onboarding data
+        const { error: updateError } = await supabase
+          .from('candidate_profiles')
+          .update({
+            phone: phoneNumber,
+            current_title: formData.current_title,
+            linkedin_url: formData.linkedin_url,
+            notice_period: formData.notice_period,
+            current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
+            current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
+            salary_preference_hidden: formData.salary_preference_hidden,
+            desired_salary_min: formData.desired_salary_min,
+            desired_salary_max: formData.desired_salary_max,
+            remote_work_aspiration: formData.remote_work_aspiration,
+            resume_filename: formData.resume_filename,
+            resume_url: formData.resume_url,
+            invitation_status: 'registered',
+          })
+          .eq('id', existingCandidate.id);
+          
+        if (updateError) {
+          console.error('[Onboarding] Update after merge failed:', updateError);
+          // Don't throw - merge succeeded, this is just supplementary data
+        }
+        
+      } else {
+        // No existing profile - create new one (original logic)
+        console.log('[Onboarding] Creating new candidate profile');
+        
+        const { error: insertError } = await supabase
+          .from('candidate_profiles')
+          .insert({
+            email: formData.email,
+            full_name: formData.full_name,
+            user_id: authData.user.id,
+            phone: phoneNumber,
+            current_title: formData.current_title,
+            linkedin_url: formData.linkedin_url,
+            notice_period: formData.notice_period,
+            current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
+            current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
+            salary_preference_hidden: formData.salary_preference_hidden,
+            desired_salary_min: formData.desired_salary_min,
+            desired_salary_max: formData.desired_salary_max,
+            remote_work_aspiration: formData.remote_work_aspiration,
+            resume_filename: formData.resume_filename,
+            resume_url: formData.resume_url,
+            application_status: 'applied',
+            assigned_strategist_id: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
+            source_channel: 'integrated_funnel',
+            invitation_status: 'registered',
+          });
+          
+        if (insertError) {
+          console.error('[Onboarding] Candidate profile creation error:', insertError);
+          throw new Error(`Failed to create candidate profile: ${insertError.message}`);
+        }
+        
+        console.log('[Onboarding] New candidate profile created successfully');
+      }
 
       await trackStep("complete");
 
@@ -500,7 +565,11 @@ export function CandidateOnboardingSteps() {
 
       toast({ 
         title: "Account creation failed", 
-        description: error.message || "An unexpected error occurred. Please try again or contact support.", 
+        description: error.message?.includes('already linked') 
+          ? "This email is already associated with another account. Please contact support@thequantumclub.com"
+          : error.message?.includes('link your profile')
+          ? "We found your profile but couldn't complete the merge. Please try again or contact support."
+          : error.message || "An unexpected error occurred. Please try again or contact support.", 
         variant: "destructive" 
       });
     } finally {

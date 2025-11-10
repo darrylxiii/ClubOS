@@ -92,6 +92,24 @@ export function MergeSuggestionsTable() {
     return "destructive";
   };
 
+  const getMatchTypeBadge = (matchType: string, confidence: number) => {
+    const variants: Record<string, { variant: "default" | "secondary" | "outline", label: string, icon: string }> = {
+      partial_link: { variant: 'default', label: 'Partial Link', icon: '🔗' },
+      email_match: { variant: 'secondary', label: 'Email Match', icon: '📧' },
+      name_match: { variant: 'outline', label: 'Name Match', icon: '👤' },
+      manual: { variant: 'outline', label: 'Manual Review', icon: '🔍' },
+    };
+    
+    const config = variants[matchType] || variants.manual;
+    
+    return (
+      <Badge variant={config.variant} className="gap-1">
+        <span>{config.icon}</span>
+        {config.label}
+      </Badge>
+    );
+  };
+
   return (
     <>
       <Card>
@@ -122,9 +140,10 @@ export function MergeSuggestionsTable() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="email_match">Email Match</SelectItem>
-                  <SelectItem value="partial_link">Partial Link</SelectItem>
-                  <SelectItem value="manual">Manual</SelectItem>
+                  <SelectItem value="email_match">📧 Email Match</SelectItem>
+                  <SelectItem value="name_match">👤 Name Match</SelectItem>
+                  <SelectItem value="partial_link">🔗 Partial Link</SelectItem>
+                  <SelectItem value="manual">🔍 Manual</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -170,9 +189,7 @@ export function MergeSuggestionsTable() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">
-                          {suggestion.match_type.replace('_', ' ')}
-                        </Badge>
+                        {getMatchTypeBadge(suggestion.match_type, Math.round((suggestion.confidence_score || 0) * 100))}
                       </TableCell>
                       <TableCell>
                         <Badge variant={getConfidenceBadgeVariant(suggestion.confidence_score || 0)}>

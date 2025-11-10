@@ -15011,6 +15011,10 @@ export type Database = {
     }
     Functions: {
       archive_expired_documents: { Args: never; Returns: undefined }
+      calculate_name_similarity: {
+        Args: { name1: string; name2: string }
+        Returns: number
+      }
       calculate_objective_completion: {
         Args: { objective_uuid: string }
         Returns: number
