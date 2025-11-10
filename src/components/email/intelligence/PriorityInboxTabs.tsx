@@ -1,12 +1,13 @@
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Flame, AlertCircle, Info, Newspaper, Archive } from "lucide-react";
+import { Flame, AlertCircle, Info, Newspaper, Archive, Inbox } from "lucide-react";
 
 interface PriorityInboxTabsProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   counts: {
+    all: number;
     important: number;
     actionRequired: number;
     fyi: number;
@@ -17,6 +18,14 @@ interface PriorityInboxTabsProps {
 
 export function PriorityInboxTabs({ activeTab, onTabChange, counts }: PriorityInboxTabsProps) {
   const tabs = [
+    { 
+      value: "all", 
+      label: "All Emails", 
+      shortLabel: "All",
+      icon: Inbox, 
+      count: counts.all, 
+      color: "text-foreground" 
+    },
     { 
       value: "important", 
       label: "Important", 

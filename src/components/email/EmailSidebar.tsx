@@ -70,7 +70,7 @@ export function EmailSidebar({
   ];
 
   return (
-    <div className="flex flex-col h-full min-w-0">
+    <div className="flex flex-col h-full min-w-0 overflow-hidden">
       <div className="p-2 sm:p-3 md:p-4 space-y-2 sm:space-y-3 flex-shrink-0">
         <Button onClick={onCompose} className="w-full text-xs sm:text-sm" size="sm">
           <Plus className="mr-1.5 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />

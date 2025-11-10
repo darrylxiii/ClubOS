@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 
 export function EmailInbox() {
   const [filter, setFilter] = useState("inbox");
-  const [priorityTab, setPriorityTab] = useState("important");
+  const [priorityTab, setPriorityTab] = useState("all");
   const [selectedEmail, setSelectedEmail] = useState<any>(null);
   const [composerOpen, setComposerOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -89,6 +89,9 @@ export function EmailInbox() {
   // Filter by priority tab when in inbox view
   const displayedEmails = useMemo(() => {
     if (filter !== "inbox") return filteredEmails;
+    
+    // Show all emails when "all" tab is active
+    if (priorityTab === "all") return filteredEmails;
 
     return filteredEmails.filter((email) => {
       const inboxType = email.inbox_type === 'primary' ? 'fyi' : (email.inbox_type || "fyi");
@@ -114,6 +117,7 @@ export function EmailInbox() {
   const tabCounts = useMemo(() => {
     const inboxEmails = filteredEmails.filter(e => !e.archived_at && !e.deleted_at);
     return {
+      all: inboxEmails.length,
       important: inboxEmails.filter(e => e.inbox_type === "important").length,
       actionRequired: inboxEmails.filter(e => e.inbox_type === "action").length,
       fyi: inboxEmails.filter(e => e.inbox_type === "fyi" || e.inbox_type === "primary" || !e.inbox_type).length,
