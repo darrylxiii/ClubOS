@@ -423,9 +423,19 @@ export function CandidateOnboardingSteps() {
         }
       }
 
-      // STEP 3: Check for existing candidate profile and merge if found
-      console.log('[Onboarding] Checking for existing candidate profile');
+      // STEP 3: Check system setting for auto-merge
+      console.log('[Onboarding] Checking auto-merge setting');
 
+      const { data: autoMergeSetting } = await supabase
+        .from('system_settings')
+        .select('setting_value')
+        .eq('setting_key', 'auto_merge_enabled')
+        .single();
+
+      const autoMergeEnabled = autoMergeSetting?.setting_value === true;
+      console.log('[Onboarding] Auto-merge enabled:', autoMergeEnabled);
+
+      // Check for existing candidate profile
       const { data: existingCandidate, error: checkError } = await supabase
         .from('candidate_profiles')
         .select('id, user_id, email, full_name')
@@ -437,52 +447,72 @@ export function CandidateOnboardingSteps() {
       }
 
       if (existingCandidate) {
-        console.log('[Onboarding] Found existing candidate profile, initiating merge');
+        console.log('[Onboarding] Found existing candidate profile');
         
         // Verify it's not already linked to another account
         if (existingCandidate.user_id && existingCandidate.user_id !== authData.user.id) {
           throw new Error('This email is already linked to another account. Please contact support at hello@thequantumclub.com');
         }
         
-        // Call the merge edge function (same as invitation flow)
-        const { error: mergeError } = await supabase.functions.invoke('merge-candidate-profile', {
-          body: {
-            candidateId: existingCandidate.id,
-            userId: authData.user.id,
-            mergeType: 'auto',
-          }
-        });
-        
-        if (mergeError) {
-          console.error('[Onboarding] Merge failed:', mergeError);
-          throw new Error(`Failed to link your profile: ${mergeError.message}`);
-        }
-        
-        console.log('[Onboarding] Profile merged successfully');
-        
-        // Update the merged candidate profile with new onboarding data
-        const { error: updateError } = await supabase
-          .from('candidate_profiles')
-          .update({
-            phone: phoneNumber,
-            current_title: formData.current_title,
-            linkedin_url: formData.linkedin_url,
-            notice_period: formData.notice_period,
-            current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
-            current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
-            salary_preference_hidden: formData.salary_preference_hidden,
-            desired_salary_min: formData.desired_salary_min,
-            desired_salary_max: formData.desired_salary_max,
-            remote_work_aspiration: formData.remote_work_aspiration,
-            resume_filename: formData.resume_filename,
-            resume_url: formData.resume_url,
-            invitation_status: 'registered',
-          })
-          .eq('id', existingCandidate.id);
+        if (autoMergeEnabled) {
+          // AUTO-MERGE PATH (original logic)
+          console.log('[Onboarding] Auto-merge enabled, initiating merge');
           
-        if (updateError) {
-          console.error('[Onboarding] Update after merge failed:', updateError);
-          // Don't throw - merge succeeded, this is just supplementary data
+          const { error: mergeError } = await supabase.functions.invoke('merge-candidate-profile', {
+            body: {
+              candidateId: existingCandidate.id,
+              userId: authData.user.id,
+              mergeType: 'auto',
+            }
+          });
+          
+          if (mergeError) {
+            console.error('[Onboarding] Merge failed:', mergeError);
+            throw new Error(`Failed to link your profile: ${mergeError.message}`);
+          }
+          
+          console.log('[Onboarding] Profile merged successfully');
+          
+          // Update the merged candidate profile with new onboarding data
+          const { error: updateError } = await supabase
+            .from('candidate_profiles')
+            .update({
+              phone: phoneNumber,
+              current_title: formData.current_title,
+              linkedin_url: formData.linkedin_url,
+              notice_period: formData.notice_period,
+              current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
+              current_salary_max: formData.salary_preference_hidden ? null : formData.current_salary_max,
+              salary_preference_hidden: formData.salary_preference_hidden,
+              desired_salary_min: formData.desired_salary_min,
+              desired_salary_max: formData.desired_salary_max,
+              remote_work_aspiration: formData.remote_work_aspiration,
+              resume_filename: formData.resume_filename,
+              resume_url: formData.resume_url,
+              invitation_status: 'registered',
+            })
+            .eq('id', existingCandidate.id);
+            
+          if (updateError) {
+            console.error('[Onboarding] Update after merge failed:', updateError);
+          }
+          
+        } else {
+          // MANUAL MERGE PATH (auto-merge disabled)
+          console.log('[Onboarding] Auto-merge disabled, skipping candidate profile creation');
+          console.log('[Onboarding] User account created, but candidate profile will need manual linking');
+          
+          // Don't create a new candidate_profile - let admin manually merge via dashboard
+          // Just log that this user needs manual attention
+          await supabase.from('candidate_interactions').insert({
+            candidate_id: existingCandidate.id,
+            interaction_type: 'note',
+            interaction_direction: 'internal',
+            title: 'User account created - needs manual merge',
+            notes: `User ${authData.user.email} created an account. Auto-merge was disabled. Admin needs to manually link this candidate profile via Merge Dashboard.`,
+            created_by: authData.user.id,
+            visible_to_candidate: false
+          });
         }
         
       } else {

@@ -1,7 +1,11 @@
 import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Link2, Search, History, BarChart3 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Link2, Search, History, BarChart3, Settings } from "lucide-react";
 import { MergeStatusDashboard } from "@/components/admin/MergeStatusDashboard";
 import { ManualMergeSearch } from "@/components/admin/merge/ManualMergeSearch";
 import { MergeSuggestionsTable } from "@/components/admin/merge/MergeSuggestionsTable";
@@ -10,9 +14,61 @@ import { useRole } from "@/contexts/RoleContext";
 import { Navigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from "react";
 
 const MergeDashboard = () => {
   const { currentRole, loading } = useRole();
+  const { toast } = useToast();
+  const [autoMergeEnabled, setAutoMergeEnabled] = useState(false);
+  const [loadingSettings, setLoadingSettings] = useState(true);
+
+  useEffect(() => {
+    loadSystemSettings();
+  }, []);
+
+  const loadSystemSettings = async () => {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('setting_value')
+      .eq('setting_key', 'auto_merge_enabled')
+      .single();
+      
+    if (data) {
+      setAutoMergeEnabled(data.setting_value === true);
+    }
+    setLoadingSettings(false);
+  };
+
+  const toggleAutoMerge = async (enabled: boolean) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    const { error } = await supabase
+      .from('system_settings')
+      .update({ 
+        setting_value: enabled,
+        updated_by: user?.id,
+        updated_at: new Date().toISOString()
+      })
+      .eq('setting_key', 'auto_merge_enabled');
+      
+    if (error) {
+      toast({
+        title: "Failed to update setting",
+        description: error.message,
+        variant: "destructive"
+      });
+    } else {
+      setAutoMergeEnabled(enabled);
+      toast({
+        title: enabled ? "Auto-merge enabled" : "Auto-merge disabled",
+        description: enabled 
+          ? "New signups will automatically merge with existing candidate profiles"
+          : "New signups will create separate accounts for manual review"
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -53,6 +109,45 @@ const MergeDashboard = () => {
               Manage candidate profile merges and link unregistered candidates to user accounts
             </p>
           </div>
+
+          <Card className="mb-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Settings className="w-5 h-5" />
+                  <CardTitle>Merge Settings</CardTitle>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Label htmlFor="auto-merge-toggle" className="cursor-pointer">
+                    Auto-Merge on Signup
+                  </Label>
+                  <Switch
+                    id="auto-merge-toggle"
+                    checked={autoMergeEnabled}
+                    onCheckedChange={toggleAutoMerge}
+                    disabled={loadingSettings}
+                  />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Alert>
+                <AlertDescription>
+                  {autoMergeEnabled ? (
+                    <>
+                      ✅ <strong>Auto-merge is ON</strong>: When candidates sign up with an email matching an existing candidate profile, 
+                      the profiles will automatically merge. This is the recommended setting for normal operations.
+                    </>
+                  ) : (
+                    <>
+                      ⚠️ <strong>Auto-merge is OFF</strong>: Candidates can create accounts even if their email matches an existing profile. 
+                      You'll need to manually merge profiles via the dashboard. Use this during troubleshooting or when testing.
+                    </>
+                  )}
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
 
           <Tabs defaultValue="suggestions" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 max-w-4xl">
