@@ -39,6 +39,7 @@ interface Document {
 interface Props {
   candidateId: string;
   canUpload: boolean;
+  compact?: boolean;
 }
 
 const DOCUMENT_TYPES = {
@@ -86,7 +87,7 @@ const DOCUMENT_TYPES = {
   },
 } as const;
 
-export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
+export const CandidateDocumentsViewer = ({ candidateId, canUpload, compact = false }: Props) => {
   const { role } = useUserRole();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);

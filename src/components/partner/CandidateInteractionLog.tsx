@@ -29,6 +29,8 @@ interface CandidateInteractionLogProps {
   candidateId: string;
   applicationId?: string;
   activeTab?: string;
+  compact?: boolean;
+  maxItems?: number;
 }
 
 interface Interaction {
@@ -87,6 +89,8 @@ export const CandidateInteractionLog = ({
   candidateId,
   applicationId,
   activeTab,
+  compact = false,
+  maxItems = 10,
 }: CandidateInteractionLogProps) => {
   const [interactions, setInteractions] = useState<Interaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,11 +102,11 @@ export const CandidateInteractionLog = ({
   });
 
   useEffect(() => {
-    // Only load when the activity tab is active
-    if (activeTab === 'activity') {
+    // Always load in compact mode, otherwise only when tab is active
+    if (compact || activeTab === 'activity' || !activeTab) {
       loadInteractions();
     }
-  }, [candidateId, activeTab]);
+  }, [candidateId, activeTab, compact]);
 
   const loadInteractions = async () => {
     try {

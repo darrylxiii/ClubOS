@@ -11,19 +11,20 @@ interface CandidateLinkedJobsProps {
   candidateId: string;
   candidateEmail: string;
   activeTab?: string;
+  compact?: boolean;
 }
 
-export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab }: CandidateLinkedJobsProps) => {
+export const CandidateLinkedJobs = ({ candidateId, candidateEmail, activeTab, compact = false }: CandidateLinkedJobsProps) => {
   const navigate = useNavigate();
   const [jobs, setJobs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only load when the pipeline tab is active
-    if (activeTab === 'pipeline') {
+    // Always load in compact mode, otherwise only when tab is active
+    if (compact || activeTab === 'pipeline' || !activeTab) {
       loadJobs();
     }
-  }, [candidateId, candidateEmail, activeTab]);
+  }, [candidateId, candidateEmail, activeTab, compact]);
 
   const loadJobs = async () => {
     try {
