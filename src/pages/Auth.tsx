@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -47,7 +47,9 @@ const Auth = () => {
   const [mfaCode, setMfaCode] = useState("");
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState(false);
   const navigate = useNavigate();
+  const onboardingCheckInProgress = useRef(false);
   
   // Recover invite code after OAuth redirect
   useEffect(() => {
@@ -62,16 +64,20 @@ const Auth = () => {
   }, []);
   
   useEffect(() => {
-    console.log("[Auth Page] State:", {
+    console.log("[Auth Page] 🔍 State:", {
       loading,
       user: !!user,
       mfaRequired,
-      session: !!session
+      session: !!session,
+      isNavigating,
+      onboardingCheckInProgress: onboardingCheckInProgress.current
     });
 
     // Only redirect for non-MFA scenarios (regular login completed or OAuth without MFA)
-    if (!loading && user && session && !mfaRequired) {
-      console.log("[Auth Page] User fully authenticated, checking onboarding status");
+    if (!loading && user && session && !mfaRequired && !isNavigating && !onboardingCheckInProgress.current) {
+      console.log("[Auth Page] ✅ User fully authenticated, checking onboarding status");
+      onboardingCheckInProgress.current = true;
+      setIsNavigating(true);
       
       // Check if onboarding is complete
       const checkOnboarding = async () => {
@@ -82,17 +88,34 @@ const Auth = () => {
             .eq('id', user.id)
             .single();
           
+          console.log("[Auth Page] 📋 Profile data:", { 
+            userId: user.id, 
+            onboardingComplete: !!profile?.onboarding_completed_at 
+          });
+          
+          // Set flag so ClubHome knows we already checked
+          sessionStorage.setItem('onboarding_checked', 'true');
+          
           if (!profile?.onboarding_completed_at) {
-            console.log("[Auth Page] Onboarding incomplete, redirecting to OAuth onboarding");
+            console.log("[Auth Page] 🔄 Navigation: Going to /oauth-onboarding", { 
+              reason: "onboarding incomplete",
+              user: user.id 
+            });
             navigate("/oauth-onboarding", { replace: true });
           } else {
-            console.log("[Auth Page] Onboarding complete, redirecting to home");
+            console.log("[Auth Page] 🔄 Navigation: Going to /home", { 
+              reason: "onboarding complete",
+              user: user.id 
+            });
             navigate("/home", { replace: true });
           }
         } catch (error) {
-          console.error("[Auth Page] Error checking onboarding:", error);
+          console.error("[Auth Page] ❌ Error checking onboarding:", error);
           // If error, redirect to home and let ClubHome handle it
+          sessionStorage.setItem('onboarding_checked', 'true');
           navigate("/home", { replace: true });
+        } finally {
+          onboardingCheckInProgress.current = false;
         }
       };
       
@@ -100,7 +123,7 @@ const Auth = () => {
         checkOnboarding();
       }, 150);
     }
-  }, [user, loading, navigate, mfaRequired, session]);
+  }, [user, loading, navigate, mfaRequired, session, isNavigating]);
   
   useEffect(() => {
     if (inviteCode) {
@@ -149,7 +172,7 @@ const Auth = () => {
 
       // When OAuth is successful with session, check onboarding
       if ((event === 'SIGNED_IN' || event === 'MFA_CHALLENGE_VERIFIED') && currentSession) {
-        console.log("[Auth Page] OAuth/MFA completed, checking onboarding status");
+        console.log("[Auth Page] 🎉 OAuth/MFA completed, checking onboarding status");
         
         try {
           const { data: profile } = await supabase
@@ -158,19 +181,28 @@ const Auth = () => {
             .eq('id', currentSession.user.id)
             .single();
           
+          console.log("[Auth Page] 📋 OAuth Profile data:", { 
+            userId: currentSession.user.id, 
+            onboardingComplete: !!profile?.onboarding_completed_at 
+          });
+          
+          // Set flag so ClubHome knows we already checked
+          sessionStorage.setItem('onboarding_checked', 'true');
+          
           if (!profile?.onboarding_completed_at) {
-            console.log("[Auth Page] Onboarding incomplete, redirecting to OAuth onboarding");
+            console.log("[Auth Page] 🔄 OAuth Navigation: Going to /oauth-onboarding");
             setTimeout(() => {
               navigate("/oauth-onboarding", { replace: true });
             }, 100);
           } else {
-            console.log("[Auth Page] Onboarding complete, redirecting to home");
+            console.log("[Auth Page] 🔄 OAuth Navigation: Going to /home");
             setTimeout(() => {
               navigate("/home", { replace: true });
             }, 100);
           }
         } catch (error) {
-          console.error("[Auth Page] Error checking onboarding:", error);
+          console.error("[Auth Page] ❌ OAuth Error checking onboarding:", error);
+          sessionStorage.setItem('onboarding_checked', 'true');
           setTimeout(() => {
             navigate("/home", { replace: true });
           }, 100);
@@ -240,10 +272,11 @@ const Auth = () => {
           }
         }
 
-        // Only navigate if we have a session (no MFA or MFA already verified)
+        // Session exists - the useEffect will handle navigation after checking onboarding
         if (data?.session) {
+          console.log("[Auth Page] 🔑 Email login successful, useEffect will handle navigation");
           toast.success("Welcome back!");
-          navigate("/home");
+          // Remove immediate navigation - let useEffect handle it after onboarding check
         }
       } else {
         if (!fullName.trim()) {

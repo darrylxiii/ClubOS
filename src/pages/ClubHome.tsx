@@ -22,6 +22,16 @@ const ClubHome = () => {
   useEffect(() => {
     const checkOnboarding = async () => {
       if (!loading && user) {
+        // Check if we already validated onboarding (from Auth page)
+        const onboardingChecked = sessionStorage.getItem('onboarding_checked');
+        if (onboardingChecked === 'true') {
+          console.log('[ClubHome] ✅ Onboarding already checked by Auth page, skipping');
+          sessionStorage.removeItem('onboarding_checked');
+          return; // Skip check, Auth page already handled it
+        }
+
+        console.log('[ClubHome] 🔍 Checking onboarding status (direct navigation)');
+        
         try {
           const { data: profile } = await supabase
             .from('profiles')
@@ -29,13 +39,18 @@ const ClubHome = () => {
             .eq('id', user.id)
             .single();
           
+          console.log('[ClubHome] 📋 Profile data:', { 
+            userId: user.id, 
+            onboardingComplete: !!profile?.onboarding_completed_at 
+          });
+          
           if (!profile?.onboarding_completed_at) {
-            console.log('[ClubHome] Incomplete onboarding detected, redirecting to OAuth onboarding');
+            console.log('[ClubHome] 🔄 Navigation: Incomplete onboarding, going to /oauth-onboarding');
             navigate("/oauth-onboarding", { replace: true });
             return;
           }
         } catch (error) {
-          console.error('[ClubHome] Error checking onboarding:', error);
+          console.error('[ClubHome] ❌ Error checking onboarding:', error);
         }
       }
     };
