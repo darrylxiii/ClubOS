@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,129 +12,162 @@ serve(async (req) => {
   }
 
   try {
-    const { meetingId, transcript, roleTitle, companyName } = await req.json();
+    const { meetingId, transcript } = await req.json();
     
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
+    if (!meetingId || !transcript) {
+      return new Response(JSON.stringify({ error: 'Missing meetingId or transcript' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Generate real-time intelligence
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
+    console.log('[Realtime Analysis] Analyzing transcript for meeting:', meetingId);
+
+    // Call Lovable AI to analyze the transcript
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+        'Authorization': `Bearer ${lovableApiKey}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+        model: 'google/gemini-2.5-flash',
         messages: [
           {
-            role: "system",
-            content: `You are an expert interview analyst. Analyze interview transcripts in real-time and provide scoring.
-
-Your response must be valid JSON in this exact format:
+            role: 'system',
+            content: `You are an AI interview analyst. Analyze interview transcripts in real-time and provide scoring.
+Return a JSON object with these exact fields:
 {
-  "communication_clarity_score": 0-100,
-  "technical_depth_score": 0-100,
-  "culture_fit_score": 0-100,
-  "confidence_score": 0-100,
-  "overall_score": 0-100,
-  "red_flags": [{"flag": "description", "severity": "low|medium|high", "timestamp": "00:00"}],
-  "positive_signals": [{"signal": "description", "timestamp": "00:00"}],
-  "follow_up_suggestions": ["suggestion 1", "suggestion 2"],
-  "topic_coverage": {"technical": 0-100, "behavioral": 0-100, "culture": 0-100}
+  "communication_clarity": number (0-100),
+  "technical_depth": number (0-100),
+  "culture_fit": number (0-100),
+  "red_flags": string[],
+  "green_flags": string[],
+  "overall_score": number (0-100),
+  "key_insights": string,
+  "follow_up_suggestions": string[]
 }`
           },
           {
-            role: "user",
-            content: `Analyze this interview transcript and provide real-time scoring:
-
-Role: ${roleTitle}
-Company: ${companyName}
-
-Recent Transcript:
-${transcript}
-
-Provide scores and analysis in JSON format.`
+            role: 'user',
+            content: `Analyze this interview transcript and provide real-time scoring:\n\n${transcript}`
           }
         ],
-        temperature: 0.7,
+        tools: [{
+          type: "function",
+          function: {
+            name: "score_interview",
+            description: "Score the interview based on transcript analysis",
+            parameters: {
+              type: "object",
+              properties: {
+                communication_clarity: { type: "number", minimum: 0, maximum: 100 },
+                technical_depth: { type: "number", minimum: 0, maximum: 100 },
+                culture_fit: { type: "number", minimum: 0, maximum: 100 },
+                red_flags: { type: "array", items: { type: "string" } },
+                green_flags: { type: "array", items: { type: "string" } },
+                overall_score: { type: "number", minimum: 0, maximum: 100 },
+                key_insights: { type: "string" },
+                follow_up_suggestions: { type: "array", items: { type: "string" } }
+              },
+              required: ["communication_clarity", "technical_depth", "culture_fit", "overall_score", "key_insights"],
+              additionalProperties: false
+            }
+          }
+        }],
+        tool_choice: { type: "function", function: { name: "score_interview" } }
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("AI analysis failed");
+    if (!aiResponse.ok) {
+      const errorText = await aiResponse.text();
+      console.error('[Realtime Analysis] AI API error:', aiResponse.status, errorText);
+      return new Response(JSON.stringify({ error: 'AI analysis failed' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const data = await response.json();
-    const analysisText = data.choices[0].message.content;
+    const aiData = await aiResponse.json();
+    const toolCall = aiData.choices[0]?.message?.tool_calls?.[0];
     
-    // Parse JSON response
-    let intelligence;
-    try {
-      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        intelligence = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("No JSON found in response");
-      }
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", analysisText);
-      intelligence = {
-        communication_clarity_score: 70,
-        technical_depth_score: 70,
-        culture_fit_score: 70,
-        confidence_score: 70,
-        overall_score: 70,
-        red_flags: [],
-        positive_signals: [],
-        follow_up_suggestions: [],
-        topic_coverage: {technical: 50, behavioral: 50, culture: 50}
-      };
+    if (!toolCall) {
+      console.error('[Realtime Analysis] No tool call in response');
+      return new Response(JSON.stringify({ error: 'Invalid AI response' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    // Upsert intelligence data
-    const { data: intel, error: upsertError } = await supabase
-      .from('interview_intelligence')
-      .upsert({
-        meeting_id: meetingId,
-        communication_clarity_score: intelligence.communication_clarity_score,
-        technical_depth_score: intelligence.technical_depth_score,
-        culture_fit_score: intelligence.culture_fit_score,
-        confidence_score: intelligence.confidence_score,
-        overall_score: intelligence.overall_score,
-        red_flags: intelligence.red_flags,
-        positive_signals: intelligence.positive_signals,
-        follow_up_suggestions: intelligence.follow_up_suggestions,
-        topic_coverage: intelligence.topic_coverage,
-        last_updated_at: new Date().toISOString(),
-      }, {
-        onConflict: 'meeting_id'
-      })
-      .select()
+    const scores = JSON.parse(toolCall.function.arguments);
+    console.log('[Realtime Analysis] Scores generated:', scores);
+
+    // Update interview_insights table
+    const { data: existingInsight } = await supabase
+      .from('interview_insights' as any)
+      .select('id')
+      .eq('meeting_id', meetingId)
       .single();
 
-    if (upsertError) {
-      console.error('Error upserting intelligence:', upsertError);
-      throw upsertError;
+    if (existingInsight) {
+      // Update existing
+      const { error: updateError } = await supabase
+        .from('interview_insights' as any)
+        .update({
+          communication_clarity: scores.communication_clarity,
+          technical_depth: scores.technical_depth,
+          culture_fit: scores.culture_fit,
+          red_flags: scores.red_flags || [],
+          green_flags: scores.green_flags || [],
+          overall_score: scores.overall_score,
+          key_insights: scores.key_insights,
+          follow_up_suggestions: scores.follow_up_suggestions || [],
+          last_analyzed_at: new Date().toISOString(),
+        })
+        .eq('id', existingInsight.id);
+
+      if (updateError) {
+        console.error('[Realtime Analysis] Update error:', updateError);
+      }
+    } else {
+      // Insert new
+      const { error: insertError } = await supabase
+        .from('interview_insights' as any)
+        .insert({
+          meeting_id: meetingId,
+          communication_clarity: scores.communication_clarity,
+          technical_depth: scores.technical_depth,
+          culture_fit: scores.culture_fit,
+          red_flags: scores.red_flags || [],
+          green_flags: scores.green_flags || [],
+          overall_score: scores.overall_score,
+          key_insights: scores.key_insights,
+          follow_up_suggestions: scores.follow_up_suggestions || [],
+          last_analyzed_at: new Date().toISOString(),
+        });
+
+      if (insertError) {
+        console.error('[Realtime Analysis] Insert error:', insertError);
+      }
     }
 
-    return new Response(
-      JSON.stringify({ intelligence: intel }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    console.log('[Realtime Analysis] Successfully updated scores');
+
+    return new Response(JSON.stringify({ success: true, scores }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+
   } catch (error) {
-    console.error("Error in analyze-interview-realtime:", error);
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    console.error('[Realtime Analysis] Error:', error);
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });
