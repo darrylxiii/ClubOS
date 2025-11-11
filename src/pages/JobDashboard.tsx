@@ -9,6 +9,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
+import { QuickActionsBar } from "@/components/partner/QuickActionsBar";
+import { SmartInsightsCard } from "@/components/partner/SmartInsightsCard";
+import { EnhancedFiltersPanel } from "@/components/partner/EnhancedFiltersPanel";
 import { JobDashboardCandidates } from "@/components/partner/JobDashboardCandidates";
 import { PipelineAuditLog } from "@/components/partner/PipelineAuditLog";
 import { TeamActivityCard } from "@/components/partner/TeamActivityCard";
@@ -394,7 +397,7 @@ export default function JobDashboard() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 animate-fade-in">
+      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6 animate-fade-in">
         {/* Admin Tools Bar - Only visible to admins */}
         {role === 'admin' && (
           <AdminJobTools
@@ -405,10 +408,10 @@ export default function JobDashboard() {
         )}
 
         {/* Premium Header with Glass Morphism */}
-        <div className="relative overflow-hidden rounded-2xl border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl p-8 shadow-xl">
+        <div className="relative overflow-hidden rounded-2xl border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl p-6 md:p-8 shadow-[var(--shadow-glass-lg)]">
           <div className="absolute inset-0 bg-gradient-to-r from-muted/10 via-transparent to-muted/10" />
           
-          <div className="relative flex items-start justify-between">
+          <div className="relative flex flex-col md:flex-row items-start justify-between gap-4">
             <div className="space-y-4">
         <Button
           variant="ghost"
@@ -458,11 +461,21 @@ export default function JobDashboard() {
           </div>
         </div>
 
+        {/* Quick Actions Bar */}
+        <QuickActionsBar 
+          jobId={job.id}
+          jobTitle={job.title}
+          candidateCount={metrics?.totalApplicants || 0}
+        />
+
+        {/* Enhanced Filters Panel */}
+        <EnhancedFiltersPanel />
+
         {/* Job-Specific KPI Overview */}
-        <div className="space-y-6">
+        <div className="space-y-4 md:space-y-6">
           {/* Top KPIs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-border/60 transition-all duration-300 group">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-border/60 transition-all duration-300 group shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
                   <div className="p-1.5 rounded-lg bg-muted/50 group-hover:bg-muted/70 transition-colors">
@@ -476,7 +489,7 @@ export default function JobDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-primary/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group">
+            <Card className="border-2 border-primary/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-primary/40 transition-all duration-300 group shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
                   <div className="p-1.5 rounded-lg bg-primary/20 group-hover:bg-primary/30 transition-colors">
@@ -493,7 +506,7 @@ export default function JobDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-accent/40 transition-all duration-300 group">
+            <Card className="border-2 border-accent/20 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-accent/40 transition-all duration-300 group shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
                   <div className="p-1.5 rounded-lg bg-accent/20 group-hover:bg-accent/30 transition-colors">
@@ -510,7 +523,7 @@ export default function JobDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-border/60 transition-all duration-300 group">
+            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl hover:border-border/60 transition-all duration-300 group shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)]">
               <CardHeader className="pb-3">
                 <CardTitle className="text-xs font-bold uppercase text-muted-foreground flex items-center gap-2">
                   <div className="p-1.5 rounded-lg bg-muted/50 group-hover:bg-muted/70 transition-colors">
@@ -528,8 +541,13 @@ export default function JobDashboard() {
             </Card>
           </div>
 
+          {/* Smart Insights */}
+          {metrics && (
+            <SmartInsightsCard metrics={metrics} stages={stages} />
+          )}
+
           {/* Enhanced Pipeline Breakdown */}
-          <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
+          <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)] transition-all duration-300">
             <CardHeader>
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between">
@@ -603,14 +621,17 @@ export default function JobDashboard() {
                   items={stages.map((_, i) => `stage-${i}`)}
                   strategy={verticalListSortingStrategy}
                 >
-                  <div className="space-y-4">
-                    {stages.sort((a, b) => a.order - b.order).map((stage, index) => {
-                      const count = metrics?.stageBreakdown[stage.order] || 0;
-                      const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
-                      const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
-                      const stageApplications = applications.filter(app => app.current_stage_index === stage.order);
-                      
-                      return (
+                   <div className="space-y-3 md:space-y-4">
+                     {stages.sort((a, b) => a.order - b.order).map((stage, index) => {
+                       const count = metrics?.stageBreakdown[stage.order] || 0;
+                       const avgDays = metrics?.avgDaysInStage[stage.order] || 0;
+                       const nextConversion = metrics?.conversionRates[`${stage.order}-${stage.order + 1}`];
+                       const stageApplications = applications.filter(app => app.current_stage_index === stage.order);
+                       
+                       // Stage health indicator
+                       const stageHealth = avgDays > 14 ? 'red' : avgDays > 7 ? 'yellow' : 'green';
+                       
+                       return (
                         <ExpandablePipelineStage
                           key={`stage-${index}`}
                           stage={stage}
@@ -702,10 +723,10 @@ export default function JobDashboard() {
           </Card>
 
           {/* Team & Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
             <TeamActivityCard jobId={job.id} />
 
-            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl">
+            <Card className="border-2 border-border/40 bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl shadow-[var(--shadow-glass-md)] hover:shadow-[var(--shadow-glass-lg)] transition-all duration-300">
               <CardHeader>
                 <CardTitle className="font-black uppercase text-sm flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-muted-foreground" />
@@ -727,35 +748,31 @@ export default function JobDashboard() {
           </div>
         </div>
 
-        {/* Main Content */}
-        <Tabs defaultValue="rejected" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border border-border/20">
-            <TabsTrigger value="rejected" className="data-[state=active]:bg-muted/50">
-              Rejected ({rejectedCount})
-            </TabsTrigger>
-            <TabsTrigger value="overview" className="data-[state=active]:bg-muted/50">
+        {/* Main Content - Reorganized Tabs */}
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
+            <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="documents" className="data-[state=active]:bg-muted/50">
-              Documents
+            <TabsTrigger value="pipeline" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+              Pipeline
             </TabsTrigger>
-            <TabsTrigger value="analytics" className="data-[state=active]:bg-muted/50">
+            <TabsTrigger value="analytics" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Analytics
             </TabsTrigger>
-            <TabsTrigger value="audit" className="data-[state=active]:bg-muted/50">
-              Audit Log
+            <TabsTrigger value="documents" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+              Documents
+            </TabsTrigger>
+            <TabsTrigger value="activity" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+              Activity
+            </TabsTrigger>
+            <TabsTrigger value="rejected" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+              Rejected ({rejectedCount})
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="rejected" className="space-y-4">
-            <RejectedCandidatesTab
-              jobId={job.id}
-              stages={stages}
-            />
-          </TabsContent>
-
-          <TabsContent value="overview">
-            <Card className="border-2 border-primary/20 backdrop-blur-xl bg-background/90">
+          <TabsContent value="overview" className="space-y-4">
+            <Card className="border-2 border-primary/20 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60 shadow-[var(--shadow-glass-md)]">
               <CardHeader>
                 <CardTitle className="font-black uppercase">Job Details</CardTitle>
               </CardHeader>
@@ -780,16 +797,27 @@ export default function JobDashboard() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="documents">
+          <TabsContent value="pipeline" className="space-y-4">
+            <p className="text-sm text-muted-foreground">Pipeline view is displayed above in the main dashboard.</p>
+          </TabsContent>
+
+          <TabsContent value="documents" className="space-y-4">
             <JobDocuments jobId={job.id} onUpdate={fetchJobDetails} />
           </TabsContent>
 
-          <TabsContent value="analytics">
+          <TabsContent value="analytics" className="space-y-4">
             <JobAnalytics jobId={job.id} />
           </TabsContent>
 
-          <TabsContent value="audit">
+          <TabsContent value="activity" className="space-y-4">
             <PipelineAuditLog jobId={job.id} />
+          </TabsContent>
+
+          <TabsContent value="rejected" className="space-y-4">
+            <RejectedCandidatesTab
+              jobId={job.id}
+              stages={stages}
+            />
           </TabsContent>
         </Tabs>
       </div>
