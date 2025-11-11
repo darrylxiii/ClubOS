@@ -37,11 +37,6 @@ export const FeedbackButton = () => {
   const { history } = useNavigationHistory();
   const location = useLocation();
 
-  // Hide feedback button for unauthenticated users
-  if (!user) {
-    return null;
-  }
-
   // Load draft from localStorage when opening modal
   useEffect(() => {
     if (open) {
@@ -190,6 +185,11 @@ export const FeedbackButton = () => {
     if (value <= 9) return 'Great';
     return 'Excellent';
   };
+
+  // Hide feedback button for unauthenticated users (after all hooks)
+  if (!user) {
+    return null;
+  }
 
   const content = (
     <>
