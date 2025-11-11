@@ -15528,6 +15528,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_users_without_roles: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          user_id: string
+        }[]
+      }
       has_company_role: {
         Args: { _company_id: string; _role: string; _user_id: string }
         Returns: boolean
