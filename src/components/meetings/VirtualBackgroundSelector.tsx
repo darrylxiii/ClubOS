@@ -73,7 +73,7 @@ export function VirtualBackgroundSelector({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-3xl z-[10200]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Image className="w-5 h-5" />

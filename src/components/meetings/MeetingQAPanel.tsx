@@ -192,7 +192,7 @@ export function MeetingQAPanel({ meetingId, isHost, open, onOpenChange }: Meetin
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[500px] p-0">
+      <SheetContent side="right" className="w-[500px] p-0 z-[10200]">
         <SheetHeader className="p-4 border-b">
           <SheetTitle className="flex items-center gap-2">
             <MessageCircleQuestion className="w-5 h-5" />

@@ -739,7 +739,7 @@ export function MeetingVideoCallInterface({
 
       {/* Chat Sidebar */}
       <Sheet open={showChat} onOpenChange={setShowChat}>
-        <SheetContent side="right" className="w-96 p-0">
+        <SheetContent side="right" className="w-96 p-0 z-[10200]">
           <SheetHeader className="p-4 border-b">
             <SheetTitle>Meeting Chat</SheetTitle>
           </SheetHeader>
@@ -753,7 +753,7 @@ export function MeetingVideoCallInterface({
 
       {/* Settings Dialog */}
       <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl z-[10200]">
           <DialogHeader>
             <DialogTitle>Meeting Settings</DialogTitle>
           </DialogHeader>
@@ -763,7 +763,7 @@ export function MeetingVideoCallInterface({
 
       {/* Notes Panel */}
       <Sheet open={showNotes} onOpenChange={setShowNotes}>
-        <SheetContent side="right" className="w-[600px] p-0">
+        <SheetContent side="right" className="w-[600px] p-0 z-[10200]">
           <SheetHeader className="p-4 border-b">
             <SheetTitle>Meeting Notes</SheetTitle>
           </SheetHeader>
@@ -773,7 +773,7 @@ export function MeetingVideoCallInterface({
 
       {/* Transcription Panel */}
       <Sheet open={showTranscription} onOpenChange={setShowTranscription}>
-        <SheetContent side="right" className="w-96 p-0">
+        <SheetContent side="right" className="w-96 p-0 z-[10200]">
           <SheetHeader className="p-4 border-b">
             <SheetTitle>Transcription</SheetTitle>
           </SheetHeader>
@@ -810,7 +810,7 @@ export function MeetingVideoCallInterface({
       {/* Interview Intelligence Panel - Only for interviewers */}
       {['host', 'interviewer', 'observer'].includes(userRole) && (
         <Sheet open={showInterviewIntelligence} onOpenChange={setShowInterviewIntelligence}>
-          <SheetContent side="right" className="w-[500px] p-0">
+          <SheetContent side="right" className="w-[500px] p-0 z-[10200]">
             <SheetHeader className="p-4 border-b">
               <SheetTitle className="flex items-center gap-2">
                 <Brain className="w-5 h-5 text-primary" />

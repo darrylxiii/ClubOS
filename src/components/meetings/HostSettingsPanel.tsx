@@ -50,7 +50,7 @@ export function HostSettingsPanel({ open, onOpenChange, meetingId, settings }: H
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto z-[10200]">
         <DialogHeader>
           <DialogTitle>Host Options</DialogTitle>
           <p className="text-sm text-muted-foreground">

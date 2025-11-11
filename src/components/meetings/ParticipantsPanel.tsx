@@ -56,7 +56,7 @@ export function ParticipantsPanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px] p-0">
+      <SheetContent side="right" className="w-[400px] p-0 z-[10200]">
         <SheetHeader className="p-4 border-b">
           <SheetTitle>Participants</SheetTitle>
         </SheetHeader>

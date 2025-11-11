@@ -24,7 +24,7 @@ export function MeetingDetailsPanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-[400px]">
+      <SheetContent side="right" className="w-[400px] z-[10200]">
         <SheetHeader>
           <SheetTitle>Meeting Details</SheetTitle>
         </SheetHeader>
