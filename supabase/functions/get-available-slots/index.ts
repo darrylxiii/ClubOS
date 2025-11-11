@@ -280,10 +280,10 @@ function generateAvailableSlots(
         });
         
         if (!hasConflict) {
-          slots.push({
-            start: slotTime.toISOString(),
-            end: slotEnd.toISOString(),
-          });
+          // Format: "HH:MM - YYYY-MM-DD" for frontend consumption
+          const timeStr = slotTime.toTimeString().slice(0, 5); // "09:00"
+          const dateStr = slotTime.toISOString().split('T')[0]; // "2025-11-13"
+          slots.push(`${timeStr} - ${dateStr}`);
         }
       }
       
