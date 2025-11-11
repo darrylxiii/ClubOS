@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useRole } from "@/contexts/RoleContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { CandidateHome } from "@/components/clubhome/CandidateHome";
 import { PartnerHome } from "@/components/clubhome/PartnerHome";
@@ -11,9 +13,35 @@ import { BackgroundVideo } from "@/components/BackgroundVideo";
 
 const ClubHome = () => {
   const { currentRole: role, loading } = useRole();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   console.log('🏠 [ClubHome] Rendering - role:', role, 'loading:', loading);
+
+  // Check if onboarding is complete (Phase 3)
+  useEffect(() => {
+    const checkOnboarding = async () => {
+      if (!loading && user) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_completed_at')
+            .eq('id', user.id)
+            .single();
+          
+          if (!profile?.onboarding_completed_at) {
+            console.log('[ClubHome] Incomplete onboarding detected, redirecting to OAuth onboarding');
+            navigate("/oauth-onboarding", { replace: true });
+            return;
+          }
+        } catch (error) {
+          console.error('[ClubHome] Error checking onboarding:', error);
+        }
+      }
+    };
+    
+    checkOnboarding();
+  }, [loading, user, navigate]);
 
   useEffect(() => {
     // Give extra time for role to load before redirecting

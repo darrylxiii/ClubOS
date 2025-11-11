@@ -31,6 +31,7 @@ import MeetingRoom from "./pages/MeetingRoom";
 
 // Lazy load protected routes to reduce initial bundle size
 const ClubHome = lazy(() => import("./pages/ClubHome"));
+const OAuthOnboarding = lazy(() => import("./pages/OAuthOnboarding"));
 
 // Legal pages (public)
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
@@ -189,6 +190,14 @@ const App = () => (
           <Route path="/partner-funnel" element={<PartnerFunnel />} />
           <Route path="/partnership-submitted/:companyName" element={<PartnershipSubmitted />} />
           <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
+          <Route
+            path="/oauth-onboarding"
+            element={
+              <ProtectedRoute>
+                <OAuthOnboarding />
+              </ProtectedRoute>
+            }
+          />
                 <Route
                   path="/funnel-analytics"
                   element={

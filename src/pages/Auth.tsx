@@ -71,11 +71,33 @@ const Auth = () => {
 
     // Only redirect for non-MFA scenarios (regular login completed or OAuth without MFA)
     if (!loading && user && session && !mfaRequired) {
-      console.log("[Auth Page] User fully authenticated, redirecting to home");
+      console.log("[Auth Page] User fully authenticated, checking onboarding status");
+      
+      // Check if onboarding is complete
+      const checkOnboarding = async () => {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_completed_at')
+            .eq('id', user.id)
+            .single();
+          
+          if (!profile?.onboarding_completed_at) {
+            console.log("[Auth Page] Onboarding incomplete, redirecting to OAuth onboarding");
+            navigate("/oauth-onboarding", { replace: true });
+          } else {
+            console.log("[Auth Page] Onboarding complete, redirecting to home");
+            navigate("/home", { replace: true });
+          }
+        } catch (error) {
+          console.error("[Auth Page] Error checking onboarding:", error);
+          // If error, redirect to home and let ClubHome handle it
+          navigate("/home", { replace: true });
+        }
+      };
+      
       setTimeout(() => {
-        navigate("/home", {
-          replace: true
-        });
+        checkOnboarding();
       }, 150);
     }
   }, [user, loading, navigate, mfaRequired, session]);
@@ -122,17 +144,37 @@ const Auth = () => {
   useEffect(() => {
     const {
       data: authListener
-    } = supabase.auth.onAuthStateChange((event, currentSession) => {
+    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.log("[Auth Page] Auth state change:", event, "Has session?", !!currentSession);
 
-      // When OAuth is successful with session, redirect
+      // When OAuth is successful with session, check onboarding
       if ((event === 'SIGNED_IN' || event === 'MFA_CHALLENGE_VERIFIED') && currentSession) {
-        console.log("[Auth Page] OAuth/MFA completed, redirecting to home");
-        setTimeout(() => {
-          navigate("/home", {
-            replace: true
-          });
-        }, 100);
+        console.log("[Auth Page] OAuth/MFA completed, checking onboarding status");
+        
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_completed_at')
+            .eq('id', currentSession.user.id)
+            .single();
+          
+          if (!profile?.onboarding_completed_at) {
+            console.log("[Auth Page] Onboarding incomplete, redirecting to OAuth onboarding");
+            setTimeout(() => {
+              navigate("/oauth-onboarding", { replace: true });
+            }, 100);
+          } else {
+            console.log("[Auth Page] Onboarding complete, redirecting to home");
+            setTimeout(() => {
+              navigate("/home", { replace: true });
+            }, 100);
+          }
+        } catch (error) {
+          console.error("[Auth Page] Error checking onboarding:", error);
+          setTimeout(() => {
+            navigate("/home", { replace: true });
+          }, 100);
+        }
       }
     });
     return () => {
