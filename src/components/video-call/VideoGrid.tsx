@@ -52,7 +52,7 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
             isLocal={mainParticipant.id === localParticipant?.id}
             isFocused
             className="h-full"
-            hideScreenShare={mainParticipant.id === 'local-screen'}
+            hideScreenShare={mainParticipant.is_screen_sharing && mainParticipant.id === localParticipant?.id}
           />
         </div>
 

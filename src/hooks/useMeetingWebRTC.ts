@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useBandwidthMonitor } from './useBandwidthMonitor';
+import { toast } from 'sonner';
 
 interface MeetingWebRTCConfig {
   meetingId: string;
@@ -677,6 +678,20 @@ export function useMeetingWebRTC({
               peerConnections.current.delete(signal.sender_id);
               setParticipants(prev => prev.filter(p => p !== signal.sender_id));
               break;
+            case 'screen-share-start':
+              console.log('[WebRTC] 🖥️ SCREEN-SHARE-START signal received from:', signal.sender_id);
+              // Remote user started screen sharing - their video track will be replaced automatically
+              toast(`${signal.sender_id.slice(0, 8)} is sharing their screen`, { duration: 2000 });
+              break;
+            case 'screen-share-stop':
+              console.log('[WebRTC] 🖥️ SCREEN-SHARE-STOP signal received from:', signal.sender_id);
+              // Remote user stopped screen sharing - their camera track will be restored automatically
+              break;
+            case 'video-state':
+            case 'audio-state':
+              // Handle remote media state changes (logged but not acted on)
+              console.log('[WebRTC] 🎛️ Media state change from:', signal.sender_id, signal.signal_data);
+              break;
             default:
               console.log('[WebRTC] ❓ Unknown signal type:', signal.signal_type);
           }
@@ -1007,13 +1022,44 @@ export function useMeetingWebRTC({
     sendReaction,
     enablePictureInPicture,
     cleanup,
-    retryConnection: () => {
-      // Manual retry - reset state and channel
-      setChannelStatus('connecting');
+    retryConnection: async () => {
+      console.log('[WebRTC] 🔄 Manual retry triggered, attempt:', reconnectAttempts.current + 1);
+      
+      if (reconnectAttempts.current >= maxReconnectAttempts) {
+        setError({ message: 'Failed to connect after multiple attempts. Please refresh the page.', recoverable: false });
+        toast.error('Connection failed after multiple attempts');
+        return;
+      }
+
+      reconnectAttempts.current++;
       setError(null);
+      setChannelStatus('connecting');
+      
+      toast.info(`Reconnecting (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})...`);
+
+      // Clean up existing connections
+      peerConnections.current.forEach((pc) => pc.close());
+      peerConnections.current.clear();
+      setParticipants([]);
+      
+      // Unsubscribe from old channel
       if (signalChannel.current) {
         signalChannel.current.unsubscribe();
         signalChannel.current = null;
+      }
+      
+      // Reset flags
+      hasJoinedRef.current = false;
+      mediaReadyRef.current = false;
+      
+      // Re-initialize media
+      try {
+        await initializeMedia();
+        toast.success('Reconnected successfully');
+        reconnectAttempts.current = 0; // Reset on success
+      } catch (error) {
+        console.error('[WebRTC] ❌ Retry failed:', error);
+        setError({ message: 'Reconnection failed. Please try again.', recoverable: true });
       }
     }
   };

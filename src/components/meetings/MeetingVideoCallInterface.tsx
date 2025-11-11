@@ -424,32 +424,20 @@ export function MeetingVideoCallInterface({
     );
   }
 
-  // Main call interface - separate screen share from video
+  // Main call interface - screen share replaces video track, not separate participant
   const allParticipants = [
-    // Local participant with their camera
+    // Local participant with their camera OR screen share
     {
       id: 'local',
-      display_name: participantName + (isGuest ? ' (Guest)' : ''),
+      display_name: participantName + (isGuest ? ' (Guest)' : '') + (isScreenSharing ? ' (Screen)' : ''),
       role: (meeting.host_id === participantId ? 'host' : 'participant') as 'host' | 'participant',
       is_muted: !isAudioEnabled,
-      is_video_off: !isVideoEnabled,
-      is_screen_sharing: false,
+      is_video_off: !isVideoEnabled && !isScreenSharing, // If screen sharing, video is "on"
+      is_screen_sharing: isScreenSharing,
       is_hand_raised: isHandRaised,
       is_speaking: false,
-      stream: localStream || undefined
+      stream: (isScreenSharing && screenStream) ? screenStream : (localStream || undefined)
     },
-    // Screen share as separate participant if active
-    ...(isScreenSharing && screenStream ? [{
-      id: 'local-screen',
-      display_name: `${participantName}'s screen`,
-      role: 'participant' as 'host' | 'participant',
-      is_muted: true,
-      is_video_off: false,
-      is_screen_sharing: true,
-      is_hand_raised: false,
-      is_speaking: false,
-      stream: screenStream
-    }] : []),
     // Remote participants
     ...Array.from(remoteStreams.entries()).map(([id, { stream, name }]) => {
       console.log('[Meeting] 🎭 Mapping remote participant:', {
@@ -496,6 +484,20 @@ export function MeetingVideoCallInterface({
             <Users className="h-4 w-4" />
             Waiting for others to join...
           </p>
+        </div>
+      )}
+
+      {/* Connection Error Banner with Retry */}
+      {error && error.recoverable && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[10001] bg-red-500/20 border border-red-500/40 rounded-lg px-6 py-3 backdrop-blur-sm max-w-md">
+          <p className="text-sm text-red-200 mb-2">{error.message}</p>
+          <Button 
+            size="sm" 
+            onClick={retryConnection}
+            className="w-full bg-red-500/30 hover:bg-red-500/40 text-white"
+          >
+            Retry Connection
+          </Button>
         </div>
       )}
       
