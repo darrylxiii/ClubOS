@@ -9,37 +9,13 @@ interface NavigationState {
  * Handles user manual toggles while respecting active route auto-expansion
  */
 export const useNavigationState = (groupTitle: string, hasActiveItem: boolean) => {
-  const storageKey = `nav-group-${groupTitle}`;
-  
   // isOpen controls whether to show all items (true) or just active item (false)
-  // Always default to false (collapsed) - only expand if user explicitly toggled
-  const [isOpen, setIsOpen] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem(storageKey);
-      // Only return true if user explicitly set it to true
-      return stored === "true";
-    } catch {
-      return false;
-    }
-  });
+  // Always start collapsed on every page visit - no persistence
+  const [isOpen, setIsOpen] = useState<boolean>(false);
 
-  // Persist user manual toggle to localStorage
-  // When toggling, if turning off (collapsing), remove from localStorage
-  // This ensures fresh page visits always show collapsed state
+  // Toggle between showing all items and just active item
   const toggle = () => {
-    setIsOpen((prev) => {
-      const newState = !prev;
-      try {
-        if (newState) {
-          localStorage.setItem(storageKey, "true");
-        } else {
-          localStorage.removeItem(storageKey); // Remove so it defaults to collapsed
-        }
-      } catch (error) {
-        console.warn("Failed to persist navigation state:", error);
-      }
-      return newState;
-    });
+    setIsOpen((prev) => !prev);
   };
 
   return { isOpen, toggle };
