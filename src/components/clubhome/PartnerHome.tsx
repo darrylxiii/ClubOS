@@ -15,6 +15,10 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
+import { RecentApplicationsList } from "./RecentApplicationsList";
+import { TalentRecommendations } from "./TalentRecommendations";
+import { HiringPipelineOverview } from "./HiringPipelineOverview";
+import { PartnerActivityFeed } from "./PartnerActivityFeed";
 
 export const PartnerHome = () => {
   const { user } = useAuth();
@@ -37,7 +41,15 @@ export const PartnerHome = () => {
     if (!companyId) return;
 
     try {
-      const [jobsRes, followersRes] = await Promise.all([
+      // First get company's job IDs
+      const { data: jobs } = await supabase
+        .from('jobs')
+        .select('id')
+        .eq('company_id', companyId);
+
+      const jobIds = jobs?.map(j => j.id) || [];
+
+      const [jobsRes, followersRes, appsRes, meetingsRes] = await Promise.all([
         supabase
           .from('jobs')
           .select('*', { count: 'exact', head: true })
@@ -46,13 +58,22 @@ export const PartnerHome = () => {
         supabase
           .from('company_followers')
           .select('*', { count: 'exact', head: true })
-          .eq('company_id', companyId)
+          .eq('company_id', companyId),
+        jobIds.length > 0 ? supabase
+          .from('applications')
+          .select('*', { count: 'exact', head: true })
+          .in('job_id', jobIds)
+          : { count: 0 },
+        supabase
+          .from('meetings')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'scheduled')
       ]);
 
       setStats({
         activeJobs: jobsRes.count || 0,
-        totalApplications: 0, // Would aggregate from applications
-        interviews: 0,
+        totalApplications: appsRes.count || 0,
+        interviews: meetingsRes.count || 0,
         followers: followersRes.count || 0
       });
     } catch (error) {
@@ -157,45 +178,20 @@ export const PartnerHome = () => {
           </CardContent>
         </Card>
 
-        {/* Recent Applications */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Recent Applications
-            </CardTitle>
-            <CardDescription>Latest candidate applications</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground text-center py-8">
-                Recent applications will appear here
-              </p>
-              <Button className="w-full" variant="outline" asChild>
-                <Link to="/partner-dashboard">View All Applications</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Hiring Pipeline Overview */}
+        {companyId && <HiringPipelineOverview companyId={companyId} />}
       </div>
 
-      {/* Talent Pool Recommendations */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            Recommended Talent
-          </CardTitle>
-          <CardDescription>Top candidates matching your open roles</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground text-center py-8">
-              Talent recommendations will appear when you have active job postings
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Applications */}
+        {companyId && <RecentApplicationsList companyId={companyId} />}
+
+        {/* Talent Recommendations */}
+        {companyId && <TalentRecommendations companyId={companyId} />}
+      </div>
+
+      {/* Activity Feed */}
+      {companyId && <PartnerActivityFeed companyId={companyId} />}
     </div>
   );
 };
