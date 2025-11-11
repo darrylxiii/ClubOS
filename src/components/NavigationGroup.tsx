@@ -31,6 +31,9 @@ export const NavigationGroup = ({
 
   // Track previous visible items to detect which are new
   const prevVisibleItemsRef = useRef<NavigationItem[]>([]);
+  
+  // Track first mount to differentiate page load from user expansion
+  const isFirstMountRef = useRef(true);
 
   const isActiveGroup = hasActiveItem;
 
@@ -39,9 +42,10 @@ export const NavigationGroup = ({
   const shouldShowItems = hasActiveItem || isOpen;
   const visibleItems = isOpen ? items : items.filter(item => location.pathname === item.path);
 
-  // Update previous visible items after render
+  // Update previous visible items after render and track first mount
   useEffect(() => {
     prevVisibleItemsRef.current = visibleItems;
+    isFirstMountRef.current = false;
   }, [visibleItems]);
 
   return (
@@ -91,11 +95,11 @@ export const NavigationGroup = ({
         )}
       </button>
 
-      <AnimatePresence initial={false} mode="popLayout">
+      <AnimatePresence initial={!isFirstMountRef.current} mode="popLayout">
         {shouldShowItems && (
           <motion.div
             layout="position"
-            initial={{ height: 0, opacity: 0 }}
+            initial={isFirstMountRef.current ? false : { height: 0, opacity: 0 }}
             animate={{ 
               height: "auto", 
               opacity: 1,
