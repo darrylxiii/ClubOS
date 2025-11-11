@@ -123,8 +123,8 @@ export default function CompanyApplications() {
       if (appsError) throw appsError;
 
       // Now get candidate profiles and profiles for these applications
+      // Use fallback hierarchy: candidate_profiles -> profiles -> embedded fields
       const candidateProfilePromises = (appsData || []).map(async (app) => {
-        // Strategy: Try multiple approaches to find candidate data
         let candidateData = null;
         let profileData = null;
 
@@ -170,22 +170,46 @@ export default function CompanyApplications() {
           interactions = interactionsData || [];
         }
 
-        // Merge candidate and profile data, prioritizing candidate_profiles
+        // Build candidate object with fallback hierarchy
+        // Priority: 1. candidate_profiles, 2. profiles, 3. embedded fields, 4. defaults
+        const candidateInfo = candidateData ? {
+          ...candidateData,
+          full_name: candidateData.full_name || profileData?.full_name || app.candidate_full_name || 'Unknown Candidate',
+          email: candidateData.email || profileData?.email || app.candidate_email || '',
+          avatar_url: candidateData.avatar_url || profileData?.avatar_url,
+          current_title: candidateData.current_title || app.candidate_title,
+          current_company: candidateData.current_company || app.candidate_company,
+          linkedin_url: candidateData.linkedin_url || profileData?.linkedin_url || app.candidate_linkedin_url,
+          phone: profileData?.phone || app.candidate_phone,
+          has_account: true,
+        } : (profileData ? {
+          id: null,
+          full_name: profileData.full_name || app.candidate_full_name || 'Unknown Candidate',
+          email: profileData.email || app.candidate_email || '',
+          avatar_url: profileData.avatar_url,
+          current_title: app.candidate_title,
+          current_company: app.candidate_company,
+          linkedin_url: profileData.linkedin_url || app.candidate_linkedin_url,
+          phone: profileData.phone || app.candidate_phone,
+          user_id: app.user_id,
+          has_account: true,
+        } : {
+          // No user account - use embedded fields
+          id: null,
+          full_name: app.candidate_full_name || 'Unknown Candidate',
+          email: app.candidate_email || '',
+          avatar_url: null,
+          current_title: app.candidate_title,
+          current_company: app.candidate_company,
+          linkedin_url: app.candidate_linkedin_url,
+          phone: app.candidate_phone,
+          user_id: null,
+          has_account: false,
+        });
+
         return {
           ...app,
-          candidate_profiles: candidateData ? {
-            ...candidateData,
-            // Fallback to profile data if fields are missing
-            full_name: candidateData.full_name || profileData?.full_name || 'Unknown',
-            email: candidateData.email || profileData?.email || '',
-            avatar_url: candidateData.avatar_url || profileData?.avatar_url,
-          } : (profileData ? {
-            id: null,
-            full_name: profileData.full_name || 'Unknown',
-            email: profileData.email || '',
-            avatar_url: profileData.avatar_url,
-            user_id: app.user_id,
-          } : null),
+          candidate_profiles: candidateInfo,
           candidate_interactions: interactions
         };
       });
@@ -213,20 +237,22 @@ export default function CompanyApplications() {
 
   // Filter applications
   const filteredApplications = applications.filter(app => {
+    const candidate = app.candidate_profiles;
+    
     const matchesSearch = 
-      app.candidate_profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.candidate_profiles?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      candidate?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      candidate?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.jobs?.title?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStage = selectedStage === "all" || app.status === selectedStage;
     const matchesJob = selectedJob === "all" || app.job_id === selectedJob;
     const matchesCompany = selectedCompany === "all" || app.jobs?.company_id === selectedCompany;
-    const matchesSource = selectedSource === "all" || app.candidate_profiles?.source_channel === selectedSource;
+    const matchesSource = selectedSource === "all" || candidate?.source_channel === selectedSource;
 
     // Urgency filter
     let matchesUrgency = true;
     if (urgencyFilter !== "all") {
-      const lastActivity = app.candidate_profiles?.last_activity_at;
+      const lastActivity = candidate?.last_activity_at;
       const daysSince = lastActivity 
         ? Math.floor((Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24))
         : 999;
@@ -259,18 +285,22 @@ export default function CompanyApplications() {
 
   const handleExport = () => {
     const csv = [
-      ['Name', 'Email', 'Job', 'Stage', 'Applied Date', 'Last Activity', 'Source'],
-      ...filteredApplications.map(app => [
-        app.candidate_profiles?.full_name || '',
-        app.candidate_profiles?.email || '',
-        app.jobs?.title || '',
-        app.status || '',
-        new Date(app.applied_at).toLocaleDateString(),
-        app.candidate_profiles?.last_activity_at 
-          ? new Date(app.candidate_profiles.last_activity_at).toLocaleDateString() 
-          : 'N/A',
-        app.candidate_profiles?.source_channel || 'N/A'
-      ])
+      ['Name', 'Email', 'Job', 'Stage', 'Applied Date', 'Last Activity', 'Source', 'Account Status'],
+      ...filteredApplications.map(app => {
+        const candidate = app.candidate_profiles;
+        return [
+          candidate?.full_name || '',
+          candidate?.email || '',
+          app.jobs?.title || '',
+          app.status || '',
+          new Date(app.applied_at).toLocaleDateString(),
+          candidate?.last_activity_at 
+            ? new Date(candidate.last_activity_at).toLocaleDateString() 
+            : 'N/A',
+          candidate?.source_channel || 'N/A',
+          candidate?.has_account ? 'Active' : 'Pending Signup'
+        ];
+      })
     ].map(row => row.join(',')).join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv' });

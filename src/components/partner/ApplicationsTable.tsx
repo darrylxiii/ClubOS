@@ -123,20 +123,31 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
                   const companyId = app.jobs?.company_id || app.job?.company_id;
                   const visibility = getVisibleFields(app, companyId, role || 'partner');
                   
+                  // Determine account status
+                  const hasAccount = candidate?.has_account ?? (app.user_id ? true : false);
+                  const accountStatusBadge = hasAccount 
+                    ? null
+                    : <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 text-[10px]">Pending Signup</Badge>;
+                  
                   return (
                     <TableRow key={app.id} className="hover:bg-muted/50">
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
                             <AvatarImage src={visibility.avatar ? candidate?.avatar_url : undefined} />
-                            <AvatarFallback>
-                              {visibility.fullName && candidate?.full_name?.[0]?.toUpperCase() || '?'}
+                            <AvatarFallback className="bg-primary/10 text-primary">
+                              {visibility.fullName && candidate?.full_name?.[0]?.toUpperCase() || 
+                               candidate?.email?.[0]?.toUpperCase() || 
+                               '👤'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-bold">
-                              {visibility.fullName ? candidate?.full_name : 'Candidate'} 
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold">
+                                {visibility.fullName ? candidate?.full_name : 'Candidate'} 
+                              </p>
+                              {accountStatusBadge}
+                            </div>
                             {visibility.email && candidate?.email && (
                               <p className="text-xs text-muted-foreground">{candidate.email}</p>
                             )}

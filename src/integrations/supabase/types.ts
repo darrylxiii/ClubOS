@@ -1076,7 +1076,14 @@ export type Database = {
             | Database["public"]["Enums"]["application_source_enum"]
             | null
           applied_at: string
+          candidate_company: string | null
+          candidate_email: string | null
+          candidate_full_name: string | null
           candidate_id: string | null
+          candidate_linkedin_url: string | null
+          candidate_phone: string | null
+          candidate_resume_url: string | null
+          candidate_title: string | null
           company_name: string
           created_at: string
           current_stage_index: number
@@ -1097,7 +1104,14 @@ export type Database = {
             | Database["public"]["Enums"]["application_source_enum"]
             | null
           applied_at?: string
+          candidate_company?: string | null
+          candidate_email?: string | null
+          candidate_full_name?: string | null
           candidate_id?: string | null
+          candidate_linkedin_url?: string | null
+          candidate_phone?: string | null
+          candidate_resume_url?: string | null
+          candidate_title?: string | null
           company_name: string
           created_at?: string
           current_stage_index?: number
@@ -1118,7 +1132,14 @@ export type Database = {
             | Database["public"]["Enums"]["application_source_enum"]
             | null
           applied_at?: string
+          candidate_company?: string | null
+          candidate_email?: string | null
+          candidate_full_name?: string | null
           candidate_id?: string | null
+          candidate_linkedin_url?: string | null
+          candidate_phone?: string | null
+          candidate_resume_url?: string | null
+          candidate_title?: string | null
           company_name?: string
           created_at?: string
           current_stage_index?: number

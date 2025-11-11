@@ -17,6 +17,8 @@ interface Application {
   application_status: string;
   created_at: string;
   remote_preference?: string;
+  user_id?: string;
+  email_verified?: boolean;
 }
 
 interface ApplicationsTableProps {
@@ -39,6 +41,7 @@ export function ApplicationsTable({
   onQuickReject
 }: ApplicationsTableProps) {
   const getInitials = (name: string) => {
+    if (!name) return '👤';
     return name
       .split(' ')
       .map(n => n[0])
@@ -112,28 +115,38 @@ export function ApplicationsTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {applications.map((app) => (
-            <TableRow 
-              key={app.id}
-              className="cursor-pointer hover:bg-muted/50"
-              onClick={() => onViewDetails(app)}
-            >
-              <TableCell onClick={(e) => e.stopPropagation()}>
-                <Checkbox
-                  checked={selectedIds.includes(app.id)}
-                  onCheckedChange={(checked) => onSelectOne(app.id, checked as boolean)}
-                />
-              </TableCell>
-              <TableCell>
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                      {getInitials(app.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">{app.full_name}</span>
-                </div>
-              </TableCell>
+          {applications.map((app) => {
+            // Determine account status
+            const hasAccount = !!(app.user_id || app.email_verified);
+            const accountStatusBadge = hasAccount 
+              ? null
+              : <Badge variant="outline" className="border-amber-500/50 text-amber-600 dark:text-amber-400 text-[10px] ml-2">Pending</Badge>;
+            
+            return (
+              <TableRow 
+                key={app.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => onViewDetails(app)}
+              >
+                <TableCell onClick={(e) => e.stopPropagation()}>
+                  <Checkbox
+                    checked={selectedIds.includes(app.id)}
+                    onCheckedChange={(checked) => onSelectOne(app.id, checked as boolean)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                        {getInitials(app.full_name || app.email)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">{app.full_name || app.email || 'Unknown Candidate'}</span>
+                      {accountStatusBadge}
+                    </div>
+                  </div>
+                </TableCell>
               <TableCell>
                 <div className="space-y-1">
                   <div className="text-sm">{app.email}</div>
@@ -184,8 +197,9 @@ export function ApplicationsTable({
                   )}
                 </div>
               </TableCell>
-            </TableRow>
-          ))}
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
