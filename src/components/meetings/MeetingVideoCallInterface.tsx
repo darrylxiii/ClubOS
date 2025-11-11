@@ -442,7 +442,7 @@ export function MeetingVideoCallInterface({
     );
   }
 
-  // Main call interface - screen share replaces video track, not separate participant
+  // Main call interface with ultra-premium background
   const allParticipants = [
     // Local participant with their camera OR screen share
     {
@@ -494,14 +494,19 @@ export function MeetingVideoCallInterface({
   });
 
   const content = (
-    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-900 to-black w-full h-[100dvh] relative">
-      {/* Waiting for others banner */}
+    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-950 via-gray-900 to-black w-full h-[100dvh] relative">
+      {/* Waiting for others banner - elegant notification */}
       {totalParticipants === 1 && meetingStarted && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[10001] bg-yellow-500/20 border border-yellow-500/40 rounded-full px-6 py-2 backdrop-blur-sm">
-          <p className="text-sm text-yellow-200 flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Waiting for others to join...
-          </p>
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-[10001] animate-in fade-in slide-in-from-top duration-500">
+          <div className="flex items-center gap-3 px-8 py-4 bg-black/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+            <div className="relative">
+              <Users className="h-5 w-5 text-white/80" />
+              <div className="absolute -inset-1 bg-white/20 rounded-full blur animate-pulse" />
+            </div>
+            <span className="text-base font-medium text-white/90 tracking-wide">
+              Waiting for others to join...
+            </span>
+          </div>
         </div>
       )}
 
@@ -521,17 +526,17 @@ export function MeetingVideoCallInterface({
       
       <div className="w-full h-full" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       
-      {/* Meeting Info Header */}
-      <div className="absolute top-4 left-4 z-[10000] space-y-2">
-        <div className="backdrop-blur-2xl bg-black/40 border border-white/10 px-4 py-2 rounded-lg shadow-xl">
-          <h3 className="font-semibold text-white">{meeting.title}</h3>
-          <p className="text-xs text-gray-400">{meeting.meeting_code}</p>
+      {/* Meeting Info Header - Premium design */}
+      <div className="absolute top-6 left-6 z-[10000] space-y-3 animate-in slide-in-from-left duration-500">
+        <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-6 py-3 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+          <h3 className="font-semibold text-white text-base tracking-wide">{meeting.title}</h3>
+          <p className="text-xs text-white/60 font-mono mt-1">{meeting.meeting_code}</p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Badge 
             variant={connectionState === 'connected' ? 'default' : 'secondary'}
-            className="backdrop-blur-2xl bg-black/40 border border-white/10 shadow-lg"
+            className="backdrop-blur-2xl bg-black/50 border border-white/10 shadow-lg px-3 py-1.5 text-sm"
           >
             {connectionState === 'connected' ? '🟢' : '🟡'} {connectionState}
           </Badge>
@@ -542,7 +547,7 @@ export function MeetingVideoCallInterface({
               networkQuality === 'good' ? 'default' : 
               networkQuality === 'fair' ? 'secondary' : 'destructive'
             }
-            className="backdrop-blur-2xl bg-black/40 border border-white/10 shadow-lg"
+            className="backdrop-blur-2xl bg-black/50 border border-white/10 shadow-lg px-3 py-1.5 text-sm"
           >
             {networkQuality === 'excellent' ? '📶' : 
              networkQuality === 'good' ? '📶' : 
@@ -551,7 +556,7 @@ export function MeetingVideoCallInterface({
         </div>
         
         {latency > 0 && (
-          <div className="text-xs text-gray-400 backdrop-blur-2xl bg-black/40 border border-white/10 px-2 py-1 rounded">
+          <div className="text-xs text-white/70 backdrop-blur-2xl bg-black/50 border border-white/10 px-3 py-1.5 rounded-full font-mono">
             {latency}ms • {bandwidth.toFixed(1)} Mbps
           </div>
         )}
@@ -604,42 +609,51 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* Participant Count */}
-      <div className="absolute top-4 right-4 z-[10000]">
-        <div className="backdrop-blur-2xl bg-black/40 border border-white/10 px-4 py-2 rounded-lg text-sm text-white shadow-xl">
-          {allParticipants.length} participant{allParticipants.length !== 1 ? 's' : ''}
+      {/* Participant Count - Premium badge */}
+      <div className="absolute top-6 right-6 z-[10000] animate-in slide-in-from-right duration-500">
+        <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-6 py-3 rounded-full text-sm text-white shadow-[0_8px_32px_rgba(0,0,0,0.4)] font-medium">
+          <span className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-white/80" />
+            {allParticipants.length} participant{allParticipants.length !== 1 ? 's' : ''}
+          </span>
         </div>
       </div>
 
-      {/* Video Grid */}
-      <VideoGrid
-        participants={allParticipants.slice(1)} // All participants except local camera
-        localParticipant={allParticipants[0]} // Local camera participant
-        focusedParticipantId={isScreenSharing ? 'local-screen' : undefined}
-        layout={isScreenSharing ? 'spotlight' : 'grid'}
-        presenterId={isScreenSharing ? participantId : undefined}
-      />
+      {/* Video Grid with premium container */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-950/50 via-transparent to-black/50 pointer-events-none" />
+        <VideoGrid
+          participants={allParticipants.slice(1)} // All participants except local camera
+          localParticipant={allParticipants[0]} // Local camera participant
+          focusedParticipantId={isScreenSharing ? 'local-screen' : undefined}
+          layout={isScreenSharing ? 'spotlight' : 'grid'}
+          presenterId={isScreenSharing ? participantId : undefined}
+        />
+      </div>
       
-      {/* Waiting Room Overlay */}
+      {/* Waiting Room Overlay - Premium design */}
       {!meetingStarted && totalParticipants <= 1 && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900/80 to-gray-800/80 backdrop-blur-sm z-[1000]">
-          <div className="text-center space-y-6 animate-fade-in max-w-md mx-4">
-            <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-              <Video className="h-12 w-12 text-primary" />
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-950/95 via-gray-900/90 to-black/95 backdrop-blur-xl z-[1000] animate-in fade-in duration-500">
+          <div className="text-center space-y-8 animate-in zoom-in-95 duration-700 max-w-md mx-4">
+            <div className="relative inline-block">
+              <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 backdrop-blur-xl border border-white/20 flex items-center justify-center mx-auto shadow-2xl">
+                <Video className="h-16 w-16 text-primary" />
+              </div>
+              <div className="absolute -inset-4 bg-primary/20 rounded-full blur-2xl opacity-50 animate-pulse" />
             </div>
             
-            <div className="space-y-2">
-              <h3 className="text-2xl font-bold text-white">
+            <div className="space-y-4">
+              <h3 className="text-3xl font-bold text-white tracking-tight">
                 {pendingRequestsCount > 0 ? 'Guest Approval Required' : 'Waiting for others to join'}
               </h3>
-              <p className="text-muted-foreground">
+              <p className="text-lg text-white/70 leading-relaxed">
                 {pendingRequestsCount > 0 ? (
                   <>
                     {pendingRequestsCount} guest{pendingRequestsCount > 1 ? 's' : ''} waiting for your approval
                   </>
                 ) : (
                   <>
-                    Share the meeting link: <span className="font-mono text-primary">{meeting.meeting_code}</span>
+                    Share the meeting code: <span className="font-mono text-primary font-bold text-xl">{meeting.meeting_code}</span>
                   </>
                 )}
               </p>

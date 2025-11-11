@@ -26,6 +26,7 @@ interface ParticipantTileProps {
 export function ParticipantTile({ participant, isLocal, isFocused, className, hideScreenShare }: ParticipantTileProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     if (videoRef.current && participant.stream) {
@@ -64,11 +65,16 @@ export function ParticipantTile({ participant, isLocal, isFocused, className, hi
   return (
     <div
       className={cn(
-        "relative rounded-xl overflow-hidden bg-muted shadow-glass-md transition-all duration-300",
-        isFocused && "ring-4 ring-primary shadow-glass-lg scale-[1.02]",
-        participant.is_speaking && "ring-2 ring-green-500 animate-pulse-subtle",
+        "relative rounded-2xl overflow-hidden bg-gradient-to-br from-gray-950/90 via-gray-900/80 to-black/90 backdrop-blur-xl",
+        "border border-white/10 transition-all duration-500 ease-out group",
+        "shadow-[0_8px_32px_rgba(0,0,0,0.4),0_2px_8px_rgba(0,0,0,0.2)]",
+        participant.is_speaking && "ring-2 ring-emerald-400/60 shadow-[0_0_32px_rgba(34,197,94,0.3)]",
+        isFocused && "ring-2 ring-primary/80 shadow-[0_0_40px_rgba(var(--primary)/0.4)]",
+        isHovered && "scale-[1.02] shadow-[0_12px_48px_rgba(0,0,0,0.5)]",
         className
       )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Video/Avatar Display */}
       {participant.stream && !participant.is_video_off ? (
@@ -89,44 +95,63 @@ export function ParticipantTile({ participant, isLocal, isFocused, className, hi
           )}
         </>
       ) : (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/20 to-primary/5">
-          <Avatar className="w-24 h-24 border-4 border-background/50">
-            <AvatarFallback className="text-3xl font-bold">
-              {participant.display_name.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-900/50 to-black/50">
+          <div className="relative">
+            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary/30 via-primary/20 to-primary/10 backdrop-blur-xl border border-white/20 flex items-center justify-center shadow-2xl">
+              <span className="text-5xl font-bold bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent">
+                {participant.display_name.charAt(0).toUpperCase()}
+              </span>
+            </div>
+            <div className="absolute -inset-2 bg-primary/20 rounded-full blur-xl opacity-50" />
+          </div>
         </div>
       )}
 
       {/* Loading Overlay */}
       {isLoading && participant.stream && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent" />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-md">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary/80" />
+            <div className="absolute inset-0 animate-ping rounded-full h-16 w-16 border border-primary/40" />
+          </div>
         </div>
       )}
 
-      {/* Name & Status Bar */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+      {/* Name & Status Bar - Glassmorphic overlay */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/40 backdrop-blur-2xl border-t border-white/10">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-white font-semibold text-sm drop-shadow-lg">
+          <div className="flex items-center gap-3">
+            <span className="text-base font-semibold text-white tracking-wide drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
               {participant.display_name} {isLocal && '(You)'}
             </span>
             {participant.role === 'host' && (
-              <Crown className="h-4 w-4 text-yellow-400" />
+              <Badge 
+                variant="secondary" 
+                className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30 font-medium backdrop-blur-sm"
+              >
+                👑 Host
+              </Badge>
             )}
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {participant.is_screen_sharing && (
-              <Monitor className="h-4 w-4 text-blue-400" />
+              <div className="p-2 bg-primary/90 backdrop-blur-sm rounded-full animate-pulse shadow-lg shadow-primary/50 border border-primary/30">
+                <Monitor className="h-4 w-4 text-white" />
+              </div>
             )}
             {participant.is_muted ? (
-              <MicOff className="h-4 w-4 text-red-400" />
+              <div className="p-2 bg-rose-500/90 backdrop-blur-sm rounded-full shadow-lg shadow-rose-500/30 border border-rose-400/20 transition-all duration-200 hover:scale-110">
+                <MicOff className="h-4 w-4 text-white" />
+              </div>
             ) : (
-              <Mic className="h-4 w-4 text-green-400" />
+              <div className="p-2 bg-emerald-500/20 backdrop-blur-sm rounded-full border border-emerald-500/30">
+                <Mic className="h-4 w-4 text-emerald-400" />
+              </div>
             )}
             {participant.is_video_off && (
-              <VideoOff className="h-4 w-4 text-red-400" />
+              <div className="p-2 bg-rose-500/90 backdrop-blur-sm rounded-full shadow-lg shadow-rose-500/30 border border-rose-400/20 transition-all duration-200 hover:scale-110">
+                <VideoOff className="h-4 w-4 text-white" />
+              </div>
             )}
           </div>
         </div>
@@ -134,27 +159,28 @@ export function ParticipantTile({ participant, isLocal, isFocused, className, hi
 
       {/* Hand Raised Indicator */}
       {participant.is_hand_raised && (
-        <div className="absolute top-3 right-3 animate-bounce">
-          <div className="bg-yellow-500 rounded-full p-2 shadow-glow">
+        <div className="absolute top-4 right-20 animate-bounce">
+          <div className="p-2.5 bg-yellow-500/90 backdrop-blur-sm rounded-full shadow-xl shadow-yellow-500/50 border border-yellow-400/30">
             <Hand className="h-5 w-5 text-white" />
           </div>
         </div>
       )}
 
-      {/* Connection Quality Indicator */}
-      <div className="absolute top-3 left-3">
-        <div className="flex gap-0.5">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className={cn(
-                "w-1 rounded-full bg-white/30",
-                i === 1 && "h-2",
-                i === 2 && "h-3",
-                i === 3 && "h-4"
-              )}
-            />
-          ))}
+      {/* Connection Quality Indicator - Refined */}
+      <div className="absolute top-4 right-4">
+        <div className="flex items-center gap-1.5 px-3 py-2 bg-black/50 backdrop-blur-xl rounded-full border border-white/10 shadow-lg">
+          <div className="flex items-end gap-0.5">
+            {[2.5, 3.5, 5].map((height, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "w-1 rounded-full transition-all duration-300",
+                  "bg-gradient-to-t from-emerald-500 to-emerald-400 shadow-sm shadow-emerald-500/50"
+                )}
+                style={{ height: `${height * 4}px` }}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>

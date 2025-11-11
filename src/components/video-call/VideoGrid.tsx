@@ -52,28 +52,35 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
     const sidebarParticipants = visibleParticipants.filter(p => p.id !== mainParticipant.id);
 
     return (
-      <div className="flex gap-4 h-full">
-        {/* Main spotlight area - screen share takes full width */}
-        <div className="flex-1 min-w-0">
-          <ParticipantTile
-            participant={mainParticipant}
-            isLocal={mainParticipant.id === localParticipant?.id}
-            isFocused
-            className="h-full"
-            hideScreenShare={mainParticipant.is_screen_sharing && mainParticipant.id === localParticipant?.id}
-          />
+      <div className="flex gap-6 h-full p-6">
+        {/* Main spotlight area - cinematic presentation */}
+        <div className="flex-1 min-w-0 flex items-center justify-center">
+          <div className="w-full max-w-[1400px]">
+            <ParticipantTile
+              participant={mainParticipant}
+              isLocal={mainParticipant.id === localParticipant?.id}
+              isFocused
+              className="h-full aspect-video animate-in fade-in zoom-in-95 duration-500"
+              hideScreenShare={mainParticipant.is_screen_sharing && mainParticipant.id === localParticipant?.id}
+            />
+          </div>
         </div>
 
-        {/* Sidebar with ALL other participants including original presenter */}
+        {/* Sidebar with elegant participant strip */}
         {sidebarParticipants.length > 0 && (
-          <div className="w-72 flex flex-col gap-3 overflow-y-auto py-2">
-            {sidebarParticipants.map(participant => (
-              <ParticipantTile
+          <div className="w-80 flex flex-col gap-4 overflow-y-auto py-2 pr-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+            {sidebarParticipants.map((participant, index) => (
+              <div
                 key={participant.id}
-                participant={participant}
-                isLocal={participant.id === localParticipant?.id}
-                className="aspect-video min-h-[180px]"
-              />
+                className="animate-in slide-in-from-right fade-in duration-500"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <ParticipantTile
+                  participant={participant}
+                  isLocal={participant.id === localParticipant?.id}
+                  className="aspect-video min-h-[200px]"
+                />
+              </div>
             ))}
           </div>
         )}
@@ -81,27 +88,48 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
     );
   }
 
-  // Grid layout
+  // Grid layout with intelligent spacing and centering
+  const isSingleParticipant = visibleParticipants.length === 1;
+  const isTwoParticipants = visibleParticipants.length === 2;
+
   return (
-    <div
-      className={cn(
-        "grid gap-4 h-full w-full p-4",
-        visibleParticipants.length === 1 && "grid-cols-1",
-        visibleParticipants.length > 1 && `grid-cols-${getGridCols()}`,
-        "auto-rows-fr"
-      )}
-      style={{
-        gridTemplateColumns: `repeat(${getGridCols()}, 1fr)`
-      }}
-    >
-      {visibleParticipants.map(participant => (
-        <ParticipantTile
-          key={participant.id}
-          participant={participant}
-          isLocal={participant.id === localParticipant?.id}
-          isFocused={participant.id === focusedParticipantId}
-        />
-      ))}
+    <div className="h-full w-full p-8 flex items-center justify-center">
+      <div
+        className={cn(
+          "grid gap-6 w-full h-full",
+          isSingleParticipant && "place-items-center",
+          visibleParticipants.length > 1 && "auto-rows-fr"
+        )}
+        style={{
+          gridTemplateColumns: isSingleParticipant 
+            ? '1fr' 
+            : isTwoParticipants 
+            ? 'repeat(2, minmax(0, 1fr))' 
+            : `repeat(${getGridCols()}, minmax(0, 1fr))`,
+          maxWidth: isSingleParticipant ? '1200px' : '100%',
+        }}
+      >
+        {visibleParticipants.map((participant, index) => (
+          <div
+            key={participant.id}
+            className={cn(
+              "animate-in fade-in zoom-in-95 duration-500",
+              isSingleParticipant && "w-full max-w-[1200px] aspect-video"
+            )}
+            style={{ animationDelay: `${index * 100}ms` }}
+          >
+            <ParticipantTile
+              participant={participant}
+              isLocal={participant.id === localParticipant?.id}
+              isFocused={participant.id === focusedParticipantId}
+              className={cn(
+                "h-full w-full",
+                !isSingleParticipant && "aspect-video"
+              )}
+            />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

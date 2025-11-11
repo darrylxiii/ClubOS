@@ -95,17 +95,18 @@ export function ControlsPanel({
   const reactions = ['👍', '👏', '❤️', '😂', '🎉', '👋'];
 
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[10000]">
-      <div className="backdrop-blur-2xl bg-black/40 border border-white/10 rounded-full px-6 py-4 shadow-2xl flex items-center gap-3">
+    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[10000] animate-in slide-in-from-bottom duration-500">
+      <div className="backdrop-blur-2xl bg-black/50 border border-white/10 rounded-full px-8 py-4 shadow-[0_8px_48px_rgba(0,0,0,0.6),0_0_1px_rgba(255,255,255,0.1)] flex items-center gap-3">
         {/* Audio Control */}
         <Button
           size="lg"
           onClick={onToggleAudio}
           className={cn(
-            "rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10",
+            "rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10",
+            "hover:scale-110 active:scale-95",
             isAudioEnabled
-              ? "bg-card/10 hover:bg-card/20 text-white"
-              : "bg-red-500/90 hover:bg-red-600 text-white shadow-red-500/50"
+              ? "bg-white/10 hover:bg-white/20 text-white"
+              : "bg-rose-500/90 hover:bg-rose-600 text-white shadow-[0_0_24px_rgba(244,63,94,0.5)]"
           )}
         >
           {isAudioEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
@@ -116,10 +117,11 @@ export function ControlsPanel({
           size="lg"
           onClick={onToggleVideo}
           className={cn(
-            "rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10",
+            "rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10",
+            "hover:scale-110 active:scale-95",
             isVideoEnabled
-              ? "bg-card/10 hover:bg-card/20 text-white"
-              : "bg-red-500/90 hover:bg-red-600 text-white shadow-red-500/50"
+              ? "bg-white/10 hover:bg-white/20 text-white"
+              : "bg-rose-500/90 hover:bg-rose-600 text-white shadow-[0_0_24px_rgba(244,63,94,0.5)]"
           )}
         >
           {isVideoEnabled ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
@@ -130,24 +132,25 @@ export function ControlsPanel({
           size="lg"
           onClick={onToggleScreenShare}
           className={cn(
-            "rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10",
+            "rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10",
+            "hover:scale-110 active:scale-95",
             isScreenSharing
-              ? "bg-primary/90 text-white shadow-primary/50"
-              : "bg-card/10 hover:bg-card/20 text-white"
+              ? "bg-primary/90 text-white shadow-[0_0_24px_rgba(var(--primary)/0.5)]"
+              : "bg-white/10 hover:bg-white/20 text-white"
           )}
         >
           {isScreenSharing ? <MonitorOff className="h-6 w-6" /> : <Monitor className="h-6 w-6" />}
         </Button>
 
         {/* Divider */}
-        <div className="h-8 w-px bg-white/20" />
+        <div className="h-10 w-px bg-white/20" />
 
         {/* Reactions */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               size="lg"
-              className="rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10 bg-card/10 hover:bg-card/20 text-white text-2xl"
+              className="rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10 bg-white/10 hover:bg-white/20 hover:scale-110 active:scale-95 text-white text-2xl"
             >
               😊
             </Button>
@@ -174,24 +177,25 @@ export function ControlsPanel({
           size="lg"
           onClick={onToggleHandRaise}
           className={cn(
-            "rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10",
+            "rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10",
+            "hover:scale-110 active:scale-95",
             isHandRaised
-              ? "bg-yellow-500/90 hover:bg-yellow-600 text-white animate-bounce shadow-yellow-500/50"
-              : "bg-card/10 hover:bg-card/20 text-white"
+              ? "bg-yellow-500/90 hover:bg-yellow-600 text-white animate-bounce shadow-[0_0_24px_rgba(234,179,8,0.5)]"
+              : "bg-white/10 hover:bg-white/20 text-white"
           )}
         >
           <Hand className="h-6 w-6" />
         </Button>
 
         {/* Divider */}
-        <div className="h-8 w-px bg-white/20" />
+        <div className="h-10 w-px bg-white/20" />
 
         {/* More Options */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               size="lg"
-              className="rounded-full h-14 w-14 transition-all duration-300 shadow-lg backdrop-blur-xl border border-white/10 bg-card/10 hover:bg-card/20 text-white"
+              className="rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10 bg-white/10 hover:bg-white/20 hover:scale-110 active:scale-95 text-white"
             >
               <MoreVertical className="h-6 w-6" />
             </Button>
@@ -292,7 +296,7 @@ export function ControlsPanel({
         <Button
           size="lg"
           onClick={onEndCall}
-          className="rounded-full h-14 w-14 bg-red-500/90 hover:bg-red-600 text-white ml-2 shadow-2xl shadow-red-500/50 border border-red-400/20 transition-all duration-300"
+          className="rounded-full h-16 w-16 bg-rose-500/90 hover:bg-rose-600 text-white ml-3 shadow-[0_8px_32px_rgba(244,63,94,0.6)] border border-rose-400/30 transition-all duration-300 hover:scale-110 active:scale-95"
         >
           <PhoneOff className="h-6 w-6" />
         </Button>
