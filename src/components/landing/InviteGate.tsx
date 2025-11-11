@@ -19,19 +19,29 @@ export const InviteGate = () => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate invite code validation
-    setTimeout(() => {
-      if (code.toLowerCase() === "quantum2025" || code.toLowerCase() === "elite") {
+    try {
+      // Validate against database via edge function
+      const { data, error } = await supabase.functions.invoke('validate-invite-code', {
+        body: { code: code.toUpperCase() }
+      });
+
+      if (error) throw error;
+
+      if (data?.valid) {
         toast.success("Access granted! Welcome to The Quantum Club.", {
           icon: <Sparkles className="h-4 w-4" />,
         });
-        navigate("/auth");
+        navigate(`/auth?invite=${code.toUpperCase()}`);
       } else {
-        toast.error("Invalid access code. Request an invite to join.");
+        toast.error(data?.message || "Invalid or expired invite code. Request access to join.");
       }
+    } catch (error) {
+      console.error("Error validating invite:", error);
+      toast.error("Error validating invite code. Please try again.");
+    } finally {
       setIsLoading(false);
       setCode("");
-    }, 1500);
+    }
   };
 
   const handleWaitlistSubmit = async (e: React.FormEvent) => {

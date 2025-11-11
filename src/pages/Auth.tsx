@@ -14,10 +14,12 @@ import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
+import { OAuthDiagnostics } from "@/components/OAuthDiagnostics";
 // Use SVG for much better performance (vector vs 1563x1563px PNG)
 const quantumLogo = "/quantum-logo.svg?v=2";
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(12, "Password must be at least 12 characters").regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[a-z]/, "Password must contain at least one lowercase letter").regex(/[0-9]/, "Password must contain at least one number").regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
+
 const Auth = () => {
   const {
     user,
@@ -46,6 +48,19 @@ const Auth = () => {
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
   const navigate = useNavigate();
+  
+  // Recover invite code after OAuth redirect
+  useEffect(() => {
+    const pendingInvite = localStorage.getItem('pending_invite_code');
+    if (pendingInvite && !inviteCode) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('invite', pendingInvite);
+      window.history.replaceState({}, '', url.toString());
+      localStorage.removeItem('pending_invite_code');
+      validateInviteCode(pendingInvite);
+    }
+  }, []);
+  
   useEffect(() => {
     console.log("[Auth Page] State:", {
       loading,
@@ -64,6 +79,7 @@ const Auth = () => {
       }, 150);
     }
   }, [user, loading, navigate, mfaRequired, session]);
+  
   useEffect(() => {
     if (inviteCode) {
       validateInviteCode(inviteCode);
@@ -80,21 +96,25 @@ const Auth = () => {
   }, [prefillEmail]);
   const validateInviteCode = async (code: string) => {
     try {
-      const {
-        data,
-        error
-      } = await supabase.from("invite_codes").select("*, profiles!invite_codes_created_by_fkey(full_name)").eq("code", code).eq("is_active", true).is("used_by", null).gt("expires_at", new Date().toISOString()).single();
-      if (error || !data) {
+      // Use edge function for secure server-side validation
+      const { data, error } = await supabase.functions.invoke('validate-invite-code', {
+        body: { code }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.valid) {
+        setInviteValid(true);
+        setInviteInfo({ referrerName: data.referrerName });
+        toast.success(data.message || "Valid invite code! Please create your account.");
+      } else {
         setInviteValid(false);
-        toast.error("Invalid or expired invite code");
-        return;
+        toast.error(data?.message || "Invalid or expired invite code");
       }
-      setInviteValid(true);
-      setInviteInfo(data);
-      toast.success("Valid invite code! Please create your account.");
     } catch (error) {
       console.error("Error validating invite:", error);
       setInviteValid(false);
+      toast.error("Error validating invite code. Please try again.");
     }
   };
 
@@ -357,7 +377,7 @@ const Auth = () => {
                 <p className="text-sm font-bold text-success">Valid Invitation</p>
               </div>
               <p className="text-xs text-foreground/80">
-                Invited by {inviteInfo.profiles?.full_name || "a member"}
+                Invited by {inviteInfo.referrerName || "a member"}
               </p>
             </div>}
 
@@ -491,18 +511,31 @@ const Auth = () => {
               </div>
             </div>
 
+            {/* OAuth Diagnostics */}
+            <OAuthDiagnostics />
+
             {/* Google Sign-in Button */}
             <div className="flex items-center justify-center">
               <button type="button" onClick={async () => {
               console.log('[OAuth] Starting Google sign in...');
+              
+              // Preserve invite code in localStorage before OAuth redirect
+              if (inviteCode) {
+                localStorage.setItem('pending_invite_code', inviteCode);
+              }
+              
               try {
+                const redirectUrl = inviteCode 
+                  ? `${window.location.origin}/auth?invite=${inviteCode}`
+                  : `${window.location.origin}/auth`;
+                
                 const {
                   data,
                   error
                 } = await supabase.auth.signInWithOAuth({
                   provider: 'google',
                   options: {
-                    redirectTo: `${window.location.origin}/auth`,
+                    redirectTo: redirectUrl,
                     queryParams: {
                       access_type: 'offline',
                       prompt: 'consent'

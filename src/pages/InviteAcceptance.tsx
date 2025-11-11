@@ -56,6 +56,11 @@ export default function InviteAcceptance() {
 
   const handleSignUp = async (provider: 'google' | 'linkedin' | 'apple') => {
     try {
+      // Store invitation email for validation after OAuth
+      if (candidate?.email) {
+        sessionStorage.setItem('expected_invitation_email', candidate.email);
+      }
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {

@@ -1,10 +1,11 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { logger } from "@/lib/logger";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
 
-  console.log("[ProtectedRoute] State:", { loading, user: !!user });
+  logger.debug("[ProtectedRoute] State", { loading, hasUser: !!user });
 
   if (loading) {
     return (
@@ -15,10 +16,10 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user) {
-    console.log("[ProtectedRoute] No user, redirecting to /auth");
+    logger.info("[ProtectedRoute] No user, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
 
-  console.log("[ProtectedRoute] User authenticated, rendering protected content");
+  logger.debug("[ProtectedRoute] User authenticated, rendering protected content");
   return <>{children}</>;
 };

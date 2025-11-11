@@ -23,6 +23,16 @@ export default function InviteComplete() {
         return;
       }
 
+      // Validate email matches invitation
+      const expectedEmail = sessionStorage.getItem('expected_invitation_email');
+      if (expectedEmail && user.email !== expectedEmail) {
+        toast.error('This invitation was sent to a different email address');
+        await supabase.auth.signOut();
+        navigate('/');
+        return;
+      }
+      sessionStorage.removeItem('expected_invitation_email');
+
       const { data: invite, error: inviteError } = await supabase
         .from('candidate_invitations')
         .select('*')
