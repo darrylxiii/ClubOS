@@ -376,6 +376,34 @@ export function MeetingVideoCallInterface({
     };
   }, [meeting?.id, participants, meetingStarted]); // Added participants and meetingStarted to re-count when they change
 
+  // Fetch user's role from meeting_participants table
+  useEffect(() => {
+    if (!meeting?.id || !participantId) return;
+
+    const fetchUserRole = async () => {
+      const { data, error } = await supabase
+        .from('meeting_participants')
+        .select('role')
+        .eq('meeting_id', meeting.id)
+        .eq('user_id', participantId)
+        .maybeSingle();
+
+      if (data?.role) {
+        console.log('[Meeting] 👤 User role fetched:', data.role);
+        setUserRole(data.role);
+      } else if (meeting.host_id === participantId) {
+        console.log('[Meeting] 👑 User is host, setting role');
+        setUserRole('host');
+      }
+
+      if (error) {
+        console.error('[Meeting] ❌ Error fetching role:', error);
+      }
+    };
+
+    fetchUserRole();
+  }, [meeting?.id, participantId, meeting?.host_id]);
+
   useEffect(() => {
     return () => {
       cleanup();
