@@ -109,6 +109,8 @@ const EmailSettings = lazy(() => import("./pages/EmailSettings"));
 const BookingManagement = lazy(() => import("./pages/BookingManagement"));
 const CompanySettings = lazy(() => import("./pages/CompanySettings"));
 const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
+const PartnerTargetCompanies = lazy(() => import("./pages/PartnerTargetCompanies"));
+const TargetCompaniesOverview = lazy(() => import("./pages/admin/TargetCompaniesOverview"));
 
 // Club Projects
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
@@ -801,6 +803,26 @@ const App = () => (
                 <ProtectedRoute>
                   <RouteErrorBoundary>
                     <ExpertMarketplace />
+                  </RouteErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/partner/targets"
+              element={
+                <ProtectedRoute>
+                  <RouteErrorBoundary>
+                    <PartnerTargetCompanies />
+                  </RouteErrorBoundary>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/target-companies"
+              element={
+                <ProtectedRoute>
+                  <RouteErrorBoundary>
+                    <TargetCompaniesOverview />
                   </RouteErrorBoundary>
                 </ProtectedRoute>
               }
