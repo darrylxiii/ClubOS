@@ -10,36 +10,19 @@ interface NavigationState {
  */
 export const useNavigationState = (groupTitle: string, hasActiveItem: boolean) => {
   const storageKey = `nav-group-${groupTitle}`;
-  const itemsStorageKey = `nav-group-items-${groupTitle}`;
   
-  // Initialize state: expand if has active item, otherwise check localStorage
+  // isOpen controls whether to show all items (true) or just active item (false)
+  // When hasActiveItem, group is always visible, isOpen just controls item count
   const [isOpen, setIsOpen] = useState<boolean>(() => {
-    if (hasActiveItem) return true; // Always expand if contains active route
+    if (!hasActiveItem) return false; // Collapsed if no active item
     
     try {
       const stored = localStorage.getItem(storageKey);
-      return stored !== null ? stored === "true" : false; // Default to collapsed
-    } catch {
-      return false; // Fallback if localStorage unavailable
-    }
-  });
-
-  // Initialize items expanded state: collapse items by default, show only active
-  const [showAllItems, setShowAllItems] = useState<boolean>(() => {
-    try {
-      const stored = localStorage.getItem(itemsStorageKey);
-      return stored !== null ? stored === "true" : false; // Default to collapsed items
+      return stored !== null ? stored === "true" : false; // Default: show only active
     } catch {
       return false;
     }
   });
-
-  // Auto-expand when route changes and becomes active
-  useEffect(() => {
-    if (hasActiveItem && !isOpen) {
-      setIsOpen(true);
-    }
-  }, [hasActiveItem, isOpen]);
 
   // Persist user manual toggle to localStorage
   const toggle = () => {
@@ -54,18 +37,5 @@ export const useNavigationState = (groupTitle: string, hasActiveItem: boolean) =
     });
   };
 
-  // Toggle showing all items vs only active item
-  const toggleItems = () => {
-    setShowAllItems((prev) => {
-      const newState = !prev;
-      try {
-        localStorage.setItem(itemsStorageKey, String(newState));
-      } catch (error) {
-        console.warn("Failed to persist navigation items state:", error);
-      }
-      return newState;
-    });
-  };
-
-  return { isOpen, toggle, showAllItems, toggleItems };
+  return { isOpen, toggle };
 };

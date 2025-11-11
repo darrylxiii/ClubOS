@@ -26,16 +26,14 @@ export const NavigationGroup = ({
 }: NavigationGroupProps) => {
   const location = useLocation();
   const hasActiveItem = items.some((item) => location.pathname === item.path);
-  const { isOpen, toggle, showAllItems, toggleItems } = useNavigationState(title, hasActiveItem);
+  const { isOpen, toggle } = useNavigationState(title, hasActiveItem);
 
   const isActiveGroup = hasActiveItem;
 
-  // Filter items: show only active item when collapsed, all items when expanded
-  const visibleItems = showAllItems 
-    ? items 
-    : items.filter(item => location.pathname === item.path);
-  
-  const hasMoreItems = items.length > visibleItems.length;
+  // Show items only if group has active item or user manually expanded
+  // When collapsed: show only active item, when expanded: show all items
+  const shouldShowItems = hasActiveItem || isOpen;
+  const visibleItems = isOpen ? items : items.filter(item => location.pathname === item.path);
 
   return (
     <div className="space-y-1">
@@ -85,7 +83,7 @@ export const NavigationGroup = ({
       </button>
 
       <AnimatePresence initial={false}>
-        {isOpen && (
+        {shouldShowItems && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ 
@@ -151,27 +149,6 @@ export const NavigationGroup = ({
                 </motion.div>
               );
             })}
-
-            {/* Show more/less toggle */}
-            {hasMoreItems && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={toggleItems}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 w-full text-xs text-muted-foreground hover:text-foreground transition-colors duration-200",
-                  "hover:bg-muted/10 rounded-lg"
-                )}
-              >
-                <ChevronDown 
-                  className={cn(
-                    "h-3 w-3 transition-transform duration-200",
-                    showAllItems && "rotate-180"
-                  )} 
-                />
-                <span>{showAllItems ? "Show less" : `Show ${items.length - visibleItems.length} more`}</span>
-              </motion.button>
-            )}
           </motion.div>
         )}
       </AnimatePresence>

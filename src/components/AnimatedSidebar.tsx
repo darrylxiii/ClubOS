@@ -305,18 +305,16 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
   const { open } = useSidebar();
   const location = useLocation();
   const hasActiveItem = group.items.some(item => location.pathname === item.path);
-  const { isOpen: groupOpen, toggle, showAllItems, toggleItems } = useNavigationState(group.title, hasActiveItem);
+  const { isOpen: groupOpen, toggle } = useNavigationState(group.title, hasActiveItem);
 
   // Determine visual state for enhanced feedback
   const isExpanded = groupOpen;
   const isActiveGroup = hasActiveItem;
 
-  // Filter items: show only active item when collapsed, all items when expanded
-  const visibleItems = showAllItems 
-    ? group.items 
-    : group.items.filter(item => location.pathname === item.path);
-  
-  const hasMoreItems = group.items.length > visibleItems.length;
+  // Show items only if group has active item or user manually expanded
+  // When collapsed: show only active item, when expanded: show all items
+  const shouldShowItems = hasActiveItem || groupOpen;
+  const visibleItems = groupOpen ? group.items : group.items.filter(item => location.pathname === item.path);
 
   return (
     <div className="px-3 mb-4">
@@ -362,7 +360,7 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
         )}
       </button>
       <AnimatePresence initial={false}>
-        {groupOpen && (
+        {shouldShowItems && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ 
@@ -401,27 +399,6 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
                 <SidebarLink item={item} />
               </motion.div>
             ))}
-            
-            {/* Show more/less toggle */}
-            {hasMoreItems && open && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                onClick={toggleItems}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2 w-full text-xs text-muted-foreground hover:text-foreground transition-colors duration-200",
-                  "hover:bg-muted/10 rounded-lg"
-                )}
-              >
-                <ChevronDown 
-                  className={cn(
-                    "h-3 w-3 transition-transform duration-200",
-                    showAllItems && "rotate-180"
-                  )} 
-                />
-                <span>{showAllItems ? "Show less" : `Show ${group.items.length - visibleItems.length} more`}</span>
-              </motion.button>
-            )}
           </motion.div>
         )}
       </AnimatePresence>
