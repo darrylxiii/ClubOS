@@ -96,6 +96,31 @@ serve(async (req) => {
     const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(bookingLink.title)}&dates=${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(bookingLink.description || '')}`;
     const outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(bookingLink.title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(bookingLink.description || '')}`;
 
+    // Determine video platform and meeting link
+    const activePlatform = booking.active_video_platform;
+    let meetingLink = '';
+    let platformName = '';
+    let meetingInstructions = '';
+    let hasMeetingLink = false;
+
+    if (activePlatform === 'google_meet' && booking.google_meet_hangout_link) {
+      meetingLink = booking.google_meet_hangout_link;
+      platformName = 'Google Meet';
+      meetingInstructions = 'Join via Google Meet using the link below or from your calendar invite.';
+      hasMeetingLink = true;
+    } else if (activePlatform === 'quantum_club' && booking.quantum_meeting_link) {
+      meetingLink = booking.quantum_meeting_link;
+      platformName = 'TQC Meetings';
+      meetingInstructions = 'Join via The Quantum Club platform for full-featured video calls with AI intelligence.';
+      hasMeetingLink = true;
+    } else if (booking.video_meeting_link) {
+      // Fallback to generic video_meeting_link
+      meetingLink = booking.video_meeting_link;
+      platformName = 'Video Conference';
+      meetingInstructions = 'Join the meeting using the link below.';
+      hasMeetingLink = true;
+    }
+
     const emailContent = `
       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
         <tr>
