@@ -11207,10 +11207,15 @@ export type Database = {
           email: string | null
           email_verified: boolean | null
           employment_type_preference: string | null
+          freelance_availability_status: string | null
+          freelance_categories: string[] | null
           freelance_hourly_rate_max: number | null
           freelance_hourly_rate_min: number | null
           freelance_hours_per_week_max: number | null
           freelance_hours_per_week_min: number | null
+          freelance_preferred_engagement_types: string[] | null
+          freelance_preferred_project_duration: string[] | null
+          freelance_years_experience: number | null
           full_name: string | null
           fulltime_hours_per_week_max: number | null
           fulltime_hours_per_week_min: number | null
@@ -11230,6 +11235,7 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           notice_period: string | null
+          open_to_freelance_work: boolean | null
           overtime_willingness: number | null
           phone: string | null
           phone_verified: boolean | null
@@ -11286,10 +11292,15 @@ export type Database = {
           email?: string | null
           email_verified?: boolean | null
           employment_type_preference?: string | null
+          freelance_availability_status?: string | null
+          freelance_categories?: string[] | null
           freelance_hourly_rate_max?: number | null
           freelance_hourly_rate_min?: number | null
           freelance_hours_per_week_max?: number | null
           freelance_hours_per_week_min?: number | null
+          freelance_preferred_engagement_types?: string[] | null
+          freelance_preferred_project_duration?: string[] | null
+          freelance_years_experience?: number | null
           full_name?: string | null
           fulltime_hours_per_week_max?: number | null
           fulltime_hours_per_week_min?: number | null
@@ -11309,6 +11320,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
+          open_to_freelance_work?: boolean | null
           overtime_willingness?: number | null
           phone?: string | null
           phone_verified?: boolean | null
@@ -11365,10 +11377,15 @@ export type Database = {
           email?: string | null
           email_verified?: boolean | null
           employment_type_preference?: string | null
+          freelance_availability_status?: string | null
+          freelance_categories?: string[] | null
           freelance_hourly_rate_max?: number | null
           freelance_hourly_rate_min?: number | null
           freelance_hours_per_week_max?: number | null
           freelance_hours_per_week_min?: number | null
+          freelance_preferred_engagement_types?: string[] | null
+          freelance_preferred_project_duration?: string[] | null
+          freelance_years_experience?: number | null
           full_name?: string | null
           fulltime_hours_per_week_max?: number | null
           fulltime_hours_per_week_min?: number | null
@@ -11388,6 +11405,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
+          open_to_freelance_work?: boolean | null
           overtime_willingness?: number | null
           phone?: string | null
           phone_verified?: boolean | null

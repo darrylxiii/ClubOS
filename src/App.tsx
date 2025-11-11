@@ -112,7 +112,6 @@ const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
 const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
 const ProjectApplyPage = lazy(() => import("./pages/ProjectApplyPage"));
-const FreelancerSetup = lazy(() => import("./pages/FreelancerSetup"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -262,14 +261,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ProjectApplyPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/freelancer/setup"
-              element={
-                <ProtectedRoute>
-                  <FreelancerSetup />
                 </ProtectedRoute>
               }
             />

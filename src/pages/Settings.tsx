@@ -18,6 +18,7 @@ import { PreferencesSettings } from "@/components/settings/PreferencesSettings";
 import { CalendarIntegrationSettings } from "@/components/settings/CalendarIntegrationSettings";
 import { ResumeUploadModal } from "@/components/candidate/ResumeUploadModal";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
+import { FreelanceProjectsSettings } from "@/components/settings/FreelanceProjectsSettings";
 
 const Settings = () => {
   const { user } = useAuth();
@@ -507,9 +508,10 @@ const Settings = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="compensation">Compensation</TabsTrigger>
+            <TabsTrigger value="freelance">Freelance</TabsTrigger>
             <TabsTrigger value="connections">Connections</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="privacy">Privacy</TabsTrigger>
@@ -570,6 +572,14 @@ const Settings = () => {
               setHasIndefiniteContract={setHasIndefiniteContract}
               onSave={saveProfile}
               saving={saving}
+            />
+          </TabsContent>
+
+          <TabsContent value="freelance" className="space-y-4">
+            <FreelanceProjectsSettings
+              userId={user?.id || ""}
+              profile={profile}
+              onSave={loadProfile}
             />
           </TabsContent>
 

@@ -15,24 +15,25 @@ export default function ProjectsPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>("browse");
 
-  // Check if user has freelance profile
-  const { data: freelanceProfile, isLoading: loadingProfile } = useQuery({
-    queryKey: ["freelance-profile", user?.id],
+  // Check if user is open to freelance work
+  const { data: profile, isLoading: loadingProfile } = useQuery({
+    queryKey: ["user-profile", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data, error } = await (supabase as any)
-        .from("freelance_profiles")
-        .select("*")
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("open_to_freelance_work, freelance_availability_status, freelance_categories")
         .eq("id", user.id)
-        .maybeSingle();
+        .single();
       
       if (error) throw error;
-      return data as any;
+      return data;
     },
     enabled: !!user?.id,
   });
 
-  const isFreelancer = !!freelanceProfile;
+  const isFreelancer = profile?.open_to_freelance_work === true;
+  const isAvailable = profile?.freelance_availability_status === 'available';
   const isPartnerOrAdmin = false; // Will be determined from user metadata
 
   if (loadingProfile) {
@@ -60,13 +61,13 @@ export default function ProjectsPage() {
           <div className="flex gap-3">
             {!isFreelancer && (
               <Button 
-                onClick={() => navigate("/projects/freelancer/setup")}
+                onClick={() => navigate("/settings?tab=freelance")}
                 variant="outline"
                 size="lg"
                 className="gap-2"
               >
                 <Rocket className="h-4 w-4" />
-                Become a Freelancer
+                Enable Freelance Mode
               </Button>
             )}
             
@@ -137,7 +138,7 @@ export default function ProjectsPage() {
 
         {isFreelancer && (
           <TabsContent value="dashboard" className="space-y-6">
-            <FreelancerDashboard freelanceProfile={freelanceProfile} />
+            <FreelancerDashboard userId={user?.id} />
           </TabsContent>
         )}
 
