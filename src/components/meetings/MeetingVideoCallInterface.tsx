@@ -18,9 +18,13 @@ import { HostApprovalPanel } from '@/components/meetings/HostApprovalPanel';
 import { HostSettingsPanel } from '@/components/meetings/HostSettingsPanel';
 import { ParticipantsPanel } from '@/components/meetings/ParticipantsPanel';
 import { MeetingDetailsPanel } from '@/components/meetings/MeetingDetailsPanel';
+import { InterviewScoringDashboard } from '@/components/meetings/InterviewScoringDashboard';
+import { InterviewPrepPanel } from '@/components/meetings/InterviewPrepPanel';
+import { InterviewReportView } from '@/components/meetings/InterviewReportView';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Video, Users } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Video, Users, Brain } from 'lucide-react';
 
 interface MeetingVideoCallInterfaceProps {
   meeting: any;
@@ -51,9 +55,11 @@ export function MeetingVideoCallInterface({
   const [showHostSettings, setShowHostSettings] = useState(false);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showMeetingDetails, setShowMeetingDetails] = useState(false);
+  const [showInterviewIntelligence, setShowInterviewIntelligence] = useState(false);
   const [meetingStarted, setMeetingStarted] = useState(false);
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [userRole, setUserRole] = useState<string>('participant');
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const [hostSettings, setHostSettings] = useState({
@@ -711,6 +717,11 @@ export function MeetingVideoCallInterface({
         onOpenHostSettings={meeting.host_id === participantId ? () => setShowHostSettings(true) : undefined}
         onOpenMeetingInfo={() => setShowMeetingDetails(true)}
         onEnablePiP={handleEnablePiP}
+        onOpenInterviewIntelligence={
+          ['host', 'interviewer', 'observer'].includes(userRole) 
+            ? () => setShowInterviewIntelligence(true) 
+            : undefined
+        }
       />
 
       {/* Live Captions */}
@@ -791,6 +802,52 @@ export function MeetingVideoCallInterface({
         meetingCode={meeting.meeting_code}
         meetingUrl={meetingUrl}
       />
+
+      {/* Interview Intelligence Panel - Only for interviewers */}
+      {['host', 'interviewer', 'observer'].includes(userRole) && (
+        <Sheet open={showInterviewIntelligence} onOpenChange={setShowInterviewIntelligence}>
+          <SheetContent side="right" className="w-[500px] p-0">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle className="flex items-center gap-2">
+                <Brain className="w-5 h-5 text-primary" />
+                Club AI Interview Intelligence
+              </SheetTitle>
+            </SheetHeader>
+            <div className="p-4">
+              <Tabs defaultValue="live" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="prep">Prep</TabsTrigger>
+                  <TabsTrigger value="live">Live Scoring</TabsTrigger>
+                  <TabsTrigger value="report">Report</TabsTrigger>
+                </TabsList>
+                <TabsContent value="prep" className="mt-4">
+                  <InterviewPrepPanel
+                    meetingId={meeting.id}
+                    candidateId={meeting.candidate_id}
+                    roleTitle={meeting.role_title}
+                    companyName={meeting.company_name}
+                    userRole={userRole}
+                  />
+                </TabsContent>
+                <TabsContent value="live" className="mt-4">
+                  <InterviewScoringDashboard
+                    meetingId={meeting.id}
+                    userRole={userRole}
+                  />
+                </TabsContent>
+                <TabsContent value="report" className="mt-4">
+                  <InterviewReportView
+                    meetingId={meeting.id}
+                    candidateId={meeting.candidate_id}
+                    roleTitle={meeting.role_title}
+                    companyName={meeting.company_name}
+                  />
+                </TabsContent>
+              </Tabs>
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
       </div>
     </div>
   );

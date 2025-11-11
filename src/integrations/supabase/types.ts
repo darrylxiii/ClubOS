@@ -6727,6 +6727,169 @@ export type Database = {
           },
         ]
       }
+      interview_intelligence: {
+        Row: {
+          candidate_id: string | null
+          communication_clarity_score: number | null
+          confidence_score: number | null
+          created_at: string | null
+          culture_fit_score: number | null
+          follow_up_suggestions: string[] | null
+          id: string
+          last_updated_at: string | null
+          meeting_id: string
+          overall_score: number | null
+          positive_signals: Json | null
+          red_flags: Json | null
+          technical_depth_score: number | null
+          topic_coverage: Json | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          communication_clarity_score?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          culture_fit_score?: number | null
+          follow_up_suggestions?: string[] | null
+          id?: string
+          last_updated_at?: string | null
+          meeting_id: string
+          overall_score?: number | null
+          positive_signals?: Json | null
+          red_flags?: Json | null
+          technical_depth_score?: number | null
+          topic_coverage?: Json | null
+        }
+        Update: {
+          candidate_id?: string | null
+          communication_clarity_score?: number | null
+          confidence_score?: number | null
+          created_at?: string | null
+          culture_fit_score?: number | null
+          follow_up_suggestions?: string[] | null
+          id?: string
+          last_updated_at?: string | null
+          meeting_id?: string
+          overall_score?: number | null
+          positive_signals?: Json | null
+          red_flags?: Json | null
+          technical_depth_score?: number | null
+          topic_coverage?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_intelligence_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_intelligence_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "interview_intelligence_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_intelligence_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_prep_briefs: {
+        Row: {
+          candidate_id: string | null
+          candidate_summary: string | null
+          company_name: string | null
+          conversation_starters: string[] | null
+          created_at: string | null
+          cv_gaps: string[] | null
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          key_strengths: string[] | null
+          meeting_id: string
+          potential_concerns: string[] | null
+          role_title: string | null
+          suggested_questions: Json | null
+          technical_topics: string[] | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          candidate_summary?: string | null
+          company_name?: string | null
+          conversation_starters?: string[] | null
+          created_at?: string | null
+          cv_gaps?: string[] | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          key_strengths?: string[] | null
+          meeting_id: string
+          potential_concerns?: string[] | null
+          role_title?: string | null
+          suggested_questions?: Json | null
+          technical_topics?: string[] | null
+        }
+        Update: {
+          candidate_id?: string | null
+          candidate_summary?: string | null
+          company_name?: string | null
+          conversation_starters?: string[] | null
+          created_at?: string | null
+          cv_gaps?: string[] | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          key_strengths?: string[] | null
+          meeting_id?: string
+          potential_concerns?: string[] | null
+          role_title?: string | null
+          suggested_questions?: Json | null
+          technical_topics?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_prep_briefs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_prep_briefs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "interview_prep_briefs_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_prep_briefs_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_prep_materials: {
         Row: {
           company_id: string | null
@@ -6758,6 +6921,98 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_reports: {
+        Row: {
+          candidate_id: string | null
+          communication_assessment: string | null
+          comparison_notes: string | null
+          created_at: string | null
+          cultural_fit_assessment: string | null
+          executive_summary: string | null
+          generated_at: string | null
+          generated_by: string | null
+          highlights: Json | null
+          id: string
+          key_strengths: string[] | null
+          key_weaknesses: string[] | null
+          meeting_id: string
+          percentile_rank: number | null
+          recommendation: string | null
+          recommendation_confidence: number | null
+          recommendation_reasoning: string | null
+          technical_assessment: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          communication_assessment?: string | null
+          comparison_notes?: string | null
+          created_at?: string | null
+          cultural_fit_assessment?: string | null
+          executive_summary?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          highlights?: Json | null
+          id?: string
+          key_strengths?: string[] | null
+          key_weaknesses?: string[] | null
+          meeting_id: string
+          percentile_rank?: number | null
+          recommendation?: string | null
+          recommendation_confidence?: number | null
+          recommendation_reasoning?: string | null
+          technical_assessment?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          communication_assessment?: string | null
+          comparison_notes?: string | null
+          created_at?: string | null
+          cultural_fit_assessment?: string | null
+          executive_summary?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          highlights?: Json | null
+          id?: string
+          key_strengths?: string[] | null
+          key_weaknesses?: string[] | null
+          meeting_id?: string
+          percentile_rank?: number | null
+          recommendation?: string | null
+          recommendation_confidence?: number | null
+          recommendation_reasoning?: string | null
+          technical_assessment?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_reports_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_reports_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "interview_reports_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_reports_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
             referencedColumns: ["id"]
           },
         ]

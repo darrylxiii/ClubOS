@@ -48,6 +48,7 @@ interface ControlsPanelProps {
   onOpenHostSettings?: () => void;
   onOpenMeetingInfo?: () => void;
   onEnablePiP?: () => void;
+  onOpenInterviewIntelligence?: () => void;
 }
 
 export function ControlsPanel({
@@ -71,7 +72,8 @@ export function ControlsPanel({
   onReaction,
   onOpenHostSettings,
   onOpenMeetingInfo,
-  onEnablePiP
+  onEnablePiP,
+  onOpenInterviewIntelligence
 }: ControlsPanelProps) {
   const reactions = ['👍', '👏', '❤️', '😂', '🎉', '👋'];
 
@@ -216,6 +218,12 @@ export function ControlsPanel({
               <DropdownMenuItem onClick={onOpenMeetingInfo} className="gap-2 text-white hover:bg-white/10">
                 <Info className="h-4 w-4" />
                 Meeting Details
+              </DropdownMenuItem>
+            )}
+            {onOpenInterviewIntelligence && (
+              <DropdownMenuItem onClick={onOpenInterviewIntelligence} className="gap-2 text-white hover:bg-white/10">
+                <FileText className="h-4 w-4" />
+                Interview Intelligence
               </DropdownMenuItem>
             )}
             {onEnablePiP && (
