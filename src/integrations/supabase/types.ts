@@ -11504,11 +11504,14 @@ export type Database = {
           profile_slug: string | null
           public_fields: Json | null
           reference_timezone: string | null
+          remote_work_aspiration: boolean | null
           remote_work_preference: boolean | null
+          resume_filename: string | null
           resume_url: string | null
           salary_expectation_currency: string | null
           salary_expectation_max: number | null
           salary_expectation_min: number | null
+          salary_preference_hidden: boolean | null
           skills: string[] | null
           spotify_connected: boolean | null
           spotify_playlists: Json | null
@@ -11590,11 +11593,14 @@ export type Database = {
           profile_slug?: string | null
           public_fields?: Json | null
           reference_timezone?: string | null
+          remote_work_aspiration?: boolean | null
           remote_work_preference?: boolean | null
+          resume_filename?: string | null
           resume_url?: string | null
           salary_expectation_currency?: string | null
           salary_expectation_max?: number | null
           salary_expectation_min?: number | null
+          salary_preference_hidden?: boolean | null
           skills?: string[] | null
           spotify_connected?: boolean | null
           spotify_playlists?: Json | null
@@ -11676,11 +11682,14 @@ export type Database = {
           profile_slug?: string | null
           public_fields?: Json | null
           reference_timezone?: string | null
+          remote_work_aspiration?: boolean | null
           remote_work_preference?: boolean | null
+          resume_filename?: string | null
           resume_url?: string | null
           salary_expectation_currency?: string | null
           salary_expectation_max?: number | null
           salary_expectation_min?: number | null
+          salary_preference_hidden?: boolean | null
           skills?: string[] | null
           spotify_connected?: boolean | null
           spotify_playlists?: Json | null

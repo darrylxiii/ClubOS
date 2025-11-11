@@ -363,13 +363,13 @@ export function CandidateOnboardingSteps() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
-          phone: phoneNumber,
-          phone_verified: true,
+          phone: phoneNumber || null,
+          phone_verified: !!phoneNumber,
           email_verified: true,
-          location: formData.location,
+          location: formData.location || null,
           current_title: formData.current_title,
-          linkedin_url: formData.linkedin_url,
-          career_preferences: formData.bio,
+          linkedin_url: formData.linkedin_url || null,
+          career_preferences: formData.bio || null,
           employment_type_preference: formData.employment_type,
           notice_period: formData.notice_period,
           current_salary_min: formData.salary_preference_hidden ? null : formData.current_salary_min,
@@ -382,8 +382,8 @@ export function CandidateOnboardingSteps() {
           remote_work_preference: formData.remote_work_preference,
           remote_work_aspiration: formData.remote_work_aspiration,
           preferred_work_locations: formData.preferred_work_locations,
-          resume_url: formData.resume_url,
-          resume_filename: formData.resume_filename,
+          resume_url: formData.resume_url || null,
+          resume_filename: formData.resume_filename || null,
           onboarding_completed_at: new Date().toISOString(),
         })
         .eq('id', authData.user.id);
