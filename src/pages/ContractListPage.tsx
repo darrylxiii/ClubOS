@@ -31,8 +31,8 @@ export default function ContractListPage() {
       if (!user?.id) return [];
 
       let query = supabase
-        .from('project_contracts')
-        .select('*');
+        .from('project_contracts' as any)
+        .select('*') as any;
 
       if (userView === 'freelancer') {
         query = query.eq('freelancer_id', user.id);
@@ -52,7 +52,7 @@ export default function ContractListPage() {
       const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as ProjectContract[];
+      return data as unknown as ProjectContract[];
     },
     enabled: !!user?.id
   });

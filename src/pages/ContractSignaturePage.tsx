@@ -24,13 +24,13 @@ export default function ContractSignaturePage() {
     queryKey: ['contract', contractId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('project_contracts')
+        .from('project_contracts' as any)
         .select('*')
         .eq('id', contractId)
         .single();
 
       if (error) throw error;
-      return data as ProjectContract;
+      return data as unknown as ProjectContract;
     },
     enabled: !!contractId
   });
@@ -48,7 +48,7 @@ export default function ContractSignaturePage() {
 
       // Save signature
       const { error: sigError } = await supabase
-        .from('contract_signatures')
+        .from('contract_signatures' as any)
         .insert({
           contract_id: contract.id,
           signer_id: user!.id,
@@ -68,7 +68,7 @@ export default function ContractSignaturePage() {
         : { signed_by_client: true, client_signed_at: new Date().toISOString() };
 
       const { error: updateError } = await supabase
-        .from('project_contracts')
+        .from('project_contracts' as any)
         .update(updateData)
         .eq('id', contract.id);
 
@@ -76,15 +76,15 @@ export default function ContractSignaturePage() {
 
       // Check if both parties have signed
       const { data: updatedContract } = await supabase
-        .from('project_contracts')
+        .from('project_contracts' as any)
         .select('signed_by_freelancer, signed_by_client')
         .eq('id', contract.id)
         .single();
 
       // If both signed, activate contract
-      if (updatedContract?.signed_by_freelancer && updatedContract?.signed_by_client) {
+      if ((updatedContract as any)?.signed_by_freelancer && (updatedContract as any)?.signed_by_client) {
         await supabase
-          .from('project_contracts')
+          .from('project_contracts' as any)
           .update({ contract_status: 'active' })
           .eq('id', contract.id);
       }

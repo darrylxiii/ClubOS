@@ -36,13 +36,13 @@ export default function ContractDetailPage() {
     queryKey: ['contract', contractId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('project_contracts')
+        .from('project_contracts' as any)
         .select('*')
         .eq('id', contractId)
         .single();
 
       if (error) throw error;
-      return data as ProjectContract;
+      return data as unknown as ProjectContract;
     },
     enabled: !!contractId
   });
@@ -52,13 +52,13 @@ export default function ContractDetailPage() {
     queryKey: ['milestones', contractId],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('project_milestones')
+        .from('project_milestones' as any)
         .select('*')
         .eq('contract_id', contractId)
         .order('milestone_number', { ascending: true });
 
       if (error) throw error;
-      return data as ProjectMilestone[];
+      return data as unknown as ProjectMilestone[];
     },
     enabled: !!contractId
   });
@@ -69,7 +69,7 @@ export default function ContractDetailPage() {
   const handleStartMilestone = async (milestoneId: string) => {
     try {
       const { error } = await supabase
-        .from('project_milestones')
+        .from('project_milestones' as any)
         .update({ 
           status: 'in_progress',
           started_at: new Date().toISOString()
@@ -86,7 +86,7 @@ export default function ContractDetailPage() {
   const handleSubmitForReview = async (milestoneId: string) => {
     try {
       const { error } = await supabase
-        .from('project_milestones')
+        .from('project_milestones' as any)
         .update({ 
           status: 'submitted',
           submitted_at: new Date().toISOString()
@@ -103,7 +103,7 @@ export default function ContractDetailPage() {
   const handleApproveMilestone = async (milestoneId: string) => {
     try {
       const { error } = await supabase
-        .from('project_milestones')
+        .from('project_milestones' as any)
         .update({ 
           status: 'approved',
           approved_at: new Date().toISOString()

@@ -112,6 +112,9 @@ const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
 const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
 const ProjectApplyPage = lazy(() => import("./pages/ProjectApplyPage"));
+const ContractListPage = lazy(() => import("./pages/ContractListPage"));
+const ContractDetailPage = lazy(() => import("./pages/ContractDetailPage"));
+const ContractSignaturePage = lazy(() => import("./pages/ContractSignaturePage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -261,6 +264,32 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ProjectApplyPage />
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Contract Management Routes */}
+            <Route
+              path="/contracts"
+              element={
+                <ProtectedRoute>
+                  <ContractListPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contracts/:contractId"
+              element={
+                <ProtectedRoute>
+                  <ContractDetailPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contracts/:contractId/sign"
+              element={
+                <ProtectedRoute>
+                  <ContractSignaturePage />
                 </ProtectedRoute>
               }
             />
