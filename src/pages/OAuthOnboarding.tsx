@@ -12,10 +12,15 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
-import { Briefcase, Target, DollarSign, MapPin, Upload, X, Loader2, CheckCircle } from "lucide-react";
+import { Briefcase, Target, DollarSign, MapPin, Upload, X, Loader2, CheckCircle, Phone } from "lucide-react";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
+import { usePhoneVerification } from "@/hooks/usePhoneVerification";
+import { useCountryDetection } from "@/hooks/useCountryDetection";
+import PhoneInput from "react-phone-number-input";
+import "react-phone-number-input/style.css";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
-const STEPS = ["professional", "career", "preferences"];
+const STEPS = ["contact", "professional", "career", "preferences"];
 
 export default function OAuthOnboarding() {
   const { user } = useAuth();
@@ -27,8 +32,25 @@ export default function OAuthOnboarding() {
   const [cityRadius, setCityRadius] = useState(25);
   const [isUploadingResume, setIsUploadingResume] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Phone verification
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [phoneVerified, setPhoneVerified] = useState(false);
+  const { 
+    sendOTP, 
+    verifyOTP, 
+    otpSent, 
+    isVerifying, 
+    isSendingOtp,
+    resendCooldown 
+  } = usePhoneVerification();
+  const { countryCode } = useCountryDetection();
 
   const [formData, setFormData] = useState({
+    // Contact
+    phone: "",
+    location: "",
     // Professional
     current_title: "",
     linkedin_url: "",
@@ -94,6 +116,8 @@ export default function OAuthOnboarding() {
         
         setFormData(prev => ({
           ...prev,
+          phone: data.phone || "",
+          location: data.location || "",
           current_title: data.current_title || "",
           linkedin_url: data.linkedin_url || "",
           bio: data.career_preferences || "",
@@ -110,6 +134,12 @@ export default function OAuthOnboarding() {
           resume_url: data.resume_url || "",
           resume_filename: data.resume_filename || "",
         }));
+        
+        // Check if phone is already verified
+        if (data.phone_verified && data.phone) {
+          setPhoneNumber(data.phone);
+          setPhoneVerified(true);
+        }
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -184,15 +214,39 @@ export default function OAuthOnboarding() {
     }));
   };
 
+  const handleVerifyPhone = async () => {
+    if (verificationCode.length !== 6) {
+      toast.error("Please enter a valid 6-digit code");
+      return;
+    }
+
+    const success = await verifyOTP(phoneNumber, verificationCode);
+    if (success) {
+      setPhoneVerified(true);
+      setFormData(prev => ({ ...prev, phone: phoneNumber }));
+      toast.success("Phone number verified!");
+    }
+  };
+
   const validateStep = () => {
     switch (currentStep) {
-      case 0: // Professional
+      case 0: // Contact
+        if (!phoneNumber) {
+          toast.error("Please enter your phone number");
+          return false;
+        }
+        if (!phoneVerified) {
+          toast.error("Please verify your phone number first");
+          return false;
+        }
+        break;
+      case 1: // Professional
         if (!formData.current_title) {
           toast.error("Please enter your current job title");
           return false;
         }
         break;
-      case 1: // Career
+      case 2: // Career
         if (!formData.dream_job_title) {
           toast.error("Please enter your dream job title");
           return false;
@@ -202,7 +256,24 @@ export default function OAuthOnboarding() {
     return true;
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Step 0: Contact - handle phone verification
+    if (currentStep === 0) {
+      if (!phoneNumber) {
+        toast.error("Please enter your phone number");
+        return;
+      }
+      
+      if (!phoneVerified) {
+        // Send OTP
+        const success = await sendOTP(phoneNumber);
+        if (success) {
+          toast.success("Verification code sent to your phone");
+        }
+        return;
+      }
+    }
+    
     if (!validateStep()) return;
     setCurrentStep(prev => prev + 1);
   };
@@ -221,6 +292,9 @@ export default function OAuthOnboarding() {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({
+          phone: phoneNumber,
+          phone_verified: true,
+          location: formData.location || null,
           current_title: formData.current_title,
           linkedin_url: formData.linkedin_url || null,
           career_preferences: formData.bio || null,
@@ -277,8 +351,104 @@ export default function OAuthOnboarding() {
         </CardHeader>
 
         <CardContent className="space-y-6">
-          {/* Step 0: Professional Info */}
+          {/* Step 0: Contact Info */}
           {currentStep === 0 && (
+            <div className="space-y-6 animate-fade-in">
+              <div className="flex items-center gap-2 mb-4">
+                <Phone className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold">Contact Information</h3>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number *</Label>
+                <PhoneInput
+                  international
+                  defaultCountry={(countryCode as any) || "NL"}
+                  value={phoneNumber}
+                  onChange={(value) => setPhoneNumber(value || "")}
+                  disabled={phoneVerified}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
+                {phoneVerified && (
+                  <div className="flex items-center gap-2 text-sm text-primary">
+                    <CheckCircle className="w-4 h-4" />
+                    <span>Phone verified</span>
+                  </div>
+                )}
+              </div>
+
+              {otpSent && !phoneVerified && (
+                <div className="space-y-4">
+                  <div className="p-4 bg-primary/10 rounded-lg space-y-2">
+                    <p className="text-sm font-semibold text-primary">Verify Your Phone</p>
+                    <p className="text-xs text-muted-foreground">
+                      We sent a 6-digit code to {phoneNumber}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={verificationCode}
+                      onChange={setVerificationCode}
+                      disabled={isVerifying}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+
+                  <Button
+                    onClick={handleVerifyPhone}
+                    disabled={verificationCode.length !== 6 || isVerifying}
+                    className="w-full"
+                  >
+                    {isVerifying ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying...</>
+                    ) : (
+                      "Verify Phone"
+                    )}
+                  </Button>
+
+                  {resendCooldown > 0 ? (
+                    <p className="text-xs text-center text-muted-foreground">
+                      Resend code in {resendCooldown}s
+                    </p>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => sendOTP(phoneNumber)}
+                      disabled={isSendingOtp}
+                      className="w-full"
+                    >
+                      Resend Code
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="location">Location (optional)</Label>
+                <Input
+                  id="location"
+                  placeholder="e.g., Amsterdam, Netherlands"
+                  value={formData.location}
+                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Step 1: Professional Info */}
+          {currentStep === 1 && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center gap-2 mb-4">
                 <Briefcase className="w-5 h-5 text-primary" />
@@ -358,8 +528,8 @@ export default function OAuthOnboarding() {
             </div>
           )}
 
-          {/* Step 1: Career Goals */}
-          {currentStep === 1 && (
+          {/* Step 2: Career Goals */}
+          {currentStep === 2 && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center gap-2 mb-4">
                 <Target className="w-5 h-5 text-primary" />
@@ -452,8 +622,8 @@ export default function OAuthOnboarding() {
             </div>
           )}
 
-          {/* Step 2: Preferences */}
-          {currentStep === 2 && (
+          {/* Step 3: Preferences */}
+          {currentStep === 3 && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center gap-2 mb-4">
                 <MapPin className="w-5 h-5 text-primary" />
