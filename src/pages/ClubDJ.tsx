@@ -237,6 +237,8 @@ export default function ClubDJ() {
             <DualDeckMixer
               trackA={queue?.[0]?.tracks}
               trackB={queue?.[1]?.tracks}
+              liveSessionId={liveSession?.id}
+              queueTracks={queue || []}
             />
           </TabsContent>
         </Tabs>

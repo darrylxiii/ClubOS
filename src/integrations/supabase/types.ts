@@ -7654,6 +7654,44 @@ export type Database = {
           },
         ]
       }
+      live_session_listeners: {
+        Row: {
+          id: string
+          ip_address: string | null
+          is_active: boolean | null
+          joined_at: string
+          left_at: string | null
+          session_id: string
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          joined_at?: string
+          left_at?: string | null
+          session_id: string
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean | null
+          joined_at?: string
+          left_at?: string | null
+          session_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_session_listeners_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "live_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       live_sessions: {
         Row: {
           created_at: string | null
@@ -15621,6 +15659,14 @@ export type Database = {
         Returns: undefined
       }
       refresh_activity_dashboard_view: { Args: never; Returns: undefined }
+      register_listener: {
+        Args: {
+          p_ip_address?: string
+          p_session_id: string
+          p_user_id?: string
+        }
+        Returns: string
+      }
       release_booking_slot_lock: {
         Args: {
           p_scheduled_end: string
@@ -15683,6 +15729,14 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      unregister_listener: {
+        Args: {
+          p_ip_address?: string
+          p_session_id: string
+          p_user_id?: string
+        }
+        Returns: undefined
       }
       update_expired_assignments: { Args: never; Returns: undefined }
       update_relationship_score: {

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, RotateCcw, Volume2, Headphones, Zap, Waves, Mic, Drum, Music2, Guitar, Disc3 } from "lucide-react";
 import { useAudioManager } from "@/hooks/useAudioManager";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
 
 interface Track {
   id: string;
@@ -18,9 +19,11 @@ interface DualDeckMixerProps {
   trackA?: Track;
   trackB?: Track;
   onTrackEnd?: (deck: 'A' | 'B') => void;
+  liveSessionId?: string | null;
+  queueTracks?: Array<{ id: string; tracks: Track }>;
 }
 
-export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps) {
+export function DualDeckMixer({ trackA, trackB, onTrackEnd, liveSessionId, queueTracks = [] }: DualDeckMixerProps) {
   const { play: managedPlay, pause: managedPause } = useAudioManager('dj');
   
   // Deck A
@@ -118,6 +121,24 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
     return () => clearInterval(interval);
   }, [isPlayingB, pitchB]);
 
+  // Update live session current track
+  const updateLiveSessionTrack = async (trackId: string) => {
+    if (!liveSessionId) return;
+    
+    try {
+      const { error } = await supabase
+        .from('live_sessions')
+        .update({ current_track_id: trackId })
+        .eq('id', liveSessionId);
+      
+      if (error) {
+        console.error('Failed to update live session track:', error);
+      }
+    } catch (err) {
+      console.error('Error updating live session:', err);
+    }
+  };
+
   const togglePlayA = async () => {
     if (!audioRefA.current || !trackA) return;
     
@@ -128,6 +149,10 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
       try {
         await managedPlay(audioRefA.current);
         setIsPlayingA(true);
+        // Update live session with current track
+        if (liveSessionId && trackA.id) {
+          await updateLiveSessionTrack(trackA.id);
+        }
       } catch (err) {
         console.error('Play error:', err);
       }
@@ -144,10 +169,64 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
       try {
         await managedPlay(audioRefB.current);
         setIsPlayingB(true);
+        // Update live session with current track
+        if (liveSessionId && trackB.id) {
+          await updateLiveSessionTrack(trackB.id);
+        }
       } catch (err) {
         console.error('Play error:', err);
       }
     }
+  };
+
+  // Auto-advance to next track when current track ends
+  const autoAdvance = async (currentDeck: 'A' | 'B') => {
+    if (!liveSessionId || !queueTracks.length) {
+      onTrackEnd?.(currentDeck);
+      return;
+    }
+
+    // Find next track in queue
+    const currentTrack = currentDeck === 'A' ? trackA : trackB;
+    const currentIndex = queueTracks.findIndex(q => q.tracks?.id === currentTrack?.id);
+    
+    if (currentIndex === -1 || currentIndex >= queueTracks.length - 1) {
+      // No more tracks in queue
+      console.log('No more tracks to advance to');
+      onTrackEnd?.(currentDeck);
+      return;
+    }
+
+    const nextTrack = queueTracks[currentIndex + 1]?.tracks;
+    
+    if (!nextTrack) {
+      onTrackEnd?.(currentDeck);
+      return;
+    }
+
+    // Load next track into the opposite deck
+    const targetDeck = currentDeck === 'A' ? 'B' : 'A';
+    const targetAudioRef = targetDeck === 'A' ? audioRefA : audioRefB;
+    const targetSetIsPlaying = targetDeck === 'A' ? setIsPlayingA : setIsPlayingB;
+
+    if (targetAudioRef.current) {
+      try {
+        // Load and play next track
+        targetAudioRef.current.src = nextTrack.file_url;
+        targetAudioRef.current.load();
+        await managedPlay(targetAudioRef.current);
+        targetSetIsPlaying(true);
+        
+        // Update live session
+        await updateLiveSessionTrack(nextTrack.id);
+        
+        console.log(`Auto-advanced from Deck ${currentDeck} to Deck ${targetDeck}:`, nextTrack.title);
+      } catch (err) {
+        console.error('Auto-advance error:', err);
+      }
+    }
+    
+    onTrackEnd?.(currentDeck);
   };
 
   const syncDecks = () => {
@@ -704,7 +783,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
         }}
         onEnded={() => {
           setIsPlayingA(false);
-          onTrackEnd?.('A');
+          autoAdvance('A');
         }}
       />
       <audio
@@ -715,7 +794,7 @@ export function DualDeckMixer({ trackA, trackB, onTrackEnd }: DualDeckMixerProps
         }}
         onEnded={() => {
           setIsPlayingB(false);
-          onTrackEnd?.('B');
+          autoAdvance('B');
         }}
       />
     </div>

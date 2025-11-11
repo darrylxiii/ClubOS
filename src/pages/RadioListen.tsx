@@ -18,6 +18,8 @@ export default function RadioListen() {
   const { play: managedPlay } = useAudioManager('dj');
   const [volume, setVolume] = useState([75]);
   const [currentTrackUrl, setCurrentTrackUrl] = useState<string>("");
+  const queryClient = useQueryClient();
+  const [listenerId, setListenerId] = useState<string | null>(null);
 
   const { data: session } = useQuery({
     queryKey: ['radio-session', sessionId],
@@ -95,7 +97,48 @@ export default function RadioListen() {
     }
   }, [volume]);
 
-  const queryClient = useQueryClient();
+  // Register as listener for live sessions
+  useEffect(() => {
+    if (session?.type !== 'live' || !sessionId) return;
+
+    const registerAsListener = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        const { data, error } = await supabase.rpc('register_listener', {
+          p_session_id: sessionId,
+          p_user_id: user?.id || null,
+          p_ip_address: null, // Could use a service to get IP if needed
+        });
+
+        if (error) {
+          console.error('Failed to register as listener:', error);
+        } else {
+          setListenerId(data);
+          console.log('Registered as listener:', data);
+        }
+      } catch (err) {
+        console.error('Error registering listener:', err);
+      }
+    };
+
+    registerAsListener();
+
+    // Cleanup: unregister on unmount
+    return () => {
+      if (sessionId) {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+          supabase.rpc('unregister_listener', {
+            p_session_id: sessionId,
+            p_user_id: user?.id || null,
+            p_ip_address: null,
+          }).then(({ error }) => {
+            if (error) console.error('Failed to unregister:', error);
+          });
+        });
+      }
+    };
+  }, [session?.type, sessionId]);
 
   // Increment play count on load (for playlists)
   useEffect(() => {
@@ -258,18 +301,26 @@ export default function RadioListen() {
               )}
             </div>
 
-            {/* DJ Info */}
-            <div className="flex items-center justify-center gap-3 pt-4 border-t border-white/10">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={session?.data?.profile?.avatar_url} />
-                <AvatarFallback>
-                  {session?.data?.profile?.full_name?.[0] || 'DJ'}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <p className="text-sm text-muted-foreground">Hosted by</p>
-                <p className="font-medium">{session?.data?.profile?.full_name || 'Anonymous DJ'}</p>
+            {/* DJ Info & Listener Count */}
+            <div className="flex items-center justify-between pt-4 border-t border-white/10">
+              <div className="flex items-center gap-3">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={session?.data?.profile?.avatar_url} />
+                  <AvatarFallback>
+                    {session?.data?.profile?.full_name?.[0] || 'DJ'}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="text-sm text-muted-foreground">Hosted by</p>
+                  <p className="font-medium">{session?.data?.profile?.full_name || 'Anonymous DJ'}</p>
+                </div>
               </div>
+              {session?.data?.listener_count !== undefined && (
+                <div className="text-center">
+                  <p className="text-2xl font-bold text-primary">{session.data.listener_count}</p>
+                  <p className="text-xs text-muted-foreground">Listening Now</p>
+                </div>
+              )}
             </div>
 
             {/* Volume Control */}
