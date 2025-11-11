@@ -17,6 +17,7 @@ import { BookingAvailabilitySettings } from "@/components/scheduling/BookingAvai
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { BookingAnalyticsDashboard } from "@/components/booking/BookingAnalyticsDashboard";
 import { CalendarConnectionStatus } from "@/components/scheduling/CalendarConnectionStatus";
+import { VideoPlatformSelector } from "@/components/booking/VideoPlatformSelector";
 import { BarChart3 } from "lucide-react";
 import { AIPageCopilot } from "@/components/ai/AIPageCopilot";
 
@@ -548,39 +549,21 @@ export default function Scheduling() {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="create_meeting">Create Quantum Meeting</Label>
-                      <p className="text-sm text-muted-foreground">
-                        Auto-create a Quantum Club meeting for each booking
-                      </p>
-                    </div>
-                    <Switch
-                      id="create_meeting"
-                      checked={newLink.create_quantum_meeting}
-                      onCheckedChange={(checked) => setNewLink({ 
-                        ...newLink, 
-                        create_quantum_meeting: checked,
-                        enable_club_ai: checked ? newLink.enable_club_ai : false
-                      })}
-                    />
-                  </div>
-
-                  {newLink.create_quantum_meeting && (
-                    <div className="flex items-center justify-between pl-4">
-                      <div className="space-y-0.5">
-                        <Label htmlFor="enable_ai">Enable Club AI</Label>
-                        <p className="text-sm text-muted-foreground">
-                          AI notetaker, insights, and summaries
-                        </p>
-                      </div>
-                      <Switch
-                        id="enable_ai"
-                        checked={newLink.enable_club_ai}
-                        onCheckedChange={(checked) => setNewLink({ ...newLink, enable_club_ai: checked })}
-                      />
-                    </div>
-                  )}
+                  <VideoPlatformSelector
+                    value={(newLink as any).video_platform || 'quantum_club'}
+                    onChange={(platform) => setNewLink({ 
+                      ...newLink, 
+                      video_platform: platform,
+                      create_quantum_meeting: platform === 'quantum_club',
+                    } as any)}
+                    hasGoogleCalendar={connectedCalendars.some(cal => cal.provider === 'google')}
+                    onConnectGoogle={() => {
+                      toast.info("Please connect your Google Calendar in Settings → Connections");
+                      // Navigate to connections settings would be better
+                    }}
+                    enableClubAI={newLink.enable_club_ai}
+                    onEnableClubAIChange={(checked) => setNewLink({ ...newLink, enable_club_ai: checked })}
+                  />
                 </div>
 
                 <Button

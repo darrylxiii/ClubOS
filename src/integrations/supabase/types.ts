@@ -1812,6 +1812,7 @@ export type Database = {
           duration_minutes: number
           enable_club_ai: boolean | null
           expires_at: string | null
+          google_meet_settings: Json | null
           id: string
           is_active: boolean
           max_bookings_per_day: number | null
@@ -1832,6 +1833,7 @@ export type Database = {
           use_count: number | null
           user_id: string
           video_conferencing_provider: string | null
+          video_platform: string | null
         }
         Insert: {
           advance_booking_days?: number | null
@@ -1849,6 +1851,7 @@ export type Database = {
           duration_minutes?: number
           enable_club_ai?: boolean | null
           expires_at?: string | null
+          google_meet_settings?: Json | null
           id?: string
           is_active?: boolean
           max_bookings_per_day?: number | null
@@ -1869,6 +1872,7 @@ export type Database = {
           use_count?: number | null
           user_id: string
           video_conferencing_provider?: string | null
+          video_platform?: string | null
         }
         Update: {
           advance_booking_days?: number | null
@@ -1886,6 +1890,7 @@ export type Database = {
           duration_minutes?: number
           enable_club_ai?: boolean | null
           expires_at?: string | null
+          google_meet_settings?: Json | null
           id?: string
           is_active?: boolean
           max_bookings_per_day?: number | null
@@ -1906,6 +1911,7 @@ export type Database = {
           use_count?: number | null
           user_id?: string
           video_conferencing_provider?: string | null
+          video_platform?: string | null
         }
         Relationships: [
           {
@@ -2107,6 +2113,7 @@ export type Database = {
       }
       bookings: {
         Row: {
+          active_video_platform: string | null
           approval_status: string | null
           approved_at: string | null
           approved_by: string | null
@@ -2122,6 +2129,8 @@ export type Database = {
           custom_answers: Json | null
           custom_responses: Json | null
           enable_recording: boolean | null
+          google_meet_event_id: string | null
+          google_meet_hangout_link: string | null
           guest_email: string
           guest_name: string
           guest_phone: string | null
@@ -2148,6 +2157,7 @@ export type Database = {
           video_meeting_password: string | null
         }
         Insert: {
+          active_video_platform?: string | null
           approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
@@ -2163,6 +2173,8 @@ export type Database = {
           custom_answers?: Json | null
           custom_responses?: Json | null
           enable_recording?: boolean | null
+          google_meet_event_id?: string | null
+          google_meet_hangout_link?: string | null
           guest_email: string
           guest_name: string
           guest_phone?: string | null
@@ -2189,6 +2201,7 @@ export type Database = {
           video_meeting_password?: string | null
         }
         Update: {
+          active_video_platform?: string | null
           approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
@@ -2204,6 +2217,8 @@ export type Database = {
           custom_answers?: Json | null
           custom_responses?: Json | null
           enable_recording?: boolean | null
+          google_meet_event_id?: string | null
+          google_meet_hangout_link?: string | null
           guest_email?: string
           guest_name?: string
           guest_phone?: string | null
@@ -15306,6 +15321,17 @@ export type Database = {
       }
     }
     Views: {
+      booking_video_platform_analytics: {
+        Row: {
+          active_video_platform: string | null
+          attendance_rate: number | null
+          attended_count: number | null
+          booking_count: number | null
+          confirmed_count: number | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
       potential_merges: {
         Row: {
           already_merged: boolean | null

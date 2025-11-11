@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Calendar, Clock, Mail, MapPin, ExternalLink } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CheckCircle2, Calendar, Clock, Mail, MapPin, ExternalLink, Video, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { BookingSyncStatus } from "./BookingSyncStatus";
@@ -30,6 +32,10 @@ interface Booking {
   synced_to_calendar?: boolean;
   calendar_provider?: string | null;
   meeting_id?: string | null;
+  active_video_platform?: string | null;
+  quantum_meeting_link?: string | null;
+  google_meet_hangout_link?: string | null;
+  metadata?: any;
   booking_links?: {
     id: string;
     slug: string;
@@ -170,6 +176,54 @@ export function BookingConfirmation({
           </p>
         </div>
       </div>
+
+      {/* Video Platform Info */}
+      {booking.active_video_platform && (
+        <Card className="bg-primary/5 border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-3">
+              <Video className="h-6 w-6 text-primary mt-1" />
+              <div className="flex-1 space-y-3">
+                <div>
+                  <h3 className="font-semibold mb-1">
+                    {booking.active_video_platform === 'google_meet' ? 'Google Meet' : 'TQC Meetings'}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {booking.active_video_platform === 'google_meet' 
+                      ? 'Your meeting link is included in the calendar invite sent to your email.'
+                      : 'Full-featured video call with AI features, recording, and more.'
+                    }
+                  </p>
+                </div>
+                
+                {(booking.quantum_meeting_link || booking.google_meet_hangout_link) && (
+                  <Button
+                    onClick={() => {
+                      const link = booking.active_video_platform === 'google_meet'
+                        ? booking.google_meet_hangout_link
+                        : booking.quantum_meeting_link;
+                      window.open(link || '', '_blank');
+                    }}
+                    className="w-full"
+                  >
+                    <Video className="mr-2 h-4 w-4" />
+                    Join Meeting (when ready)
+                  </Button>
+                )}
+
+                {booking.metadata?.video_platform_fallback && (
+                  <Alert>
+                    <AlertTriangle className="h-4 w-4" />
+                    <AlertDescription className="text-xs">
+                      Note: Google Meet was unavailable, so we created a TQC Meeting instead.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="border rounded-lg p-6 space-y-4 bg-muted/30">
         <div className="flex items-center justify-between">

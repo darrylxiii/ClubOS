@@ -482,21 +482,94 @@ serve(async (req) => {
     }
     console.log(`[Booking] ========== CALENDAR SYNC END ==========`);
 
-    // Create Quantum Club meeting (with improved error tracking)
-    if (bookingLink.create_quantum_meeting) {
-      console.log(`[Booking] Triggering meeting creation for booking ${booking.id}`);
+    // Handle video platform based on booking link settings
+    const videoPlatform = bookingLink.video_platform || 'quantum_club';
+    console.log(`[Booking] Video platform: ${videoPlatform}`);
+    const siteUrl = Deno.env.get('SUPABASE_URL')?.replace('//', '//').replace(':54321', '') || 'https://app.thequantumclub.com';
+
+    if (videoPlatform === 'quantum_club' && bookingLink.create_quantum_meeting) {
+      console.log("[Booking] Creating Quantum Club meeting for booking");
+      
       try {
-        const meetingResult = await supabaseClient.functions.invoke("create-meeting-from-booking", {
-          body: { bookingId: booking.id }
-        });
-        
-        if (meetingResult.error) {
-          console.error(`[Booking] Meeting creation error for booking ${booking.id}:`, meetingResult.error);
-        } else {
-          console.log(`[Booking] Meeting created for booking ${booking.id}:`, meetingResult.data);
+        const meetingResult = await supabaseClient.functions.invoke(
+          "create-meeting-from-booking",
+          { body: { bookingId: booking.id } }
+        );
+
+        if (meetingResult.data?.meetingCode) {
+          console.log(`[Booking] Meeting created with code: ${meetingResult.data.meetingCode}`);
+          
+          await supabaseClient
+            .from('bookings')
+            .update({
+              quantum_meeting_link: `${siteUrl}/meetings/${meetingResult.data.meetingCode}`,
+              quantum_meeting_code: meetingResult.data.meetingCode,
+              active_video_platform: 'quantum_club',
+            })
+            .eq('id', booking.id);
         }
-      } catch (meetingError: any) {
-        console.error(`[Booking] Meeting creation exception for booking ${booking.id}:`, meetingError.message);
+      } catch (meetingError) {
+        console.error("[Booking] Error creating meeting:", meetingError);
+        // Don't fail the booking if meeting creation fails
+      }
+    } else if (videoPlatform === 'google_meet') {
+      console.log("[Booking] Creating Google Meet link for booking");
+      
+      try {
+        const googleResult = await supabaseClient.functions.invoke(
+          "generate-video-link",
+          { 
+            body: { 
+              bookingId: booking.id, 
+              provider: 'google_meet',
+              realIntegration: true,
+            } 
+          }
+        );
+
+        if (googleResult.data?.videoLink) {
+          console.log(`[Booking] Google Meet link created: ${googleResult.data.videoLink}`);
+          
+          await supabaseClient
+            .from('bookings')
+            .update({
+              google_meet_hangout_link: googleResult.data.videoLink,
+              google_meet_event_id: googleResult.data.meetingId,
+              video_meeting_link: googleResult.data.videoLink,
+              active_video_platform: 'google_meet',
+            })
+            .eq('id', booking.id);
+        }
+      } catch (googleError: any) {
+        console.error("[Booking] Google Meet creation failed, falling back to TQC Meeting:", googleError);
+        
+        // Fallback to TQC Meeting
+        try {
+          const fallbackResult = await supabaseClient.functions.invoke(
+            "create-meeting-from-booking",
+            { body: { bookingId: booking.id } }
+          );
+          
+          if (fallbackResult.data?.meetingCode) {
+            await supabaseClient
+              .from('bookings')
+              .update({
+                quantum_meeting_link: `${siteUrl}/meetings/${fallbackResult.data.meetingCode}`,
+                quantum_meeting_code: fallbackResult.data.meetingCode,
+                active_video_platform: 'quantum_club',
+                metadata: {
+                  video_platform_fallback: true,
+                  original_platform: 'google_meet',
+                  fallback_reason: googleError?.message || 'Unknown error',
+                }
+              })
+              .eq('id', booking.id);
+            
+            console.log("[Booking] Fallback TQC Meeting created successfully");
+          }
+        } catch (fallbackError) {
+          console.error("[Booking] Fallback meeting creation also failed:", fallbackError);
+        }
       }
     }
 

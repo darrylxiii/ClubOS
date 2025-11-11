@@ -12,20 +12,31 @@ serve(async (req) => {
   }
 
   try {
-    const { bookingId, provider } = await req.json();
+    const { bookingId, provider, realIntegration = false } = await req.json();
+    console.log(`[Video Link] Generating ${provider} link for booking ${bookingId}, realIntegration=${realIntegration}`);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get booking details
+    // Get booking details with owner info
     const { data: booking, error: bookingError } = await supabase
       .from("bookings")
-      .select("*, booking_links!inner(*)")
+      .select(`
+        *,
+        booking_links!inner(*)
+      `)
       .eq("id", bookingId)
       .single();
 
     if (bookingError) throw bookingError;
+
+    // Get booking owner's profile
+    const { data: ownerProfile } = await supabase
+      .from("profiles")
+      .select("email, full_name")
+      .eq("id", booking.user_id)
+      .single();
 
     let videoLink = "";
     let meetingId = "";
@@ -34,10 +45,79 @@ serve(async (req) => {
     // Generate video link based on provider
     switch (provider) {
       case "google_meet":
-        // For now, generate a placeholder Meet link
-        // In production, integrate with Google Calendar API to create actual Meet links
-        meetingId = `meet-${crypto.randomUUID().substring(0, 10)}`;
-        videoLink = `https://meet.google.com/${meetingId}`;
+        if (realIntegration) {
+          // Real Google Meet integration via Calendar API
+          console.log("[Video Link] Creating real Google Meet link");
+          
+          // Get owner's Google Calendar connection
+          const { data: calendarConnection } = await supabase
+            .from("calendar_connections")
+            .select("*")
+            .eq("user_id", booking.user_id)
+            .eq("provider", "google")
+            .eq("is_active", true)
+            .single();
+
+          if (!calendarConnection) {
+            throw new Error("No active Google Calendar connection found");
+          }
+
+          // Create Google Calendar event with Meet link
+          const eventDetails = {
+            summary: `${booking.booking_links.title} - ${booking.guest_name}`,
+            description: `Booking with ${booking.guest_name}\nEmail: ${booking.guest_email}\n${booking.notes || ''}`,
+            start: {
+              dateTime: booking.scheduled_start,
+              timeZone: booking.timezone || 'UTC',
+            },
+            end: {
+              dateTime: booking.scheduled_end,
+              timeZone: booking.timezone || 'UTC',
+            },
+            attendees: [
+              { email: booking.guest_email, displayName: booking.guest_name },
+              ...(booking.guests || []).map((g: any) => ({ email: g.email, displayName: g.name })),
+              { email: ownerProfile?.email, displayName: ownerProfile?.full_name },
+            ].filter(a => a.email),
+            conferenceData: {
+              createRequest: {
+                requestId: `booking-${bookingId}`,
+                conferenceSolutionKey: { type: 'hangoutsMeet' },
+              },
+            },
+          };
+
+          console.log("[Video Link] Calling Google Calendar API");
+          const response = await fetch(
+            'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1',
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${calendarConnection.access_token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(eventDetails),
+            }
+          );
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error("[Video Link] Google API error:", errorText);
+            throw new Error(`Google Calendar API error: ${response.status} - ${errorText}`);
+          }
+
+          const createdEvent = await response.json();
+          
+          videoLink = createdEvent.hangoutLink;
+          meetingId = createdEvent.id;
+          meetingPassword = createdEvent.conferenceData?.conferenceId || '';
+          
+          console.log(`[Video Link] Real Google Meet link created: ${videoLink}`);
+        } else {
+          // Fallback placeholder
+          meetingId = `meet-${crypto.randomUUID().substring(0, 10)}`;
+          videoLink = `https://meet.google.com/${meetingId}`;
+        }
         break;
 
       case "zoom":

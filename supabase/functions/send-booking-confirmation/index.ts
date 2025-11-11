@@ -121,9 +121,25 @@ serve(async (req) => {
           ${InfoRow({ icon: '🕐', label: 'Time', value: `${formattedTime} (${booking.timezone})` })}
           ${bookingLink.description ? InfoRow({ icon: '📝', label: 'Description', value: bookingLink.description }) : ''}
           ${booking.notes ? InfoRow({ icon: '💬', label: 'Your Notes', value: booking.notes }) : ''}
+          ${hasMeetingLink ? InfoRow({ icon: '📹', label: 'Video Platform', value: platformName }) : ''}
         `
       })}
       ${Spacer(32)}
+      ${hasMeetingLink ? `
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(99, 102, 241, 0.05) 100%); border-radius: 16px; padding: 24px; border: 1px solid rgba(99, 102, 241, 0.2); margin-bottom: 32px;">
+          <tr>
+            <td align="center">
+              <p style="margin: 0 0 16px 0; font-size: 16px; font-weight: 600; color: #1e293b;">
+                📹 ${platformName}
+              </p>
+              <p style="margin: 0 0 20px 0; font-size: 14px; color: #64748b;">
+                ${meetingInstructions}
+              </p>
+              ${Button({ url: meetingLink, text: 'Join Meeting', variant: 'primary' })}
+            </td>
+          </tr>
+        </table>
+      ` : ''}
       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, rgba(201, 162, 78, 0.05) 0%, rgba(201, 162, 78, 0.02) 100%); border-radius: 16px; padding: 32px; border: 1px solid rgba(201, 162, 78, 0.15);">
         <tr>
           <td align="center">
