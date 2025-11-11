@@ -8,6 +8,7 @@ const AdminCandidates = lazy(() => import("@/pages/AdminCandidates"));
 const AdminUserProfile = lazy(() => import("@/pages/admin/AdminUserProfile"));
 const ClubSyncRequestsPage = lazy(() => import("@/pages/admin/ClubSyncRequestsPage"));
 const CompanyManagement = lazy(() => import("@/pages/admin/CompanyManagement"));
+const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompaniesOverview"));
 const GlobalAnalytics = lazy(() => import("@/pages/admin/GlobalAnalytics"));
 const AIConfiguration = lazy(() => import("@/pages/admin/AIConfiguration"));
 const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
@@ -31,6 +32,7 @@ export const adminRoutes = (
     
     {/* Company Management */}
     <Route path="/admin/companies" element={<ProtectedRoute><CompanyManagement /></ProtectedRoute>} />
+    <Route path="/admin/target-companies" element={<ProtectedRoute><TargetCompaniesOverview /></ProtectedRoute>} />
     
     {/* Club Sync */}
     <Route path="/admin/club-sync-requests" element={<ProtectedRoute><ClubSyncRequestsPage /></ProtectedRoute>} />

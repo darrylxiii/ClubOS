@@ -10,6 +10,7 @@ const BookingManagement = lazy(() => import("@/pages/BookingManagement"));
 const CompanySettings = lazy(() => import("@/pages/CompanySettings"));
 const ExpertMarketplace = lazy(() => import("@/pages/ExpertMarketplace"));
 const PartnerRejections = lazy(() => import("@/pages/PartnerRejections"));
+const PartnerTargetCompanies = lazy(() => import("@/pages/PartnerTargetCompanies"));
 
 /**
  * Partner-specific routes
@@ -25,6 +26,7 @@ export const partnerRoutes = (
     {/* Job Management */}
     <Route path="/jobs/:jobId/dashboard" element={<ProtectedRoute><JobDashboard /></ProtectedRoute>} />
     <Route path="/partner/rejections" element={<ProtectedRoute><PartnerRejections /></ProtectedRoute>} />
+    <Route path="/partner/targets" element={<ProtectedRoute><PartnerTargetCompanies /></ProtectedRoute>} />
     
     {/* Booking & Marketplace */}
     <Route path="/booking-management" element={<ProtectedRoute><BookingManagement /></ProtectedRoute>} />

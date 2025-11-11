@@ -27,6 +27,7 @@ import {
   Rss,
   Users,
   Home,
+  Target,
 } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 
@@ -53,6 +54,10 @@ const allCommands: CommandItem[] = [
   { id: "applications", label: "My Applications", icon: FileText, path: "/applications", category: "Career", roles: ["user", "partner", "admin", "strategist"] },
   { id: "companies", label: "Explore Companies", icon: Building, path: "/companies", category: "Career", roles: ["user", "partner", "admin", "strategist"] },
   { id: "referrals", label: "Referral Program", icon: Gift, path: "/referrals", category: "Career", roles: ["user", "partner", "admin", "strategist"] },
+  
+  // Hiring
+  { id: "target-companies", label: "Target Companies", icon: Target, path: "/partner/targets", category: "Hiring", roles: ["partner", "strategist"] },
+  { id: "admin-target-companies", label: "Target Companies Overview", icon: Target, path: "/admin/target-companies", category: "Hiring", roles: ["admin", "strategist"] },
   
   // Communication
   { id: "messages", label: "Messages", icon: MessageSquare, path: "/messages", category: "Communication", roles: ["user", "partner", "admin", "strategist"] },
