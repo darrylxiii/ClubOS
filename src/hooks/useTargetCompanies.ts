@@ -49,7 +49,7 @@ export const useTargetCompanies = (companyId?: string | null) => {
           *,
           jobs (id, title, status),
           votes:target_company_votes (user_id),
-          comments:target_company_comments (id, content, created_at, user_id, profiles (full_name, avatar_url))
+          comments:target_company_comments (id, content, created_at, user_id)
         `)
         .order('priority', { ascending: false })
         .order('created_at', { ascending: false });

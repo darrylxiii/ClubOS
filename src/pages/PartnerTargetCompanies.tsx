@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/contexts/AuthContext";
+import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Target, TrendingUp, Clock, CheckCircle, Building, MapPin, Briefcase, ThumbsUp } from "lucide-react";
@@ -99,7 +100,8 @@ const PartnerTargetCompanies = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -177,7 +179,8 @@ const PartnerTargetCompanies = () => {
         companyId={selectedCompanyId || companyId || ''}
         onSuccess={loadTargetCompanies}
       />
-    </div>
+      </div>
+    </AppLayout>
   );
 };
 

@@ -1,9 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { TargetCompanyDialog } from "@/components/partner/TargetCompanyDialog";
 import {
   Select,
   SelectContent,
@@ -24,6 +27,7 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const TargetCompaniesOverview = () => {
+  const { user } = useAuth();
   const [companies, setCompanies] = useState<any[]>([]);
   const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +36,13 @@ const TargetCompaniesOverview = () => {
   const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [partnerCompanies, setPartnerCompanies] = useState<any[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
+
+  const loadTargetCompanies = () => {
+    loadData();
+  };
 
   useEffect(() => {
     loadData();
@@ -209,7 +220,8 @@ const TargetCompaniesOverview = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-7xl">
+    <AppLayout>
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Target Companies Overview</h1>
@@ -378,7 +390,17 @@ const TargetCompaniesOverview = () => {
           </TableBody>
         </Table>
       </Card>
-    </div>
+      
+      {/* Dialog */}
+      <TargetCompanyDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        targetCompany={selectedCompany}
+        companyId={selectedCompanyId || ''}
+        onSuccess={loadTargetCompanies}
+      />
+      </div>
+    </AppLayout>
   );
 };
 
