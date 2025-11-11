@@ -18,6 +18,7 @@ import { ChangeAvatarDialog } from "@/components/profile/ChangeAvatarDialog";
 import { ActivityTimeline } from "@/components/profile/ActivityTimeline";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ShareProfileDialog } from "@/components/profile/ShareProfileDialog";
+import { FreelanceInfoSection } from "@/components/profile/FreelanceInfoSection";
 import EditProfileSlugDialog from "@/components/profile/EditProfileSlugDialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRole } from "@/contexts/RoleContext";
@@ -221,6 +222,12 @@ export default function EnhancedProfile({ viewingUserId, isSharedView = false }:
             achievementsUnlocked: profile?.achievements_count || 0,
             engagementRate: profile?.engagement_rate || 0
           }}
+        />
+
+        {/* Freelance Info - Show if user is open to freelance work */}
+        <FreelanceInfoSection 
+          profile={profile} 
+          isOwnProfile={isOwnProfile} 
         />
 
         {/* Quick Actions - Only for own profile */}

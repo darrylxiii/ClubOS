@@ -14,7 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 
 interface ProjectCardProps {
-  project: Project;
+  project: Project & { matchScore?: number };
   isFreelancer: boolean;
 }
 
@@ -28,16 +28,23 @@ export function ProjectCard({ project, isFreelancer }: ProjectCardProps) {
     return `€${min.toLocaleString()} - €${max.toLocaleString()}`;
   };
 
+  const getMatchColor = (score: number) => {
+    if (score >= 80) return "text-green-600 bg-green-50 border-green-200";
+    if (score >= 60) return "text-blue-600 bg-blue-50 border-blue-200";
+    if (score >= 40) return "text-yellow-600 bg-yellow-50 border-yellow-200";
+    return "text-gray-600 bg-gray-50 border-gray-200";
+  };
+
   return (
     <Card className="p-6 hover:shadow-lg transition-all cursor-pointer group" onClick={() => navigate(`/projects/${project.id}`)}>
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            {project.club_ai_match_enabled && (
-              <Badge variant="secondary" className="gap-1">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            {isFreelancer && project.matchScore !== undefined && project.matchScore > 0 && (
+              <Badge className={`gap-1 ${getMatchColor(project.matchScore)}`}>
                 <Sparkles className="h-3 w-3" />
-                AI Matched
+                {project.matchScore}% Match
               </Badge>
             )}
             {project.category && (
