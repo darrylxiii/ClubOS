@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Calendar, Clock, CheckCircle2 } from "lucide-react";
 import { format, parse } from "date-fns";
-import { getUserTimezone, parseUserTimeSelection, createBookingTime } from "@/lib/timezoneUtils";
+import { getUserTimezone, parseUserTimeSelection, createBookingTime, normalizeTimeFormat } from "@/lib/timezoneUtils";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { parseISO, setHours, setMinutes } from "date-fns";
 import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
@@ -140,6 +140,10 @@ export function BookingForm({
       const parsedTime = parseUserTimeSelection(selectedDate, selectedTime, userTimezone);
       
       if (!parsedTime) {
+        console.error('[BookingForm] Failed to parse time:', {
+          original: selectedTime,
+          timezone: userTimezone
+        });
         toast.error("Invalid time format. Please select a time slot again.");
         setLoading(false);
         return;

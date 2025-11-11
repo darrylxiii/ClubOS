@@ -223,8 +223,26 @@ serve(async (req) => {
       console.log(`[Slots] Sample validated slot:`, validatedSlots[0]);
     }
 
+    // Generate availability summary for frontend optimization
+    const slotsByDate = new Map<string, number>();
+    validatedSlots.forEach(slot => {
+      const [_, dateStr] = slot.split(" - ");
+      slotsByDate.set(dateStr, (slotsByDate.get(dateStr) || 0) + 1);
+    });
+
+    const availabilitySummary = Array.from(slotsByDate.entries()).map(([date, count]) => ({
+      date,
+      count,
+      status: count >= 10 ? 'many' : count >= 4 ? 'few' : count >= 1 ? 'limited' : 'none'
+    }));
+
+    console.log(`[Slots] Availability summary:`, availabilitySummary);
+
     return new Response(
-      JSON.stringify({ slots: validatedSlots }),
+      JSON.stringify({ 
+        slots: validatedSlots,
+        availabilitySummary
+      }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {

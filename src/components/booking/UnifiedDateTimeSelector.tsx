@@ -6,14 +6,21 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Clock, Calendar as CalendarIcon, Loader2 } from "lucide-react";
+import { Clock, Calendar as CalendarIcon, Loader2, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
+import { normalizeTimeFormat } from "@/lib/timezoneUtils";
 
 interface TimeSlot {
   start: string;
   end: string;
   date: string;
+}
+
+interface AvailabilityInfo {
+  date: Date;
+  slotCount: number;
+  status: 'many' | 'few' | 'limited' | 'none';
 }
 
 interface UnifiedDateTimeSelectorProps {
@@ -35,7 +42,7 @@ export function UnifiedDateTimeSelector({
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
-  const [datesWithAvailability, setDatesWithAvailability] = useState<Date[]>([]);
+  const [availabilityMap, setAvailabilityMap] = useState<Map<string, AvailabilityInfo>>(new Map());
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
   // Load availability indicators for the current month
@@ -59,17 +66,35 @@ export function UnifiedDateTimeSelector({
       });
 
       if (!error && data?.slots) {
-        // Extract unique dates that have slots
-        const uniqueDates = new Set<string>();
+        // Count slots per date
+        const slotsByDate = new Map<string, number>();
+        
         data.slots.forEach((slot: any) => {
-          if (typeof slot === 'string') {
+          if (typeof slot === 'string' && slot.includes(' - ')) {
             const [_, dateStr] = slot.split(" - ");
-            uniqueDates.add(dateStr);
+            slotsByDate.set(dateStr, (slotsByDate.get(dateStr) || 0) + 1);
           }
         });
         
-        const availableDates = Array.from(uniqueDates).map(dateStr => new Date(dateStr));
-        setDatesWithAvailability(availableDates);
+        // Create availability map with status
+        const newAvailabilityMap = new Map<string, AvailabilityInfo>();
+        
+        slotsByDate.forEach((count, dateStr) => {
+          let status: 'many' | 'few' | 'limited' | 'none';
+          
+          if (count >= 10) status = 'many';
+          else if (count >= 4) status = 'few';
+          else if (count >= 1) status = 'limited';
+          else status = 'none';
+          
+          newAvailabilityMap.set(dateStr, {
+            date: new Date(dateStr),
+            slotCount: count,
+            status
+          });
+        });
+        
+        setAvailabilityMap(newAvailabilityMap);
       }
     } catch (error) {
       console.error("[UnifiedSelector] Error loading month availability:", error);
@@ -186,7 +211,9 @@ export function UnifiedDateTimeSelector({
     setSelectedSlot(slot);
     trackSlotView(slot.start);
     trackStep("time_select");
-    onDateTimeSelected(selectedDate!, slot.start);
+    // Normalize time to 12-hour AM/PM format for BookingForm
+    const normalizedTime = normalizeTimeFormat(slot.start);
+    onDateTimeSelected(selectedDate!, normalizedTime);
   };
 
   const formatTimeSlot = (time: string) => {
@@ -203,17 +230,54 @@ export function UnifiedDateTimeSelector({
   return (
     <div className="space-y-6">
       <style>{`
-        .has-availability::after {
+        /* Green - Many available (10+) */
+        .has-availability-many::after {
           content: '';
           position: absolute;
           bottom: 4px;
           left: 50%;
           transform: translateX(-50%);
-          width: 5px;
-          height: 5px;
+          width: 6px;
+          height: 6px;
           border-radius: 50%;
-          background-color: hsl(var(--primary));
+          background-color: hsl(142, 76%, 36%);
+          box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
         }
+        
+        /* Yellow - Few slots (4-9) */
+        .has-availability-few::after {
+          content: '';
+          position: absolute;
+          bottom: 4px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background-color: hsl(48, 96%, 53%);
+          box-shadow: 0 0 4px rgba(234, 179, 8, 0.5);
+        }
+        
+        /* Red - Almost full (1-3) */
+        .has-availability-limited::after {
+          content: '';
+          position: absolute;
+          bottom: 4px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background-color: hsl(0, 84%, 60%);
+          box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+          animation: pulse-red 2s infinite;
+        }
+        
+        @keyframes pulse-red {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.6; }
+        }
+        
         .rdp-day_button {
           position: relative;
         }
@@ -237,17 +301,55 @@ export function UnifiedDateTimeSelector({
               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
               className="rounded-md border"
               modifiers={{
-                available: datesWithAvailability,
+                availableMany: Array.from(availabilityMap.values())
+                  .filter(a => a.status === 'many')
+                  .map(a => a.date),
+                availableFew: Array.from(availabilityMap.values())
+                  .filter(a => a.status === 'few')
+                  .map(a => a.date),
+                availableLimited: Array.from(availabilityMap.values())
+                  .filter(a => a.status === 'limited')
+                  .map(a => a.date),
               }}
               modifiersClassNames={{
-                available: "has-availability",
+                availableMany: "has-availability-many",
+                availableFew: "has-availability-few",
+                availableLimited: "has-availability-limited",
               }}
             />
             {selectedDate && (
               <p className="text-xs text-muted-foreground text-center">
                 {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                {availabilityMap.has(format(selectedDate, "yyyy-MM-dd")) && (
+                  <span className="ml-2 text-primary font-medium">
+                    ({availabilityMap.get(format(selectedDate, "yyyy-MM-dd"))?.slotCount} slots available)
+                  </span>
+                )}
               </p>
             )}
+            
+            {/* Availability Legend */}
+            <div className="mt-4 pt-4 border-t space-y-2">
+              <p className="text-xs font-medium text-muted-foreground mb-2">Availability:</p>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[hsl(142,76%,36%)]"></div>
+                  <span>Many slots</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[hsl(48,96%,53%)]"></div>
+                  <span>Few left</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[hsl(0,84%,60%)]"></div>
+                  <span>Almost full</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="w-3 h-3 opacity-40" />
+                  <span>Unavailable</span>
+                </div>
+              </div>
+            </div>
           </div>
         </Card>
 
