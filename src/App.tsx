@@ -115,6 +115,7 @@ const ProjectApplyPage = lazy(() => import("./pages/ProjectApplyPage"));
 const ContractListPage = lazy(() => import("./pages/ContractListPage"));
 const ContractDetailPage = lazy(() => import("./pages/ContractDetailPage"));
 const ContractSignaturePage = lazy(() => import("./pages/ContractSignaturePage"));
+const TimeTrackingPage = lazy(() => import("./pages/TimeTrackingPage"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -290,6 +291,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ContractSignaturePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contracts/:contractId/time-tracking"
+              element={
+                <ProtectedRoute>
+                  <TimeTrackingPage />
                 </ProtectedRoute>
               }
             />

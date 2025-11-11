@@ -370,7 +370,19 @@ export default function ContractDetailPage() {
 
           <TabsContent value="time">
             <Card className="p-6 border border-border/50">
-              <p className="text-muted-foreground">Time tracking interface coming soon...</p>
+              <div className="text-center py-8">
+                <Clock className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Time Tracking
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Track hours, submit timesheets, and manage approvals
+                </p>
+                <Button onClick={() => navigate(`/contracts/${contractId}/time-tracking`)}>
+                  <Clock className="h-4 w-4 mr-2" />
+                  Open Time Tracking
+                </Button>
+              </div>
             </Card>
           </TabsContent>
 
