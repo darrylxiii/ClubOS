@@ -7,6 +7,14 @@ import { format, parseISO } from 'date-fns';
 import { formatInTimeZone, toZonedTime } from 'date-fns-tz';
 
 /**
+ * Type aliases for time string formats
+ * SlotString format: "HH:MM - YYYY-MM-DD" (e.g., "09:00 - 2025-11-13")
+ * TimeString format: "H:MM AM/PM" (e.g., "9:00 AM")
+ */
+export type SlotString = string;
+export type TimeString = string;
+
+/**
  * Get user's current timezone using browser API
  * Fallback to Europe/Amsterdam (TQC default)
  */

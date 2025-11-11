@@ -216,13 +216,11 @@ export function UnifiedDateTimeSelector({
     onDateTimeSelected(selectedDate!, normalizedTime);
   };
 
-  const formatTimeSlot = (time: string) => {
+  const formatTimeOnly = (time: string) => {
     try {
-      const [hours, minutes] = time.split(":");
-      const date = new Date();
-      date.setHours(parseInt(hours), parseInt(minutes));
-      return format(date, "h:mm a");
-    } catch {
+      return normalizeTimeFormat(time);
+    } catch (error) {
+      console.error('[UnifiedSelector] Error formatting time:', error);
       return time;
     }
   };
@@ -410,7 +408,7 @@ export function UnifiedDateTimeSelector({
                     onClick={() => handleTimeSelect(slot)}
                   >
                     <Clock className="mr-2 h-4 w-4" />
-                    <span className="text-base">{formatTimeSlot(slot.start)}</span>
+                    <span className="text-base">{formatTimeOnly(slot.start)}</span>
                   </Button>
                 ))}
               </div>

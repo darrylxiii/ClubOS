@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2, Calendar, Clock, CheckCircle2 } from "lucide-react";
 import { format, parse } from "date-fns";
-import { getUserTimezone, parseUserTimeSelection, createBookingTime, normalizeTimeFormat } from "@/lib/timezoneUtils";
+import { getUserTimezone, parseUserTimeSelection, createBookingTime, normalizeTimeFormat, detectTimeFormat } from "@/lib/timezoneUtils";
 import { useGoogleReCaptcha } from "react-google-recaptcha-v3";
 import { parseISO, setHours, setMinutes } from "date-fns";
 import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
@@ -98,20 +98,44 @@ export function BookingForm({
       });
       
       if (verification.data?.slots) {
-        const selectedTimeStr = selectedTime;
-        const isStillAvailable = verification.data.slots.some((slot: string) => 
-          slot.startsWith(selectedTimeStr)
-        );
+        // Normalize selected time to 12-hour format
+        const normalizedSelectedTime = normalizeTimeFormat(selectedTime);
+        
+        console.log('[BookingForm] Verifying slot availability:', {
+          selectedTime,
+          normalizedSelectedTime,
+          totalSlots: verification.data.slots.length
+        });
+        
+        // Check if slot is still available by comparing normalized times
+        const isStillAvailable = verification.data.slots.some((slot: string) => {
+          // Extract time portion from slot format "09:00 - 2025-11-13"
+          const slotTimePart = slot.split(" - ")[0];
+          // Normalize slot time to 12-hour format for comparison
+          const normalizedSlotTime = normalizeTimeFormat(slotTimePart);
+          
+          console.log('[BookingForm] Comparing:', {
+            slotTimePart,
+            normalizedSlotTime,
+            normalizedSelectedTime,
+            match: normalizedSlotTime === normalizedSelectedTime
+          });
+          
+          return normalizedSlotTime === normalizedSelectedTime;
+        });
         
         if (!isStillAvailable) {
+          console.warn('[BookingForm] Slot no longer available:', normalizedSelectedTime);
           toast.error("This time slot was just booked. Please select another time.");
           setLoading(false);
           return;
         }
+        
+        console.log('[BookingForm] Slot verified as available');
       }
     } catch (verifyError) {
       console.warn("Could not verify slot availability:", verifyError);
-      // Continue with booking attempt anyway
+      // Continue with booking attempt anyway - server-side validation will catch issues
     }
     
     try {
@@ -137,17 +161,30 @@ export function BookingForm({
       
       // Parse and validate selected time with timezone utils
       const userTimezone = getUserTimezone();
+      
+      console.log('[BookingForm] Parsing selected time:', {
+        selectedDate: format(selectedDate, 'yyyy-MM-dd'),
+        selectedTime,
+        userTimezone
+      });
+      
       const parsedTime = parseUserTimeSelection(selectedDate, selectedTime, userTimezone);
       
       if (!parsedTime) {
         console.error('[BookingForm] Failed to parse time:', {
           original: selectedTime,
-          timezone: userTimezone
+          timezone: userTimezone,
+          detectedFormat: detectTimeFormat(selectedTime)
         });
         toast.error("Invalid time format. Please select a time slot again.");
         setLoading(false);
         return;
       }
+      
+      console.log('[BookingForm] Time parsed successfully:', {
+        hours: parsedTime.hours,
+        minutes: parsedTime.minutes
+      });
 
       const { scheduledStart, scheduledEnd } = createBookingTime(
         selectedDate,
