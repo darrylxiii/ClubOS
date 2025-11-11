@@ -6,14 +6,10 @@ import { Calendar, Clock, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AvailabilityCalendar } from "@/components/booking/AvailabilityCalendar";
-import { BookingTimeSlots } from "@/components/booking/BookingTimeSlots";
 import { BookingForm } from "@/components/booking/BookingForm";
 import { BookingConfirmation } from "@/components/booking/BookingConfirmation";
-import { BookingWeekView } from "@/components/booking/BookingWeekView";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UnifiedDateTimeSelector } from "@/components/booking/UnifiedDateTimeSelector";
 import { AIBookingAssistant } from "@/components/booking/AIBookingAssistant";
-import { AvailabilityIndicator } from "@/components/booking/AvailabilityIndicator";
 import { TimezoneSelector } from "@/components/booking/TimezoneSelector";
 import { Sparkles } from "lucide-react";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
@@ -41,7 +37,7 @@ interface Profile {
   avatar_url: string | null;
 }
 
-type BookingStep = "calendar" | "time" | "details" | "confirmation";
+type BookingStep = "datetime" | "details" | "confirmation";
 type ViewMode = "day" | "week";
 
 export default function BookingPage() {
@@ -51,11 +47,10 @@ export default function BookingPage() {
   const [bookingLink, setBookingLink] = useState<BookingLink | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [step, setStep] = useState<BookingStep>("calendar");
+  const [step, setStep] = useState<BookingStep>("datetime");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("day");
   const [timezone, setTimezone] = useState<string>(
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
@@ -106,14 +101,8 @@ export default function BookingPage() {
     }
   };
 
-  const handleDateSelect = (date: Date) => {
+  const handleDateTimeSelect = (date: Date, time: string) => {
     setSelectedDate(date);
-    setStep("time");
-    analytics.trackStep("calendar_view");
-  };
-
-  const handleTimeSelect = (time: string, date?: Date) => {
-    if (date) setSelectedDate(date);
     setSelectedTime(time);
     setStep("details");
   };
@@ -124,11 +113,9 @@ export default function BookingPage() {
   };
 
   const handleBack = () => {
-    if (step === "time") {
-      setStep("calendar");
+    if (step === "details") {
+      setStep("datetime");
       setSelectedTime(null);
-    } else if (step === "details") {
-      setStep("time");
     }
   };
 
@@ -192,7 +179,7 @@ export default function BookingPage() {
                     )}
                   </div>
                 </div>
-                {step !== "calendar" && step !== "confirmation" && (
+                {step === "details" && (
                   <Button variant="ghost" size="sm" onClick={handleBack}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Back
@@ -201,27 +188,11 @@ export default function BookingPage() {
               </div>
             </CardHeader>
 
-            {/* Live Availability Indicator */}
-            {step === "calendar" && bookingLink && (
-              <div className="px-6">
-                <AvailabilityIndicator 
-                  bookingLinkSlug={bookingLink.slug}
-                  selectedDate={selectedDate}
-                />
-              </div>
-            )}
-
-            {/* Timezone Selector */}
-            {(step === "calendar" || step === "time") && (
-              <div className="px-6 pb-4">
-                <TimezoneSelector value={timezone} onChange={setTimezone} />
-              </div>
-            )}
-
             <CardContent className="p-6">
-              {step === "calendar" && (
+              {step === "datetime" && (
                 <>
-                  <div className="mb-4 flex justify-end">
+                  <div className="mb-6 flex items-center justify-between">
+                    <TimezoneSelector value={timezone} onChange={setTimezone} />
                     <Button
                       variant="outline"
                       onClick={() => setShowAIAssistant(!showAIAssistant)}
@@ -243,38 +214,12 @@ export default function BookingPage() {
                       }}
                     />
                   ) : (
-                    <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-                      <TabsList className="grid w-full grid-cols-2 mb-6">
-                        <TabsTrigger value="day">Day View</TabsTrigger>
-                        <TabsTrigger value="week">Week View</TabsTrigger>
-                      </TabsList>
-                  <TabsContent value="day">
-              <AvailabilityCalendar
-                bookingLink={bookingLink}
-                onDateSelect={handleDateSelect}
-              />
-                  </TabsContent>
-                  <TabsContent value="week">
-                    <BookingWeekView
+                    <UnifiedDateTimeSelector
                       bookingLink={bookingLink}
-                      onTimeSelect={(date, time) => {
-                        setSelectedDate(date);
-                        setSelectedTime(time);
-                        setStep("details");
-                      }}
+                      onDateTimeSelected={handleDateTimeSelect}
                     />
-                  </TabsContent>
-                </Tabs>
                   )}
                 </>
-              )}
-
-              {step === "time" && selectedDate && (
-                <BookingTimeSlots
-                  bookingLink={bookingLink}
-                  selectedDate={selectedDate}
-                  onTimeSelect={handleTimeSelect}
-                />
               )}
 
               {step === "details" && selectedDate && selectedTime && (

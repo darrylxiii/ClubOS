@@ -14,6 +14,7 @@ import { RECAPTCHA_ENABLED } from "@/config/recaptcha";
 import { bookingFormSchema, type BookingFormData } from "@/lib/bookingSchemas";
 import { z } from "zod";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
+import { GuestEmailInput } from "./GuestEmailInput";
 
 interface BookingFormProps {
   bookingLink: {
@@ -45,6 +46,7 @@ export function BookingForm({
     phone: "",
     notes: "",
   });
+  const [guests, setGuests] = useState<Array<{ name?: string; email: string }>>([]);
 
   // Track form view on mount
   useState(() => {
@@ -168,6 +170,7 @@ export function BookingForm({
           scheduledEnd,
           timezone: userTimezone,
           notes: formData.notes || null,
+          guests: guests.length > 0 ? guests : undefined,
         },
       });
 
@@ -296,6 +299,18 @@ export function BookingForm({
           {errors.phone && (
             <p className="text-sm text-destructive">{errors.phone}</p>
           )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="guests">Additional Guests (optional)</Label>
+          <GuestEmailInput 
+            guests={guests}
+            onChange={setGuests}
+            maxGuests={10}
+          />
+          <p className="text-xs text-muted-foreground">
+            Invite team members to join this meeting
+          </p>
         </div>
 
         <div className="space-y-2">

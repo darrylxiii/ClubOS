@@ -102,7 +102,27 @@ serve(async (req) => {
     console.log(`[Sync] ✅ Calendar connection found: ${calendar.provider} (${calendar.calendar_label})`);
     console.log(`[Sync] Calendar active: ${calendar.is_active}`);
 
-    // Prepare event details
+    // Get booking owner's email
+    const { data: ownerProfile } = await supabaseClient
+      .from("profiles")
+      .select("email, full_name, first_name, last_name")
+      .eq("id", booking.user_id)
+      .single();
+    
+    console.log(`[Sync] Booking owner profile:`, {
+      email: ownerProfile?.email,
+      name: ownerProfile?.full_name || `${ownerProfile?.first_name} ${ownerProfile?.last_name}`,
+    });
+
+    // Prepare event details with ALL attendees
+    const attendeesList = [
+      ownerProfile?.email,           // Booking owner (host)
+      booking.guest_email,           // Primary guest
+      ...(booking.guests || []).map((g: any) => g.email), // Additional guests
+    ].filter(Boolean);
+
+    console.log(`[Sync] Total attendees: ${attendeesList.length}`, attendeesList);
+
     const eventDetails = {
       summary: `${booking.booking_links?.title || 'Meeting'} - ${booking.guest_name}`,
       description: `
@@ -110,12 +130,17 @@ Booking with: ${booking.guest_name}
 Email: ${booking.guest_email}
 ${booking.guest_phone ? `Phone: ${booking.guest_phone}\n` : ''}
 ${booking.notes ? `Notes: ${booking.notes}\n` : ''}
+${booking.guests && booking.guests.length > 0 ? `\nAdditional Guests: ${booking.guests.map((g: any) => g.email).join(', ')}\n` : ''}
 ${booking.booking_links?.meeting_link ? `\nMeeting Link: ${booking.booking_links.meeting_link}` : ''}
       `.trim(),
       start: booking.scheduled_start,
       end: booking.scheduled_end,
-      attendees: [booking.guest_email],
+      attendees: attendeesList,
       location: booking.booking_links?.location || '',
+      organizer: {
+        email: ownerProfile?.email,
+        name: ownerProfile?.full_name || `${ownerProfile?.first_name} ${ownerProfile?.last_name}`,
+      },
     };
 
     // Create event in the appropriate calendar

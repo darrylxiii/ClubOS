@@ -2125,6 +2125,7 @@ export type Database = {
           guest_email: string
           guest_name: string
           guest_phone: string | null
+          guests: Json | null
           id: string
           last_sync_attempt: string | null
           meeting_id: string | null
@@ -2165,6 +2166,7 @@ export type Database = {
           guest_email: string
           guest_name: string
           guest_phone?: string | null
+          guests?: Json | null
           id?: string
           last_sync_attempt?: string | null
           meeting_id?: string | null
@@ -2205,6 +2207,7 @@ export type Database = {
           guest_email?: string
           guest_name?: string
           guest_phone?: string | null
+          guests?: Json | null
           id?: string
           last_sync_attempt?: string | null
           meeting_id?: string | null

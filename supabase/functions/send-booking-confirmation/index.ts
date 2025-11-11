@@ -55,6 +55,21 @@ serve(async (req) => {
     const confirmationMessage = bookingLink.confirmation_message || 
       `Your meeting has been scheduled for ${formattedDate} at ${formattedTime}.`;
 
+    // Build attendee list for calendar invite
+    const attendeesList = [
+      `ATTENDEE;CN=${ownerProfile?.full_name || 'Host'};ROLE=REQ-PARTICIPANT:MAILTO:${ownerProfile?.email}`,
+      `ATTENDEE;CN=${booking.guest_name};RSVP=TRUE:MAILTO:${booking.guest_email}`,
+    ];
+
+    // Add additional guests if any
+    if (booking.guests && Array.isArray(booking.guests)) {
+      booking.guests.forEach((guest: any) => {
+        if (guest.email) {
+          attendeesList.push(`ATTENDEE;CN=${guest.name || guest.email};RSVP=TRUE:MAILTO:${guest.email}`);
+        }
+      });
+    }
+
     // Generate .ics calendar file content
     const icsContent = [
       'BEGIN:VCALENDAR',
@@ -69,8 +84,8 @@ serve(async (req) => {
       `UID:${booking.id}@quantumclub.com`,
       `SUMMARY:${bookingLink.title}`,
       `DESCRIPTION:${bookingLink.description || 'Meeting scheduled via Quantum Club'}`,
-      `ORGANIZER;CN=Quantum Club:MAILTO:no-reply@quantumclub.com`,
-      `ATTENDEE;CN=${booking.guest_name};RSVP=TRUE:MAILTO:${booking.guest_email}`,
+      `ORGANIZER;CN=${ownerProfile?.full_name || 'Quantum Club'}:MAILTO:${ownerProfile?.email || 'no-reply@quantumclub.com'}`,
+      ...attendeesList,
       'STATUS:CONFIRMED',
       'SEQUENCE:0',
       'END:VEVENT',
@@ -177,6 +192,36 @@ serve(async (req) => {
 
     const guestEmailResult = await guestEmailResponse.json();
     console.log("Guest confirmation email sent:", guestEmailResult);
+
+    // Send emails to ADDITIONAL GUESTS
+    if (booking.guests && Array.isArray(booking.guests) && booking.guests.length > 0) {
+      for (const guest of booking.guests) {
+        if (guest.email) {
+          const additionalGuestEmailResponse = await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${resendApiKey}`,
+            },
+            body: JSON.stringify({
+              from: "Quantum Club <onboarding@resend.dev>",
+              to: [guest.email],
+              subject: `Meeting Invitation: ${bookingLink.title}`,
+              html: emailHtml,
+              attachments: [
+                {
+                  filename: "meeting.ics",
+                  content: btoa(icsContent),
+                  content_type: "text/calendar; method=REQUEST",
+                },
+              ],
+            }),
+          });
+          const additionalGuestResult = await additionalGuestEmailResponse.json();
+          console.log(`Additional guest email sent to ${guest.email}:`, additionalGuestResult);
+        }
+      }
+    }
 
     // Send email to OWNER (booking link creator)
     if (ownerProfile?.email) {

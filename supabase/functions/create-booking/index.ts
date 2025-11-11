@@ -37,7 +37,11 @@ serve(async (req) => {
       scheduledEnd: z.string().datetime(),
       timezone: z.string().min(1).max(100),
       customResponses: z.record(z.any()).optional(),
-      notes: z.string().max(1000).nullable().optional()
+      notes: z.string().max(1000).nullable().optional(),
+      guests: z.array(z.object({
+        name: z.string().optional(),
+        email: z.string().email(),
+      })).max(10).optional(),
     });
 
     const {
@@ -50,6 +54,7 @@ serve(async (req) => {
       timezone,
       customResponses,
       notes,
+      guests,
     } = bookingSchema.parse(await req.json());
     
     console.log(`[Booking] Request received: slug=${bookingLinkSlug}, guest=${guestName}, time=${scheduledStart}, timezone=${timezone}`);
@@ -378,6 +383,7 @@ serve(async (req) => {
         notes: notes,
         status: "confirmed",
         metadata: bookingMetadata,
+        guests: guests || [],
       })
       .select()
       .single();
