@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { useRef, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronDown, ChevronRight, LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,8 +25,12 @@ export const NavigationGroup = ({
   defaultOpen = false,
 }: NavigationGroupProps) => {
   const location = useLocation();
-  const hasActiveItem = items.some((item) => location.pathname === item.path);
+  const activeItemIndex = items.findIndex((item) => location.pathname === item.path);
+  const hasActiveItem = activeItemIndex !== -1;
   const { isOpen, toggle } = useNavigationState(title, hasActiveItem);
+
+  // Track previous visible items to detect which are new
+  const prevVisibleItemsRef = useRef<NavigationItem[]>([]);
 
   const isActiveGroup = hasActiveItem;
 
@@ -34,6 +38,11 @@ export const NavigationGroup = ({
   // When collapsed: show only active item, when expanded: show all items
   const shouldShowItems = hasActiveItem || isOpen;
   const visibleItems = isOpen ? items : items.filter(item => location.pathname === item.path);
+
+  // Update previous visible items after render
+  useEffect(() => {
+    prevVisibleItemsRef.current = visibleItems;
+  }, [visibleItems]);
 
   return (
     <div className="space-y-1">
@@ -82,9 +91,10 @@ export const NavigationGroup = ({
         )}
       </button>
 
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} mode="popLayout">
         {shouldShowItems && (
           <motion.div
+            layout="position"
             initial={{ height: 0, opacity: 0 }}
             animate={{ 
               height: "auto", 
@@ -102,26 +112,43 @@ export const NavigationGroup = ({
                 opacity: { duration: 0.2, ease: "easeIn" }
               }
             }}
-            className="ml-4 space-y-1 overflow-hidden"
+            className="ml-4 space-y-1"
+            style={{ overflow: "visible" }}
           >
             {visibleItems.map((item, index) => {
               const isActive = location.pathname === item.path;
               const Icon = item.icon;
 
+              // Detect if this item is new (wasn't in previous visible items)
+              const wasVisible = prevVisibleItemsRef.current.some(
+                (prevItem) => prevItem.path === item.path
+              );
+              const isNewItem = !wasVisible;
+
+              // Calculate animation direction based on position relative to active item
+              const distanceFromActive = Math.abs(index - activeItemIndex);
+              const slideDirection = index < activeItemIndex ? -10 : 10; // Above: -10, Below: 10
+
               return (
                 <motion.div
                   key={item.path}
-                  initial={{ opacity: 0, x: -10 }}
+                  layout
+                  layoutId={item.path}
+                  initial={
+                    isActive
+                      ? false // Active item doesn't animate
+                      : { opacity: 0, y: slideDirection }
+                  }
                   animate={{ 
                     opacity: 1, 
-                    x: 0,
+                    y: 0,
                     transition: { 
-                      delay: index * 0.05,
+                      delay: isNewItem ? distanceFromActive * 0.04 : 0,
                       duration: 0.2,
                       ease: "easeOut"
                     }
                   }}
-                  exit={{ opacity: 0, x: -10 }}
+                  exit={{ opacity: 0, y: slideDirection }}
                 >
                   <Link
                     to={item.path}
