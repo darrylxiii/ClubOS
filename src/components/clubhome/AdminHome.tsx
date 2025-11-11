@@ -2,19 +2,19 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { 
   Users, 
   Building2, 
   Briefcase, 
   Shield,
-  TrendingUp,
   AlertCircle,
   Settings,
   Activity
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { EmptyState } from "@/components/EmptyState";
+import { RecentActivityFeed } from "./RecentActivityFeed";
+import { PlatformGrowthCard } from "./PlatformGrowthCard";
+import { PlatformHealthCard } from "./PlatformHealthCard";
 
 export const AdminHome = () => {
   console.log('👑 [AdminHome] Component mounting');
@@ -155,54 +155,14 @@ export const AdminHome = () => {
         </Card>
 
         {/* Platform Growth */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Platform Growth
-            </CardTitle>
-            <CardDescription>Key metrics over time</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">User Growth</span>
-                  <Badge variant="secondary">+12%</Badge>
-                </div>
-                <div className="text-2xl font-bold">{stats.totalUsers}</div>
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">Company Growth</span>
-                  <Badge variant="secondary">+8%</Badge>
-                </div>
-                <div className="text-2xl font-bold">{stats.totalCompanies}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <PlatformGrowthCard />
       </div>
 
-      {/* Recent Activity */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Activity className="h-5 w-5" />
-            Recent System Activity
-          </CardTitle>
-          <CardDescription>Latest platform events and actions</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <EmptyState
-              icon={Activity}
-              title="No recent activity"
-              description="System activity and logs will appear here as they occur"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Platform Health */}
+      <PlatformHealthCard />
+
+      {/* Recent System Activity */}
+      <RecentActivityFeed />
     </div>
   );
 };
