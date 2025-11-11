@@ -35,15 +35,57 @@ export function UnifiedDateTimeSelector({
   const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
+  const [datesWithAvailability, setDatesWithAvailability] = useState<Date[]>([]);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
 
-  // Auto-select tomorrow's date on initial load
+  // Load availability indicators for the current month
+  const loadMonthAvailability = async (monthDate: Date) => {
+    try {
+      const startOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
+      const endOfMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0);
+      
+      const startStr = format(startOfMonth, "yyyy-MM-dd");
+      const endStr = format(endOfMonth, "yyyy-MM-dd");
+
+      const { data, error } = await supabase.functions.invoke("get-available-slots", {
+        body: {
+          bookingLinkSlug: bookingLink.slug,
+          dateRange: {
+            start: startStr,
+            end: endStr,
+          },
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      });
+
+      if (!error && data?.slots) {
+        // Extract unique dates that have slots
+        const uniqueDates = new Set<string>();
+        data.slots.forEach((slot: any) => {
+          if (typeof slot === 'string') {
+            const [_, dateStr] = slot.split(" - ");
+            uniqueDates.add(dateStr);
+          }
+        });
+        
+        const availableDates = Array.from(uniqueDates).map(dateStr => new Date(dateStr));
+        setDatesWithAvailability(availableDates);
+      }
+    } catch (error) {
+      console.error("[UnifiedSelector] Error loading month availability:", error);
+    }
+  };
+
+  // Auto-select tomorrow's date and load month availability on initial load
   useEffect(() => {
     if (!selectedDate) {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(0, 0, 0, 0);
       setSelectedDate(tomorrow);
+      setCurrentMonth(tomorrow);
       loadSlotsForDate(tomorrow);
+      loadMonthAvailability(tomorrow);
     }
   }, []);
 
@@ -160,11 +202,27 @@ export function UnifiedDateTimeSelector({
 
   return (
     <div className="space-y-6">
+      <style>{`
+        .has-availability::after {
+          content: '';
+          position: absolute;
+          bottom: 4px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background-color: hsl(var(--primary));
+        }
+        .rdp-day_button {
+          position: relative;
+        }
+      `}</style>
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Calendar Section - Left Side (40%) */}
-        <Card className="p-6 lg:col-span-2">
+        <Card className="p-6 lg:col-span-2 bg-card/95 backdrop-blur">
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-sm font-medium">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <CalendarIcon className="h-4 w-4 text-primary" />
               <span>Select a Date</span>
             </div>
@@ -172,8 +230,18 @@ export function UnifiedDateTimeSelector({
               mode="single"
               selected={selectedDate}
               onSelect={handleDateSelect}
+              onMonthChange={(month) => {
+                setCurrentMonth(month);
+                loadMonthAvailability(month);
+              }}
               disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
               className="rounded-md border"
+              modifiers={{
+                available: datesWithAvailability,
+              }}
+              modifiersClassNames={{
+                available: "has-availability",
+              }}
             />
             {selectedDate && (
               <p className="text-xs text-muted-foreground text-center">
@@ -184,15 +252,15 @@ export function UnifiedDateTimeSelector({
         </Card>
 
         {/* Time Slots Section - Right Side (60%) */}
-        <Card className="p-6 lg:col-span-3">
+        <Card className="p-6 lg:col-span-3 bg-card/95 backdrop-blur">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
                 <Clock className="h-4 w-4 text-primary" />
                 <span>Select a Time</span>
               </div>
               {selectedDate && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground font-medium">
                   {Intl.DateTimeFormat().resolvedOptions().timeZone}
                 </span>
               )}
@@ -232,13 +300,15 @@ export function UnifiedDateTimeSelector({
                     key={index}
                     variant={selectedSlot?.start === slot.start ? "default" : "outline"}
                     className={cn(
-                      "w-full justify-start text-left h-12 transition-all",
-                      selectedSlot?.start === slot.start && "ring-2 ring-primary"
+                      "w-full justify-start text-left h-12 transition-all font-medium",
+                      selectedSlot?.start === slot.start 
+                        ? "ring-2 ring-primary bg-primary text-primary-foreground shadow-md" 
+                        : "hover:bg-accent hover:text-accent-foreground border-border/60"
                     )}
                     onClick={() => handleTimeSelect(slot)}
                   >
                     <Clock className="mr-2 h-4 w-4" />
-                    {formatTimeSlot(slot.start)}
+                    <span className="text-base">{formatTimeSlot(slot.start)}</span>
                   </Button>
                 ))}
               </div>
