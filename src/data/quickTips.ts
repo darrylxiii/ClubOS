@@ -191,7 +191,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Try Club AI',
     actionLink: '/ai-assistant',
     readTime: '1 min',
-    gradient: 'from-purple-500/20 to-purple-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '18',
@@ -202,7 +202,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Enable Club Sync',
     actionLink: '/settings?tab=privacy',
     readTime: '2 min',
-    gradient: 'from-purple-500/20 to-purple-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '19',
@@ -213,7 +213,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Configure Privacy',
     actionLink: '/settings?tab=privacy',
     readTime: '2 min',
-    gradient: 'from-purple-500/20 to-purple-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '20',
@@ -224,7 +224,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Manage Sharing',
     actionLink: '/settings?tab=privacy',
     readTime: '2 min',
-    gradient: 'from-purple-500/20 to-purple-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '21',
@@ -235,7 +235,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Start Referring',
     actionLink: '/referrals',
     readTime: '2 min',
-    gradient: 'from-purple-500/20 to-purple-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '22',
@@ -246,7 +246,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Connect Calendar',
     actionLink: '/settings?tab=connections',
     readTime: '1 min',
-    gradient: 'from-purple-500/20 to-purple-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
 
   // Market Insights (4 tips)
@@ -259,7 +259,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'View Report',
     actionLink: '/resources/hiring-trends',
     readTime: '4 min',
-    gradient: 'from-green-500/20 to-green-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '24',
@@ -270,7 +270,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Check Benchmarks',
     actionLink: '/resources/salary-benchmarks',
     readTime: '3 min',
-    gradient: 'from-green-500/20 to-green-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '25',
@@ -281,7 +281,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'See Data',
     actionLink: '/resources/work-arrangements',
     readTime: '3 min',
-    gradient: 'from-green-500/20 to-green-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '26',
@@ -292,7 +292,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Learn More',
     actionLink: '/resources/hiring-timeline',
     readTime: '2 min',
-    gradient: 'from-green-500/20 to-green-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
 
   // Success Stories (4 tips)
@@ -305,7 +305,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Read Story',
     actionLink: '/resources/success-sarah',
     readTime: '3 min',
-    gradient: 'from-pink-500/20 to-pink-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '28',
@@ -316,7 +316,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Read Story',
     actionLink: '/resources/success-marcus',
     readTime: '4 min',
-    gradient: 'from-pink-500/20 to-pink-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '29',
@@ -327,7 +327,7 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Read Story',
     actionLink: '/resources/success-elena',
     readTime: '3 min',
-    gradient: 'from-pink-500/20 to-pink-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
   {
     id: '30',
@@ -338,6 +338,6 @@ export const quickTips: QuickTip[] = [
     actionLabel: 'Read Story',
     actionLink: '/resources/success-tom',
     readTime: '4 min',
-    gradient: 'from-pink-500/20 to-pink-600/10'
+    gradient: 'from-muted/30 to-muted/10'
   },
 ];

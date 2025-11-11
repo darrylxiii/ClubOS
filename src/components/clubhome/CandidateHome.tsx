@@ -80,7 +80,7 @@ export const CandidateHome = () => {
       </section>
 
       {/* Club Projects Banner */}
-      <Card className="bg-gradient-to-br from-primary/10 via-purple-500/5 to-blue-500/5 border-primary/20">
+      <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50 shadow-sm hover:shadow-md transition-all">
         <CardContent className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
@@ -118,7 +118,7 @@ export const CandidateHome = () => {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-primary" />
@@ -131,7 +131,7 @@ export const CandidateHome = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Target className="h-4 w-4 text-primary" />
@@ -144,7 +144,7 @@ export const CandidateHome = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4 text-primary" />
@@ -157,7 +157,7 @@ export const CandidateHome = () => {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-primary" />

@@ -95,7 +95,7 @@ export function CandidateQuickActions({
   const visibleActions = actions.filter(action => action.condition !== false).slice(0, 4);
 
   return (
-    <Card className="border-2 border-foreground">
+    <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
           <div className="w-1 h-6 bg-foreground"></div>

@@ -27,6 +27,10 @@ export function TipCard({ tip, index }: TipCardProps) {
   // Check if link is a placeholder (resources page doesn't exist yet)
   const isPlaceholder = tip.actionLink?.startsWith('/resources/');
   
+  // Only apply colored gradients to Career Advice and Interview Tips
+  const shouldUseColoredGradient = tip.category === 'career' || tip.category === 'interview';
+  const gradientClass = shouldUseColoredGradient ? tip.gradient : 'from-muted/30 to-muted/10';
+  
   const handleClick = () => {
     if (tip.actionLink && !isPlaceholder) {
       navigate(tip.actionLink);
@@ -44,10 +48,10 @@ export function TipCard({ tip, index }: TipCardProps) {
       <Card
         className={cn(
           "h-full p-6 transition-all duration-300",
-          "bg-background/40 backdrop-blur-lg",
-          "border border-primary/10",
+          "bg-card/90 backdrop-blur-xl",
+          "border border-border/50 shadow-sm",
           "flex flex-col",
-          !isPlaceholder && "cursor-pointer hover:border-primary/50 hover:shadow-lg hover:shadow-primary/20"
+          !isPlaceholder && "cursor-pointer hover:border-border hover:shadow-md"
         )}
         onClick={handleClick}
       >
@@ -55,11 +59,7 @@ export function TipCard({ tip, index }: TipCardProps) {
         <div className="flex items-center justify-between mb-4">
           <Badge 
             variant="secondary" 
-            className={cn(
-              "text-xs font-semibold uppercase tracking-wide",
-              "bg-gradient-to-r",
-              tip.gradient
-            )}
+            className="text-xs font-semibold uppercase tracking-wide"
           >
             {categoryLabels[tip.category]}
           </Badge>
@@ -69,9 +69,8 @@ export function TipCard({ tip, index }: TipCardProps) {
         {/* Icon */}
         <div className="mb-4 flex justify-center">
           <div className={cn(
-            "p-4 rounded-full bg-gradient-to-br",
-            tip.gradient,
-            "animate-pulse"
+            "p-4 rounded-full bg-gradient-to-br transition-transform hover:scale-110",
+            gradientClass
           )}>
             <IconComponent className="h-8 w-8 text-foreground" />
           </div>
