@@ -10,6 +10,7 @@ interface NavigationState {
  */
 export const useNavigationState = (groupTitle: string, hasActiveItem: boolean) => {
   const storageKey = `nav-group-${groupTitle}`;
+  const itemsStorageKey = `nav-group-items-${groupTitle}`;
   
   // Initialize state: expand if has active item, otherwise check localStorage
   const [isOpen, setIsOpen] = useState<boolean>(() => {
@@ -20,6 +21,16 @@ export const useNavigationState = (groupTitle: string, hasActiveItem: boolean) =
       return stored !== null ? stored === "true" : false; // Default to collapsed
     } catch {
       return false; // Fallback if localStorage unavailable
+    }
+  });
+
+  // Initialize items expanded state: collapse items by default, show only active
+  const [showAllItems, setShowAllItems] = useState<boolean>(() => {
+    try {
+      const stored = localStorage.getItem(itemsStorageKey);
+      return stored !== null ? stored === "true" : false; // Default to collapsed items
+    } catch {
+      return false;
     }
   });
 
@@ -43,5 +54,18 @@ export const useNavigationState = (groupTitle: string, hasActiveItem: boolean) =
     });
   };
 
-  return { isOpen, toggle };
+  // Toggle showing all items vs only active item
+  const toggleItems = () => {
+    setShowAllItems((prev) => {
+      const newState = !prev;
+      try {
+        localStorage.setItem(itemsStorageKey, String(newState));
+      } catch (error) {
+        console.warn("Failed to persist navigation items state:", error);
+      }
+      return newState;
+    });
+  };
+
+  return { isOpen, toggle, showAllItems, toggleItems };
 };
