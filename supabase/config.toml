@@ -188,3 +188,7 @@ verify_jwt = true
 # Note mention notification (triggered by database)
 [functions.send-note-mention-notification]
 verify_jwt = false
+
+# Real-time interview analysis (called during active meetings)
+[functions.analyze-interview-realtime]
+verify_jwt = false
