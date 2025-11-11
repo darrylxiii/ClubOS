@@ -205,8 +205,26 @@ serve(async (req) => {
 
     console.log(`[Slots] Generated ${slots.length} available slots`);
 
+    // Validate format before returning
+    const validatedSlots = slots.filter(slot => {
+      if (typeof slot !== 'string') {
+        console.error('[Slots] Invalid slot format (not a string):', slot);
+        return false;
+      }
+      if (!slot.includes(' - ')) {
+        console.error('[Slots] Invalid slot format (missing separator):', slot);
+        return false;
+      }
+      return true;
+    });
+
+    console.log(`[Slots] Validated ${validatedSlots.length} slots`);
+    if (validatedSlots.length > 0) {
+      console.log(`[Slots] Sample validated slot:`, validatedSlots[0]);
+    }
+
     return new Response(
-      JSON.stringify({ slots }),
+      JSON.stringify({ slots: validatedSlots }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {

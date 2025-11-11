@@ -36,10 +36,24 @@ export function UnifiedDateTimeSelector({
   const [loading, setLoading] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
 
+  // Auto-select tomorrow's date on initial load
+  useEffect(() => {
+    if (!selectedDate) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      setSelectedDate(tomorrow);
+      loadSlotsForDate(tomorrow);
+    }
+  }, []);
+
   const loadSlotsForDate = async (date: Date) => {
     setLoading(true);
     try {
       const dateStr = format(date, "yyyy-MM-dd");
+      console.log('[UnifiedSelector] Loading slots for date:', dateStr);
+      console.log('[UnifiedSelector] Booking link slug:', bookingLink.slug);
+      
       const { data, error } = await supabase.functions.invoke("get-available-slots", {
         body: {
           bookingLinkSlug: bookingLink.slug,
@@ -51,25 +65,67 @@ export function UnifiedDateTimeSelector({
         },
       });
 
-      if (error) throw error;
+      console.log('[UnifiedSelector] Raw response:', { data, error });
 
-      const slots = (data.slots || []).map((slot: string) => {
-        const [time, dateStr] = slot.split(" - ");
-        return {
-          start: time,
-          end: "",
-          date: dateStr,
-        };
-      });
+      if (error) {
+        console.error('[UnifiedSelector] API error:', error);
+        throw error;
+      }
 
+      if (!data || !data.slots) {
+        console.error('[UnifiedSelector] Invalid response structure:', data);
+        throw new Error('Invalid response: missing slots array');
+      }
+
+      console.log('[UnifiedSelector] Slots received:', data.slots);
+      console.log('[UnifiedSelector] Slots array length:', data.slots.length);
+
+      // Validate that slots is an array
+      if (!Array.isArray(data.slots)) {
+        throw new Error(`Expected slots to be an array, got ${typeof data.slots}`);
+      }
+
+      const slots = data.slots.map((slot: any, index: number) => {
+        console.log(`[UnifiedSelector] Processing slot ${index}:`, slot, typeof slot);
+        
+        // Handle string format "HH:MM - YYYY-MM-DD"
+        if (typeof slot === 'string') {
+          const parts = slot.split(" - ");
+          if (parts.length !== 2) {
+            console.warn('[UnifiedSelector] Invalid slot format:', slot);
+            return null;
+          }
+          const [time, dateStr] = parts;
+          return {
+            start: time,
+            end: "",
+            date: dateStr,
+          };
+        } else if (typeof slot === 'object' && slot.start) {
+          // Fallback for object format
+          return {
+            start: slot.start,
+            end: slot.end || "",
+            date: slot.date || dateStr,
+          };
+        } else {
+          console.warn('[UnifiedSelector] Unknown slot format:', slot);
+          return null;
+        }
+      }).filter(Boolean); // Remove null entries
+
+      console.log('[UnifiedSelector] Parsed slots:', slots);
       setAvailableSlots(slots);
 
       if (slots.length === 0) {
         toast.info("No available times for this date. Please select another date.");
+      } else {
+        toast.success(`Found ${slots.length} available times`);
       }
     } catch (error: any) {
-      console.error("Error loading slots:", error);
-      toast.error("Failed to load available times");
+      console.error("[UnifiedSelector] Error loading slots:", error);
+      console.error("[UnifiedSelector] Error stack:", error.stack);
+      toast.error(`Failed to load available times: ${error.message || 'Unknown error'}`);
       setAvailableSlots([]);
     } finally {
       setLoading(false);
