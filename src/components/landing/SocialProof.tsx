@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Quote } from "lucide-react";
+import { usePlatformMetrics } from "@/hooks/usePlatformMetrics";
 
 const testimonials = [
   {
@@ -22,14 +23,28 @@ const testimonials = [
   },
 ];
 
-const stats = [
-  { value: "1,200+", label: "Elite Members" },
-  { value: "92%", label: "Success Rate" },
-  { value: "48h", label: "Avg Response Time" },
-  { value: "€180K", label: "Avg Package" },
-];
-
 export const SocialProof = () => {
+  const { data: metrics, isLoading } = usePlatformMetrics();
+
+  const stats = [
+    { 
+      value: metrics ? `${(metrics.total_members / 1000).toFixed(1)}K+` : "1.2K+", 
+      label: "Elite Members" 
+    },
+    { 
+      value: metrics ? `${Math.round(metrics.success_rate)}%` : "92%", 
+      label: "Success Rate" 
+    },
+    { 
+      value: metrics ? `${Math.round(metrics.avg_response_time_hours)}h` : "48h", 
+      label: "Avg Response Time" 
+    },
+    { 
+      value: metrics ? `€${Math.round(metrics.avg_package_euros / 1000)}K` : "€180K", 
+      label: "Avg Package" 
+    },
+  ];
+
   return (
     <section className="px-6 py-20 md:py-32 bg-muted/30">
       <div className="max-w-7xl mx-auto">

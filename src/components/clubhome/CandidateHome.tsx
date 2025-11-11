@@ -36,7 +36,7 @@ export const CandidateHome = () => {
     if (!user) return;
 
     try {
-      const [appsRes, matchesRes] = await Promise.all([
+      const [appsRes, matchesRes, interviewsRes, messagesRes, profileRes] = await Promise.all([
         supabase
           .from('applications')
           .select('*', { count: 'exact', head: true })
@@ -45,17 +45,32 @@ export const CandidateHome = () => {
           .from('match_scores')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
-          .gte('overall_score', 70)
+          .gte('overall_score', 70),
+        (supabase as any)
+          .from('meeting_participants')
+          .select('meeting_id, meetings!inner(scheduled_for)', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .gte('meetings.scheduled_for', new Date().toISOString()),
+        (supabase as any)
+          .from('messages')
+          .select('*', { count: 'exact', head: true })
+          .eq('recipient_id', user.id)
+          .is('read_at', null),
+        (supabase as any)
+          .from('profiles')
+          .select('profile_completion_percentage')
+          .eq('id', user.id)
+          .single()
       ]);
 
       setStats({
         applications: appsRes.count || 0,
-        interviews: 0,
-        messages: 0,
+        interviews: interviewsRes.count || 0,
+        messages: messagesRes.count || 0,
         matches: matchesRes.count || 0
       });
       
-      setProfileCompletion(75);
+      setProfileCompletion(profileRes.data?.profile_completion_percentage || 0);
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
