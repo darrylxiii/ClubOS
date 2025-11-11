@@ -26,12 +26,54 @@ export default function MeetingRoom() {
   const [guestEmail, setGuestEmail] = useState('');
   const [showGuestDialog, setShowGuestDialog] = useState(false);
   const [guestSessionToken, setGuestSessionToken] = useState<string | null>(null);
+  const [hostIsPresent, setHostIsPresent] = useState(false);
 
   useEffect(() => {
     if (meetingCode) {
       loadMeeting();
     }
   }, [meetingCode]);
+
+  // Check if host is present (for non-hosts to join early)
+  useEffect(() => {
+    if (!meeting?.id || !user) return;
+    
+    const isHost = user.id === meeting.host_id;
+    if (isHost) return; // Host doesn't need to check
+    
+    const checkHostPresence = async () => {
+      const { data } = await supabase
+        .from('meeting_participants')
+        .select('id')
+        .eq('meeting_id', meeting.id)
+        .eq('user_id', meeting.host_id)
+        .is('left_at', null)
+        .maybeSingle();
+      
+      setHostIsPresent(!!data);
+    };
+    
+    checkHostPresence();
+    
+    // Subscribe to changes
+    const channel = supabase
+      .channel(`meeting-${meeting.id}-host-presence`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'meeting_participants',
+          filter: `meeting_id=eq.${meeting.id}`
+        },
+        () => checkHostPresence()
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [meeting?.id, meeting?.host_id, user]);
 
   // Add cleanup handler for page unload/navigation
   useEffect(() => {
@@ -292,46 +334,6 @@ export default function MeetingRoom() {
   const isHost = user?.id === meeting.host_id;
   
   // Non-hosts can join if scheduled time reached OR if host is already in the meeting
-  const [hostIsPresent, setHostIsPresent] = useState(false);
-  
-  useEffect(() => {
-    if (!meeting?.id || isHost) return;
-    
-    // Check if host is in the meeting
-    const checkHostPresence = async () => {
-      const { data } = await supabase
-        .from('meeting_participants')
-        .select('id')
-        .eq('meeting_id', meeting.id)
-        .eq('user_id', meeting.host_id)
-        .is('left_at', null)
-        .maybeSingle();
-      
-      setHostIsPresent(!!data);
-    };
-    
-    checkHostPresence();
-    
-    // Subscribe to changes
-    const channel = supabase
-      .channel(`meeting-${meeting.id}-host-presence`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'meeting_participants',
-          filter: `meeting_id=eq.${meeting.id}`
-        },
-        () => checkHostPresence()
-      )
-      .subscribe();
-    
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [meeting?.id, meeting?.host_id, isHost]);
-  
   const canJoin = isHost || isScheduledTimeReached || hostIsPresent;
 
   return (
