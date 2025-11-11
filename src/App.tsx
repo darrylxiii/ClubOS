@@ -56,6 +56,7 @@ const EnhancedProfile = lazy(() => import("./pages/EnhancedProfile"));
 const PublicUserProfile = lazy(() => import("./pages/PublicUserProfile"));
 const CandidateProfile = lazy(() => import("./pages/CandidateProfile"));
 const Referrals = lazy(() => import("./pages/Referrals"));
+const InviteDashboard = lazy(() => import("./pages/InviteDashboard"));
 const InterviewPrep = lazy(() => import("./pages/InterviewPrep"));
 const InterviewPrepChat = lazy(() => import("./pages/InterviewPrepChat"));
 const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
@@ -408,6 +409,16 @@ const App = () => (
                 <ProtectedRoute>
                   <Referrals />
                 </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/invites"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <InviteDashboard />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
               }
             />
             <Route

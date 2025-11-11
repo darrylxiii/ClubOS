@@ -102,6 +102,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Applications", icon: FileText, path: "/applications" },
         { name: "Companies", icon: Building2, path: "/companies" },
         { name: "Referrals", icon: Gift, path: "/referrals" },
+        { name: "Invites", icon: Mail, path: "/invites" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
         { name: "Analytics", icon: BarChart3, path: "/candidate/analytics" },
       ],
