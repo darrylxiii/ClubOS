@@ -284,8 +284,55 @@ export default function MeetingRoom() {
 
   const scheduledStart = new Date(meeting.scheduled_start);
   const scheduledEnd = new Date(meeting.scheduled_end);
-  const isStarted = scheduledStart <= new Date();
-  const hasEnded = scheduledEnd < new Date();
+  const now = new Date();
+  const isScheduledTimeReached = scheduledStart <= now;
+  const hasEnded = scheduledEnd < now;
+  
+  // Hosts can always join (to prepare/start early)
+  const isHost = user?.id === meeting.host_id;
+  
+  // Non-hosts can join if scheduled time reached OR if host is already in the meeting
+  const [hostIsPresent, setHostIsPresent] = useState(false);
+  
+  useEffect(() => {
+    if (!meeting?.id || isHost) return;
+    
+    // Check if host is in the meeting
+    const checkHostPresence = async () => {
+      const { data } = await supabase
+        .from('meeting_participants')
+        .select('id')
+        .eq('meeting_id', meeting.id)
+        .eq('user_id', meeting.host_id)
+        .is('left_at', null)
+        .maybeSingle();
+      
+      setHostIsPresent(!!data);
+    };
+    
+    checkHostPresence();
+    
+    // Subscribe to changes
+    const channel = supabase
+      .channel(`meeting-${meeting.id}-host-presence`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'meeting_participants',
+          filter: `meeting_id=eq.${meeting.id}`
+        },
+        () => checkHostPresence()
+      )
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [meeting?.id, meeting?.host_id, isHost]);
+  
+  const canJoin = isHost || isScheduledTimeReached || hostIsPresent;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-8">
@@ -335,12 +382,15 @@ export default function MeetingRoom() {
             {/* Join Button */}
             <Button
               onClick={handleJoinMeeting}
-              disabled={joining || !isStarted}
+              disabled={joining || !canJoin}
               className="w-full h-12 text-lg gap-2"
               size="lg"
             >
               <Video className="h-5 w-5" />
-              {joining ? 'Joining...' : !isStarted ? 'Meeting Not Started' : 'Join Meeting'}
+              {joining ? 'Joining...' : 
+               isHost ? 'Start Meeting' :
+               !canJoin ? 'Waiting for Host' : 
+               'Join Meeting'}
             </Button>
 
             {!user && (
@@ -349,9 +399,18 @@ export default function MeetingRoom() {
               </p>
             )}
 
-            {!isStarted && (
+            {!isScheduledTimeReached && !isHost && (
               <p className="text-center text-sm text-muted-foreground">
-                Meeting starts {format(scheduledStart, 'MMM d, yyyy')} at {format(scheduledStart, 'h:mm a')}
+                {hostIsPresent 
+                  ? '✓ Host is ready - you can join early!' 
+                  : `Meeting starts ${format(scheduledStart, 'MMM d, yyyy')} at ${format(scheduledStart, 'h:mm a')}`
+                }
+              </p>
+            )}
+            
+            {isHost && !isScheduledTimeReached && (
+              <p className="text-center text-sm text-primary font-medium">
+                You can start the meeting early
               </p>
             )}
           </div>
