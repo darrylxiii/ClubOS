@@ -11,6 +11,7 @@ interface PlaylistCardProps {
 
 export function PlaylistCard({ playlist, onEdit, onDelete, onTogglePublish }: PlaylistCardProps) {
   const trackCount = playlist.playlist_tracks?.[0]?.count || 0;
+  const isSpotify = playlist.playlist_type === 'spotify';
 
   return (
     <motion.div
@@ -29,6 +30,13 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onTogglePublish }: Pl
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Music className="h-20 w-20 text-primary/40" />
+          </div>
+        )}
+
+        {/* Spotify Badge */}
+        {isSpotify && (
+          <div className="absolute top-3 left-3 px-2 py-1 rounded bg-green-500 text-white text-xs font-bold">
+            Spotify
           </div>
         )}
         
@@ -83,7 +91,7 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onTogglePublish }: Pl
         )}
         <div className="flex items-center justify-between pt-2">
           <span className="text-xs text-muted-foreground">
-            {trackCount} {trackCount === 1 ? 'track' : 'tracks'}
+            {isSpotify ? `${playlist.play_count || 0} plays` : `${trackCount} ${trackCount === 1 ? 'track' : 'tracks'}`}
           </span>
           <span className={`text-xs px-2 py-1 rounded-full ${
             playlist.is_published 

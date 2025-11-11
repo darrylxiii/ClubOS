@@ -10064,10 +10064,19 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          energy_level: string | null
+          genre: string | null
           id: string
+          is_featured: boolean | null
           is_live: boolean | null
           is_published: boolean | null
+          like_count: number | null
+          mood_tags: string[] | null
           name: string
+          play_count: number | null
+          playlist_type: string | null
+          spotify_embed_url: string | null
+          spotify_playlist_id: string | null
           updated_at: string
         }
         Insert: {
@@ -10075,10 +10084,19 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          energy_level?: string | null
+          genre?: string | null
           id?: string
+          is_featured?: boolean | null
           is_live?: boolean | null
           is_published?: boolean | null
+          like_count?: number | null
+          mood_tags?: string[] | null
           name: string
+          play_count?: number | null
+          playlist_type?: string | null
+          spotify_embed_url?: string | null
+          spotify_playlist_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -10086,10 +10104,19 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          energy_level?: string | null
+          genre?: string | null
           id?: string
+          is_featured?: boolean | null
           is_live?: boolean | null
           is_published?: boolean | null
+          like_count?: number | null
+          mood_tags?: string[] | null
           name?: string
+          play_count?: number | null
+          playlist_type?: string | null
+          spotify_embed_url?: string | null
+          spotify_playlist_id?: string | null
           updated_at?: string
         }
         Relationships: []
