@@ -11490,6 +11490,7 @@ export type Database = {
           linkedin_url: string | null
           location: string | null
           notice_period: string | null
+          onboarding_completed_at: string | null
           open_to_freelance_work: boolean | null
           overtime_willingness: number | null
           phone: string | null
@@ -11575,6 +11576,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
+          onboarding_completed_at?: string | null
           open_to_freelance_work?: boolean | null
           overtime_willingness?: number | null
           phone?: string | null
@@ -11660,6 +11662,7 @@ export type Database = {
           linkedin_url?: string | null
           location?: string | null
           notice_period?: string | null
+          onboarding_completed_at?: string | null
           open_to_freelance_work?: boolean | null
           overtime_willingness?: number | null
           phone?: string | null
