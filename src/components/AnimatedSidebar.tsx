@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LucideIcon } from "lucide-react";
+import { useNavigationState } from "@/hooks/useNavigationState";
 
 interface SidebarContextProps {
   open: boolean;
@@ -272,15 +273,15 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
       <item.icon
         className={cn(
           "h-5 w-5 flex-shrink-0 transition-all duration-300 ease-in-out",
-          isActive ? "text-foreground scale-110" : "text-muted-foreground",
+          isActive ? "text-primary scale-110" : "text-muted-foreground",
           "group-hover:scale-110"
         )}
       />
       {open && (
         <span
           className={cn(
-            "text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis transition-colors duration-300",
-            isActive ? "text-foreground" : "text-muted-foreground"
+            "text-sm whitespace-nowrap overflow-hidden text-ellipsis transition-colors duration-300",
+            isActive ? "text-foreground font-bold" : "text-muted-foreground font-medium"
           )}
         >
           {item.name}
@@ -302,49 +303,96 @@ interface SidebarGroupProps {
 
 export const SidebarGroup = ({ group }: SidebarGroupProps) => {
   const { open } = useSidebar();
-  const [groupOpen, setGroupOpen] = useState(true);
   const location = useLocation();
   const hasActiveItem = group.items.some(item => location.pathname === item.path);
+  const { isOpen: groupOpen, toggle } = useNavigationState(group.title, hasActiveItem);
+
+  // Determine visual state for enhanced feedback
+  const isExpanded = groupOpen;
+  const isActiveGroup = hasActiveItem;
 
   return (
     <div className="px-3 mb-4">
       <button
-        onClick={() => setGroupOpen(!groupOpen)}
+        onClick={toggle}
         className={cn(
           "flex items-center gap-3 w-full px-4 rounded-lg",
-          "min-h-[40px] h-[40px]", // Fixed height to prevent shifting
-          "transition-all duration-300 ease-in-out",
+          "min-h-[40px] h-[40px]",
+          "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
           "hover:bg-muted/50 hover:scale-[1.01]",
           "mb-2",
-          hasActiveItem && "text-foreground"
+          // Enhanced visual feedback for 4 states
+          isExpanded && isActiveGroup && "bg-muted/20 text-primary shadow-sm",
+          isExpanded && !isActiveGroup && "text-foreground",
+          !isExpanded && isActiveGroup && "text-primary/80",
+          !isExpanded && !isActiveGroup && "text-muted-foreground"
         )}
       >
-        <group.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-300" />
+        <group.icon 
+          className={cn(
+            "h-4 w-4 flex-shrink-0 transition-all duration-300",
+            isActiveGroup && "text-primary scale-110"
+          )} 
+        />
         {open && (
-          <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wide transition-colors duration-300 whitespace-nowrap overflow-hidden text-ellipsis">
+          <span 
+            className={cn(
+              "flex-1 text-left text-xs uppercase tracking-wide transition-all duration-300 whitespace-nowrap overflow-hidden text-ellipsis",
+              isExpanded && isActiveGroup ? "font-bold" : "font-semibold"
+            )}
+          >
             {group.title}
           </span>
         )}
         {open && (
           <ChevronDown 
             className={cn(
-              "h-3 w-3 flex-shrink-0 transition-transform duration-300",
-              groupOpen ? "rotate-0" : "-rotate-90"
+              "h-3 w-3 flex-shrink-0 transition-all duration-300",
+              groupOpen ? "rotate-0" : "-rotate-90",
+              isActiveGroup && "text-primary"
             )}
           />
         )}
       </button>
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {groupOpen && (
           <motion.div
             initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            animate={{ 
+              height: "auto", 
+              opacity: 1,
+              transition: {
+                height: { duration: 0.3, ease: [0.4, 0, 0.2, 1] },
+                opacity: { duration: 0.25, ease: "easeOut", delay: 0.05 }
+              }
+            }}
+            exit={{ 
+              height: 0, 
+              opacity: 0,
+              transition: {
+                height: { duration: 0.25, ease: [0.4, 0, 0.2, 1] },
+                opacity: { duration: 0.2, ease: "easeIn" }
+              }
+            }}
             className="space-y-1 overflow-hidden"
           >
-            {group.items.map((item) => (
-              <SidebarLink key={item.path} item={item} />
+            {group.items.map((item, index) => (
+              <motion.div
+                key={item.path}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ 
+                  opacity: 1, 
+                  x: 0,
+                  transition: { 
+                    delay: index * 0.05, // Staggered reveal
+                    duration: 0.2,
+                    ease: "easeOut"
+                  }
+                }}
+                exit={{ opacity: 0, x: -10 }}
+              >
+                <SidebarLink item={item} />
+              </motion.div>
             ))}
           </motion.div>
         )}
