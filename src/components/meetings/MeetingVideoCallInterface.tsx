@@ -494,15 +494,17 @@ export function MeetingVideoCallInterface({
   });
 
   const content = (
-    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-950 via-gray-900 to-black w-full h-[100dvh] relative">
+    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-950 via-gray-900 to-black overflow-hidden"
+      style={{
+        width: '100vw',
+        height: '100vh'
+      }}
+    >
       {/* Waiting for others banner - elegant notification */}
       {totalParticipants === 1 && meetingStarted && (
-        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-[10001] animate-in fade-in slide-in-from-top duration-500">
+        <div className="absolute top-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-top duration-500">
           <div className="flex items-center gap-3 px-8 py-4 bg-black/60 backdrop-blur-2xl rounded-full border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-            <div className="relative">
-              <Users className="h-5 w-5 text-white/80" />
-              <div className="absolute -inset-1 bg-white/20 rounded-full blur animate-pulse" />
-            </div>
+            <Users className="h-5 w-5 text-white/80" />
             <span className="text-base font-medium text-white/90 tracking-wide">
               Waiting for others to join...
             </span>
@@ -510,79 +512,16 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* Connection Error Banner with Retry */}
-      {error && error.recoverable && (
-        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-[10001] bg-red-500/20 border border-red-500/40 rounded-lg px-6 py-3 backdrop-blur-sm max-w-md">
-          <p className="text-sm text-red-200 mb-2">{error.message}</p>
-          <Button 
-            size="sm" 
-            onClick={retryConnection}
-            className="w-full bg-red-500/30 hover:bg-red-500/40 text-white"
-          >
-            Retry Connection
-          </Button>
-        </div>
-      )}
-      
-      <div className="w-full h-full" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
-      
-      {/* Meeting Info Header - Premium design */}
-      <div className="absolute top-6 left-6 z-[10000] space-y-3 animate-in slide-in-from-left duration-500">
-        <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-6 py-3 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-          <h3 className="font-semibold text-white text-base tracking-wide">{meeting.title}</h3>
-          <p className="text-xs text-white/60 font-mono mt-1">{meeting.meeting_code}</p>
-        </div>
-        
-        <div className="flex gap-3">
-          <Badge 
-            variant={connectionState === 'connected' ? 'default' : 'secondary'}
-            className="backdrop-blur-2xl bg-black/50 border border-white/10 shadow-lg px-3 py-1.5 text-sm"
-          >
-            {connectionState === 'connected' ? '🟢' : '🟡'} {connectionState}
-          </Badge>
-          
-          <Badge 
-            variant={
-              networkQuality === 'excellent' ? 'default' : 
-              networkQuality === 'good' ? 'default' : 
-              networkQuality === 'fair' ? 'secondary' : 'destructive'
-            }
-            className="backdrop-blur-2xl bg-black/50 border border-white/10 shadow-lg px-3 py-1.5 text-sm"
-          >
-            {networkQuality === 'excellent' ? '📶' : 
-             networkQuality === 'good' ? '📶' : 
-             networkQuality === 'fair' ? '📉' : '⚠️'} {networkQuality}
-          </Badge>
-        </div>
-        
-        {latency > 0 && (
-          <div className="text-xs text-white/70 backdrop-blur-2xl bg-black/50 border border-white/10 px-3 py-1.5 rounded-full font-mono">
-            {latency}ms • {bandwidth.toFixed(1)} Mbps
-          </div>
-        )}
-      </div>
-
-      {/* Error Recovery Banner */}
+      {/* Error Recovery Banner - only show when error exists */}
       {error && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[10000] max-w-md">
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 max-w-md">
           <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-4 py-3 rounded-lg shadow-xl">
             <div className="flex items-center gap-3">
-              <span className="text-yellow-500">
-                {channelStatus === 'error' ? '❌' : 
-                 channelStatus === 'disconnected' ? '📡' : '⚠️'}
-              </span>
+              <span className="text-yellow-500">⚠️</span>
               <div className="flex-1">
-                <p className="text-sm font-medium text-white">
-                  {channelStatus === 'error' ? 'Connection Error' : 
-                   channelStatus === 'disconnected' ? 'Reconnecting...' : 
-                   error.message}
-                </p>
+                <p className="text-sm font-medium text-white">{error.message}</p>
                 {error.recoverable && (
-                  <p className="text-xs text-gray-300">
-                    {channelStatus === 'disconnected' 
-                      ? 'Using fallback connection mode' 
-                      : 'Attempting to reconnect...'}
-                  </p>
+                  <p className="text-xs text-gray-300">Attempting to reconnect...</p>
                 )}
               </div>
               {error.recoverable && (
@@ -599,28 +538,25 @@ export function MeetingVideoCallInterface({
           </div>
         </div>
       )}
-
-      {/* Channel Status Indicator (when no error but not connected) */}
-      {!error && channelStatus !== 'connected' && (
-        <div className="absolute top-4 right-4 z-[10000]">
-          <Badge className="backdrop-blur-sm bg-blue-500/80 text-white">
-            {channelStatus === 'connecting' ? '🔄 Connecting...' : '📡 Reconnecting...'}
-          </Badge>
-        </div>
-      )}
-
-      {/* Participant Count - Premium badge */}
-      <div className="absolute top-6 right-6 z-[10000] animate-in slide-in-from-right duration-500">
-        <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-6 py-3 rounded-full text-sm text-white shadow-[0_8px_32px_rgba(0,0,0,0.4)] font-medium">
-          <span className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-white/80" />
-            {allParticipants.length} participant{allParticipants.length !== 1 ? 's' : ''}
-          </span>
+      
+      {/* Meeting Info Header - Simplified */}
+      <div className="absolute top-6 left-6 z-50 animate-in slide-in-from-left duration-500">
+        <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-6 py-3 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4)] space-y-2">
+          <h3 className="font-semibold text-white text-base tracking-wide">{meeting.title}</h3>
+          <p className="text-xs text-white/60 font-mono">{meeting.meeting_code}</p>
         </div>
       </div>
 
-      {/* Video Grid with premium container */}
-      <div className="absolute inset-0">
+      {/* Participant Count - Compact */}
+      <div className="absolute top-6 right-6 z-50 animate-in slide-in-from-right duration-500">
+        <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-4 py-2 rounded-full text-sm text-white shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center gap-2">
+          <Users className="h-4 w-4 text-white/80" />
+          <span className="font-medium">{allParticipants.length}</span>
+        </div>
+      </div>
+
+      {/* Video Grid - Fullscreen */}
+      <div className="fixed inset-0 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-gray-950/50 via-transparent to-black/50 pointer-events-none" />
         <VideoGrid
           participants={allParticipants.slice(1)} // All participants except local camera
@@ -954,7 +890,6 @@ export function MeetingVideoCallInterface({
           />
         </div>
       )}
-      </div>
     </div>
   );
 

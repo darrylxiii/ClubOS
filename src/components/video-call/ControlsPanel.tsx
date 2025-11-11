@@ -155,7 +155,7 @@ export function ControlsPanel({
               😊
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="backdrop-blur-2xl bg-black/80 border border-white/20 shadow-2xl" sideOffset={10}>
+          <DropdownMenuContent className="backdrop-blur-2xl bg-black/90 border border-white/20 shadow-2xl z-[10100]" sideOffset={20}>
             <div className="grid grid-cols-3 gap-2 p-2">
               {reactions.map(emoji => (
                 <Button
@@ -200,7 +200,7 @@ export function ControlsPanel({
               <MoreVertical className="h-6 w-6" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="backdrop-blur-2xl bg-black/80 border border-white/20 shadow-2xl" align="end" sideOffset={10}>
+          <DropdownMenuContent className="backdrop-blur-2xl bg-black/90 border border-white/20 shadow-2xl z-[10100] min-w-[240px]" align="end" sideOffset={20}>
             {onToggleBackchannel && (
               <DropdownMenuItem onClick={onToggleBackchannel} className="gap-2 text-white hover:bg-white/10">
                 <Lock className="h-4 w-4 text-amber-500" />

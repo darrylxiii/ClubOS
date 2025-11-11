@@ -186,8 +186,8 @@ export const FeedbackButton = () => {
     return 'Excellent';
   };
 
-  // Hide feedback button for unauthenticated users (after all hooks)
-  if (!user) {
+  // Hide feedback button for unauthenticated users OR on meeting pages (after all hooks)
+  if (!user || location.pathname.startsWith('/meetings/')) {
     return null;
   }
 

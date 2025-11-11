@@ -93,7 +93,7 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
   const isTwoParticipants = visibleParticipants.length === 2;
 
   return (
-    <div className="h-full w-full p-8 flex items-center justify-center">
+    <div className="h-full w-full p-6 flex items-center justify-center">
       <div
         className={cn(
           "grid gap-6 w-full h-full",
