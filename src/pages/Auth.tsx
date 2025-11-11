@@ -553,7 +553,20 @@ const Auth = () => {
                 console.log('[OAuth] Redirecting to Google...');
               } catch (error: any) {
                 console.error('[OAuth] Caught error:', error);
-                toast.error(error.message || 'Failed to sign in with Google');
+                
+                // User-friendly error messages based on error type
+                const errorMsg = error.message || '';
+                if (errorMsg.includes('not enabled') || errorMsg.includes('not configured')) {
+                  toast.error('Google sign-in is currently unavailable. Please use email/password or contact support.');
+                } else if (errorMsg.includes('redirect') || errorMsg.includes('URL')) {
+                  toast.error('Authentication redirect error. Please check your browser settings and try again.');
+                } else if (errorMsg.includes('popup') || errorMsg.includes('blocked')) {
+                  toast.error('Pop-up blocked. Please allow pop-ups for this site and try again.');
+                } else if (errorMsg.includes('Invalid login credentials')) {
+                  toast.error('Unable to sign in. Please try again or use email/password.');
+                } else {
+                  toast.error(errorMsg || 'Failed to sign in with Google');
+                }
               }
             }} className="w-14 h-14 rounded-full bg-background border border-border flex items-center justify-center transition-all hover:bg-muted hover:scale-105 hover:border-primary/50">
                 <FaGoogle className="w-5 h-5 text-foreground" />
