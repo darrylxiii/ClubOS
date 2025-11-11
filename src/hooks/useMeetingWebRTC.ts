@@ -43,10 +43,36 @@ export function useMeetingWebRTC({
   const pendingJoinSignals = useRef<string[]>([]);
   const { stats, getVideoConstraints } = useBandwidthMonitor();
 
+  // Helper: Wait for channel to be ready with timeout
+  const waitForChannelReady = useCallback((channel: RealtimeChannel | null, timeout: number = 5000): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      if (channel?.state === 'joined') {
+        console.log('[WebRTC] ✅ Channel already joined');
+        resolve();
+        return;
+      }
+      
+      console.log('[WebRTC] ⏳ Waiting for channel to be ready...');
+      const timer = setTimeout(() => {
+        console.warn('[WebRTC] ⚠️ Channel subscription timeout');
+        reject(new Error('Channel subscription timeout'));
+      }, timeout);
+      
+      const checkState = setInterval(() => {
+        if (channel?.state === 'joined') {
+          clearTimeout(timer);
+          clearInterval(checkState);
+          console.log('[WebRTC] ✅ Channel ready');
+          resolve();
+        }
+      }, 100);
+    });
+  }, []);
+
   // Initialize local media with adaptive quality
   const initializeMedia = useCallback(async () => {
     try {
-      console.log('[WebRTC] Initializing local media...');
+      console.log('[WebRTC] Step 1: Initializing local media...');
       setError(null);
       
       const videoConstraints = getVideoConstraints();
@@ -63,21 +89,39 @@ export function useMeetingWebRTC({
         }
       });
 
-      console.log('[WebRTC] Local media initialized successfully with quality:', stats.recommendedQuality);
+      console.log('[WebRTC] ✅ Step 2: Media initialized with quality:', stats.recommendedQuality);
       setLocalStream(stream);
-      localStreamRef.current = stream; // Store in ref for closure access
-      
-      console.log('[WebRTC] ✅ Media ready flag set to true | Stream in ref:', !!localStreamRef.current);
+      localStreamRef.current = stream;
       mediaReadyRef.current = true;
       
       // Add tracks to existing peer connections (if any were created before media was ready)
-      console.log('[WebRTC] Adding tracks to existing peer connections...');
-      peerConnections.current.forEach((pc, peerId) => {
-        console.log('[WebRTC] Adding tracks to peer:', peerId);
-        stream.getTracks().forEach(track => {
-          pc.addTrack(track, stream);
+      if (peerConnections.current.size > 0) {
+        console.log('[WebRTC] Adding tracks to', peerConnections.current.size, 'existing peer connections');
+        peerConnections.current.forEach((pc, peerId) => {
+          stream.getTracks().forEach(track => {
+            pc.addTrack(track, stream);
+          });
         });
-      });
+      }
+      
+      // Wait for channel to be ready before sending join signal
+      console.log('[WebRTC] Step 3: Waiting for channel to be ready...');
+      try {
+        await waitForChannelReady(signalChannel.current, 5000);
+      } catch (error) {
+        console.warn('[WebRTC] ⚠️ Channel not ready, but continuing anyway');
+      }
+      
+      // Send join signal
+      if (!hasJoinedRef.current) {
+        console.log('[WebRTC] 📢 Step 4: Sending join signal');
+        await sendSignal({
+          type: 'join',
+          data: { name: participantName }
+        });
+        hasJoinedRef.current = true;
+        console.log('[WebRTC] ✅ Join signal sent successfully');
+      }
       
       // Process any pending join signals that arrived before media was ready
       if (pendingJoinSignals.current.length > 0) {
@@ -86,40 +130,6 @@ export function useMeetingWebRTC({
           await handleParticipantJoinInternal(senderId);
         }
         pendingJoinSignals.current = [];
-      }
-      
-      // If channel is ready and we haven't joined yet, send join signal now
-      if (signalChannel.current?.state === 'joined' && !hasJoinedRef.current) {
-        console.log('[WebRTC] 📢 Media ready, sending join signal now');
-        
-        const sendSignalInline = async (signal: {
-          type: string;
-          receiverId?: string;
-          data: any;
-        }) => {
-          try {
-            console.log('[WebRTC] 📤 Sending signal:', signal.type, 'to:', signal.receiverId || 'broadcast', 'from:', participantId);
-            
-            await supabase.from('webrtc_signals').insert({
-              meeting_id: meetingId,
-              sender_id: participantId,
-              receiver_id: signal.receiverId || null,
-              signal_type: signal.type,
-              signal_data: signal.data
-            });
-            
-            console.log('[WebRTC] ✅ Signal sent successfully:', signal.type);
-          } catch (error) {
-            console.error('[WebRTC] ❌ Failed to send signal:', signal.type, error);
-          }
-        };
-        
-        await sendSignalInline({
-          type: 'join',
-          data: { name: participantName }
-        });
-        hasJoinedRef.current = true;
-        console.log('[WebRTC] ✅ Join signal sent after media initialization');
       }
       
       return stream;

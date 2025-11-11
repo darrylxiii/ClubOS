@@ -20,7 +20,7 @@ import { ParticipantsPanel } from '@/components/meetings/ParticipantsPanel';
 import { MeetingDetailsPanel } from '@/components/meetings/MeetingDetailsPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Video } from 'lucide-react';
+import { Video, Users } from 'lucide-react';
 
 interface MeetingVideoCallInterfaceProps {
   meeting: any;
@@ -325,15 +325,11 @@ export function MeetingVideoCallInterface({
       
       setTotalParticipants(activeParticipantCount);
       
-      // Auto-start meeting when 2+ participants are actively connected via WebRTC
-      // BUT only if there are NO pending requests (host must approve first)
-      if (activeParticipantCount >= 2 && !meetingStarted && pendingRequestsCount === 0) {
-        console.log('[Meeting] ✅ Starting meeting with', activeParticipantCount, 'active participants');
+      // CRITICAL FIX: Allow meeting to start with 1 participant (solo user)
+      // This fixes the "waiting for more participants" deadlock
+      if (activeParticipantCount >= 1 && !meetingStarted) {
+        console.log('[Meeting] ✅ Starting meeting with', activeParticipantCount, 'participant(s)');
         setMeetingStarted(true);
-      } else if (pendingRequestsCount > 0) {
-        console.log('[Meeting] ⏸️ Waiting for host to approve', pendingRequestsCount, 'pending requests');
-      } else if (activeParticipantCount < 2) {
-        console.log('[Meeting] ⏸️ Waiting for more participants:', activeParticipantCount, 'of 2 required');
       }
     };
 
@@ -492,8 +488,18 @@ export function MeetingVideoCallInterface({
   });
 
   const content = (
-    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-900 to-black w-full h-[100dvh]"
-         style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
+    <div className="fixed inset-0 z-[9999] bg-gradient-to-br from-gray-900 to-black w-full h-[100dvh] relative">
+      {/* Waiting for others banner */}
+      {totalParticipants === 1 && meetingStarted && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[10001] bg-yellow-500/20 border border-yellow-500/40 rounded-full px-6 py-2 backdrop-blur-sm">
+          <p className="text-sm text-yellow-200 flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Waiting for others to join...
+          </p>
+        </div>
+      )}
+      
+      <div className="w-full h-full" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}>
       
       {/* Meeting Info Header */}
       <div className="absolute top-4 left-4 z-[10000] space-y-2">
@@ -783,6 +789,7 @@ export function MeetingVideoCallInterface({
         meetingCode={meeting.meeting_code}
         meetingUrl={meetingUrl}
       />
+      </div>
     </div>
   );
 

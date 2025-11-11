@@ -33,6 +33,45 @@ export default function MeetingRoom() {
     }
   }, [meetingCode]);
 
+  // Add cleanup handler for page unload/navigation
+  useEffect(() => {
+    if (!meeting?.id || !inCall) return;
+
+    const handleBeforeUnload = async () => {
+      console.log('[MeetingRoom] 🧹 Cleaning up participant on page unload');
+      
+      // Mark participant as left
+      try {
+        if (user) {
+          await supabase
+            .from('meeting_participants')
+            .update({ left_at: new Date().toISOString(), status: 'left' })
+            .eq('meeting_id', meeting.id)
+            .eq('user_id', user.id)
+            .is('left_at', null);
+        } else if (guestSessionToken) {
+          await supabase
+            .from('meeting_participants')
+            .update({ left_at: new Date().toISOString(), status: 'left' })
+            .eq('meeting_id', meeting.id)
+            .eq('session_token', guestSessionToken)
+            .is('left_at', null);
+        }
+      } catch (error) {
+        console.error('[MeetingRoom] ❌ Error marking participant as left:', error);
+      }
+    };
+
+    // Register beforeunload handler
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also call on component unmount
+      handleBeforeUnload();
+    };
+  }, [meeting?.id, inCall, user, guestSessionToken]);
+
   const loadMeeting = async () => {
     try {
       setLoading(true);
