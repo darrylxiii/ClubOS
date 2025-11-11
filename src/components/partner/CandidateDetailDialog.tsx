@@ -15,6 +15,7 @@ import { CandidateInteractionLog } from "./CandidateInteractionLog";
 import { EnhancedCandidateDetails } from "./EnhancedCandidateDetails";
 import { getVisibleFields } from "@/utils/candidateVisibility";
 import { useUserRole } from "@/hooks/useUserRole";
+import { trackProfileView } from "@/services/profileViewTracking";
 
 interface CandidateDetailDialogProps {
   open: boolean;
@@ -45,37 +46,23 @@ export const CandidateDetailDialog = ({ open, onOpenChange, application, stages 
   const appliedToOurJob = application?.job?.company_id === companyId || application?.jobs?.company_id === companyId;
 
   useEffect(() => {
-    if (open && application) {
+    if (open && application && user) {
       fetchComments();
       fetchScorecards();
-      trackProfileView();
-    }
-  }, [open, application]);
-
-  const trackProfileView = async () => {
-    if (!application?.profiles?.email) return;
-
-    try {
-      // Find candidate profile
-      const { data: candidateProfile } = await supabase
-        .from("candidate_profiles")
-        .select("id")
-        .eq("email", application.profiles.email)
-        .maybeSingle();
-
-      if (candidateProfile && user) {
-        await supabase.from("candidate_profile_views").insert({
-          candidate_id: candidateProfile.id,
-          viewer_id: user.id,
-          view_context: "job_pipeline",
-          view_source: "candidate_detail_dialog",
-          job_id: application.job_id,
+      
+      // Track profile view
+      if (application.candidate_id) {
+        trackProfileView({
+          profileId: application.candidate_id,
+          viewerId: user.id,
+          context: {
+            jobId: application.job_id,
+            source: 'job_application'
+          }
         });
       }
-    } catch (error) {
-      console.error("Error tracking profile view:", error);
     }
-  };
+  }, [open, application, user]);
 
   const fetchComments = async () => {
     const { data } = await supabase
