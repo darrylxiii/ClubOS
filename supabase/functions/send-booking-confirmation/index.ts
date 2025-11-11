@@ -70,31 +70,8 @@ serve(async (req) => {
       });
     }
 
-    // Generate .ics calendar file content
-    const icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Quantum Club//Booking System//EN',
-      'CALSCALE:GREGORIAN',
-      'METHOD:REQUEST',
-      'BEGIN:VEVENT',
-      `DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-      `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-      `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
-      `UID:${booking.id}@quantumclub.com`,
-      `SUMMARY:${bookingLink.title}`,
-      `DESCRIPTION:${bookingLink.description || 'Meeting scheduled via Quantum Club'}`,
-      `ORGANIZER;CN=${ownerProfile?.full_name || 'Quantum Club'}:MAILTO:${ownerProfile?.email || 'no-reply@quantumclub.com'}`,
-      ...attendeesList,
-      'STATUS:CONFIRMED',
-      'SEQUENCE:0',
-      'END:VEVENT',
-      'END:VCALENDAR'
-    ].join('\r\n');
-
-    // Generate Add to Calendar URLs
-    const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(bookingLink.title)}&dates=${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(bookingLink.description || '')}`;
-    const outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(bookingLink.title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(bookingLink.description || '')}`;
+    // Generate .ics calendar file content (will be enhanced after platform determination)
+    // Placeholder - will be built after we know the meeting platform
 
     // Determine video platform and meeting link
     const activePlatform = booking.active_video_platform;
@@ -120,6 +97,57 @@ serve(async (req) => {
       meetingInstructions = 'Join the meeting using the link below.';
       hasMeetingLink = true;
     }
+
+    // Build meeting location and enhanced description for ICS file
+    let meetingLocation = '';
+    let enhancedDescription = bookingLink.description || 'Meeting scheduled via Quantum Club';
+
+    if (hasMeetingLink) {
+      meetingLocation = meetingLink; // LOCATION field for calendar apps
+      
+      // Enhanced DESCRIPTION with clickable meeting link
+      enhancedDescription = `${bookingLink.description || 'Meeting scheduled via Quantum Club'}
+
+Join ${platformName}:
+${meetingLink}
+
+${meetingInstructions}`;
+    }
+
+    // Generate .ics calendar file content
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Quantum Club//Booking System//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:REQUEST',
+      'BEGIN:VEVENT',
+      `DTSTART:${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+      `DTEND:${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+      `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').split('.')[0]}Z`,
+      `UID:${booking.id}@quantumclub.com`,
+      `SUMMARY:${bookingLink.title}`,
+      `DESCRIPTION:${enhancedDescription.replace(/\n/g, '\\n')}`,
+      ...(meetingLocation ? [`LOCATION:${meetingLocation}`] : []),
+      `ORGANIZER;CN=${ownerProfile?.full_name || 'Quantum Club'}:MAILTO:${ownerProfile?.email || 'no-reply@quantumclub.com'}`,
+      ...attendeesList,
+      'STATUS:CONFIRMED',
+      'SEQUENCE:0',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    // Generate Add to Calendar URLs with meeting links
+    const googleCalDescription = hasMeetingLink 
+      ? `${bookingLink.description || ''}\n\nJoin ${platformName}:\n${meetingLink}`
+      : bookingLink.description || '';
+    
+    const outlookCalBody = hasMeetingLink
+      ? `${bookingLink.description || ''}\n\nJoin ${platformName}:\n${meetingLink}`
+      : bookingLink.description || '';
+
+    const googleCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(bookingLink.title)}&dates=${startDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z/${endDate.toISOString().replace(/[-:]/g, '').split('.')[0]}Z&details=${encodeURIComponent(googleCalDescription)}&location=${encodeURIComponent(meetingLocation || '')}`;
+    const outlookCalUrl = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${encodeURIComponent(bookingLink.title)}&startdt=${startDate.toISOString()}&enddt=${endDate.toISOString()}&body=${encodeURIComponent(outlookCalBody)}&location=${encodeURIComponent(meetingLocation || '')}`;
 
     const emailContent = `
       <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
@@ -161,6 +189,17 @@ serve(async (req) => {
                 ${meetingInstructions}
               </p>
               ${Button({ url: meetingLink, text: 'Join Meeting', variant: 'primary' })}
+            </td>
+          </tr>
+        </table>
+      ` : ''}
+      ${hasMeetingLink ? `
+        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 24px;">
+          <tr>
+            <td align="center">
+              <p class="text-secondary" style="margin: 0; font-size: 14px; line-height: 20px;">
+                💡 <strong>Tip:</strong> This meeting will be automatically added to your calendar from the email attachment, or you can manually add it below.
+              </p>
             </td>
           </tr>
         </table>
