@@ -132,11 +132,11 @@ export const NavigationGroup = ({
               return (
                 <motion.div
                   key={item.path}
-                  layout
-                  layoutId={item.path}
+                  layout={wasVisible} // Only use layout for items that were already visible
+                  layoutId={wasVisible ? item.path : undefined} // Only use layoutId for previously visible items
                   initial={
-                    isActive
-                      ? false // Active item doesn't animate
+                    wasVisible
+                      ? false // Previously visible items don't re-animate
                       : { opacity: 0, y: slideDirection }
                   }
                   animate={{ 
