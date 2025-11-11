@@ -485,7 +485,8 @@ serve(async (req) => {
     // Handle video platform based on booking link settings
     const videoPlatform = bookingLink.video_platform || 'quantum_club';
     console.log(`[Booking] Video platform: ${videoPlatform}`);
-    const siteUrl = Deno.env.get('SUPABASE_URL')?.replace('//', '//').replace(':54321', '') || 'https://app.thequantumclub.com';
+    // Use the actual app domain for meeting links (not Supabase backend domain)
+    const siteUrl = Deno.env.get('SITE_URL') || 'https://app.thequantumclub.com';
 
     if (videoPlatform === 'quantum_club' && bookingLink.create_quantum_meeting) {
       console.log("[Booking] Creating Quantum Club meeting for booking");
