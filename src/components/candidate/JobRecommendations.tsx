@@ -134,7 +134,7 @@ export function JobRecommendations({ userId }: { userId: string }) {
 
   if (loading) {
     return (
-      <Card className="border-2 border-foreground">
+      <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
         <CardContent className="p-6">
           <div className="animate-pulse space-y-4">
             <div className="h-4 bg-muted rounded w-3/4"></div>
@@ -147,7 +147,7 @@ export function JobRecommendations({ userId }: { userId: string }) {
 
   if (recommendations.length === 0) {
     return (
-      <Card className="border-2 border-foreground">
+      <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
             <div className="w-1 h-6 bg-foreground"></div>
@@ -171,7 +171,7 @@ export function JobRecommendations({ userId }: { userId: string }) {
   }
 
   return (
-    <Card className="border-2 border-foreground">
+    <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg font-black uppercase">
           <div className="w-1 h-6 bg-foreground"></div>

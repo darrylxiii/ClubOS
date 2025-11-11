@@ -108,7 +108,7 @@ export const LivePulse = () => {
   };
 
   return (
-    <Card className="p-4">
+    <Card className="p-4 border-border/50 shadow-sm hover:shadow-md transition-all">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Live Pulse</h3>
         <Badge variant="outline" className="animate-pulse">
