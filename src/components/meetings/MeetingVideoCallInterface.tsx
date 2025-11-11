@@ -25,6 +25,8 @@ import { BreakoutRoomsPanel } from '@/components/meetings/BreakoutRoomsPanel';
 import { MeetingPollPanel } from '@/components/meetings/MeetingPollPanel';
 import { MeetingQAPanel } from '@/components/meetings/MeetingQAPanel';
 import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgroundSelector';
+import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackchannel';
+import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -64,6 +66,8 @@ export function MeetingVideoCallInterface({
   const [showPolls, setShowPolls] = useState(false);
   const [showQA, setShowQA] = useState(false);
   const [showBackgrounds, setShowBackgrounds] = useState(false);
+  const [showBackchannel, setShowBackchannel] = useState(false);
+  const [showVoting, setShowVoting] = useState(false);
   const [meetingStarted, setMeetingStarted] = useState(false);
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
@@ -734,6 +738,16 @@ export function MeetingVideoCallInterface({
         onOpenPolls={() => setShowPolls(true)}
         onOpenQA={() => setShowQA(true)}
         onOpenBackgrounds={() => setShowBackgrounds(true)}
+        onToggleBackchannel={
+          ['host', 'interviewer', 'observer'].includes(userRole)
+            ? () => setShowBackchannel(!showBackchannel)
+            : undefined
+        }
+        onToggleVoting={
+          ['host', 'interviewer', 'observer'].includes(userRole)
+            ? () => setShowVoting(!showVoting)
+            : undefined
+        }
       />
 
       {/* Live Captions */}
@@ -894,6 +908,38 @@ export function MeetingVideoCallInterface({
           console.log('Background selected:', bg);
         }}
       />
+
+      {/* Interviewer Backchannel - Only for interviewers */}
+      {showBackchannel && ['host', 'interviewer', 'observer'].includes(userRole) && (
+        <div className="absolute left-4 top-20 bottom-20 w-96 z-[10000]">
+          <InterviewerBackchannel
+            meetingId={meeting.id}
+            currentUserId={participantId}
+          />
+        </div>
+      )}
+
+      {/* Interviewer Voting Panel - Only for interviewers */}
+      {showVoting && ['host', 'interviewer', 'observer'].includes(userRole) && (
+        <div className="absolute right-4 top-20 w-80 z-[10000] bg-card/95 backdrop-blur-lg rounded-lg border border-border p-4 shadow-2xl">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="font-semibold">Cast Your Vote</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowVoting(false)}
+              className="h-8 w-8 p-0"
+            >
+              ✕
+            </Button>
+          </div>
+          <InterviewerVotingPanel
+            meetingId={meeting.id}
+            currentUserId={participantId}
+            candidateId={meeting.candidate_id}
+          />
+        </div>
+      )}
       </div>
     </div>
   );

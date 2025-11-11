@@ -23,15 +23,23 @@ interface VideoGridProps {
 
 export function VideoGrid({ participants, localParticipant, focusedParticipantId, layout = 'grid', presenterId }: VideoGridProps) {
   const allParticipants = localParticipant ? [localParticipant, ...participants] : participants;
-  const focusedParticipant = allParticipants.find(p => p.id === focusedParticipantId);
-  const screenSharingParticipant = allParticipants.find(p => p.is_screen_sharing);
+  
+  // Filter out invisible participants (silent observers)
+  const visibleParticipants = allParticipants.filter(p => {
+    // Show all participants to local user, but filter based on visibility for others
+    // In a real implementation, you'd check participant metadata for is_visible flag
+    return true; // For now, show all
+  });
+  
+  const focusedParticipant = visibleParticipants.find(p => p.id === focusedParticipantId);
+  const screenSharingParticipant = visibleParticipants.find(p => p.is_screen_sharing);
 
   // If someone is screen sharing, switch to spotlight layout
   const effectiveLayout = screenSharingParticipant ? 'spotlight' : layout;
 
-  // Calculate grid layout
+  // Calculate grid layout based on visible participants
   const getGridCols = () => {
-    const count = allParticipants.length;
+    const count = visibleParticipants.length;
     if (count <= 1) return 1;
     if (count <= 4) return 2;
     if (count <= 9) return 3;
@@ -41,7 +49,7 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
 
   if (effectiveLayout === 'spotlight' && (focusedParticipant || screenSharingParticipant)) {
     const mainParticipant = screenSharingParticipant || focusedParticipant!;
-    const sidebarParticipants = allParticipants.filter(p => p.id !== mainParticipant.id);
+    const sidebarParticipants = visibleParticipants.filter(p => p.id !== mainParticipant.id);
 
     return (
       <div className="flex gap-4 h-full">
@@ -78,15 +86,15 @@ export function VideoGrid({ participants, localParticipant, focusedParticipantId
     <div
       className={cn(
         "grid gap-4 h-full w-full p-4",
-        allParticipants.length === 1 && "grid-cols-1",
-        allParticipants.length > 1 && `grid-cols-${getGridCols()}`,
+        visibleParticipants.length === 1 && "grid-cols-1",
+        visibleParticipants.length > 1 && `grid-cols-${getGridCols()}`,
         "auto-rows-fr"
       )}
       style={{
         gridTemplateColumns: `repeat(${getGridCols()}, 1fr)`
       }}
     >
-      {allParticipants.map(participant => (
+      {visibleParticipants.map(participant => (
         <ParticipantTile
           key={participant.id}
           participant={participant}

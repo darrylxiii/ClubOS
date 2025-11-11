@@ -19,7 +19,9 @@ import {
   PictureInPicture2,
   BarChart3,
   MessageCircleQuestion,
-  Image
+  Image,
+  Lock,
+  ThumbsUp
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -56,6 +58,8 @@ interface ControlsPanelProps {
   onOpenPolls?: () => void;
   onOpenQA?: () => void;
   onOpenBackgrounds?: () => void;
+  onToggleBackchannel?: () => void;
+  onToggleVoting?: () => void;
 }
 
 export function ControlsPanel({
@@ -84,7 +88,9 @@ export function ControlsPanel({
   onOpenBreakoutRooms,
   onOpenPolls,
   onOpenQA,
-  onOpenBackgrounds
+  onOpenBackgrounds,
+  onToggleBackchannel,
+  onToggleVoting,
 }: ControlsPanelProps) {
   const reactions = ['👍', '👏', '❤️', '😂', '🎉', '👋'];
 
@@ -191,6 +197,18 @@ export function ControlsPanel({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="backdrop-blur-2xl bg-black/80 border border-white/20 shadow-2xl" align="end" sideOffset={10}>
+            {onToggleBackchannel && (
+              <DropdownMenuItem onClick={onToggleBackchannel} className="gap-2 text-white hover:bg-white/10">
+                <Lock className="h-4 w-4 text-amber-500" />
+                Interviewer Notes 🔒
+              </DropdownMenuItem>
+            )}
+            {onToggleVoting && (
+              <DropdownMenuItem onClick={onToggleVoting} className="gap-2 text-white hover:bg-white/10">
+                <ThumbsUp className="h-4 w-4" />
+                Vote on Candidate
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onToggleRecording} className="gap-2 text-white hover:bg-white/10">
               <Circle className={cn("h-4 w-4", isRecording && "fill-red-500 text-red-500 animate-pulse")} />
               {isRecording ? 'Stop Recording' : 'Start Recording'}
