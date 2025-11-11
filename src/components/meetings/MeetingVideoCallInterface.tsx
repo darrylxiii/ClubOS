@@ -21,6 +21,10 @@ import { MeetingDetailsPanel } from '@/components/meetings/MeetingDetailsPanel';
 import { InterviewScoringDashboard } from '@/components/meetings/InterviewScoringDashboard';
 import { InterviewPrepPanel } from '@/components/meetings/InterviewPrepPanel';
 import { InterviewReportView } from '@/components/meetings/InterviewReportView';
+import { BreakoutRoomsPanel } from '@/components/meetings/BreakoutRoomsPanel';
+import { MeetingPollPanel } from '@/components/meetings/MeetingPollPanel';
+import { MeetingQAPanel } from '@/components/meetings/MeetingQAPanel';
+import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgroundSelector';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -56,6 +60,10 @@ export function MeetingVideoCallInterface({
   const [showParticipants, setShowParticipants] = useState(false);
   const [showMeetingDetails, setShowMeetingDetails] = useState(false);
   const [showInterviewIntelligence, setShowInterviewIntelligence] = useState(false);
+  const [showBreakoutRooms, setShowBreakoutRooms] = useState(false);
+  const [showPolls, setShowPolls] = useState(false);
+  const [showQA, setShowQA] = useState(false);
+  const [showBackgrounds, setShowBackgrounds] = useState(false);
   const [meetingStarted, setMeetingStarted] = useState(false);
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
@@ -722,6 +730,10 @@ export function MeetingVideoCallInterface({
             ? () => setShowInterviewIntelligence(true) 
             : undefined
         }
+        onOpenBreakoutRooms={() => setShowBreakoutRooms(true)}
+        onOpenPolls={() => setShowPolls(true)}
+        onOpenQA={() => setShowQA(true)}
+        onOpenBackgrounds={() => setShowBackgrounds(true)}
       />
 
       {/* Live Captions */}
@@ -848,6 +860,40 @@ export function MeetingVideoCallInterface({
           </SheetContent>
         </Sheet>
       )}
+
+      {/* Breakout Rooms Panel */}
+      <BreakoutRoomsPanel
+        meetingId={meeting.id}
+        isHost={meeting.host_id === participantId}
+        open={showBreakoutRooms}
+        onOpenChange={setShowBreakoutRooms}
+      />
+
+      {/* Polls Panel */}
+      <MeetingPollPanel
+        meetingId={meeting.id}
+        isHost={meeting.host_id === participantId}
+        open={showPolls}
+        onOpenChange={setShowPolls}
+      />
+
+      {/* Q&A Panel */}
+      <MeetingQAPanel
+        meetingId={meeting.id}
+        isHost={meeting.host_id === participantId}
+        open={showQA}
+        onOpenChange={setShowQA}
+      />
+
+      {/* Virtual Backgrounds */}
+      <VirtualBackgroundSelector
+        open={showBackgrounds}
+        onOpenChange={setShowBackgrounds}
+        onBackgroundSelect={(bg) => {
+          // Background selection logic here
+          console.log('Background selected:', bg);
+        }}
+      />
       </div>
     </div>
   );

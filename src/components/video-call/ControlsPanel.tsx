@@ -16,7 +16,10 @@ import {
   Subtitles,
   FileText,
   Info,
-  PictureInPicture2
+  PictureInPicture2,
+  BarChart3,
+  MessageCircleQuestion,
+  Image
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -49,6 +52,10 @@ interface ControlsPanelProps {
   onOpenMeetingInfo?: () => void;
   onEnablePiP?: () => void;
   onOpenInterviewIntelligence?: () => void;
+  onOpenBreakoutRooms?: () => void;
+  onOpenPolls?: () => void;
+  onOpenQA?: () => void;
+  onOpenBackgrounds?: () => void;
 }
 
 export function ControlsPanel({
@@ -73,7 +80,11 @@ export function ControlsPanel({
   onOpenHostSettings,
   onOpenMeetingInfo,
   onEnablePiP,
-  onOpenInterviewIntelligence
+  onOpenInterviewIntelligence,
+  onOpenBreakoutRooms,
+  onOpenPolls,
+  onOpenQA,
+  onOpenBackgrounds
 }: ControlsPanelProps) {
   const reactions = ['👍', '👏', '❤️', '😂', '🎉', '👋'];
 
@@ -224,6 +235,30 @@ export function ControlsPanel({
               <DropdownMenuItem onClick={onOpenInterviewIntelligence} className="gap-2 text-white hover:bg-white/10">
                 <FileText className="h-4 w-4" />
                 Interview Intelligence
+              </DropdownMenuItem>
+            )}
+            {onOpenBreakoutRooms && (
+              <DropdownMenuItem onClick={onOpenBreakoutRooms} className="gap-2 text-white hover:bg-white/10">
+                <Users className="h-4 w-4" />
+                Breakout Rooms
+              </DropdownMenuItem>
+            )}
+            {onOpenPolls && (
+              <DropdownMenuItem onClick={onOpenPolls} className="gap-2 text-white hover:bg-white/10">
+                <BarChart3 className="h-4 w-4" />
+                Live Polls
+              </DropdownMenuItem>
+            )}
+            {onOpenQA && (
+              <DropdownMenuItem onClick={onOpenQA} className="gap-2 text-white hover:bg-white/10">
+                <MessageCircleQuestion className="h-4 w-4" />
+                Q&A
+              </DropdownMenuItem>
+            )}
+            {onOpenBackgrounds && (
+              <DropdownMenuItem onClick={onOpenBackgrounds} className="gap-2 text-white hover:bg-white/10">
+                <Image className="h-4 w-4" />
+                Virtual Backgrounds
               </DropdownMenuItem>
             )}
             {onEnablePiP && (
