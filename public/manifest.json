@@ -1,7 +1,7 @@
 {
-  "name": "The Quantum Club OS",
+  "name": "The Quantum Club",
   "short_name": "TQC",
-  "description": "Elite Career Management - Invite-only executive members club",
+  "description": "Invite-only career management for visionary talent. Discreet. High-tech. Unapologetically exclusive.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0E0E10",
