@@ -40,7 +40,6 @@ export interface IconButtonProps extends Omit<ButtonProps, 'children'> {
 // ============= Form Component Props =============
 
 export interface FormFieldProps extends BaseComponentProps {
-  name: string;
   label?: string;
   description?: string;
   error?: string;
@@ -48,19 +47,20 @@ export interface FormFieldProps extends BaseComponentProps {
   disabled?: boolean;
 }
 
-export interface InputProps extends ComponentPropsWithoutRef<'input'>, FormFieldProps {
+export interface InputProps extends Omit<ComponentPropsWithoutRef<'input'>, 'className'>, FormFieldProps {
   leftIcon?: LucideIcon;
   rightIcon?: LucideIcon;
   onRightIconClick?: () => void;
 }
 
-export interface TextareaProps extends ComponentPropsWithoutRef<'textarea'>, FormFieldProps {
+export interface TextareaProps extends Omit<ComponentPropsWithoutRef<'textarea'>, 'className'>, FormFieldProps {
   maxLength?: number;
   showCharCount?: boolean;
   autoResize?: boolean;
 }
 
 export interface SelectProps extends FormFieldProps {
+  name?: string;
   options: SelectOption[];
   value: string;
   onChange: (value: string) => void;
@@ -78,18 +78,20 @@ export interface SelectOption {
   description?: string;
 }
 
-export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'input'>, 'type'>, FormFieldProps {
+export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'input'>, 'type' | 'className'>, FormFieldProps {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
 }
 
 export interface SwitchProps extends FormFieldProps {
+  name?: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   size?: 'sm' | 'md' | 'lg';
 }
 
 export interface RadioGroupProps extends FormFieldProps {
+  name?: string;
   options: RadioOption[];
   value: string;
   onChange: (value: string) => void;

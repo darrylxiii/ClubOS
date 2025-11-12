@@ -11,14 +11,39 @@ import { Database } from '@/integrations/supabase/types';
 // Base types from Supabase
 export type Tables = Database['public']['Tables'];
 export type Enums = Database['public']['Enums'];
+type TablesRow<T extends keyof Tables> = Tables[T]['Row'];
 
 // ============= User & Profile Types =============
 
-export interface UserProfile extends Tables['profiles']['Row'] {
+export interface UserProfile {
+  id: string;
+  user_id: string;
+  full_name: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  email: string;
+  avatar_url?: string | null;
+  phone?: string | null;
+  location?: string | null;
+  current_title?: string | null;
+  linkedin_url?: string | null;
+  bio?: string | null;
+  career_preferences?: string | null;
+  desired_salary_min?: number | null;
+  desired_salary_max?: number | null;
+  notice_period_weeks?: number | null;
+  remote_work_aspiration?: boolean;
+  open_to_freelance_work?: boolean;
+  freelance_categories?: string[] | null;
+  freelance_availability_status?: 'available' | 'busy' | 'not_accepting' | null;
+  salary_preference_hidden?: boolean;
+  created_at: string;
+  updated_at: string;
+  
   // Joined data from company_members
   company_members?: Array<{
     company_id: string;
-    role: Enums['company_role'];
+    role: string;
     is_active: boolean;
     companies?: {
       name: string;
@@ -31,9 +56,25 @@ export interface UserProfile extends Tables['profiles']['Row'] {
   match_score?: number;
 }
 
-export interface CandidateProfile extends Tables['candidate_profiles']['Row'] {
+export interface CandidateProfile {
+  id: string;
+  user_id?: string | null;
+  first_name: string;
+  last_name?: string | null;
+  full_name: string;
+  email: string;
+  phone?: string | null;
+  location?: string | null;
+  created_at: string;
+  updated_at: string;
+  
   // Joined profile data
-  profiles?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url' | 'phone'>;
+  profiles?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+    phone?: string | null;
+  };
   
   // Computed fields
   total_applications?: number;
@@ -42,7 +83,29 @@ export interface CandidateProfile extends Tables['candidate_profiles']['Row'] {
 
 // ============= Application & Job Types =============
 
-export interface Application extends Tables['applications']['Row'] {
+export interface Application {
+  id: string;
+  job_id: string;
+  user_id?: string | null;
+  candidate_profile_id?: string | null;
+  cover_letter?: string | null;
+  resume_url?: string | null;
+  current_stage: string;
+  applied_at: string;
+  created_at: string;
+  updated_at: string;
+  
+  // Embedded candidate fields (fallback when no profile exists)
+  candidate_full_name?: string | null;
+  candidate_first_name?: string | null;
+  candidate_last_name?: string | null;
+  candidate_email?: string | null;
+  candidate_phone?: string | null;
+  candidate_title?: string | null;
+  candidate_company?: string | null;
+  candidate_linkedin_url?: string | null;
+  candidate_resume_url?: string | null;
+  
   // Joined candidate data
   candidate_profiles?: CandidateProfile;
   profiles?: UserProfile;
@@ -55,7 +118,21 @@ export interface Application extends Tables['applications']['Row'] {
   stage_index?: number;
 }
 
-export interface Job extends Tables['jobs']['Row'] {
+export interface Job {
+  id: string;
+  title: string;
+  description: string;
+  company_id: string;
+  location: string;
+  employment_type: string;
+  salary_min?: number | null;
+  salary_max?: number | null;
+  experience_level: string;
+  remote_allowed: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  
   // Joined company data
   companies?: {
     id: string;
@@ -80,7 +157,14 @@ export interface Job extends Tables['jobs']['Row'] {
   days_since_posted?: number;
 }
 
-export interface MatchScore extends Tables['match_scores']['Row'] {
+export interface MatchScore {
+  id: string;
+  candidate_id: string;
+  job_id: string;
+  overall_score: number;
+  created_at: string;
+  updated_at: string;
+  
   // Match breakdown
   match_factors?: {
     skills_match: number;
@@ -98,9 +182,24 @@ export interface MatchScore extends Tables['match_scores']['Row'] {
 
 // ============= Activity & Analytics Types =============
 
-export interface UserActivityEvent extends Tables['user_activity_events']['Row'] {
+export interface UserActivityEvent {
+  id: string;
+  user_id: string;
+  session_id?: string | null;
+  event_type: string;
+  event_category?: string | null;
+  page_path?: string | null;
+  referrer?: string | null;
+  device_type?: string | null;
+  duration_seconds?: number | null;
+  created_at: string;
+  
   // Joined profile data
-  profiles?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  profiles?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Typed action_data based on event_type
   action_data: ActivityActionData;
@@ -117,9 +216,23 @@ export type ActivityActionData =
   | { type: 'assessment_start' | 'assessment_submit'; assessment_id: string }
   | Record<string, unknown>;
 
-export interface UserActivityTracking extends Tables['user_activity_tracking']['Row'] {
+export interface UserActivityTracking {
+  user_id: string;
+  last_activity_at: string;
+  activity_count_24h: number;
+  activity_count_7d: number;
+  session_count: number;
+  total_time_minutes: number;
+  last_login_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  
   // Joined profile data
-  profiles?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  profiles?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Computed fields
   is_online?: boolean;
@@ -128,9 +241,29 @@ export interface UserActivityTracking extends Tables['user_activity_tracking']['
 
 // ============= Meeting & Video Types =============
 
-export interface Meeting extends Tables['meetings']['Row'] {
+export interface Meeting {
+  id: string;
+  meeting_code: string;
+  title: string;
+  description?: string | null;
+  host_id: string;
+  scheduled_start: string;
+  scheduled_end: string;
+  actual_start?: string | null;
+  actual_end?: string | null;
+  meeting_type: string;
+  status: string;
+  application_id?: string | null;
+  job_id?: string | null;
+  created_at: string;
+  updated_at: string;
+  
   // Joined host data
-  host_profile?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  host_profile?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Participants
   meeting_participants?: MeetingParticipant[];
@@ -145,16 +278,42 @@ export interface Meeting extends Tables['meetings']['Row'] {
   is_ongoing?: boolean;
 }
 
-export interface MeetingParticipant extends Tables['meeting_participants']['Row'] {
+export interface MeetingParticipant {
+  id: string;
+  meeting_id: string;
+  user_id?: string | null;
+  guest_name?: string | null;
+  guest_email?: string | null;
+  role: string;
+  joined_at?: string | null;
+  left_at?: string | null;
+  is_active: boolean;
+  audio_enabled: boolean;
+  video_enabled: boolean;
+  screen_sharing: boolean;
+  connection_quality?: string | null;
+  created_at: string;
+  
   // Joined profile data
-  profiles?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  profiles?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Connection state
   peer_connection_state?: RTCPeerConnectionState;
   ice_connection_state?: RTCIceConnectionState;
 }
 
-export interface InterviewInsight extends Tables['interview_insights']['Row'] {
+export interface InterviewInsight {
+  id: string;
+  meeting_id: string;
+  candidate_id: string;
+  interviewer_id: string;
+  created_at: string;
+  updated_at: string;
+  
   // Parsed scores
   scores: {
     communication_clarity: number;
@@ -176,7 +335,23 @@ export interface InterviewInsight extends Tables['interview_insights']['Row'] {
 
 // ============= Booking Types =============
 
-export interface Booking extends Tables['bookings']['Row'] {
+export interface Booking {
+  id: string;
+  booking_link_id: string;
+  guest_name: string;
+  guest_email: string;
+  guest_phone?: string | null;
+  scheduled_date: string;
+  scheduled_time: string;
+  timezone: string;
+  status: string;
+  confirmation_code: string;
+  notes?: string | null;
+  quantum_meeting_link?: string | null;
+  google_meet_hangout_link?: string | null;
+  created_at: string;
+  updated_at: string;
+  
   // Joined booking link data
   booking_links?: {
     title: string;
@@ -186,7 +361,11 @@ export interface Booking extends Tables['bookings']['Row'] {
   };
   
   // Joined owner data
-  owner_profile?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  owner_profile?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Guest information
   guests: Array<{
@@ -200,9 +379,26 @@ export interface Booking extends Tables['bookings']['Row'] {
   can_cancel?: boolean;
 }
 
-export interface BookingLink extends Tables['booking_links']['Row'] {
+export interface BookingLink {
+  id: string;
+  slug: string;
+  owner_id: string;
+  title: string;
+  description?: string | null;
+  duration_minutes: number;
+  video_platform: 'tqc_meetings' | 'google_meet' | 'none';
+  buffer_time_minutes: number;
+  max_bookings_per_day?: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  
   // Joined owner data
-  profiles?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  profiles?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Availability schedule
   availability_schedule: Array<{
@@ -220,12 +416,32 @@ export interface BookingLink extends Tables['booking_links']['Row'] {
 
 // ============= CRM Types =============
 
-export interface CRMContact extends Tables['crm_contacts']['Row'] {
+export interface CRMContact {
+  id: string;
+  profile_id: string;
+  company_id?: string | null;
+  contact_type: string;
+  lifecycle_stage?: string | null;
+  lead_score: number;
+  engagement_score: number;
+  tags: string[];
+  owner_id?: string | null;
+  created_at: string;
+  updated_at: string;
+  
   // Joined profile data
-  profiles?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  profiles?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Joined company data
-  companies?: Pick<Tables['companies']['Row'], 'id' | 'name' | 'logo_url'>;
+  companies?: {
+    id: string;
+    name: string;
+    logo_url?: string | null;
+  };
   
   // Custom fields (typed)
   custom_fields: Record<string, string | number | boolean | null>;
@@ -236,26 +452,76 @@ export interface CRMContact extends Tables['crm_contacts']['Row'] {
   lifetime_value?: number;
 }
 
-export interface CRMDeal extends Tables['crm_deals']['Row'] {
+export interface CRMDeal {
+  id: string;
+  deal_type: string;
+  job_id?: string | null;
+  application_id?: string | null;
+  company_id?: string | null;
+  title: string;
+  description?: string | null;
+  value?: number | null;
+  currency: string;
+  stage: string;
+  probability?: number | null;
+  close_date?: string | null;
+  owner_id?: string | null;
+  source?: string | null;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+  closed_at?: string | null;
+  
   // Joined contact data
-  crm_contacts?: Pick<CRMContact, 'id' | 'lead_score' | 'engagement_score'>;
+  crm_contacts?: {
+    id: string;
+    lead_score: number;
+    engagement_score: number;
+  };
   
   // Joined company data
-  companies?: Pick<Tables['companies']['Row'], 'id' | 'name'>;
+  companies?: {
+    id: string;
+    name: string;
+  };
   
   // Joined job data (if applicable)
-  jobs?: Pick<Job, 'id' | 'title' | 'employment_type'>;
+  jobs?: {
+    id: string;
+    title: string;
+  };
   
   // Custom fields (typed)
   custom_fields: Record<string, string | number | boolean | null>;
 }
 
-export interface CRMActivity extends Tables['crm_activities']['Row'] {
+export interface CRMActivity {
+  id: string;
+  activity_type: string;
+  contact_id?: string | null;
+  deal_id?: string | null;
+  company_id?: string | null;
+  subject?: string | null;
+  description?: string | null;
+  outcome?: string | null;
+  direction?: 'inbound' | 'outbound' | null;
+  duration_minutes?: number | null;
+  created_by?: string | null;
+  participants: unknown[];
+  scheduled_at?: string | null;
+  completed_at?: string | null;
+  created_at: string;
+  
   // Joined contact data
-  crm_contacts?: Pick<CRMContact, 'id'>;
+  crm_contacts?: {
+    id: string;
+  };
   
   // Joined creator data
-  creator_profile?: Pick<Tables['profiles']['Row'], 'full_name' | 'avatar_url'>;
+  creator_profile?: {
+    full_name: string;
+    avatar_url?: string | null;
+  };
   
   // Typed metadata
   metadata: Record<string, unknown>;
@@ -263,12 +529,34 @@ export interface CRMActivity extends Tables['crm_activities']['Row'] {
 
 // ============= Document Types =============
 
-export interface Document extends Tables['documents']['Row'] {
+export interface Document {
+  id: string;
+  file_name: string;
+  file_url: string;
+  file_size: number;
+  file_type: string;
+  document_type: string;
+  uploaded_by: string;
+  application_id?: string | null;
+  candidate_profile_id?: string | null;
+  expires_at?: string | null;
+  is_archived: boolean;
+  archived_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  
   // Joined uploader data
-  uploader_profile?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  uploader_profile?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Joined application data (if applicable)
-  applications?: Pick<Application, 'id' | 'current_stage'>;
+  applications?: {
+    id: string;
+    current_stage: string;
+  };
   
   // Computed fields
   is_expired?: boolean;
@@ -278,12 +566,31 @@ export interface Document extends Tables['documents']['Row'] {
 
 // ============= Assessment Types =============
 
-export interface AssessmentAssignment extends Tables['assessment_assignments']['Row'] {
+export interface AssessmentAssignment {
+  id: string;
+  assessment_id: string;
+  assigned_to: string;
+  assigned_by: string;
+  due_date?: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string | null;
+  
   // Joined assessment data
-  assessments?: Pick<Tables['assessments']['Row'], 'id' | 'name' | 'category' | 'estimated_time_minutes'>;
+  assessment_ref?: {
+    id: string;
+    name: string;
+    category: string;
+    estimated_time_minutes: number;
+  };
   
   // Joined assignee data
-  profiles?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  profiles?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Joined results
   assessment_results?: AssessmentResult[];
@@ -293,12 +600,21 @@ export interface AssessmentAssignment extends Tables['assessment_assignments']['
   days_until_due?: number;
 }
 
-export interface AssessmentResult extends Tables['assessment_results']['Row'] {
+export interface AssessmentResult {
+  id: string;
+  assignment_id: string;
+  score: number;
+  created_at: string;
+  completed_at: string;
+  
   // Typed results_data based on assessment category
   results_data: AssessmentResultData;
   
   // Joined assignment data
-  assessment_assignments?: Pick<AssessmentAssignment, 'id' | 'due_date'>;
+  assessment_assignments?: {
+    id: string;
+    due_date?: string | null;
+  };
 }
 
 export type AssessmentResultData =
@@ -311,15 +627,38 @@ export type AssessmentResultData =
 
 // ============= Message Types =============
 
-export interface Message extends Tables['messages']['Row'] {
+export interface Message {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  recipient_id?: string | null;
+  content: string;
+  message_type: string;
+  is_read: boolean;
+  read_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  
   // Joined sender data
-  sender_profile?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  sender_profile?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Joined recipient data
-  recipient_profile?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  recipient_profile?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Joined conversation data
-  conversations?: Pick<Tables['conversations']['Row'], 'id' | 'conversation_type' | 'subject'>;
+  conversations?: {
+    id: string;
+    title?: string | null;
+    status: string;
+  };
   
   // Typed metadata
   metadata: MessageMetadata;
@@ -340,12 +679,34 @@ export type MessageMetadata = {
 
 // ============= Task & Project Types =============
 
-export interface UnifiedTask extends Tables['unified_tasks']['Row'] {
+export interface UnifiedTask {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: string;
+  priority: string;
+  due_date?: string | null;
+  assigned_to?: string | null;
+  board_id?: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string | null;
+  
   // Joined assignee data
-  assignee_profile?: Pick<Tables['profiles']['Row'], 'full_name' | 'email' | 'avatar_url'>;
+  assignee_profile?: {
+    full_name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
   
   // Joined board data (if applicable)
-  task_boards?: Pick<Tables['task_boards']['Row'], 'id' | 'name' | 'icon' | 'color'>;
+  task_boards?: {
+    id: string;
+    name: string;
+    icon: string;
+    color: string;
+  };
   
   // Typed metadata
   metadata: TaskMetadata;

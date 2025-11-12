@@ -129,12 +129,12 @@ export interface CreateJobRequest {
   description: string;
   company_id: string;
   location: string;
-  employment_type: Database['public']['Enums']['employment_type'];
+  employment_type: 'full_time' | 'part_time' | 'contract' | 'temporary' | 'internship' | 'freelance';
   salary_min?: number;
   salary_max?: number;
   required_skills?: string[];
   nice_to_have_skills?: string[];
-  experience_level: Database['public']['Enums']['experience_level'];
+  experience_level: 'entry' | 'mid' | 'senior' | 'lead' | 'executive';
   remote_allowed: boolean;
 }
 
@@ -376,7 +376,7 @@ export interface SendMessageResponse {
 
 export interface UploadDocumentRequest {
   file: File;
-  document_type: Database['public']['Enums']['document_type'];
+  document_type: 'resume' | 'cover_letter' | 'portfolio' | 'certificate' | 'reference' | 'contract' | 'other';
   application_id?: string;
   candidate_profile_id?: string;
   expires_at?: string;

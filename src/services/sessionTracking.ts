@@ -106,8 +106,8 @@ export const trackLogin = async (userId: string, method: 'email' | 'google' | 'l
     });
 
     // Update activity tracking with login flag
-    // Type assertion needed because RPC types aren't fully generated
-    await supabase.rpc('update_user_activity_tracking', {
+    // Type assertion needed because RPC function parameters aren't fully reflected in generated types
+    await (supabase.rpc as any)('update_user_activity_tracking', {
       p_user_id: userId,
       p_action_type: 'login',
       p_increment_actions: true,
@@ -137,8 +137,8 @@ export const trackLogout = async (userId: string): Promise<void> => {
     });
 
     // Update activity tracking with logout flag
-    // Type assertion needed because RPC types aren't fully generated
-    await supabase.rpc('update_user_activity_tracking', {
+    // Type assertion needed because RPC function parameters aren't fully reflected in generated types
+    await (supabase.rpc as any)('update_user_activity_tracking', {
       p_user_id: userId,
       p_action_type: 'logout',
       p_increment_actions: true,
