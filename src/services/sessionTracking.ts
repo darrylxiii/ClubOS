@@ -61,17 +61,18 @@ export const trackEvent = async (
   eventType: string,
   options?: {
     eventCategory?: string;
-    actionData?: Record<string, any>;
+    actionData?: Record<string, unknown>;
     pagePath?: string;
     referrer?: string;
     durationSeconds?: number;
   }
-) => {
+): Promise<void> => {
   try {
     const sessionId = getSessionId();
     const deviceType = getDeviceType();
 
-    await (supabase as any).rpc('track_user_event', {
+    // Type assertion needed because RPC types aren't fully generated
+    await supabase.rpc('track_user_event', {
       p_user_id: userId,
       p_session_id: sessionId,
       p_event_type: eventType,
@@ -90,7 +91,7 @@ export const trackEvent = async (
 /**
  * Track login event
  */
-export const trackLogin = async (userId: string, method: 'email' | 'google' | 'linkedin' = 'email') => {
+export const trackLogin = async (userId: string, method: 'email' | 'google' | 'linkedin' = 'email'): Promise<void> => {
   try {
     // Reset session tracking on login
     sessionStorage.removeItem('activity_session_id');
@@ -105,7 +106,8 @@ export const trackLogin = async (userId: string, method: 'email' | 'google' | 'l
     });
 
     // Update activity tracking with login flag
-    await (supabase as any).rpc('update_user_activity_tracking', {
+    // Type assertion needed because RPC types aren't fully generated
+    await supabase.rpc('update_user_activity_tracking', {
       p_user_id: userId,
       p_action_type: 'login',
       p_increment_actions: true,
@@ -123,7 +125,7 @@ export const trackLogin = async (userId: string, method: 'email' | 'google' | 'l
 /**
  * Track logout event
  */
-export const trackLogout = async (userId: string) => {
+export const trackLogout = async (userId: string): Promise<void> => {
   try {
     const sessionDuration = getSessionDuration();
     const sessionId = getSessionId();
@@ -135,7 +137,8 @@ export const trackLogout = async (userId: string) => {
     });
 
     // Update activity tracking with logout flag
-    await (supabase as any).rpc('update_user_activity_tracking', {
+    // Type assertion needed because RPC types aren't fully generated
+    await supabase.rpc('update_user_activity_tracking', {
       p_user_id: userId,
       p_action_type: 'logout',
       p_increment_actions: true,
@@ -157,7 +160,7 @@ export const trackLogout = async (userId: string) => {
 /**
  * Track page view
  */
-export const trackPageView = async (userId: string, pagePath?: string) => {
+export const trackPageView = async (userId: string, pagePath?: string): Promise<void> => {
   await trackEvent(userId, 'page_view', {
     eventCategory: 'navigation',
     pagePath: pagePath || window.location.pathname,
@@ -171,7 +174,7 @@ export const trackJobInteraction = async (
   userId: string,
   jobId: string,
   action: 'view' | 'save' | 'apply' | 'unsave'
-) => {
+): Promise<void> => {
   await trackEvent(userId, `job_${action}`, {
     eventCategory: 'jobs',
     actionData: { job_id: jobId, action },
@@ -185,7 +188,7 @@ export const trackCandidateInteraction = async (
   userId: string,
   candidateId: string,
   action: 'view_profile' | 'shortlist' | 'message' | 'schedule_interview' | 'advance' | 'reject'
-) => {
+): Promise<void> => {
   await trackEvent(userId, action, {
     eventCategory: 'candidate_management',
     actionData: { candidate_id: candidateId, action },
@@ -199,7 +202,7 @@ export const trackMessageSent = async (
   userId: string,
   recipientId: string,
   category: 'candidate' | 'partner' | 'support'
-) => {
+): Promise<void> => {
   await trackEvent(userId, 'message_sent', {
     eventCategory: 'messaging',
     actionData: { recipient_id: recipientId, category },
@@ -213,7 +216,7 @@ export const trackDocumentInteraction = async (
   userId: string,
   documentId: string,
   action: 'upload' | 'download' | 'share' | 'archive'
-) => {
+): Promise<void> => {
   await trackEvent(userId, `document_${action}`, {
     eventCategory: 'documents',
     actionData: { document_id: documentId, action },
@@ -226,7 +229,7 @@ export const trackDocumentInteraction = async (
 export const trackProfileUpdate = async (
   userId: string,
   fieldsUpdated: string[]
-) => {
+): Promise<void> => {
   await trackEvent(userId, 'profile_update', {
     eventCategory: 'profile',
     actionData: { fields_updated: fieldsUpdated },
@@ -240,7 +243,7 @@ export const trackAssessmentInteraction = async (
   userId: string,
   assessmentId: string,
   action: 'start' | 'submit' | 'review'
-) => {
+): Promise<void> => {
   await trackEvent(userId, `assessment_${action}`, {
     eventCategory: 'assessments',
     actionData: { assessment_id: assessmentId, action },

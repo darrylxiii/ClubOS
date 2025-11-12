@@ -1,7 +1,14 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogContext {
-  [key: string]: any;
+  [key: string]: unknown;
+}
+
+interface ErrorWithStack {
+  message: string;
+  stack?: string;
+  code?: string;
+  name?: string;
 }
 
 class Logger {
@@ -29,11 +36,32 @@ class Logger {
     console.warn(`⚠️  ${this.formatMessage('warn', message, context)}`);
   }
   
-  error(message: string, error?: any, context?: LogContext) {
-    const errorDetails = error instanceof Error 
-      ? { message: error.message, stack: error.stack, ...context }
-      : { error, ...context };
+  error(message: string, error?: Error | ErrorWithStack | unknown, context?: LogContext) {
+    let errorDetails: LogContext = { ...context };
+    
+    if (error instanceof Error) {
+      errorDetails = { 
+        message: error.message, 
+        stack: error.stack,
+        name: error.name,
+        ...context 
+      };
+    } else if (error && typeof error === 'object' && 'message' in error) {
+      errorDetails = { 
+        message: (error as ErrorWithStack).message,
+        stack: (error as ErrorWithStack).stack,
+        code: (error as ErrorWithStack).code,
+        ...context 
+      };
+    } else if (error) {
+      errorDetails = { error: String(error), ...context };
+    }
+    
     console.error(`❌ ${this.formatMessage('error', message, errorDetails)}`);
+  }
+  
+  critical(message: string, error?: Error | ErrorWithStack | unknown, context?: LogContext) {
+    this.error(`[CRITICAL] ${message}`, error, { ...context, level: 'critical' });
   }
   
   // Performance timing
