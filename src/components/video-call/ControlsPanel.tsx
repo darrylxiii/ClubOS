@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import {
   Mic,
   MicOff,
@@ -21,15 +22,25 @@ import {
   MessageCircleQuestion,
   Image,
   Lock,
-  ThumbsUp
+  ThumbsUp,
+  Sparkles
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { meetingZIndex, meetingInteractions, meetingShadows, meetingBackdrop } from '@/config/meeting-design-tokens';
 
 interface ControlsPanelProps {
   isAudioEnabled: boolean;
@@ -94,53 +105,123 @@ export function ControlsPanel({
 }: ControlsPanelProps) {
   const reactions = ['👍', '👏', '❤️', '😂', '🎉', '👋'];
 
+  const ControlButton = ({ 
+    children, 
+    onClick, 
+    isActive, 
+    isDangerous, 
+    tooltip, 
+    badge 
+  }: { 
+    children: React.ReactNode; 
+    onClick: () => void; 
+    isActive?: boolean; 
+    isDangerous?: boolean;
+    tooltip?: string;
+    badge?: number;
+  }) => (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="relative">
+            <Button
+              size="lg"
+              onClick={onClick}
+              className={cn(
+                "rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10",
+                meetingInteractions.hoverScale,
+                isActive && !isDangerous && "bg-white/10 hover:bg-white/20 text-white",
+                !isActive && !isDangerous && "bg-white/10 hover:bg-white/20 text-white",
+                isDangerous && isActive && `bg-rose-500/90 hover:bg-rose-600 text-white shadow-[${meetingShadows.glowRed}]`,
+              )}
+            >
+              {children}
+            </Button>
+            {badge !== undefined && badge > 0 && (
+              <Badge 
+                className="absolute -top-1 -right-1 h-6 min-w-6 flex items-center justify-center px-1.5 bg-rose-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse"
+              >
+                {badge > 9 ? '9+' : badge}
+              </Badge>
+            )}
+          </div>
+        </TooltipTrigger>
+        {tooltip && (
+          <TooltipContent 
+            side="top" 
+            className={cn(
+              meetingBackdrop.dark,
+              "border-white/20 text-white"
+            )}
+            sideOffset={12}
+          >
+            <p>{tooltip}</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
+  );
+
   return (
-    <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[10000] animate-in slide-in-from-bottom duration-500">
-      <div className="backdrop-blur-2xl bg-black/50 border border-white/10 rounded-full px-8 py-4 shadow-[0_8px_48px_rgba(0,0,0,0.6),0_0_1px_rgba(255,255,255,0.1)] flex items-center gap-3">
+    <div 
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 animate-in slide-in-from-bottom duration-500"
+      style={{ zIndex: meetingZIndex.controls }}
+    >
+      <div className={cn(
+        meetingBackdrop.medium,
+        "border border-white/10 rounded-full px-8 py-4",
+        `shadow-[${meetingShadows.xl}]`,
+        "flex items-center gap-3"
+      )}>
+        {/* Core Controls - Always Visible */}
+        
         {/* Audio Control */}
-        <Button
-          size="lg"
+        <ControlButton
           onClick={onToggleAudio}
-          className={cn(
-            "rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10",
-            "hover:scale-110 active:scale-95",
-            isAudioEnabled
-              ? "bg-white/10 hover:bg-white/20 text-white"
-              : "bg-rose-500/90 hover:bg-rose-600 text-white shadow-[0_0_24px_rgba(244,63,94,0.5)]"
-          )}
+          isActive={!isAudioEnabled}
+          isDangerous={!isAudioEnabled}
+          tooltip={isAudioEnabled ? "Mute (⌘D)" : "Unmute (⌘D)"}
         >
           {isAudioEnabled ? <Mic className="h-6 w-6" /> : <MicOff className="h-6 w-6" />}
-        </Button>
+        </ControlButton>
 
         {/* Video Control */}
-        <Button
-          size="lg"
+        <ControlButton
           onClick={onToggleVideo}
-          className={cn(
-            "rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10",
-            "hover:scale-110 active:scale-95",
-            isVideoEnabled
-              ? "bg-white/10 hover:bg-white/20 text-white"
-              : "bg-rose-500/90 hover:bg-rose-600 text-white shadow-[0_0_24px_rgba(244,63,94,0.5)]"
-          )}
+          isActive={!isVideoEnabled}
+          isDangerous={!isVideoEnabled}
+          tooltip={isVideoEnabled ? "Stop Video (⌘E)" : "Start Video (⌘E)"}
         >
           {isVideoEnabled ? <Video className="h-6 w-6" /> : <VideoOff className="h-6 w-6" />}
-        </Button>
+        </ControlButton>
 
         {/* Screen Share */}
-        <Button
-          size="lg"
+        <ControlButton
           onClick={onToggleScreenShare}
-          className={cn(
-            "rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10",
-            "hover:scale-110 active:scale-95",
-            isScreenSharing
-              ? "bg-primary/90 text-white shadow-[0_0_24px_rgba(var(--primary)/0.5)]"
-              : "bg-white/10 hover:bg-white/20 text-white"
-          )}
+          isActive={isScreenSharing}
+          tooltip={isScreenSharing ? "Stop Sharing" : "Share Screen"}
         >
           {isScreenSharing ? <MonitorOff className="h-6 w-6" /> : <Monitor className="h-6 w-6" />}
-        </Button>
+        </ControlButton>
+
+        {/* Divider */}
+        <div className="h-10 w-px bg-white/20" />
+
+        {/* Chat - Promoted to main controls */}
+        <ControlButton
+          onClick={onOpenChat}
+          tooltip="Chat (⌘⇧C)"
+        >
+          <MessageSquare className="h-6 w-6" />
+        </ControlButton>
+
+        {/* Participants - Promoted to main controls */}
+        <ControlButton
+          onClick={onOpenParticipants}
+          tooltip="Participants (⌘⇧P)"
+        >
+          <Users className="h-6 w-6" />
+        </ControlButton>
 
         {/* Divider */}
         <div className="h-10 w-px bg-white/20" />
@@ -148,22 +229,33 @@ export function ControlsPanel({
         {/* Reactions */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              size="lg"
-              className="rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10 bg-white/10 hover:bg-white/20 hover:scale-110 active:scale-95 text-white text-2xl"
-            >
-              😊
-            </Button>
+            <div>
+              <ControlButton
+                onClick={() => {}}
+                tooltip="Send Reaction"
+              >
+                <span className="text-2xl">😊</span>
+              </ControlButton>
+            </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="backdrop-blur-2xl bg-black/90 border border-white/20 shadow-2xl z-[10100]" sideOffset={20}>
-            <div className="grid grid-cols-3 gap-2 p-2">
+          <DropdownMenuContent 
+            className={cn(
+              meetingBackdrop.dark,
+              "border border-white/20",
+              `shadow-[${meetingShadows.lg}]`
+            )}
+            style={{ zIndex: meetingZIndex.dropdown }}
+            sideOffset={20}
+            align="center"
+          >
+            <div className="grid grid-cols-3 gap-2 p-3">
               {reactions.map(emoji => (
                 <Button
                   key={emoji}
                   variant="ghost"
                   size="lg"
                   onClick={() => onReaction(emoji)}
-                  className="text-3xl hover:scale-125 transition-transform hover:bg-white/10"
+                  className="text-3xl hover:scale-125 transition-all duration-200 hover:bg-white/10 rounded-xl"
                 >
                   {emoji}
                 </Button>
@@ -173,133 +265,168 @@ export function ControlsPanel({
         </DropdownMenu>
 
         {/* Hand Raise */}
-        <Button
-          size="lg"
+        <ControlButton
           onClick={onToggleHandRaise}
-          className={cn(
-            "rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10",
-            "hover:scale-110 active:scale-95",
-            isHandRaised
-              ? "bg-yellow-500/90 hover:bg-yellow-600 text-white animate-bounce shadow-[0_0_24px_rgba(234,179,8,0.5)]"
-              : "bg-white/10 hover:bg-white/20 text-white"
-          )}
+          isActive={isHandRaised}
+          tooltip={isHandRaised ? "Lower Hand" : "Raise Hand (⌘⇧H)"}
         >
-          <Hand className="h-6 w-6" />
-        </Button>
+          <Hand className={cn("h-6 w-6", isHandRaised && "animate-bounce")} />
+        </ControlButton>
 
         {/* Divider */}
         <div className="h-10 w-px bg-white/20" />
 
-        {/* More Options */}
+        {/* More Options - Organized Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button
-              size="lg"
-              className="rounded-full h-16 w-16 transition-all duration-300 shadow-xl backdrop-blur-xl border border-white/10 bg-white/10 hover:bg-white/20 hover:scale-110 active:scale-95 text-white"
-            >
-              <MoreVertical className="h-6 w-6" />
-            </Button>
+            <div>
+              <ControlButton
+                onClick={() => {}}
+                tooltip="More Options"
+              >
+                <MoreVertical className="h-6 w-6" />
+              </ControlButton>
+            </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="backdrop-blur-2xl bg-black/90 border border-white/20 shadow-2xl z-[10100] min-w-[240px]" align="end" sideOffset={20}>
-            {onToggleBackchannel && (
-              <DropdownMenuItem onClick={onToggleBackchannel} className="gap-2 text-white hover:bg-white/10">
-                <Lock className="h-4 w-4 text-amber-500" />
-                Interviewer Notes 🔒
-              </DropdownMenuItem>
+          <DropdownMenuContent 
+            className={cn(
+              meetingBackdrop.dark,
+              "border border-white/20",
+              `shadow-[${meetingShadows.lg}]`,
+              "min-w-[280px]"
             )}
-            {onToggleVoting && (
-              <DropdownMenuItem onClick={onToggleVoting} className="gap-2 text-white hover:bg-white/10">
-                <ThumbsUp className="h-4 w-4" />
-                Vote on Candidate
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={onToggleRecording} className="gap-2 text-white hover:bg-white/10">
+            style={{ zIndex: meetingZIndex.dropdown }}
+            align="end" 
+            sideOffset={20}
+          >
+            {/* Meeting Actions */}
+            <DropdownMenuLabel className="text-white/60 text-xs uppercase tracking-wider px-2 py-1.5">
+              Meeting Actions
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={onToggleRecording} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
               <Circle className={cn("h-4 w-4", isRecording && "fill-red-500 text-red-500 animate-pulse")} />
-              {isRecording ? 'Stop Recording' : 'Start Recording'}
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onOpenChat} className="gap-2 text-white hover:bg-white/10">
-              <MessageSquare className="h-4 w-4" />
-              Chat
+              <span>{isRecording ? 'Stop Recording' : 'Start Recording'}</span>
+              {isRecording && <Badge className="ml-auto bg-red-500 text-white text-[10px]">REC</Badge>}
             </DropdownMenuItem>
             {onToggleCaptions && (
-              <DropdownMenuItem onClick={onToggleCaptions} className="gap-2 text-white hover:bg-white/10">
+              <DropdownMenuItem onClick={onToggleCaptions} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
                 <Subtitles className={cn("h-4 w-4", captionsEnabled && "text-primary")} />
-                {captionsEnabled ? 'Hide Captions' : 'Show Captions'}
+                <span>{captionsEnabled ? 'Hide Captions' : 'Show Captions'}</span>
               </DropdownMenuItem>
             )}
             {onOpenNotes && (
-              <DropdownMenuItem onClick={onOpenNotes} className="gap-2 text-white hover:bg-white/10">
+              <DropdownMenuItem onClick={onOpenNotes} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
                 <FileText className="h-4 w-4" />
-                Meeting Notes
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem onClick={onOpenParticipants} className="gap-2 text-white hover:bg-white/10">
-              <Users className="h-4 w-4" />
-              Participants
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={onOpenSettings} className="gap-2 text-white hover:bg-white/10">
-              <Settings className="h-4 w-4" />
-              Settings
-            </DropdownMenuItem>
-            {onOpenHostSettings && (
-              <DropdownMenuItem onClick={onOpenHostSettings} className="gap-2 text-white hover:bg-white/10">
-                <Settings className="h-4 w-4" />
-                Host Settings
+                <span>Meeting Notes</span>
               </DropdownMenuItem>
             )}
             {onOpenMeetingInfo && (
-              <DropdownMenuItem onClick={onOpenMeetingInfo} className="gap-2 text-white hover:bg-white/10">
+              <DropdownMenuItem onClick={onOpenMeetingInfo} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
                 <Info className="h-4 w-4" />
-                Meeting Details
+                <span>Meeting Details</span>
               </DropdownMenuItem>
             )}
-            {onOpenInterviewIntelligence && (
-              <DropdownMenuItem onClick={onOpenInterviewIntelligence} className="gap-2 text-white hover:bg-white/10">
-                <FileText className="h-4 w-4" />
-                Interview Intelligence
-              </DropdownMenuItem>
+
+            {/* Interview Tools - Only show if interview functions exist */}
+            {(onToggleBackchannel || onToggleVoting || onOpenInterviewIntelligence) && (
+              <>
+                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuLabel className="text-white/60 text-xs uppercase tracking-wider px-2 py-1.5 flex items-center gap-2">
+                  <Sparkles className="h-3 w-3 text-amber-400" />
+                  Interview Tools
+                </DropdownMenuLabel>
+                {onToggleBackchannel && (
+                  <DropdownMenuItem onClick={onToggleBackchannel} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
+                    <Lock className="h-4 w-4 text-amber-500" />
+                    <span>Interviewer Notes</span>
+                    <Badge className="ml-auto bg-amber-500/20 text-amber-300 text-[10px]">🔒</Badge>
+                  </DropdownMenuItem>
+                )}
+                {onToggleVoting && (
+                  <DropdownMenuItem onClick={onToggleVoting} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
+                    <ThumbsUp className="h-4 w-4" />
+                    <span>Vote on Candidate</span>
+                  </DropdownMenuItem>
+                )}
+                {onOpenInterviewIntelligence && (
+                  <DropdownMenuItem onClick={onOpenInterviewIntelligence} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    <span>AI Intelligence</span>
+                    <Badge className="ml-auto bg-primary/20 text-primary text-[10px]">AI</Badge>
+                  </DropdownMenuItem>
+                )}
+              </>
             )}
-            {onOpenBreakoutRooms && (
-              <DropdownMenuItem onClick={onOpenBreakoutRooms} className="gap-2 text-white hover:bg-white/10">
-                <Users className="h-4 w-4" />
-                Breakout Rooms
-              </DropdownMenuItem>
-            )}
-            {onOpenPolls && (
-              <DropdownMenuItem onClick={onOpenPolls} className="gap-2 text-white hover:bg-white/10">
-                <BarChart3 className="h-4 w-4" />
-                Live Polls
-              </DropdownMenuItem>
-            )}
-            {onOpenQA && (
-              <DropdownMenuItem onClick={onOpenQA} className="gap-2 text-white hover:bg-white/10">
-                <MessageCircleQuestion className="h-4 w-4" />
-                Q&A
-              </DropdownMenuItem>
-            )}
+
+            {/* Settings */}
+            <DropdownMenuSeparator className="bg-white/10" />
+            <DropdownMenuLabel className="text-white/60 text-xs uppercase tracking-wider px-2 py-1.5">
+              Settings
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={onOpenSettings} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
+              <Settings className="h-4 w-4" />
+              <span>Audio & Video</span>
+            </DropdownMenuItem>
             {onOpenBackgrounds && (
-              <DropdownMenuItem onClick={onOpenBackgrounds} className="gap-2 text-white hover:bg-white/10">
+              <DropdownMenuItem onClick={onOpenBackgrounds} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
                 <Image className="h-4 w-4" />
-                Virtual Backgrounds
+                <span>Virtual Backgrounds</span>
               </DropdownMenuItem>
             )}
             {onEnablePiP && (
-              <DropdownMenuItem onClick={onEnablePiP} className="gap-2 text-white hover:bg-white/10">
+              <DropdownMenuItem onClick={onEnablePiP} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
                 <PictureInPicture2 className="h-4 w-4" />
-                Picture-in-Picture
+                <span>Picture-in-Picture</span>
               </DropdownMenuItem>
+            )}
+            {onOpenHostSettings && (
+              <DropdownMenuItem onClick={onOpenHostSettings} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
+                <Settings className="h-4 w-4" />
+                <span>Host Settings</span>
+              </DropdownMenuItem>
+            )}
+
+            {/* Advanced (hidden/less common features) */}
+            {(onOpenBreakoutRooms || onOpenPolls || onOpenQA) && (
+              <>
+                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuLabel className="text-white/60 text-xs uppercase tracking-wider px-2 py-1.5">
+                  Advanced
+                </DropdownMenuLabel>
+                {onOpenBreakoutRooms && (
+                  <DropdownMenuItem onClick={onOpenBreakoutRooms} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
+                    <Users className="h-4 w-4" />
+                    <span>Breakout Rooms</span>
+                  </DropdownMenuItem>
+                )}
+                {onOpenPolls && (
+                  <DropdownMenuItem onClick={onOpenPolls} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
+                    <BarChart3 className="h-4 w-4" />
+                    <span>Live Polls</span>
+                  </DropdownMenuItem>
+                )}
+                {onOpenQA && (
+                  <DropdownMenuItem onClick={onOpenQA} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
+                    <MessageCircleQuestion className="h-4 w-4" />
+                    <span>Q&A</span>
+                  </DropdownMenuItem>
+                )}
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
 
         {/* End Call */}
-        <Button
-          size="lg"
-          onClick={onEndCall}
-          className="rounded-full h-16 w-16 bg-rose-500/90 hover:bg-rose-600 text-white ml-3 shadow-[0_8px_32px_rgba(244,63,94,0.6)] border border-rose-400/30 transition-all duration-300 hover:scale-110 active:scale-95"
-        >
-          <PhoneOff className="h-6 w-6" />
-        </Button>
+        <div className="ml-2">
+          <ControlButton
+            onClick={onEndCall}
+            isDangerous
+            isActive
+            tooltip="End Call"
+          >
+            <PhoneOff className="h-6 w-6" />
+          </ControlButton>
+        </div>
       </div>
     </div>
   );

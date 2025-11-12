@@ -28,6 +28,7 @@ import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgrou
 import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackchannel';
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
 import { RecordingIndicator } from '@/components/meetings/RecordingIndicator';
+import { PresenterHUD } from '@/components/video-call/PresenterHUD';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -858,6 +859,16 @@ export function MeetingVideoCallInterface({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Presenter HUD - Only show when screen sharing */}
+      {screenStream && (
+        <PresenterHUD
+          participantName={participantName}
+          onStopSharing={handleToggleScreenShare}
+          participantCount={allParticipants.length}
+          stream={screenStream}
+        />
       )}
 
       {/* On-Screen Reactions */}
