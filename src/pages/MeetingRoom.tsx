@@ -36,10 +36,11 @@ export default function MeetingRoom() {
 
   // Check if host is present (for non-hosts to join early)
   useEffect(() => {
-    if (!meeting?.id || !user) return;
+    if (!meeting?.id) return;
     
-    const isHost = user.id === meeting.host_id;
-    if (isHost) return; // Host doesn't need to check
+    // Check if current user is host (null-safe for guests)
+    const isHost = user?.id === meeting.host_id;
+    if (isHost) return; // Host doesn't need to check their own presence
     
     const checkHostPresence = async () => {
       const { data } = await supabase
@@ -55,7 +56,7 @@ export default function MeetingRoom() {
     
     checkHostPresence();
     
-    // Subscribe to changes
+    // Subscribe to changes (works for both authenticated users and guests)
     const channel = supabase
       .channel(`meeting-${meeting.id}-host-presence`)
       .on(
@@ -73,7 +74,7 @@ export default function MeetingRoom() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [meeting?.id, meeting?.host_id, user]);
+  }, [meeting?.id, meeting?.host_id, user?.id]);
 
   // Add cleanup handler for page unload/navigation
   useEffect(() => {
