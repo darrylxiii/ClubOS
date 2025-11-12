@@ -19,12 +19,12 @@ export interface MergeSuggestion {
 }
 
 export interface MergePreview {
-  candidateData: Record<string, any>;
-  profileData: Record<string, any>;
+  candidate: Record<string, any>;
+  user: Record<string, any>;
   fieldsToMerge: string[];
   conflicts: Array<{ field: string; candidateValue: any; profileValue: any }>;
-  applicationsCount: number;
-  interactionsCount: number;
+  applicationCount: number;
+  interactionCount: number;
 }
 
 export interface MergeResult {
@@ -113,6 +113,8 @@ export const mergeService = {
     userId: string
   ): Promise<MergePreview | null> {
     try {
+      console.log('[MergeService] Starting preview for candidate:', candidateId, 'user:', userId);
+
       // Fetch candidate profile
       const { data: candidate, error: candidateError } = await supabase
         .from('candidate_profiles')
@@ -120,7 +122,21 @@ export const mergeService = {
         .eq('id', candidateId)
         .single();
 
-      if (candidateError) throw candidateError;
+      if (candidateError) {
+        console.error('[MergeService] Candidate fetch error:', candidateError);
+        throw new Error(`Failed to fetch candidate: ${candidateError.message}`);
+      }
+
+      if (!candidate) {
+        throw new Error('Candidate not found');
+      }
+
+      // Validate candidate has email
+      if (!candidate.email) {
+        throw new Error('Candidate has no email address. Please update the candidate profile before merging.');
+      }
+
+      console.log('[MergeService] Candidate loaded:', candidate.full_name, candidate.email);
 
       // Fetch user profile
       const { data: profile, error: profileError } = await supabase
@@ -129,7 +145,16 @@ export const mergeService = {
         .eq('id', userId)
         .single();
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error('[MergeService] Profile fetch error:', profileError);
+        throw new Error(`Failed to fetch user profile: ${profileError.message}`);
+      }
+
+      if (!profile) {
+        throw new Error('User profile not found');
+      }
+
+      console.log('[MergeService] User profile loaded:', profile.full_name, profile.email);
 
       // Count applications
       const { count: appsCount } = await supabase
@@ -157,6 +182,7 @@ export const mergeService = {
         const candidateValue = candidate[field];
         const profileValue = profile[field];
 
+        // Null-safe comparison
         if (candidateValue && !profileValue) {
           fieldsToMerge.push(field);
         } else if (candidateValue && profileValue && candidateValue !== profileValue) {
@@ -164,19 +190,34 @@ export const mergeService = {
         }
       });
 
+      console.log('[MergeService] Preview complete:', {
+        fieldsToMerge: fieldsToMerge.length,
+        conflicts: conflicts.length,
+        applications: appsCount || 0,
+        interactions: interactionsCount || 0
+      });
+
       return {
-        candidateData: candidate,
-        profileData: profile,
+        candidate,
+        user: profile,
         fieldsToMerge,
         conflicts,
-        applicationsCount: appsCount || 0,
-        interactionsCount: interactionsCount || 0,
+        applicationCount: appsCount || 0,
+        interactionCount: interactionsCount || 0,
       };
-    } catch (error) {
-      console.error('Error previewing merge:', error);
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to preview merge';
+      console.error('[MergeService] Preview error:', {
+        message: errorMessage,
+        candidateId,
+        userId,
+        timestamp: new Date().toISOString(),
+        stack: error?.stack
+      });
+      
       toast({
-        title: "Error",
-        description: "Failed to preview merge",
+        title: "Preview Error",
+        description: errorMessage,
         variant: "destructive",
       });
       return null;

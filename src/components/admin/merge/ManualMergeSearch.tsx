@@ -110,6 +110,13 @@ export function ManualMergeSearch() {
       toast.error("This candidate is already linked to a user");
       return;
     }
+    
+    // Warn about null email
+    if (!candidate.email) {
+      toast.error("This candidate has no email address. Please update the candidate profile before merging.");
+      return;
+    }
+    
     setSelectedCandidate(candidate);
   };
 
@@ -190,12 +197,17 @@ export function ManualMergeSearch() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{candidate.full_name}</p>
-                        <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {candidate.email || <span className="text-destructive">No email</span>}
+                        </p>
                         {candidate.phone && (
                           <p className="text-xs text-muted-foreground">{candidate.phone}</p>
                         )}
                       </div>
                       <div className="flex flex-col items-end gap-1">
+                        {!candidate.email && (
+                          <Badge variant="destructive">Missing Email</Badge>
+                        )}
                         <Badge variant={candidate.user_id ? "destructive" : "secondary"}>
                           {candidate.user_id ? "Linked" : "Unlinked"}
                         </Badge>

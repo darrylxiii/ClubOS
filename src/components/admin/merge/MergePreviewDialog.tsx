@@ -29,12 +29,27 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
 
   const loadPreview = async () => {
     setLoading(true);
+    console.log('[MergePreviewDialog] Loading preview for:', { candidateId, userId });
     try {
       const previewData = await mergeService.previewMerge(candidateId, userId);
+      console.log('[MergePreviewDialog] Preview loaded:', previewData);
+      
+      if (!previewData) {
+        throw new Error('Preview returned null - check service logs for details');
+      }
+      
       setPreview(previewData);
-    } catch (error) {
-      console.error('Error loading preview:', error);
-      toast.error('Failed to load merge preview');
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to load merge preview';
+      console.error('[MergePreviewDialog] Preview error:', {
+        message: errorMessage,
+        candidateId,
+        userId,
+        error,
+        timestamp: new Date().toISOString()
+      });
+      
+      toast.error(errorMessage);
       onClose();
     } finally {
       setLoading(false);
@@ -43,8 +58,10 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
 
   const executeMerge = async () => {
     setExecuting(true);
+    console.log('[MergePreviewDialog] Executing merge:', { candidateId, userId });
     try {
       const result = await mergeService.executeMerge(candidateId, userId, 'manual');
+      console.log('[MergePreviewDialog] Merge result:', result);
       
       if (result.success) {
         toast.success('Profiles merged successfully!');
@@ -53,8 +70,16 @@ export function MergePreviewDialog({ candidateId, userId, open, onClose, onSucce
         throw new Error(result.error || 'Merge failed');
       }
     } catch (error: any) {
-      console.error('Error executing merge:', error);
-      toast.error(error.message || 'Failed to execute merge');
+      const errorMessage = error?.message || 'Failed to execute merge';
+      console.error('[MergePreviewDialog] Execute error:', {
+        message: errorMessage,
+        candidateId,
+        userId,
+        error,
+        timestamp: new Date().toISOString()
+      });
+      
+      toast.error(errorMessage);
     } finally {
       setExecuting(false);
     }
