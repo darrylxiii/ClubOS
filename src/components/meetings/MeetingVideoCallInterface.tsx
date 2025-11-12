@@ -232,6 +232,72 @@ export function MeetingVideoCallInterface({
     }
   }, [localStream, isVideoEnabled]);
 
+  // Heartbeat: Update last_seen every 10 seconds to maintain presence
+  useEffect(() => {
+    if (!meeting?.id || !participantId || showDiagnostics) return;
+
+    const updateHeartbeat = async () => {
+      try {
+        await supabase
+          .from('meeting_participants')
+          .update({ last_seen: new Date().toISOString() })
+          .eq('meeting_id', meeting.id)
+          .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
+          .is('left_at', null);
+      } catch (error) {
+        console.error('[Meeting] ❌ Heartbeat update failed:', error);
+      }
+    };
+
+    // Initial heartbeat
+    updateHeartbeat();
+
+    // Update every 10 seconds
+    const heartbeatInterval = setInterval(updateHeartbeat, 10000);
+
+    return () => {
+      clearInterval(heartbeatInterval);
+    };
+  }, [meeting?.id, participantId, showDiagnostics]);
+
+  // Auto-rejoin: If incorrectly marked as "left", auto-fix
+  useEffect(() => {
+    if (!meeting?.id || !participantId || showDiagnostics) return;
+
+    const checkAndFixPresence = async () => {
+      const { data } = await supabase
+        .from('meeting_participants')
+        .select('left_at, status')
+        .eq('meeting_id', meeting.id)
+        .or(`user_id.eq.${participantId},session_token.eq.${participantId}`)
+        .maybeSingle();
+
+      // If we're in the call UI but marked as left, fix it
+      if (data && data.left_at !== null) {
+        console.warn('[Meeting] ⚠️ Participant incorrectly marked as left - auto-fixing...');
+        
+        await supabase
+          .from('meeting_participants')
+          .update({ 
+            left_at: null, 
+            status: 'accepted',
+            last_seen: new Date().toISOString()
+          })
+          .eq('meeting_id', meeting.id)
+          .or(`user_id.eq.${participantId},session_token.eq.${participantId}`);
+        
+        toast.success('Reconnected to meeting');
+      }
+    };
+
+    // Check every 15 seconds
+    const checkInterval = setInterval(checkAndFixPresence, 15000);
+
+    return () => {
+      clearInterval(checkInterval);
+    };
+  }, [meeting?.id, participantId, showDiagnostics]);
+
   // Subscribe to reactions
   useEffect(() => {
     if (!meeting?.id) return;

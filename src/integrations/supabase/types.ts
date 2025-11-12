@@ -8224,6 +8224,7 @@ export type Database = {
           guest_name: string | null
           id: string
           joined_at: string | null
+          last_seen: string | null
           left_at: string | null
           meeting_id: string
           permissions: Json | null
@@ -8238,6 +8239,7 @@ export type Database = {
           guest_name?: string | null
           id?: string
           joined_at?: string | null
+          last_seen?: string | null
           left_at?: string | null
           meeting_id: string
           permissions?: Json | null
@@ -8252,6 +8254,7 @@ export type Database = {
           guest_name?: string | null
           id?: string
           joined_at?: string | null
+          last_seen?: string | null
           left_at?: string | null
           meeting_id?: string
           permissions?: Json | null

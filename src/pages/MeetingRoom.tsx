@@ -35,6 +35,7 @@ export default function MeetingRoom() {
   }, [meetingCode]);
 
   // Check if host is present (for non-hosts to join early)
+  // Uses heartbeat-based presence detection (last_seen < 30s ago OR left_at is null)
   useEffect(() => {
     if (!meeting?.id) return;
     
@@ -45,13 +46,22 @@ export default function MeetingRoom() {
     const checkHostPresence = async () => {
       const { data } = await supabase
         .from('meeting_participants')
-        .select('id')
+        .select('id, last_seen, left_at')
         .eq('meeting_id', meeting.id)
         .eq('user_id', meeting.host_id)
-        .is('left_at', null)
         .maybeSingle();
       
-      setHostIsPresent(!!data);
+      if (!data) {
+        setHostIsPresent(false);
+        return;
+      }
+      
+      // Consider host present if left_at is null AND last_seen is recent (within 30 seconds)
+      const isActive = data.left_at === null && 
+        data.last_seen && 
+        (new Date().getTime() - new Date(data.last_seen).getTime()) < 30000;
+      
+      setHostIsPresent(isActive);
     };
     
     checkHostPresence();
@@ -76,12 +86,13 @@ export default function MeetingRoom() {
     };
   }, [meeting?.id, meeting?.host_id, user?.id]);
 
-  // Add cleanup handler for page unload/navigation
+  // Add cleanup handler ONLY for actual page close (not UI transitions)
   useEffect(() => {
     if (!meeting?.id || !inCall) return;
 
-    const handleBeforeUnload = async () => {
-      console.log('[MeetingRoom] 🧹 Cleaning up participant on page unload');
+    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+      // This only fires on actual browser close/refresh, not component unmount
+      console.log('[MeetingRoom] 🧹 Cleaning up participant on page unload/close');
       
       // Mark participant as left
       try {
@@ -109,9 +120,9 @@ export default function MeetingRoom() {
     window.addEventListener('beforeunload', handleBeforeUnload);
     
     return () => {
+      // ONLY remove listener, DO NOT call cleanup on component unmount
+      // This prevents false "left" marks during UI transitions
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      // Also call on component unmount
-      handleBeforeUnload();
     };
   }, [meeting?.id, inCall, user, guestSessionToken]);
 
