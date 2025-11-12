@@ -690,6 +690,7 @@ const App = () => (
             <Route path="/module/:moduleId" element={<ModuleDetail />} />
             <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
             <Route path="/meetings/:meetingCode" element={<MeetingRoom />} />
+            <Route path="/meetings/:meetingId/notes" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingNotes /></Suspense></ProtectedRoute>} />
             <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
             <Route
               path="/club-dj"

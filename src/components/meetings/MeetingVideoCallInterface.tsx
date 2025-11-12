@@ -27,6 +27,7 @@ import { MeetingQAPanel } from '@/components/meetings/MeetingQAPanel';
 import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgroundSelector';
 import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackchannel';
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
+import { RecordingIndicator } from '@/components/meetings/RecordingIndicator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -72,7 +73,10 @@ export function MeetingVideoCallInterface({
   const [totalParticipants, setTotalParticipants] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [userRole, setUserRole] = useState<string>('participant');
+  const [isRecording, setIsRecording] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const recordedChunksRef = useRef<Blob[]>([]);
 
   const [hostSettings, setHostSettings] = useState({
     allowScreenShare: true,
@@ -220,6 +224,125 @@ export function MeetingVideoCallInterface({
       toast.success('Picture-in-Picture enabled');
     } else {
       toast.error('Picture-in-Picture not supported');
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      if (!localStream) {
+        toast.error('No media stream available');
+        return;
+      }
+
+      // Combine local and all remote streams
+      const tracks: MediaStreamTrack[] = [...localStream.getTracks()];
+      
+      remoteStreams.forEach(({ stream }) => {
+        tracks.push(...stream.getTracks());
+      });
+
+      const combinedStream = new MediaStream(tracks);
+
+      const recorder = new MediaRecorder(combinedStream, {
+        mimeType: 'video/webm;codecs=vp9,opus'
+      });
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          recordedChunksRef.current.push(e.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        await uploadRecording(blob);
+        recordedChunksRef.current = [];
+      };
+
+      recorder.start(1000); // Chunk every 1 second
+      mediaRecorderRef.current = recorder;
+      setIsRecording(true);
+      toast.success('Recording started');
+    } catch (error) {
+      console.error('Failed to start recording:', error);
+      toast.error('Failed to start recording');
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      toast.success('Recording stopped. Processing...');
+    }
+  };
+
+  const uploadRecording = async (blob: Blob) => {
+    try {
+      const fileName = `${meeting.id}-${Date.now()}.webm`;
+      const filePath = `${meeting.id}/${fileName}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('meeting-recordings')
+        .upload(filePath, blob, { 
+          contentType: 'video/webm',
+          upsert: false 
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('meeting-recordings')
+        .getPublicUrl(filePath);
+
+      // Save recording metadata
+      const { data: recordingData, error: insertError } = await supabase
+        .from('meeting_recordings_extended' as any)
+        .insert({
+          meeting_id: meeting.id,
+          host_id: participantId,
+          candidate_id: meeting.candidate_id || null,
+          application_id: meeting.application_id || null,
+          job_id: meeting.job_id || null,
+          recording_url: publicUrl,
+          storage_path: filePath,
+          file_size_bytes: blob.size,
+          duration_seconds: Math.round((Date.now() - (mediaRecorderRef.current as any).startTime) / 1000) || 0,
+          analysis_status: 'pending'
+        })
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+
+      toast.success('Recording uploaded successfully');
+
+      // Trigger AI analysis
+      const recordingId = (recordingData as any).id;
+      supabase.functions.invoke('analyze-meeting-recording-advanced', {
+        body: { recordingId }
+      }).then(({ error: analysisError }) => {
+        if (analysisError) {
+          console.error('AI analysis failed:', analysisError);
+          toast.error('AI analysis failed, but recording saved');
+        } else {
+          toast.success('AI analysis started');
+        }
+      });
+
+    } catch (error) {
+      console.error('Failed to upload recording:', error);
+      toast.error('Failed to upload recording');
+    }
+  };
+
+  const handleToggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
     }
   };
 
@@ -749,12 +872,12 @@ export function MeetingVideoCallInterface({
         isAudioEnabled={isAudioEnabled}
         isVideoEnabled={isVideoEnabled}
         isScreenSharing={!!screenStream}
-        isRecording={false}
+        isRecording={isRecording}
         isHandRaised={isHandRaised}
         onToggleAudio={toggleAudio}
         onToggleVideo={toggleVideo}
         onToggleScreenShare={handleToggleScreenShare}
-        onToggleRecording={() => toast.info('Recording coming soon')}
+        onToggleRecording={handleToggleRecording}
         onToggleHandRaise={() => setIsHandRaised(!isHandRaised)}
         onEndCall={handleEndCall}
         onOpenChat={() => setShowChat(true)}
