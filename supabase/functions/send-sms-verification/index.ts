@@ -67,20 +67,59 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       if (rateLimitCheck && !rateLimitCheck.allowed) {
+        console.log(`[SMS Verification] Rate limit exceeded for user ${user.id}:`, {
+          attempts: rateLimitCheck.attempts,
+          max_attempts: rateLimitCheck.max_attempts,
+          retry_after_minutes: rateLimitCheck.retry_after_minutes
+        });
+        
+        // Phase 2: Enhanced logging with detailed metadata
         await supabase.from('verification_attempts').insert({
           user_id: user.id,
           verification_type: 'phone',
           action: 'send',
-          success: false,
-          phone,
-          error_message: rateLimitCheck.message,
-          ip_address: ipAddress,
-          user_agent: userAgent
+          metadata: {
+            phone,
+            ip_address: ipAddress,
+            user_agent: userAgent,
+            rate_limited: true,
+            attempts: rateLimitCheck.attempts,
+            max_attempts: rateLimitCheck.max_attempts,
+            retry_after_minutes: rateLimitCheck.retry_after_minutes,
+            blocked_at: new Date().toISOString()
+          }
         });
 
+        // Phase 5: Security logging for repeat offenders
+        await logSecurityEvent({
+          eventType: 'verification_rate_limit_hit',
+          userId: user.id,
+          ipAddress,
+          userAgent,
+          details: {
+            verification_type: 'phone',
+            attempts: rateLimitCheck.attempts,
+            retry_after_minutes: rateLimitCheck.retry_after_minutes,
+            phone_number: phone.substring(0, 8) + '****' // Partial masking
+          }
+        });
+
+        // Phase 2: Return detailed error message with retry info
         return new Response(
-          JSON.stringify({ error: rateLimitCheck.message }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({ 
+            error: rateLimitCheck.message || 'Too many attempts. Please try again later.',
+            error_code: 'RATE_LIMITED',
+            retry_after_minutes: rateLimitCheck.retry_after_minutes,
+            retry_after_seconds: rateLimitCheck.retry_after_seconds
+          }),
+          { 
+            status: 429,
+            headers: { 
+              ...corsHeaders, 
+              'Content-Type': 'application/json',
+              'Retry-After': String(rateLimitCheck.retry_after_seconds || 1800)
+            } 
+          }
         );
       }
     }
@@ -103,7 +142,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (dbError) throw dbError;
 
-    // Send SMS via Twilio
+    // Phase 2: Enhanced Twilio error logging
+    console.log(`[SMS Verification] Sending SMS to ${phone.substring(0, 8)}****`);
+    
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
     const twilioAuth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
 
@@ -121,10 +162,25 @@ const handler = async (req: Request): Promise<Response> => {
       body: formData.toString(),
     });
 
+    const twilioData = await twilioResponse.json();
+
     if (!twilioResponse.ok) {
-      const errorText = await twilioResponse.text();
-      throw new Error(`Twilio API error: ${errorText}`);
+      console.error('[SMS Verification] Twilio API error:', {
+        status: twilioResponse.status,
+        error: twilioData,
+        phone: phone.substring(0, 8) + '****'
+      });
+      
+      // Phase 2: Specific Twilio error handling
+      const errorMessage = twilioData.message || 'Failed to send SMS';
+      throw new Error(`Twilio Error: ${errorMessage}`);
     }
+
+    console.log('[SMS Verification] SMS sent successfully:', {
+      sid: twilioData.sid,
+      status: twilioData.status,
+      to: phone.substring(0, 8) + '****'
+    });
 
     // Log successful attempt (only for authenticated users)
     if (user) {
@@ -148,20 +204,40 @@ const handler = async (req: Request): Promise<Response> => {
       userId: user?.id,
     });
 
-    const result = await twilioResponse.json();
-    console.log("SMS sent successfully:", result.sid);
-
+    // Phase 2: Enhanced success response
     return new Response(
-      JSON.stringify({ success: true, message: 'Verification code sent' }),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Verification code sent',
+        code_length: 6,
+        expires_in_minutes: 30
+      }),
       {
         status: 200,
         headers: { "Content-Type": "application/json", ...corsHeaders },
       }
     );
   } catch (error: any) {
-    console.error("Error sending SMS:", error);
+    console.error('[SMS Verification] Error:', error);
+    
+    // Phase 2: Categorize error types
+    let errorMessage = 'Failed to send verification code';
+    let errorCode = 'UNKNOWN_ERROR';
+    
+    if (error.message?.includes('Twilio')) {
+      errorMessage = 'SMS service temporarily unavailable. Please try again.';
+      errorCode = 'TWILIO_ERROR';
+    } else if (error.message?.includes('rate limit')) {
+      errorMessage = error.message;
+      errorCode = 'RATE_LIMITED';
+    }
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: errorMessage,
+        error_code: errorCode,
+        details: error.message 
+      }),
       {
         status: 500,
         headers: { "Content-Type": "application/json", ...corsHeaders },

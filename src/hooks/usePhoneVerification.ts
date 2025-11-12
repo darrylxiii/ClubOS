@@ -28,28 +28,76 @@ export const usePhoneVerification = (): VerificationHookReturn => {
         } : {}
       });
 
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
+      // Phase 2: Better error handling with specific messages
+      if (error) {
+        console.error('[Phone Verification] Edge function error:', error);
+        
+        // Check if it's a rate limit error
+        if (error.message?.includes('rate limit') || error.message?.includes('Too many')) {
+          const retryMatch = error.message.match(/(\d+)\s*minutes?/);
+          const minutes = retryMatch ? retryMatch[1] : 'a few';
+          toast.error(`Too many attempts. Please wait ${minutes} minutes before trying again.`, {
+            duration: 5000
+          });
+        } else {
+          toast.error('Unable to send verification code. Please try again.');
+        }
+        return false;
+      }
 
-      setOtpSent(true);
-      toast.success('Verification code sent to your phone');
-      
-      // Start 60-second cooldown
-      setResendCooldown(60);
-      const interval = setInterval(() => {
-        setResendCooldown((prev) => {
-          if (prev <= 1) {
-            clearInterval(interval);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+      // Phase 2: Parse backend error responses
+      if (data?.error) {
+        console.error('[Phone Verification] Backend error:', data);
+        
+        // Handle rate limiting with countdown
+        if (data.error.includes('rate limit') || data.error.includes('Too many')) {
+          const retryMatch = data.error.match(/(\d+)\s*minutes?/);
+          const minutes = retryMatch ? retryMatch[1] : 'a few';
+          toast.error(`Too many verification attempts. Please wait ${minutes} minutes before trying again.`, {
+            duration: 5000
+          });
+        } else {
+          toast.error(data.error);
+        }
+        return false;
+      }
 
-      return true;
+      // Phase 3: Only set OTP sent after successful backend confirmation
+      if (data?.success) {
+        setOtpSent(true);
+        toast.success('Verification code sent to your phone');
+        
+        // Start 60-second cooldown
+        setResendCooldown(60);
+        const interval = setInterval(() => {
+          setResendCooldown((prev) => {
+            if (prev <= 1) {
+              clearInterval(interval);
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+
+        return true;
+      } else {
+        console.error('[Phone Verification] Unexpected response format:', data);
+        toast.error('Unable to send verification code. Please try again.');
+        return false;
+      }
     } catch (error: any) {
-      console.error('Error sending OTP:', error);
-      toast.error(error.message || 'Failed to send verification code');
+      console.error('[Phone Verification] Unexpected error:', error);
+      
+      // Phase 2: Better error message parsing
+      if (error.message?.includes('rate limit') || error.message?.includes('Too many')) {
+        const retryMatch = error.message.match(/(\d+)\s*minutes?/);
+        const minutes = retryMatch ? retryMatch[1] : 'a few';
+        toast.error(`Too many attempts. Please wait ${minutes} minutes before trying again.`, {
+          duration: 5000
+        });
+      } else {
+        toast.error(error.message || 'Failed to send verification code');
+      }
       return false;
     } finally {
       setIsSendingOtp(false);
