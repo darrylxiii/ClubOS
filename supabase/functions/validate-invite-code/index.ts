@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { logSecurityEvent } from '../_shared/security-logger.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +14,31 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting (10 validation attempts per hour per IP)
+    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0] || 
+                     req.headers.get('x-real-ip') || 
+                     'unknown';
+
+    const rateLimit = await checkUserRateLimit(
+      clientIP,
+      'validate-invite-code',
+      10,
+      3600000 // 1 hour
+    );
+
+    if (!rateLimit.allowed) {
+      await logSecurityEvent({
+        eventType: 'invite_code_rate_limit',
+        details: { 
+          ip: clientIP,
+          attempts: rateLimit.limit
+        },
+        ipAddress: clientIP,
+        userAgent: req.headers.get('user-agent') || undefined
+      });
+      return createRateLimitResponse(rateLimit.retryAfter || 3600, corsHeaders);
+    }
+
     const { code } = await req.json();
     
     if (!code || typeof code !== 'string') {
@@ -51,6 +78,17 @@ serve(async (req) => {
     }
 
     if (error || !codeData) {
+      // Log failed validation attempt
+      await logSecurityEvent({
+        eventType: 'invite_code_validation_failed',
+        details: { 
+          code: code.substring(0, 3) + '***', // Partial code for security
+          reason: 'not_found'
+        },
+        ipAddress: clientIP,
+        userAgent: req.headers.get('user-agent') || undefined
+      });
+      
       return new Response(
         JSON.stringify({ 
           valid: false, 

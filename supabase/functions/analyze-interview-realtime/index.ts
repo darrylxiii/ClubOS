@@ -1,10 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  meetingId: z.string().uuid('Invalid meeting ID format'),
+  transcript: z.string().min(1).max(50000, 'Transcript too long')
+});
+
+const scoreSchema = z.object({
+  communication_clarity: z.number().min(0).max(100),
+  technical_depth: z.number().min(0).max(100),
+  culture_fit: z.number().min(0).max(100),
+  red_flags: z.array(z.string().max(500)).max(10).optional(),
+  green_flags: z.array(z.string().max(500)).max(10).optional(),
+  overall_score: z.number().min(0).max(100),
+  key_insights: z.string().max(5000),
+  follow_up_suggestions: z.array(z.string().max(500)).max(10).optional()
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,20 +30,83 @@ serve(async (req) => {
   }
 
   try {
-    const { meetingId, transcript } = await req.json();
-    
-    if (!meetingId || !transcript) {
-      return new Response(JSON.stringify({ error: 'Missing meetingId or transcript' }), {
-        status: 400,
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Unauthorized - Authentication required' }), {
+        status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') || Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Authenticate user with auth header
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      console.error('[Realtime Analysis] Auth error:', authError);
+      return new Response(JSON.stringify({ error: 'Unauthorized - Invalid token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Rate limiting (5 requests per 15 minutes per user)
+    const rateLimit = await checkUserRateLimit(
+      user.id,
+      'analyze-interview-realtime',
+      5,
+      900000 // 15 minutes
+    );
+
+    if (!rateLimit.allowed) {
+      return createRateLimitResponse(rateLimit.retryAfter || 900, corsHeaders);
+    }
+
+    // Validate input
+    const body = await req.json();
+    let validatedInput;
+    try {
+      validatedInput = requestSchema.parse(body);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return new Response(
+          JSON.stringify({ error: 'Validation failed', details: error.issues }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      throw error;
+    }
+
+    const { meetingId, transcript } = validatedInput;
+
+    // Use service role key for database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify user is a participant in this meeting
+    const { data: participant, error: participantError } = await supabase
+      .from('meeting_participants')
+      .select('id')
+      .eq('meeting_id', meetingId)
+      .eq('user_id', user.id)
+      .single();
+
+    if (participantError || !participant) {
+      console.error('[Realtime Analysis] Participant verification failed:', participantError);
+      return new Response(JSON.stringify({ 
+        error: 'Forbidden - You are not a participant in this meeting' 
+      }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     console.log('[Realtime Analysis] Analyzing transcript for meeting:', meetingId);
 
@@ -105,7 +186,17 @@ Return a JSON object with these exact fields:
       });
     }
 
-    const scores = JSON.parse(toolCall.function.arguments);
+    let scores;
+    try {
+      const parsedScores = JSON.parse(toolCall.function.arguments);
+      scores = scoreSchema.parse(parsedScores);
+    } catch (error) {
+      console.error('[Realtime Analysis] Score validation failed:', error);
+      return new Response(JSON.stringify({ error: 'Invalid AI response format' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     console.log('[Realtime Analysis] Scores generated:', scores);
 
     // Update interview_insights table

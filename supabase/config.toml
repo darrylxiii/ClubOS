@@ -189,9 +189,9 @@ verify_jwt = true
 [functions.send-note-mention-notification]
 verify_jwt = false
 
-# Real-time interview analysis (called during active meetings)
+# Real-time interview analysis (requires authentication)
 [functions.analyze-interview-realtime]
-verify_jwt = false
+verify_jwt = true
 
 # Validate invite code (public endpoint for secure validation)
 [functions.validate-invite-code]
