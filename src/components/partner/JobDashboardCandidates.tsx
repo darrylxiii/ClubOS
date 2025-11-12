@@ -33,7 +33,7 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
   useEffect(() => {
     fetchApplications();
 
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates with detailed logging
     const channel = supabase
       .channel('applications-changes')
       .on(
@@ -44,11 +44,14 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
           table: 'applications',
           filter: `job_id=eq.${jobId}`,
         },
-        () => {
+        (payload) => {
+          console.log('[JobDashboard] Real-time update received:', payload);
           fetchApplications();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[JobDashboard] Subscription status:', status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -137,8 +140,9 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
     });
   };
 
-  const handleActionComplete = () => {
-    fetchApplications();
+  const handleActionComplete = async () => {
+    console.log('[JobDashboard] Action completed, refreshing data...');
+    await fetchApplications();
     onUpdate();
     handleCloseActionDialog();
   };
@@ -224,17 +228,24 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
                         key={app.id}
                         className="flex items-center justify-between p-4 border rounded hover:bg-muted/50 transition-colors"
                       >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold">
-                            {app.profiles?.full_name?.[0]?.toUpperCase() || '?'}
-                          </div>
-                          <div>
-                            <p className="font-bold">{app.profiles?.full_name || 'Unknown'}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Applied {new Date(app.applied_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
+                         <div className="flex items-center gap-3">
+                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center font-bold">
+                             {app.candidate_profiles?.full_name?.[0]?.toUpperCase() || 
+                              app.profiles?.full_name?.[0]?.toUpperCase() || 
+                              app.candidate_full_name?.[0]?.toUpperCase() || '?'}
+                           </div>
+                           <div>
+                             <p className="font-bold">
+                               {app.candidate_profiles?.full_name || 
+                                app.profiles?.full_name || 
+                                app.candidate_full_name || 
+                                'Unknown Candidate'}
+                             </p>
+                             <p className="text-sm text-muted-foreground">
+                               Applied {new Date(app.applied_at).toLocaleDateString()}
+                             </p>
+                           </div>
+                         </div>
                         <div className="flex gap-2">
                           <Button
                             size="sm"
@@ -289,7 +300,12 @@ export const JobDashboardCandidates = ({ jobId, stages, onUpdate, needsClubCheck
           open={actionDialog.open}
           onOpenChange={handleCloseActionDialog}
           candidateId={actionDialog.application.candidate_id || actionDialog.application.user_id}
-          candidateName={actionDialog.application.profiles?.full_name || 'Candidate'}
+          candidateName={
+            actionDialog.application.candidate_profiles?.full_name || 
+            actionDialog.application.profiles?.full_name || 
+            actionDialog.application.candidate_full_name || 
+            'Candidate'
+          }
           applicationId={actionDialog.application.id}
           jobId={actionDialog.application.jobs?.id || jobId}
           jobTitle={actionDialog.application.jobs?.title || ''}

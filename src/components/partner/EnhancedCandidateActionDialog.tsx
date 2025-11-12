@@ -153,16 +153,37 @@ export function EnhancedCandidateActionDialog({
 
         const targetStage = stages[targetStageIndex];
 
-        // Update application
-        const { error: updateError } = await supabase
+        // Update application with detailed error logging
+        console.log('[Pipeline] Advancing candidate:', {
+          applicationId,
+          candidateName,
+          fromStage: currentStage,
+          fromIndex: currentStageIndex,
+          toStage: targetStage.name,
+          toIndex: targetStageIndex
+        });
+
+        const { error: updateError, data: updateData } = await supabase
           .from('applications')
           .update({ 
             current_stage_index: targetStageIndex,
             updated_at: new Date().toISOString()
           })
-          .eq('id', applicationId);
+          .eq('id', applicationId)
+          .select()
+          .single();
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('[Pipeline] Failed to update application:', {
+            error: updateError,
+            applicationId,
+            targetStageIndex
+          });
+          toast.error(`Failed to advance candidate: ${updateError.message}`);
+          throw updateError;
+        }
+
+        console.log('[Pipeline] Successfully updated application:', updateData);
 
         // Log to pipeline audit log
         await supabase.from('pipeline_audit_logs').insert({
@@ -249,16 +270,34 @@ export function EnhancedCandidateActionDialog({
         });
 
       } else if (actionType === 'decline') {
-        // Update application status
-        const { error: updateError } = await supabase
+        // Update application status with detailed error logging
+        console.log('[Pipeline] Declining candidate:', {
+          applicationId,
+          candidateName,
+          currentStage,
+          rejectionReason
+        });
+
+        const { error: updateError, data: updateData } = await supabase
           .from('applications')
           .update({ 
             status: 'rejected',
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
           })
-          .eq('id', applicationId);
+          .eq('id', applicationId)
+          .select()
+          .single();
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('[Pipeline] Failed to decline candidate:', {
+            error: updateError,
+            applicationId
+          });
+          toast.error(`Failed to decline candidate: ${updateError.message}`);
+          throw updateError;
+        }
+
+        console.log('[Pipeline] Successfully declined candidate:', updateData);
 
         // Determine seniority from reason
         let seniorityValue = null;
@@ -349,11 +388,33 @@ export function EnhancedCandidateActionDialog({
         });
       }
 
+      toast.success(
+        actionType === 'advance' 
+          ? `${candidateName} advanced to ${stages[targetStageIndex!].name}` 
+          : `${candidateName} declined`,
+        { duration: 3000 }
+      );
+      
       onComplete();
+      onOpenChange(false);
       resetForm();
-    } catch (error) {
-      console.error('Error submitting feedback:', error);
-      toast.error("Failed to submit feedback");
+    } catch (error: any) {
+      console.error('[Pipeline] Error submitting feedback:', {
+        error,
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code
+      });
+      
+      // Only show error if we haven't already shown one
+      if (!error?.message?.includes('Failed to')) {
+        toast.error(
+          actionType === 'advance'
+            ? "Failed to advance candidate. Please check permissions and try again."
+            : "Failed to decline candidate. Please check permissions and try again."
+        );
+      }
     } finally {
       setSubmitting(false);
     }
