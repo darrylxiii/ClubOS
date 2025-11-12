@@ -1,7 +1,12 @@
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type ErrorType = 'react' | 'api' | 'edge_function' | 'database' | 'network' | 'unknown';
+type Severity = 'info' | 'warning' | 'error' | 'critical';
 
 interface LogContext {
   [key: string]: unknown;
+  errorType?: ErrorType;
+  severity?: Severity;
+  componentName?: string;
 }
 
 interface ErrorWithStack {
@@ -11,8 +16,24 @@ interface ErrorWithStack {
   name?: string;
 }
 
+interface ErrorLogBatch {
+  errorType: ErrorType;
+  severity: Severity;
+  errorMessage: string;
+  errorStack?: string;
+  componentName?: string;
+  pageUrl: string;
+  userAgent: string;
+  metadata: Record<string, unknown>;
+}
+
 class Logger {
   private isDev = import.meta.env.DEV;
+  private errorBatch: ErrorLogBatch[] = [];
+  private batchTimer: NodeJS.Timeout | null = null;
+  private readonly BATCH_SIZE = 5;
+  private readonly BATCH_TIMEOUT = 30000; // 30 seconds
+  private lastErrors: Map<string, number> = new Map(); // For deduplication
   
   private formatMessage(level: LogLevel, message: string, context?: LogContext): string {
     const timestamp = new Date().toISOString();
@@ -58,10 +79,118 @@ class Logger {
     }
     
     console.error(`❌ ${this.formatMessage('error', message, errorDetails)}`);
+    
+    // Log to database
+    this.logToDB(
+      message,
+      error,
+      (context?.errorType as ErrorType) || 'unknown',
+      (context?.severity as Severity) || 'error',
+      context?.componentName as string | undefined,
+      context
+    );
   }
   
   critical(message: string, error?: Error | ErrorWithStack | unknown, context?: LogContext) {
-    this.error(`[CRITICAL] ${message}`, error, { ...context, level: 'critical' });
+    this.error(`[CRITICAL] ${message}`, error, { ...context, level: 'critical', severity: 'critical' });
+  }
+  
+  private async logToDB(
+    message: string,
+    error: Error | ErrorWithStack | unknown,
+    errorType: ErrorType,
+    severity: Severity,
+    componentName?: string,
+    context?: LogContext
+  ) {
+    try {
+      // Extract error details
+      let errorMessage = message;
+      let errorStack: string | undefined;
+      let metadata: Record<string, unknown> = { ...context };
+      
+      if (error instanceof Error) {
+        errorMessage = `${message}: ${error.message}`;
+        errorStack = error.stack;
+        metadata.errorName = error.name;
+      } else if (error && typeof error === 'object' && 'message' in error) {
+        errorMessage = `${message}: ${(error as ErrorWithStack).message}`;
+        errorStack = (error as ErrorWithStack).stack;
+      }
+      
+      // Deduplication check
+      const errorKey = `${errorMessage}-${componentName}`;
+      const lastSeen = this.lastErrors.get(errorKey);
+      const now = Date.now();
+      if (lastSeen && now - lastSeen < 5000) {
+        return; // Skip duplicate within 5 seconds
+      }
+      this.lastErrors.set(errorKey, now);
+      
+      // Add to batch
+      const errorLog: ErrorLogBatch = {
+        errorType,
+        severity,
+        errorMessage,
+        errorStack,
+        componentName,
+        pageUrl: window.location.href,
+        userAgent: navigator.userAgent,
+        metadata,
+      };
+      
+      this.errorBatch.push(errorLog);
+      
+      // Flush if batch is full
+      if (this.errorBatch.length >= this.BATCH_SIZE) {
+        await this.flushErrorBatch();
+      } else {
+        // Set timer for batch flush
+        if (!this.batchTimer) {
+          this.batchTimer = setTimeout(() => this.flushErrorBatch(), this.BATCH_TIMEOUT);
+        }
+      }
+    } catch (err) {
+      // Silent fail - don't break the app if logging fails
+      console.warn('Failed to queue error log:', err);
+    }
+  }
+  
+  private async flushErrorBatch() {
+    if (this.errorBatch.length === 0) return;
+    
+    const batch = [...this.errorBatch];
+    this.errorBatch = [];
+    
+    if (this.batchTimer) {
+      clearTimeout(this.batchTimer);
+      this.batchTimer = null;
+    }
+    
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const records = batch.map(log => ({
+        user_id: user?.id || null,
+        error_type: log.errorType,
+        severity: log.severity,
+        error_message: log.errorMessage,
+        error_stack: log.errorStack || null,
+        component_name: log.componentName || null,
+        page_url: log.pageUrl,
+        user_agent: log.userAgent,
+        metadata: log.metadata as any, // Cast to Json type
+      }));
+      
+      const { error } = await supabase.from('error_logs').insert(records);
+      
+      if (error) {
+        console.warn('Failed to insert error logs:', error);
+      }
+    } catch (err) {
+      console.warn('Failed to flush error batch:', err);
+    }
   }
   
   // Performance timing

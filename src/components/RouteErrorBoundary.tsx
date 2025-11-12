@@ -28,7 +28,10 @@ export class RouteErrorBoundary extends Component<Props, State> {
       componentStack: errorInfo.componentStack
     });
     logger.error('Route chunk failed to load', error, { 
-      componentStack: errorInfo.componentStack 
+      componentStack: errorInfo.componentStack,
+      errorType: 'react',
+      severity: 'error',
+      componentName: 'RouteErrorBoundary'
     });
   }
 

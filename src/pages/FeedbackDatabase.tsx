@@ -68,6 +68,7 @@ import {
   Legend
 } from 'recharts';
 import { CreateUnifiedTaskDialog } from '@/components/unified-tasks/CreateUnifiedTaskDialog';
+import { ErrorLogsTab } from '@/components/feedback/ErrorLogsTab';
 
 interface Feedback {
   id: string;
@@ -607,11 +608,12 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
 
         {/* Tabs for different views */}
         <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="heatmap">Page Heat Map</TabsTrigger>
             <TabsTrigger value="trends">Trends</TabsTrigger>
             <TabsTrigger value="feedback">All Feedback</TabsTrigger>
+            <TabsTrigger value="errors">Error Logs</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -1057,6 +1059,11 @@ ${selectedFeedback.navigation_trail?.map((t: any, i: number) => `${i + 1}. ${t.t
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Error Logs Tab */}
+          <TabsContent value="errors">
+            <ErrorLogsTab />
           </TabsContent>
         </Tabs>
       </div>

@@ -26,6 +26,16 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error("🔴 [ErrorBoundary] Error info:", errorInfo);
     console.error("🔴 [ErrorBoundary] Component stack:", errorInfo.componentStack);
     this.setState({ errorInfo });
+    
+    // Log to database
+    import('@/lib/logger').then(({ logger }) => {
+      logger.error('React Error Boundary', error, { 
+        componentStack: errorInfo.componentStack,
+        errorType: 'react',
+        severity: 'error',
+        componentName: 'ErrorBoundary'
+      });
+    });
   }
 
   public render() {
