@@ -572,14 +572,12 @@ const Auth = () => {
               </div>}
 
             {/* Main CTA Button */}
-            <RainbowButton type="submit" className="w-full h-16 rounded-2xl font-bold text-lg shadow-2xl shadow-primary/20 mt-8 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100" disabled={isLoading || inviteCode && !isLogin && inviteValid === false}>
-              {isLoading ? <span className="flex items-center gap-3">
-                  <div className="w-5 h-5 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                  Loading...
-                </span> : isLogin ? "Sign In" : <span className="flex items-center gap-2">
-                  Get Started
-                  <Sparkles className="w-5 h-5" />
-                </span>}
+            <RainbowButton 
+              type="submit" 
+              className="w-full mt-6"
+              disabled={isLoading || inviteCode && !isLogin && inviteValid === false}
+            >
+              {isLoading ? "Loading..." : isLogin ? "Sign In" : "Get Started"}
             </RainbowButton>
 
             {/* Social Login Section */}
