@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useRole } from "@/contexts/RoleContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { CandidateHome } from "@/components/clubhome/CandidateHome";
 import { PartnerHome } from "@/components/clubhome/PartnerHome";
 import { AdminHome } from "@/components/clubhome/AdminHome";
@@ -12,16 +13,54 @@ import { ClubHomeHeader } from "@/components/clubhome/ClubHomeHeader";
 import { BackgroundVideo } from "@/components/BackgroundVideo";
 
 const ClubHome = () => {
-  const { currentRole: role, loading } = useRole();
-  const { user } = useAuth();
+  const { currentRole: role, loading: roleLoading } = useRole();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const navigationAttempts = useRef(0);
+  const hasNavigated = useRef(false);
 
-  console.log('🏠 [ClubHome] Rendering - role:', role, 'loading:', loading);
+  // ENTERPRISE: Combined loading state - wait for BOTH auth AND role
+  const isReady = !roleLoading && !authLoading && role !== null;
+
+  console.log('🏠 [ClubHome] State:', {
+    roleLoading,
+    authLoading,
+    isReady,
+    role,
+    user: !!user,
+    pathname: window.location.pathname,
+    timestamp: Date.now()
+  });
+
+  // ENTERPRISE: Session storage coordination - prevent navigation loops
+  useEffect(() => {
+    const lastNavigationTime = sessionStorage.getItem('last_clubhome_check');
+    const now = Date.now();
+
+    if (lastNavigationTime && (now - parseInt(lastNavigationTime)) < 3000) {
+      console.warn('[ClubHome] ⚠️ Rapid navigation detected - preventing loop');
+      navigationAttempts.current++;
+      
+      if (navigationAttempts.current > 5) {
+        console.error('[ClubHome] 🚨 Navigation loop detected!');
+        toast.error('Navigation error detected. Please refresh the page.', {
+          duration: 10000,
+          action: {
+            label: 'Refresh',
+            onClick: () => window.location.reload()
+          }
+        });
+        return;
+      }
+    }
+
+    sessionStorage.setItem('last_clubhome_check', now.toString());
+  }, []);
 
   // Check if onboarding is complete (Phase 3)
   useEffect(() => {
     const checkOnboarding = async () => {
-      if (!loading && user) {
+      if (!roleLoading && user) {
         // Check if we already validated onboarding (from Auth page)
         const onboardingChecked = sessionStorage.getItem('onboarding_checked');
         if (onboardingChecked === 'true') {
@@ -56,33 +95,36 @@ const ClubHome = () => {
     };
     
     checkOnboarding();
-  }, [loading, user, navigate]);
+  }, [roleLoading, user, navigate]);
 
+  // ENTERPRISE: Fixed race condition - only redirect if truly unauthenticated
+  // CRITICAL: Check BOTH role AND user, increased timeout from 1s -> 5s
   useEffect(() => {
-    // Give extra time for role to load before redirecting
-    // This prevents redirect loops when network is slow
-    if (!loading && !role) {
+    if (!roleLoading && !authLoading && !role && !user && !hasNavigated.current) {
       const timeout = setTimeout(() => {
-        console.log('[ClubHome] No role detected after loading, redirecting to auth');
-        navigate("/auth", { replace: true });
-      }, 1000);
+        // Double-check before navigating to prevent race conditions
+        if (!role && !user && window.location.pathname === '/home') {
+          hasNavigated.current = true;
+          console.error('[ClubHome] 🚨 No role AND no user - authentication required');
+          navigate("/auth", { replace: true });
+        }
+      }, 5000); // Increased from 1s to 5s
       
       return () => clearTimeout(timeout);
     }
-  }, [loading, role, navigate]);
+  }, [roleLoading, authLoading, role, user, navigate]);
 
-  // Debugging: log current role
-  useEffect(() => {
-    if (!loading) {
-      console.log('[ClubHome] Current role:', role);
-    }
-  }, [role, loading]);
-
-  if (loading) {
+  // ENTERPRISE: Show loading until BOTH auth AND role are ready
+  if (!isReady) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="text-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
+            <p className="text-sm text-muted-foreground">
+              {authLoading ? 'Authenticating...' : 'Loading your workspace...'}
+            </p>
+          </div>
         </div>
       </AppLayout>
     );
