@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, Send, Calendar, Edit, TrendingUp, 
-  Activity, Star, CheckCircle 
+  Activity, Star, CheckCircle, Linkedin, User
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -34,6 +34,20 @@ export const CandidateHeroSection = ({
   const engagementScore = candidate.engagement_score || 0;
   const internalRating = candidate.internal_rating || 0;
   const completeness = candidate.profile_completeness || 0;
+
+  // Get candidate name with fallback
+  const candidateName = candidate.first_name && candidate.last_name 
+    ? `${candidate.first_name} ${candidate.last_name}`
+    : candidate.full_name || candidate.email?.split('@')[0] || 'Unnamed Candidate';
+  
+  // Get initials for avatar fallback
+  const initials = candidateName
+    .split(' ')
+    .map(n => n[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   const ScoreBadge = ({ label, value, max = 10, icon: Icon }: any) => {
     const percentage = (value / max) * 100;
@@ -117,9 +131,9 @@ export const CandidateHeroSection = ({
             transition={candidateProfileTokens.animations.spring}
           >
             <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
-              <AvatarImage src={candidate.avatar_url} />
-              <AvatarFallback className="text-3xl">
-                {candidate.first_name?.[0]}{candidate.last_name?.[0]}
+              <AvatarImage src={candidate.avatar_url} alt={candidateName} />
+              <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary/20 to-primary/10">
+                {initials || <User className="h-12 w-12" />}
               </AvatarFallback>
             </Avatar>
           </motion.div>
@@ -133,23 +147,39 @@ export const CandidateHeroSection = ({
                 transition={{ delay: 0.1 }}
                 className="text-4xl font-bold mb-2"
               >
-                {candidate.first_name} {candidate.last_name}
+                {candidateName}
               </motion.h1>
               <motion.p
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.15 }}
-                className="text-lg text-muted-foreground"
+                className="text-lg text-muted-foreground mb-3"
               >
                 {candidate.current_title} {candidate.current_company && `at ${candidate.current_company}`}
               </motion.p>
+              
+              {/* LinkedIn Badge */}
+              {candidate.linkedin_url && (
+                <motion.a
+                  href={candidate.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={{ y: -10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 border border-[#0A66C2]/30 text-[#0A66C2] transition-all duration-200 hover:scale-105"
+                >
+                  <Linkedin className="w-4 h-4" />
+                  <span className="text-sm font-medium">View LinkedIn Profile</span>
+                </motion.a>
+              )}
             </div>
 
             {/* Location & Details */}
             <motion.div
               initial={{ y: -20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
+              transition={{ delay: 0.25 }}
               className="flex flex-wrap gap-2"
             >
               {candidate.location && (

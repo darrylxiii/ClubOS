@@ -54,12 +54,19 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
   }, [candidateId, activeTab]);
 
   const loadNotes = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from('candidate_notes')
       .select('*, profiles(full_name)')
       .eq('candidate_id', candidateId)
       .order('pinned', { ascending: false })
       .order('created_at', { ascending: false });
+
+    // Filter out TQC Internal notes for partners
+    if (userRole === 'partner') {
+      query = query.neq('note_type', 'tqc_internal');
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error loading notes:', error);
@@ -100,7 +107,9 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
 
       toast.success('Note saved');
       
-      setNewNote({ type: 'tqc_internal', title: '', content: '', tags: [] });
+      // Reset to appropriate default for role
+      const defaultType = userRole === 'partner' ? 'partner_shared' : 'tqc_internal';
+      setNewNote({ type: defaultType as any, title: '', content: '', tags: [] });
       loadNotes();
     } catch (error: any) {
       console.error('Error saving note:', error);
@@ -185,21 +194,36 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
                   {['admin', 'strategist'].includes(userRole) && (
                     <SelectItem value="tqc_internal">
                       <div className="flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        TQC Internal
+                        <Lock className="w-4 h-4 text-amber-500" />
+                        <div>
+                          <div className="font-medium">TQC Internal</div>
+                          <div className="text-xs text-muted-foreground">Visible only to TQC team</div>
+                        </div>
                       </div>
                     </SelectItem>
                   )}
                   <SelectItem value="partner_shared">
                     <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4" />
-                      Partner Shared
+                      <Users className="w-4 h-4 text-blue-500" />
+                      <div>
+                        <div className="font-medium">
+                          {userRole === 'partner' ? 'Shared with TQC' : 'Partner Shared'}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {userRole === 'partner' 
+                            ? 'Visible to you, your team, and TQC' 
+                            : 'Visible to partner company and TQC'}
+                        </div>
+                      </div>
                     </div>
                   </SelectItem>
                   <SelectItem value="general">
                     <div className="flex items-center gap-2">
-                      <Globe className="w-4 h-4" />
-                      General
+                      <Globe className="w-4 h-4 text-green-500" />
+                      <div>
+                        <div className="font-medium">General</div>
+                        <div className="text-xs text-muted-foreground">Visible to everyone</div>
+                      </div>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -256,14 +280,26 @@ export const CandidateNotesManager = ({ candidateId, userRole, activeTab }: Prop
           ) : (
             notes.map(note => {
               const Icon = getNoteIcon(note.note_type);
+              const noteColor = note.note_type === 'tqc_internal' 
+                ? 'border-amber-500/30 bg-amber-500/5' 
+                : note.note_type === 'partner_shared'
+                ? 'border-blue-500/30 bg-blue-500/5'
+                : 'border-green-500/30 bg-green-500/5';
               return (
-                <Card key={note.id} id={`note-${note.id}`} className={note.pinned ? 'border-primary' : ''}>
+                <Card key={note.id} id={`note-${note.id}`} className={`${note.pinned ? 'border-primary' : ''} ${noteColor}`}>
                   <CardContent className="pt-6">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <Badge variant="outline">
+                        <Badge variant="outline" className={
+                          note.note_type === 'tqc_internal' 
+                            ? 'bg-amber-500/10 text-amber-500 border-amber-500/30'
+                            : note.note_type === 'partner_shared'
+                            ? 'bg-blue-500/10 text-blue-500 border-blue-500/30'
+                            : 'bg-green-500/10 text-green-500 border-green-500/30'
+                        }>
                           <Icon className="w-3 h-3 mr-1" />
-                          {note.note_type.replace('_', ' ')}
+                          {note.note_type === 'tqc_internal' ? 'TQC Internal' :
+                           note.note_type === 'partner_shared' ? 'Partner Shared' : 'General'}
                         </Badge>
                         {note.pinned && (
                           <Badge variant="outline">

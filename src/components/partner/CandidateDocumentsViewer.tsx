@@ -394,8 +394,8 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
         </div>
       )}
 
-      {/* Upload Section */}
-      {canUpload && (
+      {/* Upload Section - Admin/Strategist Only */}
+      {canUpload && role !== 'partner' && (
         <Card className="border-border/40 bg-card/50">
           <CardContent className="pt-6">
             <div

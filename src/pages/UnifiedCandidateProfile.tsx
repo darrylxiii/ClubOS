@@ -28,6 +28,9 @@ export default function UnifiedCandidateProfile() {
   const applicationId = searchParams.get('application');
   
   const { role } = useUserRole();
+  const isAdmin = role === 'admin' || role === 'strategist';
+  const isPartner = role === 'partner';
+  
   const [loading, setLoading] = useState(true);
   const [candidate, setCandidate] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -204,30 +207,39 @@ export default function UnifiedCandidateProfile() {
                   <CardContent>
                     <CandidateDocumentsViewer
                       candidateId={candidateId!}
-                      canUpload={role === 'admin' || role === 'partner' || role === 'strategist'}
+                      canUpload={isAdmin}
                     />
                   </CardContent>
                 </Card>
 
-                {/* Internal Team Zone */}
-                <Card className={candidateProfileTokens.glass.card}>
-                  <CardHeader>
-                    <CardTitle>Internal Assessment</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CandidateInternalRatingCard
-                      candidateId={candidateId!}
-                      candidate={candidate}
-                      onUpdate={loadCandidateData}
-                    />
-                  </CardContent>
-                </Card>
+                {/* Internal Team Zone - TQC Only */}
+                {isAdmin && (
+                  <Card className={candidateProfileTokens.glass.card}>
+                    <CardHeader>
+                      <CardTitle>TQC Internal Assessment</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CandidateInternalRatingCard
+                        candidateId={candidateId!}
+                        candidate={candidate}
+                        onUpdate={loadCandidateData}
+                      />
+                    </CardContent>
+                  </Card>
+                )}
 
                 <Card className={candidateProfileTokens.glass.card}>
                   <CardHeader>
-                    <CardTitle>Team Notes</CardTitle>
+                    <CardTitle>
+                      {isPartner ? 'Collaboration Notes' : 'Team Notes'}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {isPartner 
+                        ? 'Share notes with TQC and your team about this candidate' 
+                        : 'Internal notes and observations about this candidate'}
+                    </p>
                     <CandidateNotesManager
                       candidateId={candidateId!}
                       userRole={role as any}
