@@ -59,12 +59,42 @@ const Auth = () => {
   
   // ENTERPRISE: Navigation with lock to prevent race conditions
   const navigateWithLock = (path: string, reason: string) => {
+    // Phase 4: Navigation guard - check if already on target path
+    if (window.location.pathname === path) {
+      console.log(`[Auth Page] 🔒 Already on ${path} - skipping navigation`);
+      return;
+    }
+
     if (navigationLock.current) {
       console.log('[Auth Page] 🔒 Navigation blocked - already in progress');
       return;
     }
+
+    // Phase 6: Session storage coordination - prevent loops
+    const lastNavTime = sessionStorage.getItem('last_auth_navigation');
+    const now = Date.now();
+    
+    if (lastNavTime && (now - parseInt(lastNavTime)) < 3000) {
+      console.error('[Auth Page] 🚨 Navigation loop detected - aborting');
+      toast.error('Navigation error detected. Please refresh the page.', {
+        duration: 10000,
+        action: {
+          label: 'Refresh',
+          onClick: () => window.location.reload()
+        }
+      });
+      return;
+    }
+
+    sessionStorage.setItem('last_auth_navigation', now.toString());
     navigationLock.current = true;
-    console.log(`[Auth Page] 🔄 Navigating to ${path}:`, reason);
+    
+    console.log(`[Auth Page] 🚀 Navigating to ${path}:`, {
+      reason,
+      from: window.location.pathname,
+      timestamp: now
+    });
+    
     navigate(path, { replace: true });
     setTimeout(() => { navigationLock.current = false; }, 1000);
   };
@@ -128,6 +158,7 @@ const Auth = () => {
     }
   }, []);
   
+  // Phase 5: Comprehensive logging
   useEffect(() => {
     console.log("[Auth Page] 🔍 State:", {
       loading,
@@ -135,7 +166,9 @@ const Auth = () => {
       mfaRequired,
       session: !!session,
       isNavigating,
-      onboardingCheckInProgress: onboardingCheckInProgress.current
+      onboardingCheckInProgress: onboardingCheckInProgress.current,
+      pathname: window.location.pathname,
+      timestamp: Date.now()
     });
 
     // Only redirect for non-MFA scenarios (regular login completed or OAuth without MFA)
