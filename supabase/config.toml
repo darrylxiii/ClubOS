@@ -200,3 +200,22 @@ verify_jwt = false
 # Meeting recording AI analysis (requires authentication)
 [functions.analyze-meeting-recording-advanced]
 verify_jwt = true
+
+# Password reset flow (public endpoints)
+[functions.password-reset-request]
+verify_jwt = false
+
+[functions.password-reset-validate-otp]
+verify_jwt = false
+
+[functions.password-reset-validate-token]
+verify_jwt = false
+
+[functions.password-reset-set-password]
+verify_jwt = false
+
+[functions.send-password-reset-email]
+verify_jwt = false
+
+[functions.send-password-changed-email]
+verify_jwt = false

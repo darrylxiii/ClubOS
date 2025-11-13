@@ -43,7 +43,7 @@ export const candidateAuditService = {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Not authenticated');
 
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('candidate_profile_audit')
       .insert({
         ...entry,
@@ -55,7 +55,7 @@ export const candidateAuditService = {
 
   // Get audit history for a candidate
   async getCandidateAuditHistory(candidateId: string) {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('candidate_profile_audit')
       .select(`
         *,
