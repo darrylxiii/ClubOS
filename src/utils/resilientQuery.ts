@@ -6,7 +6,7 @@
 export const resilientQuery = async <T>(
   queryFn: () => Promise<{ data: T | null; error: any }>,
   fallback: T,
-  timeoutMs: number = 5000
+  timeoutMs: number = 10000
 ): Promise<{ data: T; error: any }> => {
   try {
     const result = await Promise.race([

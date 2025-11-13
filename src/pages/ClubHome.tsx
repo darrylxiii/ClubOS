@@ -19,9 +19,8 @@ const ClubHome = () => {
   const navigationAttempts = useRef(0);
   const hasNavigated = useRef(false);
   const [emergencyTimeout, setEmergencyTimeout] = useState(false);
-  const [loadingStartTime] = useState(Date.now());
 
-  // ENTERPRISE: Combined loading state - wait for BOTH auth AND role
+  // Combined loading state - wait for BOTH auth AND role
   const isReady = !roleLoading && !authLoading && role !== null;
 
   console.log('🏠 [ClubHome] State:', {
@@ -59,27 +58,23 @@ const ClubHome = () => {
     sessionStorage.setItem('last_clubhome_check', now.toString());
   }, []);
 
-  // PHASE 1: Emergency timeout - force render after 10s max
+  // Emergency timeout - force render after 3s max
   useEffect(() => {
-    const elapsed = Date.now() - loadingStartTime;
-    const timeoutDuration = 10000 - elapsed; // Account for already elapsed time
-    
     const timer = setTimeout(() => {
-      if (!isReady && !emergencyTimeout) {
-        console.error('[ClubHome] 🚨 EMERGENCY: Loading timeout after 10s - forcing render');
+      if (!isReady) {
+        console.error('[ClubHome] 🚨 EMERGENCY: 3s timeout - forcing render');
         setEmergencyTimeout(true);
-        toast.error('Workspace loading slowly - showing default view', {
-          duration: 5000,
+        toast.error('Loading slowly - click Reload if issues persist', {
           action: {
             label: 'Reload',
             onClick: () => window.location.reload()
           }
         });
       }
-    }, Math.max(timeoutDuration, 0));
+    }, 3000);
     
     return () => clearTimeout(timer);
-  }, [isReady, emergencyTimeout, loadingStartTime]);
+  }, [isReady]);
 
   // Check if onboarding is complete (Phase 3)
   useEffect(() => {
@@ -138,27 +133,12 @@ const ClubHome = () => {
     }
   }, [roleLoading, authLoading, role, user, navigate]);
 
-  // PHASE 1: Render logic with emergency override
+  // Show loading state
   if (!isReady && !emergencyTimeout) {
-    const elapsed = Math.floor((Date.now() - loadingStartTime) / 1000);
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
-          <div className="space-y-2">
-            <p className="text-lg font-medium text-foreground">Loading your workspace...</p>
-            <p className="text-sm text-muted-foreground">
-              {authLoading && "Authenticating..."}
-              {!authLoading && roleLoading && "Setting up your profile..."}
-              {!authLoading && !roleLoading && "Almost ready..."}
-            </p>
-            {elapsed > 5 && (
-              <p className="text-xs text-muted-foreground/70 mt-2">
-                Taking longer than expected... ({elapsed}s)
-              </p>
-            )}
-          </div>
-        </div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-lg font-medium text-foreground">Loading workspace...</p>
       </div>
     );
   }

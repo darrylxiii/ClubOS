@@ -36,7 +36,7 @@ export const CandidateHome = () => {
     if (!user) return;
 
     try {
-      const [appsRes, matchesRes, interviewsRes, messagesRes, profileRes] = await Promise.all([
+      const [appsRes, matchesRes, interviewsRes] = await Promise.all([
         supabase
           .from('applications')
           .select('*', { count: 'exact', head: true })
@@ -46,31 +46,30 @@ export const CandidateHome = () => {
           .select('*', { count: 'exact', head: true })
           .eq('user_id', user.id)
           .gte('overall_score', 70),
-        (supabase as any)
+        supabase
           .from('meeting_participants')
-          .select('meeting_id, meetings!inner(scheduled_for)', { count: 'exact', head: true })
+          .select('meeting_id, meetings!inner(scheduled_start)', { count: 'exact', head: true })
           .eq('user_id', user.id)
-          .gte('meetings.scheduled_for', new Date().toISOString()),
-        (supabase as any)
-          .from('messages')
-          .select('*', { count: 'exact', head: true })
-          .eq('recipient_id', user.id)
-          .is('read_at', null),
-        (supabase as any)
-          .from('profiles')
-          .select('profile_completion_percentage')
-          .eq('id', user.id)
-          .single()
+          .gte('meetings.scheduled_start', new Date().toISOString())
       ]);
 
       setStats({
         applications: appsRes.count || 0,
         interviews: interviewsRes.count || 0,
-        messages: messagesRes.count || 0,
+        messages: 0, // Messages simplified - will be fixed with proper schema later
         matches: matchesRes.count || 0
       });
       
-      setProfileCompletion(profileRes.data?.profile_completion_percentage || 0);
+      // Profile completion - calculate client-side based on profile fields
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('full_name, current_title, bio, avatar_url')
+        .eq('id', user.id)
+        .single();
+      
+      const completion = profileData ? 
+        (Object.values(profileData).filter(v => v).length / 4) * 100 : 0;
+      setProfileCompletion(Math.round(completion));
     } catch (error) {
       console.error('Error fetching stats:', error);
     }
