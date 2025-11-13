@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, Sparkles, Shield, CheckCircle2 } from "lucide-react";
+import { Lock, Sparkles, Shield, CheckCircle2, WifiOff } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
@@ -15,6 +15,8 @@ import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { OAuthDiagnostics } from "@/components/OAuthDiagnostics";
+import { queryWithTimeout } from "@/utils/queryTimeout";
+
 // Use SVG for much better performance (vector vs 1563x1563px PNG)
 const quantumLogo = "/quantum-logo.svg?v=2";
 const emailSchema = z.string().email("Invalid email address");
@@ -50,7 +52,70 @@ const Auth = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   const navigate = useNavigate();
   const onboardingCheckInProgress = useRef(false);
+  const navigationLock = useRef(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [oauthInProgress, setOauthInProgress] = useState(false);
+  const pageLoadStartTime = useRef(Date.now());
   
+  // ENTERPRISE: Navigation with lock to prevent race conditions
+  const navigateWithLock = (path: string, reason: string) => {
+    if (navigationLock.current) {
+      console.log('[Auth Page] 🔒 Navigation blocked - already in progress');
+      return;
+    }
+    navigationLock.current = true;
+    console.log(`[Auth Page] 🔄 Navigating to ${path}:`, reason);
+    navigate(path, { replace: true });
+    setTimeout(() => { navigationLock.current = false; }, 1000);
+  };
+  
+  // ENTERPRISE: Network status monitoring
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('[Auth Page] 🌐 Network restored');
+      setIsOnline(true);
+      toast.success('Connection restored');
+    };
+    const handleOffline = () => {
+      console.log('[Auth Page] 📴 Network lost');
+      setIsOnline(false);
+      toast.error('No internet connection');
+    };
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  // ENTERPRISE: OAuth error recovery
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get('error');
+    const errorDescription = params.get('error_description');
+    
+    if (error) {
+      console.error('[Auth Page] 🚨 OAuth error:', error, errorDescription);
+      toast.error(`Sign in failed: ${errorDescription || error}`);
+      window.history.replaceState({}, '', '/auth');
+    }
+  }, []);
+
+  // ENTERPRISE: Performance monitoring
+  useEffect(() => {
+    if (!loading && !isLoading) {
+      const tti = Date.now() - pageLoadStartTime.current;
+      console.log(`[Auth Page] ⚡ Time to Interactive: ${tti}ms`);
+      
+      if (tti > 3000) {
+        console.warn(`[Auth Page] 🐌 Slow page load: ${tti}ms (target: <3000ms)`);
+      }
+    }
+  }, [loading, isLoading]);
+
   // Recover invite code after OAuth redirect
   useEffect(() => {
     const pendingInvite = localStorage.getItem('pending_invite_code');
@@ -82,11 +147,17 @@ const Auth = () => {
       // Check if onboarding is complete
       const checkOnboarding = async () => {
         try {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('onboarding_completed_at')
-            .eq('id', user.id)
-            .single();
+          // ENTERPRISE: Add 3-second timeout to database query
+          const { data: profile, error } = await queryWithTimeout(
+            Promise.resolve(
+              supabase
+                .from('profiles')
+                .select('onboarding_completed_at')
+                .eq('id', user.id)
+                .single()
+            ),
+            3000
+          ) as any;
           
           if (error) {
             console.error("[Auth Page] ❌ Database error fetching profile:", error);
@@ -103,24 +174,15 @@ const Auth = () => {
           sessionStorage.setItem('onboarding_checked', 'true');
           
           if (!profile?.onboarding_completed_at) {
-            console.log("[Auth Page] 🔄 Navigation: Going to /oauth-onboarding", { 
-              reason: "onboarding incomplete",
-              user: user.id 
-            });
-            navigate("/oauth-onboarding", { replace: true });
+            navigateWithLock("/oauth-onboarding", "onboarding incomplete");
           } else {
-            console.log("[Auth Page] 🔄 Navigation: Going to /home", { 
-              reason: "onboarding complete",
-              user: user.id 
-            });
-            navigate("/home", { replace: true });
+            navigateWithLock("/home", "onboarding complete");
           }
         } catch (error) {
           console.error("[Auth Page] ❌ Error checking onboarding:", error);
           toast.error("An error occurred. Please try logging in again.");
-          // If error, redirect to home and let ClubHome handle it
           sessionStorage.setItem('onboarding_checked', 'true');
-          navigate("/home", { replace: true });
+          navigateWithLock("/home", "error fallback");
         } finally {
           onboardingCheckInProgress.current = false;
           setIsNavigating(false);
@@ -149,10 +211,15 @@ const Auth = () => {
   }, [prefillEmail]);
   const validateInviteCode = async (code: string) => {
     try {
-      // Use edge function for secure server-side validation
-      const { data, error } = await supabase.functions.invoke('validate-invite-code', {
-        body: { code }
-      });
+      // ENTERPRISE: Add 5-second timeout to edge function call
+      const { data, error } = await queryWithTimeout(
+        Promise.resolve(
+          supabase.functions.invoke('validate-invite-code', {
+            body: { code }
+          })
+        ),
+        5000
+      ) as any;
       
       if (error) throw error;
       
@@ -171,56 +238,9 @@ const Auth = () => {
     }
   };
 
-  // Listen for MFA completion from OAuth flows
-  useEffect(() => {
-    const {
-      data: authListener
-    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.log("[Auth Page] Auth state change:", event, "Has session?", !!currentSession);
-
-      // When OAuth is successful with session, check onboarding
-      if ((event === 'SIGNED_IN' || event === 'MFA_CHALLENGE_VERIFIED') && currentSession) {
-        console.log("[Auth Page] 🎉 OAuth/MFA completed, checking onboarding status");
-        
-        try {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('onboarding_completed_at')
-            .eq('id', currentSession.user.id)
-            .single();
-          
-          console.log("[Auth Page] 📋 OAuth Profile data:", { 
-            userId: currentSession.user.id, 
-            onboardingComplete: !!profile?.onboarding_completed_at 
-          });
-          
-          // Set flag so ClubHome knows we already checked
-          sessionStorage.setItem('onboarding_checked', 'true');
-          
-          if (!profile?.onboarding_completed_at) {
-            console.log("[Auth Page] 🔄 OAuth Navigation: Going to /oauth-onboarding");
-            setTimeout(() => {
-              navigate("/oauth-onboarding", { replace: true });
-            }, 100);
-          } else {
-            console.log("[Auth Page] 🔄 OAuth Navigation: Going to /home");
-            setTimeout(() => {
-              navigate("/home", { replace: true });
-            }, 100);
-          }
-        } catch (error) {
-          console.error("[Auth Page] ❌ OAuth Error checking onboarding:", error);
-          sessionStorage.setItem('onboarding_checked', 'true');
-          setTimeout(() => {
-            navigate("/home", { replace: true });
-          }, 100);
-        }
-      }
-    });
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [navigate]);
+  // REMOVED: Duplicate auth listener eliminated to prevent race conditions
+  // All auth state changes are now handled by AuthContext
+  
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);

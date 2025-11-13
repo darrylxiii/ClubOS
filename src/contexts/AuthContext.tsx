@@ -24,18 +24,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
     let authInitialized = false;
+    const loadStartTime = Date.now();
     
     console.log('[AuthContext] 🚀 Starting auth initialization');
     
-    // CRITICAL: Aggressive timeout to prevent infinite loading
-    // Force loading to false after 3 seconds NO MATTER WHAT
+    // ENTERPRISE: Ultra-aggressive 2-second timeout
+    // Track progress every 500ms for debugging
+    const progressInterval = setInterval(() => {
+      if (!authInitialized) {
+        console.log(`[AuthContext] ⏱️ Still initializing... ${Date.now() - loadStartTime}ms`);
+      }
+    }, 500);
+    
     const emergencyTimeout = setTimeout(() => {
       if (mounted && !authInitialized) {
-        console.error('[AuthContext] ⚠️ EMERGENCY TIMEOUT - Forcing loading off after 3 seconds');
+        const loadTime = Date.now() - loadStartTime;
+        console.error(`[AuthContext] 🚨 EMERGENCY TIMEOUT - Forcing loading off after ${loadTime}ms`);
         setLoading(false);
         setAuthError('Authentication initialization timeout');
       }
-    }, 3000);
+    }, 2000); // REDUCED: 3s → 2s
     
     const initializeAuth = async () => {
       try {
@@ -106,21 +114,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         return () => {
-          mounted = false;
-          clearTimeout(emergencyTimeout);
           subscription.unsubscribe();
         };
       } catch (error: any) {
         if (!mounted) return;
-        console.error('[AuthContext] ❌ CRITICAL: Error during initialization:', error);
+        const loadTime = Date.now() - loadStartTime;
+        console.error(`[AuthContext] ❌ Fatal initialization error after ${loadTime}ms:`, error);
         authInitialized = true;
         setLoading(false);
         setAuthError(error.message);
-        clearTimeout(emergencyTimeout);
       }
     };
 
     initializeAuth();
+
+    return () => {
+      mounted = false;
+      clearTimeout(emergencyTimeout);
+      clearInterval(progressInterval);
+    };
 
     return () => {
       mounted = false;
