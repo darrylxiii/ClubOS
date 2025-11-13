@@ -9,6 +9,7 @@ interface AuthContextType {
   session: Session | null;
   signOut: () => Promise<void>;
   loading: boolean;
+  authError: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,78 +18,114 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     let mounted = true;
+    let authInitialized = false;
     
-    // Add timeout failsafe to prevent infinite loading
-    const loadingTimeout = setTimeout(() => {
-      if (mounted && loading) {
-        console.error('[AuthContext] ⏰ Loading timeout - forcing loading to false');
+    console.log('[AuthContext] 🚀 Starting auth initialization');
+    
+    // CRITICAL: Aggressive timeout to prevent infinite loading
+    // Force loading to false after 3 seconds NO MATTER WHAT
+    const emergencyTimeout = setTimeout(() => {
+      if (mounted && !authInitialized) {
+        console.error('[AuthContext] ⚠️ EMERGENCY TIMEOUT - Forcing loading off after 3 seconds');
         setLoading(false);
+        setAuthError('Authentication initialization timeout');
       }
-    }, 10000); // 10 second timeout
+    }, 3000);
     
-    try {
-      console.log('[AuthContext] 🔐 Initializing auth state listener...');
-      
-      // Set up auth state listener FIRST
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          if (!mounted) return;
-          
-          console.log("[Auth] Auth state changed:", event, session?.user?.id);
-          
-          // Track login event (non-blocking - don't await)
-          if (event === 'SIGNED_IN' && session?.user?.id) {
-            trackLogin(session.user.id, 'email').catch(err => {
-              console.log('[Auth] Login tracking failed (non-critical):', err.message);
-            });
+    const initializeAuth = async () => {
+      try {
+        console.log('[AuthContext] 🔐 Setting up auth state listener...');
+        
+        // Set up auth state listener FIRST
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            if (!mounted) return;
+            
+            console.log("[AuthContext] Auth event:", event, session?.user?.id);
+            authInitialized = true;
+            
+            // Track login event (non-blocking - don't await)
+            if (event === 'SIGNED_IN' && session?.user?.id) {
+              trackLogin(session.user.id, 'email').catch(err => {
+                console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
+              });
+            }
+            
+            // Ignore refresh token errors - they're expected when tokens expire
+            if (event === 'SIGNED_OUT' && !session) {
+              setSession(null);
+              setUser(null);
+            } else {
+              setSession(session);
+              setUser(session?.user ?? null);
+            }
+            
+            // ALWAYS set loading to false on any auth state change
+            setLoading(false);
+            setAuthError(null);
           }
-          
-          // Ignore refresh token errors - they're expected when tokens expire
-          if (event === 'SIGNED_OUT' && !session) {
-            setSession(null);
-            setUser(null);
-          } else {
-            setSession(session);
-            setUser(session?.user ?? null);
-          }
-          
-          // Set loading to false for all auth state changes
-          setLoading(false);
-        }
-      );
+        );
 
-      // THEN check for existing session
-      supabase.auth.getSession()
-        .then(({ data: { session }, error }) => {
+        // THEN check for existing session with timeout
+        const sessionPromise = supabase.auth.getSession();
+        const sessionTimeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Session check timeout')), 2000)
+        );
+
+        try {
+          const { data: { session }, error } = await Promise.race([
+            sessionPromise,
+            sessionTimeout
+          ]) as any;
+          
           if (!mounted) return;
+          
+          authInitialized = true;
           
           if (error) {
-            console.error("[Auth] ⚠️ Error getting session:", error);
+            console.error("[AuthContext] ⚠️ Error getting session:", error);
+            setAuthError(error.message);
+          } else {
+            console.log("[AuthContext] ✅ Initial session:", session?.user?.id || 'No session');
           }
-          console.log("[Auth] Initial session check:", session?.user?.id);
+          
           setSession(session);
           setUser(session?.user ?? null);
           setLoading(false);
-        })
-        .catch((err) => {
-          console.error("[Auth] ❌ Critical error during session check:", err);
+        } catch (err: any) {
+          if (!mounted) return;
+          console.error("[AuthContext] ⚠️ Session check timeout/error:", err.message);
+          authInitialized = true;
           setLoading(false);
-        });
+          setAuthError(err.message);
+        }
 
-      return () => {
-        mounted = false;
-        clearTimeout(loadingTimeout);
-        subscription.unsubscribe();
-      };
-    } catch (error) {
-      console.error('[AuthContext] ❌ CRITICAL: Error during initialization:', error);
-      setLoading(false);
-      clearTimeout(loadingTimeout);
-    }
+        return () => {
+          mounted = false;
+          clearTimeout(emergencyTimeout);
+          subscription.unsubscribe();
+        };
+      } catch (error: any) {
+        if (!mounted) return;
+        console.error('[AuthContext] ❌ CRITICAL: Error during initialization:', error);
+        authInitialized = true;
+        setLoading(false);
+        setAuthError(error.message);
+        clearTimeout(emergencyTimeout);
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      mounted = false;
+      clearTimeout(emergencyTimeout);
+    };
   }, []);
 
   const signOut = async () => {
@@ -147,7 +184,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, signOut, loading }}>
+    <AuthContext.Provider value={{ user, session, signOut, loading, authError }}>
       {children}
     </AuthContext.Provider>
   );
