@@ -45,7 +45,7 @@ serve(async (req) => {
     const clientIp = req.headers.get("x-forwarded-for") || "unknown";
     const userAgent = req.headers.get("user-agent") || "unknown";
 
-    console.log(`[Password Reset Request] Email: ${email}, IP: ${clientIp}`);
+    console.log(`[Password Reset] Step 1: Initial request - Email: ${email}, IP: ${clientIp}`);
 
     // Check rate limit
     const { data: rateLimitData } = await supabaseAdmin.rpc(
@@ -53,8 +53,10 @@ serve(async (req) => {
       { p_email: email.toLowerCase(), p_ip_address: clientIp }
     );
 
+    console.log(`[Password Reset] Step 2: Rate limit check - ${rateLimitData?.allowed ? 'PASSED' : 'BLOCKED'}`);
+
     if (rateLimitData && !rateLimitData.allowed) {
-      console.log(`[Password Reset] Rate limit exceeded for ${email}`);
+      console.log(`[Password Reset] Rate limit exceeded for ${email}. Reason: ${rateLimitData.reason}`);
       
       // Log attempt
       await supabaseAdmin.from('password_reset_attempts').insert({
@@ -76,21 +78,47 @@ serve(async (req) => {
       );
     }
 
-    // Look up user by email
-    const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers();
+    // Look up user by email with proper pagination handling (fixes pagination bug)
+    let user = null;
+    let page = 1;
+    const perPage = 1000; // Max per page
     
-    if (userError) {
-      console.error('[Password Reset] Error listing users:', userError);
-      throw userError;
+    while (user === null) {
+      const { data: { users }, error: userError } = await supabaseAdmin.auth.admin.listUsers({
+        page,
+        perPage
+      });
+      
+      if (userError) {
+        console.error('[Password Reset] Error listing users:', userError);
+        break;
+      }
+      
+      if (!users || users.length === 0) {
+        // No more users to check
+        break;
+      }
+      
+      // Find user in this page
+      user = users.find(u => u.email?.toLowerCase() === email.toLowerCase());
+      
+      if (!user && users.length < perPage) {
+        // Last page, user not found
+        break;
+      }
+      
+      page++;
     }
 
-    const user = users?.find(u => u.email?.toLowerCase() === email.toLowerCase());
+    console.log(`[Password Reset] Step 3: User lookup - ${user ? 'FOUND' : 'NOT FOUND'} for ${email}`);
 
     if (user) {
       // Generate tokens
       const magicToken = generateSecureToken();
       const otpCode = generateOTP();
       const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      console.log(`[Password Reset] Step 4: Token generation - Magic: ${magicToken.substring(0, 8)}..., OTP: ${otpCode}`);
 
       // Store reset token
       const { error: insertError } = await supabaseAdmin
@@ -110,33 +138,59 @@ serve(async (req) => {
         throw insertError;
       }
 
-      // Send hybrid email (magic link + OTP)
+      console.log(`[Password Reset] Step 5: Token stored in database successfully`);
+
+      // Send hybrid email (magic link + OTP) with retry logic
       const appUrl = Deno.env.get("APP_URL") || "https://thequantumclub.app";
       const magicLink = `${appUrl}/reset-password/verify-token?token=${magicToken}`;
       
-      const { error: emailError } = await supabaseAdmin.functions.invoke(
-        'send-password-reset-email',
-        {
-          body: {
-            email: user.email,
-            userName: user.user_metadata?.full_name || user.email?.split('@')[0],
-            otpCode,
-            magicLink,
-            expiresInMinutes: 10,
-            ipAddress: clientIp,
-            deviceInfo: userAgent,
-          }
-        }
-      );
+      const MAX_RETRIES = 3;
+      let emailError = null;
+      let emailSent = false;
 
-      if (emailError) {
-        console.error('[Password Reset] Error sending email:', emailError);
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        console.log(`[Password Reset] Step 6: Email send attempt ${attempt}/${MAX_RETRIES}`);
+        
+        const { error } = await supabaseAdmin.functions.invoke(
+          'send-password-reset-email',
+          {
+            body: {
+              email: user.email,
+              userName: user.user_metadata?.full_name || user.email?.split('@')[0],
+              otpCode,
+              magicLink,
+              expiresInMinutes: 10,
+              ipAddress: clientIp,
+              deviceInfo: userAgent,
+            }
+          }
+        );
+
+        if (!error) {
+          console.log(`[Password Reset] ✅ Email sent successfully on attempt ${attempt}`);
+          emailSent = true;
+          break;
+        }
+
+        emailError = error;
+        console.error(`[Password Reset] ❌ Email attempt ${attempt} failed:`, error);
+
+        // Wait before retry with exponential backoff
+        if (attempt < MAX_RETRIES) {
+          const waitTime = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
+          console.log(`[Password Reset] Waiting ${waitTime}ms before retry...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
+
+      if (!emailSent) {
+        console.error('[Password Reset] ⚠️ All email attempts failed. Last error:', emailError);
         // Don't throw - still return success to prevent email enumeration
       }
 
-      console.log(`[Password Reset] Token generated for ${email}`);
+      console.log(`[Password Reset] Step 7: Process completed for ${email} - Email sent: ${emailSent}`);
     } else {
-      console.log(`[Password Reset] No user found for ${email} (but returning success)`);
+      console.log(`[Password Reset] Step 3: No user found for ${email} (returning success for security)`);
     }
 
     // Log attempt
