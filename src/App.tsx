@@ -198,12 +198,27 @@ const App = () => (
                   </RouteErrorBoundary>
                  } />
           
-          {/* Auth routes */}
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/verify" element={<ResetPasswordVerify />} />
-          <Route path="/reset-password/verify-token" element={<ResetPasswordMagicLink />} />
-          <Route path="/reset-password/new" element={<ResetPasswordNew />} />
+          {/* Password Reset Routes */}
+          <Route path="/forgot-password" element={
+            <RouteErrorBoundary>
+              <ForgotPassword />
+            </RouteErrorBoundary>
+          } />
+          <Route path="/reset-password/verify" element={
+            <RouteErrorBoundary>
+              <ResetPasswordVerify />
+            </RouteErrorBoundary>
+          } />
+          <Route path="/reset-password/verify-token" element={
+            <RouteErrorBoundary>
+              <ResetPasswordMagicLink />
+            </RouteErrorBoundary>
+          } />
+          <Route path="/reset-password/new" element={
+            <RouteErrorBoundary>
+              <ResetPasswordNew />
+            </RouteErrorBoundary>
+          } />
           
           <Route path="/partner-funnel" element={<PartnerFunnel />} />
           <Route path="/partnership-submitted/:companyName" element={<PartnershipSubmitted />} />
