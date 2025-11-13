@@ -170,6 +170,7 @@ export default function UnifiedCandidateProfile() {
           candidate={candidate} 
           fromJob={fromJob || undefined}
           stage={stage || application?.stage}
+          isAdmin={isAdmin}
         />
 
         {/* Full Pipeline Breakdown - Prominent after hero */}

@@ -19,6 +19,7 @@ interface Props {
   candidate: any;
   fromJob?: string;
   stage?: string;
+  isAdmin?: boolean;
   onAdvance?: () => void;
   onDecline?: () => void;
   onMessage?: () => void;
@@ -30,6 +31,7 @@ export const CandidateHeroSection = ({
   candidate,
   fromJob,
   stage,
+  isAdmin = false,
   onAdvance,
   onDecline,
   onMessage,
@@ -84,17 +86,29 @@ export const CandidateHeroSection = ({
             </div>
 
             {/* Contact Info Row - Compact horizontal layout */}
-            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-              {candidate.email && (
+            <div className="flex flex-wrap items-center gap-4 text-sm">
+              {/* Email - try multiple field names */}
+              {(candidate.email || candidate.contact_email) && (
                 <div className="flex items-center gap-1.5">
-                  <Mail className="w-4 h-4" />
-                  <span>{candidate.email}</span>
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  <a 
+                    href={`mailto:${candidate.email || candidate.contact_email}`} 
+                    className="hover:text-foreground transition-colors"
+                  >
+                    {candidate.email || candidate.contact_email}
+                  </a>
                 </div>
               )}
-              {candidate.phone && (
+              {/* Phone - try multiple field names */}
+              {(candidate.phone || candidate.phone_number || candidate.contact_phone) && (
                 <div className="flex items-center gap-1.5">
-                  <Phone className="w-4 h-4" />
-                  <span>{candidate.phone}</span>
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <a 
+                    href={`tel:${candidate.phone || candidate.phone_number || candidate.contact_phone}`}
+                    className="hover:text-foreground transition-colors"
+                  >
+                    {candidate.phone || candidate.phone_number || candidate.contact_phone}
+                  </a>
                 </div>
               )}
               {candidate.location && (
@@ -153,12 +167,12 @@ export const CandidateHeroSection = ({
                   <User className="w-4 h-4 mr-2" />
                   View Club Profile
                 </Button>
-              ) : (
+              ) : isAdmin ? (
                 <Button onClick={() => console.log('Send invitation')}>
                   <Send className="w-4 h-4 mr-2" />
                   Send Invitation
                 </Button>
-              )}
+              ) : null}
 
               {/* Quick Actions in dropdown */}
               <DropdownMenu>
