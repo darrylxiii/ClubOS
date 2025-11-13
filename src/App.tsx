@@ -48,6 +48,7 @@ const AcademyCreatorHub = lazy(() => import("./pages/AcademyCreatorHub"));
 const ModuleDetail = lazy(() => import("./pages/ModuleDetail"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
 const ModuleManagement = lazy(() => import("./pages/ModuleManagement"));
+const UnifiedCandidateProfile = lazy(() => import("./pages/UnifiedCandidateProfile"));
 const MeetingNotes = lazy(() => import("./pages/MeetingNotes"));
 const ModuleEdit = lazy(() => import("./pages/ModuleEdit"));
 const CourseEdit = lazy(() => import("./pages/CourseEdit"));
@@ -232,6 +233,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <JobDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/candidates/:candidateId"
+              element={
+                <ProtectedRoute>
+                  <UnifiedCandidateProfile />
                 </ProtectedRoute>
               }
             />
