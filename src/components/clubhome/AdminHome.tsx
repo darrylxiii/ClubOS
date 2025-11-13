@@ -15,8 +15,9 @@ import { Link } from "react-router-dom";
 import { RecentActivityFeed } from "./RecentActivityFeed";
 import { PlatformGrowthCard } from "./PlatformGrowthCard";
 import { PlatformHealthCard } from "./PlatformHealthCard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
-export const AdminHome = () => {
+const AdminHomeContent = () => {
   console.log('👑 [AdminHome] Component mounting');
   
   const [stats, setStats] = useState({
@@ -164,5 +165,13 @@ export const AdminHome = () => {
       {/* Recent System Activity */}
       <RecentActivityFeed />
     </div>
+  );
+};
+
+export const AdminHome = () => {
+  return (
+    <ErrorBoundary>
+      <AdminHomeContent />
+    </ErrorBoundary>
   );
 };

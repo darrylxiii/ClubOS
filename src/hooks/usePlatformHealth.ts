@@ -13,6 +13,7 @@ export function usePlatformHealth() {
   return useQuery<HealthMetrics>({
     queryKey: ['platform-health'],
     queryFn: async () => {
+      try {
       const now = new Date();
       const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
@@ -44,7 +45,7 @@ export function usePlatformHealth() {
           .eq('status', 'hired')
           .gte('updated_at', thirtyDaysAgo.toISOString()),
         supabase.from('meetings').select('*', { count: 'exact', head: true })
-          .gte('scheduled_for', now.toISOString()),
+          .gte('scheduled_start', now.toISOString()),
         supabase.from('jobs').select('*', { count: 'exact', head: true })
       ]);
 
@@ -96,7 +97,23 @@ export function usePlatformHealth() {
         jobsFilledThisMonth: jobsFilledThisMonth || 0,
         activeMeetings: activeMeetings || 0
       };
+      } catch (error) {
+        console.error('[usePlatformHealth] Error:', error);
+        // Return safe defaults on error
+        return {
+          healthScore: 0,
+          alerts: [{
+            id: 'error',
+            message: 'Unable to load platform health metrics',
+            severity: 'warning' as const
+          }],
+          avgAppsPerJob: 0,
+          jobsFilledThisMonth: 0,
+          activeMeetings: 0
+        };
+      }
     },
+    retry: 1,
     refetchInterval: 60000,
     staleTime: 30000
   });

@@ -16,11 +16,9 @@ const ClubHome = () => {
   const { currentRole: role, loading: roleLoading } = useRole();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const navigationAttempts = useRef(0);
   const hasNavigated = useRef(false);
-  const [emergencyTimeout, setEmergencyTimeout] = useState(false);
 
-  // Combined loading state - wait for BOTH auth AND role
+  // Combined loading state
   const isReady = !roleLoading && !authLoading && role !== null;
 
   console.log('🏠 [ClubHome] State:', {
@@ -28,53 +26,8 @@ const ClubHome = () => {
     authLoading,
     isReady,
     role,
-    user: !!user,
-    pathname: window.location.pathname,
-    timestamp: Date.now()
+    user: !!user
   });
-
-  // ENTERPRISE: Session storage coordination - prevent navigation loops
-  useEffect(() => {
-    const lastNavigationTime = sessionStorage.getItem('last_clubhome_check');
-    const now = Date.now();
-
-    if (lastNavigationTime && (now - parseInt(lastNavigationTime)) < 3000) {
-      console.warn('[ClubHome] ⚠️ Rapid navigation detected - preventing loop');
-      navigationAttempts.current++;
-      
-      if (navigationAttempts.current > 5) {
-        console.error('[ClubHome] 🚨 Navigation loop detected!');
-        toast.error('Navigation error detected. Please refresh the page.', {
-          duration: 10000,
-          action: {
-            label: 'Refresh',
-            onClick: () => window.location.reload()
-          }
-        });
-        return;
-      }
-    }
-
-    sessionStorage.setItem('last_clubhome_check', now.toString());
-  }, []);
-
-  // Emergency timeout - force render after 3s max
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!isReady) {
-        console.error('[ClubHome] 🚨 EMERGENCY: 3s timeout - forcing render');
-        setEmergencyTimeout(true);
-        toast.error('Loading slowly - click Reload if issues persist', {
-          action: {
-            label: 'Reload',
-            onClick: () => window.location.reload()
-          }
-        });
-      }
-    }, 3000);
-    
-    return () => clearTimeout(timer);
-  }, [isReady]);
 
   // Check if onboarding is complete (Phase 3)
   useEffect(() => {
@@ -133,17 +86,15 @@ const ClubHome = () => {
     }
   }, [roleLoading, authLoading, role, user, navigate]);
 
-  // Show loading state
-  if (!isReady && !emergencyTimeout) {
+  // Show simple loading state
+  if (!isReady) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-        <p className="text-lg font-medium text-foreground">Loading workspace...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // PHASE 1: Use effective role (fallback to 'user' on emergency timeout)
   const effectiveRole = role || 'user';
 
   const renderRoleView = () => {
