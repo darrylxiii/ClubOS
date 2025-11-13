@@ -15,7 +15,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       const timer = setTimeout(() => {
         logger.error("[ProtectedRoute] 🚨 Loading timeout after 5s - forcing redirect");
         setLoadingTimeout(true);
-      }, 5000); // Increased from 3s to 5s
+      }, 3000);
       return () => clearTimeout(timer);
     }
   }, [loading]);
