@@ -22,6 +22,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
     
+    // Add timeout failsafe to prevent infinite loading
+    const loadingTimeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.error('[AuthContext] ⏰ Loading timeout - forcing loading to false');
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+    
     try {
       console.log('[AuthContext] 🔐 Initializing auth state listener...');
       
@@ -73,11 +81,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       return () => {
         mounted = false;
+        clearTimeout(loadingTimeout);
         subscription.unsubscribe();
       };
     } catch (error) {
       console.error('[AuthContext] ❌ CRITICAL: Error during initialization:', error);
       setLoading(false);
+      clearTimeout(loadingTimeout);
     }
   }, []);
 
