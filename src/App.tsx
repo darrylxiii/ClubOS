@@ -15,8 +15,9 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
 import { ActivityTracker } from "@/components/ActivityTracker";
-import { lazy, Suspense } from "react";
-import { Loader2 } from "lucide-react";
+import { lazy, Suspense, useState, useEffect } from "react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // Eager load critical public routes
 import Auth from "./pages/Auth";
@@ -129,12 +130,40 @@ const ContractDetailPage = lazy(() => import("./pages/ContractDetailPage"));
 const ContractSignaturePage = lazy(() => import("./pages/ContractSignaturePage"));
 const TimeTrackingPage = lazy(() => import("./pages/TimeTrackingPage"));
 
-// Loading fallback component
-const PageLoader = () => (
-  <div className="flex items-center justify-center min-h-screen bg-background">
-    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-  </div>
-);
+// Loading fallback component with timeout failsafe
+const PageLoader = () => {
+  const [showError, setShowError] = useState(false);
+  
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShowError(true);
+    }, 15000); // 15 seconds
+    
+    return () => clearTimeout(timeout);
+  }, []);
+  
+  if (showError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
+        <AlertCircle className="w-12 h-12 text-destructive mb-4" />
+        <h2 className="text-xl font-semibold mb-2">Page Failed to Load</h2>
+        <p className="text-muted-foreground mb-4">This might be due to a slow connection or cached files.</p>
+        <Button onClick={() => window.location.reload()}>
+          Reload Page
+        </Button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    </div>
+  );
+};
 
 // Initialize QueryClient with optimized defaults
 const queryClient = new QueryClient({
