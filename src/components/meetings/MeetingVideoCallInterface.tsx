@@ -32,7 +32,8 @@ import { PresenterHUD } from '@/components/video-call/PresenterHUD';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Video, Users, Brain } from 'lucide-react';
+import { Video, Users, Brain, WifiOff, RefreshCw } from 'lucide-react';
+import { Card } from '@/components/ui/card';
 
 interface MeetingVideoCallInterfaceProps {
   meeting: any;
@@ -202,6 +203,17 @@ export function MeetingVideoCallInterface({
   const handleRetry = () => {
     setPermissionDenied(false);
     setShowDiagnostics(true);
+  };
+
+  const handleRetryConnection = async () => {
+    try {
+      toast.info('Retrying connection...');
+      await retryConnection();
+      toast.success('Connection retry initiated');
+    } catch (error) {
+      console.error('[Meeting] Retry failed:', error);
+      toast.error('Retry failed. Please refresh the page.');
+    }
   };
 
   const handleEndCall = () => {
@@ -730,32 +742,56 @@ export function MeetingVideoCallInterface({
         </div>
       )}
 
-      {/* Error Recovery Banner - only show when error exists */}
-      {error && (
+      {/* Error Recovery Banner - compact top notification */}
+      {error && !error.recoverable && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 max-w-md">
           <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-4 py-3 rounded-lg shadow-xl">
             <div className="flex items-center gap-3">
               <span className="text-yellow-500">⚠️</span>
               <div className="flex-1">
                 <p className="text-sm font-medium text-white">{error.message}</p>
-                {error.recoverable && (
-                  <p className="text-xs text-gray-300">Attempting to reconnect...</p>
-                )}
+                <p className="text-xs text-gray-300">Please grant permissions and try again</p>
               </div>
-              {error.recoverable && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={retryConnection}
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20 text-xs"
-                >
-                  Retry
-                </Button>
-              )}
             </div>
           </div>
         </div>
       )}
+
+      {/* Recoverable Error Modal - full troubleshooting UI */}
+      {error && error.recoverable && (
+        <div className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <Card className="max-w-md w-full p-6 space-y-4 bg-card/95 backdrop-blur-xl border-border/50 shadow-2xl">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-yellow-500/20 flex items-center justify-center shrink-0">
+                <WifiOff className="w-6 h-6 text-yellow-500" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-lg text-foreground">Connection Issue</h3>
+                <p className="text-sm text-muted-foreground">{error.message}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Button onClick={handleRetryConnection} className="w-full" size="lg">
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Retry Connection
+              </Button>
+            </div>
+            
+            <div className="text-xs text-muted-foreground bg-muted/50 rounded-lg p-3">
+              <p className="font-medium mb-2 text-foreground">Troubleshooting tips:</p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>Check your internet connection</li>
+                <li>Disable VPN if active</li>
+                <li>Allow camera/microphone access</li>
+                <li>Try a different browser (Chrome works best)</li>
+                <li>Refresh the page if issue persists</li>
+              </ul>
+            </div>
+          </Card>
+        </div>
+      )}
+      
       
       {/* Meeting Info Header - Simplified */}
       <div className="absolute top-6 left-6 z-50 animate-in slide-in-from-left duration-500">

@@ -8,10 +8,40 @@ interface WebRTCConfig {
   onParticipantLeft: (userId: string) => void;
 }
 
+// Professional TURN/STUN servers for enterprise-grade connectivity
 const ICE_SERVERS = [
+  // Google STUN servers for NAT discovery
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
+  
+  // FREE OpenRelay TURN servers (no signup required)
+  {
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  }
 ];
+
+const RTC_CONFIG = {
+  iceServers: ICE_SERVERS,
+  iceTransportPolicy: 'all' as RTCIceTransportPolicy,
+  bundlePolicy: 'max-bundle' as RTCBundlePolicy,
+  rtcpMuxPolicy: 'require' as RTCRtcpMuxPolicy,
+  iceCandidatePoolSize: 10
+};
 
 export function useWebRTC({ sessionId, userId, onRemoteStream, onParticipantLeft }: WebRTCConfig) {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);

@@ -12,10 +12,40 @@ interface MeetingWebRTCConfig {
   onParticipantLeft: (participantId: string) => void;
 }
 
+// Professional TURN/STUN servers for enterprise-grade connectivity
 const ICE_SERVERS = [
+  // Google STUN servers for NAT discovery
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
+  
+  // FREE OpenRelay TURN servers (no signup required)
+  {
+    urls: 'turn:openrelay.metered.ca:80',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  },
+  {
+    urls: 'turn:openrelay.metered.ca:443?transport=tcp',
+    username: 'openrelayproject',
+    credential: 'openrelayproject'
+  }
 ];
+
+const RTC_CONFIG = {
+  iceServers: ICE_SERVERS,
+  iceTransportPolicy: 'all' as RTCIceTransportPolicy,
+  bundlePolicy: 'max-bundle' as RTCBundlePolicy,
+  rtcpMuxPolicy: 'require' as RTCRtcpMuxPolicy,
+  iceCandidatePoolSize: 10
+};
 
 export function useMeetingWebRTC({
   meetingId,
@@ -70,12 +100,14 @@ export function useMeetingWebRTC({
     });
   }, []);
 
-  // Initialize local media with adaptive quality
+  // Initialize local media with strict race condition fixes
   const initializeMedia = useCallback(async () => {
     try {
-      console.log('[WebRTC] Step 1: Initializing local media...');
+      console.log('[WebRTC] 🎬 STEP 1: Requesting media permissions...');
       setError(null);
+      setChannelStatus('connecting');
       
+      // 1. Get local media FIRST (strict ordering)
       const videoConstraints = getVideoConstraints();
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
@@ -89,8 +121,8 @@ export function useMeetingWebRTC({
           autoGainControl: true
         }
       });
-
-      console.log('[WebRTC] ✅ Step 2: Media initialized with quality:', stats.recommendedQuality);
+      
+      console.log('[WebRTC] ✅ STEP 2: Media acquired, setting state...');
       setLocalStream(stream);
       localStreamRef.current = stream;
       mediaReadyRef.current = true;
@@ -105,28 +137,25 @@ export function useMeetingWebRTC({
         });
       }
       
-      // Wait for channel to be ready before sending join signal
-      console.log('[WebRTC] Step 3: Waiting for channel to be ready...');
-      try {
-        await waitForChannelReady(signalChannel.current, 5000);
-      } catch (error) {
-        console.warn('[WebRTC] ⚠️ Channel not ready, but continuing anyway');
-      }
+      // 2. WAIT for channel to be FULLY ready (increased timeout, no fallback)
+      console.log('[WebRTC] ⏳ STEP 3: Waiting for signaling channel...');
+      await waitForChannelReady(signalChannel.current, 10000);
+      setChannelStatus('connected');
       
-      // Send join signal
+      // 3. ONLY NOW send join signal
       if (!hasJoinedRef.current) {
-        console.log('[WebRTC] 📢 Step 4: Sending join signal');
+        console.log('[WebRTC] 📢 STEP 4: Sending join signal...');
         await sendSignal({
           type: 'join',
           data: { name: participantName }
         });
         hasJoinedRef.current = true;
-        console.log('[WebRTC] ✅ Join signal sent successfully');
+        console.log('[WebRTC] ✅ Join signal sent, ready for peer connections');
       }
       
-      // Process any pending join signals that arrived before media was ready
+      // 4. Process pending offers that arrived early
       if (pendingJoinSignals.current.length > 0) {
-        console.log('[WebRTC] 📋 Processing', pendingJoinSignals.current.length, 'pending join signals');
+        console.log('[WebRTC] 📋 Processing', pendingJoinSignals.current.length, 'queued signals');
         for (const senderId of pendingJoinSignals.current) {
           await handleParticipantJoinInternal(senderId);
         }
@@ -135,21 +164,25 @@ export function useMeetingWebRTC({
       
       return stream;
     } catch (error: any) {
-      console.error('[WebRTC] Failed to initialize media:', error);
+      console.error('[WebRTC] ❌ Media initialization failed:', error);
+      setChannelStatus('error');
       
+      // Specific error messages
       const recoverable = error.name !== 'NotAllowedError' && error.name !== 'PermissionDeniedError';
       setError({
         message: error.name === 'NotFoundError' 
-          ? 'No camera or microphone found'
+          ? 'No camera or microphone detected'
           : error.name === 'NotAllowedError'
-          ? 'Camera/microphone access denied'
-          : 'Failed to access media devices',
+          ? 'Camera/microphone access denied. Click "Allow" in browser.'
+          : error.name === 'NotReadableError'
+          ? 'Camera/microphone is being used by another app'
+          : `Failed to access media: ${error.message}`,
         recoverable
       });
       
       throw error;
     }
-  }, [getVideoConstraints, stats.recommendedQuality, participantName, meetingId, participantId]);
+  }, [getVideoConstraints, participantName, meetingId]);
 
   // Create peer connection - ONLY call after media is ready
   const createPeerConnection = useCallback((targetParticipantId: string) => {
@@ -167,7 +200,7 @@ export function useMeetingWebRTC({
     
     console.log('[WebRTC] 🆕 Creating peer connection for:', targetParticipantId, '| Media ready:', mediaReadyRef.current, '| Tracks:', currentStream.getTracks().length);
     
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+    const pc = new RTCPeerConnection(RTC_CONFIG);
 
     // Store the connection immediately to prevent duplicates
     peerConnections.current.set(targetParticipantId, pc);
@@ -218,34 +251,54 @@ export function useMeetingWebRTC({
       }
     };
 
-    // Connection state changes with recovery
+    // Enhanced ICE connection state monitoring with auto-recovery
+    pc.oniceconnectionstatechange = () => {
+      const iceState = pc.iceConnectionState;
+      console.log('[WebRTC] 🧊 ICE state for', targetParticipantId, ':', iceState);
+      
+      switch (iceState) {
+        case 'checking':
+          toast.info(`Connecting to ${targetParticipantId.slice(0, 8)}...`, { id: `conn-${targetParticipantId}` });
+          break;
+        case 'connected':
+        case 'completed':
+          toast.success(`Connected to ${targetParticipantId.slice(0, 8)}`, { id: `conn-${targetParticipantId}` });
+          setError(null);
+          // Monitor connection stats
+          monitorConnectionStats(targetParticipantId);
+          break;
+        case 'disconnected':
+          toast.warning(`Connection unstable with ${targetParticipantId.slice(0, 8)}`, { id: `conn-${targetParticipantId}` });
+          console.log('[WebRTC] 🔄 Attempting ICE restart...');
+          pc.restartIce();
+          break;
+        case 'failed':
+          toast.error(`Failed to connect to ${targetParticipantId.slice(0, 8)}. Retrying...`, { id: `conn-${targetParticipantId}` });
+          // Try full reconnection
+          setTimeout(async () => {
+            if (pc.iceConnectionState === 'failed') {
+              console.log('[WebRTC] 🔁 Full reconnection attempt...');
+              peerConnections.current.delete(targetParticipantId);
+              await handleParticipantJoinInternal(targetParticipantId);
+            }
+          }, 2000);
+          break;
+        case 'closed':
+          console.log('[WebRTC] Connection closed for:', targetParticipantId);
+          onParticipantLeft(targetParticipantId);
+          break;
+      }
+    };
+
+    // Connection state changes
     pc.onconnectionstatechange = () => {
       console.log('[WebRTC] Connection state:', pc.connectionState, 'for:', targetParticipantId);
       setConnectionState(pc.connectionState);
       
       if (pc.connectionState === 'failed') {
-        console.warn('[WebRTC] Connection failed, attempting to reconnect...');
         setError({ message: 'Connection lost, reconnecting...', recoverable: true });
-        
-        // Attempt ICE restart
-        pc.restartIce();
-        
-        setTimeout(() => {
-          if (pc.connectionState === 'failed') {
-            onParticipantLeft(targetParticipantId);
-            peerConnections.current.delete(targetParticipantId);
-          }
-        }, 5000);
       } else if (pc.connectionState === 'disconnected') {
-        console.warn('[WebRTC] Connection disconnected');
         setError({ message: 'Connection unstable', recoverable: true });
-        
-        setTimeout(() => {
-          if (pc.connectionState === 'disconnected') {
-            onParticipantLeft(targetParticipantId);
-            peerConnections.current.delete(targetParticipantId);
-          }
-        }, 10000);
       } else if (pc.connectionState === 'connected') {
         setError(null);
       }
@@ -253,6 +306,109 @@ export function useMeetingWebRTC({
 
     return pc;
   }, [localStream, onRemoteStream, onParticipantLeft]);
+
+  // Monitor connection stats and adapt quality
+  const monitorConnectionStats = async (targetParticipantId: string) => {
+    const pc = peerConnections.current.get(targetParticipantId);
+    if (!pc) return;
+    
+    try {
+      const stats = await pc.getStats();
+      stats.forEach(report => {
+        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+          console.log('[WebRTC] 📊 Active connection:', {
+            localType: report.localCandidateType,
+            remoteType: report.remoteCandidateType,
+            protocol: report.protocol,
+            currentRoundTripTime: report.currentRoundTripTime
+          });
+          
+          // Alert if using TURN relay
+          if (report.localCandidateType === 'relay' || report.remoteCandidateType === 'relay') {
+            console.log('[WebRTC] ⚠️ Using TURN relay - direct P2P not possible');
+            toast.info('Connected via relay server', { id: 'relay-notification', duration: 3000 });
+          }
+        }
+      });
+    } catch (error) {
+      console.error('[WebRTC] Failed to get stats:', error);
+    }
+  };
+
+  // Adapt video quality based on network conditions
+  const adaptVideoQuality = useCallback(async (targetParticipantId: string) => {
+    const pc = peerConnections.current.get(targetParticipantId);
+    if (!pc) return;
+    
+    try {
+      const stats = await pc.getStats();
+      let packetsLost = 0;
+      let packetsReceived = 0;
+      let rtt = 0;
+      
+      stats.forEach(report => {
+        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+          packetsLost = report.packetsLost || 0;
+          packetsReceived = report.packetsReceived || 0;
+        }
+        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+          rtt = (report.currentRoundTripTime || 0) * 1000;
+        }
+      });
+      
+      const packetLossRate = packetsReceived > 0 ? (packetsLost / (packetsLost + packetsReceived)) * 100 : 0;
+      
+      // Determine quality based on network conditions
+      let recommendedQuality: 'high' | 'medium' | 'low';
+      if (packetLossRate < 2 && rtt < 150) {
+        recommendedQuality = 'high';
+      } else if (packetLossRate < 5 && rtt < 300) {
+        recommendedQuality = 'medium';
+      } else {
+        recommendedQuality = 'low';
+      }
+      
+      // Apply quality settings
+      const senders = pc.getSenders();
+      const videoSender = senders.find(s => s.track?.kind === 'video');
+      
+      if (videoSender) {
+        const params = videoSender.getParameters();
+        if (!params.encodings) params.encodings = [{}];
+        
+        switch (recommendedQuality) {
+          case 'high':
+            params.encodings[0].maxBitrate = 2500000;
+            params.encodings[0].scaleResolutionDownBy = 1;
+            break;
+          case 'medium':
+            params.encodings[0].maxBitrate = 1000000;
+            params.encodings[0].scaleResolutionDownBy = 2;
+            break;
+          case 'low':
+            params.encodings[0].maxBitrate = 500000;
+            params.encodings[0].scaleResolutionDownBy = 4;
+            break;
+        }
+        
+        await videoSender.setParameters(params);
+        console.log('[WebRTC] 🎥 Adapted to', recommendedQuality, 'quality | Packet loss:', packetLossRate.toFixed(2), '% | RTT:', rtt.toFixed(0), 'ms');
+      }
+    } catch (error) {
+      console.error('[WebRTC] Failed to adapt quality:', error);
+    }
+  }, []);
+
+  // Monitor quality every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      peerConnections.current.forEach((_, participantId) => {
+        adaptVideoQuality(participantId);
+      });
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [adaptVideoQuality]);
 
   // Send signal through Supabase with retry logic
   const sendSignal = async (signal: {
