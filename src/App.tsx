@@ -130,37 +130,76 @@ const ContractDetailPage = lazy(() => import("./pages/ContractDetailPage"));
 const ContractSignaturePage = lazy(() => import("./pages/ContractSignaturePage"));
 const TimeTrackingPage = lazy(() => import("./pages/TimeTrackingPage"));
 
-// Loading fallback component with timeout failsafe
+// PageLoader with aggressive timeout and emergency fallback
 const PageLoader = () => {
   const [showError, setShowError] = useState(false);
-  
+  const [countdown, setCountdown] = useState(5);
+
   useEffect(() => {
-    const timeout = setTimeout(() => {
+    // Show error after 5 seconds
+    const errorTimer = setTimeout(() => {
+      console.error('[PageLoader] ⏰ Loading timeout - showing error UI');
       setShowError(true);
-    }, 15000); // 15 seconds
-    
-    return () => clearTimeout(timeout);
-  }, []);
-  
+    }, 5000);
+
+    // Countdown for reload button
+    if (showError) {
+      const countdownInterval = setInterval(() => {
+        setCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(countdownInterval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(countdownInterval);
+    }
+
+    return () => clearTimeout(errorTimer);
+  }, [showError]);
+
   if (showError) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-background p-4">
-        <AlertCircle className="w-12 h-12 text-destructive mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Page Failed to Load</h2>
-        <p className="text-muted-foreground mb-4">This might be due to a slow connection or cached files.</p>
-        <Button onClick={() => window.location.reload()}>
-          Reload Page
-        </Button>
+        <div className="text-center space-y-6 max-w-md">
+          <AlertCircle className="w-16 h-16 text-destructive mx-auto" />
+          <div>
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              Page Taking Too Long
+            </h1>
+            <p className="text-muted-foreground mb-4">
+              The application is loading slowly. This might be due to network issues or server problems.
+            </p>
+          </div>
+          <div className="space-y-3">
+            <Button 
+              onClick={() => window.location.reload()}
+              className="w-full"
+              size="lg"
+            >
+              Reload Page {countdown > 0 && `(${countdown}s)`}
+            </Button>
+            <Button 
+              onClick={() => window.location.href = '/auth'}
+              variant="outline"
+              className="w-full"
+            >
+              Go to Login
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            If this persists, please clear your browser cache or try a different browser.
+          </p>
+        </div>
       </div>
     );
   }
-  
+
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <p className="text-sm text-muted-foreground">Loading...</p>
-      </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background">
+      <Loader2 className="w-12 h-12 animate-spin text-primary mb-4" />
+      <p className="text-muted-foreground animate-pulse">Loading...</p>
     </div>
   );
 };
