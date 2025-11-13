@@ -66,7 +66,13 @@ export function JobRecommendations({ userId }: { userId: string }) {
         .order('overall_score', { ascending: false })
         .limit(5);
 
-      if (error) throw error;
+      if (error) {
+        // Silently fail if relationship doesn't exist yet
+        console.warn('Could not fetch recommendations - database schema may need migration:', error.message);
+        setRecommendations([]);
+        setLoading(false);
+        return;
+      }
 
       const formatted = data?.map(match => ({
         id: match.id,
@@ -85,7 +91,8 @@ export function JobRecommendations({ userId }: { userId: string }) {
 
       setRecommendations(formatted);
     } catch (error) {
-      console.error('Error fetching recommendations:', error);
+      console.warn('Error fetching recommendations:', error);
+      setRecommendations([]);
     } finally {
       setLoading(false);
     }

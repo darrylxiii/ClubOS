@@ -82,11 +82,17 @@ const Auth = () => {
       // Check if onboarding is complete
       const checkOnboarding = async () => {
         try {
-          const { data: profile } = await supabase
+          const { data: profile, error } = await supabase
             .from('profiles')
             .select('onboarding_completed_at')
             .eq('id', user.id)
             .single();
+          
+          if (error) {
+            console.error("[Auth Page] ❌ Database error fetching profile:", error);
+            toast.error("Failed to load profile. Please try refreshing.");
+            return;
+          }
           
           console.log("[Auth Page] 📋 Profile data:", { 
             userId: user.id, 
@@ -111,11 +117,13 @@ const Auth = () => {
           }
         } catch (error) {
           console.error("[Auth Page] ❌ Error checking onboarding:", error);
+          toast.error("An error occurred. Please try logging in again.");
           // If error, redirect to home and let ClubHome handle it
           sessionStorage.setItem('onboarding_checked', 'true');
           navigate("/home", { replace: true });
         } finally {
           onboardingCheckInProgress.current = false;
+          setIsNavigating(false);
         }
       };
       
