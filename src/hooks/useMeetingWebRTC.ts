@@ -72,8 +72,6 @@ export function useMeetingWebRTC({
   const mediaReadyRef = useRef(false);
   const localStreamRef = useRef<MediaStream | null>(null);
   const pendingJoinSignals = useRef<string[]>([]);
-  const makingOfferRef = useRef<Map<string, boolean>>(new Map());
-  const ignoreOfferRef = useRef<Map<string, boolean>>(new Map());
   const leftParticipantsRef = useRef<Set<string>>(new Set()); // Track who has left to prevent reconnection
   const { stats, getVideoConstraints } = useBandwidthMonitor();
 
@@ -353,25 +351,13 @@ export function useMeetingWebRTC({
       }
     };
 
-    // Perfect Negotiation: Handle renegotiation when needed
+    // Handle renegotiation when needed - simplified pattern
     pc.onnegotiationneeded = async () => {
       try {
         console.log('[WebRTC] 🔄 Negotiation needed for:', targetParticipantId);
         
-        // Only initiate if we're the impolite peer
-        const shouldInitiate = participantId > targetParticipantId;
-        if (!shouldInitiate) {
-          console.log('[WebRTC] 🤝 Polite peer - skipping renegotiation (waiting for offer)');
-          return;
-        }
-        
-        makingOfferRef.current.set(targetParticipantId, true);
-        console.log('[WebRTC] 📞 Creating new offer for renegotiation');
-        
         const offer = await pc.createOffer();
         await pc.setLocalDescription(offer);
-        
-        makingOfferRef.current.set(targetParticipantId, false);
         
         await sendSignal({
           type: 'offer',
@@ -381,7 +367,6 @@ export function useMeetingWebRTC({
         
         console.log('[WebRTC] ✅ Renegotiation offer sent');
       } catch (error) {
-        makingOfferRef.current.set(targetParticipantId, false);
         console.error('[WebRTC] ❌ Renegotiation failed:', error);
       }
     };
@@ -556,7 +541,7 @@ export function useMeetingWebRTC({
     }
   };
 
-  // Handle incoming offer with Perfect Negotiation Pattern
+  // Handle incoming offer - simplified pattern
   const handleOffer = async (senderId: string, offer: RTCSessionDescriptionInit) => {
     console.log('[WebRTC] 📞 Handling offer from:', senderId, '| Media ready:', mediaReadyRef.current);
     
@@ -576,19 +561,8 @@ export function useMeetingWebRTC({
       setParticipants(prev => [...new Set([...prev, senderId])]);
     }
 
-    // Perfect Negotiation: Determine if we should be polite or impolite
-    const isPolite = participantId < senderId; // Lexicographic comparison for consistency
-    const offerCollision = pc.signalingState !== 'stable' || makingOfferRef.current.get(senderId);
-    
-    ignoreOfferRef.current.set(senderId, !isPolite && offerCollision);
-    
-    if (ignoreOfferRef.current.get(senderId)) {
-      console.log('[WebRTC] 🚫 Ignoring offer due to collision (impolite peer)');
-      return;
-    }
-
     try {
-      console.log('[WebRTC] 📝 Setting remote description (offer) from:', senderId, '| Polite:', isPolite);
+      console.log('[WebRTC] 📝 Setting remote description (offer) from:', senderId);
       await pc.setRemoteDescription(new RTCSessionDescription(offer));
       
       console.log('[WebRTC] 🎤 Creating answer for:', senderId);
@@ -705,8 +679,6 @@ export function useMeetingWebRTC({
               peerConnections.current.delete(connectedId);
             }
             
-            makingOfferRef.current.delete(connectedId);
-            ignoreOfferRef.current.delete(connectedId);
             onParticipantLeft(connectedId);
           }
         }
@@ -861,43 +833,35 @@ export function useMeetingWebRTC({
       return;
     }
     
-    // Perfect Negotiation: Only initiate if we're the "impolite" peer (higher ID)
+    // Create peer connection with tracks for BOTH peers
+    const pc = createPeerConnection(newParticipantId);
+    setParticipants(prev => [...new Set([...prev, newParticipantId])]);
+    
+    // Only higher ID initiates offer to prevent simultaneous offers
     const shouldInitiate = participantId > newParticipantId;
     
-    if (!shouldInitiate) {
-      console.log('[WebRTC] 🤝 Polite peer - waiting for offer from:', newParticipantId);
-      // Create connection but don't send offer - wait for them to offer
-      const pc = createPeerConnection(newParticipantId);
-      setParticipants(prev => [...new Set([...prev, newParticipantId])]);
-      return;
-    }
-    
-    console.log('[WebRTC] 📞 Impolite peer - initiating offer to:', newParticipantId);
-    setParticipants(prev => [...new Set([...prev, newParticipantId])]);
-
-    try {
-      const pc = createPeerConnection(newParticipantId);
+    if (shouldInitiate) {
+      console.log('[WebRTC] 📞 Initiating offer (higher ID) to:', newParticipantId);
       
-      makingOfferRef.current.set(newParticipantId, true);
-      
-      console.log('[WebRTC] 🎬 Creating offer with', currentStream.getTracks().length, 'tracks');
-      const offer = await pc.createOffer();
-      await pc.setLocalDescription(offer);
-      
-      makingOfferRef.current.set(newParticipantId, false);
-      
-      console.log('[WebRTC] ✅ Offer created, sending to:', newParticipantId);
-      
-      await sendSignal({
-        type: 'offer',
-        receiverId: newParticipantId,
-        data: offer
-      });
-      
-      console.log('[WebRTC] ✅ Offer sent successfully to:', newParticipantId);
-    } catch (error) {
-      makingOfferRef.current.set(newParticipantId, false);
-      console.error('[WebRTC] ❌ Failed to create/send offer to:', newParticipantId, error);
+      try {
+        console.log('[WebRTC] 🎬 Creating offer with', currentStream.getTracks().length, 'tracks');
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        
+        console.log('[WebRTC] ✅ Offer created, sending to:', newParticipantId);
+        
+        await sendSignal({
+          type: 'offer',
+          receiverId: newParticipantId,
+          data: offer
+        });
+        
+        console.log('[WebRTC] ✅ Offer sent successfully to:', newParticipantId);
+      } catch (error) {
+        console.error('[WebRTC] ❌ Failed to create/send offer to:', newParticipantId, error);
+      }
+    } else {
+      console.log('[WebRTC] 🤝 Waiting for offer (lower ID) from:', newParticipantId);
     }
   };
 
@@ -979,10 +943,6 @@ export function useMeetingWebRTC({
                 pc.close();
                 peerConnections.current.delete(signal.sender_id);
               }
-              
-              // Clean up negotiation refs
-              makingOfferRef.current.delete(signal.sender_id);
-              ignoreOfferRef.current.delete(signal.sender_id);
               
               // Remove from participants list
               setParticipants(prev => prev.filter(p => p !== signal.sender_id));
@@ -1285,9 +1245,7 @@ export function useMeetingWebRTC({
       });
       peerConnections.current.clear();
       
-      // Clear negotiation refs
-      makingOfferRef.current.clear();
-      ignoreOfferRef.current.clear();
+      // Clear refs
       leftParticipantsRef.current.clear();
       
       // Unsubscribe from channel and send leave signal
