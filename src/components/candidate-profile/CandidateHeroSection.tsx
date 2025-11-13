@@ -1,13 +1,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { 
-  Send, Calendar, Edit, TrendingUp, 
-  Activity, Star, CheckCircle, Linkedin, User, AlertCircle
+  Send, Calendar, Edit, Linkedin, User, 
+  AlertCircle, CheckCircle, Mail, Phone, MapPin, MoreVertical
 } from "lucide-react";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
-import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
+import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 
 interface Props {
   candidate: any;
@@ -54,188 +60,138 @@ export const CandidateHeroSection = ({
     .join('')
     .toUpperCase();
 
-  const ScoreBadge = ({ label, value, max = 10, icon: Icon }: any) => {
-    const percentage = (value / max) * 100;
-    const color = getScoreColor(percentage);
-    
-    return (
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        className={`${candidateProfileTokens.glass.card} rounded-xl p-3 ${candidateProfileTokens.shadows.sm}`}
-      >
-        <div className="flex items-center gap-2 mb-1">
-          <Icon className="w-3 h-3" style={{ color: color.bg }} />
-          <span className="text-xs text-muted-foreground">{label}</span>
-        </div>
-        <div className="text-2xl font-bold" style={{ color: color.bg }}>
-          {max === 10 ? value.toFixed(1) : `${Math.round(percentage)}%`}
-        </div>
-      </motion.div>
-    );
-  };
-
   return (
-    <div className={`${candidateProfileTokens.glass.card} rounded-2xl overflow-hidden`}>
-      {/* Quick Actions Toolbar */}
-      <div className="bg-background/95 backdrop-blur-md border-b border-border/50 px-6 py-4">
-        <div className="flex items-center justify-end gap-2">
-          {onMessage && (
-            <Button size="sm" variant="outline" onClick={onMessage}>
-              <Send className="w-4 h-4 mr-2" />
-              Message
-            </Button>
-          )}
-          {onSchedule && (
-            <Button size="sm" variant="outline" onClick={onSchedule}>
-              <Calendar className="w-4 h-4 mr-2" />
-              Schedule
-            </Button>
-          )}
-          {onEdit && (
-            <Button size="sm" variant="outline" onClick={onEdit}>
-              <Edit className="w-4 h-4 mr-2" />
-              Edit
-            </Button>
-          )}
-          {onAdvance && (
-            <Button size="sm" onClick={onAdvance}>
-              Advance
-            </Button>
-          )}
-          {onDecline && (
-            <Button size="sm" variant="outline" onClick={onDecline} className="border-red-500/50 text-red-500 hover:bg-red-500/10">
-              Decline
-            </Button>
-          )}
-        </div>
-      </div>
+    <Card className={candidateProfileTokens.glass.card}>
+      <CardContent className="p-6">
+        <div className="flex items-start gap-4">
+          {/* Avatar - Compact */}
+          <Avatar className="w-32 h-32 border-2 border-border shadow-md">
+            <AvatarImage src={candidate.avatar_url} alt={candidateName} />
+            <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary/20 to-primary/10">
+              {initials || <User className="h-12 w-12" />}
+            </AvatarFallback>
+          </Avatar>
 
-      {/* Hero Content */}
-      <div className="p-8">
-        <div className="flex items-start gap-6">
-          {/* Avatar */}
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={candidateProfileTokens.animations.spring}
-          >
-            <Avatar className="w-32 h-32 border-4 border-background shadow-lg">
-              <AvatarImage src={candidate.avatar_url} alt={candidateName} />
-              <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary/20 to-primary/10">
-                {initials || <User className="h-12 w-12" />}
-              </AvatarFallback>
-            </Avatar>
-          </motion.div>
-
-          {/* Info */}
-          <div className="flex-1 space-y-4">
+          {/* Main Info Column */}
+          <div className="flex-1 min-w-0 space-y-3">
+            {/* Name + Title in one block */}
             <div>
-              <motion.h1
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                className="text-4xl font-bold mb-2"
-              >
-                {candidateName}
-              </motion.h1>
-              <motion.p
-                initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.15 }}
-                className="text-lg text-muted-foreground mb-3"
-              >
-                {candidate.current_title} {candidate.current_company && `at ${candidate.current_company}`}
-              </motion.p>
-              
-              {/* Account Status & Current Stage */}
-              <motion.div
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="flex flex-wrap items-center gap-2 mb-3"
-              >
-                {!hasAccount ? (
-                  <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10">
-                    <AlertCircle className="w-3 h-3 mr-1" />
-                    Pending Account Setup
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="border-green-500/50 text-green-600 bg-green-500/10">
-                    <CheckCircle className="w-3 h-3 mr-1" />
-                    Active Member
-                  </Badge>
-                )}
-                
-                {stage && (
-                  <Badge className="bg-primary/10 border-primary/30 text-primary">
-                    Current Stage: {stage}
-                  </Badge>
-                )}
-              </motion.div>
-              
-              {/* Primary & Secondary Actions */}
-              <motion.div
-                initial={{ y: -10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.25 }}
-                className="flex flex-wrap items-center gap-2"
-              >
-                {hasAccount ? (
-                  <Button onClick={() => navigate(`/profile/${candidate.user_id}`)}>
-                    <User className="w-4 h-4 mr-2" />
-                    View Club Profile
-                  </Button>
-                ) : (
-                  <Button onClick={() => console.log('Send invitation')}>
-                    <Send className="w-4 h-4 mr-2" />
-                    Send Invitation
-                  </Button>
-                )}
-                
-                {candidate.linkedin_url && (
-                  <Button variant="outline" asChild>
-                    <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer">
-                      <Linkedin className="w-4 h-4 mr-2" />
-                      View LinkedIn
-                    </a>
-                  </Button>
-                )}
-              </motion.div>
+              <h1 className="text-3xl font-bold mb-1">{candidateName}</h1>
+              <p className="text-base text-muted-foreground">
+                {candidate.current_title}
+                {candidate.current_company && ` at ${candidate.current_company}`}
+              </p>
             </div>
 
-            {/* Location & Details */}
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.25 }}
-              className="flex flex-wrap gap-2"
-            >
-              {candidate.location && (
-                <Badge variant="outline">{candidate.location}</Badge>
+            {/* Contact Info Row - Compact horizontal layout */}
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              {candidate.email && (
+                <div className="flex items-center gap-1.5">
+                  <Mail className="w-4 h-4" />
+                  <span>{candidate.email}</span>
+                </div>
               )}
+              {candidate.phone && (
+                <div className="flex items-center gap-1.5">
+                  <Phone className="w-4 h-4" />
+                  <span>{candidate.phone}</span>
+                </div>
+              )}
+              {candidate.location && (
+                <div className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4" />
+                  <span>{candidate.location}</span>
+                </div>
+              )}
+              {candidate.linkedin_url && (
+                <Button variant="ghost" size="sm" asChild className="h-auto py-0 px-2">
+                  <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer">
+                    <Linkedin className="w-4 h-4 mr-1" />
+                    LinkedIn
+                  </a>
+                </Button>
+              )}
+            </div>
+
+            {/* Status Badges Row - Compact */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Account Status */}
+              {!hasAccount ? (
+                <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10">
+                  <AlertCircle className="w-3 h-3 mr-1" />
+                  Pending Setup
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="border-green-500/50 text-green-600 bg-green-500/10">
+                  <CheckCircle className="w-3 h-3 mr-1" />
+                  Active Member
+                </Badge>
+              )}
+
+              {/* Current Stage - Only show if exists */}
+              {stage && (
+                <Badge className="bg-primary/10 border-primary/30 text-primary px-3 py-1">
+                  📍 {stage}
+                </Badge>
+              )}
+
+              {/* Years of Experience */}
               {candidate.years_of_experience && (
                 <Badge variant="outline">{candidate.years_of_experience} years exp</Badge>
               )}
+
+              {/* Notice Period */}
               {candidate.notice_period && (
                 <Badge variant="outline">Notice: {candidate.notice_period}</Badge>
               )}
-            </motion.div>
+            </div>
 
-            {/* Score Badges Row */}
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.25 }}
-              className="grid grid-cols-4 gap-3"
-            >
-              <ScoreBadge label="Fit Score" value={fitScore} icon={TrendingUp} />
-              <ScoreBadge label="Engagement" value={engagementScore} icon={Activity} />
-              <ScoreBadge label="Rating" value={internalRating} icon={Star} />
-              <ScoreBadge label="Complete" value={completeness} max={100} icon={CheckCircle} />
-            </motion.div>
+            {/* Primary Actions - Compact */}
+            <div className="flex items-center gap-2">
+              {hasAccount ? (
+                <Button onClick={() => navigate(`/profile/${candidate.user_id}`)}>
+                  <User className="w-4 h-4 mr-2" />
+                  View Club Profile
+                </Button>
+              ) : (
+                <Button onClick={() => console.log('Send invitation')}>
+                  <Send className="w-4 h-4 mr-2" />
+                  Send Invitation
+                </Button>
+              )}
+
+              {/* Quick Actions in dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon">
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {onMessage && (
+                    <DropdownMenuItem onClick={onMessage}>
+                      <Send className="w-4 h-4 mr-2" />
+                      Send Message
+                    </DropdownMenuItem>
+                  )}
+                  {onSchedule && (
+                    <DropdownMenuItem onClick={onSchedule}>
+                      <Calendar className="w-4 h-4 mr-2" />
+                      Schedule Interview
+                    </DropdownMenuItem>
+                  )}
+                  {onEdit && (
+                    <DropdownMenuItem onClick={onEdit}>
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit Profile
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };

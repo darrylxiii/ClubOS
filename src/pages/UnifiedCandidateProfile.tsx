@@ -13,7 +13,7 @@ import { CandidateDocumentsViewer } from "@/components/partner/CandidateDocument
 import { CandidateInternalRatingCard } from "@/components/partner/CandidateInternalRatingCard";
 import { CandidateNotesManager } from "@/components/partner/CandidateNotesManager";
 import { CandidateWorkAuthCard } from "@/components/partner/CandidateWorkAuthCard";
-import { PipelineSidebarCard } from "@/components/candidate-profile/PipelineSidebarCard";
+import { PipelineBreakdownCard } from "@/components/candidate-profile/PipelineBreakdownCard";
 import { CandidatePipelineContextBanner } from "@/components/partner/CandidatePipelineContextBanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -156,7 +156,7 @@ export default function UnifiedCandidateProfile() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+      <div className="container mx-auto px-4 py-4 max-w-7xl space-y-4">
         {/* Back Button */}
         <BackButton 
           fromJob={fromJob || undefined}
@@ -165,27 +165,24 @@ export default function UnifiedCandidateProfile() {
           fromSearch={fromSearch}
         />
 
-        {/* Hero Section */}
+        {/* Hero Section - Compact */}
         <CandidateHeroSection 
           candidate={candidate} 
           fromJob={fromJob || undefined}
           stage={stage || application?.stage}
         />
 
-        {/* Pipeline Context Banner (if from job) */}
-        {applicationId && application && fromJob && (
-          <CandidatePipelineContextBanner
-            candidateId={candidateId!}
-            candidateName={`${candidate.first_name} ${candidate.last_name}`}
-            jobId={fromJob}
-            currentStage={application.stage}
+        {/* Full Pipeline Breakdown - Prominent after hero */}
+        {application && (
+          <PipelineBreakdownCard 
+            application={application}
           />
         )}
 
-            {/* Main Content Grid: 70/30 split */}
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-              {/* Left Column: Main Content */}
-              <div className={candidateProfileTokens.layout.sectionGap}>
+        {/* Main Content Grid: 70/30 split */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+          {/* Left Column: Main Content */}
+          <div className="space-y-4">
                 {/* Decision Intelligence Zone (Always Expanded) */}
                 <CandidateDecisionDashboard candidate={candidate} applications={application ? [application] : []} />
 
@@ -252,43 +249,46 @@ export default function UnifiedCandidateProfile() {
                 </Card>
               </div>
 
-              {/* Right Sidebar: Sticky Cards */}
-              <div className="space-y-6">
-                {/* Pipeline Status (if from job) */}
-                {application && <PipelineSidebarCard application={application} />}
-
-                {/* Career Preferences */}
+              {/* Right Sidebar: Sticky Cards - Tighter spacing */}
+              <div className="space-y-4">
+                {/* Career Preferences - Compact */}
                 <Card className={`${candidateProfileTokens.glass.card} sticky top-24`}>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Career Preferences</CardTitle>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base">Career Preferences</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3 text-sm">
+                  <CardContent className="space-y-2 text-sm">
+                    {/* Salary - Compact row */}
                     {(candidate.desired_salary_min || candidate.desired_salary_max) && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">Salary Expectations</p>
-                        <p className="font-semibold">
-                          {candidate.preferred_currency || 'EUR'} {candidate.desired_salary_min?.toLocaleString()} -{' '}
-                          {candidate.desired_salary_max?.toLocaleString()}
-                        </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Salary:</span>
+                        <span className="font-medium text-xs">
+                          {candidate.preferred_currency || 'EUR'} {Math.round(candidate.desired_salary_min / 1000)}K-{Math.round(candidate.desired_salary_max / 1000)}K
+                        </span>
                       </div>
                     )}
+                    
+                    {/* Notice Period - Compact row */}
                     {candidate.notice_period && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">Notice Period</p>
-                        <Badge variant="outline">{candidate.notice_period}</Badge>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Notice:</span>
+                        <Badge variant="outline" className="text-xs">{candidate.notice_period}</Badge>
                       </div>
                     )}
+                    
+                    {/* Remote Preference - Compact row */}
                     {candidate.remote_preference && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">Remote Work</p>
-                        <Badge variant="outline" className="capitalize">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Work:</span>
+                        <Badge variant="outline" className="text-xs capitalize">
                           {candidate.remote_preference.replace('_', ' ')}
                         </Badge>
                       </div>
                     )}
+                    
+                    {/* Locations - Compact */}
                     {candidate.desired_locations && candidate.desired_locations.length > 0 && (
-                      <div>
-                        <p className="text-muted-foreground mb-1">Desired Locations</p>
+                      <div className="space-y-1">
+                        <span className="text-xs text-muted-foreground">Desired Locations:</span>
                         <div className="flex flex-wrap gap-1">
                           {candidate.desired_locations.map((loc: string, i: number) => (
                             <Badge key={i} variant="secondary" className="text-xs">

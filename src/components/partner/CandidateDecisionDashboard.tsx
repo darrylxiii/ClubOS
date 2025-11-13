@@ -1,12 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Target, AlertTriangle, CheckCircle2, TrendingUp, 
-  Award, DollarSign, Clock, MapPin, Zap, Briefcase
+  Award, DollarSign, Clock, MapPin, Zap, Briefcase, Activity, Star
 } from "lucide-react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
 
 interface Props {
   candidate: any;
@@ -51,100 +52,132 @@ export const CandidateDecisionDashboard = ({ candidate, applications }: Props) =
     { category: 'Location', value: 70 },
   ];
 
+  // Score badges component
+  const ScoreBadge = ({ label, value, max = 10, icon: Icon }: any) => {
+    const percentage = (value / max) * 100;
+    const color = getScoreColor(percentage);
+    
+    return (
+      <div className={`${candidateProfileTokens.glass.card} rounded-xl p-3`}>
+        <div className="flex items-center gap-2 mb-1">
+          <Icon className="w-4 h-4" style={{ color: color.bg }} />
+          <span className="text-xs text-muted-foreground">{label}</span>
+        </div>
+        <div className="text-2xl font-bold" style={{ color: color.bg }}>
+          {max === 10 ? value.toFixed(1) : `${Math.round(percentage)}%`}
+        </div>
+      </div>
+    );
+  };
+
+  const fitScore = candidate.fit_score || 0;
+  const engagementScore = candidate.engagement_score || 0;
+  const internalRating = candidate.internal_rating || 0;
+  const completeness = candidate.profile_completeness || 0;
+
   return (
-    <div className="space-y-6">
-      {/* Overall Assessment Card */}
+    <div className="space-y-4">
+      {/* Overall Assessment Card - Enhanced with Score Badges */}
       <Card className="border-2">
-        <CardHeader>
+        <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2">
             <Target className="w-5 h-5" />
             Overall Assessment
           </CardTitle>
-          <CardDescription>Comprehensive evaluation across all criteria</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-6">
+        <CardContent className="space-y-4">
+          {/* Top Section: Overall Score + Score Badges + Radar Chart */}
+          <div className="grid grid-cols-[auto_1fr_300px] gap-6 items-start">
+            {/* Overall Score - Large */}
             <div className="text-center">
               <div className="text-6xl font-black mb-2">{overallScore}</div>
-              <p className="text-sm text-muted-foreground">Overall Score</p>
+              <p className="text-sm text-muted-foreground">Overall</p>
             </div>
-            <Separator orientation="vertical" className="h-24" />
-            <div className="flex-1">
+
+            {/* Score Badges Grid - 2x2 */}
+            <div className="grid grid-cols-2 gap-3">
+              <ScoreBadge label="Fit Score" value={fitScore} icon={TrendingUp} />
+              <ScoreBadge label="Engagement" value={engagementScore} icon={Activity} />
+              <ScoreBadge label="Internal Rating" value={internalRating} icon={Star} />
+              <ScoreBadge label="Completeness" value={completeness} max={100} icon={CheckCircle2} />
+            </div>
+
+            {/* Radar Chart - Right side */}
+            <div>
               <ResponsiveContainer width="100%" height={200}>
                 <RadarChart data={radarData}>
                   <PolarGrid stroke="hsl(var(--border))" />
                   <PolarAngleAxis 
                     dataKey="category" 
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                   />
                   <Radar 
                     dataKey="value" 
-                    stroke="hsl(var(--foreground))" 
-                    fill="hsl(var(--muted))" 
-                    fillOpacity={0.6} 
+                    stroke="hsl(var(--primary))" 
+                    fill="hsl(var(--primary))" 
+                    fillOpacity={0.3} 
                   />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
           </div>
+
+          {/* AI Summary + Strengths - Side by side */}
+          {(candidate.ai_summary || (candidate.ai_strengths && candidate.ai_strengths.length > 0)) && (
+            <>
+              <Separator className="my-4" />
+              <div className="grid grid-cols-2 gap-4">
+                {/* AI Summary */}
+                {candidate.ai_summary && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold flex items-center gap-2 text-sm">
+                      <Zap className="w-4 h-4" />
+                      Executive Summary
+                    </h4>
+                    <p className="text-sm text-muted-foreground line-clamp-4">{candidate.ai_summary}</p>
+                  </div>
+                )}
+
+                {/* Strengths */}
+                {candidate.ai_strengths && candidate.ai_strengths.length > 0 && (
+                  <div className="space-y-2">
+                    <h4 className="font-semibold flex items-center gap-2 text-sm text-green-600">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Key Strengths
+                    </h4>
+                    <ul className="space-y-1">
+                      {candidate.ai_strengths.slice(0, 3).map((s: any, i: number) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          <CheckCircle2 className="w-3 h-3 text-green-600 mt-0.5 flex-shrink-0" />
+                          <span className="line-clamp-2">{typeof s === 'string' ? s : s.point || s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {/* Red Flags - Full width if exists */}
+          {candidate.ai_concerns && candidate.ai_concerns.length > 0 && (
+            <>
+              <Separator className="my-4" />
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <p className="font-semibold mb-2">Potential Concerns:</p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    {candidate.ai_concerns.map((c: any, i: number) => (
+                      <li key={i}>{typeof c === 'string' ? c : c.point || c}</li>
+                    ))}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            </>
+          )}
         </CardContent>
       </Card>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* AI Summary */}
-        {candidate.ai_summary && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="w-5 h-5" />
-                AI Executive Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                {candidate.ai_summary}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Strengths */}
-        {candidate.ai_strengths && Array.isArray(candidate.ai_strengths) && candidate.ai_strengths.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
-                Key Strengths
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {candidate.ai_strengths.map((strength: any, idx: number) => (
-                <div key={idx} className="flex items-start gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
-                  <p className="text-sm">{typeof strength === 'string' ? strength : strength.point || strength}</p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-
-      {/* Red Flags / Concerns */}
-      {candidate.ai_concerns && Array.isArray(candidate.ai_concerns) && candidate.ai_concerns.length > 0 && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-5 w-5" />
-          <AlertDescription>
-            <p className="font-semibold mb-2">Potential Concerns:</p>
-            <ul className="list-disc list-inside space-y-1">
-              {candidate.ai_concerns.map((concern: any, idx: number) => (
-                <li key={idx} className="text-sm">
-                  {typeof concern === 'string' ? concern : concern.point || concern}
-                </li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-      )}
 
       {/* Personality Insights */}
       {candidate.personality_insights && typeof candidate.personality_insights === 'object' && (
