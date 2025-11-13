@@ -199,5 +199,49 @@ export const adminCandidateService = {
     });
     
     return { data, error };
+  },
+
+  // Get archived candidates
+  async getArchivedCandidates() {
+    const { data, error } = await supabase
+      .from('candidate_profiles')
+      .select(`
+        *,
+        deleted_by_profile:profiles!deleted_by(full_name),
+        applications(count)
+      `)
+      .not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false });
+    
+    return { data, error };
+  },
+
+  // Restore archived candidate
+  async restoreCandidate(candidateId: string, reason: string = 'Restored from archive') {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { error: new Error('Not authenticated') };
+
+    const { error } = await supabase
+      .from('candidate_profiles')
+      .update({
+        deleted_at: null,
+        deleted_by: null,
+        deletion_reason: null,
+        deletion_type: null,
+        deletion_metadata: {}
+      })
+      .eq('id', candidateId);
+    
+    return { error };
+  },
+
+  // Get orphaned applications count (from hard-deleted candidates)
+  async getOrphanedApplicationsCount() {
+    const { count, error } = await supabase
+      .from('applications')
+      .select('*', { count: 'exact', head: true })
+      .is('candidate_id', null);
+    
+    return { count, error };
   }
 };

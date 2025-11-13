@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -14,22 +15,29 @@ import {
   Link2Icon,
   Clock,
   Users,
-  Briefcase as BriefcaseIcon
+  Briefcase as BriefcaseIcon,
+  Pencil,
+  History,
+  Archive,
+  Trash2
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { getActivityColor, getActivityLabel, ActivityThresholds } from "./ActivitySettingsDialog";
+import { DeleteCandidateDialog } from "./DeleteCandidateDialog";
 
 interface UnifiedCandidateCardProps {
   candidate: any;
   onEdit?: () => void;
   onSendInvitation?: () => void;
+  onDelete?: () => void;
   activityThresholds: ActivityThresholds;
 }
 
@@ -37,9 +45,12 @@ export function UnifiedCandidateCard({
   candidate, 
   onEdit, 
   onSendInvitation,
+  onDelete,
   activityThresholds
 }: UnifiedCandidateCardProps) {
   const navigate = useNavigate();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleteType, setDeleteType] = useState<'soft' | 'hard'>('soft');
 
   const activityColor = getActivityColor(candidate.last_interaction_date, activityThresholds);
   const activityLabel = getActivityLabel(candidate.last_interaction_date);
@@ -230,6 +241,17 @@ export function UnifiedCandidateCard({
           </div>
         </div>
       </CardContent>
+
+      {/* Delete Dialog */}
+      <DeleteCandidateDialog
+        candidate={candidate}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onDeleted={() => {
+          if (onDelete) onDelete();
+        }}
+        deleteType={deleteType}
+      />
     </Card>
   );
 }
