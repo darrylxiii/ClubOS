@@ -9,20 +9,20 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   logger.debug("[ProtectedRoute] State", { loading, hasUser: !!user });
 
-  // ENTERPRISE: 3-second timeout for loading state
+  // PHASE 3: Improved timeout with better messaging
   useEffect(() => {
     if (loading) {
       const timer = setTimeout(() => {
-        logger.error("[ProtectedRoute] 🚨 Loading timeout after 3s - forcing redirect");
+        logger.error("[ProtectedRoute] 🚨 Loading timeout after 5s - forcing redirect");
         setLoadingTimeout(true);
-      }, 3000);
+      }, 5000); // Increased from 3s to 5s
       return () => clearTimeout(timer);
     }
   }, [loading]);
 
   // If timeout exceeded, redirect to auth
   if (loadingTimeout) {
-    logger.error("[ProtectedRoute] Timeout exceeded, redirecting to /auth");
+    logger.error("[ProtectedRoute] ⚠️ Auth timeout exceeded, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
 

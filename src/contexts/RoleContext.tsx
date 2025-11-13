@@ -19,6 +19,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
+  const [initStartTime] = useState(Date.now());
 
   const fetchRoles = useCallback(async () => {
     if (!user) {
@@ -29,7 +30,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     try {
       console.log('[RoleContext] Fetching roles for user:', user.id);
       
-      // Get all user roles with timeout
+      // PHASE 2: Resilient query with 5s timeout
       const rolesPromise = supabase
         .from('user_roles')
         .select('role')
@@ -38,10 +39,10 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
       const { data: rolesData, error } = await Promise.race([
         rolesPromise,
         new Promise<{ data: null; error: Error }>((_, reject) => 
-          setTimeout(() => reject(new Error('Timeout')), 5000)
+          setTimeout(() => reject(new Error('Query timeout - roles')), 5000)
         )
       ]).catch((err) => {
-        console.error('[RoleContext] Roles fetch failed:', err);
+        console.error('[RoleContext] ⚠️ Roles fetch failed, using fallback:', err);
         return { data: null, error: err };
       });
 
@@ -55,17 +56,22 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
       console.log('[RoleContext] Available roles:', roles);
       setAvailableRoles(roles);
 
-      // Get preferred role (non-blocking)
+      // PHASE 2: Get preferred role with timeout (non-blocking)
       let prefsData = null;
       try {
-        const result = await supabase
-          .from('user_preferences')
-          .select('preferred_role_view')
-          .eq('user_id', user.id)
-          .maybeSingle();
+        const result = await Promise.race([
+          supabase
+            .from('user_preferences')
+            .select('preferred_role_view')
+            .eq('user_id', user.id)
+            .maybeSingle(),
+          new Promise<{ data: null }>((_, reject) => 
+            setTimeout(() => reject(new Error('Query timeout - prefs')), 3000)
+          )
+        ]).catch(() => ({ data: null }));
         prefsData = result.data;
       } catch (err) {
-        console.error('[RoleContext] Error fetching preferences:', err);
+        console.error('[RoleContext] ⚠️ Error fetching preferences, using defaults:', err);
       }
 
       const preferredRole = prefsData?.preferred_role_view as UserRole;
@@ -109,6 +115,28 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     fetchRoles();
   }, [fetchRoles]);
+
+  // PHASE 1: Emergency timeout monitor - force default role after 8s
+  useEffect(() => {
+    const monitor = setInterval(() => {
+      if (loading) {
+        const elapsed = Date.now() - initStartTime;
+        if (elapsed > 2000) {
+          console.warn(`[RoleContext] ⏰ Still loading after ${elapsed}ms`);
+        }
+        
+        if (elapsed > 8000) {
+          console.error('[RoleContext] 🚨 EMERGENCY: Forcing default role after 8s timeout');
+          setCurrentRole('user');
+          setAvailableRoles(['user']);
+          setLoading(false);
+          clearInterval(monitor);
+        }
+      }
+    }, 1000);
+    
+    return () => clearInterval(monitor);
+  }, [loading, initStartTime]);
 
   useEffect(() => {
     if (!user || availableRoles.length === 0) return;
