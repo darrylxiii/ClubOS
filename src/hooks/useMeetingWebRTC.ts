@@ -74,6 +74,7 @@ export function useMeetingWebRTC({
   const pendingJoinSignals = useRef<string[]>([]);
   const makingOfferRef = useRef<Map<string, boolean>>(new Map());
   const ignoreOfferRef = useRef<Map<string, boolean>>(new Map());
+  const leftParticipantsRef = useRef<Set<string>>(new Set()); // Track who has left to prevent reconnection
   const { stats, getVideoConstraints } = useBandwidthMonitor();
 
   // Helper: Wait for channel to be ready with timeout
@@ -273,6 +274,16 @@ export function useMeetingWebRTC({
       const iceState = pc.iceConnectionState;
       console.log('[WebRTC] 🧊 ICE state for', targetParticipantId, ':', iceState);
       
+      // Don't reconnect if participant has left
+      if (leftParticipantsRef.current.has(targetParticipantId)) {
+        console.log('[WebRTC] 🚫 Skipping reconnection for left participant:', targetParticipantId);
+        if (iceState === 'failed' || iceState === 'disconnected') {
+          peerConnections.current.delete(targetParticipantId);
+          onParticipantLeft(targetParticipantId);
+        }
+        return;
+      }
+      
       switch (iceState) {
         case 'checking':
           toast.info(`Connecting to ${targetParticipantId.slice(0, 8)}...`, { id: `conn-${targetParticipantId}` });
@@ -288,20 +299,55 @@ export function useMeetingWebRTC({
           toast.warning(`Connection unstable with ${targetParticipantId.slice(0, 8)}`, { id: `conn-${targetParticipantId}` });
           console.log('[WebRTC] 🔄 Attempting ICE restart...');
           pc.restartIce();
+          
+          // Check if participant is still in meeting before retrying
+          setTimeout(async () => {
+            if (pc.iceConnectionState === 'disconnected' && !leftParticipantsRef.current.has(targetParticipantId)) {
+              const { data } = await supabase
+                .from('meeting_participants')
+                .select('left_at')
+                .eq('meeting_id', meetingId)
+                .or(`user_id.eq.${targetParticipantId},session_token.eq.${targetParticipantId}`)
+                .maybeSingle();
+              
+              if (data?.left_at !== null) {
+                console.log('[WebRTC] 👋 Participant has left, stopping reconnection');
+                leftParticipantsRef.current.add(targetParticipantId);
+                peerConnections.current.delete(targetParticipantId);
+                onParticipantLeft(targetParticipantId);
+              }
+            }
+          }, 3000);
           break;
         case 'failed':
-          toast.error(`Failed to connect to ${targetParticipantId.slice(0, 8)}. Retrying...`, { id: `conn-${targetParticipantId}` });
-          // Try full reconnection
+          toast.error(`Failed to connect to ${targetParticipantId.slice(0, 8)}`, { id: `conn-${targetParticipantId}` });
+          
+          // Verify participant is still in meeting before full reconnection
           setTimeout(async () => {
-            if (pc.iceConnectionState === 'failed') {
-              console.log('[WebRTC] 🔁 Full reconnection attempt...');
-              peerConnections.current.delete(targetParticipantId);
-              await handleParticipantJoinInternal(targetParticipantId);
+            if (pc.iceConnectionState === 'failed' && !leftParticipantsRef.current.has(targetParticipantId)) {
+              const { data } = await supabase
+                .from('meeting_participants')
+                .select('left_at')
+                .eq('meeting_id', meetingId)
+                .or(`user_id.eq.${targetParticipantId},session_token.eq.${targetParticipantId}`)
+                .maybeSingle();
+              
+              if (data?.left_at !== null) {
+                console.log('[WebRTC] 👋 Participant has left, stopping reconnection');
+                leftParticipantsRef.current.add(targetParticipantId);
+                peerConnections.current.delete(targetParticipantId);
+                onParticipantLeft(targetParticipantId);
+              } else {
+                console.log('[WebRTC] 🔁 Full reconnection attempt...');
+                peerConnections.current.delete(targetParticipantId);
+                await handleParticipantJoinInternal(targetParticipantId);
+              }
             }
           }, 2000);
           break;
         case 'closed':
           console.log('[WebRTC] Connection closed for:', targetParticipantId);
+          peerConnections.current.delete(targetParticipantId);
           onParticipantLeft(targetParticipantId);
           break;
       }
@@ -607,7 +653,7 @@ export function useMeetingWebRTC({
     try {
       const { data: participants, error } = await supabase
         .from('meeting_participants')
-        .select('user_id, session_token')
+        .select('user_id, session_token, left_at')
         .eq('meeting_id', meetingId)
         .is('left_at', null);
       
@@ -621,14 +667,17 @@ export function useMeetingWebRTC({
         
         const newParticipantIds = participants
           .map(p => p.user_id || p.session_token)
-          .filter((id): id is string => id !== null && id !== participantId);
+          .filter((id): id is string => 
+            id !== null && 
+            id !== participantId && 
+            !leftParticipantsRef.current.has(id) // Skip participants who have left
+          );
         
         // Check for new participants
         for (const newId of newParticipantIds) {
           const currentParticipants = Array.from(peerConnections.current.keys());
           if (!currentParticipants.includes(newId)) {
             console.log('[WebRTC] 🆕 New participant found via polling:', newId);
-            if (newId === participantId) continue;
             
             // Check if we already have a connection
             if (peerConnections.current.has(newId)) {
@@ -641,12 +690,33 @@ export function useMeetingWebRTC({
           }
         }
         
+        // Remove participants who have left from our local state
+        const activeParticipantIds = new Set(newParticipantIds);
+        const currentConnections = Array.from(peerConnections.current.keys());
+        
+        for (const connectedId of currentConnections) {
+          if (!activeParticipantIds.has(connectedId)) {
+            console.log('[WebRTC] 👋 Participant no longer in meeting (detected by poll):', connectedId);
+            leftParticipantsRef.current.add(connectedId);
+            
+            const pc = peerConnections.current.get(connectedId);
+            if (pc) {
+              pc.close();
+              peerConnections.current.delete(connectedId);
+            }
+            
+            makingOfferRef.current.delete(connectedId);
+            ignoreOfferRef.current.delete(connectedId);
+            onParticipantLeft(connectedId);
+          }
+        }
+        
         setParticipants(newParticipantIds);
       }
     } catch (error) {
       console.error('[WebRTC] ❌ Participant polling error:', error);
     }
-  }, [meetingId, participantId]);
+  }, [meetingId, participantId, onParticipantLeft]);
 
   // Fallback polling for signals (when realtime fails)
   const pollSignals = useCallback(async () => {
@@ -734,6 +804,12 @@ export function useMeetingWebRTC({
       return;
     }
     
+    // Check if participant has left - don't reconnect
+    if (leftParticipantsRef.current.has(newParticipantId)) {
+      console.log('[WebRTC] 🚫 Ignoring join from participant who has left:', newParticipantId);
+      return;
+    }
+    
     // Double-check media is ready before proceeding
     if (!mediaReadyRef.current || !localStreamRef.current) {
       console.error('[WebRTC] ❌ handleParticipantJoinInternal called but media not ready!');
@@ -743,12 +819,12 @@ export function useMeetingWebRTC({
       return;
     }
 
-    // Verify the participant is approved
+    // Verify the participant is approved AND still in the meeting
     try {
       console.log('[WebRTC] 🔍 Verifying participant approval status for:', newParticipantId);
       const { data, error } = await supabase
         .from('meeting_participants')
-        .select('status, session_token, user_id')
+        .select('status, session_token, user_id, left_at')
         .eq('meeting_id', meetingId)
         .or(`user_id.eq.${newParticipantId},session_token.eq.${newParticipantId}`)
         .maybeSingle();
@@ -758,12 +834,19 @@ export function useMeetingWebRTC({
         return;
       }
 
+      // Check if participant has left
+      if (data.left_at !== null) {
+        console.warn('[WebRTC] ⚠️ Participant has left the meeting, not connecting');
+        leftParticipantsRef.current.add(newParticipantId);
+        return;
+      }
+
       if (data.status !== 'accepted') {
         console.warn('[WebRTC] ⚠️ Participant not yet accepted (status:', data.status, ')');
         return;
       }
 
-      console.log('[WebRTC] ✅ Participant verified as accepted');
+      console.log('[WebRTC] ✅ Participant verified as accepted and in meeting');
     } catch (error) {
       console.error('[WebRTC] ❌ Error verifying participant approval:', error);
       return;
@@ -886,9 +969,27 @@ export function useMeetingWebRTC({
               break;
             case 'leave':
               console.log('[WebRTC] 👋 LEAVE signal received from:', signal.sender_id);
-              onParticipantLeft(signal.sender_id);
-              peerConnections.current.delete(signal.sender_id);
+              
+              // Mark as left to prevent reconnection
+              leftParticipantsRef.current.add(signal.sender_id);
+              
+              // Clean up peer connection
+              const pc = peerConnections.current.get(signal.sender_id);
+              if (pc) {
+                pc.close();
+                peerConnections.current.delete(signal.sender_id);
+              }
+              
+              // Clean up negotiation refs
+              makingOfferRef.current.delete(signal.sender_id);
+              ignoreOfferRef.current.delete(signal.sender_id);
+              
+              // Remove from participants list
               setParticipants(prev => prev.filter(p => p !== signal.sender_id));
+              
+              // Notify UI
+              onParticipantLeft(signal.sender_id);
+              toast.info(`${signal.sender_id.slice(0, 8)} left the meeting`, { duration: 2000 });
               break;
             case 'screen-share-start':
               console.log('[WebRTC] 🖥️ SCREEN-SHARE-START signal received from:', signal.sender_id);
@@ -1184,6 +1285,11 @@ export function useMeetingWebRTC({
       });
       peerConnections.current.clear();
       
+      // Clear negotiation refs
+      makingOfferRef.current.clear();
+      ignoreOfferRef.current.clear();
+      leftParticipantsRef.current.clear();
+      
       // Unsubscribe from channel and send leave signal
       if (signalChannel.current) {
         // Send leave signal before unsubscribing
@@ -1213,7 +1319,7 @@ export function useMeetingWebRTC({
     } catch (err) {
       console.error('[WebRTC] Error during cleanup:', err);
     }
-  }, [localStream, screenStream]);
+  }, [localStream, screenStream, meetingId, participantId]);
 
   return {
     localStream,
