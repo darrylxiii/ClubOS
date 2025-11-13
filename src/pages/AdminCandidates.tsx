@@ -14,6 +14,8 @@ import { CandidatesTable } from "@/components/admin/CandidatesTable";
 import { BulkActionsToolbar } from "@/components/admin/BulkActionsToolbar";
 import { MergeStatusDashboard } from "@/components/admin/MergeStatusDashboard";
 import { ActivitySettingsDialog, getActivityThresholds, ActivityThresholds } from "@/components/admin/ActivitySettingsDialog";
+import { ArchivedCandidatesView } from "@/components/admin/ArchivedCandidatesView";
+import { BulkEditCandidatesDialog } from "@/components/admin/BulkEditCandidatesDialog";
 import { toast } from "sonner";
 
 export default function AdminCandidates() {
@@ -30,6 +32,8 @@ export default function AdminCandidates() {
   const [experienceRange, setExperienceRange] = useState<number[]>([0, 20]);
   const [salaryRange, setSalaryRange] = useState<number[]>([0, 300000]);
   const [activityThresholds, setActivityThresholds] = useState<ActivityThresholds>(getActivityThresholds());
+  const [bulkEditDialogOpen, setBulkEditDialogOpen] = useState(false);
+  const [showArchived, setShowArchived] = useState(false);
 
   useEffect(() => {
     loadCandidates();
@@ -281,7 +285,9 @@ export default function AdminCandidates() {
           </CardContent>
         </Card>
 
-        {loading ? (
+        {showArchived ? (
+          <ArchivedCandidatesView />
+        ) : loading ? (
           <div className="flex justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -290,11 +296,12 @@ export default function AdminCandidates() {
             {viewMode === 'grid' ? (
               <div className="grid gap-4">
                 {paginatedCandidates.map((candidate) => (
-                  <UnifiedCandidateCard
-                    key={candidate.id}
-                    candidate={candidate}
-                    activityThresholds={activityThresholds}
-                  />
+              <UnifiedCandidateCard
+                key={candidate.id}
+                candidate={candidate}
+                activityThresholds={activityThresholds}
+                onDelete={loadCandidates}
+              />
                 ))}
               </div>
             ) : (

@@ -111,20 +111,35 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
         last_profile_update: new Date().toISOString(),
       };
 
-      const { error: updateError } = await supabase
+      // Get before state for audit
+      const { data: beforeState } = await supabase
+        .from('candidate_profiles')
+        .select('*')
+        .eq('id', candidate.id)
+        .single();
+
+      const { data: afterState, error: updateError } = await supabase
         .from('candidate_profiles')
         .update(updateData)
-        .eq('id', candidate.id);
+        .eq('id', candidate.id)
+        .select()
+        .single();
 
       if (updateError) throw updateError;
 
-      // Log the edit action
-      await supabase.from('candidate_interactions').insert({
+      // Log audit entry
+      const changedFields = Object.keys(updateData).filter(
+        key => JSON.stringify(beforeState?.[key]) !== JSON.stringify(updateData[key])
+      );
+
+      await supabase.from('candidate_profile_audit').insert({
         candidate_id: candidate.id,
-        interaction_type: 'note',
-        interaction_direction: 'internal',
-        title: 'Profile Updated',
-        content: `Candidate profile information was updated by team member.`,
+        action: 'update',
+        performed_by: user.id,
+        before_data: beforeState,
+        after_data: afterState,
+        changed_fields: changedFields,
+        reason: 'Profile updated via edit dialog',
         metadata: {
           action: 'profile_edit',
           updated_fields: Object.keys(updateData),
