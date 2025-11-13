@@ -119,7 +119,7 @@ const handler = async (req: Request): Promise<Response> => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "The Quantum Club <onboarding@verify.thequantumclub.nl>",
+        from: "The Quantum Club <onboarding@resend.dev>",
         to: [email],
         subject: "🔐 Reset Your Password - The Quantum Club",
         html,
