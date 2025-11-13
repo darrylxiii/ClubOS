@@ -16,14 +16,21 @@ interface Props {
 }
 
 export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLink }: Props) => {
+  // Remove LinkedIn from links (it's now in hero section as primary/secondary action)
   const links = [
-    { icon: Linkedin, label: 'LinkedIn', url: candidate.linkedin_url, color: 'text-blue-500' },
     { icon: Github, label: 'GitHub', url: candidate.github_url, color: 'text-foreground' },
     { icon: Globe, label: 'Portfolio', url: candidate.portfolio_url, color: 'text-purple-500' },
   ].filter(link => link.url);
 
   // Parse custom links from JSONB field
   const customLinks = candidate.candidate_links || [];
+  
+  // Only show section if there are links/portfolio items or user can edit
+  const hasContent = links.length > 0 || customLinks.length > 0 || portfolioItems.length > 0 || (canEdit && onAddLink);
+
+  if (!candidate.resume_url && !hasContent) {
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -59,7 +66,7 @@ export const PortfolioGrid = ({ candidate, portfolioItems = [], canEdit, onAddLi
       )}
 
       {/* Social & Website Links */}
-      {links.length > 0 && (
+      {hasContent && (
         <Card className={candidateProfileTokens.glass.card}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

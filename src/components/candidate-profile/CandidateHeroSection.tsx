@@ -2,8 +2,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  ArrowLeft, Send, Calendar, Edit, TrendingUp, 
-  Activity, Star, CheckCircle, Linkedin, User
+  Send, Calendar, Edit, TrendingUp, 
+  Activity, Star, CheckCircle, Linkedin, User, AlertCircle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -12,6 +12,7 @@ import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profil
 interface Props {
   candidate: any;
   fromJob?: string;
+  stage?: string;
   onAdvance?: () => void;
   onDecline?: () => void;
   onMessage?: () => void;
@@ -22,6 +23,7 @@ interface Props {
 export const CandidateHeroSection = ({
   candidate,
   fromJob,
+  stage,
   onAdvance,
   onDecline,
   onMessage,
@@ -29,6 +31,9 @@ export const CandidateHeroSection = ({
   onEdit,
 }: Props) => {
   const navigate = useNavigate();
+  
+  // Check account status
+  const hasAccount = !!candidate.user_id;
   
   const fitScore = candidate.fit_score || 0;
   const engagementScore = candidate.engagement_score || 0;
@@ -71,53 +76,37 @@ export const CandidateHeroSection = ({
 
   return (
     <div className={`${candidateProfileTokens.glass.card} rounded-2xl overflow-hidden`}>
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border-b border-border/50 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            {fromJob && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(`/jobs/${fromJob}/dashboard`)}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Job
-              </Button>
-            )}
-          </div>
-
-          {/* Quick Actions Toolbar */}
-          <div className="flex items-center gap-2">
-            {onMessage && (
-              <Button size="sm" variant="outline" onClick={onMessage}>
-                <Send className="w-4 h-4 mr-2" />
-                Message
-              </Button>
-            )}
-            {onSchedule && (
-              <Button size="sm" variant="outline" onClick={onSchedule}>
-                <Calendar className="w-4 h-4 mr-2" />
-                Schedule
-              </Button>
-            )}
-            {onEdit && (
-              <Button size="sm" variant="outline" onClick={onEdit}>
-                <Edit className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
-            )}
-            {onAdvance && (
-              <Button size="sm" onClick={onAdvance}>
-                Advance
-              </Button>
-            )}
-            {onDecline && (
-              <Button size="sm" variant="outline" onClick={onDecline} className="border-red-500/50 text-red-500 hover:bg-red-500/10">
-                Decline
-              </Button>
-            )}
-          </div>
+      {/* Quick Actions Toolbar */}
+      <div className="bg-background/95 backdrop-blur-md border-b border-border/50 px-6 py-4">
+        <div className="flex items-center justify-end gap-2">
+          {onMessage && (
+            <Button size="sm" variant="outline" onClick={onMessage}>
+              <Send className="w-4 h-4 mr-2" />
+              Message
+            </Button>
+          )}
+          {onSchedule && (
+            <Button size="sm" variant="outline" onClick={onSchedule}>
+              <Calendar className="w-4 h-4 mr-2" />
+              Schedule
+            </Button>
+          )}
+          {onEdit && (
+            <Button size="sm" variant="outline" onClick={onEdit}>
+              <Edit className="w-4 h-4 mr-2" />
+              Edit
+            </Button>
+          )}
+          {onAdvance && (
+            <Button size="sm" onClick={onAdvance}>
+              Advance
+            </Button>
+          )}
+          {onDecline && (
+            <Button size="sm" variant="outline" onClick={onDecline} className="border-red-500/50 text-red-500 hover:bg-red-500/10">
+              Decline
+            </Button>
+          )}
         </div>
       </div>
 
@@ -158,21 +147,60 @@ export const CandidateHeroSection = ({
                 {candidate.current_title} {candidate.current_company && `at ${candidate.current_company}`}
               </motion.p>
               
-              {/* LinkedIn Badge */}
-              {candidate.linkedin_url && (
-                <motion.a
-                  href={candidate.linkedin_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  initial={{ y: -10, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#0A66C2]/10 hover:bg-[#0A66C2]/20 border border-[#0A66C2]/30 text-[#0A66C2] transition-all duration-200 hover:scale-105"
-                >
-                  <Linkedin className="w-4 h-4" />
-                  <span className="text-sm font-medium">View LinkedIn Profile</span>
-                </motion.a>
-              )}
+              {/* Account Status & Current Stage */}
+              <motion.div
+                initial={{ y: -10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.2 }}
+                className="flex flex-wrap items-center gap-2 mb-3"
+              >
+                {!hasAccount ? (
+                  <Badge variant="outline" className="border-yellow-500/50 text-yellow-600 bg-yellow-500/10">
+                    <AlertCircle className="w-3 h-3 mr-1" />
+                    Pending Account Setup
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="border-green-500/50 text-green-600 bg-green-500/10">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Active Member
+                  </Badge>
+                )}
+                
+                {stage && (
+                  <Badge className="bg-primary/10 border-primary/30 text-primary">
+                    Current Stage: {stage}
+                  </Badge>
+                )}
+              </motion.div>
+              
+              {/* Primary & Secondary Actions */}
+              <motion.div
+                initial={{ y: -10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.25 }}
+                className="flex flex-wrap items-center gap-2"
+              >
+                {hasAccount ? (
+                  <Button onClick={() => navigate(`/profile/${candidate.user_id}`)}>
+                    <User className="w-4 h-4 mr-2" />
+                    View Club Profile
+                  </Button>
+                ) : (
+                  <Button onClick={() => console.log('Send invitation')}>
+                    <Send className="w-4 h-4 mr-2" />
+                    Send Invitation
+                  </Button>
+                )}
+                
+                {candidate.linkedin_url && (
+                  <Button variant="outline" asChild>
+                    <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer">
+                      <Linkedin className="w-4 h-4 mr-2" />
+                      View LinkedIn
+                    </a>
+                  </Button>
+                )}
+              </motion.div>
             </div>
 
             {/* Location & Details */}

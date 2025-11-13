@@ -17,15 +17,20 @@ import { PipelineSidebarCard } from "@/components/candidate-profile/PipelineSide
 import { CandidatePipelineContextBanner } from "@/components/partner/CandidatePipelineContextBanner";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Activity } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
+import { BackButton } from "@/components/candidate-profile/BackButton";
+import { ActivityFeedCard } from "@/components/candidate-profile/ActivityFeedCard";
 
 export default function UnifiedCandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
   const [searchParams] = useSearchParams();
-  const fromJob = searchParams.get('job');
+  const fromJob = searchParams.get('fromJob') || searchParams.get('job');
+  const fromCompany = searchParams.get('fromCompany');
+  const fromAdmin = searchParams.get('fromAdmin') === 'true';
+  const fromSearch = searchParams.get('fromSearch') === 'true';
   const applicationId = searchParams.get('application');
+  const stage = searchParams.get('stage');
+  const stageIndex = searchParams.get('stageIndex');
   
   const { role } = useUserRole();
   const isAdmin = role === 'admin' || role === 'strategist';
@@ -151,33 +156,31 @@ export default function UnifiedCandidateProfile() {
 
   return (
     <AppLayout>
-      <Tabs defaultValue="overview" className="w-full">
-        <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-border/50">
-          <div className="container mx-auto px-4 max-w-7xl">
-            <TabsList className="w-auto">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="activity">
-                <Activity className="w-4 h-4 mr-2" />
-                Activity
-              </TabsTrigger>
-            </TabsList>
-          </div>
-        </div>
+      <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
+        {/* Back Button */}
+        <BackButton 
+          fromJob={fromJob || undefined}
+          fromCompany={fromCompany || undefined}
+          fromAdmin={fromAdmin}
+          fromSearch={fromSearch}
+        />
 
-        <TabsContent value="overview" className="mt-0">
-          <div className="container mx-auto px-4 py-6 max-w-7xl space-y-6">
-            {/* Hero Section */}
-            <CandidateHeroSection candidate={candidate} fromJob={fromJob || undefined} />
+        {/* Hero Section */}
+        <CandidateHeroSection 
+          candidate={candidate} 
+          fromJob={fromJob || undefined}
+          stage={stage || application?.stage}
+        />
 
-            {/* Pipeline Context Banner (if from job) */}
-            {applicationId && application && fromJob && (
-              <CandidatePipelineContextBanner
-                candidateId={candidateId!}
-                candidateName={`${candidate.first_name} ${candidate.last_name}`}
-                jobId={fromJob}
-                currentStage={application.stage}
-              />
-            )}
+        {/* Pipeline Context Banner (if from job) */}
+        {applicationId && application && fromJob && (
+          <CandidatePipelineContextBanner
+            candidateId={candidateId!}
+            candidateName={`${candidate.first_name} ${candidate.last_name}`}
+            jobId={fromJob}
+            currentStage={application.stage}
+          />
+        )}
 
             {/* Main Content Grid: 70/30 split */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
@@ -302,26 +305,12 @@ export default function UnifiedCandidateProfile() {
                 <div className="sticky top-[32rem]">
                   <CandidateWorkAuthCard candidate={candidate} />
                 </div>
+
+                {/* Activity Feed */}
+                <ActivityFeedCard candidateId={candidateId!} />
               </div>
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="activity" className="mt-0">
-          <div className="container mx-auto px-4 py-6 max-w-7xl">
-            <Card className={candidateProfileTokens.glass.card}>
-              <CardHeader>
-                <CardTitle>Activity Timeline</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Comprehensive activity feed coming soon...
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-      </Tabs>
     </AppLayout>
   );
 }
