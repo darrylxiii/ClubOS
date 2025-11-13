@@ -114,6 +114,12 @@ const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 const PartnerTargetCompanies = lazy(() => import("./pages/PartnerTargetCompanies"));
 const TargetCompaniesOverview = lazy(() => import("./pages/admin/TargetCompaniesOverview"));
 
+// Password Reset Pages
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPasswordVerify from "./pages/ResetPasswordVerify";
+import ResetPasswordMagicLink from "./pages/ResetPasswordMagicLink";
+import ResetPasswordNew from "./pages/ResetPasswordNew";
+
 // Club Projects
 const ProjectsPage = lazy(() => import("./pages/ProjectsPage"));
 const ProjectDetailPage = lazy(() => import("./pages/ProjectDetailPage"));
@@ -190,7 +196,15 @@ const App = () => (
                   <RouteErrorBoundary>
                     <SharedProfile />
                   </RouteErrorBoundary>
-                } />
+                 } />
+          
+          {/* Auth routes */}
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/verify" element={<ResetPasswordVerify />} />
+          <Route path="/reset-password/verify-token" element={<ResetPasswordMagicLink />} />
+          <Route path="/reset-password/new" element={<ResetPasswordNew />} />
+          
           <Route path="/partner-funnel" element={<PartnerFunnel />} />
           <Route path="/partnership-submitted/:companyName" element={<PartnershipSubmitted />} />
           <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />

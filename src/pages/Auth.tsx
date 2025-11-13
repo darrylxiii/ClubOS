@@ -683,6 +683,17 @@ const Auth = () => {
                 {isLogin ? "Request Access" : "Already have an account? Sign in"}
               </button>
             </div>}
+
+            {isLogin && !needsEmailVerification && !mfaRequired && (
+              <div className="text-center mt-4">
+                <Link 
+                  to="/forgot-password" 
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+            )}
         </CardContent>
       </Card>
 
