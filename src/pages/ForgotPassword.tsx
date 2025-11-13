@@ -30,23 +30,42 @@ export default function ForgotPassword() {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('password-reset-request', {
+      // Add timeout to prevent infinite loading
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 30000)
+      );
+
+      const requestPromise = supabase.functions.invoke('password-reset-request', {
         body: { email }
       });
 
-      if (error) throw error;
+      const { data, error } = await Promise.race([requestPromise, timeoutPromise]) as any;
+
+      if (error) {
+        console.error('Edge function error:', error);
+        throw error;
+      }
 
       if (data?.rate_limited) {
         toast.error(data.message || "Too many requests. Please try again in 15 minutes.");
+        setIsLoading(false);
         return;
       }
 
+      // Always show success (security best practice)
       setSent(true);
-      toast.success("If an account exists, you'll receive reset instructions");
+      toast.success("If an account exists, you'll receive reset instructions", {
+        description: "Check your email inbox and spam folder"
+      });
     } catch (error: any) {
       console.error('Password reset error:', error);
-      if (error.message?.includes('rate limit')) {
+      
+      if (error.message?.includes('timeout')) {
+        toast.error("Request timed out. Please try again.");
+      } else if (error.message?.includes('rate limit')) {
         toast.error("Too many requests. Please try again in 15 minutes.");
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        toast.error("Network error. Please check your connection and try again.");
       } else {
         toast.error("Something went wrong. Please try again.");
       }
