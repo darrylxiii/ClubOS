@@ -138,68 +138,18 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
     setProcessingIds(prev => new Set(prev).add(requestId));
 
     try {
-      // Get the request details first
+      console.log('[HostApproval] 👤 Approving request ID:', requestId);
+      
+      // Get request details for display name
       const { data: request, error: fetchError } = await supabase
         .from('meeting_join_requests')
-        .select('*')
+        .select('guest_name')
         .eq('id', requestId)
         .single();
 
-      if (fetchError || !request) {
-        throw new Error('Failed to fetch request details');
-      }
+      if (fetchError) throw fetchError;
 
-      console.log('[HostApproval] 👤 Approving guest:', request.guest_name, '| Session:', request.session_token);
-
-      // First, mark any existing participant with this session as left
-      console.log('[HostApproval] 🔄 Marking old sessions as left...');
-      const { error: updateError } = await supabase
-        .from('meeting_participants')
-        .update({ 
-          left_at: new Date().toISOString(),
-          status: 'left'
-        })
-        .eq('meeting_id', request.meeting_id)
-        .eq('session_token', request.session_token)
-        .is('left_at', null);
-
-      if (updateError) {
-        console.warn('[HostApproval] ⚠️ Could not mark old session as left:', updateError);
-      }
-
-      // Create meeting participant entry for the guest
-      console.log('[HostApproval] ➕ Creating new participant entry...');
-      const { data: newParticipant, error: participantError } = await supabase
-        .from('meeting_participants')
-        .insert({
-          meeting_id: request.meeting_id,
-          user_id: null,
-          guest_name: request.guest_name,
-          guest_email: request.guest_email,
-          session_token: request.session_token,
-          status: 'accepted',
-          joined_at: new Date().toISOString(),
-          left_at: null
-        })
-        .select()
-        .single();
-
-      if (participantError) {
-        // If it's a duplicate error, the guest might already be admitted
-        if (participantError.code === '23505') {
-          console.log('[HostApproval] ✅ Guest already admitted, proceeding...');
-          toast.info(`${request.guest_name} is already in the meeting`);
-        } else {
-          console.error('[HostApproval] ❌ Failed to create participant:', participantError);
-          throw participantError;
-        }
-      } else {
-        console.log('[HostApproval] ✅ Participant created:', newParticipant);
-        toast.success(`${request.guest_name} has been admitted to the meeting`);
-      }
-
-      // Update the request status
-      console.log('[HostApproval] 📝 Updating request status...');
+      // ONLY update the request status - let the database trigger handle the rest
       const { error } = await supabase
         .from('meeting_join_requests')
         .update({
@@ -211,25 +161,19 @@ export function HostApprovalPanel({ meetingId, isHost }: HostApprovalPanelProps)
 
       if (error) throw error;
 
-      console.log('[HostApproval] ✅ Guest approved and added to participants:', request.guest_name);
-      console.log('[HostApproval] 🎯 Guest session token:', request.session_token);
+      console.log('[HostApproval] ✅ Guest approved, trigger will add to participants');
+      toast.success(`${request.guest_name} has been admitted to the meeting`);
       setRequests(prev => prev.filter(r => r.id !== requestId));
+      
     } catch (error: any) {
       console.error('[HostApproval] ❌ Failed to approve:', error);
-      
-      // Show user-friendly error with retry option
-      if (error.code === '23505') {
-        toast.info('Guest is already in the meeting');
-        setRequests(prev => prev.filter(r => r.id !== requestId));
-      } else {
-        toast.error('Failed to approve guest', {
-          description: 'Please try again',
-          action: {
-            label: 'Retry',
-            onClick: () => handleApprove(requestId)
-          }
-        });
-      }
+      toast.error('Failed to approve guest', {
+        description: error.message || 'Please try again',
+        action: {
+          label: 'Retry',
+          onClick: () => handleApprove(requestId)
+        }
+      });
     } finally {
       setProcessingIds(prev => {
         const next = new Set(prev);
