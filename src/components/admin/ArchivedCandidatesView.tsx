@@ -70,7 +70,7 @@ export function ArchivedCandidatesView() {
           deletion_reason: null,
           deletion_type: null,
           deletion_metadata: {}
-        })
+        } as any)
         .eq('id', candidateId);
 
       if (error) throw error;
@@ -83,7 +83,7 @@ export function ArchivedCandidatesView() {
         reason: 'Restored from archive',
         metadata: {
           restored_by: user.id,
-          original_deletion_reason: before?.deletion_reason
+          original_deletion_reason: (before as any)?.deletion_reason
         }
       });
 

@@ -81,7 +81,7 @@ export function DeleteCandidateDialog({
           deletion_metadata: {
             applications_preserved: impact?.total_applications || 0
           }
-        })
+        } as any)
         .eq('id', candidate.id);
 
       if (error) throw error;

@@ -132,7 +132,7 @@ export function EditCandidateDialog({ open, onOpenChange, candidate, onSave }: P
         key => JSON.stringify(beforeState?.[key]) !== JSON.stringify(updateData[key])
       );
 
-      await supabase.from('candidate_profile_audit').insert({
+      await (supabase as any).from('candidate_profile_audit').insert({
         candidate_id: candidate.id,
         action: 'update',
         performed_by: user.id,

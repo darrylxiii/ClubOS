@@ -229,7 +229,7 @@ export const adminCandidateService = {
         deletion_reason: null,
         deletion_type: null,
         deletion_metadata: {}
-      })
+      } as any)
       .eq('id', candidateId);
     
     return { error };
