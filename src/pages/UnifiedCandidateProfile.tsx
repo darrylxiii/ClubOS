@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { useUserRole } from "@/hooks/useUserRole";
 import { BackButton } from "@/components/candidate-profile/BackButton";
 import { ActivityFeedCard } from "@/components/candidate-profile/ActivityFeedCard";
+import { CandidateEditModal } from "@/components/candidate-profile/CandidateEditModal";
 
 export default function UnifiedCandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
@@ -45,6 +46,7 @@ export default function UnifiedCandidateProfile() {
   const [certifications, setCertifications] = useState<any[]>([]);
   const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
   const [skills, setSkills] = useState<any[]>([]);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     if (candidateId) {
@@ -171,6 +173,7 @@ export default function UnifiedCandidateProfile() {
           fromJob={fromJob || undefined}
           stage={stage || application?.stage}
           isAdmin={isAdmin}
+          onEdit={() => setIsEditModalOpen(true)}
         />
 
         {/* Full Pipeline Breakdown - Prominent after hero */}
@@ -309,9 +312,17 @@ export default function UnifiedCandidateProfile() {
 
                 {/* Activity Feed */}
                 <ActivityFeedCard candidateId={candidateId!} />
-              </div>
-            </div>
           </div>
+        </div>
+
+        {/* Edit Modal */}
+        <CandidateEditModal
+          open={isEditModalOpen}
+          onOpenChange={setIsEditModalOpen}
+          candidate={candidate}
+          onSaved={loadCandidateData}
+        />
+      </div>
     </AppLayout>
   );
 }

@@ -8,10 +8,8 @@ import {
 } from "lucide-react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
-import { EditableSection } from "@/components/candidate-profile/EditableSection";
 import { useFieldPermissions } from "@/hooks/useFieldPermissions";
 import { useUserRole } from "@/hooks/useUserRole";
-import { OverallAssessmentEditor } from "@/components/partner/edit/OverallAssessmentEditor";
 
 interface Props {
   candidate: any;
@@ -82,25 +80,18 @@ export const CandidateDecisionDashboard = ({ candidate, applications }: Props) =
   const internalRating = candidate.internal_rating || 0;
   const completeness = candidate.profile_completeness || 0;
 
-  // Allow editing for admin, strategist, and company_admin roles
-  const canEdit = role === 'admin' || role === 'strategist' || role === 'company_admin';
-
   return (
     <div className="space-y-4">
       {/* Overall Assessment Card - Enhanced with Score Badges */}
-      <EditableSection
-        title="Overall Assessment"
-        icon={Target}
-        candidateId={candidate.id}
-        sectionName="overall_assessment"
-        canEdit={canEdit}
-        editComponent={<OverallAssessmentEditor candidate={candidate} />}
-        onSave={async () => {
-          // Save logic will be implemented
-          console.log('Saving overall assessment...');
-        }}
-      >
-        <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Target className="w-5 h-5" />
+            Overall Assessment
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
           {/* Top Section: Overall Score + Score Badges + Radar Chart */}
           <div className="grid grid-cols-[auto_1fr_300px] gap-6 items-start">
             {/* Overall Score - Large */}
@@ -192,20 +183,19 @@ export const CandidateDecisionDashboard = ({ candidate, applications }: Props) =
             </>
           )}
         </div>
-      </EditableSection>
+      </CardContent>
+    </Card>
 
       {/* Personality Insights */}
       {candidate.personality_insights && typeof candidate.personality_insights === 'object' && (
-        <EditableSection
-          title="Personality & Work Style"
-          icon={Award}
-          candidateId={candidate.id}
-          sectionName="personality"
-          canEdit={canEdit}
-          onSave={async () => {
-            console.log('Saving personality insights...');
-          }}
-        >
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Award className="w-5 h-5" />
+              Personality & Work Style
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
           <div className="grid grid-cols-2 gap-4">
             {Object.entries(candidate.personality_insights).map(([key, value]) => (
               <div key={key} className="space-y-1">
@@ -214,7 +204,8 @@ export const CandidateDecisionDashboard = ({ candidate, applications }: Props) =
               </div>
             ))}
           </div>
-        </EditableSection>
+          </CardContent>
+        </Card>
       )}
 
       {/* Quick Facts Grid */}
