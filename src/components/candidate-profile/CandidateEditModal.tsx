@@ -7,6 +7,11 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { OverallAssessmentEditor } from '@/components/partner/edit/OverallAssessmentEditor';
+import { BasicInformationEditor } from '@/components/partner/edit/BasicInformationEditor';
+import { WorkAuthorizationEditor } from '@/components/partner/edit/WorkAuthorizationEditor';
+import { CareerPreferencesEditor } from '@/components/partner/edit/CareerPreferencesEditor';
+import { SkillsExperienceEditor } from '@/components/partner/edit/SkillsExperienceEditor';
+import { AdminNotesEditor } from '@/components/partner/edit/AdminNotesEditor';
 import { Loader2 } from 'lucide-react';
 
 interface CandidateEditModalProps {
@@ -20,7 +25,12 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
   const [isSaving, setIsSaving] = useState(false);
   const [changeReason, setChangeReason] = useState('');
   const [changes, setChanges] = useState<any>({
+    basic: null,
     assessment: null,
+    workAuth: null,
+    career: null,
+    skills: null,
+    adminNotes: null,
   });
 
   const handleSaveAll = async () => {
@@ -41,21 +51,45 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
         .eq('id', candidate.id)
         .single();
 
-      // Update candidate profile with assessment changes
-      if (changes.assessment) {
-        const { error: updateError } = await supabase
-          .from('candidate_profiles')
-          .update({
-            fit_score: changes.assessment.fitScore,
-            engagement_score: changes.assessment.engagementScore,
-            internal_rating: changes.assessment.internalRating,
-            ai_generated_summary: changes.assessment.aiSummary,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', candidate.id);
+      // Build update object from all changes
+      const updates: any = {
+        updated_at: new Date().toISOString(),
+      };
 
-        if (updateError) throw updateError;
+      if (changes.basic) {
+        Object.assign(updates, changes.basic);
       }
+
+      if (changes.assessment) {
+        updates.fit_score = changes.assessment.fitScore;
+        updates.engagement_score = changes.assessment.engagementScore;
+        updates.internal_rating = changes.assessment.internalRating;
+        updates.ai_generated_summary = changes.assessment.aiSummary;
+      }
+
+      if (changes.workAuth) {
+        Object.assign(updates, changes.workAuth);
+      }
+
+      if (changes.career) {
+        Object.assign(updates, changes.career);
+      }
+
+      if (changes.skills) {
+        Object.assign(updates, changes.skills);
+      }
+
+      if (changes.adminNotes) {
+        Object.assign(updates, changes.adminNotes);
+      }
+
+      // Update candidate profile with all changes
+      const { error: updateError } = await supabase
+        .from('candidate_profiles')
+        .update(updates)
+        .eq('id', candidate.id);
+
+      if (updateError) throw updateError;
 
       // Fetch updated data for audit trail
       const { data: afterData } = await supabase
@@ -105,7 +139,7 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
   };
 
   const handleCancel = () => {
-    setChanges({ assessment: null });
+    setChanges({ basic: null, assessment: null, workAuth: null, career: null, skills: null, adminNotes: null });
     setChangeReason('');
     onOpenChange(false);
   };
