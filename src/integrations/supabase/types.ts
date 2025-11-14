@@ -16022,21 +16022,6 @@ export type Database = {
           },
         ]
       }
-      user_activity_dashboard_view: {
-        Row: {
-          activity_level: string | null
-          avatar_url: string | null
-          company_id: string | null
-          email: string | null
-          full_name: string | null
-          last_activity_at: string | null
-          online_status: string | null
-          role: Database["public"]["Enums"]["app_role"] | null
-          total_actions: number | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
     }
     Functions: {
       archive_expired_documents: { Args: never; Returns: undefined }
