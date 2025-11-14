@@ -36,6 +36,10 @@ import { CourseFilters } from "@/components/academy/CourseFilters";
 import { CategoryGrid } from "@/components/academy/CategoryGrid";
 import { AverageRatingDisplay } from "@/components/academy/AverageRatingDisplay";
 import { SkillTagsDisplay } from "@/components/academy/SkillTagsDisplay";
+import { HeroBanner } from "@/components/academy/HeroBanner";
+import { AcademySidebar } from "@/components/academy/AcademySidebar";
+import { CourseCarousel } from "@/components/academy/CourseCarousel";
+import { EnhancedCategoryGrid } from "@/components/academy/EnhancedCategoryGrid";
 
 export default function Academy() {
   const { slug } = useParams();
@@ -227,49 +231,47 @@ export default function Academy() {
             </TabsList>
 
             <TabsContent value="dashboard" className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
-                  <LearnerDashboard />
-                </div>
-                <div className="space-y-6">
-                  <RecommendationsPanel />
-                </div>
-              </div>
+              {/* Hero Banner */}
+              <HeroBanner />
 
-              {/* Popular Courses */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold">Popular Courses</h2>
-                  <Button variant="ghost" className="squircle-sm">View All</Button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  {courses.slice(0, 3).map((course) => (
-                    <PopularCourseCard key={course.id} course={course} />
-                  ))}
-                </div>
-              </div>
+              {/* Main Content with Sidebar */}
+              <div className="flex gap-6">
+                <main className="flex-1 min-w-0 space-y-8">
+                  {/* Continue Learning Carousel */}
+                  <CourseCarousel
+                    title="Continue Learning"
+                    courses={courses.filter((c: any) => c.enrolled_count && c.enrolled_count > 0).slice(0, 6)}
+                  />
 
-              {/* Continue Learning */}
-              <div className="space-y-4">
-                <h2 className="text-2xl font-bold">Continue Learning</h2>
-                <div className="space-y-4">
-                  <ContinueLearningCard
-                    title="Creating Engaging Learning Journeys: UI/UX Best Practices"
-                    progress={80}
-                    materials={12}
-                    category="Course"
-                    illustration="design"
-                    nextLesson="Advance your learning with Mastering UI Design for Impactful Solutions"
+                  {/* Enhanced Category Grid */}
+                  <EnhancedCategoryGrid onCategoryClick={(id) => {
+                    setSelectedCategory(id);
+                    navigate('/academy?tab=explore');
+                  }} />
+
+                  {/* Trending Courses */}
+                  <CourseCarousel
+                    title="Trending Now"
+                    courses={courses.sort((a: any, b: any) => (b.trending_score || 0) - (a.trending_score || 0)).slice(0, 6)}
+                    showTrending
                   />
-                  <ContinueLearningCard
-                    title="The Art of Blending Aesthetics and Functionality in UI/UX Design"
-                    progress={30}
-                    materials={12}
-                    category="Course"
-                    illustration="blend"
-                    nextLesson="Next, you can dive into Advanced techniques commonly used in UI/UX Design"
+
+                  {/* Recommended For You */}
+                  <CourseCarousel
+                    title="Recommended For You"
+                    courses={courses.slice(0, 6)}
+                    viewAllLink="/academy/my-skills"
                   />
-                </div>
+
+                  {/* New Releases */}
+                  <CourseCarousel
+                    title="New Releases"
+                    courses={courses.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 6)}
+                  />
+                </main>
+
+                {/* Sticky Sidebar */}
+                <AcademySidebar />
               </div>
             </TabsContent>
 
