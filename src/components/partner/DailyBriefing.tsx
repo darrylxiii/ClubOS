@@ -62,7 +62,7 @@ export function DailyBriefing({ companyId }: { companyId: string }) {
         <CardTitle className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-accent" />
-            QUIN Daily Briefing
+            Club AI Daily Briefing
           </span>
           <Button 
             size="sm" 

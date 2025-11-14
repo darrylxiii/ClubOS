@@ -48,7 +48,7 @@
 - ✅ `/academy` - Course Catalog
 
 ##### AI & Tools Group
-- ✅ `/club-ai` - QUIN AI Assistant
+- ✅ `/club-ai` - Club AI Assistant
 - ✅ `/unified-tasks` - Task Management (Club Pilot)
 
 ##### Settings Group
