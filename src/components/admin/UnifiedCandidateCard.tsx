@@ -32,6 +32,9 @@ import {
 import { useNavigate } from "react-router-dom";
 import { getActivityColor, getActivityLabel, ActivityThresholds } from "./ActivitySettingsDialog";
 import { DeleteCandidateDialog } from "./DeleteCandidateDialog";
+import { MatchScoreInline } from "@/components/partner/MatchScoreInline";
+import { UrgencyIndicators } from "@/components/partner/UrgencyIndicators";
+import { CandidateActionBar } from "@/components/partner/CandidateActionBar";
 
 interface UnifiedCandidateCardProps {
   candidate: any;
@@ -228,8 +231,36 @@ export function UnifiedCandidateCard({
               </div>
             )}
 
+            {/* Match Score & Urgency Indicators */}
+            {(candidate.match_score || candidate.urgency_data) && (
+              <div className="space-y-3 pt-3 border-t border-border/50">
+                {candidate.match_score && (
+                  <MatchScoreInline
+                    matchScore={candidate.match_score}
+                    jobId={candidate.job_id}
+                    jobTitle={candidate.job_title}
+                    company={candidate.company_name}
+                    tags={candidate.job_tags || []}
+                    skillsOverlap={candidate.skills_overlap}
+                    experienceMatch={candidate.experience_match}
+                    salaryFit={candidate.salary_fit}
+                    locationFit={candidate.location_fit}
+                    topFactors={candidate.top_match_factors}
+                  />
+                )}
+                
+                <UrgencyIndicators
+                  hasPendingOffer={candidate.has_pending_offer}
+                  noticeEndsInDays={candidate.notice_ends_in_days}
+                  profileViews={candidate.profile_views}
+                  daysInStage={candidate.days_in_stage}
+                  avgDaysInStage={candidate.avg_days_in_stage || 7}
+                />
+              </div>
+            )}
+
             {/* Completeness Score */}
-            <div className="space-y-1">
+            <div className="space-y-1 mt-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Data Completeness</span>
                 <span className={`font-medium ${getCompletenessColor(candidate.profile_completeness || 0)}`}>
@@ -237,6 +268,15 @@ export function UnifiedCandidateCard({
                 </span>
               </div>
               <Progress value={candidate.profile_completeness || 0} className="h-2" />
+            </div>
+
+            {/* Quick Actions */}
+            <div className="pt-3 mt-3 border-t border-border/50">
+              <CandidateActionBar
+                candidateId={candidate.id}
+                candidateName={candidate.full_name || candidate.email}
+                isShortlisted={candidate.is_shortlisted}
+              />
             </div>
           </div>
         </div>
