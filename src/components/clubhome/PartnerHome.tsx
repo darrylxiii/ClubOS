@@ -20,6 +20,11 @@ import { TalentRecommendations } from "./TalentRecommendations";
 import { HiringPipelineOverview } from "./HiringPipelineOverview";
 import { PartnerActivityFeed } from "./PartnerActivityFeed";
 
+import { SmartAlertsPanel } from "../partner/SmartAlertsPanel";
+import { HealthScoreDashboard } from "../partner/HealthScoreDashboard";
+import { DailyBriefing } from "../partner/DailyBriefing";
+import { BenchmarkComparison } from "../partner/BenchmarkComparison";
+
 export const PartnerHome = () => {
   const { user } = useAuth();
   const { companyId } = useUserRole();
@@ -85,6 +90,25 @@ export const PartnerHome = () => {
 
   return (
     <div className="space-y-6">
+      {/* Dashboard Intelligence Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
+          {/* Smart Alerts */}
+          {companyId && <SmartAlertsPanel companyId={companyId} />}
+          
+          {/* Daily Briefing */}
+          {companyId && <DailyBriefing companyId={companyId} />}
+        </div>
+        
+        <div className="space-y-6">
+          {/* Health Score */}
+          {companyId && <HealthScoreDashboard companyId={companyId} />}
+          
+          {/* Benchmarks */}
+          {companyId && <BenchmarkComparison companyId={companyId} />}
+        </div>
+      </div>
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
