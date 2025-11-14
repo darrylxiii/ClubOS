@@ -21,6 +21,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { BackButton } from "@/components/candidate-profile/BackButton";
 import { ActivityFeedCard } from "@/components/candidate-profile/ActivityFeedCard";
 import { CandidateEditModal } from "@/components/candidate-profile/CandidateEditModal";
+import { AuditLogViewer } from "@/components/candidate-profile/AuditLogViewer";
 
 export default function UnifiedCandidateProfile() {
   const { candidateId } = useParams<{ candidateId: string }>();
