@@ -428,18 +428,16 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
               "min-h-[52px] h-[52px]", // Fixed height
               "transition-all duration-300 ease-in-out",
               "hover:bg-muted/50 hover:scale-[1.02]",
-              "px-3 py-3" // Consistent padding
+              "px-4 py-3" // Match navigation items padding
             )}
           >
             <div className="flex items-center gap-3 w-full">
-              <div className="flex-shrink-0">
-                <Avatar className="h-9 w-9 transition-transform duration-300 hover:scale-110">
-                  <AvatarImage src={userAvatarUrl || ""} />
-                  <AvatarFallback className="bg-muted text-foreground">
-                    {userInitial}
-                  </AvatarFallback>
-                </Avatar>
-              </div>
+              <Avatar className="h-9 w-9 flex-shrink-0 transition-transform duration-300 hover:scale-110">
+                <AvatarImage src={userAvatarUrl || ""} />
+                <AvatarFallback className="bg-muted text-foreground">
+                  {userInitial}
+                </AvatarFallback>
+              </Avatar>
               {open && (
                 <div className="flex-1 text-left overflow-hidden min-w-0">
                   <p className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
