@@ -15,7 +15,7 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 
 export const RoleProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
-  const [currentRole, setCurrentRole] = useState<UserRole>(null);
+  const [currentRole, setCurrentRole] = useState<UserRole>('user');
   const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [companyId, setCompanyId] = useState<string | null>(null);
