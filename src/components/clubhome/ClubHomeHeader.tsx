@@ -115,8 +115,6 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
             </div>
           </div>
         </div>
-
-        <NotificationBell />
       </div>
 
       {/* Role switcher if user has multiple roles */}

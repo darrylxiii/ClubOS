@@ -111,7 +111,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         {/* Left: Menu Trigger (Mobile Only) */}
         <div className="flex items-center gap-2 md:hidden min-w-[44px]">
           <button 
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground hover:bg-accent/50 rounded-md transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md transition-colors"
             onClick={() => {
               if (typeof window !== 'undefined' && (window as any).__toggleSidebar) {
                 (window as any).__toggleSidebar();
@@ -119,7 +119,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
             }}
             aria-label="Toggle menu"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="4" x2="20" y1="12" y2="12"/>
               <line x1="4" x2="20" y1="6" y2="6"/>
               <line x1="4" x2="20" y1="18" y2="18"/>
@@ -132,12 +132,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           <img 
             src={quantumClubLogoLightShort} 
             alt="Quantum Club" 
-            className="h-8 sm:h-10 w-auto dark:block hidden"
+            className="h-12 sm:h-14 w-auto dark:block hidden"
           />
           <img 
             src={quantumClubLogoDarkShort} 
             alt="Quantum Club" 
-            className="h-8 sm:h-10 w-auto dark:hidden block"
+            className="h-12 sm:h-14 w-auto dark:hidden block"
           />
         </div>
 
