@@ -52,6 +52,9 @@ export function AIBookingAssistant({ bookingLink, onBookingScheduled }: AIBookin
     setIsLoading(true);
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const { data, error } = await supabase.functions.invoke("ai-booking-assistant", {
         body: {
           messages: [...messages, userMessage].map((m) => ({
@@ -64,8 +67,10 @@ export function AIBookingAssistant({ bookingLink, onBookingScheduled }: AIBookin
             duration_minutes: bookingLink.duration_minutes,
           },
         },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       if (error) throw error;
 
       const assistantMessage: Message = {
@@ -82,7 +87,11 @@ export function AIBookingAssistant({ bookingLink, onBookingScheduled }: AIBookin
       }
     } catch (error: any) {
       console.error("AI assistant error:", error);
-      toast.error("Failed to get response from AI assistant");
+      if (error.name === 'AbortError') {
+        toast.error("Request timed out after 30s");
+      } else {
+        toast.error("Failed to get response from AI assistant");
+      }
     } finally {
       setIsLoading(false);
     }

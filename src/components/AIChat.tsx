@@ -27,13 +27,18 @@ export const AIChat = () => {
     setIsLoading(true);
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const { data, error } = await supabase.functions.invoke("chat-ollama", {
         body: { 
           messages: [...messages, userMessage],
           model: "llama2"
         },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       if (error) throw error;
 
       if (data.error) {
@@ -51,13 +56,21 @@ export const AIChat = () => {
         content: data.response,
       };
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error:", error);
-      toast({
-        title: "Error",
-        description: "Failed to get response from AI",
-        variant: "destructive",
-      });
+      if (error.name === 'AbortError') {
+        toast({
+          title: "Timeout",
+          description: "AI request timed out after 30s",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to get response from AI",
+          variant: "destructive",
+        });
+      }
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsLoading(false);

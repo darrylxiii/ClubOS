@@ -77,6 +77,9 @@ async function fetchGoogleCalendarEvents(
 
   for (const connection of connections) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const { data, error } = await supabase.functions.invoke('google-calendar-events', {
         body: {
           action: 'listEvents',
@@ -84,8 +87,10 @@ async function fetchGoogleCalendarEvents(
           timeMin: startDate.toISOString(),
           timeMax: endDate.toISOString(),
         },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       if (error || !data?.events) {
         console.error('Failed to fetch Google events:', error);
         continue;
@@ -109,8 +114,12 @@ async function fetchGoogleCalendarEvents(
       }));
 
       allEvents.push(...events);
-    } catch (err) {
-      console.error('Failed to fetch Google calendar events:', err);
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.error('Google calendar sync timed out after 30s');
+      } else {
+        console.error('Failed to fetch Google calendar events:', err);
+      }
     }
   }
 
@@ -135,14 +144,19 @@ async function fetchMicrosoftCalendarEvents(
 
   for (const connection of connections) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const { data, error } = await supabase.functions.invoke('microsoft-calendar-events', {
         body: {
           connectionId: connection.id,
           timeMin: startDate.toISOString(),
           timeMax: endDate.toISOString(),
         },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       if (error || !data?.events) {
         console.error('Failed to fetch Microsoft events:', error);
         continue;
@@ -165,8 +179,12 @@ async function fetchMicrosoftCalendarEvents(
       }));
 
       allEvents.push(...events);
-    } catch (err) {
-      console.error('Failed to fetch Microsoft calendar events:', err);
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        console.error('Microsoft calendar sync timed out after 30s');
+      } else {
+        console.error('Failed to fetch Microsoft calendar events:', err);
+      }
     }
   }
 

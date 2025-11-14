@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { UnifiedCalendarEvent, CalendarFilters } from '@/types/calendar';
 import { fetchUnifiedCalendarEvents } from '@/services/calendarAggregation';
@@ -15,7 +15,7 @@ export function useUnifiedCalendar(selectedDate: Date = new Date()) {
     microsoft: true,
   });
 
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -31,7 +31,7 @@ export function useUnifiedCalendar(selectedDate: Date = new Date()) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, selectedDate]);
 
   useEffect(() => {
     loadEvents();
@@ -48,7 +48,7 @@ export function useUnifiedCalendar(selectedDate: Date = new Date()) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, selectedDate]);
+  }, [user, selectedDate, loadEvents]);
 
   // Apply filters
   useEffect(() => {

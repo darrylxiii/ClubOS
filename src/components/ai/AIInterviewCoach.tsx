@@ -20,22 +20,31 @@ export function AIInterviewCoach({ applicationId, companyName, roleName }: AIInt
 
   const startPractice = async () => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const { data, error } = await supabase.functions.invoke('club-ai-chat', {
         body: {
           messages: [{
             role: 'user',
             content: `Generate 5 behavioral interview questions for ${roleName} at ${companyName}`
           }]
-        }
+        },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
       if (error) throw error;
 
       setCurrentQuestion("Tell me about a time when you had to overcome a significant challenge.");
       toast.success("Practice session started!");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting practice:', error);
-      toast.error("Failed to start practice");
+      if (error.name === 'AbortError') {
+        toast.error("Request timed out after 30s");
+      } else {
+        toast.error("Failed to start practice");
+      }
     }
   };
 
