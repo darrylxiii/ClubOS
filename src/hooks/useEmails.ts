@@ -69,7 +69,7 @@ export function useEmails(filter: string = "inbox") {
   const { toast } = useToast();
   const { user } = useAuth();
 
-  const loadEmails = async () => {
+  const loadEmails = useCallback(async () => {
     try {
       setLoading(true);
       console.log('[useEmails] Loading emails for filter:', filter);
@@ -108,9 +108,9 @@ export function useEmails(filter: string = "inbox") {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filter, toast]);
 
-  const loadLabels = async () => {
+  const loadLabels = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from("email_labels")
@@ -122,7 +122,7 @@ export function useEmails(filter: string = "inbox") {
     } catch (error: any) {
       console.error("Error loading labels:", error);
     }
-  };
+  }, []);
 
   const syncEmails = async () => {
     setSyncing(true);
@@ -146,22 +146,32 @@ export function useEmails(filter: string = "inbox") {
 
       // Sync each connection
       for (const connection of connections) {
-        try {
           const functionName =
             connection.provider === "gmail"
               ? "sync-gmail-emails"
               : "sync-outlook-emails";
 
-          const { data, error } = await supabase.functions.invoke(functionName, {
-            body: { connectionId: connection.id, maxResults: 50 },
-          });
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 60000);
+          
+          try {
+            const { data, error } = await supabase.functions.invoke(functionName, {
+              body: { connectionId: connection.id, maxResults: 50 },
+              signal: controller.signal,
+            });
 
-          if (error) throw error;
+            clearTimeout(timeoutId);
+            if (error) throw error;
 
-          totalSynced += data?.emailsSynced || 0;
-        } catch (error: any) {
-          console.error(`Error syncing ${connection.provider}:`, error);
-        }
+            totalSynced += data?.emailsSynced || 0;
+          } catch (error: any) {
+            clearTimeout(timeoutId);
+            if (error.name === 'AbortError') {
+              console.error(`${connection.provider} sync timed out after 60s`);
+            } else {
+              console.error(`Error syncing ${connection.provider}:`, error);
+            }
+          }
       }
 
       toast({
@@ -187,14 +197,23 @@ export function useEmails(filter: string = "inbox") {
         const batchSize = 5;
         for (let i = 0; i < unprocessedEmails.length; i += batchSize) {
           const batch = unprocessedEmails.slice(i, i + batchSize);
-          const promises = batch.map(email =>
-            supabase.functions.invoke("process-email-ai", {
+          const promises = batch.map(email => {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 30000);
+            
+            return supabase.functions.invoke("process-email-ai", {
               body: { emailId: email.id },
+              signal: controller.signal,
             }).catch(error => {
-              console.error("Error processing email:", email.id, error);
+              clearTimeout(timeoutId);
+              if (error.name === 'AbortError') {
+                console.error("Email AI processing timed out:", email.id);
+              } else {
+                console.error("Error processing email:", email.id, error);
+              }
               return { error };
-            })
-          );
+            }).finally(() => clearTimeout(timeoutId));
+          });
           
           await Promise.allSettled(promises);
           console.log(`[useEmails] Processed batch ${Math.floor(i / batchSize) + 1} of ${Math.ceil(unprocessedEmails.length / batchSize)}`);
@@ -339,7 +358,7 @@ export function useEmails(filter: string = "inbox") {
       if (reloadTimeout) clearTimeout(reloadTimeout);
       supabase.removeChannel(channel);
     };
-  }, [filter]);
+  }, [filter, loadEmails, loadLabels]);
 
   return {
     emails,
