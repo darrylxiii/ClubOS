@@ -237,20 +237,20 @@ export const NotificationsPanel = () => {
   }, [notifications]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full max-h-screen overflow-hidden">
       {/* Header */}
-      <div className="sticky top-0 z-10 backdrop-blur-lg bg-background/80 border-b">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <Bell className="w-6 h-6" />
+      <div className="sticky top-0 z-10 backdrop-blur-lg bg-background/80 border-b flex-shrink-0">
+        <div className="flex items-center justify-between p-3 sm:p-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <div className="relative flex-shrink-0">
+              <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
               {unreadCount > 0 && (
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full animate-pulse" />
               )}
             </div>
 
-            <div>
-              <h2 className="text-xl font-bold">Notifications</h2>
+            <div className="min-w-0">
+              <h2 className="text-lg sm:text-xl font-bold truncate">Notifications</h2>
               <p className="text-xs text-muted-foreground">
                 {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
               </p>
@@ -259,11 +259,11 @@ export const NotificationsPanel = () => {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" className="min-h-[44px] min-w-[44px] flex-shrink-0">
                 <Settings className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="z-[100]">
               <DropdownMenuItem onClick={markAllAsRead} disabled={unreadCount === 0}>
                 <Check className="w-4 h-4 mr-2" />
                 Mark all as read
@@ -277,17 +277,17 @@ export const NotificationsPanel = () => {
         </div>
 
         {/* Filter Pills */}
-        <div className="flex gap-2 px-4 pb-3 overflow-x-auto">
+        <div className="flex gap-2 px-3 sm:px-4 pb-3 overflow-x-auto mobile-scroll-x">
           <Badge
             variant={filter === 'all' ? 'default' : 'outline'}
-            className="cursor-pointer"
+            className="cursor-pointer min-h-[36px] flex items-center whitespace-nowrap"
             onClick={() => setFilter('all')}
           >
             All
           </Badge>
           <Badge
             variant={filter === 'unread' ? 'default' : 'outline'}
-            className="cursor-pointer"
+            className="cursor-pointer min-h-[36px] flex items-center whitespace-nowrap"
             onClick={() => setFilter('unread')}
           >
             Unread {unreadCount > 0 && `(${unreadCount})`}
@@ -296,7 +296,7 @@ export const NotificationsPanel = () => {
             <Badge
               key={type}
               variant={filter === type ? 'default' : 'outline'}
-              className="cursor-pointer capitalize"
+              className="cursor-pointer capitalize min-h-[36px] flex items-center whitespace-nowrap"
               onClick={() => setFilter(type)}
             >
               {type}
@@ -306,13 +306,13 @@ export const NotificationsPanel = () => {
       </div>
 
       {/* Content */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 overflow-hidden">
         {loading ? (
-          <div className="p-4 space-y-4">
+          <div className="p-3 sm:p-4 space-y-4">
             {[...Array(5)].map((_, i) => (
-              <div key={i} className="flex gap-3 p-4">
-                <Skeleton className="h-10 w-10 rounded-full" />
-                <div className="flex-1 space-y-2">
+              <div key={i} className="flex gap-3 p-3 sm:p-4">
+                <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+                <div className="flex-1 space-y-2 min-w-0">
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-3 w-full" />
                   <Skeleton className="h-3 w-2/3" />
@@ -321,23 +321,23 @@ export const NotificationsPanel = () => {
             ))}
           </div>
         ) : notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-            <Bell className="w-12 h-12 text-muted-foreground mb-4" />
-            <h3 className="font-semibold mb-2">No notifications</h3>
-            <p className="text-sm text-muted-foreground">
+          <div className="flex flex-col items-center justify-center h-full p-6 sm:p-8 text-center">
+            <Bell className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mb-4" />
+            <h3 className="font-semibold mb-2 text-sm sm:text-base">No notifications</h3>
+            <p className="text-xs sm:text-sm text-muted-foreground">
               {filter === 'unread' 
                 ? "You're all caught up!" 
                 : "You'll see notifications here when something important happens."}
             </p>
           </div>
         ) : (
-          <div className="p-4 space-y-6">
+          <div className="p-3 sm:p-4 space-y-6">
             {Object.entries(groupedNotifications).map(([period, items]) => (
               items.length > 0 && (
                 <Collapsible key={period} defaultOpen={period === 'today'}>
-                  <CollapsibleTrigger className="flex items-center gap-2 p-2 w-full hover:bg-muted/50 rounded-lg transition-colors">
+                  <CollapsibleTrigger className="flex items-center gap-2 p-2 w-full hover:bg-muted/50 rounded-lg transition-colors min-h-[44px]">
                     <ChevronDown className="w-4 h-4 transition-transform data-[state=closed]:-rotate-90" />
-                    <span className="font-semibold capitalize">{period}</span>
+                    <span className="font-semibold capitalize text-sm sm:text-base">{period}</span>
                     <Badge variant="secondary" className="ml-auto">{items.length}</Badge>
                   </CollapsibleTrigger>
                   <CollapsibleContent className="space-y-2 mt-2">

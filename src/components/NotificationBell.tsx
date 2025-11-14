@@ -63,7 +63,7 @@ export const NotificationBell = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <Button variant="ghost" size="icon" className="relative group">
+          <Button variant="ghost" size="icon" className="relative group min-h-[44px] min-w-[44px]">
             <Bell className={cn(
               "h-5 w-5 transition-all duration-300",
               unreadCount > 0 && "text-primary"
@@ -81,7 +81,7 @@ export const NotificationBell = () => {
           </Button>
         </motion.div>
       </SheetTrigger>
-      <SheetContent className="w-full sm:max-w-lg p-0 flex flex-col">
+      <SheetContent className="w-[90vw] sm:w-full sm:max-w-lg p-0 flex flex-col overflow-hidden">
         <NotificationsPanel />
       </SheetContent>
     </Sheet>
