@@ -47,8 +47,6 @@ export default function UnifiedCandidateProfile() {
   const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
   const [skills, setSkills] = useState<any[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const { role } = useUserRole();
-  const isAdmin = role === 'admin' || role === 'strategist';
 
   useEffect(() => {
     if (candidateId) {
@@ -324,6 +322,13 @@ export default function UnifiedCandidateProfile() {
           candidate={candidate}
           onSaved={loadCandidateData}
         />
+
+        {/* Audit Log for Admins */}
+        {isAdmin && candidate && (
+          <div className="mt-8">
+            <AuditLogViewer candidateId={candidate.id} />
+          </div>
+        )}
       </div>
     </AppLayout>
   );

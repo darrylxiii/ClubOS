@@ -129,7 +129,7 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
       onSaved();
       onOpenChange(false);
       setChangeReason('');
-      setChanges({ assessment: null });
+      setChanges({ basic: null, assessment: null, workAuth: null, career: null, skills: null, adminNotes: null });
     } catch (error) {
       console.error('Error saving changes:', error);
       toast.error('Failed to save changes');
@@ -154,14 +154,24 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs defaultValue="assessment" className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="basic" className="flex-1 overflow-hidden flex flex-col">
+          <TabsList className="grid w-full grid-cols-6">
+            <TabsTrigger value="basic">Basic Info</TabsTrigger>
             <TabsTrigger value="assessment">Assessment</TabsTrigger>
             <TabsTrigger value="work_auth">Work Auth</TabsTrigger>
-            <TabsTrigger value="preferences">Preferences</TabsTrigger>
+            <TabsTrigger value="career">Career</TabsTrigger>
+            <TabsTrigger value="skills">Skills</TabsTrigger>
+            <TabsTrigger value="admin_notes">Admin Notes</TabsTrigger>
           </TabsList>
 
           <div className="flex-1 overflow-y-auto py-4">
+            <TabsContent value="basic" className="mt-0">
+              <BasicInformationEditor
+                candidate={candidate}
+                onChange={(data) => setChanges({ ...changes, basic: data })}
+              />
+            </TabsContent>
+
             <TabsContent value="assessment" className="mt-0">
               <OverallAssessmentEditor
                 candidate={candidate}
@@ -170,15 +180,31 @@ export function CandidateEditModal({ open, onOpenChange, candidate, onSaved }: C
             </TabsContent>
 
             <TabsContent value="work_auth" className="mt-0">
-              <div className="space-y-4 text-muted-foreground">
-                <p>Work authorization editing coming soon...</p>
-              </div>
+              <WorkAuthorizationEditor
+                candidate={candidate}
+                onChange={(data) => setChanges({ ...changes, workAuth: data })}
+              />
             </TabsContent>
 
-            <TabsContent value="preferences" className="mt-0">
-              <div className="space-y-4 text-muted-foreground">
-                <p>Career preferences editing coming soon...</p>
-              </div>
+            <TabsContent value="career" className="mt-0">
+              <CareerPreferencesEditor
+                candidate={candidate}
+                onChange={(data) => setChanges({ ...changes, career: data })}
+              />
+            </TabsContent>
+
+            <TabsContent value="skills" className="mt-0">
+              <SkillsExperienceEditor
+                candidate={candidate}
+                onChange={(data) => setChanges({ ...changes, skills: data })}
+              />
+            </TabsContent>
+
+            <TabsContent value="admin_notes" className="mt-0">
+              <AdminNotesEditor
+                candidate={candidate}
+                onChange={(data) => setChanges({ ...changes, adminNotes: data })}
+              />
             </TabsContent>
           </div>
         </Tabs>
