@@ -2,17 +2,23 @@ import { useState, useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 interface Course {
   id: string;
+  slug: string;
   title: string;
   description: string;
   course_image_url?: string;
   estimated_hours?: number;
   enrolled_count?: number;
   trending_score?: number;
+  profiles?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
 }
 
 interface CourseCarouselProps {
@@ -87,7 +93,7 @@ export const CourseCarousel = ({ title, courses, viewAllLink, showTrending }: Co
         {courses.map((course) => (
           <Link
             key={course.id}
-            to={`/academy/course/${course.id}`}
+            to={`/academy/courses/${course.slug}`}
             className="snap-start"
           >
             <Card className="w-[300px] hover:shadow-lg transition-all hover:-translate-y-1 group">
@@ -126,6 +132,21 @@ export const CourseCarousel = ({ title, courses, viewAllLink, showTrending }: Co
                     <p className="text-xs text-muted-foreground">
                       {course.estimated_hours}h course
                     </p>
+                  )}
+                  
+                  {/* Instructor */}
+                  {course.profiles && (
+                    <div className="flex items-center gap-2 pt-2 border-t">
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={course.profiles.avatar_url} />
+                        <AvatarFallback className="text-[10px]">
+                          {course.profiles.full_name?.charAt(0) || 'E'}
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="text-xs font-medium truncate">
+                        {course.profiles.full_name || 'Expert Instructor'}
+                      </p>
+                    </div>
                   )}
                 </div>
               </CardContent>
