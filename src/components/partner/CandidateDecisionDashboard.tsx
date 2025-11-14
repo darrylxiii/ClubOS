@@ -10,6 +10,7 @@ import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } fro
 import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
 import { EditableSection } from "@/components/candidate-profile/EditableSection";
 import { useFieldPermissions } from "@/hooks/useFieldPermissions";
+import { useUserRole } from "@/hooks/useUserRole";
 import { OverallAssessmentEditor } from "@/components/partner/edit/OverallAssessmentEditor";
 
 interface Props {
@@ -19,6 +20,7 @@ interface Props {
 
 export const CandidateDecisionDashboard = ({ candidate, applications }: Props) => {
   const { canEditField } = useFieldPermissions();
+  const { role } = useUserRole();
   
   // Early return if no candidate data
   if (!candidate) {
@@ -80,7 +82,8 @@ export const CandidateDecisionDashboard = ({ candidate, applications }: Props) =
   const internalRating = candidate.internal_rating || 0;
   const completeness = candidate.profile_completeness || 0;
 
-  const canEdit = canEditField('internal_rating') || canEditField('fit_score') || canEditField('engagement_score');
+  // Allow editing for admin, strategist, and company_admin roles
+  const canEdit = role === 'admin' || role === 'strategist' || role === 'company_admin';
 
   return (
     <div className="space-y-4">
@@ -198,7 +201,7 @@ export const CandidateDecisionDashboard = ({ candidate, applications }: Props) =
           icon={Award}
           candidateId={candidate.id}
           sectionName="personality"
-          canEdit={canEditField('personality_insights')}
+          canEdit={canEdit}
           onSave={async () => {
             console.log('Saving personality insights...');
           }}

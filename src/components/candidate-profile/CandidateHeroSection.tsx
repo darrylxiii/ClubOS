@@ -4,14 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
   Send, Calendar, Edit, Linkedin, User, 
-  AlertCircle, CheckCircle, Mail, Phone, MapPin, MoreVertical
+  AlertCircle, CheckCircle, Mail, Phone, MapPin
 } from "lucide-react";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
 
@@ -174,34 +168,27 @@ export const CandidateHeroSection = ({
                 </Button>
               ) : null}
 
-              {/* Quick Actions in dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon">
-                    <MoreVertical className="w-4 h-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {onMessage && (
-                    <DropdownMenuItem onClick={onMessage}>
-                      <Send className="w-4 h-4 mr-2" />
-                      Send Message
-                    </DropdownMenuItem>
-                  )}
-                  {onSchedule && (
-                    <DropdownMenuItem onClick={onSchedule}>
-                      <Calendar className="w-4 h-4 mr-2" />
-                      Schedule Interview
-                    </DropdownMenuItem>
-                  )}
-                  {onEdit && (
-                    <DropdownMenuItem onClick={onEdit}>
-                      <Edit className="w-4 h-4 mr-2" />
-                      Edit Profile
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* Direct Action Buttons */}
+              {onMessage && (
+                <Button variant="outline" size="sm" onClick={onMessage}>
+                  <Send className="w-4 h-4 mr-2" />
+                  Message
+                </Button>
+              )}
+              
+              {onSchedule && (
+                <Button variant="outline" size="sm" onClick={onSchedule}>
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Schedule
+                </Button>
+              )}
+              
+              {onEdit && (
+                <Button variant="outline" size="sm" onClick={onEdit}>
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit
+                </Button>
+              )}
             </div>
           </div>
         </div>

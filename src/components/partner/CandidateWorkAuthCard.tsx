@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { EditableSection } from "@/components/candidate-profile/EditableSection";
 import { useFieldPermissions } from "@/hooks/useFieldPermissions";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Props {
   candidate: any;
@@ -14,9 +15,11 @@ interface Props {
 
 export const CandidateWorkAuthCard = ({ candidate }: Props) => {
   const { canEditField } = useFieldPermissions();
+  const { role } = useUserRole();
   const workAuth = candidate.work_authorization || {};
   const hasWorkAuth = Object.keys(workAuth).length > 0;
-  const canEdit = canEditField('work_authorization') || canEditField('desired_salary_min');
+  // Allow editing for admin, strategist, and company_admin roles
+  const canEdit = role === 'admin' || role === 'strategist' || role === 'company_admin';
 
   return (
     <div className="space-y-6">
