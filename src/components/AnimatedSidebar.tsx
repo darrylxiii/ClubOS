@@ -419,58 +419,56 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
   const { open } = useSidebar();
 
   return (
-    <div className="flex-shrink-0 pt-4">
-      <div className={cn(open ? "px-4" : "px-0")}>
-        <DropdownMenu modal={false}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full flex items-center rounded-xl",
-                "min-h-[44px] h-[44px]",
-                "transition-all duration-300 ease-in-out",
-                "hover:bg-muted/10",
-                open ? "gap-3 px-4" : "justify-center px-0"
-              )}
-            >
-              <Avatar className="h-9 w-9 flex-shrink-0">
-                <AvatarImage src={userAvatarUrl || ""} />
-                <AvatarFallback className="bg-muted text-foreground">
-                  {userInitial}
-                </AvatarFallback>
-              </Avatar>
-              {open && (
-                <div className="flex-1 text-left overflow-hidden min-w-0">
-                  <p className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
-                  <p className="text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
-                </div>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent 
-            align="end" 
-            className="w-56 bg-card border-border z-[100]"
-            sideOffset={5}
+    <div className="flex-shrink-0">
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className={cn(
+              "w-full flex items-center rounded-xl mx-4 mb-4",
+              "min-h-[44px] h-[44px]",
+              "transition-all duration-300 ease-in-out",
+              "hover:bg-muted/10",
+              open ? "gap-3 px-4" : "justify-center !mx-0 px-0"
+            )}
           >
-            <DropdownMenuItem asChild>
-              <Link to={profilePath} className="cursor-pointer">
-                <span>My Profile</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link to="/settings" className="cursor-pointer">
-                <span>Settings</span>
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={onSignOut}
-              className="cursor-pointer text-destructive"
-            >
-              <span>Sign out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+            <Avatar className="h-9 w-9 flex-shrink-0">
+              <AvatarImage src={userAvatarUrl || ""} />
+              <AvatarFallback className="bg-muted text-foreground">
+                {userInitial}
+              </AvatarFallback>
+            </Avatar>
+            {open && (
+              <div className="flex-1 text-left overflow-hidden min-w-0">
+                <p className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
+                <p className="text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
+              </div>
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent 
+          align="end" 
+          className="w-56 bg-card border-border z-[100]"
+          sideOffset={5}
+        >
+          <DropdownMenuItem asChild>
+            <Link to={profilePath} className="cursor-pointer">
+              <span>My Profile</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link to="/settings" className="cursor-pointer">
+              <span>Settings</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={onSignOut}
+            className="cursor-pointer text-destructive"
+          >
+            <span>Sign out</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 };
