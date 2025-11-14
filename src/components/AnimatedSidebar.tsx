@@ -75,9 +75,10 @@ export const Sidebar = ({ children, className, logoLight, logoDark, logoLightSho
 const MobileSidebarWrapper = ({ children }: { children: ReactNode }) => {
   const { open, setOpen } = useSidebar();
   
-  // Expose toggle function globally for header button
+  // Expose toggle function and state getter globally for header button
   if (typeof window !== 'undefined') {
     (window as any).__toggleSidebar = () => setOpen(!open);
+    (window as any).__getSidebarOpen = () => open;
   }
 
   return <>{children}</>;

@@ -44,6 +44,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MotionToggle } from "@/components/MotionToggle";
+import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
 import { getNavigationForRole } from "@/config/navigation.config";
 import {
@@ -61,6 +62,22 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   const location = useLocation();
   const { currentRole } = useRole();
   const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Sync burger menu state with sidebar state
+  useEffect(() => {
+    const syncSidebarState = () => {
+      if (typeof window !== 'undefined' && (window as any).__getSidebarOpen) {
+        const isOpen = (window as any).__getSidebarOpen();
+        setMobileMenuOpen(isOpen);
+      }
+    };
+    
+    // Poll sidebar state every 100ms when document has focus
+    const interval = setInterval(syncSidebarState, 100);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch user profile data including avatar
   useEffect(() => {
@@ -110,21 +127,17 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       >
         {/* Left: Menu Trigger (Mobile Only) */}
         <div className="flex items-center gap-2 md:hidden min-w-[44px]">
-          <button 
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent/50 rounded-md transition-colors"
-            onClick={() => {
-              if (typeof window !== 'undefined' && (window as any).__toggleSidebar) {
-                (window as any).__toggleSidebar();
-              }
-            }}
-            aria-label="Toggle menu"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" x2="20" y1="12" y2="12"/>
-              <line x1="4" x2="20" y1="6" y2="6"/>
-              <line x1="4" x2="20" y1="18" y2="18"/>
-            </svg>
-          </button>
+          <div className="min-h-[44px] min-w-[44px] flex items-center justify-center">
+            <BurgerMenu
+              isOpen={mobileMenuOpen}
+              onClick={() => {
+                setMobileMenuOpen(!mobileMenuOpen);
+                if (typeof window !== 'undefined' && (window as any).__toggleSidebar) {
+                  (window as any).__toggleSidebar();
+                }
+              }}
+            />
+          </div>
         </div>
 
         {/* Center: Logo (Mobile Only) */}
