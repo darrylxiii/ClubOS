@@ -65,6 +65,24 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
     return 'there';
   };
 
+  // PHASE 3: Wait for user to be available before rendering
+  if (!user) {
+    console.log('[ClubHomeHeader] ⏸️ Waiting for user to load');
+    return (
+      <div className="bg-card rounded-lg border p-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-16 w-16 rounded-full" />
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-6 w-32" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  console.log('[ClubHomeHeader] ✅ Rendering with user:', user.email, 'Profile:', profile?.full_name);
+
   return (
     <div className="bg-card rounded-lg border p-6 space-y-4">
       <div className="flex items-center justify-between">
