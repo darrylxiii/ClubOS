@@ -20,6 +20,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Loader2 } from "lucide-react";
 import { RejectedApplicationsTab } from "@/components/candidate/RejectedApplicationsTab";
+import { useMobileDetection } from "@/hooks/useMobileDetection";
+import { MobileApplicationPipeline } from "@/components/applications/MobileApplicationPipeline";
 
 interface Application {
   id: string;
@@ -53,6 +55,7 @@ interface Application {
 export default function Applications() {
   const { user } = useAuth();
   const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true); // Include rejected
+  const isMobile = useMobileDetection();
 
   const activeApplications = applications.filter(app => app.status === "active");
   const rejectedApplications = applications.filter(app => app.status === "rejected");
@@ -121,11 +124,16 @@ export default function Applications() {
               {activeApplications.length === 0 ? (
                 <Card>
                   <CardContent className="py-12 text-center">
-                    <p className="text-muted-foreground">
+                    <p className="text-muted-foreground text-sm sm:text-base">
                       No active applications yet. Start applying to jobs to see them here!
                     </p>
                   </CardContent>
                 </Card>
+              ) : isMobile ? (
+                <MobileApplicationPipeline
+                  applications={activeApplications}
+                  onSelectApplication={(app) => window.location.href = `/applications/${app.id}`}
+                />
               ) : (
                 activeApplications.map((application) => (
                   <ApplicationCard key={application.id} application={application} />

@@ -35,8 +35,10 @@ import {
 import { CreateJobDialog } from "@/components/partner/CreateJobDialog";
 import { PipelineCustomizer } from "@/components/partner/PipelineCustomizer";
 import { JobCard } from "@/components/partner/JobCard";
+import { MobileJobCard } from "@/components/partner/MobileJobCard";
 import { JobCardSkeleton } from "@/components/LoadingSkeletons";
 import { EmptyState } from "@/components/EmptyState";
+import { useMobileDetection } from "@/hooks/useMobileDetection";
 
 interface Job {
   id: string;
@@ -81,6 +83,7 @@ const CompanyJobsDashboard = () => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("jobs");
   const [companyName, setCompanyName] = useState("");
+  const isMobile = useMobileDetection();
   
   // Pipeline Settings
   const [pipelineSettings, setPipelineSettings] = useState<PipelineSettings>({
@@ -289,17 +292,21 @@ const CompanyJobsDashboard = () => {
               />
             ) : (
               <div className="grid gap-4">
-                {jobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    onViewDashboard={(jobId) => navigate(`/jobs/${jobId}/dashboard`)}
-                    onEditPipeline={(jobId) => {
-                      setSelectedJobForSettings(jobId);
-                      setSelectedTab("pipeline");
-                    }}
-                  />
-                ))}
+                {jobs.map((job) =>
+                  isMobile ? (
+                    <MobileJobCard key={job.id} job={job} />
+                  ) : (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      onViewDashboard={(jobId) => navigate(`/jobs/${jobId}/dashboard`)}
+                      onEditPipeline={(jobId) => {
+                        setSelectedJobForSettings(jobId);
+                        setSelectedTab("pipeline");
+                      }}
+                    />
+                  )
+                )}
               </div>
             )}
           </TabsContent>
