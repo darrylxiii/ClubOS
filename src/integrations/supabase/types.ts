@@ -2704,6 +2704,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "candidate_interactions_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "candidate_interactions_candidate_id_fkey"
             columns: ["candidate_id"]
             isOneToOne: false
@@ -3030,6 +3037,79 @@ export type Database = {
           },
         ]
       }
+      candidate_profile_audit: {
+        Row: {
+          action: string
+          after_data: Json | null
+          before_data: Json | null
+          bulk_action_id: string | null
+          candidate_id: string
+          changed_fields: string[] | null
+          id: string
+          ip_address: unknown
+          is_bulk_action: boolean | null
+          metadata: Json | null
+          performed_at: string
+          performed_by: string
+          reason: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action: string
+          after_data?: Json | null
+          before_data?: Json | null
+          bulk_action_id?: string | null
+          candidate_id: string
+          changed_fields?: string[] | null
+          id?: string
+          ip_address?: unknown
+          is_bulk_action?: boolean | null
+          metadata?: Json | null
+          performed_at?: string
+          performed_by: string
+          reason?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action?: string
+          after_data?: Json | null
+          before_data?: Json | null
+          bulk_action_id?: string | null
+          candidate_id?: string
+          changed_fields?: string[] | null
+          id?: string
+          ip_address?: unknown
+          is_bulk_action?: boolean | null
+          metadata?: Json | null
+          performed_at?: string
+          performed_by?: string
+          reason?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_profile_audit_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "candidate_profile_audit_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_profile_audit_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_profile_views: {
         Row: {
           candidate_id: string
@@ -3119,6 +3199,11 @@ export type Database = {
           current_title: string | null
           cv_parsed_at: string | null
           data_retention_date: string | null
+          deleted_at: string | null
+          deleted_by: string | null
+          deletion_metadata: Json | null
+          deletion_reason: string | null
+          deletion_type: string | null
           desired_locations: Json | null
           desired_salary_max: number | null
           desired_salary_min: number | null
@@ -3192,6 +3277,11 @@ export type Database = {
           current_title?: string | null
           cv_parsed_at?: string | null
           data_retention_date?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_metadata?: Json | null
+          deletion_reason?: string | null
+          deletion_type?: string | null
           desired_locations?: Json | null
           desired_salary_max?: number | null
           desired_salary_min?: number | null
@@ -3265,6 +3355,11 @@ export type Database = {
           current_title?: string | null
           cv_parsed_at?: string | null
           data_retention_date?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
+          deletion_metadata?: Json | null
+          deletion_reason?: string | null
+          deletion_type?: string | null
           desired_locations?: Json | null
           desired_salary_max?: number | null
           desired_salary_min?: number | null
@@ -3336,6 +3431,27 @@ export type Database = {
           {
             foreignKeyName: "candidate_profiles_assigned_strategist_id_fkey"
             columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_profiles_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "candidate_profiles_deleted_by_fkey"
+            columns: ["deleted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_profiles_deleted_by_fkey"
+            columns: ["deleted_by"]
             isOneToOne: false
             referencedRelation: "public_profiles"
             referencedColumns: ["id"]
@@ -4231,6 +4347,13 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_candidate_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
           },
           {
@@ -5265,6 +5388,13 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversations_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
           },
         ]
@@ -9901,6 +10031,99 @@ export type Database = {
         }
         Relationships: []
       }
+      password_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          password_hash: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          password_hash: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          password_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      password_reset_attempts: {
+        Row: {
+          attempt_type: string | null
+          attempted_at: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          success: boolean | null
+        }
+        Insert: {
+          attempt_type?: string | null
+          attempted_at?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean | null
+        }
+        Update: {
+          attempt_type?: string | null
+          attempted_at?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
+      password_reset_tokens: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          ip_address: string | null
+          is_used: boolean | null
+          magic_token: string
+          otp_code: string
+          used_at: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          ip_address?: string | null
+          is_used?: boolean | null
+          magic_token: string
+          otp_code: string
+          used_at?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          ip_address?: string | null
+          is_used?: boolean | null
+          magic_token?: string
+          otp_code?: string
+          used_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       path_enrollments: {
         Row: {
           completed_at: string | null
@@ -12122,6 +12345,13 @@ export type Database = {
             columns: ["application_id"]
             isOneToOne: false
             referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "role_candidate_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
             referencedColumns: ["id"]
           },
           {
@@ -15369,6 +15599,111 @@ export type Database = {
       }
     }
     Views: {
+      applications_with_deleted_candidates: {
+        Row: {
+          application_source:
+            | Database["public"]["Enums"]["application_source_enum"]
+            | null
+          applied_at: string | null
+          candidate_company: string | null
+          candidate_deleted_at: string | null
+          candidate_deletion_type: string | null
+          candidate_email: string | null
+          candidate_full_name: string | null
+          candidate_id: string | null
+          candidate_linkedin_url: string | null
+          candidate_phone: string | null
+          candidate_resume_url: string | null
+          candidate_status: string | null
+          candidate_title: string | null
+          company_name: string | null
+          created_at: string | null
+          current_stage_index: number | null
+          id: string | null
+          job_id: string | null
+          match_factors: Json | null
+          match_score: number | null
+          position: string | null
+          source_context: Json | null
+          sourced_by: string | null
+          stages: Json | null
+          status: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "applications_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_sourced_by_fkey"
+            columns: ["sourced_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "applications_sourced_by_fkey"
+            columns: ["sourced_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_sourced_by_fkey"
+            columns: ["sourced_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_applications_candidate_profiles"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_applications_candidate_profiles"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "fk_applications_candidate_profiles"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_video_platform_analytics: {
         Row: {
           active_video_platform: string | null
@@ -15458,6 +15793,25 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      rejection_stats_view: {
+        Row: {
+          active_count: number | null
+          hired_count: number | null
+          job_id: string | null
+          orphaned_applications: number | null
+          rejection_count: number | null
+          total_valid_applications: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       unified_candidate_view: {
         Row: {
@@ -15592,6 +15946,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_password_reset_rate_limit: {
+        Args: { p_email: string; p_ip_address: string }
+        Returns: Json
+      }
       check_profile_auth_integrity: {
         Args: never
         Returns: {
@@ -15611,6 +15969,7 @@ export type Database = {
         Args: { _action: string; _user_id: string; _verification_type: string }
         Returns: Json
       }
+      cleanup_expired_password_resets: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
       evaluate_user_achievements: {
         Args: { _user_id: string }
