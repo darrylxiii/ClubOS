@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Globe, Linkedin, Twitter, Instagram, 
   Settings, Eye, Share2, Image as ImageIcon, Building2, 
-  MapPin, Users, Calendar, Briefcase, Heart, Star, Mail, Sparkles, Target
+  MapPin, Users, Calendar, Briefcase, Heart, Star, Mail, Sparkles, Target, Newspaper
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -29,6 +29,8 @@ import { JobCard } from "@/components/JobCard";
 import { TargetCompanies } from "@/components/partner/TargetCompanies";
 import { CompanyCRMMetrics } from "@/components/crm/CompanyCRMMetrics";
 import { getJobViewPath } from "@/utils/jobNavigation";
+import { NewsArticleCard } from "@/components/company/NewsArticleCard";
+import { AddNewsArticleDialog } from "@/components/company/AddNewsArticleDialog";
 
 interface Company {
   id: string;
@@ -77,6 +79,9 @@ export default function CompanyPage() {
   const [createJobDialogOpen, setCreateJobDialogOpen] = useState(false);
   const [jobs, setJobs] = useState<any[]>([]);
   const [targetCompaniesCount, setTargetCompaniesCount] = useState(0);
+  const [newsArticles, setNewsArticles] = useState<any[]>([]);
+  const [newsLoading, setNewsLoading] = useState(false);
+  const [addNewsDialogOpen, setAddNewsDialogOpen] = useState(false);
 
   const isAdmin = currentRole === 'admin';
   const isPartner = currentRole === 'partner';
@@ -93,6 +98,7 @@ export default function CompanyPage() {
       loadFollowStatus();
       loadStats();
       checkCompanyMembership();
+      loadNewsArticles();
     }
   }, [company, user]);
 
@@ -161,6 +167,28 @@ export default function CompanyPage() {
       setIsFollowing(!!data);
     } catch (error) {
       console.error("Error loading follow status:", error);
+    }
+  };
+
+  const loadNewsArticles = async () => {
+    if (!company) return;
+    
+    setNewsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('company_news_articles')
+        .select('*')
+        .eq('company_id', company.id)
+        .order('is_pinned', { ascending: false })
+        .order('published_date', { ascending: false });
+
+      if (error) throw error;
+      setNewsArticles(data || []);
+    } catch (error) {
+      console.error('Error loading news articles:', error);
+      toast.error('Failed to load news articles');
+    } finally {
+      setNewsLoading(false);
     }
   };
 
@@ -524,9 +552,13 @@ export default function CompanyPage() {
 
         {/* Additional Tabs */}
         <Tabs defaultValue="about" className="w-full">
-          <TabsList className={`grid w-full ${canAccessTargets ? 'grid-cols-5' : 'grid-cols-4'}`}>
+          <TabsList className={`grid w-full ${canAccessTargets ? 'grid-cols-6' : 'grid-cols-5'}`}>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="jobs">Jobs ({jobCount})</TabsTrigger>
+            <TabsTrigger value="news">
+              <Newspaper className="w-4 h-4 mr-1.5" />
+              News ({newsArticles.length})
+            </TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="culture">Culture</TabsTrigger>
             {canAccessTargets && (
@@ -698,6 +730,59 @@ export default function CompanyPage() {
             </Tabs>
           </TabsContent>
 
+          <TabsContent value="news" className="space-y-6 mt-6">
+            {/* News Header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">News & Press</h2>
+                <p className="text-muted-foreground">
+                  Latest news articles and press mentions
+                </p>
+              </div>
+              {(isAdmin || isCompanyMember) && (
+                <Button onClick={() => setAddNewsDialogOpen(true)}>
+                  <Newspaper className="w-4 h-4 mr-2" />
+                  Add Article
+                </Button>
+              )}
+            </div>
+
+            {/* News Grid */}
+            {newsLoading ? (
+              <div className="text-center py-12 text-muted-foreground">
+                Loading news articles...
+              </div>
+            ) : newsArticles.length === 0 ? (
+              <Card>
+                <CardContent className="p-12 text-center">
+                  <Newspaper className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <h3 className="text-lg font-semibold mb-2">No news articles yet</h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    {(isAdmin || isCompanyMember)
+                      ? "Add your first press mention or news article."
+                      : "Check back soon for news and press coverage."}
+                  </p>
+                  {(isAdmin || isCompanyMember) && (
+                    <Button onClick={() => setAddNewsDialogOpen(true)}>
+                      <Newspaper className="w-4 h-4 mr-2" />
+                      Add First Article
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {newsArticles.map((article) => (
+                  <NewsArticleCard
+                    key={article.id}
+                    article={article}
+                    companyLogoUrl={company.logo_url}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="culture" className="space-y-6 mt-6">
             {/* Benefits */}
             {company.benefits.length > 0 && (
@@ -746,6 +831,17 @@ export default function CompanyPage() {
             onJobCreated={() => {
               loadStats();
               toast.success("Job created successfully!");
+            }}
+          />
+
+          {/* Add News Article Dialog */}
+          <AddNewsArticleDialog
+            open={addNewsDialogOpen}
+            onOpenChange={setAddNewsDialogOpen}
+            companyId={company.id}
+            onSuccess={() => {
+              loadNewsArticles();
+              toast.success("News article added successfully!");
             }}
           />
         </>

@@ -4600,6 +4600,108 @@ export type Database = {
           },
         ]
       }
+      company_news_articles: {
+        Row: {
+          added_by: string
+          article_guid: string | null
+          author: string | null
+          click_count: number | null
+          company_id: string
+          created_at: string | null
+          description: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          is_pinned: boolean | null
+          published_date: string | null
+          rss_feed_id: string | null
+          source_name: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string | null
+          url: string
+          view_count: number | null
+        }
+        Insert: {
+          added_by: string
+          article_guid?: string | null
+          author?: string | null
+          click_count?: number | null
+          company_id: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_pinned?: boolean | null
+          published_date?: string | null
+          rss_feed_id?: string | null
+          source_name?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string | null
+          url: string
+          view_count?: number | null
+        }
+        Update: {
+          added_by?: string
+          article_guid?: string | null
+          author?: string | null
+          click_count?: number | null
+          company_id?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_pinned?: boolean | null
+          published_date?: string | null
+          rss_feed_id?: string | null
+          source_name?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string | null
+          url?: string
+          view_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_news_articles_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "company_news_articles_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_news_articles_added_by_fkey"
+            columns: ["added_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_news_articles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_rss_feed"
+            columns: ["rss_feed_id"]
+            isOneToOne: false
+            referencedRelation: "rss_feeds"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_post_comments: {
         Row: {
           content: string
@@ -12437,6 +12539,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      rss_feeds: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          feed_name: string
+          feed_url: string
+          fetch_interval_minutes: number | null
+          id: string
+          is_active: boolean | null
+          last_fetched_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          feed_name: string
+          feed_url: string
+          fetch_interval_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_fetched_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          feed_name?: string
+          feed_url?: string
+          fetch_interval_minutes?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_fetched_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rss_feeds_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       salary_benchmarks: {
         Row: {
