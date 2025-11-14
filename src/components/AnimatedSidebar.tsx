@@ -424,14 +424,14 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
           <Button
             variant="ghost"
             className={cn(
-              "w-full rounded-lg relative",
-              "min-h-[52px] h-[52px]", // Fixed height
+              "w-full rounded-xl relative",
+              "min-h-[44px] h-[44px]", // Match navigation items height
               "transition-all duration-300 ease-in-out",
-              "hover:bg-muted/50 hover:scale-[1.02]",
-              "px-4 py-3" // Match navigation items padding
+              "hover:bg-muted/10 hover:scale-[1.02] hover:shadow-[var(--shadow-glass-sm)]",
+              open ? "px-4" : "px-0 justify-center" // Center when collapsed
             )}
           >
-            <div className="flex items-center gap-3 w-full">
+            <div className={cn("flex items-center w-full", open ? "gap-3" : "justify-center")}>
               <Avatar className="h-9 w-9 flex-shrink-0 transition-transform duration-300 hover:scale-110">
                 <AvatarImage src={userAvatarUrl || ""} />
                 <AvatarFallback className="bg-muted text-foreground">
