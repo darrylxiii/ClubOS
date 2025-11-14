@@ -103,7 +103,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      {/* Global Header - Fixed Top - Reorganized Layout */}
+      {/* Global Header - Fixed Top - Responsive Layout */}
       <header 
         className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[100] flex items-center justify-between px-2 sm:px-4 shadow-[var(--shadow-glass-md)] md:left-20"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
@@ -127,22 +127,28 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
           </button>
         </div>
 
-        {/* Center: Logo */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+        {/* Center: Logo (Mobile Only) */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center md:hidden">
           <img 
             src={quantumClubLogoLightShort} 
             alt="Quantum Club" 
-            className="h-12 sm:h-14 w-auto dark:block hidden"
+            className="h-12 w-auto dark:block hidden"
           />
           <img 
             src={quantumClubLogoDarkShort} 
             alt="Quantum Club" 
-            className="h-12 sm:h-14 w-auto dark:hidden block"
+            className="h-12 w-auto dark:hidden block"
           />
         </div>
 
-        {/* Right: Notification Bell */}
-        <div className="flex items-center gap-2 min-w-[44px] justify-end">
+        {/* Right: Desktop buttons (hidden on mobile) + Notification Bell */}
+        <div className="flex items-center gap-1 sm:gap-2 min-w-[44px] justify-end ml-auto">
+          <div className="hidden md:flex items-center gap-1 sm:gap-2">
+            <ThemeToggle />
+            <GlobalRoleSwitcher />
+            <MotionToggle />
+            <MusicPlayer />
+          </div>
           <NotificationBell />
         </div>
       </header>
