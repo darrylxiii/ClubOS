@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { JobMatchesCard } from "@/components/academy/JobMatchesCard";
+import { Link } from "react-router-dom";
 import { 
   Trophy, TrendingUp, Clock, Target, Award, Flame,
-  BookOpen, CheckCircle2
+  BookOpen, CheckCircle2, Download, ExternalLink
 } from "lucide-react";
 
 interface Analytics {
@@ -28,6 +31,7 @@ export function LearnerDashboard() {
     coursesCompleted: 0,
     badges: 0,
   });
+  const [certificates, setCertificates] = useState<any[]>([]);
   const [weeklyGoal] = useState(300); // 5 hours per week
 
   useEffect(() => {
@@ -54,6 +58,15 @@ export function LearnerDashboard() {
         .from('path_enrollments')
         .select('*')
         .eq('user_id', user.id);
+
+      const { data: certificatesData } = await supabase
+        .from('certificates' as any)
+        .select('*, courses(title, slug)')
+        .eq('user_id', user.id)
+        .order('issued_at', { ascending: false })
+        .limit(3);
+
+      setCertificates(certificatesData || []);
 
       if (analyticsData && analyticsData.length > 0) {
         const latest = analyticsData[0];
@@ -167,6 +180,72 @@ export function LearnerDashboard() {
             } 
             className="h-2" 
           />
+        </div>
+      </Card>
+
+      {/* Recent Certificates */}
+      {certificates.length > 0 && (
+        <Card className="p-6 squircle">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Award className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Recent Certificates</h3>
+                <p className="text-sm text-muted-foreground">Your achievements</p>
+              </div>
+            </div>
+            <Link to="/academy/my-skills">
+              <Button variant="ghost" size="sm">
+                View All
+              </Button>
+            </Link>
+          </div>
+          <div className="space-y-3">
+            {certificates.map((cert: any) => (
+              <div key={cert.id} className="flex items-center justify-between p-3 rounded-lg border bg-card/50 hover:bg-accent transition-colors">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Award className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">{cert.courses?.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(cert.issued_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <a href={cert.pdf_url} target="_blank" rel="noopener noreferrer">
+                  <Button variant="ghost" size="sm">
+                    <Download className="h-4 w-4" />
+                  </Button>
+                </a>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
+      {/* Job Matches */}
+      <JobMatchesCard />
+
+      {/* Quick Actions */}
+      <Card className="p-6 squircle">
+        <h3 className="font-semibold mb-4">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <Link to="/academy/my-skills">
+            <Button variant="outline" className="w-full">
+              <Trophy className="h-4 w-4 mr-2" />
+              My Skills
+            </Button>
+          </Link>
+          <Link to="/academy/leaderboard">
+            <Button variant="outline" className="w-full">
+              <TrendingUp className="h-4 w-4 mr-2" />
+              Leaderboard
+            </Button>
+          </Link>
         </div>
       </Card>
     </div>

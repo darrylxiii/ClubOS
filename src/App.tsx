@@ -48,6 +48,7 @@ const Academy = lazy(() => import("./pages/Academy"));
 const AcademyCreatorHub = lazy(() => import("./pages/AcademyCreatorHub"));
 const ModuleDetail = lazy(() => import("./pages/ModuleDetail"));
 const CourseDetail = lazy(() => import("./pages/CourseDetail"));
+const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
 const ModuleManagement = lazy(() => import("./pages/ModuleManagement"));
 const CertificateVerification = lazy(() => import("./pages/CertificateVerification"));
 const MySkillsPage = lazy(() => import("./pages/MySkillsPage"));
@@ -791,6 +792,7 @@ const App = () => (
             <Route path="/academy/:slug" element={<Academy />} />
             <Route path="/academy/creator" element={<AcademyCreatorHub />} />
             <Route path="/academy/my-skills" element={<ProtectedRoute><MySkillsPage /></ProtectedRoute>} />
+            <Route path="/academy/leaderboard" element={<LeaderboardPage />} />
             <Route path="/certificates/verify/:code" element={<CertificateVerification />} />
             <Route path="/courses/:slug" element={<CourseDetail />} />
             <Route path="/courses/edit/:id" element={<ProtectedRoute><CourseEdit /></ProtectedRoute>} />

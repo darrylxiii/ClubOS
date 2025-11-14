@@ -31,6 +31,11 @@ import { PopularCourseCard } from "@/components/academy/PopularCourseCard";
 import { LearnerDashboard } from "@/components/academy/LearnerDashboard";
 import { RecommendationsPanel } from "@/components/academy/RecommendationsPanel";
 import { BadgesDisplay } from "@/components/academy/BadgesDisplay";
+import { EnhancedSearchBar } from "@/components/academy/EnhancedSearchBar";
+import { CourseFilters } from "@/components/academy/CourseFilters";
+import { CategoryGrid } from "@/components/academy/CategoryGrid";
+import { AverageRatingDisplay } from "@/components/academy/AverageRatingDisplay";
+import { SkillTagsDisplay } from "@/components/academy/SkillTagsDisplay";
 
 export default function Academy() {
   const { slug } = useParams();
@@ -40,14 +45,60 @@ export default function Academy() {
   
   const [academy, setAcademy] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
   const [learningPaths, setLearningPaths] = useState<any[]>([]);
   const [isExpert, setIsExpert] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState("newest");
 
   useEffect(() => {
     loadAcademyData();
   }, [slug, user]);
+
+  useEffect(() => {
+    applyFilters();
+  }, [courses, searchQuery, selectedCategory, selectedDifficulty, sortBy]);
+
+  const applyFilters = () => {
+    let filtered = [...courses];
+
+    if (searchQuery) {
+      filtered = filtered.filter(course =>
+        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.description?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (selectedCategory) {
+      filtered = filtered.filter(course => course.category === selectedCategory);
+    }
+
+    if (selectedDifficulty) {
+      filtered = filtered.filter(course => course.difficulty_level === selectedDifficulty);
+    }
+
+    // Sort
+    switch (sortBy) {
+      case "newest":
+        filtered.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+        break;
+      case "popular":
+        filtered.sort((a, b) => (b.enrolled_count || 0) - (a.enrolled_count || 0));
+        break;
+      case "rating":
+        filtered.sort((a, b) => (b.rating_average || 0) - (a.rating_average || 0));
+        break;
+      case "shortest":
+        filtered.sort((a, b) => (a.estimated_duration || 999) - (b.estimated_duration || 999));
+        break;
+    }
+
+    setFilteredCourses(filtered);
+  };
 
   const loadAcademyData = async () => {
     try {
@@ -269,7 +320,7 @@ export default function Academy() {
                       )}
                     </Card>
                   ) : (
-                    courses.map((course) => (
+                    filteredCourses.map((course) => (
                       <Link key={course.id} to={`/courses/${course.slug}`}>
                         <Card className="squircle overflow-hidden hover-lift h-full transition-all cursor-pointer">
                           {/* Course image or illustration header */}
@@ -372,7 +423,17 @@ export default function Academy() {
             </TabsContent>
 
             <TabsContent value="explore" className="space-y-6">
-              {courses.length === 0 ? (
+              {/* Search */}
+              <div className="space-y-4">
+                <EnhancedSearchBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder="Search courses..."
+                />
+              </div>
+
+              {/* Course Grid */}
+              {filteredCourses.length === 0 ? (
                 <Card className="p-12 text-center squircle">
                   <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-xl font-semibold mb-2">No courses yet</h3>
