@@ -5100,6 +5100,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "content_attributions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "popular_courses"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "content_attributions_license_id_fkey"
             columns: ["license_id"]
             isOneToOne: false
@@ -5268,6 +5275,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "content_licensing_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "popular_courses"
             referencedColumns: ["id"]
           },
           {
@@ -5549,6 +5563,13 @@ export type Database = {
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "course_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "popular_courses"
+            referencedColumns: ["id"]
+          },
         ]
       }
       courses: {
@@ -5563,8 +5584,11 @@ export type Database = {
           description: string | null
           difficulty_level: string | null
           display_order: number | null
+          enrolled_count: number | null
           estimated_hours: number | null
+          featured_until: string | null
           id: string
+          is_featured: boolean | null
           is_published: boolean | null
           learning_objectives: Json | null
           learning_path_id: string | null
@@ -5572,6 +5596,7 @@ export type Database = {
           published_at: string | null
           slug: string
           title: string
+          trending_score: number | null
           updated_at: string | null
         }
         Insert: {
@@ -5585,8 +5610,11 @@ export type Database = {
           description?: string | null
           difficulty_level?: string | null
           display_order?: number | null
+          enrolled_count?: number | null
           estimated_hours?: number | null
+          featured_until?: string | null
           id?: string
+          is_featured?: boolean | null
           is_published?: boolean | null
           learning_objectives?: Json | null
           learning_path_id?: string | null
@@ -5594,6 +5622,7 @@ export type Database = {
           published_at?: string | null
           slug: string
           title: string
+          trending_score?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -5607,8 +5636,11 @@ export type Database = {
           description?: string | null
           difficulty_level?: string | null
           display_order?: number | null
+          enrolled_count?: number | null
           estimated_hours?: number | null
+          featured_until?: string | null
           id?: string
+          is_featured?: boolean | null
           is_published?: boolean | null
           learning_objectives?: Json | null
           learning_path_id?: string | null
@@ -5616,6 +5648,7 @@ export type Database = {
           published_at?: string | null
           slug?: string
           title?: string
+          trending_score?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -9658,6 +9691,13 @@ export type Database = {
             referencedRelation: "courses"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "modules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "popular_courses"
+            referencedColumns: ["id"]
+          },
         ]
       }
       note_mentions: {
@@ -12829,6 +12869,36 @@ export type Database = {
           },
         ]
       }
+      skills_demand_metrics: {
+        Row: {
+          course_count: number | null
+          created_at: string | null
+          demand_trend: number | null
+          id: string
+          job_count: number | null
+          last_updated: string | null
+          skill_name: string
+        }
+        Insert: {
+          course_count?: number | null
+          created_at?: string | null
+          demand_trend?: number | null
+          id?: string
+          job_count?: number | null
+          last_updated?: string | null
+          skill_name: string
+        }
+        Update: {
+          course_count?: number | null
+          created_at?: string | null
+          demand_trend?: number | null
+          id?: string
+          job_count?: number | null
+          last_updated?: string | null
+          skill_name?: string
+        }
+        Relationships: []
+      }
       social_campaigns: {
         Row: {
           budget: number | null
@@ -15857,6 +15927,72 @@ export type Database = {
           user_id: string | null
         }
         Relationships: []
+      }
+      popular_courses: {
+        Row: {
+          academy_id: string | null
+          category: string | null
+          course_image_url: string | null
+          course_video_url: string | null
+          cover_image_url: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          difficulty_level: string | null
+          display_order: number | null
+          enrolled_count: number | null
+          estimated_hours: number | null
+          featured_until: string | null
+          id: string | null
+          is_featured: boolean | null
+          is_published: boolean | null
+          learning_objectives: Json | null
+          learning_path_id: string | null
+          prerequisites: Json | null
+          published_at: string | null
+          slug: string | null
+          title: string | null
+          total_enrollments: number | null
+          trending_score: number | null
+          updated_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_academy_id_fkey"
+            columns: ["academy_id"]
+            isOneToOne: false
+            referencedRelation: "academies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "courses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "courses_learning_path_id_fkey"
+            columns: ["learning_path_id"]
+            isOneToOne: false
+            referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       potential_merges: {
         Row: {
