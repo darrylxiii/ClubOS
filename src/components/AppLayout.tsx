@@ -103,8 +103,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      {/* Global Header - Fixed Top - Mobile Optimized */}
-      <header className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[90] flex items-center justify-end px-2 sm:px-4 gap-1 sm:gap-2 shadow-[var(--shadow-glass-md)] md:left-20">
+      {/* Global Header - Fixed Top - Mobile Optimized with Safe Area */}
+      <header 
+        className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[100] flex items-center justify-end px-2 sm:px-4 gap-1 sm:gap-2 shadow-[var(--shadow-glass-md)] md:left-20"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
         <ThemeToggle />
         <GlobalRoleSwitcher />
         <MotionToggle />
