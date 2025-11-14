@@ -98,12 +98,11 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
   return (
     <motion.aside
       className={cn(
-        "hidden md:flex flex-col fixed left-0 bottom-0 z-[95]",
+        "hidden md:flex flex-col fixed left-0 top-0 bottom-0 z-[95]",
         "bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20",
         "shadow-[var(--shadow-glass-lg)]",
         className
       )}
-      style={{ top: "var(--header-height, 4rem)" }}
       animate={{
         width: open ? "300px" : "80px",
       }}
