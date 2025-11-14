@@ -164,6 +164,14 @@ interface MobileSidebarProps {
 
 const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) => {
   const { open, setOpen } = useSidebar();
+  const [isDebouncing, setIsDebouncing] = useState(false);
+
+  const handleToggle = () => {
+    if (isDebouncing) return;
+    setIsDebouncing(true);
+    setOpen(!open);
+    setTimeout(() => setIsDebouncing(false), 300);
+  };
 
   return (
     <>
@@ -182,14 +190,15 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setOpen(!open)}
-          className="z-50"
+          onClick={handleToggle}
+          className="z-50 min-h-[44px] min-w-[44px]"
+          disabled={isDebouncing}
         >
           <Menu className="h-5 w-5" />
         </Button>
       </div>
 
-      {/* Mobile Overlay */}
+      {/* Mobile Overlay with proper z-index */}
       <AnimatePresence>
         {open && (
           <>
@@ -198,8 +207,8 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100] md:hidden"
-              onClick={() => setOpen(false)}
+              className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[80] md:hidden"
+              onClick={handleToggle}
             />
             <motion.aside
               initial={{ x: "-100%" }}
@@ -209,7 +218,7 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
                 duration: 0.3,
                 ease: [0.4, 0, 0.2, 1],
               }}
-              className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-[101] md:hidden flex flex-col shadow-[var(--shadow-glass-xl)]"
+              className="fixed left-0 top-0 bottom-0 w-80 bg-card/95 backdrop-blur-[var(--blur-glass-strong)] border-r border-border/20 z-[90] md:hidden flex flex-col shadow-[var(--shadow-glass-xl)]"
             >
               <div className="h-16 flex items-center justify-between px-4 border-b border-border/20">
                 <img
