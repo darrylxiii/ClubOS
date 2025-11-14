@@ -47,6 +47,8 @@ export default function UnifiedCandidateProfile() {
   const [portfolioItems, setPortfolioItems] = useState<any[]>([]);
   const [skills, setSkills] = useState<any[]>([]);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const { role } = useUserRole();
+  const isAdmin = role === 'admin' || role === 'strategist';
 
   useEffect(() => {
     if (candidateId) {
