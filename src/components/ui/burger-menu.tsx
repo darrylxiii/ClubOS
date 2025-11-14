@@ -11,7 +11,7 @@ export function BurgerMenu({ isOpen, onClick, className }: BurgerMenuProps) {
     <button
       onClick={onClick}
       className={cn(
-        "relative w-10 h-[30px] bg-transparent cursor-pointer flex flex-col justify-center items-center gap-[5px] group",
+        "relative w-6 h-6 bg-transparent cursor-pointer flex flex-col justify-center items-center gap-0",
         className
       )}
       aria-label="Toggle menu"
@@ -19,20 +19,20 @@ export function BurgerMenu({ isOpen, onClick, className }: BurgerMenuProps) {
     >
       <span
         className={cn(
-          "block h-[3px] w-full bg-foreground rounded-full transition-all duration-300 ease-in-out origin-left",
-          isOpen && "rotate-45 translate-x-[5px] translate-y-[-2px]"
+          "absolute block h-[2.5px] w-5 bg-muted-foreground rounded-full transition-all duration-250 ease-in-out",
+          isOpen ? "rotate-45 top-1/2 -translate-y-1/2" : "top-[6px]"
         )}
       />
       <span
         className={cn(
-          "block h-[3px] w-full bg-foreground rounded-full transition-all duration-300 ease-in-out",
-          isOpen && "opacity-0 w-0"
+          "absolute block h-[2.5px] w-5 bg-muted-foreground rounded-full transition-all duration-250 ease-in-out top-1/2 -translate-y-1/2",
+          isOpen && "opacity-0 scale-0"
         )}
       />
       <span
         className={cn(
-          "block h-[3px] w-full bg-foreground rounded-full transition-all duration-300 ease-in-out origin-left",
-          isOpen && "-rotate-45 translate-x-[5px] translate-y-[2px]"
+          "absolute block h-[2.5px] w-5 bg-muted-foreground rounded-full transition-all duration-250 ease-in-out",
+          isOpen ? "-rotate-45 top-1/2 -translate-y-1/2" : "bottom-[6px]"
         )}
       />
     </button>
