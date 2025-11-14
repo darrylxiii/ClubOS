@@ -103,16 +103,48 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
-      {/* Global Header - Fixed Top - Mobile Optimized with Safe Area */}
+      {/* Global Header - Fixed Top - Reorganized Layout */}
       <header 
-        className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[100] flex items-center justify-end px-2 sm:px-4 gap-1 sm:gap-2 shadow-[var(--shadow-glass-md)] md:left-20"
+        className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[100] flex items-center justify-between px-2 sm:px-4 shadow-[var(--shadow-glass-md)] md:left-20"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
-        <ThemeToggle />
-        <GlobalRoleSwitcher />
-        <MotionToggle />
-        <MusicPlayer />
-        <NotificationBell />
+        {/* Left: Menu Trigger (Mobile Only) */}
+        <div className="flex items-center gap-2 md:hidden min-w-[44px]">
+          <button 
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-foreground hover:bg-accent/50 rounded-md transition-colors"
+            onClick={() => {
+              if (typeof window !== 'undefined' && (window as any).__toggleSidebar) {
+                (window as any).__toggleSidebar();
+              }
+            }}
+            aria-label="Toggle menu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" x2="20" y1="12" y2="12"/>
+              <line x1="4" x2="20" y1="6" y2="6"/>
+              <line x1="4" x2="20" y1="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        {/* Center: Logo */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center">
+          <img 
+            src={quantumClubLogoLightShort} 
+            alt="Quantum Club" 
+            className="h-8 sm:h-10 w-auto dark:block hidden"
+          />
+          <img 
+            src={quantumClubLogoDarkShort} 
+            alt="Quantum Club" 
+            className="h-8 sm:h-10 w-auto dark:hidden block"
+          />
+        </div>
+
+        {/* Right: Notification Bell */}
+        <div className="flex items-center gap-2 min-w-[44px] justify-end">
+          <NotificationBell />
+        </div>
       </header>
 
       {/* Animated Sidebar with Glass Effect */}

@@ -59,14 +59,28 @@ interface SidebarProps {
 export const Sidebar = ({ children, className, logoLight, logoDark, logoLightShort, logoDarkShort }: SidebarProps) => {
   return (
     <SidebarProvider>
-      <DesktopSidebar className={className} logoLight={logoLight} logoDark={logoDark} logoLightShort={logoLightShort} logoDarkShort={logoDarkShort}>
-        {children}
-      </DesktopSidebar>
-      <MobileSidebar logoLight={logoLight} logoDark={logoDark}>
-        {children}
-      </MobileSidebar>
+      <MobileSidebarWrapper>
+        <DesktopSidebar className={className} logoLight={logoLight} logoDark={logoDark} logoLightShort={logoLightShort} logoDarkShort={logoDarkShort}>
+          {children}
+        </DesktopSidebar>
+        <MobileSidebar logoLight={logoLight} logoDark={logoDark}>
+          {children}
+        </MobileSidebar>
+      </MobileSidebarWrapper>
     </SidebarProvider>
   );
+};
+
+// Wrapper to expose toggle function
+const MobileSidebarWrapper = ({ children }: { children: ReactNode }) => {
+  const { open, setOpen } = useSidebar();
+  
+  // Expose toggle function globally for header button
+  if (typeof window !== 'undefined') {
+    (window as any).__toggleSidebar = () => setOpen(!open);
+  }
+
+  return <>{children}</>;
 };
 
 interface DesktopSidebarProps {
@@ -175,8 +189,8 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
 
   return (
     <>
-      {/* Mobile Header */}
-      <div className="h-16 px-4 flex md:hidden items-center justify-between bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 fixed top-0 left-0 right-0 z-[100]">
+      {/* Mobile Header - Hidden (using AppLayout header instead) */}
+      <div className="h-16 px-4 hidden items-center justify-between bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 fixed top-0 left-0 right-0 z-[100]">
         <img
           src={logoDark}
           alt="The Quantum Club"
@@ -191,6 +205,7 @@ const MobileSidebar = ({ children, logoLight, logoDark }: MobileSidebarProps) =>
           variant="ghost"
           size="icon"
           onClick={handleToggle}
+          data-sidebar-toggle
           className="z-50 min-h-[44px] min-w-[44px]"
           disabled={isDebouncing}
         >
