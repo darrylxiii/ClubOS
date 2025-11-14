@@ -9,7 +9,6 @@ import {
   MapPin, 
   Briefcase, 
   Eye,
-  MoreVertical,
   DollarSign,
   FileText,
   Link2Icon,
@@ -22,13 +21,6 @@ import {
   Trash2
 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router-dom";
 import { getActivityColor, getActivityLabel, ActivityThresholds } from "./ActivitySettingsDialog";
 import { DeleteCandidateDialog } from "./DeleteCandidateDialog";
@@ -114,31 +106,39 @@ export function UnifiedCandidateCard({
               </div>
 
               {/* Actions */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreVertical className="h-4 w-4" />
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => navigate(`/candidates/${candidate.id}`)}
+                  className="h-8 text-xs"
+                >
+                  <Eye className="w-3.5 h-3.5 mr-1" />
+                  View Profile
+                </Button>
+                {onEdit && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={onEdit}
+                    className="h-8 text-xs"
+                  >
+                    <Pencil className="w-3.5 h-3.5 mr-1" />
+                    Edit
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="z-50 bg-background border">
-                  <DropdownMenuItem onClick={() => navigate(`/candidates/${candidate.id}`)}>
-                    <Eye className="w-4 h-4 mr-2" />
-                    View Full Profile
-                  </DropdownMenuItem>
-                  {onEdit && (
-                    <DropdownMenuItem onClick={onEdit}>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Edit Data
-                    </DropdownMenuItem>
-                  )}
-                  {['not_invited', 'pending'].includes(candidate.invitation_status) && onSendInvitation && (
-                    <DropdownMenuItem onClick={onSendInvitation}>
-                      <Mail className="w-4 h-4 mr-2" />
-                      Send Invitation
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
+                {['not_invited', 'pending'].includes(candidate.invitation_status) && onSendInvitation && (
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    onClick={onSendInvitation}
+                    className="h-8 text-xs"
+                  >
+                    <Mail className="w-3.5 h-3.5 mr-1" />
+                    Send Invitation
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Contact Info */}
