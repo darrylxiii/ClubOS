@@ -116,11 +116,11 @@ export function UnifiedCandidateCard({
               {/* Actions */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
-                    <MoreVertical className="w-4 h-4" />
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <MoreVertical className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="z-50 bg-background border">
                   <DropdownMenuItem onClick={() => navigate(`/candidates/${candidate.id}`)}>
                     <Eye className="w-4 h-4 mr-2" />
                     View Full Profile

@@ -8,6 +8,9 @@ import {
 } from "lucide-react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 import { candidateProfileTokens, getScoreColor } from "@/config/candidate-profile-tokens";
+import { EditableSection } from "@/components/candidate-profile/EditableSection";
+import { useFieldPermissions } from "@/hooks/useFieldPermissions";
+import { OverallAssessmentEditor } from "@/components/partner/edit/OverallAssessmentEditor";
 
 interface Props {
   candidate: any;
@@ -15,6 +18,8 @@ interface Props {
 }
 
 export const CandidateDecisionDashboard = ({ candidate, applications }: Props) => {
+  const { canEditField } = useFieldPermissions();
+  
   // Early return if no candidate data
   if (!candidate) {
     return (
@@ -75,17 +80,24 @@ export const CandidateDecisionDashboard = ({ candidate, applications }: Props) =
   const internalRating = candidate.internal_rating || 0;
   const completeness = candidate.profile_completeness || 0;
 
+  const canEdit = canEditField('internal_rating') || canEditField('fit_score') || canEditField('engagement_score');
+
   return (
     <div className="space-y-4">
       {/* Overall Assessment Card - Enhanced with Score Badges */}
-      <Card className="border-2">
-        <CardHeader className="pb-4">
-          <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5" />
-            Overall Assessment
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <EditableSection
+        title="Overall Assessment"
+        icon={Target}
+        candidateId={candidate.id}
+        sectionName="overall_assessment"
+        canEdit={canEdit}
+        editComponent={<OverallAssessmentEditor candidate={candidate} />}
+        onSave={async () => {
+          // Save logic will be implemented
+          console.log('Saving overall assessment...');
+        }}
+      >
+        <div className="space-y-4">
           {/* Top Section: Overall Score + Score Badges + Radar Chart */}
           <div className="grid grid-cols-[auto_1fr_300px] gap-6 items-start">
             {/* Overall Score - Large */}
@@ -176,29 +188,30 @@ export const CandidateDecisionDashboard = ({ candidate, applications }: Props) =
               </Alert>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </EditableSection>
 
       {/* Personality Insights */}
       {candidate.personality_insights && typeof candidate.personality_insights === 'object' && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Award className="w-5 h-5" />
-              Personality & Work Style
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(candidate.personality_insights).map(([key, value]) => (
-                <div key={key} className="space-y-1">
-                  <p className="text-xs uppercase text-muted-foreground tracking-wide">{key.replace(/_/g, ' ')}</p>
-                  <p className="text-sm font-medium">{String(value)}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <EditableSection
+          title="Personality & Work Style"
+          icon={Award}
+          candidateId={candidate.id}
+          sectionName="personality"
+          canEdit={canEditField('personality_insights')}
+          onSave={async () => {
+            console.log('Saving personality insights...');
+          }}
+        >
+          <div className="grid grid-cols-2 gap-4">
+            {Object.entries(candidate.personality_insights).map(([key, value]) => (
+              <div key={key} className="space-y-1">
+                <p className="text-xs uppercase text-muted-foreground tracking-wide">{key.replace(/_/g, ' ')}</p>
+                <p className="text-sm font-medium">{String(value)}</p>
+              </div>
+            ))}
+          </div>
+        </EditableSection>
       )}
 
       {/* Quick Facts Grid */}

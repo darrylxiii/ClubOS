@@ -5,26 +5,32 @@ import {
   Globe, DollarSign, Clock, MapPin, FileCheck, 
   AlertTriangle, CheckCircle2 
 } from "lucide-react";
+import { EditableSection } from "@/components/candidate-profile/EditableSection";
+import { useFieldPermissions } from "@/hooks/useFieldPermissions";
 
 interface Props {
   candidate: any;
 }
 
 export const CandidateWorkAuthCard = ({ candidate }: Props) => {
+  const { canEditField } = useFieldPermissions();
   const workAuth = candidate.work_authorization || {};
   const hasWorkAuth = Object.keys(workAuth).length > 0;
+  const canEdit = canEditField('work_authorization') || canEditField('desired_salary_min');
 
   return (
     <div className="space-y-6">
       {/* Work Authorization Status */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileCheck className="w-5 h-5" />
-            Work Authorization
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
+      <EditableSection
+        title="Work Authorization"
+        icon={FileCheck}
+        candidateId={candidate.id}
+        sectionName="work_auth"
+        canEdit={canEdit}
+        onSave={async () => {
+          console.log('Saving work authorization...');
+        }}
+      >
           {hasWorkAuth ? (
             <>
               {workAuth.countries && (
@@ -67,8 +73,7 @@ export const CandidateWorkAuthCard = ({ candidate }: Props) => {
           ) : (
             <p className="text-sm text-muted-foreground">No work authorization data available</p>
           )}
-        </CardContent>
-      </Card>
+        </EditableSection>
 
       {/* Salary Expectations */}
       {(candidate.desired_salary_min || candidate.desired_salary_max) && (
