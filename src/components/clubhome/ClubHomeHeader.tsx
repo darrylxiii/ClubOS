@@ -116,12 +116,7 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <NotificationBell />
-          <Button variant="outline" size="sm">
-            Get Help
-          </Button>
-        </div>
+        <NotificationBell />
       </div>
 
       {/* Role switcher if user has multiple roles */}
