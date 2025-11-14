@@ -14,24 +14,43 @@ serve(async (req) => {
   try {
     const { companyId, insightType = 'daily_briefing' } = await req.json();
     
+    if (!companyId) {
+      throw new Error('companyId is required');
+    }
+
+    console.log('Generating insights for company:', companyId, 'type:', insightType);
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
     
+    if (!lovableApiKey) {
+      throw new Error('LOVABLE_API_KEY is not configured');
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Fetch company analytics data
-    const { data: jobs } = await supabase
+    console.log('Fetching company data...');
+    const { data: jobs, error: jobsError } = await supabase
       .from('jobs')
       .select('id, status, title')
       .eq('company_id', companyId);
 
+    if (jobsError) {
+      console.error('Error fetching jobs:', jobsError);
+      throw new Error(`Failed to fetch jobs: ${jobsError.message}`);
+    }
+
+    console.log('Found jobs:', jobs?.length || 0);
+
     const jobIds = jobs?.map(j => j.id) || [];
     
+    console.log('Fetching applications and metrics...');
     const [
-      { data: applications },
-      { data: metrics },
-      { data: healthScore }
+      { data: applications, error: appsError },
+      { data: metrics, error: metricsError },
+      { data: healthScore, error: healthError }
     ] = await Promise.all([
       supabase.from('applications')
         .select('id, status, current_stage_index, applied_at, updated_at, job_id')
@@ -49,7 +68,11 @@ serve(async (req) => {
       })
     ]);
 
-    // Calculate key stats
+    if (appsError) console.error('Applications fetch error:', appsError);
+    if (metricsError) console.error('Metrics fetch error:', metricsError);
+    if (healthError) console.error('Health score error:', healthError);
+
+    console.log('Data fetched - Apps:', applications?.length, 'Metrics:', metrics?.length, 'Health:', healthScore);
     const activeApps = applications?.filter(a => 
       !['hired', 'rejected', 'withdrawn'].includes(a.status)
     ) || [];
@@ -66,7 +89,7 @@ serve(async (req) => {
     const hireRate = totalApps > 0 ? (hires / totalApps * 100) : 0;
 
     // Build context for AI
-    const context = `You are QUIN, The Quantum Club's AI hiring assistant. Generate a ${insightType} for this partner company.
+    const context = `You are Club AI, The Quantum Club's AI hiring assistant. Generate a ${insightType} for this partner company.
 
 CURRENT METRICS:
 - Health Score: ${healthScore}/100
@@ -86,6 +109,8 @@ TASK: Generate 3-5 actionable insights with:
 Focus on: urgent issues, opportunities, predictions, and best practices.
 Be concise, specific, and always action-oriented. Use a professional, discreet tone.`;
 
+    console.log('Calling Lovable AI...');
+
     // Call Lovable AI
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -98,7 +123,7 @@ Be concise, specific, and always action-oriented. Use a professional, discreet t
         messages: [
           { 
             role: 'system', 
-            content: 'You are QUIN, a concise AI hiring assistant for The Quantum Club. Provide actionable, specific insights in a professional tone.' 
+            content: 'You are Club AI, a concise AI hiring assistant for The Quantum Club. Provide actionable, specific insights in a professional tone.' 
           },
           { role: 'user', content: context }
         ],
@@ -136,19 +161,25 @@ Be concise, specific, and always action-oriented. Use a professional, discreet t
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
+      console.error('AI API Error:', aiResponse.status, errorText);
       throw new Error(`AI request failed: ${aiResponse.status} - ${errorText}`);
     }
 
     const aiData = await aiResponse.json();
+    console.log('AI response received:', JSON.stringify(aiData).substring(0, 200));
+    
     const toolCall = aiData.choices[0].message.tool_calls?.[0];
     
     if (!toolCall) {
+      console.error('No tool call in response:', JSON.stringify(aiData));
       throw new Error('No tool call in AI response');
     }
 
     const insights = JSON.parse(toolCall.function.arguments).insights;
+    console.log('Generated insights:', insights.length);
 
     // Store insights in database
+    console.log('Storing insights in database...');
     const insertPromises = insights.map((insight: any) =>
       supabase.from('partner_ai_insights').insert({
         company_id: companyId,
@@ -172,9 +203,12 @@ Be concise, specific, and always action-oriented. Use a professional, discreet t
     );
 
     await Promise.all(insertPromises);
+    console.log('Insights stored successfully');
 
     // Generate smart alerts
+    console.log('Generating smart alerts...');
     await supabase.rpc('generate_smart_alerts', { p_company_id: companyId });
+    console.log('Smart alerts generated');
 
     return new Response(
       JSON.stringify({ 
