@@ -102,15 +102,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
       }
 
+      // Attempt to sign out from Supabase, but don't fail if session is already invalid
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-
+      if (error) {
+        console.log('[AuthContext] Backend signout error (will clear local state anyway):', error.message);
+      }
+    } catch (error) {
+      console.error('[AuthContext] Error during signout (will clear local state anyway):', error);
+    } finally {
+      // Always clear local state and redirect, even if backend signout fails
       setUser(null);
       setSession(null);
       navigate("/auth");
-    } catch (error) {
-      console.error("Error signing out:", error);
-      throw error;
     }
   };
 
