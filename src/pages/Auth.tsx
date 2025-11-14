@@ -471,13 +471,12 @@ const Auth = () => {
               </Button>
 
               <div className="text-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setIsLogin(!isLogin); setPassword(""); setConfirmPassword(""); }}
+                <Link
+                  to="/candidate-onboarding"
                   className="text-foreground/80 hover:text-foreground text-sm"
                 >
-                  {isLogin ? "Need an account? Sign up" : "Already have an account? Sign in"}
-                </button>
+                  Request Access
+                </Link>
               </div>
 
               {isLogin && (
