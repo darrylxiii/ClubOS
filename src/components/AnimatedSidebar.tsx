@@ -101,7 +101,6 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
         "hidden md:flex flex-col fixed left-0 bottom-0 z-[95]",
         "bg-card/30 backdrop-blur-[var(--blur-glass)] border-r border-border/20",
         "shadow-[var(--shadow-glass-lg)]",
-        "pt-16", // Add padding-top to account for header height
         className
       )}
       style={{ top: "var(--header-height, 4rem)" }}
@@ -116,7 +115,7 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
       onMouseLeave={() => setOpen(false)}
     >
       {/* Logo */}
-      <div className="h-20 flex items-center justify-center px-4 border-b border-border/20 relative">
+      <div className="h-16 flex items-center justify-center px-4 border-b border-border/20 relative z-[100]">
         <AnimatePresence mode="wait">
           {open ? (
             <motion.div
