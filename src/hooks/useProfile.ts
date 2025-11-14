@@ -94,8 +94,12 @@ export const useProfile = (options: UseProfileOptions = {}) => {
   }, [loadProfile]);
 
   useEffect(() => {
+    console.log('[useProfile] Effect triggered - autoLoad:', autoLoad, 'userId:', userId);
     if (autoLoad && userId) {
+      console.log('[useProfile] 🔄 Loading profile for userId:', userId);
       loadProfile();
+    } else if (autoLoad && !userId) {
+      console.log('[useProfile] ⏸️ Waiting for userId to become available');
     }
   }, [autoLoad, userId, loadProfile]);
 

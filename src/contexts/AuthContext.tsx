@@ -36,29 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }, 3000);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (!mounted) return;
-        
-        const elapsed = Date.now() - startTime;
-        console.log("[AuthContext] 📢 Auth event:", event, "at", elapsed, "ms | User ID:", session?.user?.id, "Has session:", !!session);
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
-        setAuthError(null);
-        
-        // Track login in background without blocking
-        if (event === 'SIGNED_IN' && session?.user?.id) {
-          setTimeout(() => {
-            trackLogin(session.user.id, 'email').catch(err => {
-              console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
-            });
-          }, 0);
-        }
-      }
-    );
-
+    // PHASE 2: Call getSession() FIRST to ensure user is available immediately
     supabase.auth.getSession()
       .then(({ data: { session }, error }) => {
         if (!mounted) return;
@@ -72,7 +50,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           return;
         }
         
-        console.log("[AuthContext] ✅ Initial session check at", elapsed, "ms:", !!session, session?.user?.id);
+        console.log("[AuthContext] ✅ Initial session loaded at", elapsed, "ms:", !!session, "User ID:", session?.user?.id, "Email:", session?.user?.email);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
@@ -85,6 +63,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setLoading(false);
         setAuthError(err.message || 'Session initialization failed');
       });
+
+    // THEN set up auth state listener for future changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (!mounted) return;
+        
+        const elapsed = Date.now() - startTime;
+        console.log("[AuthContext] 📢 Auth event:", event, "at", elapsed, "ms | User ID:", session?.user?.id, "Email:", session?.user?.email, "Has session:", !!session);
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        setAuthError(null);
+        
+        // Track login in background without blocking
+        if (event === 'SIGNED_IN' && session?.user?.id) {
+          setTimeout(() => {
+            trackLogin(session.user.id, 'email').catch(err => {
+              console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
+            });
+          }, 0);
+        }
+      }
+    );
 
     return () => {
       mounted = false;
