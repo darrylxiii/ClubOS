@@ -419,17 +419,17 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
   const { open } = useSidebar();
 
   return (
-    <div className="flex-shrink-0">
+    <div className="px-3 mb-4">
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             className={cn(
-              "w-full flex items-center rounded-xl mx-4 mb-4",
+              "w-full flex items-center rounded-xl",
+              open ? "gap-3 px-4" : "justify-center px-0",
               "min-h-[44px] h-[44px]",
               "transition-all duration-300 ease-in-out",
-              "hover:bg-muted/10",
-              open ? "gap-3 px-4" : "justify-center !mx-0 px-0"
+              "hover:bg-muted/10"
             )}
           >
             <Avatar className="h-9 w-9 flex-shrink-0">
