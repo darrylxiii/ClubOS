@@ -65,13 +65,13 @@ export const NavigationGroup = ({
         <div className="flex items-center gap-3">
           <GroupIcon 
             className={cn(
-              "h-4 w-4 transition-all duration-300",
-              isActiveGroup && "text-primary scale-110"
+              "h-4 w-4 transition-colors duration-300",
+              isActiveGroup && "text-primary"
             )} 
           />
           <span 
             className={cn(
-              "text-sm uppercase tracking-wider transition-all duration-300",
+              "text-sm uppercase tracking-wider transition-colors duration-300",
               isOpen && isActiveGroup ? "font-bold" : "font-bold"
             )}
           >
@@ -136,41 +136,38 @@ export const NavigationGroup = ({
               return (
                 <motion.div
                   key={item.path}
-                  layout={wasVisible} // Only use layout for items that were already visible
-                  layoutId={wasVisible ? item.path : undefined} // Only use layoutId for previously visible items
                   initial={
                     wasVisible
                       ? false // Previously visible items don't re-animate
-                      : { opacity: 0, y: slideDirection }
+                      : { opacity: 0 }
                   }
                   animate={{ 
-                    opacity: 1, 
-                    y: 0,
+                    opacity: 1,
                     transition: { 
                       delay: isNewItem ? distanceFromActive * 0.04 : 0,
                       duration: 0.2,
                       ease: "easeOut"
                     }
                   }}
-                  exit={{ opacity: 0, y: slideDirection }}
+                  exit={{ opacity: 0 }}
                 >
                   <Link
                     to={item.path}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-2 rounded-lg transition-all duration-300",
-                      "hover:bg-muted/10 hover:scale-[1.01]",
+                      "flex items-center gap-3 px-4 py-2 rounded-lg transition-colors duration-200",
+                      "hover:bg-muted/10",
                       isActive && "bg-muted/15 shadow-sm"
                     )}
                   >
                     <Icon 
                       className={cn(
-                        "h-4 w-4 transition-all duration-300",
-                        isActive ? "text-primary scale-110" : "text-muted-foreground"
+                        "h-3.5 w-3.5 transition-colors duration-200",
+                        isActive ? "text-primary" : "text-muted-foreground"
                       )} 
                     />
                     <span 
                       className={cn(
-                        "text-sm transition-colors duration-300",
+                        "text-sm transition-colors duration-200",
                         isActive ? "text-foreground font-bold" : "text-muted-foreground font-medium"
                       )}
                     >

@@ -142,7 +142,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     : "text-muted-foreground"
                 )}
               >
-                <Icon className="w-5 h-5" />
+                <Icon className="w-4 h-4" />
                 <span className="text-xs font-bold uppercase tracking-wider">{item.label}</span>
               </Link>
             );
