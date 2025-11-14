@@ -24,22 +24,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
+    // Emergency timeout to force loading to false after 2 seconds
+    const emergencyTimeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.error("[AuthContext] ⚠️ Emergency timeout - forcing loading to false");
+        setLoading(false);
+      }
+    }, 2000);
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
         
-        console.log("[AuthContext] Auth event:", event, session?.user?.id);
-        
-        if (event === 'SIGNED_IN' && session?.user?.id) {
-          trackLogin(session.user.id, 'email').catch(err => {
-            console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
-          });
-        }
+        console.log("[AuthContext] Auth event:", event, "User ID:", session?.user?.id, "Has session:", !!session);
         
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
         setAuthError(null);
+        
+        // Track login in background without blocking
+        if (event === 'SIGNED_IN' && session?.user?.id) {
+          setTimeout(() => {
+            trackLogin(session.user.id, 'email').catch(err => {
+              console.log('[AuthContext] Login tracking failed (non-critical):', err.message);
+            });
+          }, 0);
+        }
       }
     );
 
@@ -51,6 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setAuthError(error.message);
       }
       
+      console.log("[AuthContext] Initial session check:", !!session, session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -58,6 +70,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       mounted = false;
+      clearTimeout(emergencyTimeout);
       subscription.unsubscribe();
     };
   }, []);

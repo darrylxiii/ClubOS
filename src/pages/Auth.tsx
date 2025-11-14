@@ -68,26 +68,8 @@ const Auth = () => {
 
   useEffect(() => {
     if (!loading && user && session && !mfaRequired) {
-      console.log("[Auth Page] User authenticated, checking onboarding");
-      
-      supabase
-        .from('profiles')
-        .select('onboarding_completed_at')
-        .eq('id', user.id)
-        .single()
-        .then(({ data: profile, error }) => {
-          if (error) {
-            console.error("[Auth Page] Error fetching profile:", error);
-            navigate("/home");
-            return;
-          }
-          
-          if (!profile?.onboarding_completed_at) {
-            navigate("/onboarding");
-          } else {
-            navigate("/home");
-          }
-        });
+      console.log("[Auth Page] ✅ User authenticated, navigating to /home");
+      navigate("/home");
     }
   }, [loading, user, session, mfaRequired, navigate]);
 
