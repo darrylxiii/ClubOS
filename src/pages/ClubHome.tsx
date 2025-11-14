@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { useRole } from "@/contexts/RoleContext";
@@ -14,10 +14,9 @@ const ClubHome = () => {
   const { currentRole: role, loading: roleLoading } = useRole();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const hasNavigated = useRef(false);
 
-  // Combined loading state
-  const isReady = !roleLoading && !authLoading && role !== null;
+  // Combined loading state - only check loading states, not role value
+  const isReady = !roleLoading && !authLoading;
 
   console.log('🏠 [ClubHome] State:', {
     roleLoading,
@@ -26,24 +25,6 @@ const ClubHome = () => {
     role,
     user: !!user
   });
-
-
-  // ENTERPRISE: Fixed race condition - only redirect if truly unauthenticated
-  // CRITICAL: Check BOTH role AND user, increased timeout from 1s -> 5s
-  useEffect(() => {
-    if (!roleLoading && !authLoading && !role && !user && !hasNavigated.current) {
-      const timeout = setTimeout(() => {
-        // Double-check before navigating to prevent race conditions
-        if (!role && !user && window.location.pathname === '/home') {
-          hasNavigated.current = true;
-          console.error('[ClubHome] 🚨 No role AND no user - authentication required');
-          navigate("/auth", { replace: true });
-        }
-      }, 5000); // Increased from 1s to 5s
-      
-      return () => clearTimeout(timeout);
-    }
-  }, [roleLoading, authLoading, role, user, navigate]);
 
   // Show simple loading state
   if (!isReady) {

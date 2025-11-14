@@ -24,14 +24,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
-    // Emergency timeout to force loading to false after 2 seconds
-    const emergencyTimeout = setTimeout(() => {
-      if (mounted && loading) {
-        console.error("[AuthContext] ⚠️ Emergency timeout - forcing loading to false");
-        setLoading(false);
-      }
-    }, 2000);
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
@@ -70,7 +62,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       mounted = false;
-      clearTimeout(emergencyTimeout);
       subscription.unsubscribe();
     };
   }, []);
