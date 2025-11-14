@@ -261,7 +261,8 @@ export const SidebarLink = ({ item, className }: SidebarLinkProps) => {
     <Link
       to={item.path}
       className={cn(
-        "flex items-center gap-3 px-4 rounded-xl",
+        "flex items-center rounded-xl",
+        open ? "gap-3 px-4" : "justify-center px-0",
         "min-h-[44px] h-[44px]", // Fixed height to prevent shifting
         "transition-all duration-300 ease-in-out",
         "border border-transparent",
