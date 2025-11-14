@@ -419,33 +419,32 @@ export const SidebarFooter = ({ userName, userInitial, userAvatarUrl, onSignOut,
   const { open } = useSidebar();
 
   return (
-    <div className="flex-shrink-0 p-4">
+    <div className={cn("flex-shrink-0", open ? "p-4" : "py-4")}>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
             className={cn(
               "w-full rounded-xl relative",
-              "min-h-[44px] h-[44px]", // Match navigation items height
+              "min-h-[44px] h-[44px]",
               "transition-all duration-300 ease-in-out",
               "hover:bg-muted/10 hover:scale-[1.02] hover:shadow-[var(--shadow-glass-sm)]",
-              open ? "px-4" : "px-0 justify-center" // Center when collapsed
+              "flex items-center",
+              open ? "gap-3 px-4" : "justify-center px-0"
             )}
           >
-            <div className={cn("flex items-center w-full", open ? "gap-3" : "justify-center")}>
-              <Avatar className="h-9 w-9 flex-shrink-0 transition-transform duration-300 hover:scale-110">
-                <AvatarImage src={userAvatarUrl || ""} />
-                <AvatarFallback className="bg-muted text-foreground">
-                  {userInitial}
-                </AvatarFallback>
-              </Avatar>
-              {open && (
-                <div className="flex-1 text-left overflow-hidden min-w-0">
-                  <p className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
-                  <p className="text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
-                </div>
-              )}
-            </div>
+            <Avatar className="h-9 w-9 flex-shrink-0 transition-transform duration-300 hover:scale-110">
+              <AvatarImage src={userAvatarUrl || ""} />
+              <AvatarFallback className="bg-muted text-foreground">
+                {userInitial}
+              </AvatarFallback>
+            </Avatar>
+            {open && (
+              <div className="flex-1 text-left overflow-hidden min-w-0">
+                <p className="text-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis">{userName}</p>
+                <p className="text-xs text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">View profile</p>
+              </div>
+            )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent 
