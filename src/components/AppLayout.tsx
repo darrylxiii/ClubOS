@@ -120,8 +120,16 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
+      {/* Skip to main content link for accessibility */}
+      <a 
+        href="#main-content" 
+        className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[110] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring min-h-[44px] flex items-center"
+      >
+        Skip to main content
+      </a>
+
       {/* Global Header - Fixed Top - Responsive Layout */}
-      <header 
+      <header
         className="fixed top-0 left-0 right-0 h-14 sm:h-16 bg-card/30 backdrop-blur-[var(--blur-glass)] border-b border-border/20 z-[100] flex items-center justify-between px-2 sm:px-4 shadow-[var(--shadow-glass-md)] md:left-20"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
@@ -186,14 +194,22 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
       </Sidebar>
 
       {/* Main Content - Adjusted for sidebar - Mobile Optimized */}
-      <main className={cn(
-        "flex-1 w-full md:ml-20",
-        location.pathname === '/messages' ? 'overflow-hidden' : 'overflow-y-auto'
-      )}>
+      <main 
+        id="main-content"
+        tabIndex={-1}
+        className={cn(
+          "flex-1 w-full md:ml-20",
+          location.pathname === '/messages' ? 'overflow-hidden' : 'overflow-y-auto'
+        )}
+      >
         <div className={cn(
           "min-h-screen pt-14 sm:pt-16",
           location.pathname !== '/messages' && 'pb-4'
-        )}>{children}</div>
+        )}
+        style={{ paddingBottom: location.pathname !== '/messages' ? 'max(env(safe-area-inset-bottom), 1rem)' : undefined }}
+        >
+          {children}
+        </div>
       </main>
 
       {/* Global Navigation Tools */}
