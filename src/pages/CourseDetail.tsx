@@ -14,6 +14,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 import { CourseAIChat } from "@/components/academy/CourseAIChat";
+import { CourseProgressRing } from "@/components/academy/CourseProgressRing";
+import { CourseCompletionModal } from "@/components/academy/CourseCompletionModal";
+import { ModuleQuiz } from "@/components/academy/ModuleQuiz";
+import { NoteEditor } from "@/components/academy/NoteEditor";
+import { CourseReviewForm } from "@/components/academy/CourseReviewForm";
+import { AverageRatingDisplay } from "@/components/academy/AverageRatingDisplay";
+import { CertificatePreview } from "@/components/academy/CertificatePreview";
 import { 
   BookOpen, 
   Clock, 
@@ -38,6 +45,10 @@ export default function CourseDetail() {
   const [isOwner, setIsOwner] = useState(false);
   const [showModuleDialog, setShowModuleDialog] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [certificate, setCertificate] = useState<any>(null);
+  const [selectedModule, setSelectedModule] = useState<any>(null);
+  const [showReviewDialog, setShowReviewDialog] = useState(false);
 
   useEffect(() => {
     loadCourseData();
@@ -79,6 +90,20 @@ export default function CourseDetail() {
         if (progressData && progressData.length > 0) {
           const avgProgress = progressData.reduce((sum, p) => sum + p.progress_percentage, 0) / progressData.length;
           setProgress(avgProgress);
+          
+          // Check if course just completed
+          if (avgProgress >= 100) {
+            const { data: certData } = await supabase
+              .from('certificates' as any)
+              .select('*')
+              .eq('user_id', user.id)
+              .eq('course_id', courseData.id)
+              .maybeSingle();
+            
+            if (certData) {
+              setCertificate(certData);
+            }
+          }
         }
       }
     } catch (error: any) {
@@ -164,6 +189,20 @@ export default function CourseDetail() {
           <div className="lg:col-span-2 space-y-6">
             {/* Course Header */}
             <div className="space-y-4">
+              {/* Progress Ring */}
+              {user && progress > 0 && (
+                <CourseProgressRing 
+                  progress={progress}
+                  completedModules={completedModules}
+                  totalModules={totalModules}
+                />
+              )}
+
+              {/* Certificate Display */}
+              {certificate && (
+                <CertificatePreview certificateId={certificate.id} />
+              )}
+
               {isOwner && (
                 <div className="flex gap-2">
                   <Button
@@ -199,6 +238,10 @@ export default function CourseDetail() {
                   <Clock className="h-4 w-4" />
                   <span>{course.estimated_hours}h</span>
                 </div>
+                <AverageRatingDisplay
+                  rating={course.rating_average}
+                  count={course.rating_count}
+                />
                 <div className="flex items-center gap-2">
                   <div className="flex -space-x-2">
                     <Avatar className="h-6 w-6 border-2 border-background">
@@ -249,6 +292,7 @@ export default function CourseDetail() {
                 <TabsTrigger value="overview">Overview</TabsTrigger>
                 <TabsTrigger value="instructor">Instructor</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews</TabsTrigger>
+                <TabsTrigger value="notes">Notes</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-6 mt-6">
@@ -311,11 +355,33 @@ export default function CourseDetail() {
               </TabsContent>
 
               <TabsContent value="reviews" className="mt-6">
+                <div className="space-y-6">
+                  {progress >= 100 && user && (
+                    <Card className="p-6">
+                      <Button onClick={() => setShowReviewDialog(true)}>
+                        Write a Review
+                      </Button>
+                    </Card>
+                  )}
+                  <Card className="p-6">
+                    <h3 className="text-xl font-bold mb-4">Student Reviews</h3>
+                    <p className="text-muted-foreground text-sm">
+                      No reviews yet. Be the first to review this course!
+                    </p>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="notes" className="mt-6">
                 <Card className="p-6">
-                  <h3 className="text-xl font-bold mb-4">Student Reviews</h3>
-                  <p className="text-muted-foreground text-sm">
-                    No reviews yet. Be the first to review this course!
-                  </p>
+                  <h3 className="text-xl font-bold mb-4">Course Notes</h3>
+                  {selectedModule ? (
+                    <NoteEditor moduleId={selectedModule.id} />
+                  ) : (
+                    <p className="text-muted-foreground text-sm">
+                      Select a module to take notes
+                    </p>
+                  )}
                 </Card>
               </TabsContent>
             </Tabs>
@@ -443,6 +509,21 @@ export default function CourseDetail() {
           courseId={course.id}
           onSuccess={loadCourseData}
           nextDisplayOrder={modules.length + 1}
+        />
+
+        <CourseReviewForm
+          open={showReviewDialog}
+          onOpenChange={setShowReviewDialog}
+          courseId={course.id}
+          courseName={course.title}
+          onReviewSubmitted={loadCourseData}
+        />
+
+        <CourseCompletionModal
+          open={showCompletionModal}
+          onOpenChange={setShowCompletionModal}
+          courseName={course.title}
+          certificateId={certificate?.id}
         />
       </div>
     </AppLayout>
