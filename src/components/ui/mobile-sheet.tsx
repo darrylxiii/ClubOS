@@ -22,6 +22,20 @@ export function MobileSheet({
   children,
 }: MobileSheetProps) {
   const isMobile = useMobileDetection();
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (open) {
+      // Auto-focus first input when sheet opens
+      const timer = setTimeout(() => {
+        const firstInput = contentRef.current?.querySelector<HTMLElement>(
+          'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled])'
+        );
+        firstInput?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
 
   if (isMobile) {
     return (
@@ -33,7 +47,9 @@ export function MobileSheet({
               {description && <DrawerDescription>{description}</DrawerDescription>}
             </DrawerHeader>
           )}
-          <div className="overflow-y-auto px-4 pb-4">{children}</div>
+          <div ref={contentRef} className="overflow-y-auto px-4 pb-4">
+            {children}
+          </div>
         </DrawerContent>
       </Drawer>
     );
@@ -48,7 +64,9 @@ export function MobileSheet({
             {description && <DialogDescription>{description}</DialogDescription>}
           </DialogHeader>
         )}
-        {children}
+        <div ref={contentRef}>
+          {children}
+        </div>
       </DialogContent>
     </Dialog>
   );

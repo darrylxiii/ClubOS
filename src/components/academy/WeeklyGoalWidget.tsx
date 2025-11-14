@@ -6,9 +6,11 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const WeeklyGoalWidget = () => {
   const [hoursThisWeek, setHoursThisWeek] = useState(0);
+  const [loading, setLoading] = useState(true);
   const weeklyGoal = 5; // Default goal of 5 hours per week
 
   useEffect(() => {
+    setLoading(true);
     const fetchWeeklyProgress = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -27,12 +29,28 @@ export const WeeklyGoalWidget = () => {
         const totalMinutes = data.reduce((sum: number, item: any) => sum + (item.time_spent_minutes || 0), 0);
         setHoursThisWeek(Math.round((totalMinutes / 60) * 10) / 10);
       }
+      setLoading(false);
     };
 
     fetchWeeklyProgress();
   }, []);
 
   const progress = Math.min((hoursThisWeek / weeklyGoal) * 100, 100);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="h-5 w-24 bg-muted animate-pulse rounded" />
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+          <div className="h-2 w-full bg-muted animate-pulse rounded" />
+          <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>

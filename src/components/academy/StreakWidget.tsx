@@ -46,7 +46,17 @@ export const StreakWidget = () => {
   }, []);
 
   if (loading) {
-    return <Card><CardContent className="h-32 animate-pulse" /></Card>;
+    return (
+      <Card className="bg-gradient-to-br from-orange-500/10 to-red-500/10 border-orange-500/20">
+        <CardHeader className="pb-3">
+          <div className="h-5 w-28 bg-muted animate-pulse rounded" />
+        </CardHeader>
+        <CardContent>
+          <div className="h-10 w-16 bg-muted animate-pulse rounded mb-2" />
+          <div className="h-4 w-40 bg-muted animate-pulse rounded" />
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
