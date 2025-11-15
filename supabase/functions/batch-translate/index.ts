@@ -23,9 +23,37 @@ Deno.serve(async (req) => {
 
     const { texts, targetLanguage, context = 'ui_translation', namespace, sourceTranslations } = await req.json();
 
-    if (!texts || !Array.isArray(texts) || texts.length === 0) {
+    // Handle two modes: direct texts array OR sourceTranslations object
+    let textsToTranslate: string[] = [];
+
+    if (sourceTranslations && typeof sourceTranslations === 'object') {
+      // Extract all string values from nested object
+      const extractTexts = (obj: any): string[] => {
+        const results: string[] = [];
+        for (const value of Object.values(obj)) {
+          if (typeof value === 'string') {
+            results.push(value);
+          } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            results.push(...extractTexts(value));
+          }
+        }
+        return results;
+      };
+      
+      textsToTranslate = extractTexts(sourceTranslations);
+      console.log(`[Batch Translate] Extracted ${textsToTranslate.length} texts from sourceTranslations`);
+    } else if (texts && Array.isArray(texts)) {
+      textsToTranslate = texts;
+    } else {
       return new Response(
-        JSON.stringify({ error: 'texts array is required' }),
+        JSON.stringify({ error: 'Either texts array or sourceTranslations object is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (textsToTranslate.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No texts found to translate' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -37,15 +65,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`[Batch Translate] Translating ${texts.length} texts to ${targetLanguage}`);
+    console.log(`[Batch Translate] Translating ${textsToTranslate.length} texts to ${targetLanguage}`);
 
     // Batch translate using Lovable AI
     const translations: string[] = [];
     
     // Process in batches of 10 to avoid rate limits
     const batchSize = 10;
-    for (let i = 0; i < texts.length; i += batchSize) {
-      const batch = texts.slice(i, i + batchSize);
+    for (let i = 0; i < textsToTranslate.length; i += batchSize) {
+      const batch = textsToTranslate.slice(i, i + batchSize);
       
       // Translate each text in parallel within the batch
       const batchPromises = batch.map(async (text: string) => {
@@ -93,7 +121,7 @@ Text to translate: "${text}"`;
       translations.push(...batchResults);
 
       // Small delay between batches to respect rate limits
-      if (i + batchSize < texts.length) {
+      if (i + batchSize < textsToTranslate.length) {
         await new Promise(resolve => setTimeout(resolve, 100));
       }
     }

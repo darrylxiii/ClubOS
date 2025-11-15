@@ -161,8 +161,8 @@ serve(async (req) => {
           totalLanguages: targetLanguages.length,
           successCount,
           errorCount,
-          totalCost: totalCost.toFixed(2),
-          totalTimeSeconds: (totalTime / 1000).toFixed(1)
+          totalCost: parseFloat(totalCost.toFixed(2)),
+          totalTimeSeconds: parseFloat((totalTime / 1000).toFixed(1))
         },
         results,
         errors
