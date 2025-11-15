@@ -123,18 +123,49 @@ export function CompanyDomainsManager({
     },
   });
 
+  const syncPartnerDomainsMutation = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc('sync_existing_partner_domains');
+      
+      if (error) {
+        console.error("Error syncing partner domains:", error);
+        throw error;
+      }
+      
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["company-domains", companyId] });
+      const count = data?.length || 0;
+      toast.success(count > 0 ? `Synced ${count} partner domain(s)` : "All partner domains are already tracked");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to sync partner domains");
+    },
+  });
+
   return (
     <Card className="p-6">
       <div className="space-y-4">
-        <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
-            <Mail className="h-5 w-5" />
-            Tracked Email Domains
-          </h3>
-          <p className="text-sm text-muted-foreground">
-            Add email domains to automatically track interactions with this company.
-            Emails from these domains will be captured and used for ML learning.
-          </p>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h3 className="text-lg font-semibold flex items-center gap-2 mb-2">
+              <Mail className="h-5 w-5" />
+              Tracked Email Domains
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Add email domains to automatically track interactions with this company.
+              Partner email domains are automatically synced.
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => syncPartnerDomainsMutation.mutate()}
+            disabled={syncPartnerDomainsMutation.isPending || isLoading}
+          >
+            {syncPartnerDomainsMutation.isPending ? "Syncing..." : "Sync Partners"}
+          </Button>
         </div>
 
         {/* Add new domain */}
@@ -181,6 +212,11 @@ export function CompanyDomainsManager({
                     <Badge variant={domain.is_active ? "default" : "secondary"}>
                       {domain.is_active ? "Active" : "Inactive"}
                     </Badge>
+                    {domain.auto_tracked && (
+                      <Badge variant="outline" className="text-xs">
+                        Auto
+                      </Badge>
+                    )}
                   </div>
                   {domain.notes && (
                     <p className="text-xs text-muted-foreground mt-1">
