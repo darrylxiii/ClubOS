@@ -248,3 +248,7 @@ verify_jwt = true
 # ML training data backfill (admin only)
 [functions.ml-backfill-training-data]
 verify_jwt = true
+
+[functions.log-phone-call]
+verify_jwt = true
+
