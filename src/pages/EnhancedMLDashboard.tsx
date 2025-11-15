@@ -12,6 +12,7 @@ import { useMLMatching } from '@/hooks/useMLMatching';
 import { useNavigate } from 'react-router-dom';
 import type { MLModel, MLABTest, MLModelMetrics } from '@/types/ml';
 import { format } from 'date-fns';
+import { TestDataManager } from '@/components/ml/TestDataManager';
 
 export default function EnhancedMLDashboard() {
   const [models, setModels] = useState<MLModel[]>([]);
@@ -213,7 +214,7 @@ export default function EnhancedMLDashboard() {
 
         {/* Main Tabs */}
         <Tabs defaultValue="intelligence" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="intelligence">
               <Brain className="h-4 w-4 mr-2" />
               Company Intelligence
@@ -233,6 +234,10 @@ export default function EnhancedMLDashboard() {
             <TabsTrigger value="ab-tests">
               <TrendingUp className="h-4 w-4 mr-2" />
               A/B Tests
+            </TabsTrigger>
+            <TabsTrigger value="test-data">
+              <Database className="h-4 w-4 mr-2" />
+              Test Data
             </TabsTrigger>
           </TabsList>
 
@@ -480,6 +485,11 @@ export default function EnhancedMLDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Test Data Management */}
+          <TabsContent value="test-data" className="space-y-4">
+            <TestDataManager onDataChanged={loadData} />
           </TabsContent>
         </Tabs>
       </div>
