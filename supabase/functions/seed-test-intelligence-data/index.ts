@@ -42,9 +42,9 @@ serve(async (req) => {
 
     // Create test stakeholders
     const stakeholders = [
-      { name: 'Sarah Johnson', email: 'sarah.j@testcompany.com', title: 'CTO', role_type: 'decision_maker' },
-      { name: 'Mike Chen', email: 'mike.c@testcompany.com', title: 'VP Engineering', role_type: 'influencer' },
-      { name: 'Lisa Rodriguez', email: 'lisa.r@testcompany.com', title: 'Head of Talent', role_type: 'gatekeeper' },
+      { full_name: 'Sarah Johnson', email: 'sarah.j@testcompany.com', job_title: 'CTO', role_type: 'decision_maker' },
+      { full_name: 'Mike Chen', email: 'mike.c@testcompany.com', job_title: 'VP Engineering', role_type: 'influencer' },
+      { full_name: 'Lisa Rodriguez', email: 'lisa.r@testcompany.com', job_title: 'Head of Talent', role_type: 'gatekeeper' },
     ];
 
     const createdStakeholders = [];
@@ -53,9 +53,9 @@ serve(async (req) => {
         .from('company_stakeholders')
         .insert({
           company_id: companyId,
-          name: stakeholder.name,
+          full_name: stakeholder.full_name,
           email: stakeholder.email,
-          title: stakeholder.title,
+          job_title: stakeholder.job_title,
           role_type: stakeholder.role_type,
           is_test_data: true, // Mark as test data
         })
@@ -67,34 +67,34 @@ serve(async (req) => {
         continue;
       }
       createdStakeholders.push(data);
-      console.log(`[SEED] Created stakeholder: ${stakeholder.name}`);
+      console.log(`[SEED] Created stakeholder: ${stakeholder.full_name}`);
     }
 
     // Create test interactions
     const interactions = [
       {
         interaction_type: 'meeting',
-        channel: 'video_call',
-        content: `Discussion about senior backend engineer role. Sarah mentioned they need someone with strong distributed systems experience. Timeline: wants to start interviews within 2 weeks. Budget approved for senior level ($180k-$220k range). Team is growing fast, 3 more hires planned this quarter.`,
+        interaction_subtype: 'video_call',
+        raw_content: `Discussion about senior backend engineer role. Sarah mentioned they need someone with strong distributed systems experience. Timeline: wants to start interviews within 2 weeks. Budget approved for senior level ($180k-$220k range). Team is growing fast, 3 more hires planned this quarter.`,
         duration_minutes: 45,
         sentiment_score: 0.85,
-        urgency_level: 'high',
+        urgency_score: 0.9,
       },
       {
         interaction_type: 'email',
-        channel: 'email',
-        content: `Follow-up email from Mike about technical requirements. Key points: Must have experience with Go and Kubernetes, bonus if they've worked at scale (1M+ users). They're moving fast because current team is overloaded. Mike emphasized cultural fit is critical.`,
+        interaction_subtype: 'outbound',
+        raw_content: `Follow-up email from Mike about technical requirements. Key points: Must have experience with Go and Kubernetes, bonus if they've worked at scale (1M+ users). They're moving fast because current team is overloaded. Mike emphasized cultural fit is critical.`,
         duration_minutes: 10,
         sentiment_score: 0.75,
-        urgency_level: 'medium',
+        urgency_score: 0.7,
       },
       {
         interaction_type: 'phone_call',
-        channel: 'phone',
-        content: `Quick sync with Lisa about interview process. They want to move candidates through quickly: 1 screening call, 1 technical round, 1 culture fit, then offer. Lisa mentioned they've lost good candidates to slow processes before. Budget for relocation available if needed.`,
+        interaction_subtype: 'inbound',
+        raw_content: `Quick sync with Lisa about interview process. They want to move candidates through quickly: 1 screening call, 1 technical round, 1 culture fit, then offer. Lisa mentioned they've lost good candidates to slow processes before. Budget for relocation available if needed.`,
         duration_minutes: 20,
         sentiment_score: 0.90,
-        urgency_level: 'high',
+        urgency_score: 0.85,
       },
     ];
 
@@ -106,12 +106,12 @@ serve(async (req) => {
         .insert({
           company_id: companyId,
           interaction_type: interaction.interaction_type,
-          channel: interaction.channel,
-          content: interaction.content,
-          occurred_at: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(), // Stagger by days
+          interaction_subtype: interaction.interaction_subtype,
+          raw_content: interaction.raw_content,
+          interaction_date: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(), // Stagger by days
           duration_minutes: interaction.duration_minutes,
           sentiment_score: interaction.sentiment_score,
-          urgency_level: interaction.urgency_level,
+          urgency_score: interaction.urgency_score,
           is_test_data: true, // Mark as test data
         })
         .select()
