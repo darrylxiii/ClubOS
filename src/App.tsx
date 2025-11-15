@@ -80,6 +80,7 @@ const InteractionEntry = lazy(() => import("./pages/InteractionEntry"));
 const CompanyIntelligence = lazy(() => import("./pages/CompanyIntelligence"));
 const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
 const InteractionsFeed = lazy(() => import("./pages/InteractionsFeed"));
+const CompanyDomainsSettings = lazy(() => import("./pages/CompanyDomainsSettings"));
 const MeetingIntelligence = lazy(() => import("./pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("./pages/MeetingInsights"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -474,6 +475,16 @@ const App = () => (
                 <RouteErrorBoundary>
                   <ProtectedRoute>
                     <InteractionsFeed />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/companies/:id/domains"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <CompanyDomainsSettings />
                   </ProtectedRoute>
                 </RouteErrorBoundary>
               }

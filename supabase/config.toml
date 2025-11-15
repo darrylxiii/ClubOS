@@ -188,6 +188,15 @@ verify_jwt = false
 [functions.send-email]
 verify_jwt = true
 
+[functions.log-phone-call]
+verify_jwt = false
+
+[functions.process-forwarded-email]
+verify_jwt = false
+
+[functions.sync-email-interactions]
+verify_jwt = false
+
 # Note mention notification (triggered by database)
 [functions.send-note-mention-notification]
 verify_jwt = false
