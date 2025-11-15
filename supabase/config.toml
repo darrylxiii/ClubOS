@@ -236,3 +236,7 @@ verify_jwt = true
 # Revenue metrics sync (admin only or cron)
 [functions.sync-revenue-metrics]
 verify_jwt = false
+
+# ML Feature generation (internal service)
+[functions.generate-ml-features]
+verify_jwt = false
