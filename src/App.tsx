@@ -27,6 +27,7 @@ import BookingPage from "./pages/BookingPage";
 import PartnerFunnel from "./pages/PartnerFunnel";
 import PartnershipSubmitted from "./pages/PartnershipSubmitted";
 import CandidateOnboarding from "./pages/CandidateOnboarding";
+import PendingApproval from "./pages/PendingApproval";
 import NotFound from "./pages/NotFound";
 import Meetings from "./pages/Meetings";
 import MeetingRoom from "./pages/MeetingRoom";
@@ -132,6 +133,7 @@ const CompanySettings = lazy(() => import("./pages/CompanySettings"));
 const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 const PartnerTargetCompanies = lazy(() => import("./pages/PartnerTargetCompanies"));
 const TargetCompaniesOverview = lazy(() => import("./pages/admin/TargetCompaniesOverview"));
+const MemberRequestsPage = lazy(() => import("./pages/admin/MemberRequestsPage"));
 
 // Password Reset Pages
 import ForgotPassword from "./pages/ForgotPassword";
@@ -310,6 +312,7 @@ const App = () => (
           <Route path="/partner-funnel" element={<PartnerFunnel />} />
           <Route path="/partnership-submitted/:companyName" element={<PartnershipSubmitted />} />
           <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
+          <Route path="/pending-approval" element={<PendingApproval />} />
           <Route
             path="/oauth-onboarding"
             element={

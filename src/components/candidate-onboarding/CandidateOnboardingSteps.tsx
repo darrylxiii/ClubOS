@@ -385,6 +385,8 @@ export function CandidateOnboardingSteps() {
           resume_url: formData.resume_url || null,
           resume_filename: formData.resume_filename || null,
           onboarding_completed_at: new Date().toISOString(),
+          account_status: 'pending',
+          assigned_strategist_id: '8b762c96-5dcf-41c8-9e1e-bbf18c18c3c5',
         })
         .eq('id', authData.user.id);
 
@@ -553,17 +555,20 @@ export function CandidateOnboardingSteps() {
 
       await trackStep("complete");
 
+      // Sign out the user (prevent auto-login)
+      await supabase.auth.signOut();
+
       toast({ 
-        title: "Account created successfully!", 
-        description: "Redirecting to your dashboard..." 
+        title: "Application submitted!", 
+        description: "Darryl will review your application within 24-48 hours" 
       });
 
       // Move to success screen
       setCurrentStep(6);
 
-      // Auto-login and redirect after 2 seconds
+      // Redirect to pending approval page after 2 seconds
       setTimeout(() => {
-        navigate("/home");
+        navigate("/pending-approval");
       }, 2000);
 
     } catch (error: any) {

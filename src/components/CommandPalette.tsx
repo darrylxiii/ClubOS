@@ -58,6 +58,7 @@ const allCommands: CommandItem[] = [
   // Hiring
   { id: "target-companies", label: "Target Companies", icon: Target, path: "/partner/targets", category: "Hiring", roles: ["partner", "strategist"] },
   { id: "admin-target-companies", label: "Target Companies Overview", icon: Target, path: "/admin/target-companies", category: "Hiring", roles: ["admin", "strategist"] },
+  { id: "member-requests", label: "Review Member Requests", icon: Users, path: "/admin/member-requests", category: "Hiring", roles: ["admin"] },
   
   // Communication
   { id: "messages", label: "Messages", icon: MessageSquare, path: "/messages", category: "Communication", roles: ["user", "partner", "admin", "strategist"] },
