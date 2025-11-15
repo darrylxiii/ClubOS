@@ -648,5 +648,19 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
   .glow-success {
     box-shadow: 0 0 20px hsl(var(--chart-2) / 0.4);
   }
+
+  /* Multi-language font support */
+  html[lang="zh"] {
+    font-family: 'Noto Sans SC', 'Inter', sans-serif;
+  }
+
+  html[lang="ar"] {
+    font-family: 'Cairo', 'Inter', sans-serif;
+  }
+
+  html[lang="ru"] {
+    font-family: 'Inter', sans-serif; /* Inter supports Cyrillic */
+  }
 }
+
 
