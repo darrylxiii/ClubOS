@@ -207,6 +207,18 @@ verify_jwt = false
 [functions.send-password-changed-email]
 verify_jwt = false
 
+[functions.batch-translate]
+verify_jwt = false
+
+[functions.translate-message]
+verify_jwt = true
+
+[functions.generate-all-translations]
+verify_jwt = true
+
+[functions.seed-translations]
+verify_jwt = true
+
 [functions.check-subscription]
 verify_jwt = true
 

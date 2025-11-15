@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { texts, targetLanguage, context = 'ui_translation' } = await req.json();
+    const { texts, targetLanguage, context = 'ui_translation', namespace, sourceTranslations } = await req.json();
 
     if (!texts || !Array.isArray(texts) || texts.length === 0) {
       return new Response(
@@ -100,8 +100,95 @@ Text to translate: "${text}"`;
 
     console.log(`[Batch Translate] Successfully translated ${translations.length} texts`);
 
+    // Reconstruct the translation object if sourceTranslations provided
+    let translationObject: Record<string, any> = {};
+    if (sourceTranslations) {
+      let textIndex = 0;
+      
+      const reconstructObject = (obj: any, prefix = ''): void => {
+        for (const [key, value] of Object.entries(obj)) {
+          const fullKey = prefix ? `${prefix}.${key}` : key;
+          
+          if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            reconstructObject(value, fullKey);
+          } else {
+            const translatedText = translations[textIndex++];
+            const keys = fullKey.split('.');
+            let current: any = translationObject;
+            
+            for (let i = 0; i < keys.length - 1; i++) {
+              if (!current[keys[i]]) {
+                current[keys[i]] = {};
+              }
+              current = current[keys[i]];
+            }
+            
+            current[keys[keys.length - 1]] = translatedText;
+          }
+        }
+      };
+
+      reconstructObject(sourceTranslations);
+
+      // Store in database if we have namespace
+      if (namespace) {
+        console.log(`[Batch Translate] Storing ${targetLanguage} translation for ${namespace} in database...`);
+        
+        // Get user from auth header
+        const authHeader = req.headers.get('Authorization');
+        let userId = null;
+        
+        if (authHeader) {
+          const userClient = createClient(supabaseUrl, supabaseServiceKey, {
+            global: { headers: { Authorization: authHeader } }
+          });
+          const { data: { user } } = await userClient.auth.getUser();
+          userId = user?.id;
+        }
+        
+        const { error: insertError } = await supabase
+          .from('translations')
+          .insert({
+            namespace,
+            language: targetLanguage,
+            translations: translationObject,
+            version: 1,
+            generated_by: userId,
+            is_active: true
+          });
+
+        if (insertError) {
+          // If unique constraint violation, update instead
+          if (insertError.code === '23505') {
+            const { error: updateError } = await supabase
+              .from('translations')
+              .update({
+                translations: translationObject,
+                generated_at: new Date().toISOString(),
+                generated_by: userId
+              })
+              .eq('namespace', namespace)
+              .eq('language', targetLanguage)
+              .eq('version', 1);
+
+            if (updateError) {
+              console.error('[Batch Translate] Failed to update translation:', updateError);
+            } else {
+              console.log(`[Batch Translate] ✓ Updated ${targetLanguage} translation for ${namespace}`);
+            }
+          } else {
+            console.error('[Batch Translate] Failed to insert translation:', insertError);
+          }
+        } else {
+          console.log(`[Batch Translate] ✓ Stored ${targetLanguage} translation for ${namespace}`);
+        }
+      }
+    }
+
     return new Response(
-      JSON.stringify({ translations }),
+      JSON.stringify({ 
+        translations: sourceTranslations ? translationObject : translations 
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 

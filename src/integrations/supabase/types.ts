@@ -8783,6 +8783,45 @@ export type Database = {
           },
         ]
       }
+      language_config: {
+        Row: {
+          added_at: string | null
+          added_by: string | null
+          code: string
+          flag_emoji: string
+          font_family: string | null
+          is_active: boolean | null
+          is_rtl: boolean | null
+          name: string
+          native_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          added_at?: string | null
+          added_by?: string | null
+          code: string
+          flag_emoji: string
+          font_family?: string | null
+          is_active?: boolean | null
+          is_rtl?: boolean | null
+          name: string
+          native_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          added_at?: string | null
+          added_by?: string | null
+          code?: string
+          flag_emoji?: string
+          font_family?: string | null
+          is_active?: boolean | null
+          is_rtl?: boolean | null
+          name?: string
+          native_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       learner_preferences: {
         Row: {
           created_at: string | null
@@ -16354,6 +16393,87 @@ export type Database = {
           tags?: Json | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      translation_feedback: {
+        Row: {
+          created_at: string | null
+          id: string
+          issue_type: string
+          language: string
+          namespace: string
+          reported_by: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          status: string | null
+          translation_key: string
+          user_comment: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          issue_type: string
+          language: string
+          namespace: string
+          reported_by?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          translation_key: string
+          user_comment?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          issue_type?: string
+          language?: string
+          namespace?: string
+          reported_by?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          status?: string | null
+          translation_key?: string
+          user_comment?: string | null
+        }
+        Relationships: []
+      }
+      translations: {
+        Row: {
+          created_at: string | null
+          generated_at: string | null
+          generated_by: string | null
+          id: string
+          is_active: boolean | null
+          language: string
+          namespace: string
+          translations: Json
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          language: string
+          namespace: string
+          translations: Json
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          generated_at?: string | null
+          generated_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          language?: string
+          namespace?: string
+          translations?: Json
+          updated_at?: string | null
+          version?: number | null
         }
         Relationships: []
       }
