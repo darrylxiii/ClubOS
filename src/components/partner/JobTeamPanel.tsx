@@ -69,11 +69,21 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
         .order('is_primary_contact', { ascending: false })
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
-      setTeamMembers(data || []);
+      if (error) {
+        console.error('Error fetching team members:', error);
+        // Only show error toast if it's not a "no rows" error
+        if (error.code !== 'PGRST116') {
+          toast.error('Failed to load team members');
+        }
+        // Set empty array instead of throwing
+        setTeamMembers([]);
+      } else {
+        setTeamMembers(data || []);
+      }
     } catch (error) {
       console.error('Error fetching team members:', error);
-      toast.error('Failed to load team members');
+      // Gracefully handle by setting empty array
+      setTeamMembers([]);
     } finally {
       setLoading(false);
     }

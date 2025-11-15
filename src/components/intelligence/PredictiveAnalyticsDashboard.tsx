@@ -23,11 +23,18 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
       });
 
       if (error) throw error;
-      setPredictions(data.predictions);
-      toast.success("Predictive analytics generated");
+      
+      // Ensure predictions exist before setting
+      if (data?.predictions) {
+        setPredictions(data.predictions);
+        toast.success("Predictive analytics generated");
+      } else {
+        throw new Error('No predictions returned from AI');
+      }
     } catch (error: any) {
       console.error('Error loading predictions:', error);
-      toast.error("Failed to generate predictions");
+      setPredictions(null); // Ensure null on error
+      toast.error("Failed to generate predictions. You can retry or continue without AI insights.");
     } finally {
       setLoading(false);
     }
@@ -50,15 +57,34 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
 
   if (!predictions) {
     return (
-      <Card className="border-border/50">
-        <CardContent className="pt-6">
-          <Button onClick={loadPredictions} className="w-full">
-            <BarChart3 className="h-4 w-4 mr-2" />
-            Generate Predictive Analytics
-          </Button>
+      <Card className="border-destructive/20 bg-destructive/5">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <AlertCircle className="h-5 w-5 text-destructive" />
+            AI Predictions Unavailable
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">
+            Unable to generate predictive analytics. The dashboard will continue to work with standard metrics.
+          </p>
+          <div className="flex gap-2">
+            <Button onClick={loadPredictions} variant="default" size="sm">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Retry AI Analysis
+            </Button>
+            <Button onClick={() => setPredictions({ skipped: true })} variant="outline" size="sm">
+              Continue Without AI
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
+  }
+
+  // If user skipped AI, don't show predictions
+  if (predictions?.skipped) {
+    return null;
   }
 
   const getDifficultyColor = (score: string) => {
@@ -73,150 +99,168 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
   return (
     <div className="space-y-4">
       {/* Time to Hire Prediction */}
-      <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5 text-primary" />
-            Time-to-Hire Forecast
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-3xl font-bold">{predictions.timeToHire.predictedDays} days</p>
-              <p className="text-sm text-muted-foreground">
-                {Math.round(predictions.timeToHire.confidence * 100)}% confidence
-              </p>
+      {predictions?.timeToHire && (
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Time-to-Hire Forecast
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-3xl font-bold">{predictions.timeToHire.predictedDays ?? 'N/A'} days</p>
+                <p className="text-sm text-muted-foreground">
+                  {Math.round((predictions.timeToHire.confidence ?? 0) * 100)}% confidence
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-muted-foreground mb-1">Expected range</p>
+                <p className="text-sm font-medium">
+                  {predictions.timeToHire.earliestDate ?? 'TBD'} - {predictions.timeToHire.latestDate ?? 'TBD'}
+                </p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-xs text-muted-foreground mb-1">Expected range</p>
-              <p className="text-sm font-medium">
-                {predictions.timeToHire.earliestDate} - {predictions.timeToHire.latestDate}
-              </p>
-            </div>
-          </div>
-          <Progress value={predictions.timeToHire.confidence * 100} className="h-2" />
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Key Factors:</p>
-            <div className="flex flex-wrap gap-2">
-              {predictions.timeToHire.factors.map((factor: string, idx: number) => (
-                <Badge key={idx} variant="secondary" className="text-xs">
-                  {factor}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            <Progress value={(predictions.timeToHire.confidence ?? 0) * 100} className="h-2" />
+            {predictions.timeToHire.factors && predictions.timeToHire.factors.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Key Factors:</p>
+                <div className="flex flex-wrap gap-2">
+                  {predictions.timeToHire.factors.map((factor: string, idx: number) => (
+                    <Badge key={idx} variant="secondary" className="text-xs">
+                      {factor}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Offer Acceptance Prediction */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Target className="h-4 w-4" />
-            Offer Acceptance Probability
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">Average (All Candidates)</p>
-              <div className="flex items-center gap-2">
-                <Progress value={predictions.offerAcceptanceProbability.averageProbability * 100} className="flex-1 h-2" />
-                <span className="text-sm font-semibold">
-                  {Math.round(predictions.offerAcceptanceProbability.averageProbability * 100)}%
-                </span>
+      {predictions?.offerAcceptanceProbability && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Target className="h-4 w-4" />
+              Offer Acceptance Probability
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Average (All Candidates)</p>
+                <div className="flex items-center gap-2">
+                  <Progress value={(predictions.offerAcceptanceProbability.averageProbability ?? 0) * 100} className="flex-1 h-2" />
+                  <span className="text-sm font-semibold">
+                    {Math.round((predictions.offerAcceptanceProbability.averageProbability ?? 0) * 100)}%
+                  </span>
+                </div>
               </div>
+              {predictions.offerAcceptanceProbability.topCandidate?.probability && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Top Candidate</p>
+                  <div className="flex items-center gap-2">
+                    <Progress value={predictions.offerAcceptanceProbability.topCandidate.probability * 100} className="flex-1 h-2" />
+                    <span className="text-sm font-semibold">
+                      {Math.round(predictions.offerAcceptanceProbability.topCandidate.probability * 100)}%
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">Top Candidate</p>
-              <div className="flex items-center gap-2">
-                <Progress value={predictions.offerAcceptanceProbability.topCandidate.probability * 100} className="flex-1 h-2" />
-                <span className="text-sm font-semibold">
-                  {Math.round(predictions.offerAcceptanceProbability.topCandidate.probability * 100)}%
-                </span>
+            {predictions.offerAcceptanceProbability.topCandidate?.reasoning && (
+              <div className="p-3 rounded-lg bg-muted/30">
+                <p className="text-xs text-muted-foreground mb-1">Why</p>
+                <p className="text-sm">{predictions.offerAcceptanceProbability.topCandidate.reasoning}</p>
               </div>
-            </div>
-          </div>
-          <div className="p-3 rounded-lg bg-muted/30">
-            <p className="text-xs text-muted-foreground mb-1">Why</p>
-            <p className="text-sm">{predictions.offerAcceptanceProbability.topCandidate.reasoning}</p>
-          </div>
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Hiring Difficulty */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Hiring Difficulty Assessment
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Difficulty Level</span>
-            <Badge variant="outline" className={getDifficultyColor(predictions.hiringDifficulty.score)}>
-              {predictions.hiringDifficulty.score.toUpperCase()}
-            </Badge>
-          </div>
-          <p className="text-sm">{predictions.hiringDifficulty.reasoning}</p>
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Market Factors:</p>
-            <div className="flex flex-wrap gap-2">
-              {predictions.hiringDifficulty.marketFactors.map((factor: string, idx: number) => (
-                <Badge key={idx} variant="secondary" className="text-xs">
-                  {factor}
-                </Badge>
-              ))}
+      {predictions?.hiringDifficulty && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              Hiring Difficulty Assessment
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Difficulty Level</span>
+              <Badge variant="outline" className={getDifficultyColor(predictions.hiringDifficulty.score ?? 'medium')}>
+                {(predictions.hiringDifficulty.score ?? 'medium').toUpperCase()}
+              </Badge>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            {predictions.hiringDifficulty.reasoning && (
+              <p className="text-sm">{predictions.hiringDifficulty.reasoning}</p>
+            )}
+            {predictions.hiringDifficulty.marketFactors && predictions.hiringDifficulty.marketFactors.length > 0 && (
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-muted-foreground">Market Factors:</p>
+                <div className="flex flex-wrap gap-2">
+                  {predictions.hiringDifficulty.marketFactors.map((factor: string, idx: number) => (
+                    <Badge key={idx} variant="secondary" className="text-xs">
+                      {factor}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Pipeline Health */}
-      <Card className={predictions.pipelineHealth.score < 60 ? "border-yellow-500/20 bg-yellow-500/5" : ""}>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <AlertCircle className="h-4 w-4" />
-            Pipeline Health Score
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold">{predictions.pipelineHealth.score}/100</span>
-            <Badge variant={predictions.pipelineHealth.score >= 70 ? "default" : "secondary"}>
-              {predictions.pipelineHealth.score >= 70 ? "HEALTHY" : "NEEDS ATTENTION"}
-            </Badge>
-          </div>
-          <Progress value={predictions.pipelineHealth.score} className="h-2" />
-          
-          {predictions.pipelineHealth.bottlenecks && predictions.pipelineHealth.bottlenecks.length > 0 && (
-            <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-              <p className="text-xs font-medium text-yellow-500 mb-2">Bottlenecks Detected</p>
-              <ul className="space-y-1">
-                {predictions.pipelineHealth.bottlenecks.map((bottleneck: string, idx: number) => (
-                  <li key={idx} className="text-xs">• {bottleneck}</li>
-                ))}
-              </ul>
+      {predictions?.pipelineHealth && (
+        <Card className={(predictions.pipelineHealth.score ?? 0) < 60 ? "border-yellow-500/20 bg-yellow-500/5" : ""}>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <AlertCircle className="h-4 w-4" />
+              Pipeline Health Score
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-2xl font-bold">{predictions.pipelineHealth.score ?? 0}/100</span>
+              <Badge variant={(predictions.pipelineHealth.score ?? 0) >= 70 ? "default" : "secondary"}>
+                {(predictions.pipelineHealth.score ?? 0) >= 70 ? "HEALTHY" : "NEEDS ATTENTION"}
+              </Badge>
             </div>
-          )}
+            <Progress value={predictions.pipelineHealth.score ?? 0} className="h-2" />
+            
+            {predictions.pipelineHealth.bottlenecks && predictions.pipelineHealth.bottlenecks.length > 0 && (
+              <div className="p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
+                <p className="text-xs font-medium text-yellow-500 mb-2">Bottlenecks Detected</p>
+                <ul className="space-y-1">
+                  {predictions.pipelineHealth.bottlenecks.map((bottleneck: string, idx: number) => (
+                    <li key={idx} className="text-xs">• {bottleneck}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
 
-          {predictions.pipelineHealth.recommendations && predictions.pipelineHealth.recommendations.length > 0 && (
-            <div>
-              <p className="text-xs font-medium text-muted-foreground mb-2">Recommendations:</p>
-              <ul className="space-y-1">
-                {predictions.pipelineHealth.recommendations.map((rec: string, idx: number) => (
-                  <li key={idx} className="text-xs flex items-start gap-2">
-                    <span className="text-primary mt-0.5">→</span>
-                    <span>{rec}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {predictions.pipelineHealth.recommendations && predictions.pipelineHealth.recommendations.length > 0 && (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground mb-2">Recommendations:</p>
+                <ul className="space-y-1">
+                  {predictions.pipelineHealth.recommendations.map((rec: string, idx: number) => (
+                    <li key={idx} className="text-xs flex items-start gap-2">
+                      <span className="text-primary mt-0.5">→</span>
+                      <span>{rec}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Cost Prediction */}
       <Card>
