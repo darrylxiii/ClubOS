@@ -11486,6 +11486,7 @@ export type Database = {
           contact_name: string
           contact_phone: string | null
           created_at: string
+          decline_reason: string | null
           description: string
           estimated_roles_per_year: number | null
           followed_up_at: string | null
@@ -11496,6 +11497,8 @@ export type Database = {
           linkedin_url: string | null
           notes: string | null
           partnership_type: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
           session_id: string | null
           source_channel: string | null
           status: string
@@ -11520,6 +11523,7 @@ export type Database = {
           contact_name: string
           contact_phone?: string | null
           created_at?: string
+          decline_reason?: string | null
           description: string
           estimated_roles_per_year?: number | null
           followed_up_at?: string | null
@@ -11530,6 +11534,8 @@ export type Database = {
           linkedin_url?: string | null
           notes?: string | null
           partnership_type?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           session_id?: string | null
           source_channel?: string | null
           status?: string
@@ -11554,6 +11560,7 @@ export type Database = {
           contact_name?: string
           contact_phone?: string | null
           created_at?: string
+          decline_reason?: string | null
           description?: string
           estimated_roles_per_year?: number | null
           followed_up_at?: string | null
@@ -11564,6 +11571,8 @@ export type Database = {
           linkedin_url?: string | null
           notes?: string | null
           partnership_type?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
           session_id?: string | null
           source_channel?: string | null
           status?: string
@@ -11576,7 +11585,29 @@ export type Database = {
           utm_source?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "partner_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "partner_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       password_history: {
         Row: {
@@ -13600,10 +13631,16 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_approved_at: string | null
+          account_approved_by: string | null
+          account_decline_reason: string | null
+          account_reviewed_at: string | null
+          account_status: string | null
           allow_stealth_cold_outreach: boolean | null
           apple_music_connected: boolean | null
           apple_music_playlists: Json | null
           apple_music_user_id: string | null
+          assigned_strategist_id: string | null
           available_hours_per_week: number | null
           avatar_url: string | null
           blocked_companies: Json | null
@@ -13689,10 +13726,16 @@ export type Database = {
           years_of_experience: number | null
         }
         Insert: {
+          account_approved_at?: string | null
+          account_approved_by?: string | null
+          account_decline_reason?: string | null
+          account_reviewed_at?: string | null
+          account_status?: string | null
           allow_stealth_cold_outreach?: boolean | null
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
           apple_music_user_id?: string | null
+          assigned_strategist_id?: string | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
@@ -13778,10 +13821,16 @@ export type Database = {
           years_of_experience?: number | null
         }
         Update: {
+          account_approved_at?: string | null
+          account_approved_by?: string | null
+          account_decline_reason?: string | null
+          account_reviewed_at?: string | null
+          account_status?: string | null
           allow_stealth_cold_outreach?: boolean | null
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
           apple_music_user_id?: string | null
+          assigned_strategist_id?: string | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
           blocked_companies?: Json | null
@@ -13867,6 +13916,48 @@ export type Database = {
           years_of_experience?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "profiles_account_approved_by_fkey"
+            columns: ["account_approved_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "profiles_account_approved_by_fkey"
+            columns: ["account_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_account_approved_by_fkey"
+            columns: ["account_approved_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_strategist_id_fkey"
+            columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_strategist_id_fkey"
+            columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_assigned_strategist_id_fkey"
+            columns: ["assigned_strategist_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "profiles_company_id_fkey"
             columns: ["company_id"]
@@ -18083,6 +18174,29 @@ export type Database = {
           booking_count: number | null
           confirmed_count: number | null
           user_id: string | null
+        }
+        Relationships: []
+      }
+      member_requests_unified: {
+        Row: {
+          additional_data: Json | null
+          assigned_to: string | null
+          created_at: string | null
+          decline_reason: string | null
+          desired_salary_max: number | null
+          desired_salary_min: number | null
+          email: string | null
+          id: string | null
+          linkedin_url: string | null
+          location: string | null
+          name: string | null
+          phone: string | null
+          request_type: string | null
+          resume_url: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string | null
+          title_or_company: string | null
         }
         Relationships: []
       }

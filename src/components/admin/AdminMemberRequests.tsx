@@ -1,0 +1,394 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { CheckCircle2, XCircle, Clock, User, Mail, Phone, Briefcase, MapPin, ExternalLink } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatDistanceToNow } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+interface MemberRequest {
+  id: string;
+  request_type: 'candidate' | 'partner';
+  name: string;
+  email: string;
+  phone: string | null;
+  title_or_company: string | null;
+  location: string | null;
+  desired_salary_min: number | null;
+  desired_salary_max: number | null;
+  resume_url: string | null;
+  linkedin_url: string | null;
+  status: 'pending' | 'approved' | 'declined';
+  created_at: string;
+  reviewed_at: string | null;
+  decline_reason: string | null;
+  additional_data: {
+    company_size?: string;
+    industry?: string;
+    budget_range?: string;
+    estimated_roles_per_year?: string;
+    website?: string;
+  } | null;
+}
+
+export const AdminMemberRequests = () => {
+  const [requests, setRequests] = useState<MemberRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRequest, setSelectedRequest] = useState<MemberRequest | null>(null);
+  const [reviewAction, setReviewAction] = useState<'approve' | 'decline' | null>(null);
+  const [declineReason, setDeclineReason] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'declined'>('pending');
+
+  useEffect(() => {
+    fetchRequests();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('member-requests')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'profiles' },
+        () => fetchRequests()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'partner_requests' },
+        () => fetchRequests()
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [activeTab]);
+
+  const fetchRequests = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('member_requests_unified')
+        .select('*')
+        .eq('status', activeTab)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setRequests(data as MemberRequest[]);
+    } catch (error) {
+      console.error('Error fetching member requests:', error);
+      toast.error('Failed to load requests');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReview = async () => {
+    if (!selectedRequest || !reviewAction) return;
+
+    setSubmitting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const newStatus = reviewAction === 'approve' ? 'approved' : 'declined';
+      const tableName = selectedRequest.request_type === 'candidate' ? 'profiles' : 'partner_requests';
+      const statusColumn = selectedRequest.request_type === 'candidate' ? 'account_status' : 'status';
+
+      // Update the appropriate table
+      const updateData: any = {
+        [statusColumn]: newStatus,
+        reviewed_at: new Date().toISOString(),
+        reviewed_by: user.id,
+      };
+
+      if (reviewAction === 'decline') {
+        updateData[selectedRequest.request_type === 'candidate' ? 'account_decline_reason' : 'decline_reason'] = declineReason;
+      }
+
+      if (selectedRequest.request_type === 'candidate') {
+        updateData.account_approved_by = user.id;
+        updateData.account_reviewed_at = new Date().toISOString();
+      }
+
+      const { error: updateError } = await supabase
+        .from(tableName)
+        .update(updateData)
+        .eq('id', selectedRequest.id);
+
+      if (updateError) throw updateError;
+
+      // Send notification email
+      await supabase.functions.invoke('send-approval-notification', {
+        body: {
+          userId: selectedRequest.id,
+          email: selectedRequest.email,
+          fullName: selectedRequest.name,
+          requestType: selectedRequest.request_type,
+          status: newStatus,
+          declineReason: reviewAction === 'decline' ? declineReason : undefined,
+        }
+      });
+
+      toast.success(
+        reviewAction === 'approve' 
+          ? `${selectedRequest.name} has been approved!` 
+          : `Application declined`
+      );
+
+      // Close dialog and refresh
+      setSelectedRequest(null);
+      setReviewAction(null);
+      setDeclineReason('');
+      fetchRequests();
+
+    } catch (error: any) {
+      console.error('Error reviewing request:', error);
+      toast.error('Failed to process request');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const openReviewDialog = (request: MemberRequest, action: 'approve' | 'decline') => {
+    setSelectedRequest(request);
+    setReviewAction(action);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[1, 2, 3].map(i => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <Skeleton className="h-20 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
+        <TabsList>
+          <TabsTrigger value="pending">
+            Pending
+          </TabsTrigger>
+          <TabsTrigger value="approved">Approved</TabsTrigger>
+          <TabsTrigger value="declined">Declined</TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {requests.length === 0 ? (
+        <Card>
+          <CardContent className="p-12 text-center">
+            <Clock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">No {activeTab} requests</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {requests.map(request => (
+            <Card key={request.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  
+                  {/* Left: Profile Info */}
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-6 h-6 text-primary" />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-lg">{request.name}</h3>
+                          <Badge variant="outline">
+                            {request.request_type === 'candidate' ? 'Candidate' : 'Partner'}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Applied {formatDistanceToNow(new Date(request.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <span>{request.email}</span>
+                      </div>
+                      {request.phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-muted-foreground" />
+                          <span>{request.phone}</span>
+                        </div>
+                      )}
+                      {request.title_or_company && (
+                        <div className="flex items-center gap-2">
+                          <Briefcase className="w-4 h-4 text-muted-foreground" />
+                          <span>{request.title_or_company}</span>
+                        </div>
+                      )}
+                      {request.location && (
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-muted-foreground" />
+                          <span>{request.location}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Candidate-specific info */}
+                    {request.request_type === 'candidate' && request.desired_salary_min && (
+                      <div className="mt-3 p-3 bg-muted rounded-lg text-sm">
+                        <strong>Desired Salary:</strong> €{request.desired_salary_min.toLocaleString()} - €{request.desired_salary_max?.toLocaleString()}
+                      </div>
+                    )}
+
+                    {/* Partner-specific info */}
+                    {request.request_type === 'partner' && request.additional_data && (
+                      <div className="mt-3 p-3 bg-muted rounded-lg text-sm space-y-1">
+                        {request.additional_data.industry && (
+                          <p><strong>Industry:</strong> {request.additional_data.industry}</p>
+                        )}
+                        {request.additional_data.company_size && (
+                          <p><strong>Company Size:</strong> {request.additional_data.company_size}</p>
+                        )}
+                        {request.additional_data.budget_range && (
+                          <p><strong>Budget:</strong> {request.additional_data.budget_range}</p>
+                        )}
+                        {request.additional_data.estimated_roles_per_year && (
+                          <p><strong>Roles/Year:</strong> {request.additional_data.estimated_roles_per_year}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right: Actions */}
+                  <div className="flex flex-col gap-2 ml-6">
+                    {request.status === 'pending' && (
+                      <>
+                        <Button 
+                          onClick={() => openReviewDialog(request, 'approve')}
+                          className="gap-2"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          Approve
+                        </Button>
+                        <Button 
+                          onClick={() => openReviewDialog(request, 'decline')}
+                          variant="outline"
+                          className="gap-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Decline
+                        </Button>
+                      </>
+                    )}
+                    {request.resume_url && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => window.open(request.resume_url!, '_blank')}
+                        className="gap-2"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Resume
+                      </Button>
+                    )}
+                    {request.linkedin_url && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => window.open(request.linkedin_url!, '_blank')}
+                        className="gap-2"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        LinkedIn
+                      </Button>
+                    )}
+                    {request.request_type === 'partner' && request.additional_data?.website && (
+                      <Button 
+                        variant="outline" 
+                        onClick={() => window.open(request.additional_data!.website!, '_blank')}
+                        className="gap-2"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        Website
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Status badge for approved/declined tabs */}
+                {request.status !== 'pending' && (
+                  <div className="mt-4 pt-4 border-t">
+                    <Badge variant={request.status === 'approved' ? 'default' : 'destructive'}>
+                      {request.status === 'approved' ? 'Approved' : 'Declined'}
+                    </Badge>
+                    {request.reviewed_at && (
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {formatDistanceToNow(new Date(request.reviewed_at), { addSuffix: true })}
+                      </span>
+                    )}
+                    {request.decline_reason && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        <strong>Reason:</strong> {request.decline_reason}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {/* Review Dialog */}
+      <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {reviewAction === 'approve' ? 'Approve Application' : 'Decline Application'}
+            </DialogTitle>
+            <DialogDescription>
+              {reviewAction === 'approve' 
+                ? `Approve ${selectedRequest?.name}'s membership application?`
+                : `Decline ${selectedRequest?.name}'s application? They will be notified via email.`
+              }
+            </DialogDescription>
+          </DialogHeader>
+
+          {reviewAction === 'decline' && (
+            <div className="space-y-2">
+              <Label htmlFor="decline-reason">Reason for Decline (will be sent to applicant)</Label>
+              <Textarea
+                id="decline-reason"
+                placeholder="e.g., Profile does not match our current criteria..."
+                value={declineReason}
+                onChange={(e) => setDeclineReason(e.target.value)}
+                rows={4}
+              />
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSelectedRequest(null)}>Cancel</Button>
+            <Button 
+              onClick={handleReview}
+              disabled={submitting || (reviewAction === 'decline' && !declineReason)}
+              variant={reviewAction === 'approve' ? 'default' : 'outline'}
+              className={reviewAction === 'decline' ? 'border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground' : ''}
+            >
+              {submitting ? 'Processing...' : reviewAction === 'approve' ? 'Approve' : 'Decline'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};

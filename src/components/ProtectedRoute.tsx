@@ -2,10 +2,13 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { logger } from "@/lib/logger";
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+  const [accountStatus, setAccountStatus] = useState<'approved' | 'pending' | 'declined' | null>(null);
+  const [checkingStatus, setCheckingStatus] = useState(true);
 
   logger.debug("[ProtectedRoute] State", { loading, hasUser: !!user });
 
@@ -20,13 +23,47 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }
   }, [loading]);
 
+  // Check account approval status
+  useEffect(() => {
+    const checkAccountStatus = async () => {
+      if (!user) {
+        setCheckingStatus(false);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('account_status')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          logger.error("[ProtectedRoute] Error checking account status:", error);
+          setCheckingStatus(false);
+          return;
+        }
+
+        setAccountStatus(data.account_status as 'approved' | 'pending' | 'declined');
+      } catch (error) {
+        logger.error("[ProtectedRoute] Error in status check:", error);
+      } finally {
+        setCheckingStatus(false);
+      }
+    };
+
+    if (user && !loading) {
+      checkAccountStatus();
+    }
+  }, [user, loading]);
+
   // If timeout exceeded, redirect to auth
   if (loadingTimeout) {
     logger.error("[ProtectedRoute] ⚠️ Auth timeout exceeded, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
 
-  if (loading) {
+  if (loading || checkingStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-2xl font-black uppercase tracking-tight">LOADING...</div>
@@ -39,6 +76,12 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/auth" replace />;
   }
 
-  logger.debug("[ProtectedRoute] User authenticated, rendering protected content");
+  // Redirect based on account status
+  if (accountStatus === 'pending' || accountStatus === 'declined') {
+    logger.info("[ProtectedRoute] User account pending/declined, redirecting to /pending-approval");
+    return <Navigate to="/pending-approval" replace />;
+  }
+
+  logger.debug("[ProtectedRoute] User authenticated and approved, rendering protected content");
   return <>{children}</>;
 };
