@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { format, differenceInMinutes, isPast, isFuture, isWithinInterval } from "date-fns";
 import { Calendar, Clock, Users, Video, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { InterviewFeedbackDialog } from "./InterviewFeedbackDialog";
 
 interface PipelineMeetingCardProps {
   booking: {
@@ -41,6 +44,7 @@ export const PipelineMeetingCard = ({
   onReschedule,
   className,
 }: PipelineMeetingCardProps) => {
+  const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
   const startTime = new Date(booking.scheduled_start);
   const endTime = new Date(booking.scheduled_end);
   const now = new Date();
@@ -218,6 +222,7 @@ export const PipelineMeetingCard = ({
               size="sm"
               variant="default"
               className="gap-2"
+              onClick={() => setFeedbackDialogOpen(true)}
             >
               <FileText className="w-4 h-4" />
               Submit Feedback
@@ -225,6 +230,18 @@ export const PipelineMeetingCard = ({
           )}
         </div>
       </div>
+
+      {/* Interview Feedback Dialog */}
+      <InterviewFeedbackDialog
+        booking={booking}
+        application={application}
+        open={feedbackDialogOpen}
+        onOpenChange={setFeedbackDialogOpen}
+        onSubmitted={() => {
+          // Refresh or update booking status
+          window.location.reload();
+        }}
+      />
     </Card>
   );
 };
