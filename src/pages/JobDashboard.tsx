@@ -27,6 +27,8 @@ import { AdminJobTools } from "@/components/partner/AdminJobTools";
 import { EditJobSheet } from "@/components/partner/EditJobSheet";
 import { JobDocuments } from "@/components/partner/JobDocuments";
 import { JobAnalytics } from "@/components/partner/JobAnalytics";
+import { UpcomingInterviewsWidget } from "@/components/partner/UpcomingInterviewsWidget";
+import { JobTeamPanel } from "@/components/partner/JobTeamPanel";
 import {
   DndContext,
   closestCenter,
@@ -539,6 +541,16 @@ export default function JobDashboard() {
                 <p className="text-xs text-muted-foreground mt-1">Last candidate action</p>
               </CardContent>
             </Card>
+          </div>
+
+          {/* Upcoming Interviews and Team Panel */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="lg:col-span-2">
+              <UpcomingInterviewsWidget jobId={job.id} />
+            </div>
+            <div>
+              <JobTeamPanel jobId={job.id} />
+            </div>
           </div>
 
           {/* Smart Insights */}
