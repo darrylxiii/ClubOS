@@ -76,6 +76,8 @@ const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 const RevenueAnalytics = lazy(() => import("./pages/RevenueAnalytics"));
 const ReferralProgram = lazy(() => import("./pages/ReferralProgram"));
 const MLDashboard = lazy(() => import("./pages/MLDashboard"));
+const InteractionEntry = lazy(() => import("./pages/InteractionEntry"));
+const CompanyIntelligence = lazy(() => import("./pages/CompanyIntelligence"));
 const MeetingIntelligence = lazy(() => import("./pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("./pages/MeetingInsights"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -430,6 +432,26 @@ const App = () => (
                 <RouteErrorBoundary>
                   <ProtectedRoute>
                     <MLDashboard />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/interactions/new"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <InteractionEntry />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/companies/:id/intelligence"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <CompanyIntelligence />
                   </ProtectedRoute>
                 </RouteErrorBoundary>
               }
