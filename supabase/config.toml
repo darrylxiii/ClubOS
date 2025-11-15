@@ -93,23 +93,7 @@ verify_jwt = true
 [functions.submit-poll-votes]
 verify_jwt = true
 
-[functions.promote-waitlist]
-verify_jwt = true
-
-[functions.linkedin-scraper]
-verify_jwt = true
-
-# Require authentication for user-specific functions
 [functions.ai-career-advisor]
-verify_jwt = true
-
-[functions.ai-course-generator]
-verify_jwt = true
-
-[functions.interview-prep-chat]
-verify_jwt = true
-
-[functions.calculate-match-score]
 verify_jwt = true
 
 [functions.ai-course-generator]
@@ -133,21 +117,15 @@ verify_jwt = false
 [functions.check-email-exists]
 verify_jwt = false
 
-# Public endpoints (intentionally no JWT for guest access)
 [functions.create-booking]
-verify_jwt = false
-
-[functions.join-waitlist]
 verify_jwt = false
 
 [functions.send-booking-confirmation]
 verify_jwt = false
 
-# Cron-triggered function (no JWT, uses internal validation)
 [functions.process-booking-reminders]
 verify_jwt = false
 
-# Public booking functions (guests need access)
 [functions.get-available-slots]
 verify_jwt = false
 
@@ -169,7 +147,6 @@ verify_jwt = false
 [functions.handle-booking-reschedule]
 verify_jwt = false
 
-# Email sync functions
 [functions.sync-gmail-emails]
 verify_jwt = true
 
@@ -189,7 +166,7 @@ verify_jwt = false
 verify_jwt = true
 
 [functions.log-phone-call]
-verify_jwt = false
+verify_jwt = true
 
 [functions.process-forwarded-email]
 verify_jwt = false
@@ -197,23 +174,18 @@ verify_jwt = false
 [functions.sync-email-interactions]
 verify_jwt = false
 
-# Note mention notification (triggered by database)
 [functions.send-note-mention-notification]
 verify_jwt = false
 
-# Real-time interview analysis (requires authentication)
 [functions.analyze-interview-realtime]
 verify_jwt = true
 
-# Validate invite code (public endpoint for secure validation)
 [functions.validate-invite-code]
 verify_jwt = false
 
-# Meeting recording AI analysis (requires authentication)
 [functions.analyze-meeting-recording-advanced]
 verify_jwt = true
 
-# Password reset flow (public endpoints)
 [functions.password-reset-request]
 verify_jwt = false
 
@@ -232,7 +204,6 @@ verify_jwt = false
 [functions.send-password-changed-email]
 verify_jwt = false
 
-# Subscription billing (requires authentication)
 [functions.check-subscription]
 verify_jwt = true
 
@@ -242,23 +213,16 @@ verify_jwt = true
 [functions.customer-portal]
 verify_jwt = true
 
-# Revenue metrics sync (admin only or cron)
 [functions.sync-revenue-metrics]
 verify_jwt = false
 
-# ML Feature generation (internal service)
 [functions.generate-ml-features]
 verify_jwt = false
 
-# ML candidate matching (requires authentication)
 [functions.ml-match-candidates]
 verify_jwt = true
 
-# ML training data backfill (admin only)
 [functions.ml-backfill-training-data]
-verify_jwt = true
-
-[functions.log-phone-call]
 verify_jwt = true
 
 [functions.parse-whatsapp-chat]
@@ -267,3 +231,11 @@ verify_jwt = true
 [functions.resolve-stakeholder-entities]
 verify_jwt = true
 
+[functions.extract-interaction-insights]
+verify_jwt = true
+
+[functions.calculate-stakeholder-influence]
+verify_jwt = true
+
+[functions.generate-company-intelligence-report]
+verify_jwt = true
