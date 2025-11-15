@@ -17495,6 +17495,7 @@ export type Database = {
           unlocked: boolean
         }[]
       }
+      extract_email_domain: { Args: { email: string }; Returns: string }
       extract_mentions_from_note: {
         Args: { p_content: string }
         Returns: string[]
@@ -17674,6 +17675,14 @@ export type Database = {
           title: string
           updated_at: string
           visibility: string
+        }[]
+      }
+      sync_existing_partner_domains: {
+        Args: never
+        Returns: {
+          company_id: string
+          domain: string
+          synced_count: number
         }[]
       }
       track_share_link_view: { Args: { _token: string }; Returns: string }
