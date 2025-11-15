@@ -8,32 +8,7 @@ import quantumClubLogoDark from "@/assets/quantum-club-logo.png"; // Full logo -
 import quantumClubLogoLight from "@/assets/quantum-logo-dark.png"; // Full logo - white for dark theme
 import {
   Briefcase,
-  Building2,
-  Gift,
-  FileText,
-  Settings,
-  Clock,
-  User,
-  ListTodo,
-  Sparkles,
-  Calendar,
-  MessageSquare,
-  Video,
-  Home,
-  Building,
-  Users,
-  Rss,
-  Layers,
-  Zap,
-  Cog,
-  Share2,
-  BarChart3,
-  TrendingUp,
-  Trophy,
-  MessagesSquare,
-  GraduationCap,
-  ClipboardCheck,
-  Mail,
+  import { Home, LayoutDashboard, Building2, Briefcase, Users, Calendar, Video, MessageSquare, Gift, FileText, Settings, ListTodo, Sparkles, Clock, GraduationCap, Rss, Trophy, MessagesSquare, User, BarChart3, TrendingUp, Share2, Mail, Brain } from "lucide-react";
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
