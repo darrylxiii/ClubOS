@@ -69,6 +69,9 @@ const InterviewPrepChat = lazy(() => import("./pages/InterviewPrepChat"));
 const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
 const CareerPath = lazy(() => import("./pages/CareerPath"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 const MeetingIntelligence = lazy(() => import("./pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("./pages/MeetingInsights"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -360,6 +363,36 @@ const App = () => (
                 <RouteErrorBoundary>
                   <ProtectedRoute>
                     <JobDetail />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            
+            {/* Subscription Routes */}
+            <Route
+              path="/pricing"
+              element={
+                <RouteErrorBoundary>
+                  <Pricing />
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/subscription"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <Subscription />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/subscription-success"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <SubscriptionSuccess />
                   </ProtectedRoute>
                 </RouteErrorBoundary>
               }
