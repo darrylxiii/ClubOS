@@ -19,10 +19,11 @@ import { QuickActionsBar } from "./intelligence/QuickActionsBar";
 import { useCommandPalette } from "@/hooks/useCommandPalette";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, Mail, Settings as SettingsIcon, ArrowLeft, HelpCircle } from "lucide-react";
+import { RefreshCw, Mail, Settings as SettingsIcon, ArrowLeft, HelpCircle, Menu } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 export function EmailInbox() {
   const [filter, setFilter] = useState("inbox");
@@ -32,6 +33,7 @@ export function EmailInbox() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [selectedEmailIds, setSelectedEmailIds] = useState<Set<string>>(new Set());
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
   const { executeWithUndo } = useUndoableAction();
@@ -390,6 +392,16 @@ export function EmailInbox() {
     <div className="flex flex-col h-[calc(100dvh-3.5rem)] sm:h-[calc(100dvh-4rem)]">
       {/* Top Bar - Mobile Optimized */}
       <div className="border-b border-border p-2 sm:p-3 md:p-4 flex items-center gap-2 flex-wrap">
+        {/* Hamburger menu for mobile */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setMobileSidebarOpen(true)}
+          className="md:hidden min-h-[44px] min-w-[44px] flex-shrink-0"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        
         <AdvancedSearchInput
           value={searchQuery}
           onChange={setSearchQuery}
@@ -426,11 +438,42 @@ export function EmailInbox() {
       )}
 
       {/* Main Content - Mobile responsive layout */}
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0">
-        {/* Sidebar - Collapsible on mobile and tablet when email selected */}
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden min-h-0 relative">
+        {/* Floating Compose Button - Mobile only */}
+        <Button
+          onClick={() => setComposerOpen(true)}
+          className="md:hidden fixed bottom-20 right-4 z-50 h-14 w-14 rounded-full shadow-lg"
+          size="icon"
+        >
+          <Mail className="h-6 w-6" />
+        </Button>
+
+        {/* Mobile Sidebar Sheet */}
+        <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
+          <SheetContent side="left" className="p-0 w-[280px] md:hidden">
+            <SheetHeader className="p-4 border-b">
+              <SheetTitle>Menu</SheetTitle>
+            </SheetHeader>
+            <EmailSidebar
+              currentFilter={filter}
+              onFilterChange={(newFilter) => {
+                setFilter(newFilter);
+                setMobileSidebarOpen(false);
+              }}
+              labels={labels}
+              unreadCount={unreadCount}
+              onCompose={() => {
+                setComposerOpen(true);
+                setMobileSidebarOpen(false);
+              }}
+            />
+          </SheetContent>
+        </Sheet>
+
+        {/* Desktop Sidebar - Hidden on mobile, visible on md+ */}
         <div className={cn(
-          "w-56 sm:w-60 md:w-64 lg:w-72 xl:w-80 max-w-[320px] flex-shrink-0 border-r border-border overflow-x-hidden",
-          selectedEmail && "hidden lg:block"
+          "hidden md:block md:w-64 lg:w-72 xl:w-80 max-w-[320px] flex-shrink-0 border-r border-border overflow-x-hidden",
+          selectedEmail && "lg:hidden xl:block"
         )}>
           <EmailSidebar
             currentFilter={filter}
@@ -441,10 +484,10 @@ export function EmailInbox() {
           />
         </div>
 
-        {/* Email List - Hidden when email selected on mobile/tablet */}
+        {/* Email List - Full width on mobile when no email selected */}
         <div className={cn(
-          "w-full sm:w-80 md:w-96 lg:w-[420px] xl:w-[480px] border-r border-border overflow-y-auto overflow-x-hidden flex-shrink-0 min-w-0",
-          selectedEmail && "hidden md:block"
+          "w-full md:flex-1 md:max-w-[420px] lg:max-w-[480px] border-r border-border overflow-y-auto overflow-x-hidden flex-shrink-0",
+          selectedEmail && "hidden lg:block"
         )}>
           <EmailList
             emails={displayedEmails}
