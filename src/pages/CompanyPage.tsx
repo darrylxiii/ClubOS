@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { 
   ArrowLeft, Globe, Linkedin, Twitter, Instagram, 
   Settings, Eye, Share2, Image as ImageIcon, Building2, 
-  MapPin, Users, Calendar, Briefcase, Heart, Star, Mail, Sparkles, Target, Newspaper
+  MapPin, Users, Calendar, Briefcase, Heart, Star, Mail, Sparkles, Target, Newspaper, Brain, BarChart3
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -31,6 +31,8 @@ import { CompanyCRMMetrics } from "@/components/crm/CompanyCRMMetrics";
 import { getJobViewPath } from "@/utils/jobNavigation";
 import { NewsArticleCard } from "@/components/company/NewsArticleCard";
 import { AddNewsArticleDialog } from "@/components/company/AddNewsArticleDialog";
+import { CompanyIntelligenceSummary } from "@/components/intelligence/CompanyIntelligenceSummary";
+import { CompanyMLInsights } from "@/components/intelligence/CompanyMLInsights";
 
 interface Company {
   id: string;
@@ -552,7 +554,7 @@ export default function CompanyPage() {
 
         {/* Additional Tabs */}
         <Tabs defaultValue="about" className="w-full">
-          <TabsList className={`grid w-full ${canAccessTargets ? 'grid-cols-6' : 'grid-cols-5'}`}>
+          <TabsList className={`grid w-full ${(isAdmin || isCompanyMember) ? 'grid-cols-8' : (canAccessTargets ? 'grid-cols-6' : 'grid-cols-5')}`}>
             <TabsTrigger value="about">About</TabsTrigger>
             <TabsTrigger value="jobs">Jobs ({jobCount})</TabsTrigger>
             <TabsTrigger value="news">
@@ -564,6 +566,18 @@ export default function CompanyPage() {
             {canAccessTargets && (
               <TabsTrigger value="targets">
                 Targets ({targetCompaniesCount})
+              </TabsTrigger>
+            )}
+            {(isAdmin || isCompanyMember) && (
+              <TabsTrigger value="intelligence">
+                <Brain className="w-4 w-4 mr-1.5" />
+                Intelligence
+              </TabsTrigger>
+            )}
+            {isAdmin && (
+              <TabsTrigger value="ml-insights">
+                <BarChart3 className="w-4 h-4 mr-1.5" />
+                ML
               </TabsTrigger>
             )}
           </TabsList>
@@ -805,6 +819,20 @@ export default function CompanyPage() {
           {canAccessTargets && (
             <TabsContent value="targets" className="space-y-6 mt-6">
               <TargetCompanies companyId={company.id} />
+            </TabsContent>
+          )}
+
+          {/* Intelligence Tab */}
+          {(isAdmin || isCompanyMember) && (
+            <TabsContent value="intelligence" className="space-y-6 mt-6">
+              <CompanyIntelligenceSummary companyId={company.id} />
+            </TabsContent>
+          )}
+
+          {/* ML Insights Tab */}
+          {isAdmin && (
+            <TabsContent value="ml-insights" className="space-y-6 mt-6">
+              <CompanyMLInsights companyId={company.id} />
             </TabsContent>
           )}
         </Tabs>

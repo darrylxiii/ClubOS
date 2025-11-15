@@ -69,6 +69,7 @@ const InterviewPrep = lazy(() => import("./pages/InterviewPrep"));
 const InterviewPrepChat = lazy(() => import("./pages/InterviewPrepChat"));
 const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
 const CareerPath = lazy(() => import("./pages/CareerPath"));
+const EnhancedMLDashboard = lazy(() => import("./pages/EnhancedMLDashboard"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Subscription = lazy(() => import("./pages/Subscription"));
