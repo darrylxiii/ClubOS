@@ -43,37 +43,13 @@ export function useMLMatching() {
     }
   };
 
-  const backfillTrainingData = async (daysBack = 180, limit = 1000) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const { data, error: functionError } = await supabase.functions.invoke(
-        'ml-backfill-training-data',
-        {
-          body: {
-            days_back: daysBack,
-            limit: limit,
-          },
-        }
-      );
-
-      if (functionError) throw functionError;
-
-      return data;
-    } catch (err) {
-      const error = err instanceof Error ? err : new Error('Failed to backfill training data');
-      setError(error);
-      console.error('Error backfilling training data:', error);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
+  // DEPRECATED: backfillTrainingData removed in Phase B
+  // Training data now comes from real-time interactions, not historical backfill
+  // Using backfilled data would create synthetic/outdated training data that conflicts
+  // with the real-time intelligence extraction system
 
   return {
     matchCandidates,
-    backfillTrainingData,
     loading,
     error,
   };
