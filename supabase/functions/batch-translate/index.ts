@@ -67,62 +67,121 @@ Deno.serve(async (req) => {
 
     console.log(`[Batch Translate] Translating ${textsToTranslate.length} texts to ${targetLanguage}`);
 
-    // Batch translate using Lovable AI
+    // Batch translate using Lovable AI with retry logic
     const translations: string[] = [];
     
-    // Process in batches of 10 to avoid rate limits
-    const batchSize = 10;
-    for (let i = 0; i < textsToTranslate.length; i += batchSize) {
-      const batch = textsToTranslate.slice(i, i + batchSize);
-      
-      // Translate each text in parallel within the batch
-      const batchPromises = batch.map(async (text: string) => {
-        const prompt = `Translate the following text to ${targetLanguage}. 
+    // Helper function to sleep/delay
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    
+    // Helper function to translate single text with retry
+    const translateWithRetry = async (text: string, maxRetries = 3): Promise<string> => {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          const prompt = `Translate the following text to ${targetLanguage}. 
 Context: This is a ${context} for a luxury executive recruitment platform called "The Quantum Club".
 Maintain a tone that is: professional, discreet, sophisticated, warm but not casual.
 Only return the translated text, nothing else.
 
 Text to translate: "${text}"`;
 
-        const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${lovableApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'google/gemini-2.5-flash',
-            messages: [
-              { role: 'system', content: 'You are a professional translator specializing in luxury recruitment platforms.' },
-              { role: 'user', content: prompt }
-            ],
-          }),
-        });
+          const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${lovableApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: [
+                { role: 'system', content: 'You are a professional translator specializing in luxury recruitment platforms.' },
+                { role: 'user', content: prompt }
+              ],
+            }),
+          });
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error(`[Batch Translate] AI API error:`, response.status, errorText);
-          
           if (response.status === 429) {
-            throw new Error('Rate limit exceeded. Please try again later.');
+            const retryAfter = response.headers.get('retry-after');
+            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
+            console.log(`[Batch Translate] Rate limited (429), waiting ${waitTime}ms before retry ${attempt}/${maxRetries}`);
+            if (attempt < maxRetries) {
+              await sleep(waitTime);
+              continue;
+            }
+            throw new Error('RATE_LIMIT_EXCEEDED');
           }
+
           if (response.status === 402) {
-            throw new Error('Payment required. Please add credits to your Lovable AI workspace.');
+            console.error('[Batch Translate] Payment required (402) - out of credits');
+            throw new Error('PAYMENT_REQUIRED');
           }
-          
-          throw new Error(`AI translation failed: ${response.status}`);
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`[Batch Translate] API error (${response.status}):`, errorText);
+            throw new Error(`API_ERROR_${response.status}`);
+          }
+
+          const data = await response.json();
+          return data.choices[0].message.content.trim();
+        } catch (error: any) {
+          if (error.message === 'RATE_LIMIT_EXCEEDED' || error.message === 'PAYMENT_REQUIRED') {
+            throw error;
+          }
+          if (attempt === maxRetries) {
+            console.error(`[Batch Translate] Failed after ${maxRetries} attempts:`, error);
+            throw error;
+          }
+          const backoffTime = Math.pow(2, attempt) * 1000;
+          console.log(`[Batch Translate] Retry ${attempt}/${maxRetries} after ${backoffTime}ms`);
+          await sleep(backoffTime);
         }
+      }
+      throw new Error('Translation failed after retries');
+    };
+    
+    // Process in batches of 5 (reduced from 10) to avoid rate limits
+    const batchSize = 5;
+    for (let i = 0; i < textsToTranslate.length; i += batchSize) {
+      const batch = textsToTranslate.slice(i, i + batchSize);
+      
+      // Translate each text in the batch
+      const batchPromises = batch.map(text => translateWithRetry(text));
 
-        const data = await response.json();
-        return data.choices[0].message.content.trim();
-      });
-
-      const batchResults = await Promise.all(batchPromises);
-      translations.push(...batchResults);
-
-      // Small delay between batches to respect rate limits
-      if (i + batchSize < textsToTranslate.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+      try {
+        const batchResults = await Promise.all(batchPromises);
+        translations.push(...batchResults);
+        
+        console.log(`[Batch Translate] Completed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(textsToTranslate.length / batchSize)}`);
+        
+        // Add delay between batches to respect rate limits (500ms)
+        if (i + batchSize < textsToTranslate.length) {
+          await sleep(500);
+        }
+      } catch (error: any) {
+        // Surface rate limit and payment errors to caller
+        if (error.message === 'RATE_LIMIT_EXCEEDED') {
+          console.error('[Batch Translate] Rate limit exceeded, cannot continue');
+          return new Response(
+            JSON.stringify({ 
+              error: 'Rate limit exceeded. Please try again in a few minutes.',
+              errorType: 'RATE_LIMIT',
+              partialTranslations: translations
+            }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        if (error.message === 'PAYMENT_REQUIRED') {
+          console.error('[Batch Translate] Payment required - out of credits');
+          return new Response(
+            JSON.stringify({ 
+              error: 'Translation credits depleted. Please add more credits to continue.',
+              errorType: 'PAYMENT_REQUIRED',
+              partialTranslations: translations
+            }),
+            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        throw error;
       }
     }
 
