@@ -63,11 +63,14 @@ export const PreferencesSettings = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="en">English</SelectItem>
-                <SelectItem value="nl">Nederlands</SelectItem>
-                <SelectItem value="de">Deutsch</SelectItem>
-                <SelectItem value="fr">Français</SelectItem>
-                <SelectItem value="es">Español</SelectItem>
+                <SelectItem value="en">🇬🇧 English</SelectItem>
+                <SelectItem value="nl">🇳🇱 Nederlands</SelectItem>
+                <SelectItem value="de">🇩🇪 Deutsch</SelectItem>
+                <SelectItem value="fr">🇫🇷 Français</SelectItem>
+                <SelectItem value="es">🇪🇸 Español</SelectItem>
+                <SelectItem value="zh">🇨🇳 中文 (Chinese)</SelectItem>
+                <SelectItem value="ar">🇸🇦 العربية (Arabic)</SelectItem>
+                <SelectItem value="ru">🇷🇺 Русский (Russian)</SelectItem>
               </SelectContent>
             </Select>
           </div>
