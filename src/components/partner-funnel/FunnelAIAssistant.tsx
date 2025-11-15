@@ -35,7 +35,9 @@ export function FunnelAIAssistant() {
     } else if (message.toLowerCase().includes("time") || message.toLowerCase().includes("long")) {
       response = "Our typical timeline is 2-4 weeks from brief to shortlist, with first interviews happening within the first week. For executive searches, it may take 4-8 weeks to find the perfect candidate.";
     } else if (message.toLowerCase().includes("industry") || message.toLowerCase().includes("industries")) {
-      response = "We specialize in Technology, Finance, Healthcare, Consulting, and high-growth startups. Our network spans across all major European markets with a focus on senior and executive-level positions.";
+      response = "We specialize in Technology, Finance, Healthcare, Consulting, and high-growth startups. Our network spans globally with a focus on senior and executive-level positions across Europe, North America, and Asia-Pacific markets.";
+    } else if (message.toLowerCase().includes("country") || message.toLowerCase().includes("international") || message.toLowerCase().includes("location")) {
+      response = "We work with companies worldwide. Whether you're based in Europe, North America, Asia, or anywhere else, our global network can connect you with top talent in your region or help you recruit internationally.";
     }
 
     setTimeout(() => {

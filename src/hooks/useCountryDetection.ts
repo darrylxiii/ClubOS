@@ -8,7 +8,7 @@ interface GeolocationResponse {
 }
 
 export const useCountryDetection = () => {
-  const [countryCode, setCountryCode] = useState<CountryCode>('US');
+  const [countryCode, setCountryCode] = useState<CountryCode>('NL'); // Default to NL for The Quantum Club
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -43,9 +43,9 @@ export const useCountryDetection = () => {
           localStorage.setItem('detected_country_time', Date.now().toString());
         }
       } catch (error) {
-        console.log('Country detection failed, using default:', error);
-        // Fallback to US if detection fails
-        setCountryCode('US');
+        console.log('Country detection failed, using default NL:', error);
+        // Fallback to NL (Netherlands - The Quantum Club's primary market)
+        setCountryCode('NL');
       } finally {
         setIsLoading(false);
       }

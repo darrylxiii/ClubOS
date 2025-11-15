@@ -176,7 +176,16 @@ export function FunnelSteps() {
           return false;
         }
         if (!phoneNumber) {
-          toast({ title: "Please enter your phone number", variant: "destructive" });
+          toast({ title: "Please enter your phone number with country code", variant: "destructive" });
+          return false;
+        }
+        // Validate phone format before proceeding
+        if (!phoneNumber.startsWith('+')) {
+          toast({ 
+            title: "Invalid phone format", 
+            description: "Please make sure your phone number includes the country code (e.g., +31 for Netherlands)",
+            variant: "destructive" 
+          });
           return false;
         }
         break;
@@ -386,8 +395,11 @@ export function FunnelSteps() {
               <Input
                 value={formData.headquarters_location}
                 onChange={(e) => setFormData({ ...formData, headquarters_location: e.target.value })}
-                placeholder="Amsterdam, Netherlands"
+                placeholder="e.g., Amsterdam, San Francisco, London"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                City and country of your main office
+              </p>
             </div>
           </div>
         );
@@ -410,19 +422,22 @@ export function FunnelSteps() {
               />
             </div>
             <div>
-              <Label>Investment Range</Label>
+              <Label>Annual Investment Budget</Label>
               <Select value={formData.budget_range} onValueChange={(value) => setFormData({ ...formData, budget_range: value })}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select range" />
+                  <SelectValue placeholder="Select your annual budget range" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="<50k">&lt; €50,000</SelectItem>
-                  <SelectItem value="50k-100k">€50,000 - €100,000</SelectItem>
-                  <SelectItem value="100k-250k">€100,000 - €250,000</SelectItem>
-                  <SelectItem value="250k-500k">€250,000 - €500,000</SelectItem>
-                  <SelectItem value="500k+">€500,000+</SelectItem>
+                  <SelectItem value="<50k">&lt; €50k / $55k / £42k</SelectItem>
+                  <SelectItem value="50k-100k">€50k - €100k / $55k - $110k / £42k - £85k</SelectItem>
+                  <SelectItem value="100k-250k">€100k - €250k / $110k - $275k / £85k - £210k</SelectItem>
+                  <SelectItem value="250k-500k">€250k - €500k / $275k - $550k / £210k - £425k</SelectItem>
+                  <SelectItem value="500k+">€500k+ / $550k+ / £425k+</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Approximate equivalents shown. Final pricing will be in your preferred currency.
+              </p>
             </div>
             <div>
               <Label>Timeline</Label>
@@ -520,16 +535,18 @@ export function FunnelSteps() {
             </Card>
 
             <div>
-              <Label>Phone Number *</Label>
+              <Label>Phone Number (with country code) *</Label>
               <PhoneInput
                 international
+                countryCallingCodeEditable={false}
                 defaultCountry={countryCode as any}
                 value={phoneNumber}
                 onChange={(value) => setPhoneNumber(value || "")}
+                placeholder="Enter phone number"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               />
               <p className="text-xs text-muted-foreground mt-2">
-                Protected by reCAPTCHA v3. We'll verify your phone in the next step.
+                We'll send a verification code to this number. Make sure to include your country code.
               </p>
             </div>
           </div>
