@@ -232,3 +232,7 @@ verify_jwt = true
 
 [functions.customer-portal]
 verify_jwt = true
+
+# Revenue metrics sync (admin only or cron)
+[functions.sync-revenue-metrics]
+verify_jwt = false

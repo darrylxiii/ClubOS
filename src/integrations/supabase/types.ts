@@ -3644,6 +3644,65 @@ export type Database = {
         }
         Relationships: []
       }
+      churn_analysis: {
+        Row: {
+          churn_feedback: string | null
+          churn_reason: string | null
+          churned_at: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          plan_tier: string
+          reactivation_likelihood: number | null
+          retention_attempt: boolean | null
+          retention_offer: string | null
+          subscription_duration_days: number
+          subscription_id: string
+          total_revenue_euros: number
+          user_id: string
+        }
+        Insert: {
+          churn_feedback?: string | null
+          churn_reason?: string | null
+          churned_at?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_tier: string
+          reactivation_likelihood?: number | null
+          retention_attempt?: boolean | null
+          retention_offer?: string | null
+          subscription_duration_days: number
+          subscription_id: string
+          total_revenue_euros: number
+          user_id: string
+        }
+        Update: {
+          churn_feedback?: string | null
+          churn_reason?: string | null
+          churned_at?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          plan_tier?: string
+          reactivation_likelihood?: number | null
+          retention_attempt?: boolean | null
+          retention_offer?: string | null
+          subscription_duration_days?: number
+          subscription_id?: string
+          total_revenue_euros?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "churn_analysis_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cities: {
         Row: {
           country: string
@@ -5685,6 +5744,63 @@ export type Database = {
             columns: ["learning_path_id"]
             isOneToOne: false
             referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customer_acquisition: {
+        Row: {
+          acquisition_channel: string
+          acquisition_cost_euros: number | null
+          acquisition_source: string | null
+          company_id: string | null
+          converted_to_paid_at: string | null
+          created_at: string | null
+          first_touchpoint_at: string
+          id: string
+          metadata: Json | null
+          referral_bonus_id: string | null
+          user_id: string
+        }
+        Insert: {
+          acquisition_channel: string
+          acquisition_cost_euros?: number | null
+          acquisition_source?: string | null
+          company_id?: string | null
+          converted_to_paid_at?: string | null
+          created_at?: string | null
+          first_touchpoint_at?: string
+          id?: string
+          metadata?: Json | null
+          referral_bonus_id?: string | null
+          user_id: string
+        }
+        Update: {
+          acquisition_channel?: string
+          acquisition_cost_euros?: number | null
+          acquisition_source?: string | null
+          company_id?: string | null
+          converted_to_paid_at?: string | null
+          created_at?: string | null
+          first_touchpoint_at?: string
+          id?: string
+          metadata?: Json | null
+          referral_bonus_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_acquisition_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_acquisition_referral_bonus_id_fkey"
+            columns: ["referral_bonus_id"]
+            isOneToOne: false
+            referencedRelation: "referral_bonuses"
             referencedColumns: ["id"]
           },
         ]
@@ -12397,6 +12513,93 @@ export type Database = {
           },
         ]
       }
+      referral_bonuses: {
+        Row: {
+          bonus_amount_euros: number
+          bonus_type: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          paid_at: string | null
+          payment_method: string | null
+          payment_reference: string | null
+          qualified_at: string | null
+          referral_type: string
+          referred_id: string
+          referrer_id: string
+          requirements_met: Json | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_amount_euros: number
+          bonus_type: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          qualified_at?: string | null
+          referral_type: string
+          referred_id: string
+          referrer_id: string
+          requirements_met?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_amount_euros?: number
+          bonus_type?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          qualified_at?: string | null
+          referral_type?: string
+          referred_id?: string
+          referrer_id?: string
+          requirements_met?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      referral_config: {
+        Row: {
+          bonus_amount_euros: number
+          config_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          requirements: Json
+          updated_at: string | null
+        }
+        Insert: {
+          bonus_amount_euros: number
+          config_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          requirements: Json
+          updated_at?: string | null
+        }
+        Update: {
+          bonus_amount_euros?: number
+          config_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          requirements?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       referral_metadata: {
         Row: {
           company_name: string
@@ -12493,6 +12696,75 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      revenue_metrics: {
+        Row: {
+          active_subscriptions: number | null
+          arr: number
+          average_revenue_per_user: number | null
+          canceled_subscriptions: number | null
+          churn_mrr: number | null
+          churn_rate: number | null
+          contraction_mrr: number | null
+          created_at: string | null
+          customer_lifetime_value: number | null
+          expansion_mrr: number | null
+          id: string
+          metadata: Json | null
+          metric_date: string
+          mrr: number
+          net_revenue_retention: number | null
+          new_mrr: number | null
+          new_subscriptions: number | null
+          total_revenue: number | null
+          trialing_subscriptions: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_subscriptions?: number | null
+          arr?: number
+          average_revenue_per_user?: number | null
+          canceled_subscriptions?: number | null
+          churn_mrr?: number | null
+          churn_rate?: number | null
+          contraction_mrr?: number | null
+          created_at?: string | null
+          customer_lifetime_value?: number | null
+          expansion_mrr?: number | null
+          id?: string
+          metadata?: Json | null
+          metric_date: string
+          mrr?: number
+          net_revenue_retention?: number | null
+          new_mrr?: number | null
+          new_subscriptions?: number | null
+          total_revenue?: number | null
+          trialing_subscriptions?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_subscriptions?: number | null
+          arr?: number
+          average_revenue_per_user?: number | null
+          canceled_subscriptions?: number | null
+          churn_mrr?: number | null
+          churn_rate?: number | null
+          contraction_mrr?: number | null
+          created_at?: string | null
+          customer_lifetime_value?: number | null
+          expansion_mrr?: number | null
+          id?: string
+          metadata?: Json | null
+          metric_date?: string
+          mrr?: number
+          net_revenue_retention?: number | null
+          new_mrr?: number | null
+          new_subscriptions?: number | null
+          total_revenue?: number | null
+          trialing_subscriptions?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       role_candidate_feedback: {
         Row: {
@@ -13491,6 +13763,41 @@ export type Database = {
           user_type?: string
         }
         Relationships: []
+      }
+      subscription_tier_limits: {
+        Row: {
+          created_at: string | null
+          id: string
+          limit_type: string
+          limit_value: number
+          period: string
+          plan_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          limit_type: string
+          limit_value: number
+          period?: string
+          plan_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          limit_type?: string
+          limit_value?: number
+          period?: string
+          plan_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_tier_limits_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_usage: {
         Row: {
@@ -16427,6 +16734,11 @@ export type Database = {
         Args: { last_activity: string }
         Returns: string
       }
+      calculate_churn_rate: {
+        Args: { end_date: string; start_date: string }
+        Returns: number
+      }
+      calculate_current_mrr: { Args: never; Returns: number }
       calculate_name_similarity: {
         Args: { name1: string; name2: string }
         Returns: number
@@ -16490,6 +16802,10 @@ export type Database = {
       check_rate_limit: {
         Args: { p_api_key_id: string; p_limit: number }
         Returns: boolean
+      }
+      check_tier_limit: {
+        Args: { check_user_id: string; limit_type_param: string }
+        Returns: Json
       }
       check_verification_rate_limit: {
         Args: { _action: string; _user_id: string; _verification_type: string }

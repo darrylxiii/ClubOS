@@ -27,6 +27,7 @@ import {
   ClipboardCheck,
   Mail,
   Link2,
+  CreditCard,
   type LucideIcon,
 } from "lucide-react";
 
@@ -86,6 +87,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     icon: Cog,
     items: [
       { name: "My Profile", icon: User, path: "/profile" },
+      { name: "Subscription", icon: CreditCard, path: "/subscription" },
       { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },
@@ -155,6 +157,14 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
         { name: "Global Analytics", icon: BarChart3, path: "/admin/analytics" },
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-config" },
+      ],
+    },
+    {
+      title: "Revenue & Growth",
+      icon: TrendingUp,
+      items: [
+        { name: "Revenue Analytics", icon: BarChart3, path: "/revenue-analytics" },
+        { name: "Referral Program", icon: Gift, path: "/referrals" },
       ],
     },
     {

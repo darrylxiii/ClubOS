@@ -15,6 +15,7 @@ import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
 import { ActivityTracker } from "@/components/ActivityTracker";
+import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,8 @@ const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Subscription = lazy(() => import("./pages/Subscription"));
 const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
+const RevenueAnalytics = lazy(() => import("./pages/RevenueAnalytics"));
+const ReferralProgram = lazy(() => import("./pages/ReferralProgram"));
 const MeetingIntelligence = lazy(() => import("./pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("./pages/MeetingInsights"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -235,10 +238,11 @@ const App = () => (
                 <AuthProvider>
                   <ErrorBoundary>
                     <RoleProvider>
-                      <ActivityTracker>
-                        <NavigationHistoryProvider>
-                          <MotionProvider>
-                            <VideoPlayerProvider>
+                      <SubscriptionProvider>
+                        <ActivityTracker>
+                          <NavigationHistoryProvider>
+                            <MotionProvider>
+                              <VideoPlayerProvider>
                               <Suspense fallback={<PageLoader />}>
                                 <Routes>
                 <Route path="/" element={
@@ -393,6 +397,28 @@ const App = () => (
                 <RouteErrorBoundary>
                   <ProtectedRoute>
                     <SubscriptionSuccess />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            
+            {/* Revenue & Analytics Routes */}
+            <Route
+              path="/revenue-analytics"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <RevenueAnalytics />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/referrals"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <ReferralProgram />
                   </ProtectedRoute>
                 </RouteErrorBoundary>
               }
@@ -984,6 +1010,7 @@ const App = () => (
           </MotionProvider>
         </NavigationHistoryProvider>
       </ActivityTracker>
+      </SubscriptionProvider>
       </RoleProvider>
       </ErrorBoundary>
       </AuthProvider>
