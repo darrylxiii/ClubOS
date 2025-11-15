@@ -245,3 +245,9 @@ verify_jwt = true
 
 [functions.cleanup-test-intelligence-data]
 verify_jwt = true
+
+[functions.orchestrate-intelligence-pipeline]
+verify_jwt = true
+
+[functions.process-all-interactions]
+verify_jwt = true

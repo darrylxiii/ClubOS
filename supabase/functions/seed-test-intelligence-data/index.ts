@@ -179,10 +179,65 @@ serve(async (req) => {
 
     console.log('[SEED] ✅ Test data created successfully!');
     console.log(`[SEED] Verification - Stakeholders in DB: ${stakeholderCount}, Interactions in DB: ${interactionCount}`);
-    console.log(`[SEED] Next steps:`);
-    console.log(`[SEED] 1. Run extract-interaction-insights for each interaction`);
-    console.log(`[SEED] 2. Run calculate-stakeholder-influence for company`);
-    console.log(`[SEED] 3. Run generate-company-intelligence-report for company`);
+    
+    // Phase 1: Auto-trigger intelligence processing
+    console.log('[SEED] 🤖 Starting automatic intelligence processing...');
+    
+    const processingResults = {
+      insights_extracted: 0,
+      insights_failed: 0,
+      report_generated: false
+    };
+
+    try {
+      // Process all created interactions in parallel (batches of 3 for reliability)
+      for (let i = 0; i < createdInteractions.length; i += 3) {
+        const batch = createdInteractions.slice(i, i + 3);
+        
+        const batchPromises = batch.map(async (interaction) => {
+          try {
+            console.log(`[SEED] Processing interaction: ${interaction.id}`);
+            const { error: insightError } = await supabase.functions.invoke(
+              'extract-interaction-insights',
+              { body: { interaction_id: interaction.id } }
+            );
+            
+            if (insightError) throw insightError;
+            
+            processingResults.insights_extracted++;
+            return { success: true, id: interaction.id };
+          } catch (error: any) {
+            console.error(`[SEED] Failed to extract insights for ${interaction.id}:`, error.message);
+            processingResults.insights_failed++;
+            return { success: false, id: interaction.id, error: error.message };
+          }
+        });
+
+        await Promise.all(batchPromises);
+      }
+
+      console.log(`[SEED] Insights extraction complete: ${processingResults.insights_extracted} success, ${processingResults.insights_failed} failed`);
+
+      // Generate intelligence report if any insights were extracted
+      if (processingResults.insights_extracted > 0) {
+        try {
+          console.log('[SEED] Generating intelligence report...');
+          const { error: reportError } = await supabase.functions.invoke(
+            'generate-company-intelligence-report',
+            { body: { company_id: companyId, period_days: 90 } }
+          );
+
+          if (reportError) throw reportError;
+          
+          processingResults.report_generated = true;
+          console.log('[SEED] ✅ Intelligence report generated');
+        } catch (error: any) {
+          console.error('[SEED] Failed to generate report:', error.message);
+        }
+      }
+    } catch (error: any) {
+      console.error('[SEED] Intelligence processing error:', error.message);
+    }
 
     // Check if nothing was created
     if (createdStakeholders.length === 0 && createdInteractions.length === 0) {
@@ -192,7 +247,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: `Test data created: ${stakeholderCount} stakeholders, ${interactionCount} interactions`,
+        message: 'Test data seeded and processed successfully',
         data: {
           company_id: companyId,
           company_name: companies.name,
@@ -206,14 +261,19 @@ serve(async (req) => {
           stakeholders_in_db: stakeholderCount || 0,
           interactions_in_db: interactionCount || 0,
         },
+        processing: {
+          insights_extracted: processingResults.insights_extracted,
+          insights_failed: processingResults.insights_failed,
+          report_generated: processingResults.report_generated
+        },
         errors: {
           stakeholder_errors: stakeholderErrors,
           interaction_errors: interactionErrors,
         },
         next_steps: [
-          `POST to extract-interaction-insights with each interaction_id`,
-          `POST to calculate-stakeholder-influence with company_id`,
-          `POST to generate-company-intelligence-report with company_id`,
+          'Go to Company Intelligence page to view the data',
+          'Check Live Insights tab to see extracted intelligence',
+          'View AI-generated recommendations in the intelligence summary'
         ],
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

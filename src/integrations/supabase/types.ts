@@ -4638,6 +4638,7 @@ export type Database = {
           external_id: string | null
           id: string
           initiated_by_stakeholder_id: string | null
+          insights_extracted_at: string | null
           interaction_date: string
           interaction_subtype: string | null
           interaction_type: string
@@ -4649,6 +4650,7 @@ export type Database = {
           mentioned_roles: string[] | null
           next_action: string | null
           our_participant_id: string | null
+          processing_status: string | null
           raw_content: string | null
           sentiment_score: number | null
           source_metadata: Json | null
@@ -4668,6 +4670,7 @@ export type Database = {
           external_id?: string | null
           id?: string
           initiated_by_stakeholder_id?: string | null
+          insights_extracted_at?: string | null
           interaction_date: string
           interaction_subtype?: string | null
           interaction_type: string
@@ -4679,6 +4682,7 @@ export type Database = {
           mentioned_roles?: string[] | null
           next_action?: string | null
           our_participant_id?: string | null
+          processing_status?: string | null
           raw_content?: string | null
           sentiment_score?: number | null
           source_metadata?: Json | null
@@ -4698,6 +4702,7 @@ export type Database = {
           external_id?: string | null
           id?: string
           initiated_by_stakeholder_id?: string | null
+          insights_extracted_at?: string | null
           interaction_date?: string
           interaction_subtype?: string | null
           interaction_type?: string
@@ -4709,6 +4714,7 @@ export type Database = {
           mentioned_roles?: string[] | null
           next_action?: string | null
           our_participant_id?: string | null
+          processing_status?: string | null
           raw_content?: string | null
           sentiment_score?: number | null
           source_metadata?: Json | null
@@ -7565,6 +7571,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      intelligence_processing_errors: {
+        Row: {
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          error_details: Json | null
+          error_message: string
+          function_name: string
+          id: string
+          last_retry_at: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+          retry_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          error_details?: Json | null
+          error_message: string
+          function_name: string
+          id?: string
+          last_retry_at?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          retry_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          error_details?: Json | null
+          error_message?: string
+          function_name?: string
+          id?: string
+          last_retry_at?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          retry_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       interaction_insights: {
         Row: {
