@@ -73,6 +73,8 @@ const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
 const CareerPath = lazy(() => import("./pages/CareerPath"));
 const EnhancedMLDashboard = lazy(() => import("./pages/EnhancedMLDashboard"));
 const HiringIntelligenceHub = lazy(() => import("./pages/HiringIntelligenceHub"));
+const TranslationManager = lazy(() => import("./pages/admin/TranslationManager"));
+const LanguageManager = lazy(() => import("./pages/admin/LanguageManager"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Subscription = lazy(() => import("./pages/Subscription"));
@@ -134,7 +136,6 @@ const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 const PartnerTargetCompanies = lazy(() => import("./pages/PartnerTargetCompanies"));
 const TargetCompaniesOverview = lazy(() => import("./pages/admin/TargetCompaniesOverview"));
 const MemberRequestsPage = lazy(() => import("./pages/admin/MemberRequestsPage"));
-const TranslationManager = lazy(() => import("./pages/admin/TranslationManager"));
 
 // Password Reset Pages
 import ForgotPassword from "./pages/ForgotPassword";
@@ -868,6 +869,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <TranslationManager />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/languages"
+              element={
+                <ProtectedRoute>
+                  <LanguageManager />
                 </ProtectedRoute>
               }
             />
