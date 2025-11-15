@@ -2114,6 +2114,7 @@ export type Database = {
       bookings: {
         Row: {
           active_video_platform: string | null
+          application_id: string | null
           approval_status: string | null
           approved_at: string | null
           approved_by: string | null
@@ -2125,10 +2126,12 @@ export type Database = {
           calendar_sync_status: string | null
           cancellation_reason: string | null
           cancelled_at: string | null
+          candidate_id: string | null
           created_at: string
           custom_answers: Json | null
           custom_responses: Json | null
           enable_recording: boolean | null
+          feedback_submitted_at: string | null
           google_meet_event_id: string | null
           google_meet_hangout_link: string | null
           guest_email: string
@@ -2136,6 +2139,12 @@ export type Database = {
           guest_phone: string | null
           guests: Json | null
           id: string
+          interview_prep_sent_at: string | null
+          interview_stage_index: number | null
+          interview_type: string | null
+          interviewer_ids: string[] | null
+          is_interview_booking: boolean | null
+          job_id: string | null
           last_sync_attempt: string | null
           meeting_id: string | null
           metadata: Json | null
@@ -2158,6 +2167,7 @@ export type Database = {
         }
         Insert: {
           active_video_platform?: string | null
+          application_id?: string | null
           approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
@@ -2169,10 +2179,12 @@ export type Database = {
           calendar_sync_status?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          candidate_id?: string | null
           created_at?: string
           custom_answers?: Json | null
           custom_responses?: Json | null
           enable_recording?: boolean | null
+          feedback_submitted_at?: string | null
           google_meet_event_id?: string | null
           google_meet_hangout_link?: string | null
           guest_email: string
@@ -2180,6 +2192,12 @@ export type Database = {
           guest_phone?: string | null
           guests?: Json | null
           id?: string
+          interview_prep_sent_at?: string | null
+          interview_stage_index?: number | null
+          interview_type?: string | null
+          interviewer_ids?: string[] | null
+          is_interview_booking?: boolean | null
+          job_id?: string | null
           last_sync_attempt?: string | null
           meeting_id?: string | null
           metadata?: Json | null
@@ -2202,6 +2220,7 @@ export type Database = {
         }
         Update: {
           active_video_platform?: string | null
+          application_id?: string | null
           approval_status?: string | null
           approved_at?: string | null
           approved_by?: string | null
@@ -2213,10 +2232,12 @@ export type Database = {
           calendar_sync_status?: string | null
           cancellation_reason?: string | null
           cancelled_at?: string | null
+          candidate_id?: string | null
           created_at?: string
           custom_answers?: Json | null
           custom_responses?: Json | null
           enable_recording?: boolean | null
+          feedback_submitted_at?: string | null
           google_meet_event_id?: string | null
           google_meet_hangout_link?: string | null
           guest_email?: string
@@ -2224,6 +2245,12 @@ export type Database = {
           guest_phone?: string | null
           guests?: Json | null
           id?: string
+          interview_prep_sent_at?: string | null
+          interview_stage_index?: number | null
+          interview_type?: string | null
+          interviewer_ids?: string[] | null
+          is_interview_booking?: boolean | null
+          job_id?: string | null
           last_sync_attempt?: string | null
           meeting_id?: string | null
           metadata?: Json | null
@@ -2246,10 +2273,52 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "bookings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "bookings_booking_link_id_fkey"
             columns: ["booking_link_id"]
             isOneToOne: false
             referencedRelation: "booking_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "bookings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
           {
@@ -7799,6 +7868,104 @@ export type Database = {
           },
         ]
       }
+      interview_feedback: {
+        Row: {
+          application_id: string
+          booking_id: string
+          communication_score: number | null
+          concerns: string[] | null
+          culture_fit_score: number | null
+          detailed_notes: string | null
+          id: string
+          interview_stage_index: number
+          interviewer_id: string
+          is_final: boolean | null
+          key_observations: string[] | null
+          overall_rating: number | null
+          questions_asked: Json | null
+          recommendation: string
+          red_flags: string[] | null
+          standout_moments: string[] | null
+          strengths: string[] | null
+          submitted_at: string | null
+          technical_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id: string
+          booking_id: string
+          communication_score?: number | null
+          concerns?: string[] | null
+          culture_fit_score?: number | null
+          detailed_notes?: string | null
+          id?: string
+          interview_stage_index: number
+          interviewer_id: string
+          is_final?: boolean | null
+          key_observations?: string[] | null
+          overall_rating?: number | null
+          questions_asked?: Json | null
+          recommendation: string
+          red_flags?: string[] | null
+          standout_moments?: string[] | null
+          strengths?: string[] | null
+          submitted_at?: string | null
+          technical_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string
+          booking_id?: string
+          communication_score?: number | null
+          concerns?: string[] | null
+          culture_fit_score?: number | null
+          detailed_notes?: string | null
+          id?: string
+          interview_stage_index?: number
+          interviewer_id?: string
+          is_final?: boolean | null
+          key_observations?: string[] | null
+          overall_rating?: number | null
+          questions_asked?: Json | null
+          recommendation?: string
+          red_flags?: string[] | null
+          standout_moments?: string[] | null
+          strengths?: string[] | null
+          submitted_at?: string | null
+          technical_score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_feedback_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_feedback_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_feedback_interviewer_id_fkey"
+            columns: ["interviewer_id"]
+            isOneToOne: false
+            referencedRelation: "company_members"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interview_intelligence: {
         Row: {
           candidate_id: string | null
@@ -8089,6 +8256,86 @@ export type Database = {
           },
         ]
       }
+      interview_stage_templates: {
+        Row: {
+          auto_schedule_enabled: boolean | null
+          company_id: string
+          created_at: string | null
+          default_description_template: string | null
+          default_duration_minutes: number | null
+          default_title_template: string | null
+          evaluation_criteria: Json | null
+          feedback_deadline_hours: number | null
+          id: string
+          interview_guide_url: string | null
+          interview_type: string | null
+          max_interviewers: number | null
+          min_interviewers: number | null
+          name: string
+          optional_interviewer_roles: string[] | null
+          prep_materials_urls: string[] | null
+          require_feedback: boolean | null
+          required_interviewer_roles: string[] | null
+          send_prep_materials: boolean | null
+          stage_order: number
+          updated_at: string | null
+        }
+        Insert: {
+          auto_schedule_enabled?: boolean | null
+          company_id: string
+          created_at?: string | null
+          default_description_template?: string | null
+          default_duration_minutes?: number | null
+          default_title_template?: string | null
+          evaluation_criteria?: Json | null
+          feedback_deadline_hours?: number | null
+          id?: string
+          interview_guide_url?: string | null
+          interview_type?: string | null
+          max_interviewers?: number | null
+          min_interviewers?: number | null
+          name: string
+          optional_interviewer_roles?: string[] | null
+          prep_materials_urls?: string[] | null
+          require_feedback?: boolean | null
+          required_interviewer_roles?: string[] | null
+          send_prep_materials?: boolean | null
+          stage_order: number
+          updated_at?: string | null
+        }
+        Update: {
+          auto_schedule_enabled?: boolean | null
+          company_id?: string
+          created_at?: string | null
+          default_description_template?: string | null
+          default_duration_minutes?: number | null
+          default_title_template?: string | null
+          evaluation_criteria?: Json | null
+          feedback_deadline_hours?: number | null
+          id?: string
+          interview_guide_url?: string | null
+          interview_type?: string | null
+          max_interviewers?: number | null
+          min_interviewers?: number | null
+          name?: string
+          optional_interviewer_roles?: string[] | null
+          prep_materials_urls?: string[] | null
+          require_feedback?: boolean | null
+          required_interviewer_roles?: string[] | null
+          send_prep_materials?: boolean | null
+          stage_order?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_stage_templates_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       interviews: {
         Row: {
           application_id: string
@@ -8332,6 +8579,72 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      job_team_assignments: {
+        Row: {
+          can_advance_candidates: boolean | null
+          can_decline_candidates: boolean | null
+          can_make_offers: boolean | null
+          can_schedule_interviews: boolean | null
+          can_view_candidates: boolean | null
+          company_member_id: string
+          created_at: string | null
+          id: string
+          interview_stages: number[] | null
+          is_primary_contact: boolean | null
+          job_id: string
+          job_role: string
+          notification_preferences: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          can_advance_candidates?: boolean | null
+          can_decline_candidates?: boolean | null
+          can_make_offers?: boolean | null
+          can_schedule_interviews?: boolean | null
+          can_view_candidates?: boolean | null
+          company_member_id: string
+          created_at?: string | null
+          id?: string
+          interview_stages?: number[] | null
+          is_primary_contact?: boolean | null
+          job_id: string
+          job_role: string
+          notification_preferences?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          can_advance_candidates?: boolean | null
+          can_decline_candidates?: boolean | null
+          can_make_offers?: boolean | null
+          can_schedule_interviews?: boolean | null
+          can_view_candidates?: boolean | null
+          company_member_id?: string
+          created_at?: string | null
+          id?: string
+          interview_stages?: number[] | null
+          is_primary_contact?: boolean | null
+          job_id?: string
+          job_role?: string
+          notification_preferences?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_team_assignments_company_member_id_fkey"
+            columns: ["company_member_id"]
+            isOneToOne: false
+            referencedRelation: "company_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_team_assignments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_tools: {
         Row: {
