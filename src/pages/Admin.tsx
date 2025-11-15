@@ -72,11 +72,12 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-9 max-w-7xl sticky top-4 z-20">
+            <TabsList className="grid w-full grid-cols-10 max-w-7xl sticky top-4 z-20">
               <TabsTrigger value="companies" onClick={(e) => e.currentTarget.blur()}>Companies</TabsTrigger>
               <TabsTrigger value="users" onClick={(e) => e.currentTarget.blur()}>Users & Roles</TabsTrigger>
               <TabsTrigger value="activity" onClick={(e) => e.currentTarget.blur()}>Activity</TabsTrigger>
               <TabsTrigger value="merge" onClick={(e) => e.currentTarget.blur()}>Merge</TabsTrigger>
+              <TabsTrigger value="member-requests" onClick={(e) => e.currentTarget.blur()}>Member Requests</TabsTrigger>
               <TabsTrigger value="applications" onClick={(e) => e.currentTarget.blur()}>Applications</TabsTrigger>
               <TabsTrigger value="achievements" onClick={(e) => e.currentTarget.blur()}>Achievements</TabsTrigger>
               <TabsTrigger value="assessments" onClick={(e) => e.currentTarget.blur()}>Assessments</TabsTrigger>
@@ -106,6 +107,21 @@ const Admin = () => {
                   </p>
                   <Button onClick={() => window.location.href = '/admin/merge-dashboard'}>
                     Open Merge Dashboard
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="member-requests" className="space-y-4">
+            <Card>
+              <CardContent className="pt-6">
+                <div className="text-center space-y-4">
+                  <p className="text-muted-foreground">
+                    Review and approve new member applications from candidates and partners
+                  </p>
+                  <Button onClick={() => window.location.href = '/admin/member-requests'}>
+                    Open Member Requests Dashboard
                   </Button>
                 </div>
               </CardContent>

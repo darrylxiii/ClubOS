@@ -863,6 +863,14 @@ const App = () => (
               }
             />
             <Route
+              path="/admin/member-requests"
+              element={
+                <ProtectedRoute>
+                  <MemberRequestsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/feed"
               element={
                 <RouteErrorBoundary>
