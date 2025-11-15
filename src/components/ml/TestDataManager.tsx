@@ -18,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void }) {
   const [loading, setLoading] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
   const [showCleanupDialog, setShowCleanupDialog] = useState(false);
   const [testDataInfo, setTestDataInfo] = useState<any>(null);
   const { toast } = useToast();
@@ -25,6 +26,7 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
   const seedTestData = async () => {
     try {
       setLoading(true);
+      setIsSeeding(true);
       toast({
         title: 'Seeding Test Data',
         description: 'Creating realistic test intelligence data...',
@@ -39,9 +41,10 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
       setTestDataInfo(data);
       
       const verif = data.verification;
+      const proc = data.processing;
       toast({
-        title: 'Test Data Created',
-        description: `✅ ${verif.stakeholders_in_db} stakeholders, ${verif.interactions_in_db} interactions, ${data.data.participants_linked} links`,
+        title: 'Test Data Created & Processed',
+        description: `✅ ${verif.stakeholders_in_db} stakeholders, ${verif.interactions_in_db} interactions • 🤖 ${proc?.insights_extracted || 0} insights extracted`,
       });
 
       // Refresh dashboard
@@ -51,6 +54,55 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to seed test data',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+      setIsSeeding(false);
+    }
+  };
+
+  const processIntelligence = async () => {
+    if (!testDataInfo?.data?.company_id) {
+      toast({
+        title: 'No test data',
+        description: 'Please seed test data first',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      toast({
+        title: 'Processing Intelligence',
+        description: 'Extracting insights and generating reports...',
+      });
+      
+      const { data, error } = await supabase.functions.invoke('orchestrate-intelligence-pipeline', {
+        body: { 
+          company_id: testDataInfo.data.company_id,
+          force_refresh: true 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        const results = data.results;
+        toast({
+          title: 'Intelligence Processed',
+          description: `✅ Processed ${results?.steps?.insight_extraction?.processed || 0} interactions in ${Math.round(results?.total_duration_ms / 1000)}s`,
+        });
+        
+        // Refresh dashboard
+        if (onDataChanged) onDataChanged();
+      }
+    } catch (error: any) {
+      console.error('Error processing intelligence:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to process intelligence',
         variant: 'destructive',
       });
     } finally {
