@@ -19,7 +19,7 @@ export function CompanyDomainsManager({
   const [newNotes, setNewNotes] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: domains, isLoading } = useQuery({
+  const { data: domains, isLoading, error: domainsError } = useQuery({
     queryKey: ["company-domains", companyId],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -28,8 +28,11 @@ export function CompanyDomainsManager({
         .eq("company_id", companyId)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error("Error fetching domains:", error);
+        throw error;
+      }
+      return data || [];
     },
   });
 
@@ -40,6 +43,16 @@ export function CompanyDomainsManager({
         .trim()
         .replace(/^@/, "");
 
+      if (!cleanDomain) {
+        throw new Error("Please enter a domain");
+      }
+
+      // Basic domain validation
+      const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/;
+      if (!domainRegex.test(cleanDomain)) {
+        throw new Error("Please enter a valid domain (e.g., example.com)");
+      }
+
       const { data: userData } = await supabase.auth.getUser();
 
       const { error } = await supabase.from("company_email_domains").insert({
@@ -49,7 +62,13 @@ export function CompanyDomainsManager({
         added_by: userData.user?.id,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error adding domain:", error);
+        if (error.code === "23505") {
+          throw new Error("This domain is already added for this company");
+        }
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-domains", companyId] });
@@ -69,11 +88,17 @@ export function CompanyDomainsManager({
         .update({ is_active: !isActive })
         .eq("id", id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error toggling domain:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-domains", companyId] });
       toast.success("Domain status updated");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to update domain status");
     },
   });
 
@@ -84,11 +109,17 @@ export function CompanyDomainsManager({
         .delete()
         .eq("id", id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting domain:", error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["company-domains", companyId] });
       toast.success("Domain deleted");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to delete domain");
     },
   });
 
@@ -130,7 +161,12 @@ export function CompanyDomainsManager({
         </div>
 
         {/* Domain list */}
-        {isLoading ? (
+        {domainsError ? (
+          <div className="p-4 bg-destructive/10 text-destructive rounded-lg">
+            <p className="text-sm font-medium">Error loading domains</p>
+            <p className="text-xs mt-1">{domainsError.message}</p>
+          </div>
+        ) : isLoading ? (
           <p className="text-sm text-muted-foreground">Loading domains...</p>
         ) : domains && domains.length > 0 ? (
           <div className="space-y-2">

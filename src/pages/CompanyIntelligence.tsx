@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader2, TrendingUp, TrendingDown, Phone, Mail, MessageSquare, Video, User, Calendar } from 'lucide-react';
+import { Loader2, TrendingUp, TrendingDown, Phone, Mail, MessageSquare, Video, User, Calendar, Settings } from 'lucide-react';
 import type { CompanyInteraction, CompanyStakeholder } from '@/types/interaction';
 
 export default function CompanyIntelligence() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [company, setCompany] = useState<any>(null);
   const [interactions, setInteractions] = useState<CompanyInteraction[]>([]);
@@ -102,9 +104,18 @@ export default function CompanyIntelligence() {
   return (
     <div className="container mx-auto py-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">{company.name}</h1>
-        <p className="text-muted-foreground">Company Intelligence Dashboard</p>
+      <div className="mb-8 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold">{company.name}</h1>
+          <p className="text-muted-foreground">Company Intelligence Dashboard</p>
+        </div>
+        <Button
+          variant="outline"
+          onClick={() => navigate(`/companies/${id}/domains`)}
+        >
+          <Settings className="h-4 w-4 mr-2" />
+          Email Domains
+        </Button>
       </div>
 
       {/* Summary Cards */}
