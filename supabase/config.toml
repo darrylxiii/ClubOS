@@ -183,9 +183,6 @@ verify_jwt = true
 [functions.validate-invite-code]
 verify_jwt = false
 
-[functions.batch-translate]
-verify_jwt = true
-
 [functions.analyze-meeting-recording-advanced]
 verify_jwt = true
 
