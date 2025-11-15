@@ -31,7 +31,7 @@ serve(async (req) => {
       .select(`
         *,
         company:companies(name),
-        job:jobs(title, seniority_level),
+        job:jobs(title),
         interaction_participants(
           stakeholder:company_stakeholders(full_name, job_title, role_type)
         )
