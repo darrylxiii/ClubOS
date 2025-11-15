@@ -252,3 +252,9 @@ verify_jwt = true
 [functions.log-phone-call]
 verify_jwt = true
 
+[functions.parse-whatsapp-chat]
+verify_jwt = true
+
+[functions.resolve-stakeholder-entities]
+verify_jwt = true
+

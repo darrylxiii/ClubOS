@@ -78,6 +78,8 @@ const ReferralProgram = lazy(() => import("./pages/ReferralProgram"));
 const MLDashboard = lazy(() => import("./pages/MLDashboard"));
 const InteractionEntry = lazy(() => import("./pages/InteractionEntry"));
 const CompanyIntelligence = lazy(() => import("./pages/CompanyIntelligence"));
+const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
+const InteractionsFeed = lazy(() => import("./pages/InteractionsFeed"));
 const MeetingIntelligence = lazy(() => import("./pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("./pages/MeetingInsights"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -452,6 +454,26 @@ const App = () => (
                 <RouteErrorBoundary>
                   <ProtectedRoute>
                     <CompanyIntelligence />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/interactions/import/whatsapp"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <WhatsAppImport />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/interactions"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <InteractionsFeed />
                   </ProtectedRoute>
                 </RouteErrorBoundary>
               }
