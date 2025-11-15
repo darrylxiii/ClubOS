@@ -11739,6 +11739,243 @@ export type Database = {
         }
         Relationships: []
       }
+      pilot_metrics: {
+        Row: {
+          avg_completion_time_minutes: number | null
+          created_at: string
+          date: string
+          focus_time_minutes: number
+          id: string
+          interruptions_count: number
+          tasks_completed: number
+          tasks_scheduled: number
+          tasks_snoozed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avg_completion_time_minutes?: number | null
+          created_at?: string
+          date?: string
+          focus_time_minutes?: number
+          id?: string
+          interruptions_count?: number
+          tasks_completed?: number
+          tasks_scheduled?: number
+          tasks_snoozed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avg_completion_time_minutes?: number | null
+          created_at?: string
+          date?: string
+          focus_time_minutes?: number
+          id?: string
+          interruptions_count?: number
+          tasks_completed?: number
+          tasks_scheduled?: number
+          tasks_snoozed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pilot_metrics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "pilot_metrics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pilot_metrics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pilot_preferences: {
+        Row: {
+          auto_schedule_enabled: boolean
+          break_between_tasks_minutes: number
+          buffer_minutes: number
+          created_at: string
+          focus_blocks: Json | null
+          max_tasks_per_day: number
+          morning_digest_enabled: boolean
+          morning_digest_time: string
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          timezone: string
+          updated_at: string
+          user_id: string
+          work_hours_end: string
+          work_hours_start: string
+          working_days: number[]
+        }
+        Insert: {
+          auto_schedule_enabled?: boolean
+          break_between_tasks_minutes?: number
+          buffer_minutes?: number
+          created_at?: string
+          focus_blocks?: Json | null
+          max_tasks_per_day?: number
+          morning_digest_enabled?: boolean
+          morning_digest_time?: string
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id: string
+          work_hours_end?: string
+          work_hours_start?: string
+          working_days?: number[]
+        }
+        Update: {
+          auto_schedule_enabled?: boolean
+          break_between_tasks_minutes?: number
+          buffer_minutes?: number
+          created_at?: string
+          focus_blocks?: Json | null
+          max_tasks_per_day?: number
+          morning_digest_enabled?: boolean
+          morning_digest_time?: string
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          timezone?: string
+          updated_at?: string
+          user_id?: string
+          work_hours_end?: string
+          work_hours_start?: string
+          working_days?: number[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pilot_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "pilot_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pilot_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pilot_tasks: {
+        Row: {
+          ai_recommendation: string | null
+          auto_scheduled_at: string | null
+          completed_at: string | null
+          context: Json
+          created_at: string
+          description: string | null
+          effort_minutes: number | null
+          id: string
+          impact_score: number | null
+          priority_score: number
+          related_entity_id: string | null
+          related_entity_type: string | null
+          scheduled_end: string | null
+          scheduled_start: string | null
+          snoozed_until: string | null
+          status: string
+          task_type: string
+          title: string
+          updated_at: string
+          urgency_score: number | null
+          user_id: string
+        }
+        Insert: {
+          ai_recommendation?: string | null
+          auto_scheduled_at?: string | null
+          completed_at?: string | null
+          context?: Json
+          created_at?: string
+          description?: string | null
+          effort_minutes?: number | null
+          id?: string
+          impact_score?: number | null
+          priority_score?: number
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          snoozed_until?: string | null
+          status?: string
+          task_type: string
+          title: string
+          updated_at?: string
+          urgency_score?: number | null
+          user_id: string
+        }
+        Update: {
+          ai_recommendation?: string | null
+          auto_scheduled_at?: string | null
+          completed_at?: string | null
+          context?: Json
+          created_at?: string
+          description?: string | null
+          effort_minutes?: number | null
+          id?: string
+          impact_score?: number | null
+          priority_score?: number
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          snoozed_until?: string | null
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string
+          urgency_score?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pilot_tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "pilot_tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pilot_tasks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pinned_posts: {
         Row: {
           id: string

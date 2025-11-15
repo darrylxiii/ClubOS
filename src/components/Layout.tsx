@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { TaskSidebar } from "@/components/TaskSidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { PilotFloatingButton } from "@/components/clubpilot/PilotFloatingButton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -149,6 +150,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           })}
         </div>
       </nav>
+
+      {/* Club Pilot Floating Button */}
+      <PilotFloatingButton />
     </div>
   );
 };

@@ -43,6 +43,7 @@ const InviteComplete = lazy(() => import("./pages/InviteComplete"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const JobDetail = lazy(() => import("./pages/JobDetail"));
 const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
+const ClubPilot = lazy(() => import("./pages/ClubPilot"));
 const ObjectiveWorkspace = lazy(() => import("./pages/ObjectiveWorkspace"));
 const ClubAI = lazy(() => import("./pages/ClubAI"));
 const Academy = lazy(() => import("./pages/Academy"));
@@ -602,6 +603,14 @@ const App = () => (
             <Route
               path="/tasks"
               element={<Navigate to="/unified-tasks" replace />}
+            />
+            <Route
+              path="/club-pilot"
+              element={
+                <ProtectedRoute>
+                  <ClubPilot />
+                </ProtectedRoute>
+              }
             />
             <Route
               path="/objectives/:id"

@@ -69,6 +69,7 @@ const allCommands: CommandItem[] = [
   // AI & Tools
   { id: "club-ai", label: "Club AI Assistant", icon: Sparkles, path: "/club-ai", category: "AI & Tools", roles: ["user", "partner", "admin", "strategist"] },
   { id: "unified-tasks", label: "Tasks", icon: ListTodo, path: "/unified-tasks", category: "AI & Tools", roles: ["user", "partner", "admin", "strategist"] },
+  { id: "club-pilot", label: "Club Pilot (AI Tasks)", icon: Sparkles, path: "/club-pilot", category: "AI & Tools", roles: ["user", "partner", "admin", "strategist"] },
   
   // Settings
   { id: "settings", label: "Account Settings", icon: Settings, path: "/settings", category: "Settings", roles: ["user", "partner", "admin", "strategist"] },
