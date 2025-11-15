@@ -16,6 +16,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { GlobalRoleSwitcher } from "@/components/GlobalRoleSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { MotionToggle } from "@/components/MotionToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { BurgerMenu } from "@/components/ui/burger-menu";
 import { useRole } from "@/contexts/RoleContext";
 import { getNavigationForRole } from "@/config/navigation.config";
@@ -137,6 +138,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         {/* Right: Desktop buttons (hidden on mobile) + Notification Bell */}
         <div className="flex items-center gap-1 sm:gap-2 min-w-[44px] justify-end ml-auto">
           <div className="hidden md:flex items-center gap-1 sm:gap-2">
+            <LanguageSwitcher />
             <ThemeToggle />
             <GlobalRoleSwitcher />
             <MotionToggle />
