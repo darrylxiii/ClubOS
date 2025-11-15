@@ -4652,6 +4652,7 @@ export type Database = {
           our_participant_id: string | null
           processing_status: string | null
           raw_content: string | null
+          retry_count: number | null
           sentiment_score: number | null
           source_metadata: Json | null
           status: string | null
@@ -4684,6 +4685,7 @@ export type Database = {
           our_participant_id?: string | null
           processing_status?: string | null
           raw_content?: string | null
+          retry_count?: number | null
           sentiment_score?: number | null
           source_metadata?: Json | null
           status?: string | null
@@ -4716,6 +4718,7 @@ export type Database = {
           our_participant_id?: string | null
           processing_status?: string | null
           raw_content?: string | null
+          retry_count?: number | null
           sentiment_score?: number | null
           source_metadata?: Json | null
           status?: string | null
