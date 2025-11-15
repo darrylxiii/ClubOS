@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Database, Trash2, Loader2, AlertCircle } from 'lucide-react';
+import { Database, Trash2, Loader2, AlertCircle, Brain } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -190,7 +190,7 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
               disabled={loading}
               className="flex-1"
             >
-              {loading ? (
+              {isSeeding ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Creating...
@@ -209,7 +209,7 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
               variant="outline"
               className="flex-1 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
             >
-              {loading ? (
+              {loading && !isSeeding ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Removing...
@@ -222,6 +222,27 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
               )}
             </Button>
           </div>
+
+          {testDataInfo?.data?.company_id && (
+            <Button
+              onClick={processIntelligence}
+              disabled={loading}
+              variant="secondary"
+              className="w-full"
+            >
+              {loading && !isSeeding ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Brain className="mr-2 h-4 w-4" />
+                  Process Intelligence
+                </>
+              )}
+            </Button>
+          )}
 
           <div className="text-xs text-muted-foreground space-y-1">
             <p><strong>What seeding does:</strong></p>
