@@ -124,6 +124,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Briefcase,
       items: [
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
+        { name: "Intelligence Hub", icon: Brain, path: "/hiring-intelligence" },
         { name: "Applicants", icon: FileText, path: "/applications" },
         { name: "Rejections", icon: Users, path: "/partner/rejections" },
         { name: "Companies", icon: Building, path: "/companies" },
@@ -158,6 +159,13 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
         { name: "Global Analytics", icon: BarChart3, path: "/admin/analytics" },
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-config" },
+      ],
+    },
+    {
+      title: "Intelligence & ML",
+      icon: Brain,
+      items: [
+        { name: "Hiring Intelligence", icon: Brain, path: "/hiring-intelligence" },
         { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
       ],
     },

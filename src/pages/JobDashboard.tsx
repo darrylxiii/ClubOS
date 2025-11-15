@@ -33,6 +33,11 @@ import { CandidateIntelligenceDossier } from "@/components/intelligence/Candidat
 import { ExecutiveBriefingCard } from "@/components/intelligence/ExecutiveBriefingCard";
 import { PredictiveAnalyticsDashboard } from "@/components/intelligence/PredictiveAnalyticsDashboard";
 import { MLInsightsWidget } from "@/components/intelligence/MLInsightsWidget";
+import { useJobTeamRole } from "@/hooks/useJobTeamRole";
+import { HiringManagerDashboard } from "@/components/partner/dashboards/HiringManagerDashboard";
+import { ExecutiveDashboard } from "@/components/partner/dashboards/ExecutiveDashboard";
+import { InterviewerDashboard } from "@/components/partner/dashboards/InterviewerDashboard";
+import { ObserverDashboard } from "@/components/partner/dashboards/ObserverDashboard";
 import {
   DndContext,
   closestCenter,
@@ -77,6 +82,7 @@ export default function JobDashboard() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [rejectedCount, setRejectedCount] = useState(0);
   const [expandedStageIndices, setExpandedStageIndices] = useState<Set<number>>(new Set());
+  const { jobRole, permissions, loading: jobRoleLoading } = useJobTeamRole(jobId!);
 
   // Drag and drop sensors
   const sensors = useSensors(
@@ -767,10 +773,16 @@ export default function JobDashboard() {
 
         {/* Main Content - Reorganized Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-8 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Overview
             </TabsTrigger>
+            {jobRole && (
+              <TabsTrigger value="my-view" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+                <Target className="h-4 w-4 mr-1 inline" />
+                My View
+              </TabsTrigger>
+            )}
             <TabsTrigger value="pipeline" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Pipeline
             </TabsTrigger>
@@ -819,6 +831,24 @@ export default function JobDashboard() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="my-view">
+            {jobRole === 'hiring_manager' && <HiringManagerDashboard jobId={job.id} />}
+            {jobRole === 'founder_reviewer' && <ExecutiveDashboard jobId={job.id} />}
+            {['technical_interviewer', 'behavioral_interviewer', 'panel_member'].includes(jobRole || '') && 
+              <InterviewerDashboard jobId={job.id} />
+            }
+            {jobRole === 'observer' && <ObserverDashboard jobId={job.id} />}
+            {!jobRole && (
+              <Card>
+                <CardContent className="pt-6">
+                  <p className="text-sm text-muted-foreground text-center">
+                    You don't have a specific role assigned for this job. Contact the hiring manager to get access.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="pipeline" className="space-y-4">

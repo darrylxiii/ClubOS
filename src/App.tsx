@@ -70,6 +70,7 @@ const InterviewPrepChat = lazy(() => import("./pages/InterviewPrepChat"));
 const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
 const CareerPath = lazy(() => import("./pages/CareerPath"));
 const EnhancedMLDashboard = lazy(() => import("./pages/EnhancedMLDashboard"));
+const HiringIntelligenceHub = lazy(() => import("./pages/HiringIntelligenceHub"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Subscription = lazy(() => import("./pages/Subscription"));
@@ -436,6 +437,16 @@ const App = () => (
                 <RouteErrorBoundary>
                   <ProtectedRoute>
                     <EnhancedMLDashboard />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/hiring-intelligence"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <HiringIntelligenceHub />
                   </ProtectedRoute>
                 </RouteErrorBoundary>
               }

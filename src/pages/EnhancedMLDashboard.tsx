@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Brain, TrendingUp, Users, Target, Zap, Database, Building2, AlertTriangle, CheckCircle, BarChart3 } from 'lucide-react';
+import { Brain, TrendingUp, Users, Target, Zap, Database, Building2, AlertTriangle, CheckCircle, BarChart3, Briefcase } from 'lucide-react';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMLMatching } from '@/hooks/useMLMatching';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import type { MLModel, MLABTest, MLModelMetrics } from '@/types/ml';
 import { format } from 'date-fns';
 import { TestDataManager } from '@/components/ml/TestDataManager';
@@ -22,18 +23,42 @@ export default function EnhancedMLDashboard() {
   const [recentInsights, setRecentInsights] = useState<any[]>([]);
   const [interactionStats, setInteractionStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [searchParams] = useSearchParams();
+  const [selectedJobId, setSelectedJobId] = useState<string | null>(searchParams.get('jobId'));
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
+    loadJobs();
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (selectedJobId) {
+      loadData();
+    }
+  }, [selectedJobId]);
+
+  const loadJobs = async () => {
+    try {
+      const { data } = await supabase
+        .from('jobs')
+        .select('id, title, companies(name)')
+        .eq('status', 'open')
+        .order('created_at', { ascending: false });
+      
+      setJobs(data || []);
+    } catch (error) {
+      console.error('Error loading jobs:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
       setLoading(true);
 
-      // Load ML tables with graceful error handling and type casting
+      // Load ML tables with job filtering
       const [modelsResult, abTestsResult, metricsResult] = await Promise.all([
         supabase.from('ml_models').select('*').order('version', { ascending: false }),
         supabase.from('ml_ab_tests').select('*').order('started_at', { ascending: false }).limit(5),
@@ -157,6 +182,27 @@ export default function EnhancedMLDashboard() {
             <p className="text-muted-foreground mt-1">
               Monitor ML performance and company intelligence across the platform
             </p>
+          </div>
+          <div className="flex items-center gap-4">
+            <Select value={selectedJobId || 'all'} onValueChange={(val) => setSelectedJobId(val === 'all' ? null : val)}>
+              <SelectTrigger className="w-[300px]">
+                <SelectValue placeholder="Filter by job" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Jobs</SelectItem>
+                {jobs.map(job => (
+                  <SelectItem key={job.id} value={job.id}>
+                    {job.title} - {job.companies?.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedJobId && (
+              <Button onClick={() => navigate(`/jobs/${selectedJobId}/dashboard?tab=intelligence`)} variant="outline">
+                <Briefcase className="h-4 w-4 mr-2" />
+                View Job Dashboard
+              </Button>
+            )}
           </div>
         </div>
 
