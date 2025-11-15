@@ -643,19 +643,20 @@ export default function JobDashboard() {
                        // Stage health indicator
                        const stageHealth = avgDays > 14 ? 'red' : avgDays > 7 ? 'yellow' : 'green';
                        
-                       return (
-                        <ExpandablePipelineStage
-                          key={`stage-${index}`}
-                          stage={stage}
-                          stageIndex={stage.order}
-                          candidateCount={count}
-                          avgDays={avgDays}
-                          conversionRate={nextConversion}
-                          applications={stageApplications}
-                          isExpanded={expandedStageIndices.has(stage.order)}
-                          onToggleExpand={() => toggleStageExpansion(stage.order)}
-                          displaySettings={displaySettings}
-                          totalStages={stages.length}
+                        return (
+                         <ExpandablePipelineStage
+                           key={`stage-${index}`}
+                           stage={stage}
+                           stageIndex={stage.order}
+                           candidateCount={count}
+                           avgDays={avgDays}
+                           conversionRate={nextConversion}
+                           applications={stageApplications}
+                           jobId={jobId!}
+                           isExpanded={expandedStageIndices.has(stage.order)}
+                           onToggleExpand={() => toggleStageExpansion(stage.order)}
+                           displaySettings={displaySettings}
+                           totalStages={stages.length}
                           onEdit={(updatedStage) => {
                             // Save inline edits
                             const updatedStages = [...stages];
