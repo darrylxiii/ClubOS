@@ -30,16 +30,25 @@ export const validateEmail = (email: string): ValidationResult => {
 
 /**
  * Phone number validation (international format)
+ * More lenient to support all international formats
  */
 export const validatePhoneNumber = (phone: string): ValidationResult => {
   if (!phone || phone.trim() === '') {
     return { isValid: false, error: 'Phone number is required' };
   }
 
-  // Basic international format check (allows + and digits)
-  const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-  if (!phoneRegex.test(phone.replace(/[\s()-]/g, ''))) {
-    return { isValid: false, error: 'Invalid phone number format' };
+  // Remove all non-digit characters except the leading +
+  const cleanPhone = phone.replace(/[\s()-]/g, '');
+  
+  // Must start with + and have at least 8 digits (shortest valid international number)
+  // Maximum is 15 digits per E.164 standard
+  const phoneRegex = /^\+[0-9]{8,15}$/;
+  
+  if (!phoneRegex.test(cleanPhone)) {
+    return { 
+      isValid: false, 
+      error: 'Please enter a valid international phone number with country code (e.g., +31612345678)' 
+    };
   }
 
   return { isValid: true };
