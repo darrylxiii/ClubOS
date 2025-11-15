@@ -12,8 +12,16 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    // Try both environment variable patterns (Lovable Cloud uses VITE_ prefix)
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') || Deno.env.get('VITE_SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    
+    console.log('[SEED] Supabase URL check:', supabaseUrl ? 'Found' : 'Missing');
+    
+    if (!supabaseUrl) {
+      throw new Error('Supabase URL not found in environment variables');
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     console.log('[SEED] Starting test data creation...');
