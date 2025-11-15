@@ -87,14 +87,14 @@ serve(async (req) => {
 
       console.log(`[Step 1/3] ✓ Found English source for '${ns}' with ${Object.keys(englishData.translations).length} keys`);
 
-      console.log(`[Step 2/3] Generating translations for ${targetLanguages.length} languages...`);
+    console.log(`[Step 2/3] Generating translations for ${targetLanguages.length} languages SEQUENTIALLY...`);
 
-      // Generate translations for all target languages in parallel
-      const translationPromises = targetLanguages.map(async (lang) => {
+      // Generate translations SEQUENTIALLY (not parallel) to avoid rate limits
+      for (const [index, lang] of targetLanguages.entries()) {
         const startTime = Date.now();
         
         try {
-          console.log(`[Step 2/3] Calling batch-translate for ${lang}...`);
+          console.log(`[Step 2/3] Processing ${lang} (${index + 1}/${targetLanguages.length})...`);
           
           // Call batch-translate function
           const { data: translateData, error: translateError } = await supabaseClient.functions.invoke(
@@ -109,6 +109,51 @@ serve(async (req) => {
           );
 
           if (translateError) {
+            // Check for rate limit or payment errors
+            if (translateError.message?.includes('Rate limit') || translateError.message?.includes('429')) {
+              console.error(`[ERROR] Rate limited on ${lang}, stopping generation`);
+              errors.push({
+                namespace: ns,
+                language: lang,
+                error: 'Rate limit exceeded - please try again in a few minutes',
+                errorType: 'RATE_LIMIT'
+              });
+              
+              results.push({
+                namespace: ns,
+                language: lang,
+                status: 'error',
+                error: 'Rate limit exceeded',
+                errorType: 'RATE_LIMIT',
+                duration: Date.now() - startTime
+              });
+              
+              // Stop processing remaining languages
+              break;
+            }
+            
+            if (translateError.message?.includes('Payment') || translateError.message?.includes('402')) {
+              console.error(`[ERROR] Payment required for ${lang}, stopping generation`);
+              errors.push({
+                namespace: ns,
+                language: lang,
+                error: 'Translation credits depleted - please add more credits',
+                errorType: 'PAYMENT_REQUIRED'
+              });
+              
+              results.push({
+                namespace: ns,
+                language: lang,
+                status: 'error',
+                error: 'Payment required',
+                errorType: 'PAYMENT_REQUIRED',
+                duration: Date.now() - startTime
+              });
+              
+              // Stop processing remaining languages
+              break;
+            }
+            
             throw translateError;
           }
 
@@ -122,30 +167,39 @@ serve(async (req) => {
           totalCost += estimatedCost;
           totalTime += duration;
 
-          return {
+          results.push({
             namespace: ns,
             language: lang,
             keyCount: Object.keys(translateData.translations).length,
             duration,
             estimatedCost,
             status: 'success'
-          };
+          });
+          
+          // Add delay between languages to respect rate limits (2 seconds)
+          if (index < targetLanguages.length - 1) {
+            console.log(`[Rate Limit Protection] Waiting 2 seconds before next language...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
         } catch (error: any) {
           const duration = Date.now() - startTime;
           console.error(`[ERROR] Failed to translate ${ns} to ${lang}:`, error.message || error);
           
-          return {
+          errors.push({
+            namespace: ns,
+            language: lang,
+            error: error.message || 'Translation failed'
+          });
+          
+          results.push({
             namespace: ns,
             language: lang,
             status: 'error',
             error: error.message || 'Translation failed',
             duration
-          };
+          });
         }
-      });
-
-      const namespaceResults = await Promise.all(translationPromises);
-      results.push(...namespaceResults);
+      }
     }
 
     const successCount = results.filter(r => r.status === 'success').length;

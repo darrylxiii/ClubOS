@@ -73,12 +73,19 @@ export default function TranslationManager() {
     }
     
     setIsGeneratingAll(true);
+    const loadingToast = toast.loading('Starting translation generation...');
+    
     try {
-      toast.info(`Generating translations for ${namespace}...`);
       const { data, error } = await supabase.functions.invoke('generate-all-translations', { body: { namespace } });
       
+      toast.dismiss(loadingToast);
+      
       if (error) {
-        if (error.message?.includes('English source not found')) {
+        if (error.message?.includes('Rate limit') || error.message?.includes('429')) {
+          toast.error('Rate limit exceeded. Please try again in 2-3 minutes.', { duration: 6000 });
+        } else if (error.message?.includes('Payment') || error.message?.includes('402')) {
+          toast.error('Translation credits depleted. Please add more credits to continue.', { duration: 6000 });
+        } else if (error.message?.includes('English source not found')) {
           toast.error('No English source found. Please click "Seed English" first.');
         } else if (error.message?.includes('LOVABLE_API_KEY')) {
           toast.error('AI key not configured. Contact admin.');
@@ -88,10 +95,45 @@ export default function TranslationManager() {
         throw error;
       }
       
-      toast.success(`Generated ${data.summary.successCount} translations! Cost: $${data.summary.totalCost.toFixed(2)}`);
+      const { summary, results, errors: apiErrors } = data;
+      const failedLanguages = results.filter((r: any) => r.status === 'error');
+      
+      if (summary.errorCount === 0) {
+        toast.success(
+          `✓ Generated ${summary.successCount} translations in ${summary.totalTimeSeconds}s! Cost: $${summary.totalCost.toFixed(2)}`,
+          { duration: 5000 }
+        );
+      } else if (summary.successCount > 0) {
+        const rateLimitFailed = failedLanguages.some((r: any) => r.errorType === 'RATE_LIMIT');
+        const paymentFailed = failedLanguages.some((r: any) => r.errorType === 'PAYMENT_REQUIRED');
+        
+        if (rateLimitFailed) {
+          toast.warning(
+            `⚠️ Partial success: ${summary.successCount} completed, ${summary.errorCount} stopped due to rate limits. Please retry in 2-3 minutes.`,
+            { duration: 8000 }
+          );
+        } else if (paymentFailed) {
+          toast.warning(
+            `⚠️ Partial success: ${summary.successCount} completed, ${summary.errorCount} stopped due to depleted credits. Please add credits and retry.`,
+            { duration: 8000 }
+          );
+        } else {
+          toast.warning(
+            `⚠️ Partial success: ${summary.successCount} completed, ${summary.errorCount} failed. Check console for details.`,
+            { duration: 6000 }
+          );
+        }
+        
+        console.error('Failed languages:', failedLanguages);
+      } else {
+        toast.error(`All translations failed. ${apiErrors?.[0]?.error || 'Unknown error'}`);
+        console.error('Translation errors:', apiErrors);
+      }
+      
       refetchCoverage();
     } catch (error: any) {
-      console.error('[Translation Manager] Generation error:', error);
+      toast.dismiss(loadingToast);
+      console.error('Error generating translations:', error);
     } finally {
       setIsGeneratingAll(false);
     }
@@ -104,12 +146,20 @@ export default function TranslationManager() {
     }
     
     setIsBulkGenerating(true);
+    setBulkProgress({ current: 0, total: NAMESPACES.length * 7, currentLang: 'Starting...' });
+    const loadingToast = toast.loading('Generating all translations (2-3 minutes with rate limit protection)...');
+    
     try {
-      toast.info('Generating ALL translations...');
       const { data, error } = await supabase.functions.invoke('generate-all-translations', { body: { generateAll: true } });
       
+      toast.dismiss(loadingToast);
+      
       if (error) {
-        if (error.message?.includes('English source not found')) {
+        if (error.message?.includes('Rate limit') || error.message?.includes('429')) {
+          toast.error('Rate limit exceeded. Please try again in 2-3 minutes.', { duration: 6000 });
+        } else if (error.message?.includes('Payment') || error.message?.includes('402')) {
+          toast.error('Translation credits depleted. Please add more credits to continue.', { duration: 6000 });
+        } else if (error.message?.includes('English source not found')) {
           toast.error('No English source found. Please click "Seed English" first.');
         } else if (error.message?.includes('LOVABLE_API_KEY')) {
           toast.error('AI key not configured. Contact admin.');
@@ -119,12 +169,49 @@ export default function TranslationManager() {
         throw error;
       }
       
-      toast.success(`Generated all! Cost: $${data.summary.totalCost.toFixed(2)}`);
+      const { summary, results, errors: apiErrors } = data;
+      const failedJobs = results.filter((r: any) => r.status === 'error');
+      
+      if (summary.errorCount === 0) {
+        toast.success(
+          `✓ All translations generated! ${summary.successCount} languages in ${summary.totalTimeSeconds}s. Cost: $${summary.totalCost.toFixed(2)}`,
+          { duration: 6000 }
+        );
+      } else if (summary.successCount > 0) {
+        const rateLimitFailed = failedJobs.some((r: any) => r.errorType === 'RATE_LIMIT');
+        const paymentFailed = failedJobs.some((r: any) => r.errorType === 'PAYMENT_REQUIRED');
+        
+        if (rateLimitFailed) {
+          toast.warning(
+            `⚠️ Partial success: ${summary.successCount}/${summary.successCount + summary.errorCount} completed. Rate limit hit - retry "Generate ALL" in 2-3 minutes to complete remaining translations.`,
+            { duration: 10000 }
+          );
+        } else if (paymentFailed) {
+          toast.warning(
+            `⚠️ Partial success: ${summary.successCount}/${summary.successCount + summary.errorCount} completed. Credits depleted - add more and retry "Generate ALL".`,
+            { duration: 10000 }
+          );
+        } else {
+          toast.warning(
+            `⚠️ Partial success: ${summary.successCount}/${summary.successCount + summary.errorCount} completed. Check console for errors.`,
+            { duration: 8000 }
+          );
+        }
+        
+        console.error('Failed translation jobs:', failedJobs);
+        console.error('API errors:', apiErrors);
+      } else {
+        toast.error(`All translations failed. ${apiErrors?.[0]?.error || 'Unknown error'}`, { duration: 6000 });
+        console.error('Translation errors:', apiErrors);
+      }
+      
       refetchCoverage();
     } catch (error: any) {
-      console.error('[Translation Manager] Bulk generation error:', error);
+      toast.dismiss(loadingToast);
+      console.error('Error generating all translations:', error);
     } finally {
       setIsBulkGenerating(false);
+      setBulkProgress({ current: 0, total: 0, currentLang: '' });
     }
   };
 
