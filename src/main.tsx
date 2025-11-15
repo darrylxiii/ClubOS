@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
+import "./i18n/config";
 
 console.log('[Main] 🚀 Starting application initialization...');
 console.log('[Main] Environment check:', {
