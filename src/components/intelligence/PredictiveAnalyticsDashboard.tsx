@@ -263,93 +263,99 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
       )}
 
       {/* Cost Prediction */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <DollarSign className="h-4 w-4" />
-            Cost & Time Investment
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Est. Cost per Hire</p>
-              <p className="text-xl font-bold">€{predictions.costPrediction.estimatedCostPerHire.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Time Investment</p>
-              <p className="text-xl font-bold">{predictions.costPrediction.timeInvestment}</p>
-            </div>
-          </div>
-          <div className="p-3 rounded-lg bg-muted/30">
-            <p className="text-xs font-medium mb-2">Cost Breakdown</p>
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between text-xs">
-                <span>Recruiting</span>
-                <span>€{predictions.costPrediction.breakdown.recruiting}</span>
+      {predictions?.costPrediction && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Cost & Time Investment
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Est. Cost per Hire</p>
+                <p className="text-xl font-bold">€{predictions.costPrediction.estimatedCostPerHire.toLocaleString()}</p>
               </div>
-              <div className="flex items-center justify-between text-xs">
-                <span>Interviews</span>
-                <span>€{predictions.costPrediction.breakdown.interviews}</span>
-              </div>
-              <div className="flex items-center justify-between text-xs">
-                <span>Administrative</span>
-                <span>€{predictions.costPrediction.breakdown.administrative}</span>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Time Investment</p>
+                <p className="text-xl font-bold">{predictions.costPrediction.timeInvestment}</p>
               </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="p-3 rounded-lg bg-muted/30">
+              <p className="text-xs font-medium mb-2">Cost Breakdown</p>
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span>Recruiting</span>
+                  <span>€{predictions.costPrediction.breakdown.recruiting}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span>Interviews</span>
+                  <span>€{predictions.costPrediction.breakdown.interviews}</span>
+                </div>
+                <div className="flex items-center justify-between text-xs">
+                  <span>Administrative</span>
+                  <span>€{predictions.costPrediction.breakdown.administrative}</span>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Quality Prediction */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Quality of Hire Forecast</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-lg bg-muted/30 text-center">
-              <p className="text-xs text-muted-foreground mb-1">Expected Quality</p>
-              <Badge variant="default">{predictions.qualityPrediction.expectedQuality.toUpperCase()}</Badge>
+      {predictions?.qualityPrediction && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Quality of Hire Forecast</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="p-3 rounded-lg bg-muted/30 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Expected Quality</p>
+                <Badge variant="default">{predictions.qualityPrediction.expectedQuality.toUpperCase()}</Badge>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/30 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Retention</p>
+                <p className="text-sm font-semibold">{Math.round(predictions.qualityPrediction.retentionProbability * 100)}%</p>
+              </div>
+              <div className="p-3 rounded-lg bg-muted/30 text-center">
+                <p className="text-xs text-muted-foreground mb-1">Time to Productivity</p>
+                <Badge variant="outline">{predictions.qualityPrediction.timeToProductivity}</Badge>
+              </div>
             </div>
-            <div className="p-3 rounded-lg bg-muted/30 text-center">
-              <p className="text-xs text-muted-foreground mb-1">Retention</p>
-              <p className="text-sm font-semibold">{Math.round(predictions.qualityPrediction.retentionProbability * 100)}%</p>
-            </div>
-            <div className="p-3 rounded-lg bg-muted/30 text-center">
-              <p className="text-xs text-muted-foreground mb-1">Time to Productivity</p>
-              <Badge variant="outline">{predictions.qualityPrediction.timeToProductivity}</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Competitive Intelligence */}
-      <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
-        <CardHeader>
-          <CardTitle className="text-base">Market Intelligence</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Market Demand</p>
-              <Badge variant="outline">{predictions.competitiveIntel.marketDemand.toUpperCase()}</Badge>
+      {predictions?.competitiveIntel && (
+        <Card className="border-primary/20 bg-gradient-to-br from-card to-primary/5">
+          <CardHeader>
+            <CardTitle className="text-base">Market Intelligence</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Market Demand</p>
+                <Badge variant="outline">{predictions.competitiveIntel.marketDemand.toUpperCase()}</Badge>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Salary Benchmark</p>
+                <p className="text-sm font-medium">{predictions.competitiveIntel.salaryBenchmark}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Competing Offers</p>
+                <p className="text-sm font-medium">{predictions.competitiveIntel.competingOffers}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Action Timing</p>
+                <p className="text-sm font-medium">{predictions.competitiveIntel.speedToOffer}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Salary Benchmark</p>
-              <p className="text-sm font-medium">{predictions.competitiveIntel.salaryBenchmark}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Competing Offers</p>
-              <p className="text-sm font-medium">{predictions.competitiveIntel.competingOffers}</p>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-1">Action Timing</p>
-              <p className="text-sm font-medium">{predictions.competitiveIntel.speedToOffer}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Action Recommendations */}
       {predictions.actionRecommendations && predictions.actionRecommendations.length > 0 && (
