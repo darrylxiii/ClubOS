@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle } from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { QuickActionsBar } from "@/components/partner/QuickActionsBar";
 import { SmartInsightsCard } from "@/components/partner/SmartInsightsCard";
@@ -29,6 +29,10 @@ import { JobDocuments } from "@/components/partner/JobDocuments";
 import { JobAnalytics } from "@/components/partner/JobAnalytics";
 import { UpcomingInterviewsWidget } from "@/components/partner/UpcomingInterviewsWidget";
 import { JobTeamPanel } from "@/components/partner/JobTeamPanel";
+import { CandidateIntelligenceDossier } from "@/components/intelligence/CandidateIntelligenceDossier";
+import { ExecutiveBriefingCard } from "@/components/intelligence/ExecutiveBriefingCard";
+import { PredictiveAnalyticsDashboard } from "@/components/intelligence/PredictiveAnalyticsDashboard";
+import { MLInsightsWidget } from "@/components/intelligence/MLInsightsWidget";
 import {
   DndContext,
   closestCenter,
@@ -763,12 +767,16 @@ export default function JobDashboard() {
 
         {/* Main Content - Reorganized Tabs */}
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-6 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-7 bg-gradient-to-r from-card/50 to-card/30 backdrop-blur-sm border-2 border-border/20 shadow-[var(--shadow-glass-sm)]">
             <TabsTrigger value="overview" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Overview
             </TabsTrigger>
             <TabsTrigger value="pipeline" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Pipeline
+            </TabsTrigger>
+            <TabsTrigger value="intelligence" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
+              <Brain className="h-4 w-4 mr-1 inline" />
+              Intelligence
             </TabsTrigger>
             <TabsTrigger value="analytics" className="data-[state=active]:bg-background/60 data-[state=active]:border-b-2 data-[state=active]:border-primary transition-all">
               Analytics
@@ -785,6 +793,9 @@ export default function JobDashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4">
+            {/* Predictive Analytics Widget */}
+            <PredictiveAnalyticsDashboard jobId={job.id} />
+            
             <Card className="border-2 border-primary/20 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60 shadow-[var(--shadow-glass-md)]">
               <CardHeader>
                 <CardTitle className="font-black uppercase">Job Details</CardTitle>
@@ -818,8 +829,105 @@ export default function JobDashboard() {
             <JobDocuments jobId={job.id} onUpdate={fetchJobDetails} />
           </TabsContent>
 
+          <TabsContent value="intelligence" className="space-y-6">
+            {/* Hero Section - Predictive Analytics */}
+            <PredictiveAnalyticsDashboard jobId={job.id} />
+            
+            {/* ML Insights Widget linking to ML Dashboard */}
+            <MLInsightsWidget jobId={job.id} />
+            
+            {/* Candidate Intelligence Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left: Top Candidates Dossiers */}
+              <Card className="border-2 border-border/40 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60">
+                <CardHeader>
+                  <CardTitle className="font-black uppercase text-sm flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" />
+                    Top Candidate Intelligence
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {applications
+                    .filter(app => app.status === 'active')
+                    .sort((a, b) => (b.match_score || 0) - (a.match_score || 0))
+                    .slice(0, 3)
+                    .map(app => (
+                      <CandidateIntelligenceDossier
+                        key={app.id}
+                        candidateId={app.candidate_id}
+                        jobId={job.id}
+                      />
+                    ))}
+                  {applications.filter(app => app.status === 'active').length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      No active candidates yet
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+              
+              {/* Right: Executive Briefings */}
+              <Card className="border-2 border-border/40 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60">
+                <CardHeader>
+                  <CardTitle className="font-black uppercase text-sm flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    Decision-Ready Briefings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {applications
+                    .filter(app => app.status === 'active')
+                    .sort((a, b) => (b.match_score || 0) - (a.match_score || 0))
+                    .slice(0, 3)
+                    .map(app => (
+                      <ExecutiveBriefingCard
+                        key={app.id}
+                        candidateId={app.candidate_id}
+                        jobId={job.id}
+                        compact={false}
+                      />
+                    ))}
+                  {applications.filter(app => app.status === 'active').length === 0 && (
+                    <p className="text-sm text-muted-foreground text-center py-8">
+                      No active candidates yet
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+            
+            {/* ML Model Insights Link */}
+            <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Brain className="h-5 w-5" />
+                  Machine Learning Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  View how our ML matching engine is performing for this role
+                </p>
+                <Button onClick={() => navigate(`/ml-dashboard?jobId=${job.id}`)} variant="outline">
+                  <TrendingUp className="h-4 w-4 mr-2" />
+                  View ML Performance
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           <TabsContent value="analytics" className="space-y-4">
             <JobAnalytics jobId={job.id} />
+            
+            {/* Add ML-powered predictions */}
+            <Card className="border-2 border-primary/20 backdrop-blur-xl bg-gradient-to-br from-card/90 to-card/60">
+              <CardHeader>
+                <CardTitle className="font-black uppercase text-sm">AI-Powered Predictions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <PredictiveAnalyticsDashboard jobId={job.id} />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="activity" className="space-y-4">
