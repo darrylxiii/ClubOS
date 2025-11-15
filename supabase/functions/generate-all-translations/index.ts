@@ -61,6 +61,8 @@ serve(async (req) => {
 
     // Process each namespace
     for (const ns of namespacesToProcess) {
+      console.log(`[Step 1/3] Checking English source for namespace '${ns}'...`);
+      
       // Get English source
       const { data: englishData, error: fetchError } = await supabaseClient
         .from('translations')
@@ -73,19 +75,26 @@ serve(async (req) => {
         .single();
 
       if (fetchError || !englishData) {
-        console.error(`Failed to fetch English source for ${ns}:`, fetchError);
-        errors.push({ namespace: ns, error: 'English source not found' });
+        const errorMsg = `No English translations found for namespace '${ns}'. Please seed English translations first by clicking 'Seed English' in the Translation Manager.`;
+        console.error(`[ERROR] ${errorMsg}`, fetchError);
+        errors.push({ 
+          namespace: ns, 
+          error: errorMsg,
+          action: 'seed_required'
+        });
         continue;
       }
 
-      console.log(`Processing namespace: ${ns} with ${Object.keys(englishData.translations).length} keys`);
+      console.log(`[Step 1/3] ✓ Found English source for '${ns}' with ${Object.keys(englishData.translations).length} keys`);
+
+      console.log(`[Step 2/3] Generating translations for ${targetLanguages.length} languages...`);
 
       // Generate translations for all target languages in parallel
       const translationPromises = targetLanguages.map(async (lang) => {
         const startTime = Date.now();
         
         try {
-          console.log(`Generating ${lang} translation for ${ns}...`);
+          console.log(`[Step 2/3] Calling batch-translate for ${lang}...`);
           
           // Call batch-translate function
           const { data: translateData, error: translateError } = await supabaseClient.functions.invoke(
@@ -103,10 +112,12 @@ serve(async (req) => {
             throw translateError;
           }
 
+          console.log(`[Step 3/3] Storing ${lang} translations in database...`);
+
           const duration = Date.now() - startTime;
           const estimatedCost = (Object.keys(englishData.translations).length * 0.0003);
 
-          console.log(`✓ ${lang} translation for ${ns} complete in ${duration}ms`);
+          console.log(`[SUCCESS] Generated ${lang} for '${ns}' in ${duration}ms - ${Object.keys(englishData.translations).length} keys - $${estimatedCost.toFixed(4)}`);
 
           totalCost += estimatedCost;
           totalTime += duration;
@@ -119,13 +130,16 @@ serve(async (req) => {
             estimatedCost,
             status: 'success'
           };
-        } catch (error) {
-          console.error(`Failed to generate ${lang} for ${ns}:`, error);
+        } catch (error: any) {
+          const duration = Date.now() - startTime;
+          console.error(`[ERROR] Failed to translate ${ns} to ${lang}:`, error.message || error);
+          
           return {
             namespace: ns,
             language: lang,
             status: 'error',
-            error: error instanceof Error ? error.message : 'Unknown error'
+            error: error.message || 'Translation failed',
+            duration
           };
         }
       });
