@@ -435,7 +435,7 @@ const App = () => (
               element={
                 <RouteErrorBoundary>
                   <ProtectedRoute>
-                    <MLDashboard />
+                    <EnhancedMLDashboard />
                   </ProtectedRoute>
                 </RouteErrorBoundary>
               }
