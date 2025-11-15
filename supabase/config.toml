@@ -239,3 +239,9 @@ verify_jwt = true
 
 [functions.generate-company-intelligence-report]
 verify_jwt = true
+
+[functions.seed-test-intelligence-data]
+verify_jwt = true
+
+[functions.cleanup-test-intelligence-data]
+verify_jwt = true
