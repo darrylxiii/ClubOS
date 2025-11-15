@@ -48,6 +48,8 @@ serve(async (req) => {
     ];
 
     const createdStakeholders = [];
+    const stakeholderErrors = [];
+    
     for (const stakeholder of stakeholders) {
       const { data, error } = await supabase
         .from('company_stakeholders')
@@ -57,17 +59,24 @@ serve(async (req) => {
           email: stakeholder.email,
           job_title: stakeholder.job_title,
           role_type: stakeholder.role_type,
-          is_test_data: true, // Mark as test data
+          is_test_data: true,
         })
         .select()
         .single();
 
       if (error) {
-        console.error('[SEED] Error creating stakeholder:', error);
+        console.error('[SEED] ❌ Error creating stakeholder:', stakeholder.full_name, error);
+        stakeholderErrors.push({ stakeholder: stakeholder.full_name, error: error.message });
         continue;
       }
+      
       createdStakeholders.push(data);
-      console.log(`[SEED] Created stakeholder: ${stakeholder.full_name}`);
+      console.log(`[SEED] ✅ Created stakeholder: ${stakeholder.full_name} (ID: ${data.id})`);
+    }
+    
+    console.log(`[SEED] Stakeholders created: ${createdStakeholders.length}/${stakeholders.length}`);
+    if (stakeholderErrors.length > 0) {
+      console.error('[SEED] Stakeholder errors:', JSON.stringify(stakeholderErrors, null, 2));
     }
 
     // Create test interactions
@@ -99,6 +108,9 @@ serve(async (req) => {
     ];
 
     const createdInteractions = [];
+    const interactionErrors = [];
+    const participantLinks = [];
+    
     for (let i = 0; i < interactions.length; i++) {
       const interaction = interactions[i];
       const { data, error } = await supabase
@@ -108,51 +120,95 @@ serve(async (req) => {
           interaction_type: interaction.interaction_type,
           interaction_subtype: interaction.interaction_subtype,
           raw_content: interaction.raw_content,
-          interaction_date: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(), // Stagger by days
+          interaction_date: new Date(Date.now() - (i * 24 * 60 * 60 * 1000)).toISOString(),
           duration_minutes: interaction.duration_minutes,
           sentiment_score: interaction.sentiment_score,
           urgency_score: interaction.urgency_score,
-          is_test_data: true, // Mark as test data
+          is_test_data: true,
         })
         .select()
         .single();
 
       if (error) {
-        console.error('[SEED] Error creating interaction:', error);
+        console.error('[SEED] ❌ Error creating interaction:', interaction.interaction_type, error);
+        interactionErrors.push({ type: interaction.interaction_type, error: error.message });
         continue;
       }
+
+      console.log(`[SEED] ✅ Created interaction: ${interaction.interaction_type} (ID: ${data.id})`);
 
       // Link stakeholders to interaction
       if (createdStakeholders.length > 0) {
         const stakeholderId = createdStakeholders[i % createdStakeholders.length].id;
-        await supabase.from('interaction_participants').insert({
+        const { error: participantError } = await supabase.from('interaction_participants').insert({
           interaction_id: data.id,
           stakeholder_id: stakeholderId,
           participation_type: i === 0 ? 'initiator' : 'participant',
           engagement_score: 0.8 + (Math.random() * 0.2),
         });
+        
+        if (participantError) {
+          console.error('[SEED] ⚠️ Error linking participant:', participantError);
+        } else {
+          participantLinks.push({ interaction_id: data.id, stakeholder_id: stakeholderId });
+          console.log(`[SEED] ✅ Linked stakeholder to interaction`);
+        }
       }
 
       createdInteractions.push(data);
-      console.log(`[SEED] Created interaction: ${interaction.interaction_type}`);
+    }
+    
+    console.log(`[SEED] Interactions created: ${createdInteractions.length}/${interactions.length}`);
+    console.log(`[SEED] Participants linked: ${participantLinks.length}`);
+    if (interactionErrors.length > 0) {
+      console.error('[SEED] Interaction errors:', JSON.stringify(interactionErrors, null, 2));
     }
 
-    console.log('[SEED] Test data created successfully!');
+    // Verify what was actually created
+    const { count: stakeholderCount } = await supabase
+      .from('company_stakeholders')
+      .select('*', { count: 'exact', head: true })
+      .eq('company_id', companyId)
+      .eq('is_test_data', true);
+      
+    const { count: interactionCount } = await supabase
+      .from('company_interactions')
+      .select('*', { count: 'exact', head: true })
+      .eq('company_id', companyId)
+      .eq('is_test_data', true);
+
+    console.log('[SEED] ✅ Test data created successfully!');
+    console.log(`[SEED] Verification - Stakeholders in DB: ${stakeholderCount}, Interactions in DB: ${interactionCount}`);
     console.log(`[SEED] Next steps:`);
     console.log(`[SEED] 1. Run extract-interaction-insights for each interaction`);
     console.log(`[SEED] 2. Run calculate-stakeholder-influence for company`);
     console.log(`[SEED] 3. Run generate-company-intelligence-report for company`);
 
+    // Check if nothing was created
+    if (createdStakeholders.length === 0 && createdInteractions.length === 0) {
+      throw new Error('Failed to create any test data. Check errors above for details.');
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Test intelligence data created successfully',
+        message: `Test data created: ${stakeholderCount} stakeholders, ${interactionCount} interactions`,
         data: {
           company_id: companyId,
           company_name: companies.name,
           stakeholders_created: createdStakeholders.length,
           interactions_created: createdInteractions.length,
+          participants_linked: participantLinks.length,
           interaction_ids: createdInteractions.map(i => i.id),
+          stakeholder_ids: createdStakeholders.map(s => s.id),
+        },
+        verification: {
+          stakeholders_in_db: stakeholderCount || 0,
+          interactions_in_db: interactionCount || 0,
+        },
+        errors: {
+          stakeholder_errors: stakeholderErrors,
+          interaction_errors: interactionErrors,
         },
         next_steps: [
           `POST to extract-interaction-insights with each interaction_id`,

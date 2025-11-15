@@ -36,11 +36,12 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
 
       if (error) throw error;
 
-      setTestDataInfo(data.data);
+      setTestDataInfo(data);
       
+      const verif = data.verification;
       toast({
         title: 'Test Data Created',
-        description: `Created ${data.data.interactions_created} interactions and ${data.data.stakeholders_created} stakeholders`,
+        description: `✅ ${verif.stakeholders_in_db} stakeholders, ${verif.interactions_in_db} interactions, ${data.data.participants_linked} links`,
       });
 
       // Refresh dashboard
@@ -112,10 +113,21 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
               <AlertDescription>
                 <strong>Current Test Data:</strong>
                 <ul className="list-disc list-inside mt-2 text-sm space-y-1">
-                  <li>Company: {testDataInfo.company_name}</li>
-                  <li>{testDataInfo.stakeholders_created} stakeholders (CTO, VP Engineering, Head of Talent)</li>
-                  <li>{testDataInfo.interactions_created} interactions (meeting, email, phone call)</li>
+                  <li>Company: {testDataInfo.data?.company_name}</li>
+                  <li>✅ {testDataInfo.verification?.stakeholders_in_db || 0} stakeholders verified in DB</li>
+                  <li>✅ {testDataInfo.verification?.interactions_in_db || 0} interactions verified in DB</li>
+                  <li>✅ {testDataInfo.data?.participants_linked || 0} participant links created</li>
                 </ul>
+                {testDataInfo.data?.interaction_ids && testDataInfo.data.interaction_ids.length > 0 && (
+                  <div className="mt-3 p-2 bg-muted rounded text-xs">
+                    <strong>Interaction IDs for testing:</strong>
+                    <div className="mt-1 space-y-1 font-mono">
+                      {testDataInfo.data.interaction_ids.map((id: string) => (
+                        <div key={id}>{id}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </AlertDescription>
             </Alert>
           )}

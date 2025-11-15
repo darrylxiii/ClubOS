@@ -7703,6 +7703,7 @@ export type Database = {
       interaction_participants: {
         Row: {
           created_at: string | null
+          engagement_score: number | null
           id: string
           interaction_id: string | null
           mentioned_only: boolean | null
@@ -7711,6 +7712,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          engagement_score?: number | null
           id?: string
           interaction_id?: string | null
           mentioned_only?: boolean | null
@@ -7719,6 +7721,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          engagement_score?: number | null
           id?: string
           interaction_id?: string | null
           mentioned_only?: boolean | null
