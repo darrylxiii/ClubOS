@@ -210,15 +210,67 @@ Generate a JSON response with predictions:
       };
     }
 
-    return new Response(JSON.stringify({ predictions }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ 
+        predictions,
+        error: null,
+        meta: {
+          jobId,
+          generatedAt: new Date().toISOString(),
+          dataPoints: {
+            applications: applications?.length || 0,
+            interviews: interviews?.length || 0,
+            historicalJobs: historicalJobs?.length || 0
+          }
+        }
+      }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
 
   } catch (error) {
     console.error('Error generating predictions:', error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    
+    // Return fallback predictions so dashboard doesn't crash
+    const fallbackPredictions = {
+      timeToHire: {
+        predictedDays: 30,
+        confidence: 0.5,
+        earliestDate: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        latestDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        factors: ["Limited data available"]
+      },
+      offerAcceptanceProbability: {
+        averageProbability: 0.7,
+        topCandidate: {
+          probability: 0.75,
+          reasoning: "Based on industry standards"
+        },
+        factors: ["Market conditions"]
+      },
+      hiringDifficulty: {
+        score: "medium",
+        reasoning: "Unable to generate detailed analysis",
+        marketFactors: []
+      },
+      pipelineHealth: {
+        score: 50,
+        bottlenecks: [],
+        recommendations: ["Continue standard process"]
+      }
+    };
+    
+    return new Response(
+      JSON.stringify({ 
+        predictions: fallbackPredictions,
+        error: error instanceof Error ? error.message : 'Unknown error',
+        fallback: true
+      }), 
+      {
+        status: 200, // Return 200 so frontend handles gracefully
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
   }
 });
