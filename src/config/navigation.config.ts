@@ -28,6 +28,7 @@ import {
   Mail,
   Link2,
   CreditCard,
+  Brain,
   type LucideIcon,
 } from "lucide-react";
 
@@ -157,6 +158,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
         { name: "Funnel Analytics", icon: TrendingUp, path: "/funnel-analytics" },
         { name: "Global Analytics", icon: BarChart3, path: "/admin/analytics" },
         { name: "AI Configuration", icon: Cog, path: "/admin/ai-config" },
+        { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
       ],
     },
     {
