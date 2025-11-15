@@ -486,7 +486,7 @@ export function EmailInbox() {
 
         {/* Email List - Full width on mobile when no email selected */}
         <div className={cn(
-          "w-full md:flex-1 md:max-w-[420px] lg:max-w-[480px] border-r border-border overflow-y-auto overflow-x-hidden flex-shrink-0",
+          "flex-1 w-full md:w-auto md:flex-none md:max-w-[420px] lg:max-w-[480px] border-r border-border overflow-y-auto overflow-x-hidden min-h-0",
           selectedEmail && "hidden lg:block"
         )}>
           <EmailList
