@@ -52,7 +52,7 @@ serve(async (req) => {
       throw new Error('Interaction not found');
     }
     
-    if (!interaction.content || interaction.content.trim() === '') {
+    if (!interaction.raw_content || interaction.raw_content.trim() === '') {
       throw new Error('Interaction has no content to analyze');
     }
 
@@ -71,7 +71,7 @@ serve(async (req) => {
 - Participants: ${participantNames}
 - Subject: ${interaction.subject || 'N/A'}
 - Summary: ${interaction.summary || 'N/A'}
-- Content: ${interaction.raw_content || interaction.summary || 'No content available'}
+- Content: ${interaction.raw_content || 'No content available'}
 
 **Extract the following in JSON format:**
 {
