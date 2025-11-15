@@ -75,6 +75,7 @@ const Subscription = lazy(() => import("./pages/Subscription"));
 const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
 const RevenueAnalytics = lazy(() => import("./pages/RevenueAnalytics"));
 const ReferralProgram = lazy(() => import("./pages/ReferralProgram"));
+const MLDashboard = lazy(() => import("./pages/MLDashboard"));
 const MeetingIntelligence = lazy(() => import("./pages/MeetingIntelligence"));
 const MeetingInsights = lazy(() => import("./pages/MeetingInsights"));
 const Messages = lazy(() => import("./pages/Messages"));
@@ -419,6 +420,16 @@ const App = () => (
                 <RouteErrorBoundary>
                   <ProtectedRoute>
                     <ReferralProgram />
+                  </ProtectedRoute>
+                </RouteErrorBoundary>
+              }
+            />
+            <Route
+              path="/ml-dashboard"
+              element={
+                <RouteErrorBoundary>
+                  <ProtectedRoute>
+                    <MLDashboard />
                   </ProtectedRoute>
                 </RouteErrorBoundary>
               }

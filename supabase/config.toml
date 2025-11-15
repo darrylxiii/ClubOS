@@ -240,3 +240,11 @@ verify_jwt = false
 # ML Feature generation (internal service)
 [functions.generate-ml-features]
 verify_jwt = false
+
+# ML candidate matching (requires authentication)
+[functions.ml-match-candidates]
+verify_jwt = true
+
+# ML training data backfill (admin only)
+[functions.ml-backfill-training-data]
+verify_jwt = true
