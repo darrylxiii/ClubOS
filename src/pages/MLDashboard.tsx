@@ -16,7 +16,6 @@ export default function MLDashboard() {
   const [abTests, setABTests] = useState<MLABTest[]>([]);
   const [metrics, setMetrics] = useState<MLModelMetrics[]>([]);
   const [loading, setLoading] = useState(true);
-  const { backfillTrainingData, loading: backfillLoading } = useMLMatching();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -48,16 +47,6 @@ export default function MLDashboard() {
     }
   };
 
-  const handleBackfillData = async () => {
-    const result = await backfillTrainingData(180, 1000);
-    if (result) {
-      toast({
-        title: 'Backfill complete',
-        description: `Created ${result.records_created} training records`,
-      });
-    }
-  };
-
   const activeModel = models.find(m => m.status === 'active');
   const runningTests = abTests.filter(t => t.status === 'running');
 
@@ -75,10 +64,6 @@ export default function MLDashboard() {
               Monitor and manage the AI-powered matching system
             </p>
           </div>
-          <Button onClick={handleBackfillData} disabled={backfillLoading}>
-            <Database className="h-4 w-4 mr-2" />
-            {backfillLoading ? 'Backfilling...' : 'Backfill Training Data'}
-          </Button>
         </div>
 
         {/* Overview Stats */}

@@ -10055,6 +10055,310 @@ export type Database = {
           },
         ]
       }
+      ml_ab_tests: {
+        Row: {
+          ended_at: string | null
+          hypothesis: string | null
+          id: string
+          metrics_a: Json | null
+          metrics_b: Json | null
+          model_a_version: number
+          model_b_version: number
+          sample_size_a: number
+          sample_size_b: number
+          started_at: string
+          statistical_significance: number | null
+          status: string
+          target_metric: string
+          test_name: string
+          traffic_split: number
+          winner: string | null
+        }
+        Insert: {
+          ended_at?: string | null
+          hypothesis?: string | null
+          id?: string
+          metrics_a?: Json | null
+          metrics_b?: Json | null
+          model_a_version: number
+          model_b_version: number
+          sample_size_a?: number
+          sample_size_b?: number
+          started_at?: string
+          statistical_significance?: number | null
+          status?: string
+          target_metric: string
+          test_name: string
+          traffic_split?: number
+          winner?: string | null
+        }
+        Update: {
+          ended_at?: string | null
+          hypothesis?: string | null
+          id?: string
+          metrics_a?: Json | null
+          metrics_b?: Json | null
+          model_a_version?: number
+          model_b_version?: number
+          sample_size_a?: number
+          sample_size_b?: number
+          started_at?: string
+          statistical_significance?: number | null
+          status?: string
+          target_metric?: string
+          test_name?: string
+          traffic_split?: number
+          winner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_ab_tests_model_a_version_fkey"
+            columns: ["model_a_version"]
+            isOneToOne: false
+            referencedRelation: "ml_models"
+            referencedColumns: ["version"]
+          },
+          {
+            foreignKeyName: "ml_ab_tests_model_b_version_fkey"
+            columns: ["model_b_version"]
+            isOneToOne: false
+            referencedRelation: "ml_models"
+            referencedColumns: ["version"]
+          },
+        ]
+      }
+      ml_feedback: {
+        Row: {
+          created_at: string
+          feedback_score: number | null
+          feedback_text: string | null
+          feedback_type: string
+          id: string
+          metadata: Json | null
+          prediction_id: string
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          created_at?: string
+          feedback_score?: number | null
+          feedback_text?: string | null
+          feedback_type: string
+          id?: string
+          metadata?: Json | null
+          prediction_id: string
+          user_id: string
+          user_role: string
+        }
+        Update: {
+          created_at?: string
+          feedback_score?: number | null
+          feedback_text?: string | null
+          feedback_type?: string
+          id?: string
+          metadata?: Json | null
+          prediction_id?: string
+          user_id?: string
+          user_role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_feedback_prediction_id_fkey"
+            columns: ["prediction_id"]
+            isOneToOne: false
+            referencedRelation: "ml_predictions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ml_model_metrics: {
+        Row: {
+          confidence_interval_lower: number | null
+          confidence_interval_upper: number | null
+          created_at: string
+          id: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          model_version: number
+          sample_size: number | null
+          segment: string | null
+        }
+        Insert: {
+          confidence_interval_lower?: number | null
+          confidence_interval_upper?: number | null
+          created_at?: string
+          id?: string
+          metric_date: string
+          metric_name: string
+          metric_value: number
+          model_version: number
+          sample_size?: number | null
+          segment?: string | null
+        }
+        Update: {
+          confidence_interval_lower?: number | null
+          confidence_interval_upper?: number | null
+          created_at?: string
+          id?: string
+          metric_date?: string
+          metric_name?: string
+          metric_value?: number
+          model_version?: number
+          sample_size?: number | null
+          segment?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_model_metrics_model_version_fkey"
+            columns: ["model_version"]
+            isOneToOne: false
+            referencedRelation: "ml_models"
+            referencedColumns: ["version"]
+          },
+        ]
+      }
+      ml_models: {
+        Row: {
+          created_at: string
+          feature_importance: Json | null
+          id: string
+          metrics: Json
+          model_storage_path: string | null
+          model_type: string
+          notes: string | null
+          status: string
+          training_config: Json | null
+          training_data_count: number | null
+          training_end_time: string | null
+          training_start_time: string | null
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          feature_importance?: Json | null
+          id?: string
+          metrics?: Json
+          model_storage_path?: string | null
+          model_type: string
+          notes?: string | null
+          status?: string
+          training_config?: Json | null
+          training_data_count?: number | null
+          training_end_time?: string | null
+          training_start_time?: string | null
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          created_at?: string
+          feature_importance?: Json | null
+          id?: string
+          metrics?: Json
+          model_storage_path?: string | null
+          model_type?: string
+          notes?: string | null
+          status?: string
+          training_config?: Json | null
+          training_data_count?: number | null
+          training_end_time?: string | null
+          training_start_time?: string | null
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
+      ml_predictions: {
+        Row: {
+          ab_test_id: string | null
+          ab_test_variant: string | null
+          actual_outcome: string | null
+          actual_outcome_updated_at: string | null
+          candidate_id: string
+          created_at: string
+          features_used: Json | null
+          id: string
+          interview_probability: number | null
+          job_id: string
+          model_version: number
+          predicted_time_to_hire_days: number | null
+          prediction_score: number
+          rank_position: number | null
+          shap_values: Json | null
+        }
+        Insert: {
+          ab_test_id?: string | null
+          ab_test_variant?: string | null
+          actual_outcome?: string | null
+          actual_outcome_updated_at?: string | null
+          candidate_id: string
+          created_at?: string
+          features_used?: Json | null
+          id?: string
+          interview_probability?: number | null
+          job_id: string
+          model_version: number
+          predicted_time_to_hire_days?: number | null
+          prediction_score: number
+          rank_position?: number | null
+          shap_values?: Json | null
+        }
+        Update: {
+          ab_test_id?: string | null
+          ab_test_variant?: string | null
+          actual_outcome?: string | null
+          actual_outcome_updated_at?: string | null
+          candidate_id?: string
+          created_at?: string
+          features_used?: Json | null
+          id?: string
+          interview_probability?: number | null
+          job_id?: string
+          model_version?: number
+          predicted_time_to_hire_days?: number | null
+          prediction_score?: number
+          rank_position?: number | null
+          shap_values?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ml_predictions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ml_predictions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "ml_predictions_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ml_predictions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ml_predictions_model_version_fkey"
+            columns: ["model_version"]
+            isOneToOne: false
+            referencedRelation: "ml_models"
+            referencedColumns: ["version"]
+          },
+        ]
+      }
       module_chat_messages: {
         Row: {
           created_at: string | null

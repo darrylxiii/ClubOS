@@ -21,7 +21,6 @@ export default function EnhancedMLDashboard() {
   const [recentInsights, setRecentInsights] = useState<any[]>([]);
   const [interactionStats, setInteractionStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { backfillTrainingData, loading: backfillLoading } = useMLMatching();
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -33,15 +32,17 @@ export default function EnhancedMLDashboard() {
     try {
       setLoading(true);
 
+      // Load ML tables with graceful error handling and type casting
       const [modelsResult, abTestsResult, metricsResult] = await Promise.all([
-        (supabase as any).from('ml_models').select('*').order('version', { ascending: false }),
-        (supabase as any).from('ml_ab_tests').select('*').order('started_at', { ascending: false }).limit(5),
-        (supabase as any).from('ml_model_metrics').select('*').order('metric_date', { ascending: false }).limit(100),
+        supabase.from('ml_models').select('*').order('version', { ascending: false }),
+        supabase.from('ml_ab_tests').select('*').order('started_at', { ascending: false }).limit(5),
+        supabase.from('ml_model_metrics').select('*').order('metric_date', { ascending: false }).limit(100),
       ]);
 
-      if (modelsResult.data) setModels(modelsResult.data);
-      if (abTestsResult.data) setABTests(abTestsResult.data);
-      if (metricsResult.data) setMetrics(metricsResult.data);
+      // Gracefully handle empty or missing data with proper type casting
+      if (modelsResult.data) setModels(modelsResult.data as any);
+      if (abTestsResult.data) setABTests(abTestsResult.data as any);
+      if (metricsResult.data) setMetrics(metricsResult.data as any);
 
       // Load intelligence data
       await loadIntelligenceData();
@@ -132,16 +133,6 @@ export default function EnhancedMLDashboard() {
     }
   };
 
-  const handleBackfillData = async () => {
-    const result = await backfillTrainingData(180, 1000);
-    if (result) {
-      toast({
-        title: 'Backfill complete',
-        description: `Created ${result.records_created} training records`,
-      });
-    }
-  };
-
   const activeModel = models.find(m => m.status === 'active');
   const runningTests = abTests.filter(t => t.status === 'running');
 
@@ -159,10 +150,6 @@ export default function EnhancedMLDashboard() {
               Monitor ML performance and company intelligence across the platform
             </p>
           </div>
-          <Button onClick={handleBackfillData} disabled={backfillLoading}>
-            <Database className="h-4 w-4 mr-2" />
-            {backfillLoading ? 'Backfilling...' : 'Backfill Training Data'}
-          </Button>
         </div>
 
         {/* Overview Stats */}

@@ -15,15 +15,52 @@ interface CompanyIntelligenceSummaryProps {
   companyId: string;
 }
 
+interface PartnerMember {
+  id: string;
+  user_id: string;
+  role: string;
+  profiles: {
+    full_name: string;
+    email: string;
+    avatar_url: string | null;
+  };
+}
+
 export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSummaryProps) {
   const [report, setReport] = useState<any>(null);
+  const [partnerMembers, setPartnerMembers] = useState<PartnerMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
     loadReport();
+    loadPartnerMembers();
   }, [companyId]);
+
+  const loadPartnerMembers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('company_members')
+        .select(`
+          id,
+          user_id,
+          role,
+          profiles:user_id (
+            full_name,
+            email,
+            avatar_url
+          )
+        `)
+        .eq('company_id', companyId)
+        .eq('is_active', true);
+
+      if (error) throw error;
+      if (data) setPartnerMembers(data as any);
+    } catch (error) {
+      console.error('Error loading partner members:', error);
+    }
+  };
 
   const loadReport = async () => {
     try {
@@ -230,6 +267,43 @@ export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSum
           </div>
         </CardContent>
       </Card>
+
+      {/* Partner Team Members */}
+      {partnerMembers.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Your Partner Team
+            </CardTitle>
+            <CardDescription>
+              Team members managing this company relationship
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {partnerMembers.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      {member.profiles?.avatar_url ? (
+                        <img src={member.profiles.avatar_url} alt={member.profiles.full_name} className="h-10 w-10 rounded-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-medium">{member.profiles?.full_name?.charAt(0) || '?'}</span>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <div className="font-medium">{member.profiles?.full_name || 'Unknown'}</div>
+                      <div className="text-sm text-muted-foreground">{member.profiles?.email}</div>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="capitalize">{member.role}</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* AI Recommendations */}
       {ai_recommendations && (
