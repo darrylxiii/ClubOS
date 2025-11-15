@@ -64,18 +64,24 @@ export default function EnhancedMLDashboard() {
       // Load cached intelligence reports for all companies
       const { data: reports } = await supabase
         .from('interaction_ml_features')
-        .select(`
-          *,
-          company:companies(id, name, slug)
-        `)
+        .select('*')
         .eq('entity_type', 'company')
         .order('computed_at', { ascending: false });
 
-      if (reports) {
+      if (reports && reports.length > 0) {
+        // Fetch company details separately
+        const companyIds = reports.map((r: any) => r.entity_id);
+        const { data: companies } = await supabase
+          .from('companies')
+          .select('id, name, slug')
+          .in('id', companyIds);
+
+        const companyMap = new Map(companies?.map(c => [c.id, c]) || []);
+
         const intelligenceData = reports
           .filter((r: any) => r.features?.ai_recommendations)
           .map((r: any) => ({
-            company: r.company,
+            company: companyMap.get(r.entity_id),
             health_score: r.features.ai_recommendations.overall_health_score || 0,
             relationship_status: r.features.ai_recommendations.relationship_status || 'unknown',
             total_interactions: r.features.interaction_summary?.total || 0,
@@ -84,6 +90,7 @@ export default function EnhancedMLDashboard() {
             last_updated: r.computed_at,
             ghost_risk: r.features.ai_recommendations.ghost_risk || 0,
           }))
+          .filter((d: any) => d.company) // Only include records with valid company data
           .sort((a: any, b: any) => b.health_score - a.health_score);
 
         setCompanyIntelligence(intelligenceData);
