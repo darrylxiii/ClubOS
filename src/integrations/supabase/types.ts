@@ -7462,6 +7462,71 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount_due: number
+          amount_paid: number
+          billing_reason: string | null
+          created_at: string | null
+          currency: string
+          due_date: string | null
+          hosted_invoice_url: string | null
+          id: string
+          invoice_pdf_url: string | null
+          metadata: Json | null
+          paid_at: string | null
+          status: string
+          stripe_invoice_id: string
+          stripe_payment_intent_id: string | null
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_due: number
+          amount_paid: number
+          billing_reason?: string | null
+          created_at?: string | null
+          currency?: string
+          due_date?: string | null
+          hosted_invoice_url?: string | null
+          id?: string
+          invoice_pdf_url?: string | null
+          metadata?: Json | null
+          paid_at?: string | null
+          status: string
+          stripe_invoice_id: string
+          stripe_payment_intent_id?: string | null
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_due?: number
+          amount_paid?: number
+          billing_reason?: string | null
+          created_at?: string | null
+          currency?: string
+          due_date?: string | null
+          hosted_invoice_url?: string | null
+          id?: string
+          invoice_pdf_url?: string | null
+          metadata?: Json | null
+          paid_at?: string | null
+          status?: string
+          stripe_invoice_id?: string
+          stripe_payment_intent_id?: string | null
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_analytics: {
         Row: {
           application_completes: number | null
@@ -13343,6 +13408,203 @@ export type Database = {
           },
         ]
       }
+      stripe_webhook_events: {
+        Row: {
+          created_at: string | null
+          event_type: string
+          id: string
+          payload: Json
+          processed: boolean | null
+          processed_at: string | null
+          processing_error: string | null
+          stripe_event_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          event_type: string
+          id?: string
+          payload: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          processing_error?: string | null
+          stripe_event_id: string
+        }
+        Update: {
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed?: boolean | null
+          processed_at?: string | null
+          processing_error?: string | null
+          stripe_event_id?: string
+        }
+        Relationships: []
+      }
+      subscription_plans: {
+        Row: {
+          billing_interval: string
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          features: Json | null
+          id: string
+          is_active: boolean | null
+          name: string
+          price_euros: number
+          stripe_price_id: string
+          stripe_product_id: string
+          tier: string
+          updated_at: string | null
+          user_type: string
+        }
+        Insert: {
+          billing_interval?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          price_euros: number
+          stripe_price_id: string
+          stripe_product_id: string
+          tier: string
+          updated_at?: string | null
+          user_type: string
+        }
+        Update: {
+          billing_interval?: string
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          features?: Json | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          price_euros?: number
+          stripe_price_id?: string
+          stripe_product_id?: string
+          tier?: string
+          updated_at?: string | null
+          user_type?: string
+        }
+        Relationships: []
+      }
+      subscription_usage: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          metric_name: string
+          period_end: string
+          period_start: string
+          quantity: number
+          subscription_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_name: string
+          period_end: string
+          period_start: string
+          quantity?: number
+          subscription_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          metric_name?: string
+          period_end?: string
+          period_start?: string
+          quantity?: number
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_usage_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean | null
+          canceled_at: string | null
+          company_id: string | null
+          created_at: string | null
+          current_period_end: string
+          current_period_start: string
+          id: string
+          metadata: Json | null
+          plan_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          trial_end: string | null
+          trial_start: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          current_period_end: string
+          current_period_start: string
+          id?: string
+          metadata?: Json | null
+          plan_id: string
+          status: string
+          stripe_customer_id: string
+          stripe_subscription_id: string
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean | null
+          canceled_at?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          metadata?: Json | null
+          plan_id?: string
+          status?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string
+          trial_end?: string | null
+          trial_start?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           created_at: string | null
@@ -16306,6 +16568,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_user_subscription_plan: {
+        Args: { check_user_id: string }
+        Returns: {
+          period_end: string
+          plan_name: string
+          status: string
+          tier: string
+          user_type: string
+        }[]
+      }
       get_users_without_roles: {
         Args: never
         Returns: {
@@ -16314,6 +16586,10 @@ export type Database = {
           full_name: string
           user_id: string
         }[]
+      }
+      has_active_subscription: {
+        Args: { check_user_id: string; check_user_type?: string }
+        Returns: boolean
       }
       has_company_role: {
         Args: { _company_id: string; _role: string; _user_id: string }
