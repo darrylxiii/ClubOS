@@ -4642,6 +4642,7 @@ export type Database = {
           interaction_subtype: string | null
           interaction_type: string
           is_manually_entered: boolean | null
+          is_test_data: boolean | null
           job_id: string | null
           key_topics: string[] | null
           mentioned_candidates: string[] | null
@@ -4671,6 +4672,7 @@ export type Database = {
           interaction_subtype?: string | null
           interaction_type: string
           is_manually_entered?: boolean | null
+          is_test_data?: boolean | null
           job_id?: string | null
           key_topics?: string[] | null
           mentioned_candidates?: string[] | null
@@ -4700,6 +4702,7 @@ export type Database = {
           interaction_subtype?: string | null
           interaction_type?: string
           is_manually_entered?: boolean | null
+          is_test_data?: boolean | null
           job_id?: string | null
           key_topics?: string[] | null
           mentioned_candidates?: string[] | null
@@ -5160,6 +5163,7 @@ export type Database = {
           first_contacted_at: string | null
           full_name: string
           id: string
+          is_test_data: boolean | null
           job_title: string | null
           last_contacted_at: string | null
           linkedin_url: string | null
@@ -5185,6 +5189,7 @@ export type Database = {
           first_contacted_at?: string | null
           full_name: string
           id?: string
+          is_test_data?: boolean | null
           job_title?: string | null
           last_contacted_at?: string | null
           linkedin_url?: string | null
@@ -5210,6 +5215,7 @@ export type Database = {
           first_contacted_at?: string | null
           full_name?: string
           id?: string
+          is_test_data?: boolean | null
           job_title?: string | null
           last_contacted_at?: string | null
           linkedin_url?: string | null
