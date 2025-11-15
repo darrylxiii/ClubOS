@@ -57,19 +57,20 @@ serve(async (req) => {
       results.errors.push({ step: 'stakeholder_influence', error: error.message });
     }
 
-    // Step 2: Extract insights from all interactions (parallel processing)
+    // Step 2: Extract insights from all interactions (parallel processing with retry support)
     try {
       const step2Start = Date.now();
       console.log('[Pipeline] Step 2: Extracting interaction insights...');
 
-      // Fetch interactions that need processing
+      // Fetch interactions that need processing (including failed ones for retry)
       const query = supabase
         .from('company_interactions')
-        .select('id')
-        .eq('company_id', company_id);
+        .select('id, processing_status, retry_count')
+        .eq('company_id', company_id)
+        .in('processing_status', ['pending', 'failed']);
 
       if (!force_refresh) {
-        query.is('insights_extracted_at', null);
+        query.or('insights_extracted_at.is.null,processing_status.eq.failed');
       }
 
       const { data: interactions, error: fetchError } = await query;
@@ -96,9 +97,11 @@ serve(async (req) => {
         for (let i = 0; i < interactions.length; i += batchSize) {
           const batch = interactions.slice(i, i + batchSize);
           
-          const batchPromises = batch.map(async (interaction) => {
+        const batchPromises = batch.map(async (interaction: any) => {
             try {
-              const { error: insightError } = await supabase.functions.invoke(
+              const retryCount = interaction.retry_count || 0;
+              
+              const { data: insightData, error: insightError } = await supabase.functions.invoke(
                 'extract-interaction-insights',
                 { body: { interaction_id: interaction.id } }
               );
@@ -110,33 +113,43 @@ serve(async (req) => {
                 .from('company_interactions')
                 .update({ 
                   processing_status: 'completed',
-                  insights_extracted_at: new Date().toISOString()
+                  insights_extracted_at: new Date().toISOString(),
+                  retry_count: 0
                 })
                 .eq('id', interaction.id);
 
               processed++;
               return { success: true, id: interaction.id };
             } catch (error: any) {
-              console.error(`[Pipeline] Failed to process interaction ${interaction.id}:`, error);
+              const retryCount = interaction.retry_count || 0;
+              console.error(`[Pipeline] Failed to process interaction ${interaction.id} (retry ${retryCount}):`, error);
               
-              // Mark as failed and log error
+              // Mark as failed and increment retry count
               await supabase
                 .from('company_interactions')
-                .update({ processing_status: 'failed' })
+                .update({ 
+                  processing_status: 'failed',
+                  retry_count: retryCount + 1
+                })
                 .eq('id', interaction.id);
 
+              // Log detailed error
               await supabase
                 .from('intelligence_processing_errors')
                 .insert({
                   entity_type: 'interaction',
                   entity_id: interaction.id,
                   function_name: 'extract-interaction-insights',
-                  error_message: error.message,
-                  error_details: { stack: error.stack }
+                  error_message: error.message || 'Unknown error',
+                  error_details: { 
+                    stack: error.stack,
+                    retry_count: retryCount + 1,
+                    timestamp: new Date().toISOString()
+                  }
                 });
 
               failed++;
-              return { success: false, id: interaction.id, error: error.message };
+              return { success: false, id: interaction.id, error: error.message, retry_count: retryCount + 1 };
             }
           });
 

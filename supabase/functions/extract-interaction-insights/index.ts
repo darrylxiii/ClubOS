@@ -12,9 +12,13 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    const lovableApiKey = Deno.env.get('LOVABLE_API_KEY');
+    
+    if (!supabaseUrl || !supabaseKey || !lovableApiKey) {
+      throw new Error('Missing required environment variables');
+    }
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     const { interaction_id } = await req.json();
@@ -39,8 +43,17 @@ serve(async (req) => {
       .eq('id', interaction_id)
       .single();
 
-    if (fetchError || !interaction) {
-      throw new Error(`Failed to fetch interaction: ${fetchError?.message}`);
+    if (fetchError) {
+      console.error('[Extract Insights] Fetch error:', fetchError);
+      throw new Error(`Failed to fetch interaction: ${fetchError.message}`);
+    }
+    
+    if (!interaction) {
+      throw new Error('Interaction not found');
+    }
+    
+    if (!interaction.content || interaction.content.trim() === '') {
+      throw new Error('Interaction has no content to analyze');
     }
 
     // Build AI prompt

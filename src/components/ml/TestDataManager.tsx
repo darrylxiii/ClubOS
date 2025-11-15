@@ -21,6 +21,9 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
   const [isSeeding, setIsSeeding] = useState(false);
   const [showCleanupDialog, setShowCleanupDialog] = useState(false);
   const [testDataInfo, setTestDataInfo] = useState<any>(null);
+  const [healthStatus, setHealthStatus] = useState<any>(null);
+  const [processingLog, setProcessingLog] = useState<string[]>([]);
+  const [showLog, setShowLog] = useState(false);
   const { toast } = useToast();
 
   const seedTestData = async () => {
@@ -47,6 +50,9 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
         description: `✅ ${verif.stakeholders_in_db} stakeholders, ${verif.interactions_in_db} interactions • 🤖 ${proc?.insights_extracted || 0} insights extracted`,
       });
 
+      // Check health status after seeding
+      setTimeout(checkHealthStatus, 500);
+
       // Refresh dashboard
       if (onDataChanged) onDataChanged();
     } catch (error) {
@@ -62,7 +68,30 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
     }
   };
 
-  const processIntelligence = async () => {
+  const checkHealthStatus = async () => {
+    if (!testDataInfo?.data?.company_id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('company_interactions')
+        .select('processing_status')
+        .eq('company_id', testDataInfo.data.company_id)
+        .eq('is_test_data', true);
+      
+      if (error) throw error;
+      
+      const statusCounts = data.reduce((acc: any, row) => {
+        acc[row.processing_status || 'pending'] = (acc[row.processing_status || 'pending'] || 0) + 1;
+        return acc;
+      }, {});
+      
+      setHealthStatus(statusCounts);
+    } catch (error) {
+      console.error('Error checking health status:', error);
+    }
+  };
+
+  const processIntelligence = async (retryFailed = false) => {
     if (!testDataInfo?.data?.company_id) {
       toast({
         title: 'No test data',
@@ -74,9 +103,18 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
 
     try {
       setLoading(true);
+      setProcessingLog([]);
+      setShowLog(true);
+      
+      const addLog = (msg: string) => {
+        setProcessingLog(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
+      };
+      
+      addLog('🚀 Starting intelligence pipeline...');
+      
       toast({
         title: 'Processing Intelligence',
-        description: 'Extracting insights and generating reports...',
+        description: retryFailed ? 'Retrying failed interactions...' : 'Extracting insights and generating reports...',
       });
       
       const { data, error } = await supabase.functions.invoke('orchestrate-intelligence-pipeline', {
@@ -90,16 +128,32 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
 
       if (data?.success) {
         const results = data.results;
+        const processed = results?.steps?.insight_extraction?.processed || 0;
+        const failed = results?.steps?.insight_extraction?.failed || 0;
+        const duration = Math.round(results?.total_duration_ms / 1000);
+        
+        addLog(`✅ Processed ${processed} interactions`);
+        if (failed > 0) addLog(`❌ Failed: ${failed} interactions`);
+        addLog(`⏱️ Duration: ${duration}s`);
+        
         toast({
           title: 'Intelligence Processed',
-          description: `✅ Processed ${results?.steps?.insight_extraction?.processed || 0} interactions in ${Math.round(results?.total_duration_ms / 1000)}s`,
+          description: `✅ ${processed} processed, ${failed} failed in ${duration}s`,
+          variant: failed > 0 ? 'destructive' : 'default',
         });
+        
+        // Refresh health status
+        await checkHealthStatus();
         
         // Refresh dashboard
         if (onDataChanged) onDataChanged();
+      } else {
+        addLog('❌ Pipeline failed: ' + (data?.message || 'Unknown error'));
+        throw new Error(data?.message || 'Pipeline failed');
       }
     } catch (error: any) {
       console.error('Error processing intelligence:', error);
+      setProcessingLog(prev => [...prev, `❌ ERROR: ${error.message}`]);
       toast({
         title: 'Error',
         description: error.message || 'Failed to process intelligence',
@@ -224,24 +278,82 @@ export function TestDataManager({ onDataChanged }: { onDataChanged?: () => void 
           </div>
 
           {testDataInfo?.data?.company_id && (
-            <Button
-              onClick={processIntelligence}
-              disabled={loading}
-              variant="secondary"
-              className="w-full"
-            >
-              {loading && !isSeeding ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Brain className="mr-2 h-4 w-4" />
-                  Process Intelligence
-                </>
+            <>
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => processIntelligence(false)}
+                  disabled={loading}
+                  variant="secondary"
+                  className="flex-1"
+                >
+                  {loading && !isSeeding ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="mr-2 h-4 w-4" />
+                      Process Intelligence
+                    </>
+                  )}
+                </Button>
+
+                {healthStatus && healthStatus.failed > 0 && (
+                  <Button
+                    onClick={() => processIntelligence(true)}
+                    disabled={loading}
+                    variant="outline"
+                    className="border-amber-500 text-amber-500"
+                  >
+                    {loading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <AlertCircle className="mr-2 h-4 w-4" />
+                    )}
+                    Retry Failed ({healthStatus.failed})
+                  </Button>
+                )}
+              </div>
+
+              {healthStatus && (
+                <Alert>
+                  <AlertDescription>
+                    <div className="flex items-center justify-between">
+                      <div className="flex gap-4 text-sm">
+                        <span>✅ Completed: <strong>{healthStatus.completed || 0}</strong></span>
+                        <span>⏳ Pending: <strong>{healthStatus.pending || 0}</strong></span>
+                        <span>🔄 Processing: <strong>{healthStatus.processing || 0}</strong></span>
+                        {healthStatus.failed > 0 && (
+                          <span className="text-destructive">❌ Failed: <strong>{healthStatus.failed}</strong></span>
+                        )}
+                      </div>
+                      <Button onClick={checkHealthStatus} size="sm" variant="ghost">
+                        Refresh
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
               )}
-            </Button>
+
+              {showLog && processingLog.length > 0 && (
+                <Alert>
+                  <AlertDescription>
+                    <div className="flex items-center justify-between mb-2">
+                      <strong className="text-sm">Processing Log</strong>
+                      <Button onClick={() => setShowLog(false)} size="sm" variant="ghost">
+                        Hide
+                      </Button>
+                    </div>
+                    <div className="bg-muted p-2 rounded text-xs font-mono max-h-40 overflow-y-auto">
+                      {processingLog.map((log, i) => (
+                        <div key={i}>{log}</div>
+                      ))}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </>
           )}
 
           <div className="text-xs text-muted-foreground space-y-1">
