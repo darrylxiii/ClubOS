@@ -176,10 +176,10 @@ serve(async (req) => {
             status: 'success'
           });
           
-          // Add delay between languages to respect rate limits (2 seconds)
+          // Add delay between languages to respect rate limits (3 seconds)
           if (index < targetLanguages.length - 1) {
-            console.log(`[Rate Limit Protection] Waiting 2 seconds before next language...`);
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            console.log(`[Rate Limit Protection] Waiting 3 seconds before next language...`);
+            await new Promise(resolve => setTimeout(resolve, 3000));
           }
         } catch (error: any) {
           const duration = Date.now() - startTime;
@@ -199,6 +199,12 @@ serve(async (req) => {
             duration
           });
         }
+      }
+      
+      // Add delay between namespaces to allow rate limits to reset (5 seconds)
+      if (namespacesToProcess.indexOf(ns) < namespacesToProcess.length - 1) {
+        console.log(`[Rate Limit Protection] Waiting 5 seconds before next namespace (${ns} → ${namespacesToProcess[namespacesToProcess.indexOf(ns) + 1]})...`);
+        await new Promise(resolve => setTimeout(resolve, 5000));
       }
     }
 
