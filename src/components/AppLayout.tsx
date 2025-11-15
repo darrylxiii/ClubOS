@@ -6,10 +6,7 @@ import quantumClubLogoLightShort from "@/assets/quantum-logo-light-transparent.p
 // Full logos (for expanded state) - these are the full text logos
 import quantumClubLogoDark from "@/assets/quantum-club-logo.png"; // Full logo - black for light theme
 import quantumClubLogoLight from "@/assets/quantum-logo-dark.png"; // Full logo - white for dark theme
-import {
-  Briefcase,
-  import { Home, LayoutDashboard, Building2, Briefcase, Users, Calendar, Video, MessageSquare, Gift, FileText, Settings, ListTodo, Sparkles, Clock, GraduationCap, Rss, Trophy, MessagesSquare, User, BarChart3, TrendingUp, Share2, Mail, Brain } from "lucide-react";
-} from "lucide-react";
+import { Home, LayoutDashboard, Building2, Briefcase, Users, Calendar, Video, MessageSquare, Gift, FileText, Settings, ListTodo, Sparkles, Clock, GraduationCap, Rss, Trophy, MessagesSquare, User, BarChart3, TrendingUp, Share2, Mail, Brain } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
