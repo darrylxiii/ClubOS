@@ -68,6 +68,7 @@ interface ExpandablePipelineStageProps {
   avgDays: number;
   conversionRate?: number;
   applications: Application[];
+  jobId: string;
   isExpanded: boolean;
   onToggleExpand: () => void;
   onEdit: (stage: Stage) => void;
@@ -87,6 +88,7 @@ export function ExpandablePipelineStage({
   avgDays,
   conversionRate,
   applications,
+  jobId,
   isExpanded,
   onToggleExpand,
   onEdit,
@@ -219,6 +221,7 @@ export function ExpandablePipelineStage({
                   stageIndex={stageIndex}
                   stageName={stage.name}
                   totalStages={totalStages}
+                  jobId={jobId}
                   onAdvance={onAdvanceCandidate}
                   onReject={onRejectCandidate}
                   onViewDetails={onViewProfile}

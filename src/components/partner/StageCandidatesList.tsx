@@ -10,9 +10,11 @@ import {
   Phone,
   Linkedin,
   ExternalLink,
-  Users
+  Users,
+  Calendar
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { ScheduleInterviewButton } from "./ScheduleInterviewButton";
 
 interface Candidate {
   id: string;
@@ -36,6 +38,7 @@ interface StageCandidatesListProps {
   stageIndex: number;
   stageName: string;
   totalStages: number;
+  jobId?: string;
   onAdvance: (candidate: Candidate) => void;
   onReject: (candidate: Candidate) => void;
   onViewDetails: (candidate: Candidate) => void;
@@ -46,6 +49,7 @@ export function StageCandidatesList({
   stageIndex,
   stageName,
   totalStages,
+  jobId,
   onAdvance,
   onReject,
   onViewDetails,
@@ -179,6 +183,17 @@ export function StageCandidatesList({
                       <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
                       View Profile
                     </Button>
+                    {jobId && (
+                      <ScheduleInterviewButton
+                        application={candidate}
+                        jobId={jobId}
+                        stageIndex={stageIndex}
+                        stageName={stageName}
+                        size="sm"
+                        variant="outline"
+                        className="text-xs font-medium"
+                      />
+                    )}
                     {canAdvance && (
                       <Button
                         size="sm"
