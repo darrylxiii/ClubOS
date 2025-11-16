@@ -18756,6 +18756,15 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_popular_courses: {
+        Args: never
+        Returns: {
+          description: string
+          id: string
+          name: string
+          total_enrollments: number
+        }[]
+      }
       get_user_subscription_plan: {
         Args: { check_user_id: string }
         Returns: {
