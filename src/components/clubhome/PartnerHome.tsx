@@ -19,11 +19,12 @@ import { RecentApplicationsList } from "./RecentApplicationsList";
 import { TalentRecommendations } from "./TalentRecommendations";
 import { HiringPipelineOverview } from "./HiringPipelineOverview";
 import { PartnerActivityFeed } from "./PartnerActivityFeed";
-
 import { SmartAlertsPanel } from "../partner/SmartAlertsPanel";
 import { HealthScoreDashboard } from "../partner/HealthScoreDashboard";
 import { DailyBriefing } from "../partner/DailyBriefing";
 import { BenchmarkComparison } from "../partner/BenchmarkComparison";
+import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 
 export const PartnerHome = () => {
   const { user } = useAuth();
@@ -115,12 +116,14 @@ export const PartnerHome = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-primary" />
-              Active Jobs
+              <T k="common:home.stats.activeJobs" fallback="Active Jobs" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.activeJobs}</div>
-            <p className="text-xs text-muted-foreground mt-1">Open positions</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:jobs.posted" fallback="Posted" />
+            </p>
           </CardContent>
         </Card>
 
@@ -128,12 +131,14 @@ export const PartnerHome = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              Applications
+              <T k="common:home.stats.applications" fallback="Applications" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalApplications}</div>
-            <p className="text-xs text-muted-foreground mt-1">Total received</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:applications.status.applied" fallback="Applied" />
+            </p>
           </CardContent>
         </Card>
 
@@ -141,12 +146,14 @@ export const PartnerHome = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4 text-primary" />
-              Interviews
+              <T k="common:home.stats.interviews" fallback="Interviews" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.interviews}</div>
-            <p className="text-xs text-muted-foreground mt-1">Scheduled</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:actions.scheduleInterview" fallback="Schedule Interview" />
+            </p>
           </CardContent>
         </Card>
 
@@ -154,12 +161,14 @@ export const PartnerHome = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />
-              Followers
+              <T k="common:branding.tagline" fallback="Elite Talent Platform" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.followers}</div>
-            <p className="text-xs text-muted-foreground mt-1">Company followers</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:status.active" fallback="Active" />
+            </p>
           </CardContent>
         </Card>
       </div>

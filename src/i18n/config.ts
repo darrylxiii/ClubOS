@@ -27,6 +27,9 @@ i18n
     react: {
       useSuspense: false,
     },
+    
+    // Phase 5: Preload all namespaces on boot to prevent loading flickers
+    preload: ['en', 'nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru'],
   });
 
 // Apply RTL for Arabic on language change

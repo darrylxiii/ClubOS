@@ -21,6 +21,39 @@ import { lazy, Suspense, useState, useEffect } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import i18n from "@/i18n/config";
+import { useQueryClient } from "@tanstack/react-query";
+
+// Phase 5: Real-Time Sync Enhancement - Force re-render on language change
+const LanguageSync = () => {
+  const queryClient = useQueryClient();
+  
+  useEffect(() => {
+    const handleLanguageChange = (lng: string) => {
+      console.log('[App] Language changed to:', lng);
+      
+      // Force ALL React Query cached data to refresh
+      queryClient.invalidateQueries();
+      
+      // Update document attributes for accessibility and RTL
+      document.documentElement.lang = lng;
+      document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
+      
+      // Broadcast custom event to force component re-renders
+      window.dispatchEvent(new CustomEvent('forceRerender', { detail: lng }));
+    };
+    
+    i18n.on('languageChanged', handleLanguageChange);
+    
+    // Set initial state
+    handleLanguageChange(i18n.language);
+    
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, [queryClient]);
+  
+  return null;
+};
 
 // Eager load critical public routes
 import Auth from "./pages/Auth";
@@ -270,6 +303,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <TranslationDebugger />
+            <LanguageSync />
             <BrowserRouter>
               <ErrorBoundary>
                 <AuthProvider>

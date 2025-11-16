@@ -15,6 +15,8 @@ import { ActivityTimeline } from "@/components/candidate/ActivityTimeline";
 import { QuickTipsCarousel } from "@/components/candidate/QuickTipsCarousel";
 import { quickTips } from "@/data/quickTips";
 import { Briefcase, Calendar, MessageSquare, Target } from "lucide-react";
+import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 
 export const CandidateHome = () => {
   const { user } = useAuth();
@@ -84,10 +86,8 @@ export const CandidateHome = () => {
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold">Quick Tips & Resources</h2>
-            <p className="text-sm text-muted-foreground">
-              Expert advice to accelerate your career journey
-            </p>
+            <T k="common:home.quickTips.title" as="h2" className="text-2xl font-bold" fallback="Quick Tips & Resources" />
+            <T k="common:home.quickTips.subtitle" as="p" className="text-sm text-muted-foreground" fallback="Expert advice to accelerate your career journey" />
           </div>
         </div>
         <QuickTipsCarousel tips={quickTips} />
@@ -136,12 +136,14 @@ export const CandidateHome = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-primary" />
-              Applications
+              <T k="common:home.stats.applications" fallback="Applications" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.applications}</div>
-            <p className="text-xs text-muted-foreground mt-1">Active applications</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:status.active" fallback="Active" />
+            </p>
           </CardContent>
         </Card>
 
@@ -149,12 +151,14 @@ export const CandidateHome = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Target className="h-4 w-4 text-primary" />
-              Matches
+              <T k="common:home.stats.matches" fallback="Matches" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.matches}</div>
-            <p className="text-xs text-muted-foreground mt-1">High-fit roles</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:jobs.matchScore" fallback="Match Score" />
+            </p>
           </CardContent>
         </Card>
 
@@ -162,12 +166,14 @@ export const CandidateHome = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Calendar className="h-4 w-4 text-primary" />
-              Interviews
+              <T k="common:home.stats.interviews" fallback="Interviews" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.interviews}</div>
-            <p className="text-xs text-muted-foreground mt-1">Scheduled</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:actions.scheduleInterview" fallback="Schedule Interview" />
+            </p>
           </CardContent>
         </Card>
 
@@ -175,12 +181,14 @@ export const CandidateHome = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <MessageSquare className="h-4 w-4 text-primary" />
-              Messages
+              <T k="common:home.stats.messages" fallback="Messages" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.messages}</div>
-            <p className="text-xs text-muted-foreground mt-1">Unread</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:notifications.unread" fallback="Unread" />
+            </p>
           </CardContent>
         </Card>
       </div>
