@@ -74,6 +74,10 @@ import { JobCardHeader } from "./job-card/JobCardHeader";
 import { JobsAnalyticsWidget } from "./JobsAnalyticsWidget";
 import { JobFilterBar, JobFilterType } from "./JobFilterBar";
 import { formatLastActivity } from "@/lib/jobUtils";
+import { JobSearchBar } from "./JobSearchBar";
+import { AdvancedJobFilters } from "./AdvancedJobFilters";
+import { usePersistedJobFilters } from "@/hooks/usePersistedJobFilters";
+import { JobFilterState } from "@/types/jobFilters";
 
 interface PartnerJobsHomeProps {
   companyId: string | null;
@@ -122,8 +126,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [clubSyncInfoOpen, setClubSyncInfoOpen] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
-  const [currentFilter, setCurrentFilter] = useState<JobFilterType>('all');
   const isAdmin = role === 'admin';
+  
+  // Use persisted filters
+  const { filters, updateFilters, resetFilters, hasActiveFilters } = usePersistedJobFilters();
 
   useEffect(() => {
     // Check if first visit
@@ -290,11 +296,62 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     }
   }, [companyId, role]);
 
-  // Filter and sort jobs
+  // Extract unique companies for filter
+  const availableCompanies = useMemo(() => {
+    const uniqueCompanies = new Map<string, string>();
+    jobs.forEach(job => {
+      if (job.company_name) {
+        // Use job.id as company identifier for now (we'd need company_id in future)
+        uniqueCompanies.set(job.company_name, job.company_name);
+      }
+    });
+    return Array.from(uniqueCompanies.entries()).map(([id, name]) => ({ id, name }));
+  }, [jobs]);
+
+  // Apply all filters
   const filteredJobs = useMemo(() => {
     let filtered = [...jobs];
     
-    switch (currentFilter) {
+    // Apply search filter
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filtered = filtered.filter(job => 
+        job.title.toLowerCase().includes(searchLower) ||
+        job.company_name.toLowerCase().includes(searchLower) ||
+        job.location.toLowerCase().includes(searchLower)
+      );
+    }
+    
+    // Apply status filter
+    if (filters.status.length > 0) {
+      filtered = filtered.filter(job => 
+        filters.status.includes(job.status.toLowerCase())
+      );
+    }
+    
+    // Apply company filter
+    if (filters.companies.length > 0) {
+      filtered = filtered.filter(job => 
+        filters.companies.includes(job.company_name)
+      );
+    }
+    
+    // Apply date range filter
+    if (filters.dateRange.from) {
+      filtered = filtered.filter(job => 
+        new Date(job.created_at) >= filters.dateRange.from!
+      );
+    }
+    if (filters.dateRange.to) {
+      const toDate = new Date(filters.dateRange.to);
+      toDate.setHours(23, 59, 59, 999); // Include the entire day
+      filtered = filtered.filter(job => 
+        new Date(job.created_at) <= toDate
+      );
+    }
+    
+    // Apply quick filter
+    switch (filters.quickFilter) {
       case 'expiring-soon':
         // Jobs open for 45+ days
         filtered = filtered.filter(job => job.days_since_opened >= 45);
@@ -331,9 +388,9 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     }
     
     return filtered;
-  }, [jobs, currentFilter]);
+  }, [jobs, filters]);
 
-  // Calculate filter counts
+  // Calculate filter counts (for quick filter badges)
   const jobCounts = useMemo(() => {
     const expiringSoon = jobs.filter(job => job.days_since_opened >= 45).length;
     const recentActivity = jobs.filter(job => {
@@ -354,6 +411,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       highEngagement
     };
   }, [jobs]);
+  
+  // Handler for quick filter change
+  const handleQuickFilterChange = (filter: JobFilterType) => {
+    updateFilters({ quickFilter: filter });
+  };
 
   const handlePublishJob = async (jobId: string, jobTitle: string) => {
     try {
@@ -952,6 +1014,39 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         </Card>
         </div>
         */}
+      </div>
+
+      {/* Search and Filters Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold">
+            All Jobs {jobs.length > 0 && `(${jobs.length})`}
+          </h2>
+        </div>
+        
+        {/* Search Bar */}
+        <JobSearchBar
+          value={filters.search}
+          onChange={(value) => updateFilters({ search: value })}
+          resultsCount={filteredJobs.length}
+          placeholder="Search by job title, company, or location..."
+        />
+        
+        {/* Quick Filters */}
+        <JobFilterBar
+          currentFilter={filters.quickFilter}
+          onFilterChange={handleQuickFilterChange}
+          jobCounts={jobCounts}
+        />
+        
+        {/* Advanced Filters */}
+        <AdvancedJobFilters
+          filters={filters}
+          onFilterChange={updateFilters}
+          onReset={resetFilters}
+          hasActiveFilters={hasActiveFilters}
+          availableCompanies={availableCompanies}
+        />
       </div>
 
       {/* Jobs Grid */}
