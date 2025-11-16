@@ -9,6 +9,8 @@ import { StatusBadge } from "./StatusBadge";
 import { MatchScoreDialog } from "./MatchScoreDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
+import { useTranslation } from "react-i18next";
+import { T } from "@/components/T";
 
 interface JobCardProps {
   id?: string;
@@ -50,6 +52,7 @@ export const JobCard = ({
   onToggleSave,
 }: JobCardProps) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [matchFactors, setMatchFactors] = useState<any>(null);
 
@@ -166,7 +169,9 @@ export const JobCard = ({
               onClick={() => setShowBreakdown(true)}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">Match Score</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/80">
+                  <T k="common:jobs.matchScore" fallback="Match Score" />
+                </span>
                 <span className={`text-2xl font-bold tracking-tight ${getScoreColor(matchScore)}`}>
                   {matchScore}%
                 </span>
@@ -178,7 +183,9 @@ export const JobCard = ({
                   <span>Elite Match - Auto-apply eligible</span>
                 </div>
               )}
-              <p className="mt-2 text-xs text-muted-foreground/60">Tap for detailed breakdown</p>
+              <p className="mt-2 text-xs text-muted-foreground/60">
+                <T k="common:jobs.viewBreakdown" fallback="Tap for detailed breakdown" />
+              </p>
             </div>
 
             <MatchScoreDialog
@@ -226,7 +233,7 @@ export const JobCard = ({
                     size="sm" 
                     className="bg-muted/20 text-foreground border border-border/30 hover:bg-muted/30 hover:border-border/50 font-semibold backdrop-blur-sm min-h-[48px] flex-1 sm:flex-initial"
                   >
-                    Apply Now
+                    <T k="common:jobs.apply" fallback="Apply Now" />
                   </Button>
                 )}
                 {onRefer && (

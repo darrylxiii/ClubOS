@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -24,6 +25,7 @@ const languages = [
 
 export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
+  const queryClient = useQueryClient();
   const [isChanging, setIsChanging] = useState(false);
   const currentLang = languages.find(lang => lang.code === i18n.language) || languages[0];
 
@@ -60,8 +62,11 @@ export const LanguageSwitcher = () => {
     const loadingToast = toast.loading(`Switching to ${languages.find(l => l.code === code)?.name}...`);
     
     try {
-      // Optimistically update UI
+      // Change language first
       await i18n.changeLanguage(code);
+      
+      // Force all components to re-render with new translations
+      queryClient.invalidateQueries();
       
       // Persist to user profile (if authenticated)
       const { data: { user } } = await supabase.auth.getUser();
