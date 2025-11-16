@@ -16,6 +16,8 @@ import { RecentActivityFeed } from "./RecentActivityFeed";
 import { PlatformGrowthCard } from "./PlatformGrowthCard";
 import { PlatformHealthCard } from "./PlatformHealthCard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 
 const AdminHomeContent = () => {
   console.log('👑 [AdminHome] Component mounting');
@@ -68,12 +70,14 @@ const AdminHomeContent = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Users className="h-4 w-4 text-primary" />
-              Total Users
+              <T k="common:home.stats.totalCandidates" fallback="Total Users" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground mt-1">Registered members</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:status.active" fallback="Active" />
+            </p>
           </CardContent>
         </Card>
 
@@ -81,12 +85,14 @@ const AdminHomeContent = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Building2 className="h-4 w-4 text-primary" />
-              Companies
+              <T k="common:branding.name" fallback="The Quantum Club" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCompanies}</div>
-            <p className="text-xs text-muted-foreground mt-1">Active partners</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:branding.tagline" fallback="Elite Talent Platform" />
+            </p>
           </CardContent>
         </Card>
 
@@ -94,12 +100,14 @@ const AdminHomeContent = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Briefcase className="h-4 w-4 text-primary" />
-              Active Jobs
+              <T k="common:home.stats.activeJobs" fallback="Active Jobs" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalJobs}</div>
-            <p className="text-xs text-muted-foreground mt-1">Open positions</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:jobs.posted" fallback="Posted" />
+            </p>
           </CardContent>
         </Card>
 
@@ -107,12 +115,14 @@ const AdminHomeContent = () => {
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-primary" />
-              Pending
+              <T k="common:home.stats.pendingReviews" fallback="Pending" />
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.pendingReviews}</div>
-            <p className="text-xs text-muted-foreground mt-1">Requires review</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              <T k="common:status.pending" fallback="Pending" />
+            </p>
           </CardContent>
         </Card>
       </div>

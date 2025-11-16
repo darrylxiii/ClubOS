@@ -5,6 +5,8 @@ import { Building2, MapPin, Briefcase, Users, Eye, Share2, Globe, ChevronDown, T
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { T } from "@/components/T";
+import { useTranslation } from "react-i18next";
 
 interface JobDetailCardProps {
   job: {

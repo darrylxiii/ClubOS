@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Calendar, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { CreateInterviewDialog } from './CreateInterviewDialog';
+import { T } from '@/components/T';
 
 interface ScheduleInterviewButtonProps {
   application: any;
@@ -33,7 +34,7 @@ export const ScheduleInterviewButton = ({
         onClick={() => setDialogOpen(true)}
       >
         <Calendar className="w-4 h-4 mr-2" />
-        Schedule Interview
+        <T k="common:actions.scheduleInterview" fallback="Schedule Interview" />
       </Button>
 
       <CreateInterviewDialog
