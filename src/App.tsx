@@ -14,6 +14,9 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import i18n from "@/i18n/config";
 import { useQueryClient } from "@tanstack/react-query";
+import { sharedRoutes } from "@/routes/shared.routes";
+import { candidateRoutes } from "@/routes/candidate.routes";
+import { AdminAssessmentsRoutes } from "@/routes/admin-assessments.routes";
 
 // Optimized: Memoized component with scoped invalidation to prevent full app re-renders
 const LanguageSync = memo(() => {
@@ -150,6 +153,8 @@ const PartnerAnalyticsDashboard = lazy(() => import("./pages/PartnerAnalyticsDas
 const Achievements = lazy(() => import("./pages/Achievements"));
 const FeedbackDatabase = lazy(() => import("./pages/FeedbackDatabase"));
 const FunnelAnalytics = lazy(() => import("./pages/FunnelAnalytics"));
+const AdminRejections = lazy(() => import("./pages/AdminRejections"));
+const PartnerRejections = lazy(() => import("./pages/PartnerRejections"));
 const ClubDJ = lazy(() => import("./pages/ClubDJ"));
 const Radio = lazy(() => import("./pages/Radio"));
 const RadioListen = lazy(() => import("./pages/RadioListen"));
@@ -459,6 +464,55 @@ const App = () => {
                 <Suspense fallback={<ProtectedProvidersLoader />}>
                   <ProtectedProviders>
                     <Routes>
+                      {/* Shared Routes - Available to all roles */}
+                      {sharedRoutes}
+                      
+                      {/* Candidate Routes */}
+                      {candidateRoutes}
+                      
+                      {/* Partner & Admin Routes */}
+                      <Route path="/admin" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Admin /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin/candidates" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><AdminCandidates /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin/merge-dashboard" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MergeDashboard /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin/club-sync-requests" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ClubSyncRequestsPage /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin/company-management" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyManagement /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin/analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><GlobalAnalytics /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin/ai-config" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><AIConfiguration /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin/rejections" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><AdminRejections /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin/translation-manager" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><TranslationManager /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin/language-manager" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><LanguageManager /></Suspense></ProtectedRoute>} />
+                      {AdminAssessmentsRoutes}
+                      
+                      <Route path="/hiring-intelligence" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><HiringIntelligenceHub /></Suspense></ProtectedRoute>} />
+                      <Route path="/ml-dashboard" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><EnhancedMLDashboard /></Suspense></ProtectedRoute>} />
+                      <Route path="/revenue-analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><RevenueAnalytics /></Suspense></ProtectedRoute>} />
+                      <Route path="/funnel-analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><FunnelAnalytics /></Suspense></ProtectedRoute>} />
+                      <Route path="/feedback-database" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><FeedbackDatabase /></Suspense></ProtectedRoute>} />
+                      <Route path="/social-management" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SocialManagement /></Suspense></ProtectedRoute>} />
+                      
+                      <Route path="/partner/analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><PartnerAnalyticsDashboard /></Suspense></ProtectedRoute>} />
+                      <Route path="/partner/rejections" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><PartnerRejections /></Suspense></ProtectedRoute>} />
+                      <Route path="/booking-management" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><BookingManagement /></Suspense></ProtectedRoute>} />
+                      <Route path="/expert-marketplace" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ExpertMarketplace /></Suspense></ProtectedRoute>} />
+                      
+                      <Route path="/candidate/analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CandidateAnalytics /></Suspense></ProtectedRoute>} />
+                      <Route path="/subscription" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Subscription /></Suspense></ProtectedRoute>} />
+                      <Route path="/subscription/success" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SubscriptionSuccess /></Suspense></ProtectedRoute>} />
+                      <Route path="/invites" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><InviteDashboard /></Suspense></ProtectedRoute>} />
+                      <Route path="/salary-insights" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SalaryInsights /></Suspense></ProtectedRoute>} />
+                      <Route path="/career-path" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CareerPath /></Suspense></ProtectedRoute>} />
+                      <Route path="/onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Onboarding /></Suspense></ProtectedRoute>} />
+                      <Route path="/partner-onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><PartnerOnboarding /></Suspense></ProtectedRoute>} />
+                      <Route path="/meeting-notes/:meetingId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingNotes /></Suspense></ProtectedRoute>} />
+                      <Route path="/company/:id/applications" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyApplications /></Suspense></ProtectedRoute>} />
+                      <Route path="/company/:id/jobs" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyJobsDashboard /></Suspense></ProtectedRoute>} />
+                      <Route path="/company-intelligence" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyIntelligence /></Suspense></ProtectedRoute>} />
+                      <Route path="/company-domains" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyDomainsSettings /></Suspense></ProtectedRoute>} />
+                      <Route path="/interaction-entry" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><InteractionEntry /></Suspense></ProtectedRoute>} />
+                      <Route path="/interactions-feed" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><InteractionsFeed /></Suspense></ProtectedRoute>} />
+                      <Route path="/whatsapp-import" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><WhatsAppImport /></Suspense></ProtectedRoute>} />
+                      
+                      {/* Existing routes */}
                       <Route path="/club-ai" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ClubAI /></Suspense></ProtectedRoute>} />
                       <Route path="/jobs" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Jobs /></Suspense></ProtectedRoute>} />
                       <Route path="/jobs/:jobId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><JobDetail /></Suspense></ProtectedRoute>} />
@@ -467,6 +521,8 @@ const App = () => {
                       <Route path="/meetings" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Meetings /></Suspense></ProtectedRoute>} />
                       <Route path="/meetings/:meetingId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingRoom /></Suspense></ProtectedRoute>} />
                       <Route path="/oauth-onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><OAuthOnboarding /></Suspense></ProtectedRoute>} />
+                      
+                      {/* 404 Catch-all */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                     <FeedbackButton />
