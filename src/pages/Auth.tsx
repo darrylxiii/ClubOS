@@ -16,7 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 import { OAuthDiagnostics } from "@/components/OAuthDiagnostics";
 
-const quantumLogo = "/quantum-logo.svg?v=2";
+const quantumLogo = "/quantum-logo.svg?v=8";
 const emailSchema = z.string().email("Invalid email address");
 const passwordSchema = z.string().min(12, "Password must be at least 12 characters").regex(/[A-Z]/, "Password must contain at least one uppercase letter").regex(/[a-z]/, "Password must contain at least one lowercase letter").regex(/[0-9]/, "Password must contain at least one number").regex(/[^A-Za-z0-9]/, "Password must contain at least one special character");
 
@@ -308,7 +308,7 @@ const Auth = () => {
       <Card className="w-full max-w-lg bg-background/30 backdrop-blur-xl border border-border/50 shadow-2xl rounded-[32px]">
         <CardHeader className="space-y-6 pb-8 text-center pt-12">
           <div className="flex items-center justify-center mb-2">
-            <img src={quantumLogo} alt="The Quantum Club" className="w-32 h-32" width="128" height="128" />
+            <img src={quantumLogo} alt="The Quantum Club" className="w-32 h-32" width="128" height="128" fetchPriority="high" />
           </div>
 
           <div className="space-y-3">
