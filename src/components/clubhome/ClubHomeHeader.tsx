@@ -9,6 +9,8 @@ import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { useProfile } from "@/hooks/useProfile";
 import { TypewriterGreeting } from "./TypewriterGreeting";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "react-i18next";
+import { T } from "@/components/T";
 
 interface ClubHomeHeaderProps {
   role: UserRole;
@@ -16,6 +18,7 @@ interface ClubHomeHeaderProps {
 
 export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const { profile, loading: profileLoading } = useProfile({ 
     userId: user?.id, 
     autoLoad: true 
@@ -37,21 +40,21 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
   const getRoleLabel = () => {
     switch (role) {
       case 'admin':
-        return 'Admin';
+        return t('common:roles.admin');
       case 'partner':
-        return 'Partner';
+        return t('common:roles.partner');
       case 'strategist':
-        return 'Talent Strategist';
+        return t('common:roles.strategist');
       default:
-        return 'Candidate';
+        return t('common:roles.candidate');
     }
   };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 18) return "Good afternoon";
-    return "Good evening";
+    if (hour < 12) return t('common:home.greeting.morning');
+    if (hour < 18) return t('common:home.greeting.afternoon');
+    return t('common:home.greeting.evening');
   };
 
   const getFirstName = () => {
@@ -110,7 +113,7 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
               </Badge>
               <Badge variant="outline" className="gap-1">
                 <Sparkles className="h-3 w-3" />
-                Club Member
+                <T k="common:home.clubMember" fallback="Club Member" />
               </Badge>
             </div>
           </div>

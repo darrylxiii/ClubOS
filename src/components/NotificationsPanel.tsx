@@ -16,6 +16,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useTranslation } from 'react-i18next';
+import { T } from '@/components/T';
 
 interface Notification {
   id: string;
@@ -35,6 +37,7 @@ interface Notification {
 export const NotificationsPanel = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>('all');
@@ -250,9 +253,15 @@ export const NotificationsPanel = () => {
             </div>
 
             <div className="min-w-0">
-              <h2 className="text-lg sm:text-xl font-bold truncate">Notifications</h2>
+              <h2 className="text-lg sm:text-xl font-bold truncate">
+                <T k="common:notifications.title" fallback="Notifications" />
+              </h2>
               <p className="text-xs text-muted-foreground">
-                {unreadCount > 0 ? `${unreadCount} unread` : 'All caught up'}
+                {unreadCount > 0 ? (
+                  <T k="common:notifications.unread" fallback={`${unreadCount} unread`} values={{ count: unreadCount }} />
+                ) : (
+                  'All caught up'
+                )}
               </p>
             </div>
           </div>
@@ -266,7 +275,7 @@ export const NotificationsPanel = () => {
             <DropdownMenuContent align="end" className="z-[100]">
               <DropdownMenuItem onClick={markAllAsRead} disabled={unreadCount === 0}>
                 <Check className="w-4 h-4 mr-2" />
-                Mark all as read
+                <T k="common:notifications.markAllRead" fallback="Mark all as read" />
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/settings?tab=notifications')}>
                 <Settings className="w-4 h-4 mr-2" />
@@ -283,14 +292,14 @@ export const NotificationsPanel = () => {
             className="cursor-pointer min-h-[36px] flex items-center whitespace-nowrap"
             onClick={() => setFilter('all')}
           >
-            All
+            <T k="common:notifications.filters.all" fallback="All" />
           </Badge>
           <Badge
             variant={filter === 'unread' ? 'default' : 'outline'}
             className="cursor-pointer min-h-[36px] flex items-center whitespace-nowrap"
             onClick={() => setFilter('unread')}
           >
-            Unread {unreadCount > 0 && `(${unreadCount})`}
+            <T k="common:notifications.filters.unread" fallback="Unread" /> {unreadCount > 0 && `(${unreadCount})`}
           </Badge>
           {['mention', 'message', 'interview', 'application', 'system'].map(type => (
             <Badge
@@ -299,7 +308,7 @@ export const NotificationsPanel = () => {
               className="cursor-pointer capitalize min-h-[36px] flex items-center whitespace-nowrap"
               onClick={() => setFilter(type)}
             >
-              {type}
+              {t(`common:notifications.filters.${type}`, type)}
             </Badge>
           ))}
         </div>
@@ -323,7 +332,9 @@ export const NotificationsPanel = () => {
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full p-6 sm:p-8 text-center">
             <Bell className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mb-4" />
-            <h3 className="font-semibold mb-2 text-sm sm:text-base">No notifications</h3>
+            <h3 className="font-semibold mb-2 text-sm sm:text-base">
+              <T k="common:notifications.noNotifications" fallback="No notifications" />
+            </h3>
             <p className="text-xs sm:text-sm text-muted-foreground">
               {filter === 'unread' 
                 ? "You're all caught up!" 
