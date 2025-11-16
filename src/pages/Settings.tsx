@@ -19,9 +19,11 @@ import { CalendarIntegrationSettings } from "@/components/settings/CalendarInteg
 import { ResumeUploadModal } from "@/components/candidate/ResumeUploadModal";
 import { useExchangeRates } from "@/hooks/useExchangeRates";
 import { FreelanceProjectsSettings } from "@/components/settings/FreelanceProjectsSettings";
+import { useTranslation } from 'react-i18next';
 
 const Settings = () => {
   const { user } = useAuth();
+  const { i18n } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
@@ -219,7 +221,12 @@ const Settings = () => {
         setPreferredCurrency((data.preferred_currency as 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH') || 'EUR');
         
         // New preferences
-        setPreferredLanguage(data.preferred_language || 'en');
+        const userLanguage = data.preferred_language || 'en';
+        setPreferredLanguage(userLanguage);
+        // Sync i18n language with user preference
+        if (i18n.language !== userLanguage) {
+          i18n.changeLanguage(userLanguage);
+        }
         setJobAlertFrequency(data.job_alert_frequency || 'daily');
         setCompanySizePreference(data.company_size_preference || 'any');
         setIndustryPreference(data.industry_preference || 'any');
@@ -642,7 +649,11 @@ const Settings = () => {
               preferredCurrency={preferredCurrency}
               onCurrencyChange={handleCurrencyChange}
               preferredLanguage={preferredLanguage}
-              onLanguageChange={(lang) => { setPreferredLanguage(lang); debouncedSave(); }}
+              onLanguageChange={async (lang) => { 
+                setPreferredLanguage(lang); 
+                await i18n.changeLanguage(lang);
+                debouncedSave(); 
+              }}
               jobAlertFrequency={jobAlertFrequency}
               onJobAlertFrequencyChange={(freq) => { setJobAlertFrequency(freq); debouncedSave(); }}
               companySizePreference={companySizePreference}

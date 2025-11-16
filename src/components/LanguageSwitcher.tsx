@@ -25,6 +25,26 @@ export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
   const currentLang = languages.find(lang => lang.code === i18n.language) || languages[0];
 
+  // Load user's preferred language on mount
+  useEffect(() => {
+    const loadUserLanguage = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('preferred_language')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.preferred_language && profile.preferred_language !== i18n.language) {
+          await i18n.changeLanguage(profile.preferred_language);
+        }
+      }
+    };
+    
+    loadUserLanguage();
+  }, []);
+
   // Apply RTL for Arabic
   useEffect(() => {
     document.documentElement.dir = i18n.language === 'ar' ? 'rtl' : 'ltr';
