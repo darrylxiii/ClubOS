@@ -1,5 +1,7 @@
 import { ReactNode, useState, useEffect, useMemo } from "react";
 import { useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useTranslationSync } from "@/hooks/use-translation-sync";
 // Short QC icons (for collapsed state) - "transparent" files are the small icons
 import quantumClubLogoDarkShort from "@/assets/quantum-logo-dark-transparent.png"; // QC icon - black for light theme
 import quantumClubLogoLightShort from "@/assets/quantum-logo-light-transparent.png"; // QC icon - white for dark theme
@@ -32,6 +34,8 @@ interface AppLayoutProps {
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
   const { user, signOut } = useAuth();
+  const { t } = useTranslation();
+  useTranslationSync(); // Keep all components in sync with language changes
   const location = useLocation();
   const { currentRole } = useRole();
   const [userProfile, setUserProfile] = useState<{ full_name: string; avatar_url: string | null } | null>(null);

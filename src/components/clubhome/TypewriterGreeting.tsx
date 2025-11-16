@@ -1,5 +1,6 @@
 import { useAnimatedText } from '@/hooks/useAnimatedText';
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface TypewriterGreetingProps {
   greeting: string;
@@ -7,12 +8,14 @@ interface TypewriterGreetingProps {
 }
 
 export const TypewriterGreeting = ({ greeting, firstName }: TypewriterGreetingProps) => {
-  const fullText = `${greeting} ${firstName}`;
+  const { t } = useTranslation();
+  // Use translated greeting if available
+  const translatedGreeting = t('onboarding:welcome.greeting', greeting);
+  const fullText = `${translatedGreeting} ${firstName}`;
   const animatedText = useAnimatedText(fullText, "");
   const [showCursor, setShowCursor] = useState(true);
 
   useEffect(() => {
-    // Hide cursor when animation completes
     if (animatedText === fullText) {
       setShowCursor(false);
     } else {
