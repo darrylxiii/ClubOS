@@ -369,9 +369,9 @@ const Auth = () => {
                 </InputOTP>
               </div>
 
-              <Button onClick={handleVerifyEmail} disabled={emailVerificationCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
+              <RainbowButton onClick={handleVerifyEmail} disabled={emailVerificationCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
                 {verificationLoading ? "Verifying..." : "Verify Email"}
-              </Button>
+              </RainbowButton>
 
               <button type="button" onClick={() => { setNeedsEmailVerification(false); setEmailVerificationCode(""); }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
                 Back to sign in
@@ -399,9 +399,9 @@ const Auth = () => {
                 </InputOTP>
               </div>
 
-              <Button onClick={handleVerifyMFA} disabled={mfaCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
+              <RainbowButton onClick={handleVerifyMFA} disabled={mfaCode.length !== 6 || verificationLoading} className="w-full h-16 rounded-2xl">
                 {verificationLoading ? "Verifying..." : "Verify Code"}
-              </Button>
+              </RainbowButton>
 
               <button type="button" onClick={() => { setMfaRequired(false); setMfaCode(""); }} className="text-foreground/80 hover:text-foreground text-sm w-full text-center">
                 Back to sign in
