@@ -1,9 +1,19 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema for security
+const batchTranslateSchema = z.object({
+  texts: z.array(z.string().max(1000)).max(200).optional(),
+  targetLanguage: z.enum(['nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru']),
+  context: z.string().max(100).optional(),
+  namespace: z.string().max(50),
+  sourceTranslations: z.record(z.any()).optional()
+});
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -21,7 +31,22 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { texts, targetLanguage, context = 'ui_translation', namespace, sourceTranslations } = await req.json();
+    // Validate input to prevent injection and malformed data
+    const rawInput = await req.json();
+    const validationResult = batchTranslateSchema.safeParse(rawInput);
+    
+    if (!validationResult.success) {
+      console.error('[Batch Translate] Validation failed:', validationResult.error);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid input', 
+          details: validationResult.error.flatten() 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { texts, targetLanguage, context = 'ui_translation', namespace, sourceTranslations } = validationResult.data;
 
     // Handle two modes: direct texts array OR sourceTranslations object
     let textsToTranslate: string[] = [];
