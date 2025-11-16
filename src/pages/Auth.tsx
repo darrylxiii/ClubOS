@@ -2,6 +2,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -13,7 +14,7 @@ import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 
-// Lazy load heavy components to reduce initial bundle (defer Framer Motion, forms)
+// Lazy load heavy components to reduce initial bundle
 const InputOTP = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTP })));
 const InputOTPGroup = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTPGroup })));
 const InputOTPSlot = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTPSlot })));
@@ -446,23 +447,13 @@ const Auth = () => {
                 />
               )}
 
-              <Button
+              <RainbowButton
                 type="submit"
                 disabled={isLoading || (!isLogin && inviteValid !== true)}
-                className="w-full h-16 rounded-2xl font-bold text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
-                size="lg"
+                className="w-full h-16 rounded-2xl font-bold text-lg"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : isLogin ? (
-                  "Sign In"
-                ) : (
-                  "Create Account"
-                )}
-              </Button>
+                {isLoading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
+              </RainbowButton>
 
               <div className="relative py-6">
                 <div className="absolute inset-0 flex items-center">
