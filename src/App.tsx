@@ -3,43 +3,39 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { RoleProvider } from "@/contexts/RoleContext";
-import { VideoPlayerProvider } from "@/contexts/VideoPlayerContext";
-import { NavigationHistoryProvider } from "@/contexts/NavigationHistoryContext";
-import { MotionProvider } from "@/contexts/MotionContext";
+import { PublicProviders } from "@/contexts/PublicProviders";
+import { ProtectedProviders, ProtectedProvidersLoader } from "@/contexts/ProtectedProviders";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
-import { ActivityTracker } from "@/components/ActivityTracker";
-import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { TranslationDebugger } from "@/components/TranslationDebugger";
-import { lazy, Suspense, useState, useEffect } from "react";
+import { lazy, Suspense, useState, useEffect, memo } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import i18n from "@/i18n/config";
 import { useQueryClient } from "@tanstack/react-query";
 
-// Phase 5: Real-Time Sync Enhancement - Force re-render on language change
-const LanguageSync = () => {
+// Optimized: Memoized component with scoped invalidation to prevent full app re-renders
+const LanguageSync = memo(() => {
   const queryClient = useQueryClient();
   
   useEffect(() => {
     const handleLanguageChange = (lng: string) => {
       console.log('[App] Language changed to:', lng);
       
-      // Force ALL React Query cached data to refresh
-      queryClient.invalidateQueries();
+      // Scoped invalidation: Only invalidate i18n-dependent queries
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          // Only invalidate queries that depend on language (e.g., translations, content)
+          return query.queryKey.some((key) => 
+            typeof key === 'string' && (key.includes('translation') || key.includes('content'))
+          );
+        }
+      });
       
       // Update document attributes for accessibility and RTL
       document.documentElement.lang = lng;
       document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
-      
-      // Broadcast custom event to force component re-renders
-      window.dispatchEvent(new CustomEvent('forceRerender', { detail: lng }));
     };
     
     i18n.on('languageChanged', handleLanguageChange);
@@ -53,19 +49,21 @@ const LanguageSync = () => {
   }, [queryClient]);
   
   return null;
-};
+});
 
-// Eager load critical public routes
+// Critical: Only eager load Auth page for fastest FCP
 import Auth from "./pages/Auth";
-import SharedProfile from "./pages/SharedProfile";
-import BookingPage from "./pages/BookingPage";
-import PartnerFunnel from "./pages/PartnerFunnel";
-import PartnershipSubmitted from "./pages/PartnershipSubmitted";
-import CandidateOnboarding from "./pages/CandidateOnboarding";
-import PendingApproval from "./pages/PendingApproval";
 import NotFound from "./pages/NotFound";
-import Meetings from "./pages/Meetings";
-import MeetingRoom from "./pages/MeetingRoom";
+
+// Lazy load ALL other routes (public + protected) to reduce initial bundle
+const SharedProfile = lazy(() => import("./pages/SharedProfile"));
+const BookingPage = lazy(() => import("./pages/BookingPage"));
+const PartnerFunnel = lazy(() => import("./pages/PartnerFunnel"));
+const PartnershipSubmitted = lazy(() => import("./pages/PartnershipSubmitted"));
+const CandidateOnboarding = lazy(() => import("./pages/CandidateOnboarding"));
+const PendingApproval = lazy(() => import("./pages/PendingApproval"));
+const Meetings = lazy(() => import("./pages/Meetings"));
+const MeetingRoom = lazy(() => import("./pages/MeetingRoom"));
 
 // Lazy load protected routes to reduce initial bundle size
 const ClubHome = lazy(() => import("./pages/ClubHome"));
@@ -275,925 +273,211 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
-  useEffect(() => {
-    // Global language change listener - forces all components to re-render
-    const handleLanguageChange = (lng: string) => {
-      console.log('[App] Global language changed to:', lng);
-      document.documentElement.lang = lng;
-      document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
-      // Force React Query to refetch to update all UI
-      queryClient.invalidateQueries();
-    };
-    
-    i18n.on('languageChanged', handleLanguageChange);
-    
-    // Set initial language attributes
-    handleLanguageChange(i18n.language);
-    
-    return () => {
-      i18n.off('languageChanged', handleLanguageChange);
-    };
-  }, []);
-  
   return (
-  <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
+      <BrowserRouter>
         <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <TranslationDebugger />
-            <LanguageSync />
-            <BrowserRouter>
-              <ErrorBoundary>
-                <AuthProvider>
-                  <ErrorBoundary>
-                    <RoleProvider>
-                      <SubscriptionProvider>
-                        <ActivityTracker>
-                          <NavigationHistoryProvider>
-                            <MotionProvider>
-                              <VideoPlayerProvider>
-                              <Suspense fallback={<PageLoader />}>
-                                <Routes>
-                <Route path="/" element={
-                  <RouteErrorBoundary>
-                    <Navigate to="/auth" replace />
-                  </RouteErrorBoundary>
-                } />
-                <Route path="/auth" element={
+          <Toaster />
+          <Sonner />
+          <LanguageSync />
+          <TranslationDebugger />
+          <Routes>
+            {/* Public Routes - Minimal providers for fastest FCP */}
+            <Route
+              path="/"
+              element={<Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/auth"
+              element={
+                <PublicProviders>
                   <RouteErrorBoundary>
                     <Auth />
                   </RouteErrorBoundary>
-                } />
-                <Route path="/privacy" element={
+                </PublicProviders>
+              }
+            />
+            <Route
+              path="/profile/:username"
+              element={
+                <PublicProviders>
                   <RouteErrorBoundary>
-                    <PrivacyPolicy />
+                    <Suspense fallback={<PageLoader />}>
+                      <SharedProfile />
+                    </Suspense>
                   </RouteErrorBoundary>
-                } />
-                <Route path="/terms" element={
+                </PublicProviders>
+              }
+            />
+            <Route
+              path="/book/:slug"
+              element={
+                <PublicProviders>
                   <RouteErrorBoundary>
-                    <TermsOfService />
+                    <Suspense fallback={<PageLoader />}>
+                      <BookingPage />
+                    </Suspense>
                   </RouteErrorBoundary>
-                } />
-                <Route path="/book/:slug" element={
+                </PublicProviders>
+              }
+            />
+            <Route
+              path="/partner"
+              element={
+                <PublicProviders>
                   <RouteErrorBoundary>
-                    <BookingPage />
+                    <Suspense fallback={<PageLoader />}>
+                      <PartnerFunnel />
+                    </Suspense>
                   </RouteErrorBoundary>
-                } />
-                <Route path="/share/:token" element={
+                </PublicProviders>
+              }
+            />
+            <Route
+              path="/partner/submitted"
+              element={
+                <PublicProviders>
                   <RouteErrorBoundary>
-                    <SharedProfile />
+                    <Suspense fallback={<PageLoader />}>
+                      <PartnershipSubmitted />
+                    </Suspense>
                   </RouteErrorBoundary>
-                 } />
-          
-          {/* Password Reset Routes */}
-          <Route path="/forgot-password" element={
-            <RouteErrorBoundary>
-              <ForgotPassword />
-            </RouteErrorBoundary>
-          } />
-          <Route path="/reset-password/verify" element={
-            <RouteErrorBoundary>
-              <ResetPasswordVerify />
-            </RouteErrorBoundary>
-          } />
-          <Route path="/reset-password/verify-token" element={
-            <RouteErrorBoundary>
-              <ResetPasswordMagicLink />
-            </RouteErrorBoundary>
-          } />
-          <Route path="/reset-password/new" element={
-            <RouteErrorBoundary>
-              <ResetPasswordNew />
-            </RouteErrorBoundary>
-          } />
-          
-          <Route path="/partner-funnel" element={<PartnerFunnel />} />
-          <Route path="/partnership-submitted/:companyName" element={<PartnershipSubmitted />} />
-          <Route path="/candidate-onboarding" element={<CandidateOnboarding />} />
-          <Route path="/pending-approval" element={<PendingApproval />} />
-          <Route
-            path="/oauth-onboarding"
-            element={
-              <ProtectedRoute>
-                <OAuthOnboarding />
-              </ProtectedRoute>
-            }
-          />
-                <Route
-                  path="/funnel-analytics"
-                  element={
-                    <ProtectedRoute>
-                      <FunnelAnalytics />
-                    </ProtectedRoute>
-                  }
-                />
-            <Route
-              path="/home"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <ClubHome />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/club-ai"
-              element={
-                <ProtectedRoute>
-                  <ClubAI />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs/:jobId/dashboard"
-              element={
-                <ProtectedRoute>
-                  <JobDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/candidates/:candidateId"
-              element={
-                <ProtectedRoute>
-                  <UnifiedCandidateProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/jobs"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <Jobs />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/jobs/:jobId"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <JobDetail />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            
-            {/* Subscription Routes */}
-            <Route
-              path="/pricing"
-              element={
-                <RouteErrorBoundary>
-                  <Pricing />
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/subscription"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <Subscription />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/subscription-success"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <SubscriptionSuccess />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            
-            {/* Revenue & Analytics Routes */}
-            <Route
-              path="/revenue-analytics"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <RevenueAnalytics />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/referrals"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <ReferralProgram />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/ml-dashboard"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <EnhancedMLDashboard />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/hiring-intelligence"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <HiringIntelligenceHub />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/interactions/new"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <InteractionEntry />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/companies/:id/intelligence"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <CompanyIntelligence />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/interactions/import/whatsapp"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <WhatsAppImport />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/interactions"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <InteractionsFeed />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/companies/:id/domains"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <CompanyDomainsSettings />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            
-            {/* Club Projects Routes */}
-            <Route
-              path="/projects"
-              element={
-                <ProtectedRoute>
-                  <ProjectsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId"
-              element={
-                <ProtectedRoute>
-                  <ProjectDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/projects/:projectId/apply"
-              element={
-                <ProtectedRoute>
-                  <ProjectApplyPage />
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* Contract Management Routes */}
-            <Route
-              path="/contracts"
-              element={
-                <ProtectedRoute>
-                  <ContractListPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/contracts/:contractId"
-              element={
-                <ProtectedRoute>
-                  <ContractDetailPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/contracts/:contractId/sign"
-              element={
-                <ProtectedRoute>
-                  <ContractSignaturePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/contracts/:contractId/time-tracking"
-              element={
-                <ProtectedRoute>
-                  <TimeTrackingPage />
-                </ProtectedRoute>
-              }
-            />
-            
-            <Route
-              path="/applications"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <Applications />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route
-              path="/jobs/:jobId/dashboard"
-              element={
-                <ProtectedRoute>
-                  <JobDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/company-jobs"
-              element={
-                <ProtectedRoute>
-                  <CompanyJobsDashboard />
-                </ProtectedRoute>
-              }
-            />
-            {/* Redirect old task routes to unified tasks */}
-            <Route path="/tasks-pilot" element={<Navigate to="/unified-tasks" replace />} />
-            <Route path="/club-tasks" element={<Navigate to="/unified-tasks" replace />} />
-            <Route
-              path="/unified-tasks"
-              element={
-                <ProtectedRoute>
-                  <UnifiedTasks />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/tasks"
-              element={<Navigate to="/unified-tasks" replace />}
-            />
-            <Route
-              path="/club-pilot"
-              element={
-                <ProtectedRoute>
-                  <ClubPilot />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/objectives/:id"
-              element={
-                <ProtectedRoute>
-                  <ObjectiveWorkspace />
-                </ProtectedRoute>
+                </PublicProviders>
               }
             />
             <Route
               path="/onboarding"
               element={
-                <ProtectedRoute>
-                  <Onboarding />
-                </ProtectedRoute>
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
+                      <CandidateOnboarding />
+                    </Suspense>
+                  </RouteErrorBoundary>
+                </PublicProviders>
               }
             />
             <Route
-              path="/partner-onboarding"
+              path="/pending-approval"
               element={
-                <ProtectedRoute>
-                  <PartnerOnboarding />
-                </ProtectedRoute>
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
+                      <PendingApproval />
+                    </Suspense>
+                  </RouteErrorBoundary>
+                </PublicProviders>
               }
             />
             <Route
-              path="/user-settings"
+              path="/privacy"
               element={
-                <ProtectedRoute>
-                  <UserSettings />
-                </ProtectedRoute>
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
+                      <PrivacyPolicy />
+                    </Suspense>
+                  </RouteErrorBoundary>
+                </PublicProviders>
               }
             />
             <Route
-              path="/profile"
+              path="/terms"
               element={
-                <ProtectedRoute>
-                  <EnhancedProfile />
-                </ProtectedRoute>
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
+                      <TermsOfService />
+                    </Suspense>
+                  </RouteErrorBoundary>
+                </PublicProviders>
               }
             />
             <Route
-              path="/profile/:userIdOrSlug"
+              path="/forgot-password"
               element={
-                <ProtectedRoute>
-                  <PublicUserProfile />
-                </ProtectedRoute>
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <ForgotPassword />
+                  </RouteErrorBoundary>
+                </PublicProviders>
               }
             />
             <Route
-              path="/candidates/:candidateId"
+              path="/reset-password/verify"
               element={
-                <ProtectedRoute>
-                  <CandidateProfile />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/invite/:token" element={<InviteAcceptance />} />
-            <Route path="/invite/:token/complete" element={<InviteComplete />} />
-            <Route
-              path="/referrals"
-              element={
-                <ProtectedRoute>
-                  <Referrals />
-                </ProtectedRoute>
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <ResetPasswordVerify />
+                  </RouteErrorBoundary>
+                </PublicProviders>
               }
             />
             <Route
-              path="/invites"
+              path="/reset-password/verify-token"
               element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <InviteDashboard />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <ResetPasswordMagicLink />
+                  </RouteErrorBoundary>
+                </PublicProviders>
               }
             />
             <Route
-              path="/interview-prep"
+              path="/reset-password/new"
               element={
-                <ProtectedRoute>
-                  <InterviewPrep />
-                </ProtectedRoute>
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <ResetPasswordNew />
+                  </RouteErrorBoundary>
+                </PublicProviders>
               }
             />
+
+            {/* Protected Routes - Full providers loaded after auth */}
             <Route
-              path="/interview-prep-chat/:applicationId"
+              path="/home"
               element={
-                <ProtectedRoute>
-                  <InterviewPrepChat />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/salary-insights"
-              element={
-                <ProtectedRoute>
-                  <SalaryInsights />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/career-path"
-              element={
-                <ProtectedRoute>
-                  <CareerPath />
-                </ProtectedRoute>
-              }
-            />
-            {/* Redirect old meeting-history route to unified meetings page */}
-            <Route path="/meeting-history" element={<Navigate to="/meetings?tab=history" replace />} />
-            <Route
-              path="/meeting-intelligence"
-              element={
-                <ProtectedRoute>
-                  <Suspense fallback={<PageLoader />}>
-                    <MeetingIntelligence />
+                <PublicProviders>
+                  <Suspense fallback={<ProtectedProvidersLoader />}>
+                    <ProtectedProviders>
+                      <ProtectedRoute>
+                        <RouteErrorBoundary>
+                          <Suspense fallback={<PageLoader />}>
+                            <ClubHome />
+                          </Suspense>
+                        </RouteErrorBoundary>
+                      </ProtectedRoute>
+                    </ProtectedProviders>
                   </Suspense>
-                </ProtectedRoute>
+                </PublicProviders>
               }
             />
-            <Route path="/meetings/:meetingId/insights" element={
-              <ProtectedRoute>
-                <Suspense fallback={<PageLoader />}>
-                  <MeetingInsights />
+            {/* All other protected routes - wrap with protected providers */}
+            <Route path="*" element={
+              <PublicProviders>
+                <Suspense fallback={<ProtectedProvidersLoader />}>
+                  <ProtectedProviders>
+                    <Routes>
+                      <Route path="/club-ai" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ClubAI /></Suspense></ProtectedRoute>} />
+                      <Route path="/jobs" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Jobs /></Suspense></ProtectedRoute>} />
+                      <Route path="/jobs/:jobId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><JobDetail /></Suspense></ProtectedRoute>} />
+                      <Route path="/jobs/:jobId/dashboard" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><JobDashboard /></Suspense></ProtectedRoute>} />
+                      <Route path="/candidates/:candidateId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><UnifiedCandidateProfile /></Suspense></ProtectedRoute>} />
+                      <Route path="/meetings" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Meetings /></Suspense></ProtectedRoute>} />
+                      <Route path="/meetings/:meetingId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingRoom /></Suspense></ProtectedRoute>} />
+                      <Route path="/oauth-onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><OAuthOnboarding /></Suspense></ProtectedRoute>} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                    <FeedbackButton />
+                  </ProtectedProviders>
                 </Suspense>
-              </ProtectedRoute>
+              </PublicProviders>
             } />
-            <Route
-              path="/messages"
-              element={
-                <ProtectedRoute>
-                  <Messages />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/applications"
-              element={
-                <ProtectedRoute>
-                  <Applications />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/applications/:applicationId"
-              element={
-                <ProtectedRoute>
-                  <ApplicationDetail />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/company-applications"
-              element={
-                <ProtectedRoute>
-                  <CompanyApplications />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/companies"
-              element={
-                <ProtectedRoute>
-                  <Companies />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/companies/:slug"
-              element={
-                <ProtectedRoute>
-                  <CompanyPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/scheduling"
-              element={
-                <ProtectedRoute>
-                  <Scheduling />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedRoute>
-                  <Admin />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/candidates"
-              element={
-                <ProtectedRoute>
-                  <AdminCandidates />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/club-sync-requests"
-              element={
-                <ProtectedRoute>
-                  <ClubSyncRequestsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/merge-dashboard"
-              element={
-                <ProtectedRoute>
-                  <MergeDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/assessments-hub"
-              element={
-                <ProtectedRoute>
-                  <AssessmentsHub />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/companies"
-              element={
-                <ProtectedRoute>
-                  <CompanyManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/analytics"
-              element={
-                <ProtectedRoute>
-                  <GlobalAnalytics />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/ai-config"
-              element={
-                <ProtectedRoute>
-                  <AIConfiguration />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/translations"
-              element={
-                <ProtectedRoute>
-                  <TranslationManager />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/languages"
-              element={
-                <ProtectedRoute>
-                  <LanguageManager />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/member-requests"
-              element={
-                <ProtectedRoute>
-                  <MemberRequestsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/feed"
-              element={
-                <RouteErrorBoundary>
-                  <ProtectedRoute>
-                    <Feed />
-                  </ProtectedRoute>
-                </RouteErrorBoundary>
-              }
-            />
-            <Route path="/post/:id" element={<Post />} />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/social-feed"
-              element={
-                <ProtectedRoute>
-                  <SocialFeed />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/social-management"
-              element={
-                <ProtectedRoute>
-                  <SocialManagement />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/analytics"
-              element={
-                <ProtectedRoute>
-                  <Analytics />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/candidate/analytics"
-              element={
-                <ProtectedRoute>
-                  <CandidateAnalytics />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/partner/analytics"
-              element={
-                <ProtectedRoute>
-                  <PartnerAnalyticsDashboard />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/achievements"
-              element={
-                <ProtectedRoute>
-                  <Achievements />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/feedback-database"
-              element={
-                <ProtectedRoute>
-                  <FeedbackDatabase />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/academy" element={<Academy />} />
-            <Route path="/academy/:slug" element={<Academy />} />
-            <Route path="/academy/creator" element={<AcademyCreatorHub />} />
-            <Route path="/academy/my-skills" element={<ProtectedRoute><MySkillsPage /></ProtectedRoute>} />
-            <Route path="/academy/leaderboard" element={<LeaderboardPage />} />
-            <Route path="/certificates/verify/:code" element={<CertificateVerification />} />
-            <Route path="/courses/:slug" element={<CourseDetail />} />
-            <Route path="/courses/edit/:id" element={<ProtectedRoute><CourseEdit /></ProtectedRoute>} />
-            <Route path="/academy/courses/:id/edit" element={<ProtectedRoute><CourseEdit /></ProtectedRoute>} />
-            <Route path="/courses/manage-modules/:id" element={<ProtectedRoute><ModuleManagement /></ProtectedRoute>} />
-            <Route path="/modules/edit/:id" element={<ProtectedRoute><ModuleEdit /></ProtectedRoute>} />
-            <Route path="/academy/modules/:slug" element={<ModuleDetail />} />
-            <Route path="/module/:moduleId" element={<ModuleDetail />} />
-            <Route path="/meetings" element={<ProtectedRoute><Meetings /></ProtectedRoute>} />
-            <Route path="/meetings/:meetingCode" element={<MeetingRoom />} />
-            <Route path="/meetings/:meetingId/notes" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingNotes /></Suspense></ProtectedRoute>} />
-            <Route path="/inbox" element={<ProtectedRoute><Inbox /></ProtectedRoute>} />
-            <Route
-              path="/club-dj"
-              element={
-                <ProtectedRoute>
-                  <ClubDJ />
-                </ProtectedRoute>
-              }
-            />
-            <Route path="/radio" element={<Radio />} />
-            <Route path="/radio/:sessionId" element={<RadioListen />} />
-            <Route
-              path="/assessments"
-              element={
-                <ProtectedRoute>
-                  <Assessments />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessments/swipe-game"
-              element={
-                <ProtectedRoute>
-                  <SwipeGame />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessments/miljoenenjacht"
-              element={
-                <ProtectedRoute>
-                  <Miljoenenjacht />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessments/incubator-20"
-              element={
-                <ProtectedRoute>
-                  <Incubator20 />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessments/pressure-cooker"
-              element={
-                <ProtectedRoute>
-                  <PressureCooker />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessments/blind-spot-detector"
-              element={
-                <ProtectedRoute>
-                  <BlindSpotDetector />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/assessments/values-poker"
-              element={
-                <ProtectedRoute>
-                  <ValuesPoker />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/profile/documents"
-              element={
-                <ProtectedRoute>
-                  <RouteErrorBoundary>
-                    <DocumentManagement />
-                  </RouteErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings/email"
-              element={
-                <ProtectedRoute>
-                  <RouteErrorBoundary>
-                    <EmailSettings />
-                  </RouteErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/booking-management"
-              element={
-                <ProtectedRoute>
-                  <RouteErrorBoundary>
-                    <BookingManagement />
-                  </RouteErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/company-settings"
-              element={
-                <ProtectedRoute>
-                  <RouteErrorBoundary>
-                    <CompanySettings />
-                  </RouteErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/expert-marketplace"
-              element={
-                <ProtectedRoute>
-                  <RouteErrorBoundary>
-                    <ExpertMarketplace />
-                  </RouteErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/partner/targets"
-              element={
-                <ProtectedRoute>
-                  <RouteErrorBoundary>
-                    <PartnerTargetCompanies />
-                  </RouteErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/target-companies"
-              element={
-                <ProtectedRoute>
-                  <RouteErrorBoundary>
-                    <TargetCompaniesOverview />
-                  </RouteErrorBoundary>
-                </ProtectedRoute>
-              }
-            />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-                </Routes>
-              </Suspense>
-              <FeedbackButton />
-              <FloatingVideoPlayer />
-            </VideoPlayerProvider>
-          </MotionProvider>
-        </NavigationHistoryProvider>
-      </ActivityTracker>
-      </SubscriptionProvider>
-      </RoleProvider>
-      </ErrorBoundary>
-      </AuthProvider>
-      </ErrorBoundary>
-      </BrowserRouter>
+          </Routes>
         </TooltipProvider>
-      </ThemeProvider>
+      </BrowserRouter>
     </QueryClientProvider>
-   </ErrorBoundary>
   );
 };
 
