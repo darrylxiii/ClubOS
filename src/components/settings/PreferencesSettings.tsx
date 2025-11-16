@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Globe } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { T } from '@/components/T';
 
 interface PreferencesSettingsProps {
   preferredCurrency: 'EUR' | 'USD' | 'GBP' | 'AED' | 'BTC' | 'ETH';
@@ -43,21 +45,23 @@ export const PreferencesSettings = ({
   onSave,
   saving
 }: PreferencesSettingsProps) => {
+  const { t } = useTranslation();
+  
   return (
     <div className="space-y-4">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Globe className="w-5 h-5" />
-            Display Preferences
+            <T k="common:preferences.display.title" fallback="Display Preferences" />
           </CardTitle>
           <CardDescription>
-            Customize how the platform looks for you
+            <T k="common:preferences.display.description" fallback="Customize how the platform looks for you" />
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label>Language</Label>
+            <Label><T k="common:preferences.language.label" fallback="Language" /></Label>
             <Select value={preferredLanguage} onValueChange={onLanguageChange}>
               <SelectTrigger>
                 <SelectValue />
@@ -78,7 +82,7 @@ export const PreferencesSettings = ({
           <Separator />
 
           <div className="space-y-2">
-            <Label>Work Timezone</Label>
+            <Label><T k="common:preferences.timezone.label" fallback="Work Timezone" /></Label>
             <Select value={workTimezone || 'Europe/Amsterdam'} onValueChange={onTimezoneChange}>
               <SelectTrigger>
                 <SelectValue />
@@ -95,14 +99,14 @@ export const PreferencesSettings = ({
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">
-              Your preferred timezone for meetings and work hours
+              <T k="common:preferences.timezone.description" fallback="Your preferred timezone for meetings and work hours" />
             </p>
           </div>
 
           <Separator />
 
           <div className="space-y-2">
-            <Label>Currency</Label>
+            <Label><T k="common:preferences.currency.label" fallback="Currency" /></Label>
             <Select value={preferredCurrency} onValueChange={onCurrencyChange}>
               <SelectTrigger>
                 <SelectValue />
@@ -219,7 +223,7 @@ export const PreferencesSettings = ({
               placeholder="e.g., 40"
             />
             <p className="text-xs text-muted-foreground">
-              How many hours per week you can commit (for freelance/contract work)
+              <T k="common:preferences.availability.description" fallback="How many hours per week you can commit (for freelance/contract work)" />
             </p>
           </div>
 
@@ -228,7 +232,7 @@ export const PreferencesSettings = ({
             disabled={saving}
             className="w-full"
           >
-            {saving ? 'Saving...' : 'Save Career Preferences'}
+            {saving ? t('common:actions.loading') : t('common:actions.save_changes', 'Save Career Preferences')}
           </Button>
         </CardContent>
       </Card>

@@ -32,7 +32,8 @@
     "close": "Close",
     "confirm": "Confirm",
     "resend": "Resend",
-    "verify": "Verify"
+    "verify": "Verify",
+    "save_changes": "Save Changes"
   },
   "status": {
     "pending": "Pending",
@@ -72,5 +73,40 @@
     "error": "Error",
     "info": "Info",
     "warning": "Warning"
+  },
+  "preferences": {
+    "display": {
+      "title": "Display Preferences",
+      "description": "Customize how the platform looks for you"
+    },
+    "language": {
+      "label": "Language",
+      "description": "Select your preferred language"
+    },
+    "currency": {
+      "label": "Currency",
+      "description": "Select your preferred currency"
+    },
+    "timezone": {
+      "label": "Work Timezone",
+      "description": "Your preferred timezone for meetings and work hours"
+    },
+    "availability": {
+      "label": "Available Hours Per Week",
+      "description": "How many hours per week you can work"
+    }
+  },
+  "settings": {
+    "tabs": {
+      "profile": "Profile",
+      "compensation": "Compensation",
+      "preferences": "Preferences",
+      "privacy": "Privacy",
+      "security": "Security",
+      "connections": "Connections",
+      "notifications": "Notifications",
+      "calendar": "Calendar",
+      "freelance": "Freelance Projects"
+    }
   }
 }

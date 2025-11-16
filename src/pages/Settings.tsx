@@ -27,6 +27,20 @@ const Settings = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
+  
+  // Listen for language changes from banner switcher
+  useEffect(() => {
+    const handleLanguageChange = (event: CustomEvent<string>) => {
+      const newLang = event.detail;
+      console.log('[Settings] Language changed via event to:', newLang);
+      setPreferredLanguage(newLang);
+    };
+    
+    window.addEventListener('languageChange', handleLanguageChange as EventListener);
+    return () => {
+      window.removeEventListener('languageChange', handleLanguageChange as EventListener);
+    };
+  }, []);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
