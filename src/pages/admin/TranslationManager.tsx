@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Languages, Download, Loader2, CheckCircle, AlertCircle, Sparkles, RefreshCw, Clock } from 'lucide-react';
+import { Languages, Download, Loader2, CheckCircle, AlertCircle, Sparkles, RefreshCw, Clock, BarChart3 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { useSeedTranslations } from '@/hooks/use-seed-translations';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useTranslationCoverage } from '@/hooks/use-translation-coverage';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const NAMESPACES = ['common', 'auth', 'onboarding'];
 

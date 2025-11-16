@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Globe } from 'lucide-react';
+import { Globe, Loader2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +8,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 const languages = [
   { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -23,6 +24,7 @@ const languages = [
 
 export const LanguageSwitcher = () => {
   const { i18n } = useTranslation();
+  const [isChanging, setIsChanging] = useState(false);
   const currentLang = languages.find(lang => lang.code === i18n.language) || languages[0];
 
   // Load user's preferred language on mount
@@ -43,7 +45,7 @@ export const LanguageSwitcher = () => {
     };
     
     loadUserLanguage();
-  }, []);
+  }, [i18n]);
 
   // Apply RTL for Arabic
   useEffect(() => {
@@ -52,26 +54,56 @@ export const LanguageSwitcher = () => {
   }, [i18n.language]);
 
   const changeLanguage = async (code: string) => {
-    await i18n.changeLanguage(code);
+    if (code === i18n.language) return; // Already on this language
     
-    // Persist to user profile (if authenticated)
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase
-        .from('profiles')
-        .update({ preferred_language: code })
-        .eq('id', user.id);
+    setIsChanging(true);
+    const loadingToast = toast.loading(`Switching to ${languages.find(l => l.code === code)?.name}...`);
+    
+    try {
+      // Optimistically update UI
+      await i18n.changeLanguage(code);
+      
+      // Persist to user profile (if authenticated)
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { error } = await supabase
+          .from('profiles')
+          .update({ preferred_language: code })
+          .eq('id', user.id);
+        
+        if (error) {
+          console.error('[LanguageSwitcher] Failed to save language preference:', error);
+        }
+      }
+      
+      // Broadcast language change event to all components
+      window.dispatchEvent(new CustomEvent('languageChange', { detail: code }));
+      
+      toast.dismiss(loadingToast);
+      toast.success(`Language changed to ${languages.find(l => l.code === code)?.name}`);
+    } catch (error) {
+      console.error('[LanguageSwitcher] Error changing language:', error);
+      toast.dismiss(loadingToast);
+      toast.error('Failed to change language');
+    } finally {
+      setIsChanging(false);
     }
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Globe className="h-5 w-5" />
-          <span className="absolute -bottom-1 -right-1 text-xs">
-            {currentLang.flag}
-          </span>
+        <Button variant="ghost" size="icon" className="relative" disabled={isChanging}>
+          {isChanging ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <>
+              <Globe className="h-5 w-5" />
+              <span className="absolute -bottom-1 -right-1 text-xs">
+                {currentLang.flag}
+              </span>
+            </>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">

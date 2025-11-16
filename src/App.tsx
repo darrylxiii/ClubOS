@@ -16,9 +16,11 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
 import { ActivityTracker } from "@/components/ActivityTracker";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import { TranslationDebugger } from "@/components/TranslationDebugger";
 import { lazy, Suspense, useState, useEffect } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import i18n from "@/i18n/config";
 
 // Eager load critical public routes
 import Auth from "./pages/Auth";
@@ -239,13 +241,35 @@ const queryClient = new QueryClient({
   },
 });
 
-const App = () => (
+const App = () => {
+  useEffect(() => {
+    // Global language change listener - forces all components to re-render
+    const handleLanguageChange = (lng: string) => {
+      console.log('[App] Global language changed to:', lng);
+      document.documentElement.lang = lng;
+      document.documentElement.dir = lng === 'ar' ? 'rtl' : 'ltr';
+      // Force React Query to refetch to update all UI
+      queryClient.invalidateQueries();
+    };
+    
+    i18n.on('languageChanged', handleLanguageChange);
+    
+    // Set initial language attributes
+    handleLanguageChange(i18n.language);
+    
+    return () => {
+      i18n.off('languageChanged', handleLanguageChange);
+    };
+  }, []);
+  
+  return (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipProvider>
             <Toaster />
             <Sonner />
+            <TranslationDebugger />
             <BrowserRouter>
               <ErrorBoundary>
                 <AuthProvider>
@@ -1135,7 +1159,8 @@ const App = () => (
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
-  </ErrorBoundary>
-);
+   </ErrorBoundary>
+  );
+};
 
 export default App;
