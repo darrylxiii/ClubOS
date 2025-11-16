@@ -18642,6 +18642,10 @@ export type Database = {
         Args: { _conversation_id: string }
         Returns: boolean
       }
+      can_join_meeting: {
+        Args: { _meeting_id: string; _user_id: string }
+        Returns: boolean
+      }
       can_manage_board: {
         Args: { _board_id: string; _user_id: string }
         Returns: boolean
