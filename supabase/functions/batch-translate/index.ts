@@ -77,8 +77,8 @@ Deno.serve(async (req) => {
     const translateWithRetry = async (text: string, maxRetries = 3): Promise<string> => {
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          // Phase 4: Simplified prompt (40% faster, 30% cheaper)
-          const prompt = `Translate to ${targetLanguage} (professional, sophisticated tone): "${text}"`;
+          // Phase 4: Simplified prompt - ONLY return translation, no explanations
+          const prompt = `Translate this exact text to ${targetLanguage}. Return ONLY the translation, nothing else: "${text}"`;
 
           const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
@@ -89,7 +89,10 @@ Deno.serve(async (req) => {
             body: JSON.stringify({
               model: 'google/gemini-2.5-flash-lite', // Phase 1: Faster model with higher rate limits
               messages: [
-                { role: 'system', content: 'You are a professional translator specializing in luxury recruitment platforms.' },
+                { 
+                  role: 'system', 
+                  content: 'You are a professional translator. Return ONLY the translation without any explanation, options, or additional text. Use a professional, sophisticated tone suitable for luxury recruitment platforms.'
+                },
                 { role: 'user', content: prompt }
               ],
             }),
