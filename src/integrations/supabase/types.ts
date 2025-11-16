@@ -16438,6 +16438,54 @@ export type Database = {
         }
         Relationships: []
       }
+      translation_generation_jobs: {
+        Row: {
+          completed_at: string | null
+          completed_languages: string[] | null
+          created_by: string | null
+          error_message: string | null
+          failed_languages: Json | null
+          id: string
+          namespace: string
+          processed_keys_count: number | null
+          started_at: string | null
+          status: string | null
+          target_languages: string[]
+          total_keys_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_languages?: string[] | null
+          created_by?: string | null
+          error_message?: string | null
+          failed_languages?: Json | null
+          id?: string
+          namespace: string
+          processed_keys_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          target_languages: string[]
+          total_keys_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          completed_languages?: string[] | null
+          created_by?: string | null
+          error_message?: string | null
+          failed_languages?: Json | null
+          id?: string
+          namespace?: string
+          processed_keys_count?: number | null
+          started_at?: string | null
+          status?: string | null
+          target_languages?: string[]
+          total_keys_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       translations: {
         Row: {
           created_at: string | null

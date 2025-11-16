@@ -22,6 +22,9 @@ export default function TranslationManager() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isAutomatedSetup, setIsAutomatedSetup] = useState(false);
   const [activeTab, setActiveTab] = useState('generate');
+  // Phase 5: Job tracking for real-time progress
+  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [canResume, setCanResume] = useState(false);
   const seedTranslations = useSeedTranslations();
   const { data: coverageData, isLoading: coverageLoading } = useTranslationCoverage();
 
@@ -65,6 +68,27 @@ export default function TranslationManager() {
       });
       return coverageMap;
     },
+  });
+
+  // Phase 5: Real-time job status polling
+  const { data: jobStatus } = useQuery({
+    queryKey: ['translation-job-status', currentJobId],
+    queryFn: async () => {
+      if (!currentJobId) return null;
+      const { data, error } = await supabase
+        .from('translation_generation_jobs')
+        .select('*')
+        .eq('id', currentJobId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      // Poll every 3 seconds while job is running
+      return (status === 'running' || status === 'rate_limited') ? 3000 : false;
+    },
+    enabled: !!currentJobId && (isBulkGenerating || canResume)
   });
 
   const generateAllForNamespace = async (namespace: string) => {
