@@ -1,10 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema for security
+const generateAllSchema = z.object({
+  namespace: z.string().max(50).optional(),
+  generateAll: z.boolean().optional(),
+  jobId: z.string().uuid().optional()
+}).refine(data => data.namespace || data.generateAll, {
+  message: "Either namespace or generateAll must be provided"
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -39,14 +49,22 @@ serve(async (req) => {
       );
     }
 
-    const { namespace, generateAll, jobId } = await req.json();
-
-    if (!namespace && !generateAll) {
+    // Validate input to prevent injection and malformed data
+    const rawInput = await req.json();
+    const validationResult = generateAllSchema.safeParse(rawInput);
+    
+    if (!validationResult.success) {
+      console.error('[Generate All] Validation failed:', validationResult.error);
       return new Response(
-        JSON.stringify({ error: 'namespace or generateAll parameter required' }),
+        JSON.stringify({ 
+          error: 'Invalid input', 
+          details: validationResult.error.flatten() 
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const { namespace, generateAll, jobId } = validationResult.data;
 
     // Get English source translations from database
     const namespacesToProcess = generateAll ? ['common', 'auth', 'onboarding'] : [namespace];
