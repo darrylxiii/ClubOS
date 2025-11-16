@@ -103,27 +103,56 @@ export default function TranslationManager() {
   const generateEverything = async () => {
     if (!englishExists) {
       toast.error('Please seed English translations first');
+      setIsBulkGenerating(false);
       return;
     }
     
     setIsBulkGenerating(true);
-    const loadingToast = toast.loading('Generating all translations...');
+    const loadingToast = toast.loading('Generating ALL translations (3 namespaces × 7 languages)...');
     
     try {
-      for (let i = 0; i < NAMESPACES.length; i++) {
-        const namespace = NAMESPACES[i];
-        await supabase.functions.invoke('generate-all-translations', { body: { namespace } });
-        if (i < NAMESPACES.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 5000));
-        }
-      }
+      const { data, error } = await supabase.functions.invoke('generate-all-translations', {
+        body: { generateAll: true }
+      });
       
       toast.dismiss(loadingToast);
-      toast.success('🎉 All translations generated!', { duration: 8000 });
+      
+      if (error) {
+        console.error('[TranslationManager] Generate ALL error:', error);
+        toast.error(`Failed: ${error.message || 'Unknown error'}`);
+        setIsBulkGenerating(false);
+        return;
+      }
+      
+      if (data?.error) {
+        console.error('[TranslationManager] Generate ALL failed:', data.error);
+        toast.error(`Generation failed: ${data.error}`);
+        setIsBulkGenerating(false);
+        return;
+      }
+      
+      if (data?.summary) {
+        const { success, total, failed } = data.summary;
+        if (failed > 0) {
+          toast.warning(`Completed with errors: ${success}/${total} succeeded, ${failed} failed`, { 
+            duration: 6000 
+          });
+        } else {
+          toast.success(`✓ Generated ${success}/${total} translations across all namespaces`, { 
+            duration: 4000 
+          });
+        }
+      } else {
+        toast.success('Translation generation complete');
+      }
+      
       refetchCoverage();
+      queryClient.invalidateQueries({ queryKey: ['translation-coverage-analysis'] });
     } catch (error: any) {
+      console.error('[TranslationManager] Unexpected error:', error);
       toast.dismiss(loadingToast);
-      console.error('Error generating all translations:', error);
+      toast.error(`Unexpected error: ${error.message || 'Unknown error'}`);
+      setIsBulkGenerating(false);
     } finally {
       setIsBulkGenerating(false);
     }
