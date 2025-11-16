@@ -1,6 +1,7 @@
-import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
 
 interface SubscriptionContextType {
   hasActiveSubscription: boolean;
@@ -13,48 +14,41 @@ const SubscriptionContext = createContext<SubscriptionContextType | undefined>(u
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const checkSubscription = async () => {
-    if (!user) {
-      setSubscriptions([]);
-      setLoading(false);
-      return;
-    }
+  // Optimized: Use React Query with 10min staleTime instead of 60s polling
+  // Reduces unnecessary API calls from 1,440/day to ~144/day per user
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ['subscription', user?.id],
+    queryFn: async () => {
+      if (!user) return { subscriptions: [] };
 
-    try {
-      setLoading(true);
       const { data, error } = await supabase.functions.invoke('check-subscription', {
         headers: {
           Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
         },
       });
 
-      if (!error && data) {
-        setSubscriptions(data.subscriptions || []);
-      }
-    } catch (err) {
-      console.error('Error checking subscription:', err);
-      setSubscriptions([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user, // Only run query when user exists
+    staleTime: 1000 * 60 * 10, // 10 minutes - subscription status doesn't change often
+    gcTime: 1000 * 60 * 30, // 30 minutes cache
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchInterval: 1000 * 60 * 10, // Poll every 10 minutes instead of 60 seconds
+  });
 
-  useEffect(() => {
-    checkSubscription();
-    const interval = setInterval(checkSubscription, 60000);
-    return () => clearInterval(interval);
-  }, [user]);
+  const subscriptions = data?.subscriptions || [];
 
   return (
     <SubscriptionContext.Provider
       value={{
         hasActiveSubscription: subscriptions.length > 0,
         subscriptions,
-        loading,
-        refetch: checkSubscription,
+        loading: isLoading,
+        refetch: async () => {
+          await refetch();
+        },
       }}
     >
       {children}

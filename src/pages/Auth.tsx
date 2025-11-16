@@ -1,20 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { RainbowButton } from "@/components/ui/rainbow-button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, CheckCircle2 } from "lucide-react";
+import { Lock, CheckCircle2, Loader2 } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
-import { OAuthDiagnostics } from "@/components/OAuthDiagnostics";
+
+// Lazy load heavy components to reduce initial bundle (defer Framer Motion, forms)
+const InputOTP = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTP })));
+const InputOTPGroup = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTPGroup })));
+const InputOTPSlot = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTPSlot })));
+const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({ default: m.OAuthDiagnostics })));
 
 const quantumLogo = "/quantum-logo.svg?v=8";
 const emailSchema = z.string().email("Invalid email address");
@@ -443,13 +446,23 @@ const Auth = () => {
                 />
               )}
 
-              <RainbowButton
+              <Button
                 type="submit"
                 disabled={isLoading || (!isLogin && inviteValid !== true)}
-                className="w-full h-16 rounded-2xl font-bold text-lg"
+                className="w-full h-16 rounded-2xl font-bold text-lg bg-primary hover:bg-primary/90 text-primary-foreground"
+                size="lg"
               >
-                {isLoading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
-              </RainbowButton>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : isLogin ? (
+                  "Sign In"
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
 
               <div className="relative py-6">
                 <div className="absolute inset-0 flex items-center">
