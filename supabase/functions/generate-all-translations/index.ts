@@ -39,7 +39,7 @@ serve(async (req) => {
       );
     }
 
-    const { namespace, generateAll } = await req.json();
+    const { namespace, generateAll, jobId } = await req.json();
 
     if (!namespace && !generateAll) {
       return new Response(
@@ -50,14 +50,58 @@ serve(async (req) => {
 
     // Get English source translations from database
     const namespacesToProcess = generateAll ? ['common', 'auth', 'onboarding'] : [namespace];
-    const targetLanguages = ['nl', 'de', 'fr', 'es', 'zh', 'ar', 'ru'];
+    // Phase 3: Prioritized language order (EU languages first for better completion rates)
+    const targetLanguages = ['nl', 'de', 'fr', 'es', 'ru', 'zh', 'ar'];
     
     const results: any[] = [];
     const errors: any[] = [];
     let totalCost = 0;
     let totalTime = 0;
 
+    // Phase 2: Create or resume job tracking
+    let currentJobId = jobId;
+    let completedLanguages: string[] = [];
+    
+    if (!currentJobId) {
+      // Create new job
+      const { data: newJob, error: jobError } = await supabaseClient
+        .from('translation_generation_jobs')
+        .insert({
+          namespace: namespacesToProcess.join(','),
+          target_languages: targetLanguages,
+          status: 'running',
+          created_by: user.id
+        })
+        .select()
+        .single();
+        
+      if (jobError) {
+        console.error('[Generate All] Failed to create job:', jobError);
+      } else {
+        currentJobId = newJob.id;
+        console.log(`[Generate All] Created job ${currentJobId}`);
+      }
+    } else {
+      // Resume existing job - get completed languages
+      const { data: existingJob } = await supabaseClient
+        .from('translation_generation_jobs')
+        .select('completed_languages')
+        .eq('id', currentJobId)
+        .single();
+        
+      if (existingJob) {
+        completedLanguages = existingJob.completed_languages || [];
+        console.log(`[Generate All] Resuming job ${currentJobId}, skipping: ${completedLanguages.join(', ')}`);
+      }
+    }
+
     console.log(`Starting bulk translation for ${namespacesToProcess.length} namespace(s) × ${targetLanguages.length} languages`);
+
+    const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+    
+    // Phase 6: Circuit breaker - stop after 2 consecutive failures
+    let consecutiveFailures = 0;
+    const MAX_CONSECUTIVE_FAILURES = 2;
 
     // Process each namespace
     for (const ns of namespacesToProcess) {
@@ -85,12 +129,27 @@ serve(async (req) => {
         continue;
       }
 
-      console.log(`[Step 1/3] ✓ Found English source for '${ns}' with ${Object.keys(englishData.translations).length} keys`);
+      const totalKeys = Object.keys(englishData.translations).length;
+      console.log(`[Step 1/3] ✓ Found English source for '${ns}' with ${totalKeys} keys`);
+
+      // Update job with total keys count
+      if (currentJobId) {
+        await supabaseClient
+          .from('translation_generation_jobs')
+          .update({ total_keys_count: totalKeys })
+          .eq('id', currentJobId);
+      }
 
     console.log(`[Step 2/3] Generating translations for ${targetLanguages.length} languages SEQUENTIALLY...`);
 
       // Generate translations SEQUENTIALLY (not parallel) to avoid rate limits
       for (const [index, lang] of targetLanguages.entries()) {
+        // Phase 2: Skip already completed languages
+        if (completedLanguages.includes(lang)) {
+          console.log(`[Step 2/3] Skipping ${lang} (already completed)`);
+          continue;
+        }
+        
         const startTime = Date.now();
         
         try {
