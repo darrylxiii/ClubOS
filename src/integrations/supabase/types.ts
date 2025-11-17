@@ -6281,6 +6281,7 @@ export type Database = {
           event_title: string
           id: string
           interview_type: string | null
+          interviewer_ids: string[] | null
           job_id: string | null
           linked_booking_id: string | null
           location: string | null
@@ -6311,6 +6312,7 @@ export type Database = {
           event_title: string
           id?: string
           interview_type?: string | null
+          interviewer_ids?: string[] | null
           job_id?: string | null
           linked_booking_id?: string | null
           location?: string | null
@@ -6341,6 +6343,7 @@ export type Database = {
           event_title?: string
           id?: string
           interview_type?: string | null
+          interviewer_ids?: string[] | null
           job_id?: string | null
           linked_booking_id?: string | null
           location?: string | null

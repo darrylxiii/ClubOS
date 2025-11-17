@@ -172,6 +172,13 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         const stages = app?.stages ? JSON.parse(app.stages) : [];
         const currentStage = stages[app?.current_stage_index || 0];
         
+        // Use interviewer_ids if available, otherwise fall back to detected_partners
+        const interviewerIds = d.interviewer_ids && d.interviewer_ids.length > 0
+          ? d.interviewer_ids
+          : (Array.isArray(d.detected_partners) 
+              ? d.detected_partners.map((p: any) => p.user_id).filter(Boolean)
+              : []);
+        
         return {
           id: d.id,
           source: 'detected' as const,
@@ -183,9 +190,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
           candidate_avatar: candidateProfile?.avatar_url || null,
           interview_type: d.interview_type,
           meeting_link: d.meeting_link,
-          interviewer_ids: Array.isArray(d.detected_partners) 
-            ? d.detected_partners.map((p: any) => p.user_id).filter(Boolean)
-            : [],
+          interviewer_ids: interviewerIds,
           feedback_submitted_at: null,
           status: d.status,
           confidence: d.detection_confidence,
@@ -351,7 +356,10 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
     >
       {/* Header: Candidate + Join Button */}
       <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3 flex-1 min-w-0">
+        <Link 
+          to={interview.candidate_id ? `/partner/candidates/${interview.candidate_id}` : '#'}
+          className={`flex items-center gap-3 flex-1 min-w-0 ${interview.candidate_id ? 'hover:opacity-80 transition-opacity' : 'pointer-events-none'}`}
+        >
           {/* Candidate Avatar */}
           <Avatar className="h-10 w-10 shrink-0">
             <AvatarImage src={interview.candidate_avatar || undefined} />
@@ -363,7 +371,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
           {/* Candidate Name + Badges */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-1">
-              <p className="font-semibold text-sm truncate">
+              <p className="font-semibold text-sm truncate hover:underline">
                 {interview.candidate_name || interview.event_title || 'Interview'}
               </p>
               {interview.source === 'detected' && (
@@ -387,7 +395,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
               </span>
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* Join Button */}
         {interview.meeting_link && (
