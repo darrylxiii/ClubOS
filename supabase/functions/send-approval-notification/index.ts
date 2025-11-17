@@ -126,7 +126,7 @@ serve(async (req) => {
               
               <p>We appreciate you taking the time to apply and wish you all the best in your ${requestType === 'candidate' ? 'career' : 'business'} journey.</p>
               
-              <p>If you have any questions, feel free to reach out to us at <a href="mailto:hello@thequantumclub.com">hello@thequantumclub.com</a>.</p>
+              <p>If you have any questions, feel free to reach out to us at <a href="mailto:verify@thequantumclub.com">verify@thequantumclub.com</a>.</p>
               
               <p>Best regards,<br><strong>The Quantum Club Team</strong></p>
             </div>
@@ -147,7 +147,7 @@ serve(async (req) => {
           'Authorization': `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: 'The Quantum Club <hello@thequantumclub.com>',
+          from: 'The Quantum Club <verify@thequantumclub.com>',
           to: [email],
           subject: subject,
           html: htmlContent,
