@@ -256,6 +256,61 @@ export default function OAuthOnboarding() {
     return true;
   };
 
+  // Save partial progress after each step
+  const savePartialProgress = async (completedStep: number) => {
+    if (!user) return;
+    
+    try {
+      const partialData: any = {};
+      
+      if (completedStep >= 0) {
+        partialData.phone = phoneNumber;
+        partialData.phone_verified = phoneVerified;
+        partialData.location = formData.location;
+      }
+      
+      if (completedStep >= 1) {
+        partialData.current_title = formData.current_title;
+        partialData.linkedin_url = formData.linkedin_url;
+        partialData.bio = formData.bio;
+        partialData.resume_url = formData.resume_url;
+        partialData.resume_filename = formData.resume_filename;
+      }
+      
+      if (completedStep >= 2) {
+        partialData.dream_job_title = formData.dream_job_title;
+        partialData.employment_type = formData.employment_type;
+        partialData.notice_period = formData.notice_period;
+        partialData.remote_work_aspiration = formData.remote_work_aspiration;
+        partialData.preferred_work_locations = formData.preferred_work_locations;
+        partialData.current_salary_min = formData.current_salary_min;
+        partialData.current_salary_max = formData.current_salary_max;
+        partialData.desired_salary_min = formData.desired_salary_min;
+        partialData.desired_salary_max = formData.desired_salary_max;
+        partialData.freelance_hourly_rate_min = formData.freelance_hourly_rate_min;
+        partialData.freelance_hourly_rate_max = formData.freelance_hourly_rate_max;
+        partialData.salary_preference_hidden = formData.salary_preference_hidden;
+      }
+      
+      if (completedStep >= 3) {
+        partialData.remote_work_preference = formData.remote_work_preference;
+      }
+
+      await supabase
+        .from('profiles')
+        .update({
+          onboarding_current_step: completedStep + 1,
+          onboarding_partial_data: partialData,
+          onboarding_last_activity_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      console.log(`[OAuth Onboarding] Saved progress for step ${completedStep + 1}`);
+    } catch (err) {
+      console.error('[OAuth Onboarding] Failed to save partial progress:', err);
+    }
+  };
+
   const handleNext = async () => {
     // Step 0: Contact - handle phone verification
     if (currentStep === 0) {
@@ -275,10 +330,24 @@ export default function OAuthOnboarding() {
     }
     
     if (!validateStep()) return;
+    
+    // Save progress before moving to next step
+    await savePartialProgress(currentStep);
     setCurrentStep(prev => prev + 1);
   };
 
-  const handleBack = () => {
+  const handleBack = async () => {
+    // Update step tracker when going back
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({ 
+          onboarding_current_step: currentStep,
+          onboarding_last_activity_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+    }
+    
     setCurrentStep(prev => prev - 1);
   };
 

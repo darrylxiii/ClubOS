@@ -176,6 +176,68 @@ export function CandidateOnboardingSteps() {
     navigate(`/auth?email=${encodedEmail}`);
   };
 
+  // Save partial progress after each step
+  const savePartialProgress = async (completedStep: number) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const partialData: any = {};
+      
+      if (completedStep >= 0) {
+        partialData.full_name = formData.full_name;
+        partialData.email = formData.email;
+        partialData.phone = phoneNumber;
+        partialData.location = formData.location;
+        partialData.email_verified = emailVerified;
+        partialData.phone_verified = phoneVerified;
+      }
+      
+      if (completedStep >= 1) {
+        partialData.current_title = formData.current_title;
+        partialData.linkedin_url = formData.linkedin_url;
+        partialData.bio = formData.bio;
+        partialData.resume_url = formData.resume_url;
+        partialData.resume_filename = formData.resume_filename;
+      }
+      
+      if (completedStep >= 2) {
+        partialData.dream_job_title = formData.dream_job_title;
+        partialData.employment_type = formData.employment_type;
+        partialData.notice_period = formData.notice_period;
+        partialData.remote_work_aspiration = formData.remote_work_aspiration;
+        partialData.preferred_work_locations = formData.preferred_work_locations;
+      }
+      
+      if (completedStep >= 3) {
+        partialData.current_salary_min = formData.current_salary_min;
+        partialData.current_salary_max = formData.current_salary_max;
+        partialData.desired_salary_min = formData.desired_salary_min;
+        partialData.desired_salary_max = formData.desired_salary_max;
+        partialData.freelance_hourly_rate_min = formData.freelance_hourly_rate_min;
+        partialData.freelance_hourly_rate_max = formData.freelance_hourly_rate_max;
+        partialData.salary_preference_hidden = formData.salary_preference_hidden;
+      }
+      
+      if (completedStep >= 4) {
+        partialData.remote_work_preference = formData.remote_work_preference;
+      }
+
+      await supabase
+        .from('profiles')
+        .update({
+          onboarding_current_step: completedStep + 1,
+          onboarding_partial_data: partialData,
+          onboarding_last_activity_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      console.log(`[Onboarding] Saved progress for step ${completedStep + 1}`);
+    } catch (err) {
+      console.error('[Onboarding] Failed to save partial progress:', err);
+    }
+  };
+
   const handleNext = async () => {
     // Step 0: Contact info - check email and verify
     if (currentStep === 0) {
@@ -228,12 +290,27 @@ export function CandidateOnboardingSteps() {
     
     if (!validateStep()) return;
     
+    // Save progress before moving to next step
+    await savePartialProgress(currentStep);
     await trackStep("complete");
     setCurrentStep(currentStep + 1);
   };
 
   const handleBack = async () => {
     await trackStep("abandon");
+    
+    // Update step tracker when going back
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({ 
+          onboarding_current_step: currentStep,
+          onboarding_last_activity_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+    }
+    
     setCurrentStep(currentStep - 1);
   };
 
