@@ -86,7 +86,7 @@ serve(async (req) => {
                 </a>
               </div>
               
-              <p style="margin-top: 30px;">If you have any questions, our team is here to help at <a href="mailto:hello@thequantumclub.com">hello@thequantumclub.com</a> or reach out to Darryl directly at <a href="mailto:darryl@thequantumclub.nl">darryl@thequantumclub.nl</a>.</p>
+              <p style="margin-top: 30px;">If you have any questions, our team is here to help at <a href="mailto:onboarding@verify.thequantumclub.nl">onboarding@verify.thequantumclub.nl</a> or reach out to Darryl directly at <a href="mailto:darryl@thequantumclub.nl">darryl@thequantumclub.nl</a>.</p>
               
               <p>Welcome aboard,<br><strong>The Quantum Club Team</strong></p>
             </div>
@@ -126,7 +126,7 @@ serve(async (req) => {
               
               <p>We appreciate you taking the time to apply and wish you all the best in your ${requestType === 'candidate' ? 'career' : 'business'} journey.</p>
               
-              <p>If you have any questions, feel free to reach out to us at <a href="mailto:verify@thequantumclub.com">verify@thequantumclub.com</a>.</p>
+              <p>If you have any questions, feel free to reach out to us at <a href="mailto:onboarding@verify.thequantumclub.nl">onboarding@verify.thequantumclub.nl</a>.</p>
               
               <p>Best regards,<br><strong>The Quantum Club Team</strong></p>
             </div>
@@ -147,7 +147,7 @@ serve(async (req) => {
           'Authorization': `Bearer ${RESEND_API_KEY}`,
         },
         body: JSON.stringify({
-          from: 'The Quantum Club <verify@thequantumclub.com>',
+          from: 'The Quantum Club <onboarding@verify.thequantumclub.nl>',
           to: [email],
           subject: subject,
           html: htmlContent,
