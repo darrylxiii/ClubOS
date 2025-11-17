@@ -69,6 +69,40 @@ serve(async (req) => {
     const result = await twilioResponse.json();
     console.log('[send-approval-sms] SMS sent successfully:', result.sid);
 
+    // Log notification to database
+    try {
+      const bodyText = await req.text();
+      const { userId, requestType } = JSON.parse(bodyText);
+      
+      if (userId && requestType) {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        
+        await fetch(`${supabaseUrl}/rest/v1/approval_notification_logs`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseServiceKey,
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            request_type: requestType,
+            notification_type: 'sms',
+            status: 'sent',
+            metadata: {
+              message_sid: result.sid,
+              phone: phone
+            }
+          })
+        });
+        console.log('SMS notification logged to database');
+      }
+    } catch (logError) {
+      console.error('Failed to log SMS notification:', logError);
+    }
+
     return new Response(
       JSON.stringify({ success: true, messageSid: result.sid }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
@@ -76,6 +110,38 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('[send-approval-sms] Error:', error);
+    
+    // Log failed notification attempt
+    try {
+      const bodyText = await req.text();
+      const { userId, requestType, phone } = JSON.parse(bodyText);
+      
+      if (userId && requestType) {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        
+        await fetch(`${supabaseUrl}/rest/v1/approval_notification_logs`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseServiceKey,
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            request_type: requestType,
+            notification_type: 'sms',
+            status: 'failed',
+            error_message: error.message,
+            metadata: { phone }
+          })
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

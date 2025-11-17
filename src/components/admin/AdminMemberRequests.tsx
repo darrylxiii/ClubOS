@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle, Clock, User, Mail, Phone, Briefcase, MapPin, ExternalLink } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,6 +37,20 @@ interface MemberRequest {
     estimated_roles_per_year?: string;
     website?: string;
   } | null;
+  reviewed_by?: string | null;
+  approver?: {
+    full_name: string;
+    avatar_url: string | null;
+    email: string;
+  };
+  activity?: {
+    last_login_at: string | null;
+  };
+  notifications?: Array<{
+    notification_type: 'email' | 'sms';
+    status: 'sent' | 'failed';
+    sent_at: string;
+  }>;
 }
 
 export const AdminMemberRequests = () => {
@@ -48,6 +63,7 @@ export const AdminMemberRequests = () => {
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'declined'>('pending');
   const [sendEmail, setSendEmail] = useState(true);
   const [sendSMS, setSendSMS] = useState(true);
+  const [requestTypeFilter, setRequestTypeFilter] = useState<'all' | 'candidate' | 'partner'>('all');
 
   useEffect(() => {
     fetchRequests();
@@ -75,14 +91,91 @@ export const AdminMemberRequests = () => {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch unified requests with enriched data
+      const { data: requestsData, error: requestsError } = await supabase
         .from('member_requests_unified')
         .select('*')
         .eq('status', activeTab)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setRequests(data as MemberRequest[]);
+      if (requestsError) throw requestsError;
+
+      // Enrich with approver, activity, and notification data
+      const enrichedRequests = await Promise.all(
+        (requestsData || []).map(async (request) => {
+          const enriched: MemberRequest = { 
+            ...request,
+            request_type: request.request_type as 'candidate' | 'partner',
+            status: request.status as 'pending' | 'approved' | 'declined',
+            additional_data: request.additional_data as MemberRequest['additional_data']
+          };
+
+          // Fetch approver info if reviewed
+          if (request.reviewed_by) {
+            const { data: approverData } = await supabase
+              .from('profiles')
+              .select('full_name, avatar_url, email')
+              .eq('id', request.reviewed_by)
+              .single();
+            
+            if (approverData) {
+              enriched.approver = approverData;
+            }
+          }
+
+          // Fetch user activity (for approved candidates/partners)
+          if (request.status === 'approved') {
+            // Get user_id from the request
+            let userId = null;
+            if (request.request_type === 'candidate') {
+              const { data: profileData } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', request.email)
+                .single();
+              userId = profileData?.id;
+            } else {
+              const { data: partnerData } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', request.email)
+                .single();
+              userId = partnerData?.id;
+            }
+
+            if (userId) {
+              const { data: activityData } = await supabase
+                .from('user_activity_tracking')
+                .select('last_login_at')
+                .eq('user_id', userId)
+                .single();
+              
+              if (activityData) {
+                enriched.activity = activityData;
+              }
+
+              // Fetch notification logs
+              const { data: notificationData } = await supabase
+                .from('approval_notification_logs')
+                .select('notification_type, status, sent_at')
+                .eq('user_id', userId)
+                .eq('request_type', request.request_type);
+              
+              if (notificationData) {
+                enriched.notifications = notificationData.map(n => ({
+                  notification_type: n.notification_type as 'email' | 'sms',
+                  status: n.status as 'sent' | 'failed',
+                  sent_at: n.sent_at
+                }));
+              }
+            }
+          }
+
+          return enriched;
+        })
+      );
+
+      setRequests(enrichedRequests);
     } catch (error) {
       console.error('Error fetching member requests:', error);
       toast.error('Failed to load requests');
@@ -241,17 +334,27 @@ export const AdminMemberRequests = () => {
 
   return (
     <>
+      {/* Request Type Filter */}
+      <div className="mb-4">
+        <Tabs value={requestTypeFilter} onValueChange={(v) => setRequestTypeFilter(v as any)}>
+          <TabsList>
+            <TabsTrigger value="all">All Requests</TabsTrigger>
+            <TabsTrigger value="candidate">Candidates Only</TabsTrigger>
+            <TabsTrigger value="partner">Partners Only</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {/* Status Filter */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="mb-6">
         <TabsList>
-          <TabsTrigger value="pending">
-            Pending
-          </TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="approved">Approved</TabsTrigger>
           <TabsTrigger value="declined">Declined</TabsTrigger>
         </TabsList>
       </Tabs>
 
-      {requests.length === 0 ? (
+      {requests.filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).length === 0 ? (
         <Card>
           <CardContent className="p-12 text-center">
             <Clock className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
@@ -260,7 +363,11 @@ export const AdminMemberRequests = () => {
         </Card>
       ) : (
         <div className="space-y-4">
-          {requests.map(request => (
+          {requests.filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).map(request => {
+            const emailSent = request.notifications?.some(n => n.notification_type === 'email' && n.status === 'sent');
+            const smsSent = request.notifications?.some(n => n.notification_type === 'sms' && n.status === 'sent');
+            
+            return (
             <Card key={request.id} className="hover:shadow-lg transition-shadow">
               <CardContent className="p-6">
                 <div className="flex items-start justify-between">
@@ -389,27 +496,50 @@ export const AdminMemberRequests = () => {
                   </div>
                 </div>
 
-                {/* Status badge for approved/declined tabs */}
+                {/* Enhanced info for approved/declined tabs */}
                 {request.status !== 'pending' && (
-                  <div className="mt-4 pt-4 border-t">
-                    <Badge variant={request.status === 'approved' ? 'default' : 'destructive'}>
-                      {request.status === 'approved' ? 'Approved' : 'Declined'}
-                    </Badge>
-                    {request.reviewed_at && (
-                      <span className="text-xs text-muted-foreground ml-2">
-                        {formatDistanceToNow(new Date(request.reviewed_at), { addSuffix: true })}
-                      </span>
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {request.approver && (
+                      <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={request.approver.avatar_url || undefined} />
+                          <AvatarFallback>{request.approver.full_name?.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-medium">{request.status === 'approved' ? 'Approved by' : 'Declined by'}</p>
+                          <p className="text-sm text-muted-foreground">{request.approver.full_name}</p>
+                          {request.reviewed_at && <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(request.reviewed_at), { addSuffix: true })}</p>}
+                        </div>
+                      </div>
                     )}
-                    {request.decline_reason && (
-                      <p className="text-sm text-muted-foreground mt-2">
-                        <strong>Reason:</strong> {request.decline_reason}
-                      </p>
+                    {request.status === 'approved' && (
+                      <div className="flex flex-col gap-2 p-3 bg-muted rounded-lg">
+                        <p className="text-sm font-medium mb-1">Notifications</p>
+                        <div className="flex gap-2">
+                          <Badge variant={emailSent ? "default" : "outline"}><Mail className="w-3 h-3 mr-1" />Email {emailSent ? "Sent" : "Not Sent"}</Badge>
+                          <Badge variant={smsSent ? "default" : "outline"}><Phone className="w-3 h-3 mr-1" />SMS {smsSent ? "Sent" : "Not Sent"}</Badge>
+                        </div>
+                      </div>
+                    )}
+                    {request.status === 'approved' && (
+                      <div className="p-3 bg-muted rounded-lg">
+                        <p className="text-sm font-medium mb-2">Login Status</p>
+                        {request.activity?.last_login_at ? (
+                          <div className="flex items-center gap-2 text-green-600"><CheckCircle2 className="w-4 h-4" /><span className="text-sm">Logged in {formatDistanceToNow(new Date(request.activity.last_login_at), { addSuffix: true })}</span></div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-amber-600"><Clock className="w-4 h-4" /><span className="text-sm">Not logged in yet</span></div>
+                        )}
+                      </div>
                     )}
                   </div>
                 )}
+                {request.status === 'declined' && request.decline_reason && (
+                  <div className="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-lg"><p className="text-sm font-semibold mb-1">Decline Reason:</p><p className="text-sm text-muted-foreground">{request.decline_reason}</p></div>
+                )}
               </CardContent>
             </Card>
-          ))}
+          );
+          })}
         </div>
       )}
 
