@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUserRole } from './useUserRole';
 
 export function useJobTeamRole(jobId: string) {
   const { user } = useAuth();
+  const { role: globalRole } = useUserRole();
   const [jobRole, setJobRole] = useState<string | null>(null);
   const [permissions, setPermissions] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,22 @@ export function useJobTeamRole(jobId: string) {
       }
       
       try {
-        // First get user's profile to find company
+        // BYPASS for admins and strategists - they get full access
+        if (globalRole === 'admin' || globalRole === 'strategist') {
+          setJobRole('admin');
+          setPermissions({
+            canViewCandidates: true,
+            canScheduleInterviews: true,
+            canAdvanceCandidates: true,
+            canDeclineCandidates: true,
+            canMakeOffers: true,
+            isPrimaryContact: true,
+          });
+          setLoading(false);
+          return;
+        }
+        
+        // Continue with company-based checks for partners
         const { data: profile } = await supabase
           .from('profiles')
           .select('company_id')
@@ -68,7 +85,7 @@ export function useJobTeamRole(jobId: string) {
     }
     
     fetchJobRole();
-  }, [user, jobId]);
+  }, [user, jobId, globalRole]);
   
   return { jobRole, permissions, loading };
 }
