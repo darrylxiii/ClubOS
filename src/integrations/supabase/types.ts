@@ -279,6 +279,82 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_member_approval_actions: {
+        Row: {
+          action_data: Json | null
+          action_result: string | null
+          action_type: string
+          approved_by: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          request_id: string
+        }
+        Insert: {
+          action_data?: Json | null
+          action_result?: string | null
+          action_type: string
+          approved_by: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          request_id: string
+        }
+        Update: {
+          action_data?: Json | null
+          action_result?: string | null
+          action_type?: string
+          approved_by?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          request_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_member_approval_actions_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "admin_member_approval_actions_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_member_approval_actions_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_member_approval_actions_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "admin_member_approval_actions_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admin_member_approval_actions_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_action_log: {
         Row: {
           action_data: Json | null
