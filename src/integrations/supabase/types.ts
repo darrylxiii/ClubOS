@@ -8582,13 +8582,18 @@ export type Database = {
       }
       job_team_assignments: {
         Row: {
+          assigned_by: string | null
+          assignment_metadata: Json | null
+          assignment_reason: string | null
+          assignment_type: string | null
           can_advance_candidates: boolean | null
           can_decline_candidates: boolean | null
           can_make_offers: boolean | null
           can_schedule_interviews: boolean | null
           can_view_candidates: boolean | null
-          company_member_id: string
+          company_member_id: string | null
           created_at: string | null
+          external_user_id: string | null
           id: string
           interview_stages: number[] | null
           is_primary_contact: boolean | null
@@ -8598,13 +8603,18 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          assigned_by?: string | null
+          assignment_metadata?: Json | null
+          assignment_reason?: string | null
+          assignment_type?: string | null
           can_advance_candidates?: boolean | null
           can_decline_candidates?: boolean | null
           can_make_offers?: boolean | null
           can_schedule_interviews?: boolean | null
           can_view_candidates?: boolean | null
-          company_member_id: string
+          company_member_id?: string | null
           created_at?: string | null
+          external_user_id?: string | null
           id?: string
           interview_stages?: number[] | null
           is_primary_contact?: boolean | null
@@ -8614,13 +8624,18 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          assigned_by?: string | null
+          assignment_metadata?: Json | null
+          assignment_reason?: string | null
+          assignment_type?: string | null
           can_advance_candidates?: boolean | null
           can_decline_candidates?: boolean | null
           can_make_offers?: boolean | null
           can_schedule_interviews?: boolean | null
           can_view_candidates?: boolean | null
-          company_member_id?: string
+          company_member_id?: string | null
           created_at?: string | null
+          external_user_id?: string | null
           id?: string
           interview_stages?: number[] | null
           is_primary_contact?: boolean | null
@@ -18820,6 +18835,17 @@ export type Database = {
         Returns: boolean
       }
       is_team_member: { Args: { check_user_id: string }; Returns: boolean }
+      is_tqc_team_email_for_job: {
+        Args: { check_email: string; check_job_id?: string }
+        Returns: {
+          assigned_to_job: boolean
+          full_name: string
+          is_match: boolean
+          job_role: string
+          roles: string[]
+          user_id: string
+        }[]
+      }
       log_achievement_event: {
         Args: { _event_data?: Json; _event_type: string; _user_id: string }
         Returns: string
