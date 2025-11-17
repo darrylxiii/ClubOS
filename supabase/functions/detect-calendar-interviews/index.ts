@@ -31,40 +31,56 @@ async function buildEmailLookupMaps(
 
   if (allEmails.length === 0) return maps;
 
-  // Batch check TQC team members
-  const { data: tqcUsers } = await supabase
-    .from('profiles')
-    .select('id, email, full_name')
-    .in('email', allEmails)
-    .in('id', 
-      supabase.from('user_roles')
-        .select('user_id')
-        .in('role', ['admin', 'strategist'])
-    );
+  // First get user_roles to identify TQC members
+  const { data: userRoles } = await supabase
+    .from('user_roles')
+    .select('user_id')
+    .in('role', ['admin', 'strategist']);
 
-  if (tqcUsers) {
-    tqcUsers.forEach((user: any) => {
-      maps.tqcMap.set(user.email.toLowerCase(), {
-        userId: user.id,
-        name: user.full_name
+  const tqcUserIds = userRoles?.map((r: any) => r.user_id) || [];
+
+  // Batch check TQC team members
+  if (tqcUserIds.length > 0) {
+    const { data: tqcUsers } = await supabase
+      .from('profiles')
+      .select('id, email, full_name')
+      .in('email', allEmails)
+      .in('id', tqcUserIds);
+
+    if (tqcUsers) {
+      tqcUsers.forEach((user: any) => {
+        maps.tqcMap.set(user.email.toLowerCase(), {
+          userId: user.id,
+          name: user.full_name
+        });
       });
-    });
+    }
   }
 
-  // Batch check candidates
+  // Batch check candidates - simplified query
   const { data: candidates } = await supabase
     .from('candidate_profiles')
-    .select(`
-      id,
-      email,
-      full_name,
-      applications!inner(id, job_id)
-    `)
+    .select('id, email, full_name')
     .in('email', allEmails);
 
   if (candidates) {
+    // Get applications for these candidates
+    const candidateIds = candidates.map((c: any) => c.id);
+    const { data: applications } = await supabase
+      .from('applications')
+      .select('id, job_id, candidate_id')
+      .in('candidate_id', candidateIds)
+      .order('applied_at', { ascending: false });
+
+    const appMap = new Map();
+    applications?.forEach((app: any) => {
+      if (!appMap.has(app.candidate_id)) {
+        appMap.set(app.candidate_id, app);
+      }
+    });
+
     candidates.forEach((cand: any) => {
-      const app = cand.applications?.[0];
+      const app = appMap.get(cand.id);
       maps.candidateMap.set(cand.email.toLowerCase(), {
         candidateId: cand.id,
         applicationId: app?.id,
@@ -74,25 +90,34 @@ async function buildEmailLookupMaps(
     });
   }
 
-  // Batch check partners
-  const { data: partners } = await supabase
+  // Batch check partners - simplified
+  const { data: companyMembers } = await supabase
     .from('company_members')
-    .select(`
-      user_id,
-      company_id,
-      profiles!inner(email, full_name)
-    `)
-    .in('profiles.email', allEmails)
+    .select('user_id, company_id')
     .eq('is_active', true);
 
-  if (partners) {
-    partners.forEach((partner: any) => {
-      maps.partnerMap.set(partner.profiles.email.toLowerCase(), {
-        userId: partner.user_id,
-        companyId: partner.company_id,
-        name: partner.profiles.full_name
+  if (companyMembers) {
+    const memberUserIds = companyMembers.map((m: any) => m.user_id);
+    const { data: memberProfiles } = await supabase
+      .from('profiles')
+      .select('id, email, full_name')
+      .in('email', allEmails)
+      .in('id', memberUserIds);
+
+    if (memberProfiles) {
+      const userToCompany = new Map();
+      companyMembers.forEach((m: any) => {
+        userToCompany.set(m.user_id, m.company_id);
       });
-    });
+
+      memberProfiles.forEach((profile: any) => {
+        maps.partnerMap.set(profile.email.toLowerCase(), {
+          userId: profile.id,
+          companyId: userToCompany.get(profile.id),
+          name: profile.full_name
+        });
+      });
+    }
   }
 
   return maps;
@@ -233,6 +258,15 @@ serve(async (req) => {
     }
 
     console.log(`Total events: ${allEvents.length}`);
+
+    // Limit to 30 most recent events to avoid timeout
+    allEvents.sort((a, b) => {
+      const dateA = new Date(a.start?.dateTime || a.start?.date || 0);
+      const dateB = new Date(b.start?.dateTime || b.start?.date || 0);
+      return dateB.getTime() - dateA.getTime();
+    });
+    allEvents = allEvents.slice(0, 30);
+    console.log(`Processing ${allEvents.length} most recent events`);
 
     const allAttendeeEmails = new Set<string>();
     allEvents.forEach(event => {
