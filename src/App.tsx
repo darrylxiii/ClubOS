@@ -505,7 +505,6 @@ const App = () => {
                       <Route path="/invites" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><InviteDashboard /></Suspense></ProtectedRoute>} />
                       <Route path="/salary-insights" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SalaryInsights /></Suspense></ProtectedRoute>} />
                       <Route path="/career-path" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CareerPath /></Suspense></ProtectedRoute>} />
-                      <Route path="/onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Onboarding /></Suspense></ProtectedRoute>} />
                       <Route path="/partner-onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><PartnerOnboarding /></Suspense></ProtectedRoute>} />
                       <Route path="/meeting-notes/:meetingId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingNotes /></Suspense></ProtectedRoute>} />
                       <Route path="/company/:id/applications" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyApplications /></Suspense></ProtectedRoute>} />
