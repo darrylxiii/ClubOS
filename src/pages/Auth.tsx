@@ -475,12 +475,12 @@ const Auth = () => {
               </Button>
 
               <div className="text-center pt-2">
-                <Link
-                  to="/candidate-onboarding"
-                  className="text-foreground/80 hover:text-foreground text-sm"
-                >
-                  Request Access
-                </Link>
+            <Link
+              to="/onboarding"
+              className="text-foreground/80 hover:text-foreground text-sm"
+            >
+              Request Access
+            </Link>
               </div>
 
               {isLogin && (

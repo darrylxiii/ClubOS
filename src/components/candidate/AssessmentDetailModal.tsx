@@ -20,6 +20,7 @@ import {
   Award
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 interface AssessmentResult {
   id: string;
@@ -47,6 +48,8 @@ export const AssessmentDetailModal = memo(({
   result,
   allowRetake = false 
 }: AssessmentDetailModalProps) => {
+  const navigate = useNavigate();
+
   const handleRetake = () => {
     const routes: Record<string, string> = {
       'swipe-game': '/swipe-game',
@@ -56,7 +59,7 @@ export const AssessmentDetailModal = memo(({
       'values-poker': '/values-poker',
       'incubator-20': '/assessments/incubator-20',
     };
-    window.location.href = routes[result.assessment_id] || '/assessments';
+    navigate(routes[result.assessment_id] || '/assessments');
   };
 
   const handleDownload = () => {

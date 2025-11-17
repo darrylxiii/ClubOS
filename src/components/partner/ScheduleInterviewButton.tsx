@@ -3,6 +3,8 @@ import { Calendar, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { CreateInterviewDialog } from './CreateInterviewDialog';
 import { T } from '@/components/T';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface ScheduleInterviewButtonProps {
   application: any;
@@ -24,6 +26,7 @@ export const ScheduleInterviewButton = ({
   className = '',
 }: ScheduleInterviewButtonProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   return (
     <>
@@ -46,7 +49,8 @@ export const ScheduleInterviewButton = ({
         stageName={stageName}
         onInterviewCreated={() => {
           setDialogOpen(false);
-          window.location.reload(); // Refresh to show new interview
+          queryClient.invalidateQueries({ queryKey: ['interviews'] });
+          toast.success("Interview scheduled successfully");
         }}
       />
     </>

@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -59,11 +59,11 @@ const NotFound = () => {
         </div>
 
         {/* CTA Button */}
-        <a href="/">
+        <Link to="/">
           <Button variant="glass" size="lg" className="font-bold hover-lift">
             Return Home
           </Button>
-        </a>
+        </Link>
       </div>
     </div>
   );
