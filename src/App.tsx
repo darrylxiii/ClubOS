@@ -176,7 +176,6 @@ const CompanySettings = lazy(() => import("./pages/CompanySettings"));
 const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 const PartnerTargetCompanies = lazy(() => import("./pages/PartnerTargetCompanies"));
 const TargetCompaniesOverview = lazy(() => import("./pages/admin/TargetCompaniesOverview"));
-const MemberRequestsPage = lazy(() => import("./pages/admin/MemberRequestsPage"));
 
 // Password Reset Pages
 import ForgotPassword from "./pages/ForgotPassword";
