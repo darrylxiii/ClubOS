@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { CandidateOnboardingSteps } from "@/components/candidate-onboarding/CandidateOnboardingSteps";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -41,7 +42,13 @@ export default function CandidateOnboarding() {
               alt="Quantum Club" 
               className="h-28 hidden dark:block"
             />
-            <div className="absolute right-4">
+            <div className="absolute right-4 flex items-center gap-4">
+              <Link 
+                to="/auth" 
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Back to Login
+              </Link>
               <ThemeToggle />
             </div>
           </div>
@@ -75,7 +82,13 @@ export default function CandidateOnboarding() {
             alt="Quantum Club" 
             className="h-28 hidden dark:block"
           />
-          <div className="absolute right-4">
+          <div className="absolute right-4 flex items-center gap-4">
+            <Link 
+              to="/auth" 
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Back to Login
+            </Link>
             <ThemeToggle />
           </div>
         </div>
