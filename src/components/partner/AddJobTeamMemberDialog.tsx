@@ -80,19 +80,20 @@ export const AddJobTeamMemberDialog = ({
       // Get company members not already assigned to this job
       const { data: members, error: membersError } = await supabase
         .from('company_members')
-        .select(`
-          id,
-          job_title,
-          user:profiles(
-            id,
-            full_name,
-            email
-          )
-        `)
+        .select('id, job_title, user_id')
         .eq('company_id', job.company_id)
         .eq('is_active', true);
 
       if (membersError) throw membersError;
+
+      // Get user profiles for these members
+      const userIds = members?.map(m => m.user_id).filter(Boolean) || [];
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
 
       // Filter out already assigned members
       const { data: assigned } = await supabase
@@ -101,9 +102,14 @@ export const AddJobTeamMemberDialog = ({
         .eq('job_id', jobId);
 
       const assignedIds = new Set(assigned?.map((a) => a.company_member_id).filter(Boolean) || []);
-      const available = members?.filter((m) => !assignedIds.has(m.id)) || [];
+      
+      // Combine member data with profiles
+      const membersWithProfiles = members?.map(member => ({
+        ...member,
+        user: profiles?.find(p => p.id === member.user_id)
+      })).filter((m) => !assignedIds.has(m.id)) || [];
 
-      setCompanyMembers(available);
+      setCompanyMembers(membersWithProfiles);
     } catch (error) {
       console.error('Error fetching company members:', error);
       toast.error('Failed to load team members');
@@ -113,18 +119,32 @@ export const AddJobTeamMemberDialog = ({
   const fetchTqcTeamMembers = async () => {
     try {
       // Get TQC team members (admins and strategists)
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('role', ['admin', 'strategist']);
+
+      if (rolesError) throw rolesError;
+
+      const tqcUserIds = userRoles?.map(r => r.user_id) || [];
+      
+      if (tqcUserIds.length === 0) {
+        setTqcTeamMembers([]);
+        return;
+      }
+
       const { data: tqcMembers, error } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          full_name,
-          email,
-          avatar_url,
-          user_roles!inner(role)
-        `)
-        .in('user_roles.role', ['admin', 'strategist']);
+        .select('id, full_name, email, avatar_url')
+        .in('id', tqcUserIds);
 
       if (error) throw error;
+
+      // Add roles to profiles
+      const membersWithRoles = tqcMembers?.map(member => ({
+        ...member,
+        roles: userRoles?.filter(r => r.user_id === member.id).map(r => r.role) || []
+      })) || [];
 
       // Filter out already assigned external users
       const { data: assigned } = await supabase
@@ -133,11 +153,12 @@ export const AddJobTeamMemberDialog = ({
         .eq('job_id', jobId);
 
       const assignedExternalIds = new Set(assigned?.map((a) => a.external_user_id).filter(Boolean) || []);
-      const available = tqcMembers?.filter((m) => !assignedExternalIds.has(m.id)) || [];
+      const available = membersWithRoles.filter((m) => !assignedExternalIds.has(m.id));
 
       setTqcTeamMembers(available);
     } catch (error) {
       console.error('Error fetching TQC team members:', error);
+      toast.error('Failed to load TQC team members');
     }
   };
 
