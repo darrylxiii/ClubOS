@@ -8,11 +8,13 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CheckCircle2, XCircle, Clock, User, Mail, Phone, Briefcase, MapPin, ExternalLink } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, User, Mail, Phone, Briefcase, MapPin, ExternalLink, AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { OnboardingProgressTracker } from "./OnboardingProgressTracker";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface MemberRequest {
   id: string;
@@ -66,8 +68,7 @@ interface MemberRequest {
     remote_work_preference?: boolean;
     resume_url?: string;
     resume_filename?: string;
-    bio?: string;
-    dream_job_title?: string;
+    career_preferences?: string;
     current_salary_min?: number;
     current_salary_max?: number;
     desired_salary_min?: number;
@@ -94,8 +95,8 @@ export const AdminMemberRequests = () => {
   useEffect(() => {
     fetchRequests();
 
-    // Set up realtime subscription
-    const channel = supabase
+    // Set up realtime subscriptions
+    const profilesChannel = supabase
       .channel('member-requests')
       .on(
         'postgres_changes',
@@ -109,8 +110,27 @@ export const AdminMemberRequests = () => {
       )
       .subscribe();
 
+    // Subscribe to onboarding progress updates for pending candidates
+    const onboardingChannel = supabase
+      .channel('admin-onboarding-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: 'account_status=eq.pending'
+        },
+        () => {
+          console.log('[Admin] Candidate onboarding updated');
+          fetchRequests(); // Refresh to show new progress
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(onboardingChannel);
     };
   }, [activeTab]);
 
@@ -132,6 +152,8 @@ export const AdminMemberRequests = () => {
           const enriched: MemberRequest = { 
             ...request,
             request_type: request.request_type as 'candidate' | 'partner',
+            status: request.status as 'pending' | 'approved' | 'declined',
+            additional_data: request.additional_data as MemberRequest['additional_data'],
           };
 
           // Fetch additional data for candidates (including onboarding progress)
@@ -156,8 +178,7 @@ export const AdminMemberRequests = () => {
                 remote_work_preference,
                 resume_url,
                 resume_filename,
-                bio,
-                dream_job_title,
+                career_preferences,
                 current_salary_min,
                 current_salary_max,
                 desired_salary_min,
@@ -569,6 +590,25 @@ export const AdminMemberRequests = () => {
                       </div>
                     )}
 
+                    {/* Onboarding Progress Tracker for pending candidates */}
+                    {request.status === 'pending' && request.request_type === 'candidate' && (
+                      <div className="mt-4">
+                        <OnboardingProgressTracker request={request} />
+                      </div>
+                    )}
+
+                    {/* Warning for incomplete onboarding */}
+                    {request.request_type === 'candidate' && !request.profiles?.onboarding_completed_at && request.status === 'pending' && (
+                      <Alert variant="destructive" className="mt-3">
+                        <AlertCircle className="h-4 w-4" />
+                        <AlertDescription>
+                          ⚠️ Onboarding Incomplete - Step {request.profiles?.onboarding_current_step || 0}/6
+                          {!request.profiles?.phone_verified && ' - Phone not verified'}
+                          {' - '}Cannot approve yet
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
                     {/* Partner-specific info */}
                     {request.request_type === 'partner' && request.additional_data && (
                       <div className="mt-3 p-3 bg-muted rounded-lg text-sm space-y-1">
@@ -595,6 +635,10 @@ export const AdminMemberRequests = () => {
                         <Button 
                           onClick={() => openReviewDialog(request, 'approve')}
                           className="gap-2"
+                          disabled={
+                            request.request_type === 'candidate' && 
+                            (!request.profiles?.onboarding_completed_at || !request.profiles?.phone_verified)
+                          }
                         >
                           <CheckCircle2 className="w-4 h-4" />
                           Approve
