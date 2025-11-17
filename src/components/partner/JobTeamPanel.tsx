@@ -55,30 +55,9 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
 
   const fetchTeamMembers = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: assignments, error } = await supabase
         .from('job_team_assignments')
-        .select(`
-          *,
-          company_member:company_members(
-            id,
-            job_title,
-            user:profiles(
-              id,
-              full_name,
-              email,
-              avatar_url
-            )
-          ),
-          external_user:profiles!external_user_id(
-            id,
-            full_name,
-            email,
-            avatar_url
-          ),
-          assigned_by_user:profiles!assigned_by(
-            full_name
-          )
-        `)
+        .select('*')
         .eq('job_id', jobId)
         .order('assignment_type', { ascending: true })
         .order('is_primary_contact', { ascending: false })
@@ -90,10 +69,80 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
           toast.error('Failed to load team members');
         }
         setTeamMembers([]);
-      } else {
-        const resolved = (data || []).map(resolveTeamMember);
-        setTeamMembers(resolved);
+        setLoading(false);
+        return;
       }
+
+      if (!assignments || assignments.length === 0) {
+        setTeamMembers([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch company members
+      const companyMemberIds = assignments
+        .filter(a => a.company_member_id)
+        .map(a => a.company_member_id);
+      
+      let companyMembers: any[] = [];
+      if (companyMemberIds.length > 0) {
+        const { data: cmData } = await supabase
+          .from('company_members')
+          .select('id, job_title, user_id')
+          .in('id', companyMemberIds);
+        
+        if (cmData) {
+          const userIds = cmData.map(cm => cm.user_id).filter(Boolean);
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name, email, avatar_url')
+            .in('id', userIds);
+          
+          companyMembers = cmData.map(cm => ({
+            ...cm,
+            user: profiles?.find(p => p.id === cm.user_id)
+          }));
+        }
+      }
+
+      // Fetch external users
+      const externalUserIds = assignments
+        .filter(a => a.external_user_id)
+        .map(a => a.external_user_id);
+      
+      let externalUsers: any[] = [];
+      if (externalUserIds.length > 0) {
+        const { data: euData } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, avatar_url')
+          .in('id', externalUserIds);
+        externalUsers = euData || [];
+      }
+
+      // Fetch assigned by users
+      const assignedByIds = assignments
+        .filter(a => a.assigned_by)
+        .map(a => a.assigned_by);
+      
+      let assignedByUsers: any[] = [];
+      if (assignedByIds.length > 0) {
+        const { data: abData } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', assignedByIds);
+        assignedByUsers = abData || [];
+      }
+
+      // Combine all data
+      const enrichedAssignments = assignments.map(assignment => ({
+        ...assignment,
+        company_member: companyMembers.find(cm => cm.id === assignment.company_member_id),
+        external_user: externalUsers.find(eu => eu.id === assignment.external_user_id),
+        assigned_by_user: assignedByUsers.find(ab => ab.id === assignment.assigned_by)
+      }));
+
+      const resolved = enrichedAssignments.map(resolveTeamMember);
+      setTeamMembers(resolved);
     } catch (error) {
       console.error('Error fetching team members:', error);
       setTeamMembers([]);
