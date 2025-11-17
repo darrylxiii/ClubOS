@@ -48,6 +48,10 @@ export function CalendarInterviewLinker({
   const [selectedEvent, setSelectedEvent] = useState<CalendarEventWithDetection | null>(null);
   const [linkingEvent, setLinkingEvent] = useState(false);
   
+  // Team members and interviewer selection
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [selectedInterviewers, setSelectedInterviewers] = useState<string[]>([]);
+  
   // Linking form state
   const [selectedApplicationId, setSelectedApplicationId] = useState<string>("");
   const [interviewType, setInterviewType] = useState<string>("partner_interview");
@@ -56,8 +60,9 @@ export function CalendarInterviewLinker({
   useEffect(() => {
     if (open && user) {
       loadData();
+      loadTeamMembers();
     }
-  }, [open, user]);
+  }, [open, user, jobId]);
 
   const loadData = async () => {
     if (!user) return;
@@ -93,6 +98,77 @@ export function CalendarInterviewLinker({
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadTeamMembers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('job_team_assignments')
+        .select(`
+          *,
+          company_member:company_members!company_member_id(
+            id,
+            user:profiles!company_members_user_id_fkey(id, email, full_name, avatar_url)
+          ),
+          external_user:profiles!external_user_id(id, email, full_name, avatar_url)
+        `)
+        .eq('job_id', jobId);
+
+      if (error) throw error;
+
+      const resolved = (data || []).map(assignment => {
+        const isCompanyMember = assignment.assignment_type === 'company_member';
+        const user = isCompanyMember 
+          ? (assignment.company_member as any)?.user
+          : assignment.external_user;
+
+        return {
+          id: assignment.id,
+          userId: user?.id,
+          email: user?.email,
+          fullName: user?.full_name,
+          avatarUrl: user?.avatar_url,
+          assignmentType: assignment.assignment_type,
+          jobRole: assignment.job_role,
+        };
+      }).filter(tm => tm.userId && tm.email);
+
+      setTeamMembers(resolved);
+    } catch (error) {
+      console.error('Failed to load team members:', error);
+    }
+  };
+
+  const analyzeEventAttendees = (event: UnifiedCalendarEvent): string[] => {
+    if (!event.attendees || event.attendees.length === 0) return [];
+    
+    const matchedInterviewers: string[] = [];
+    
+    event.attendees.forEach(attendeeEmail => {
+      const match = teamMembers.find(tm => 
+        tm.email.toLowerCase() === attendeeEmail.toLowerCase()
+      );
+      if (match) matchedInterviewers.push(match.userId);
+    });
+    
+    return matchedInterviewers;
+  };
+
+  const suggestInterviewType = (detectedInterviewers: string[]): string => {
+    const partnerCount = detectedInterviewers.filter(id =>
+      teamMembers.find(tm => tm.userId === id && tm.assignmentType === 'company_member')
+    ).length;
+    
+    const tqcCount = detectedInterviewers.filter(id =>
+      teamMembers.find(tm => tm.userId === id && tm.assignmentType === 'external_user')
+    ).length;
+
+    if (partnerCount > 0 && tqcCount > 0) return 'panel_interview';
+    if (partnerCount > 1) return 'panel_interview';
+    if (partnerCount === 1) return 'partner_interview';
+    if (tqcCount > 0) return 'tqc_intro';
+    
+    return 'partner_interview';
   };
 
   const handleScanCalendar = async () => {
@@ -136,6 +212,21 @@ export function CalendarInterviewLinker({
       const eventId = selectedEvent.id.replace('google-', '').replace('microsoft-', '');
       const provider = selectedEvent.source;
 
+      // Analyze selected interviewers
+      const partnerInterviewers = selectedInterviewers
+        .filter(id => teamMembers.find(tm => tm.userId === id && tm.assignmentType === 'company_member'))
+        .map(id => {
+          const tm = teamMembers.find(tm => tm.userId === id);
+          return { user_id: id, email: tm?.email, full_name: tm?.fullName };
+        });
+
+      const tqcInterviewers = selectedInterviewers
+        .filter(id => teamMembers.find(tm => tm.userId === id && tm.assignmentType === 'external_user'))
+        .map(id => {
+          const tm = teamMembers.find(tm => tm.userId === id);
+          return { user_id: id, email: tm?.email, full_name: tm?.fullName };
+        });
+
       // Create or update detected interview
       const { error } = await supabase
         .from('detected_interviews')
@@ -154,7 +245,9 @@ export function CalendarInterviewLinker({
           status: 'confirmed',
           manually_edited: true,
           user_notes: notes,
-          detection_confidence: 'high'
+          detection_confidence: 'high',
+          detected_partners: partnerInterviewers,
+          detected_tqc_members: tqcInterviewers
         });
 
       if (error) throw error;
@@ -162,6 +255,7 @@ export function CalendarInterviewLinker({
       toast.success('Interview linked successfully!');
       setSelectedEvent(null);
       setSelectedApplicationId("");
+      setSelectedInterviewers([]);
       setNotes("");
       await loadData();
       onInterviewLinked?.();
@@ -210,6 +304,7 @@ export function CalendarInterviewLinker({
 
   const renderEventCard = (event: CalendarEventWithDetection) => {
     const suggestion = suggestCandidateFromEvent(event, applications);
+    const detectedInterviewers = analyzeEventAttendees(event);
     
     return (
       <Card key={event.id} className="mb-3">
@@ -247,13 +342,19 @@ export function CalendarInterviewLinker({
                 )}
               </div>
 
-              {suggestion && (
-                <div className="mt-2 text-sm">
-                  <Badge variant={suggestion.confidence === 'high' ? 'default' : 'secondary'}>
-                    Suggested: {suggestion.candidateName}
+              <div className="mt-2 flex flex-wrap gap-2">
+                {suggestion && (
+                  <Badge variant={suggestion.confidence === 'high' ? 'default' : 'secondary'} className="text-xs">
+                    Candidate: {suggestion.candidateName}
                   </Badge>
-                </div>
-              )}
+                )}
+                {detectedInterviewers.length > 0 && (
+                  <Badge variant="outline" className="text-xs text-green-600 border-green-600/20 bg-green-50">
+                    <Users className="w-3 h-3 mr-1" />
+                    {detectedInterviewers.length} team member{detectedInterviewers.length !== 1 ? 's' : ''} detected
+                  </Badge>
+                )}
+              </div>
             </div>
 
             <Button
@@ -262,6 +363,14 @@ export function CalendarInterviewLinker({
                 setSelectedEvent(event);
                 if (suggestion) {
                   setSelectedApplicationId(suggestion.applicationId);
+                }
+                // Auto-populate interviewers
+                if (detectedInterviewers.length > 0) {
+                  setSelectedInterviewers(detectedInterviewers);
+                  // Auto-suggest interview type
+                  const suggestedType = suggestInterviewType(detectedInterviewers);
+                  setInterviewType(suggestedType);
+                  toast.success(`Detected ${detectedInterviewers.length} interviewer(s) from attendees`);
                 }
               }}
               disabled={event.isLinked}
@@ -480,6 +589,47 @@ export function CalendarInterviewLinker({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="interviewers">Interviewers *</Label>
+              <div className="space-y-2 mt-2 max-h-48 overflow-y-auto border rounded-md p-3">
+                {teamMembers.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No team members available</p>
+                ) : (
+                  teamMembers.map((tm) => (
+                    <label
+                      key={tm.userId}
+                      className="flex items-center gap-2 p-2 rounded hover:bg-muted/50 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedInterviewers.includes(tm.userId)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedInterviewers([...selectedInterviewers, tm.userId]);
+                          } else {
+                            setSelectedInterviewers(selectedInterviewers.filter(id => id !== tm.userId));
+                          }
+                        }}
+                        className="w-4 h-4"
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{tm.fullName}</p>
+                        <p className="text-xs text-muted-foreground">{tm.jobRole || tm.email}</p>
+                      </div>
+                      {tm.assignmentType === 'external_user' && (
+                        <Badge variant="outline" className="text-xs">TQC</Badge>
+                      )}
+                    </label>
+                  ))
+                )}
+              </div>
+              {selectedInterviewers.length > 0 && (
+                <p className="text-xs text-muted-foreground mt-2">
+                  {selectedInterviewers.length} interviewer{selectedInterviewers.length !== 1 ? 's' : ''} selected
+                </p>
+              )}
             </div>
 
             <div>
