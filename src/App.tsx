@@ -482,6 +482,7 @@ const App = () => {
                       <Route path="/admin/rejections" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminRejections /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/admin/translation-manager" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><TranslationManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/admin/language-manager" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><LanguageManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/member-requests" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><MemberRequestsPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       {AdminAssessmentsRoutes}
                       
                       <Route path="/hiring-intelligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><HiringIntelligenceHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />

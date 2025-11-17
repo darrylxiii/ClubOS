@@ -17,12 +17,13 @@ import { SSOManagement } from "@/components/admin/SSOManagement";
 import { ActivityMonitoringDashboard } from "@/components/admin/ActivityMonitoringDashboard";
 import { CompanyEngagementLeaderboard } from "@/components/admin/CompanyEngagementLeaderboard";
 import { useRole } from "@/contexts/RoleContext";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { OceanBackgroundVideo } from "@/components/OceanBackgroundVideo";
 
 const Admin = () => {
   const { currentRole, loading } = useRole();
+  const navigate = useNavigate();
 
   // Wait for role to be loaded before making any decisions
   if (loading) {
@@ -120,7 +121,7 @@ const Admin = () => {
                   <p className="text-muted-foreground">
                     Review and approve new member applications from candidates and partners
                   </p>
-                  <Button onClick={() => window.location.href = '/admin/member-requests'}>
+                  <Button onClick={() => navigate('/admin/member-requests')}>
                     Open Member Requests Dashboard
                   </Button>
                 </div>

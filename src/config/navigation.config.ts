@@ -147,6 +147,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       icon: Building,
       items: [
         { name: "All Candidates", icon: Users, path: "/admin/candidates" },
+        { name: "Member Requests", icon: Users, path: "/admin/member-requests" },
         { name: "Merge Dashboard", icon: Link2, path: "/admin/merge-dashboard" },
         { name: "Companies", icon: Building, path: "/companies" },
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
