@@ -39,6 +39,7 @@ import { ExecutiveDashboard } from "@/components/partner/dashboards/ExecutiveDas
 import { InterviewerDashboard } from "@/components/partner/dashboards/InterviewerDashboard";
 import { ObserverDashboard } from "@/components/partner/dashboards/ObserverDashboard";
 import { ManualInterviewEntryDialog } from "@/components/partner/ManualInterviewEntryDialog";
+import { CalendarInterviewLinker } from "@/components/partner/CalendarInterviewLinker";
 import {
   DndContext,
   closestCenter,
@@ -71,6 +72,7 @@ export default function JobDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddStage, setShowAddStage] = useState(false);
   const [showManualInterview, setShowManualInterview] = useState(false);
+  const [showCalendarLinker, setShowCalendarLinker] = useState(false);
   const [editingStage, setEditingStage] = useState<any>(null);
   const [editingStageIndex, setEditingStageIndex] = useState<number | null>(null);
   const [metrics, setMetrics] = useState<JobMetrics | null>(null);
@@ -553,14 +555,16 @@ export default function JobDashboard() {
             <div className="lg:col-span-2 space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold">Upcoming Interviews</h3>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowManualInterview(true)}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Interview
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={() => setShowCalendarLinker(true)}>
+                    <Calendar className="w-4 h-4 mr-2" />
+                    From Calendar
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => setShowManualInterview(true)}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Manual Entry
+                  </Button>
+                </div>
               </div>
               <UpcomingInterviewsWidget jobId={job.id} />
             </div>
@@ -1053,6 +1057,15 @@ export default function JobDashboard() {
         onOpenChange={setShowManualInterview}
         jobId={jobId}
         onInterviewAdded={fetchJobDetails}
+      />
+
+      {/* Calendar Interview Linker */}
+      <CalendarInterviewLinker
+        open={showCalendarLinker}
+        onOpenChange={setShowCalendarLinker}
+        jobId={jobId}
+        applications={applications}
+        onInterviewLinked={fetchJobDetails}
       />
     </AppLayout>
   );
