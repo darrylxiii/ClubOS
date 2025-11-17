@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Plus, Crown, UserCheck, Eye, MoreVertical, CalendarClock } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Users, Plus, Crown, UserCheck, Eye, MoreVertical, CalendarClock, Shield, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import {
@@ -12,16 +13,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { AddJobTeamMemberDialog } from './AddJobTeamMemberDialog';
+import { resolveTeamMember, getAssignmentTypeBadge, ResolvedTeamMember } from '@/utils/jobTeamUtils';
 
 interface JobTeamPanelProps {
   jobId: string;
 }
 
 export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
-  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [teamMembers, setTeamMembers] = useState<ResolvedTeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showCompanyTeam, setShowCompanyTeam] = useState(true);
+  const [showExternalTeam, setShowExternalTeam] = useState(true);
 
   useEffect(() => {
     fetchTeamMembers();
@@ -63,29 +68,53 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
               email,
               avatar_url
             )
+          ),
+          external_user:profiles!external_user_id(
+            id,
+            full_name,
+            email,
+            avatar_url
+          ),
+          assigned_by_user:profiles!assigned_by(
+            full_name
           )
         `)
         .eq('job_id', jobId)
+        .order('assignment_type', { ascending: true })
         .order('is_primary_contact', { ascending: false })
         .order('created_at', { ascending: true });
 
       if (error) {
         console.error('Error fetching team members:', error);
-        // Only show error toast if it's not a "no rows" error
         if (error.code !== 'PGRST116') {
           toast.error('Failed to load team members');
         }
-        // Set empty array instead of throwing
         setTeamMembers([]);
       } else {
-        setTeamMembers(data || []);
+        const resolved = (data || []).map(resolveTeamMember);
+        setTeamMembers(resolved);
       }
     } catch (error) {
       console.error('Error fetching team members:', error);
-      // Gracefully handle by setting empty array
       setTeamMembers([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRemoveMember = async (assignmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('job_team_assignments')
+        .delete()
+        .eq('id', assignmentId);
+
+      if (error) throw error;
+      toast.success('Team member removed');
+      fetchTeamMembers();
+    } catch (error: any) {
+      console.error('Error removing member:', error);
+      toast.error('Failed to remove team member');
     }
   };
 
@@ -132,17 +161,60 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
     }
   };
 
-  const getInterviewLoad = async (memberId: string) => {
-    // Fetch upcoming interviews count for this member
-    const { count } = await supabase
-      .from('bookings')
-      .select('*', { count: 'exact', head: true })
-      .eq('job_id', jobId)
-      .eq('is_interview_booking', true)
-      .gte('scheduled_start', new Date().toISOString())
-      .contains('interviewer_ids', [memberId]);
+  const companyTeam = teamMembers.filter((m) => m.assignmentType === 'company_member');
+  const externalTeam = teamMembers.filter((m) => m.assignmentType !== 'company_member');
 
-    return count || 0;
+  const renderTeamMember = (member: ResolvedTeamMember) => {
+    const typeBadge = getAssignmentTypeBadge(member.assignmentType);
+    
+    return (
+      <div key={member.id} className="flex items-start gap-3 p-3 hover:bg-accent/50 rounded-lg transition-colors group">
+        <Avatar className="w-10 h-10">
+          <AvatarImage src={member.avatarUrl || ''} />
+          <AvatarFallback>{member.fullName?.[0]}</AvatarFallback>
+        </Avatar>
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-medium text-sm">{member.fullName}</span>
+            {member.isPrimaryContact && (
+              <Badge variant="secondary" className="text-xs">
+                <Crown className="w-3 h-3 mr-1" />
+                Primary
+              </Badge>
+            )}
+            {typeBadge && (
+              <Badge variant={typeBadge.variant} className={typeBadge.className}>
+                {typeBadge.label}
+              </Badge>
+            )}
+          </div>
+
+          <div className="text-xs text-muted-foreground mb-2">
+            {member.jobTitle && <span>{member.jobTitle} • </span>}
+            <span>{member.email}</span>
+          </div>
+
+          <Badge variant="outline" className={getRoleColor(member.jobRole)}>
+            {getRoleIcon(member.jobRole)}
+            <span className="ml-1">{getRoleLabel(member.jobRole)}</span>
+          </Badge>
+        </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100">
+              <MoreVertical className="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => handleRemoveMember(member.id)} className="text-destructive">
+              Remove
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    );
   };
 
   if (loading) {
@@ -155,7 +227,7 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Loading team...</p>
+          <div className="text-center text-muted-foreground py-4">Loading...</div>
         </CardContent>
       </Card>
     );
@@ -166,37 +238,33 @@ export const JobTeamPanel = ({ jobId }: JobTeamPanelProps) => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Users className="w-5 h-5" />
               Team
+              <div className="flex gap-2">
+                <Badge variant="outline">{companyTeam.length} Company</Badge>
+                {externalTeam.length > 0 && <Badge variant="secondary">{externalTeam.length} External</Badge>}
+              </div>
             </div>
-            <Button size="sm" variant="outline" onClick={() => setShowAddDialog(true)}>
+            <Button variant="outline" size="sm" onClick={() => setShowAddDialog(true)}>
               <Plus className="w-4 h-4" />
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent>
           {teamMembers.length === 0 ? (
-            <div className="text-center py-6">
-              <Users className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-              <p className="text-sm text-muted-foreground mb-3">No team members assigned</p>
-              <Button size="sm" variant="outline" onClick={() => setShowAddDialog(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Add Team Member
-              </Button>
+            <div className="text-center py-6 text-muted-foreground">
+              <Users className="w-12 h-12 mx-auto mb-2 opacity-20" />
+              <p>No team members yet</p>
             </div>
           ) : (
-            teamMembers.map((member) => (
-              <TeamMemberCard
-                key={member.id}
-                member={member}
-                onRemove={() => fetchTeamMembers()}
-              />
-            ))
+            <div className="space-y-2">
+              {companyTeam.map(renderTeamMember)}
+              {externalTeam.map(renderTeamMember)}
+            </div>
           )}
         </CardContent>
       </Card>
-
       <AddJobTeamMemberDialog
         jobId={jobId}
         open={showAddDialog}
