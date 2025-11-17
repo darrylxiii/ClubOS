@@ -160,7 +160,39 @@ serve(async (req) => {
         throw new Error(`Failed to send email: ${error}`);
       }
 
+      const emailResponse = await resendResponse.json();
+
       console.log('[send-approval-notification] Email sent successfully to:', email);
+      
+      // Log notification to database
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        
+        await fetch(`${supabaseUrl}/rest/v1/approval_notification_logs`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseServiceKey,
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            request_type: requestType,
+            notification_type: 'email',
+            status: 'sent',
+            metadata: {
+              email_id: emailResponse.id,
+              email: email,
+              subject: subject
+            }
+          })
+        });
+        console.log('Email notification logged to database');
+      } catch (logError) {
+        console.error('Failed to log email notification:', logError);
+      }
     } else {
       console.warn('[send-approval-notification] RESEND_API_KEY not configured, email not sent');
     }
@@ -172,6 +204,37 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error('[send-approval-notification] Error:', error);
+    
+    // Log failed notification attempt
+    try {
+      const bodyText = await req.text();
+      const { userId, requestType, email } = JSON.parse(bodyText);
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      
+      if (userId && requestType) {
+        await fetch(`${supabaseUrl}/rest/v1/approval_notification_logs`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabaseServiceKey,
+            'Authorization': `Bearer ${supabaseServiceKey}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            request_type: requestType,
+            notification_type: 'email',
+            status: 'failed',
+            error_message: error.message,
+            metadata: { email }
+          })
+        });
+      }
+    } catch (logError) {
+      console.error('Failed to log error:', logError);
+    }
+    
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
