@@ -193,14 +193,36 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
   };
 
   const handleSubmit = async () => {
+    console.log('[AddCompany] handleSubmit called');
+    
     if (!formData.name) {
       toast.error("Company name is required");
       return;
     }
 
+    // 🔧 Step 1: Verify authentication first
+    console.log('[AddCompany] Verifying authentication...');
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      console.error('[AddCompany] Authentication error:', authError);
+      toast.error("You must be logged in to create a company. Please refresh and try again.", {
+        duration: 6000
+      });
+      return;
+    }
+
+    console.log('[AddCompany] User authenticated:', { userId: user.id, email: user.email });
+    console.log('[AddCompany] Starting company creation with data:', formData);
+
+    // Show loading toast
+    const loadingToast = toast.loading("Creating company...");
     setLoading(true);
+    
     try {
       const slug = formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+      
+      console.log('[AddCompany] Generated slug:', slug);
       
       // Build full URLs from usernames
       const linkedinUrl = formData.linkedin_username 
@@ -213,6 +235,8 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
         ? `https://instagram.com/${formData.instagram_username}` 
         : null;
 
+      console.log('[AddCompany] Attempting to insert company into database...');
+      
       // Create company
       const { data: company, error: companyError } = await supabase
         .from('companies')
@@ -233,10 +257,27 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
         .select()
         .single();
 
-      if (companyError) throw companyError;
+      console.log('[AddCompany] Insert result:', { 
+        success: !companyError, 
+        companyId: company?.id,
+        error: companyError 
+      });
+
+      if (companyError) {
+        console.error('[AddCompany] Company creation failed:', {
+          code: companyError.code,
+          message: companyError.message,
+          details: companyError.details,
+          hint: companyError.hint
+        });
+        throw companyError;
+      }
+
+      console.log('[AddCompany] Company created successfully:', company.id);
 
       // Upload logo if exists
       if (logoFile && company) {
+        console.log('[AddCompany] Uploading logo...');
         const fileExt = logoFile.name.split('.').pop();
         const fileName = `${company.id}-logo.${fileExt}`;
         
@@ -245,9 +286,10 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           .upload(fileName, logoFile, { upsert: true });
 
         if (uploadError) {
-          console.error('Logo upload error:', uploadError);
+          console.error('[AddCompany] Logo upload error:', uploadError);
           toast.error(`Failed to upload logo: ${uploadError.message}`);
         } else {
+          console.log('[AddCompany] Logo uploaded successfully');
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')
             .getPublicUrl(fileName);
@@ -258,13 +300,16 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
             .eq('id', company.id);
           
           if (updateError) {
-            console.error('Logo URL update error:', updateError);
+            console.error('[AddCompany] Logo URL update error:', updateError);
+          } else {
+            console.log('[AddCompany] Logo URL updated');
           }
         }
       }
 
       // Upload cover if exists
       if (coverFile && company) {
+        console.log('[AddCompany] Uploading cover image...');
         const fileExt = coverFile.name.split('.').pop();
         const fileName = `${company.id}-cover.${fileExt}`;
         
@@ -273,9 +318,10 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           .upload(fileName, coverFile, { upsert: true });
 
         if (uploadError) {
-          console.error('Cover upload error:', uploadError);
+          console.error('[AddCompany] Cover upload error:', uploadError);
           toast.error(`Failed to upload cover image: ${uploadError.message}`);
         } else {
+          console.log('[AddCompany] Cover uploaded successfully');
           const { data: { publicUrl } } = supabase.storage
             .from('profile-headers')
             .getPublicUrl(fileName);
@@ -286,13 +332,16 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
             .eq('id', company.id);
           
           if (updateError) {
-            console.error('Cover URL update error:', updateError);
+            console.error('[AddCompany] Cover URL update error:', updateError);
+          } else {
+            console.log('[AddCompany] Cover URL updated');
           }
         }
       }
 
       // Add team members
       if (teamMembers.length > 0 && company) {
+        console.log('[AddCompany] Adding team members:', teamMembers.length);
         const membersToInsert = teamMembers.map(member => ({
           company_id: company.id,
           user_id: member.user_id,
@@ -304,35 +353,67 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
           .from('company_members')
           .insert(membersToInsert);
 
-        if (membersError) console.error('Error adding team members:', membersError);
+        if (membersError) {
+          console.error('[AddCompany] Error adding team members:', membersError);
+        } else {
+          console.log('[AddCompany] Team members added successfully');
+        }
       }
 
+      toast.dismiss(loadingToast);
       toast.success("Company created successfully!");
+      console.log('[AddCompany] Process completed successfully');
+      
       setOpen(false);
       resetForm();
       onSuccess();
     } catch (error: any) {
-      console.error('Error creating company:', error);
+      console.error('[AddCompany] Error creating company:', error);
+      console.error('[AddCompany] Error details:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        stack: error.stack
+      });
       
-      // Parse specific error types
+      toast.dismiss(loadingToast);
+      
+      // 🔧 Improved: More specific error messages
       if (error.code === '42501') {
-        toast.error("Permission denied. Only partners and admins can create companies.");
+        console.error('[AddCompany] RLS Policy Violation: User lacks required role');
+        toast.error("Permission denied. You need Partner or Admin role to create companies. Please contact support.", {
+          duration: 6000
+        });
+      } else if (error.message?.includes('row-level security') || error.message?.includes('policy')) {
+        console.error('[AddCompany] RLS Security Policy Error');
+        toast.error("Access denied by security policy. Please contact an administrator.", {
+          duration: 6000
+        });
       } else if (error.code === '23505') {
         // Unique constraint violation
+        console.error('[AddCompany] Unique constraint violation');
         if (error.message.includes('companies_name_key')) {
           toast.error("A company with this name already exists.");
         } else if (error.message.includes('companies_slug_key')) {
-          toast.error("A company with a similar name already exists. Please choose a different name.");
+          toast.error("A company with a similar name already exists. Try a different name.");
         } else {
           toast.error("This company information conflicts with an existing company.");
         }
-      } else if (error.message?.includes('row-level security')) {
-        toast.error("You don't have permission to create companies. Please contact an administrator.");
+      } else if (error.message?.includes('JWT') || error.message?.includes('auth')) {
+        console.error('[AddCompany] Authentication error');
+        toast.error("Authentication error. Please refresh the page and try again.", {
+          duration: 6000
+        });
       } else {
-        toast.error(error.message || "Failed to create company. Please try again.");
+        console.error('[AddCompany] Generic error');
+        toast.error(error.message || "Failed to create company. Please try again or contact support.", {
+          duration: 5000
+        });
       }
     } finally {
       setLoading(false);
+      console.log('[AddCompany] Loading state reset, handleSubmit complete');
     }
   };
 
