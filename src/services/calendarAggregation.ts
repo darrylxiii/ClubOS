@@ -1,6 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UnifiedCalendarEvent } from "@/types/calendar";
 
+// Debounce map to prevent excessive detection calls
+const detectionDebounce = new Map<string, number>();
+const DETECTION_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes
+
 export async function fetchUnifiedCalendarEvents(
   userId: string,
   startDate: Date,
@@ -20,8 +24,47 @@ export async function fetchUnifiedCalendarEvents(
   const msEvents = await fetchMicrosoftCalendarEvents(userId, startDate, endDate);
   allEvents.push(...msEvents);
 
+  // Auto-trigger interview detection (debounced)
+  const now = Date.now();
+  const lastDetection = detectionDebounce.get(userId) || 0;
+  
+  if (now - lastDetection > DETECTION_COOLDOWN_MS) {
+    detectionDebounce.set(userId, now);
+    
+    // Trigger detection in background (don't await to avoid blocking calendar load)
+    triggerInterviewDetection(userId, startDate, endDate).catch(error => {
+      console.error('Background interview detection failed:', error);
+    });
+  }
+
   // Sort by start time
   return allEvents.sort((a, b) => a.start.getTime() - b.start.getTime());
+}
+
+async function triggerInterviewDetection(
+  userId: string,
+  startDate: Date,
+  endDate: Date
+): Promise<void> {
+  try {
+    console.log('Auto-triggering interview detection for user:', userId);
+    
+    const { data, error } = await supabase.functions.invoke('detect-calendar-interviews', {
+      body: {
+        userId,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      },
+    });
+
+    if (error) {
+      console.error('Interview detection error:', error);
+    } else {
+      console.log('Interview detection completed:', data);
+    }
+  } catch (error) {
+    console.error('Failed to invoke interview detection:', error);
+  }
 }
 
 async function fetchQuantumClubMeetings(
