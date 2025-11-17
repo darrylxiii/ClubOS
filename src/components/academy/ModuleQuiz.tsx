@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Check, X, Loader2, Trophy } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface Question {
   id: string;
@@ -29,6 +30,7 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
   const [results, setResults] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -128,7 +130,7 @@ export const ModuleQuiz = memo<ModuleQuizProps>(({ quizId, onComplete }) => {
         </div>
 
         {!results.passed && (
-          <Button onClick={() => window.location.reload()} variant="outline">
+          <Button onClick={() => navigate(0)} variant="outline">
             Try Again
           </Button>
         )}

@@ -8,6 +8,7 @@ import { Calendar, Clock, Users, Video, FileText, CheckCircle2, AlertCircle } fr
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { InterviewFeedbackDialog } from "./InterviewFeedbackDialog";
+import { useQueryClient } from '@tanstack/react-query';
 
 interface PipelineMeetingCardProps {
   booking: {
@@ -45,6 +46,7 @@ export const PipelineMeetingCard = ({
   className,
 }: PipelineMeetingCardProps) => {
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
   const startTime = new Date(booking.scheduled_start);
   const endTime = new Date(booking.scheduled_end);
   const now = new Date();
@@ -238,8 +240,8 @@ export const PipelineMeetingCard = ({
         open={feedbackDialogOpen}
         onOpenChange={setFeedbackDialogOpen}
         onSubmitted={() => {
-          // Refresh or update booking status
-          window.location.reload();
+          // Trigger data refetch via React Query
+          queryClient.invalidateQueries({ queryKey: ['meetings', 'pipeline'] });
         }}
       />
     </Card>

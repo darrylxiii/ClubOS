@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { AssessmentDetailModal } from './AssessmentDetailModal';
+import { useNavigate } from 'react-router-dom';
 
 interface AssessmentResult {
   id: string;
@@ -56,6 +57,7 @@ const ASSESSMENT_COLORS = {
 
 export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryProps) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [results, setResults] = useState<AssessmentResult[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedResult, setSelectedResult] = useState<AssessmentResult | null>(null);
@@ -116,7 +118,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
       'values-poker': '/values-poker',
       'incubator-20': '/assessments/incubator-20',
     };
-    window.location.href = routes[assessmentId] || '/assessments';
+    navigate(routes[assessmentId] || '/assessments');
   };
 
   const calculateStats = () => {
@@ -154,7 +156,7 @@ export const AssessmentHistory = memo(({ userId, viewMode }: AssessmentHistoryPr
             </p>
           </div>
           {viewMode === 'candidate' && (
-            <Button onClick={() => window.location.href = '/assessments'}>
+            <Button onClick={() => navigate('/assessments')}>
               Browse Assessments
             </Button>
           )}
