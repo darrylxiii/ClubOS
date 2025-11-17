@@ -13,10 +13,95 @@ interface AttendeeAnalysis {
   unknown: string[];
 }
 
-async function analyzeAttendees(
+interface EmailLookupMaps {
+  tqcMap: Map<string, { userId: string; name: string }>;
+  candidateMap: Map<string, { candidateId?: string; applicationId?: string; jobId?: string; name?: string }>;
+  partnerMap: Map<string, { userId?: string; companyId?: string; name?: string }>;
+}
+
+async function buildEmailLookupMaps(
   supabase: any,
-  attendeeEmails: string[]
-): Promise<AttendeeAnalysis> {
+  allEmails: string[]
+): Promise<EmailLookupMaps> {
+  const maps: EmailLookupMaps = {
+    tqcMap: new Map(),
+    candidateMap: new Map(),
+    partnerMap: new Map(),
+  };
+
+  if (allEmails.length === 0) return maps;
+
+  // Batch check TQC team members
+  const { data: tqcUsers } = await supabase
+    .from('profiles')
+    .select('id, email, full_name')
+    .in('email', allEmails)
+    .in('id', 
+      supabase.from('user_roles')
+        .select('user_id')
+        .in('role', ['admin', 'strategist'])
+    );
+
+  if (tqcUsers) {
+    tqcUsers.forEach((user: any) => {
+      maps.tqcMap.set(user.email.toLowerCase(), {
+        userId: user.id,
+        name: user.full_name
+      });
+    });
+  }
+
+  // Batch check candidates
+  const { data: candidates } = await supabase
+    .from('candidate_profiles')
+    .select(`
+      id,
+      email,
+      full_name,
+      applications!inner(id, job_id)
+    `)
+    .in('email', allEmails);
+
+  if (candidates) {
+    candidates.forEach((cand: any) => {
+      const app = cand.applications?.[0];
+      maps.candidateMap.set(cand.email.toLowerCase(), {
+        candidateId: cand.id,
+        applicationId: app?.id,
+        jobId: app?.job_id,
+        name: cand.full_name
+      });
+    });
+  }
+
+  // Batch check partners
+  const { data: partners } = await supabase
+    .from('company_members')
+    .select(`
+      user_id,
+      company_id,
+      profiles!inner(email, full_name)
+    `)
+    .in('profiles.email', allEmails)
+    .eq('is_active', true);
+
+  if (partners) {
+    partners.forEach((partner: any) => {
+      maps.partnerMap.set(partner.profiles.email.toLowerCase(), {
+        userId: partner.user_id,
+        companyId: partner.company_id,
+        name: partner.profiles.full_name
+      });
+    });
+  }
+
+  return maps;
+}
+
+function analyzeAttendeesWithMaps(
+  attendeeEmails: string[],
+  maps: EmailLookupMaps
+): AttendeeAnalysis {
   const result: AttendeeAnalysis = {
     tqcMembers: [],
     candidates: [],
@@ -25,39 +110,26 @@ async function analyzeAttendees(
   };
 
   for (const email of attendeeEmails) {
-    // Check if TQC team
-    const { data: tqcCheck } = await supabase.rpc('is_tqc_team_email', { check_email: email });
-    if (tqcCheck?.[0]?.is_match) {
-      result.tqcMembers.push({
-        email,
-        userId: tqcCheck[0].user_id,
-        name: tqcCheck[0].full_name
-      });
+    const lowerEmail = email.toLowerCase();
+
+    // Check TQC
+    const tqcData = maps.tqcMap.get(lowerEmail);
+    if (tqcData) {
+      result.tqcMembers.push({ email, ...tqcData });
       continue;
     }
 
-    // Check if candidate
-    const { data: candidateCheck } = await supabase.rpc('is_candidate_email', { check_email: email });
-    if (candidateCheck?.[0]?.is_match) {
-      result.candidates.push({
-        email,
-        candidateId: candidateCheck[0].candidate_id,
-        applicationId: candidateCheck[0].application_id,
-        jobId: candidateCheck[0].job_id,
-        name: candidateCheck[0].candidate_name
-      });
+    // Check candidate
+    const candidateData = maps.candidateMap.get(lowerEmail);
+    if (candidateData) {
+      result.candidates.push({ email, ...candidateData });
       continue;
     }
 
-    // Check if partner
-    const { data: partnerCheck } = await supabase.rpc('is_partner_email', { check_email: email });
-    if (partnerCheck?.[0]?.is_match) {
-      result.partners.push({
-        email,
-        userId: partnerCheck[0].user_id,
-        companyId: partnerCheck[0].company_id,
-        name: partnerCheck[0].member_name
-      });
+    // Check partner
+    const partnerData = maps.partnerMap.get(lowerEmail);
+    if (partnerData) {
+      result.partners.push({ email, ...partnerData });
       continue;
     }
 
@@ -132,12 +204,12 @@ serve(async (req) => {
       );
     }
 
-    const detectedInterviews = [];
-
+    let allEvents: any[] = [];
+    
+    // Fetch all events from all connections first
     for (const connection of connections) {
       console.log(`Checking ${connection.provider} calendar connection ${connection.id}`);
 
-      // Fetch events from Google/Microsoft calendar
       const functionName = connection.provider === 'google' 
         ? 'google-calendar-events' 
         : 'microsoft-calendar-events';
@@ -158,33 +230,62 @@ serve(async (req) => {
         }
 
         const events = eventsData?.events || [];
-        console.log(`Found ${events.length} events`);
+        console.log(`Found ${events.length} events from ${connection.provider}`);
+        
+        // Tag events with connection info
+        events.forEach((event: any) => {
+          event._connectionId = connection.id;
+          event._provider = connection.provider;
+        });
+        
+        allEvents = allEvents.concat(events);
+      } catch (error) {
+        console.error(`Error invoking ${functionName}:`, error);
+      }
+    }
 
-        for (const event of events) {
-          const attendeeEmails = event.attendees?.map((a: any) => a.email).filter(Boolean) || [];
-          
-          // Skip events without attendees
-          if (attendeeEmails.length === 0) continue;
+    console.log(`Total events to process: ${allEvents.length}`);
 
-          // Analyze attendees
-          const analysis = await analyzeAttendees(supabase, attendeeEmails);
-          const { type, confidence } = determineInterviewType(analysis);
+    // Collect all unique attendee emails
+    const allAttendeeEmails = new Set<string>();
+    allEvents.forEach(event => {
+      const attendeeEmails = event.attendees?.map((a: any) => a.email).filter(Boolean) || [];
+      attendeeEmails.forEach((email: string) => allAttendeeEmails.add(email.toLowerCase()));
+    });
 
-          // Only process potential interviews
-          if (type === 'unknown' && confidence === 'low') continue;
+    console.log(`Building lookup maps for ${allAttendeeEmails.size} unique emails`);
+    
+    // Build lookup maps once for all attendees
+    const emailMaps = await buildEmailLookupMaps(supabase, Array.from(allAttendeeEmails));
 
-          // Check if already detected
-          const { data: existing } = await supabase
-            .from('detected_interviews')
-            .select('id')
-            .eq('calendar_event_id', event.id)
-            .eq('calendar_provider', connection.provider)
-            .maybeSingle();
+    // Get existing detected interviews to avoid duplicates
+    const { data: existingInterviews } = await supabase
+      .from('detected_interviews')
+      .select('calendar_event_id, calendar_provider')
+      .in('calendar_event_id', allEvents.map(e => e.id));
 
-          if (existing) {
-            console.log(`Interview already detected: ${event.id}`);
-            continue;
-          }
+    const existingSet = new Set(
+      (existingInterviews || []).map((ei: any) => `${ei.calendar_provider}:${ei.calendar_event_id}`)
+    );
+
+    const detectedInterviews = [];
+
+    // Process all events with pre-built maps (no DB calls in loop)
+    for (const event of allEvents) {
+      const attendeeEmails = event.attendees?.map((a: any) => a.email).filter(Boolean) || [];
+      
+      if (attendeeEmails.length === 0) continue;
+
+      // Check if already detected
+      const eventKey = `${event._provider}:${event.id}`;
+      if (existingSet.has(eventKey)) continue;
+
+      // Analyze attendees using pre-built maps (no DB calls!)
+      const analysis = analyzeAttendeesWithMaps(attendeeEmails, emailMaps);
+      const { type, confidence } = determineInterviewType(analysis);
+
+      // Only process potential interviews
+      if (type === 'unknown' && confidence === 'low') continue;
 
           // Insert detected interview
           const detectedInterview = {
