@@ -38,6 +38,7 @@ import { HiringManagerDashboard } from "@/components/partner/dashboards/HiringMa
 import { ExecutiveDashboard } from "@/components/partner/dashboards/ExecutiveDashboard";
 import { InterviewerDashboard } from "@/components/partner/dashboards/InterviewerDashboard";
 import { ObserverDashboard } from "@/components/partner/dashboards/ObserverDashboard";
+import { ManualInterviewEntryDialog } from "@/components/partner/ManualInterviewEntryDialog";
 import {
   DndContext,
   closestCenter,
@@ -69,6 +70,7 @@ export default function JobDashboard() {
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showAddStage, setShowAddStage] = useState(false);
+  const [showManualInterview, setShowManualInterview] = useState(false);
   const [editingStage, setEditingStage] = useState<any>(null);
   const [editingStageIndex, setEditingStageIndex] = useState<number | null>(null);
   const [metrics, setMetrics] = useState<JobMetrics | null>(null);
@@ -548,7 +550,18 @@ export default function JobDashboard() {
 
           {/* Upcoming Interviews and Team Panel */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
-            <div className="lg:col-span-2">
+            <div className="lg:col-span-2 space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Upcoming Interviews</h3>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowManualInterview(true)}
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Interview
+                </Button>
+              </div>
               <UpcomingInterviewsWidget jobId={job.id} />
             </div>
             <div>
@@ -1033,6 +1046,14 @@ export default function JobDashboard() {
           onJobUpdated={fetchJobDetails}
         />
       )}
+
+      {/* Manual Interview Entry Dialog */}
+      <ManualInterviewEntryDialog 
+        open={showManualInterview}
+        onOpenChange={setShowManualInterview}
+        jobId={jobId}
+        onInterviewAdded={fetchJobDetails}
+      />
     </AppLayout>
   );
 }
