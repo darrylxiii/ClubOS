@@ -13998,6 +13998,9 @@ export type Database = {
           location: string | null
           notice_period: string | null
           onboarding_completed_at: string | null
+          onboarding_current_step: number | null
+          onboarding_last_activity_at: string | null
+          onboarding_partial_data: Json | null
           open_to_freelance_work: boolean | null
           overtime_willingness: number | null
           phone: string | null
@@ -14093,6 +14096,9 @@ export type Database = {
           location?: string | null
           notice_period?: string | null
           onboarding_completed_at?: string | null
+          onboarding_current_step?: number | null
+          onboarding_last_activity_at?: string | null
+          onboarding_partial_data?: Json | null
           open_to_freelance_work?: boolean | null
           overtime_willingness?: number | null
           phone?: string | null
@@ -14188,6 +14194,9 @@ export type Database = {
           location?: string | null
           notice_period?: string | null
           onboarding_completed_at?: string | null
+          onboarding_current_step?: number | null
+          onboarding_last_activity_at?: string | null
+          onboarding_partial_data?: Json | null
           open_to_freelance_work?: boolean | null
           overtime_willingness?: number | null
           phone?: string | null

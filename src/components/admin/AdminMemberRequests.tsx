@@ -51,6 +51,31 @@ interface MemberRequest {
     status: 'sent' | 'failed';
     sent_at: string;
   }>;
+  profiles?: {
+    onboarding_completed_at?: string | null;
+    onboarding_current_step?: number;
+    onboarding_partial_data?: any;
+    onboarding_last_activity_at?: string | null;
+    phone_verified?: boolean;
+    email_verified?: boolean;
+    current_title?: string;
+    linkedin_url?: string;
+    location?: string;
+    employment_type_preference?: string;
+    notice_period?: string;
+    remote_work_preference?: boolean;
+    resume_url?: string;
+    resume_filename?: string;
+    bio?: string;
+    dream_job_title?: string;
+    current_salary_min?: number;
+    current_salary_max?: number;
+    desired_salary_min?: number;
+    desired_salary_max?: number;
+    freelance_hourly_rate_min?: number;
+    freelance_hourly_rate_max?: number;
+    salary_preference_hidden?: boolean;
+  };
 }
 
 export const AdminMemberRequests = () => {
@@ -92,24 +117,62 @@ export const AdminMemberRequests = () => {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      // Fetch unified requests with enriched data
+      // Fetch unified requests
       const { data: requestsData, error: requestsError } = await supabase
         .from('member_requests_unified')
         .select('*')
         .eq('status', activeTab)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false});
 
       if (requestsError) throw requestsError;
 
-      // Enrich with approver, activity, and notification data
+      // Enrich with approver, activity, notification data, and onboarding progress
       const enrichedRequests = await Promise.all(
         (requestsData || []).map(async (request) => {
           const enriched: MemberRequest = { 
             ...request,
             request_type: request.request_type as 'candidate' | 'partner',
-            status: request.status as 'pending' | 'approved' | 'declined',
-            additional_data: request.additional_data as MemberRequest['additional_data']
           };
+
+          // Fetch additional data for candidates (including onboarding progress)
+          if (request.request_type === 'candidate') {
+            const userId = request.id;
+            
+            // Fetch onboarding progress from profiles
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select(`
+                onboarding_completed_at,
+                onboarding_current_step,
+                onboarding_partial_data,
+                onboarding_last_activity_at,
+                phone_verified,
+                email_verified,
+                current_title,
+                linkedin_url,
+                location,
+                employment_type_preference,
+                notice_period,
+                remote_work_preference,
+                resume_url,
+                resume_filename,
+                bio,
+                dream_job_title,
+                current_salary_min,
+                current_salary_max,
+                desired_salary_min,
+                desired_salary_max,
+                freelance_hourly_rate_min,
+                freelance_hourly_rate_max,
+                salary_preference_hidden
+              `)
+              .eq('id', userId)
+              .single();
+            
+            if (profileData) {
+              enriched.profiles = profileData;
+            }
+          }
 
           // Fetch approver info if reviewed
           if (request.reviewed_by) {
@@ -197,6 +260,24 @@ export const AdminMemberRequests = () => {
 
     setSubmitting(true);
     try {
+      // CRITICAL: Validate onboarding completion before approval
+      if (reviewAction === 'approve' && selectedRequest.request_type === 'candidate') {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed_at, phone_verified, onboarding_current_step')
+          .eq('id', selectedRequest.id)
+          .single();
+
+        if (!profile?.onboarding_completed_at || !profile?.phone_verified) {
+          toast.error(
+            `Cannot approve ${selectedRequest.name}. They must complete all 6 onboarding steps with phone verification. Currently on step ${profile?.onboarding_current_step || 0}.`,
+            { duration: 6000 }
+          );
+          setSubmitting(false);
+          return;
+        }
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
