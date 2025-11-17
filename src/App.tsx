@@ -7,6 +7,7 @@ import { PublicProviders } from "@/contexts/PublicProviders";
 import { ProtectedProviders, ProtectedProvidersLoader } from "@/contexts/ProtectedProviders";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { JobDashboardRoute } from "@/components/routes/JobDashboardRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { TranslationDebugger } from "@/components/TranslationDebugger";
 import { lazy, Suspense, useState, useEffect, memo } from "react";
@@ -514,9 +515,18 @@ const App = () => {
                       
                       {/* Existing routes */}
                       <Route path="/club-ai" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ClubAI /></Suspense></ProtectedRoute>} />
-                      <Route path="/jobs" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Jobs /></Suspense></ProtectedRoute>} />
-                      <Route path="/jobs/:jobId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><JobDetail /></Suspense></ProtectedRoute>} />
-                      <Route path="/jobs/:jobId/dashboard" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><JobDashboard /></Suspense></ProtectedRoute>} />
+                      <Route 
+                        path="/jobs/:jobId/dashboard" 
+                        element={
+                          <ProtectedRoute>
+                            <JobDashboardRoute>
+                              <Suspense fallback={<PageLoader />}>
+                                <JobDashboard />
+                              </Suspense>
+                            </JobDashboardRoute>
+                          </ProtectedRoute>
+                        } 
+                      />
                       <Route path="/candidates/:candidateId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><UnifiedCandidateProfile /></Suspense></ProtectedRoute>} />
                       <Route path="/meetings" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Meetings /></Suspense></ProtectedRoute>} />
                       <Route path="/meetings/:meetingId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingRoom /></Suspense></ProtectedRoute>} />
