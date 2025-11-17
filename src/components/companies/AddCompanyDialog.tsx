@@ -380,7 +380,12 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       toast.dismiss(loadingToast);
       
       // 🔧 Improved: More specific error messages
-      if (error.code === '42501') {
+      if (error.code === '42703') {
+        console.error('[AddCompany] Database schema error: Missing column referenced in trigger');
+        toast.error("Database configuration issue was detected and should now be fixed. Please try again.", {
+          duration: 6000
+        });
+      } else if (error.code === '42501') {
         console.error('[AddCompany] RLS Policy Violation: User lacks required role');
         toast.error("Permission denied. You need Partner or Admin role to create companies. Please contact support.", {
           duration: 6000
