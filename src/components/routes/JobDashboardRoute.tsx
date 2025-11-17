@@ -1,6 +1,6 @@
 import { ReactNode, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { Loader2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
@@ -14,7 +14,7 @@ interface JobDashboardRouteProps {
  * Redirects candidates to the job detail page
  */
 export const JobDashboardRoute = ({ children }: JobDashboardRouteProps) => {
-  const { role, loading } = useUserRole();
+  const { currentRole: role, loading } = useRole();
   const navigate = useNavigate();
   const { jobId } = useParams();
 
