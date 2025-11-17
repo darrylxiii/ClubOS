@@ -15,7 +15,7 @@ const ClubHome = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
-  // Combined loading state - only check loading states, not role value
+  // Combined loading state - wait for both auth and role
   const isReady = !roleLoading && !authLoading;
 
   console.log('🏠 [ClubHome] State:', {
@@ -26,7 +26,7 @@ const ClubHome = () => {
     user: !!user
   });
 
-  // Show simple loading state
+  // Show simple loading state while checking auth and role
   if (!isReady) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -35,6 +35,7 @@ const ClubHome = () => {
     );
   }
 
+  // Use actual role, default to 'user' only after loading completes
   const effectiveRole = role || 'user';
 
   const renderRoleView = () => {

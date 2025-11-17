@@ -28,8 +28,7 @@ export const candidateRoutes = (
   <>
     {/* Jobs & Career */}
     <Route path="/jobs" element={<ProtectedRoute><Jobs /></ProtectedRoute>} />
-    <Route path="/jobs/:id" element={<ProtectedRoute><JobDetail /></ProtectedRoute>} />
-    <Route path="/jobs/:id/dashboard" element={<ProtectedRoute><JobDetail /></ProtectedRoute>} />
+    <Route path="/jobs/:jobId" element={<ProtectedRoute><JobDetail /></ProtectedRoute>} />
     
     {/* Applications */}
     <Route path="/applications" element={<ProtectedRoute><Applications /></ProtectedRoute>} />
