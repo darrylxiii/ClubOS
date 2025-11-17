@@ -7066,48 +7066,73 @@ export type Database = {
       }
       email_templates: {
         Row: {
-          avg_response_time_hours: number | null
-          body_template: string
-          category: string | null
+          category: string
+          content_template: Json
           created_at: string | null
+          description: string | null
+          edge_function: string | null
           id: string
-          is_active: boolean | null
+          is_enabled: boolean | null
+          last_modified_at: string | null
+          last_modified_by: string | null
           name: string
-          subject_template: string | null
-          updated_at: string | null
-          usage_count: number | null
-          user_id: string
+          subject_template: string
+          template_key: string
           variables: Json | null
         }
         Insert: {
-          avg_response_time_hours?: number | null
-          body_template: string
-          category?: string | null
+          category: string
+          content_template: Json
           created_at?: string | null
+          description?: string | null
+          edge_function?: string | null
           id?: string
-          is_active?: boolean | null
+          is_enabled?: boolean | null
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           name: string
-          subject_template?: string | null
-          updated_at?: string | null
-          usage_count?: number | null
-          user_id: string
+          subject_template: string
+          template_key: string
           variables?: Json | null
         }
         Update: {
-          avg_response_time_hours?: number | null
-          body_template?: string
-          category?: string | null
+          category?: string
+          content_template?: Json
           created_at?: string | null
+          description?: string | null
+          edge_function?: string | null
           id?: string
-          is_active?: boolean | null
+          is_enabled?: boolean | null
+          last_modified_at?: string | null
+          last_modified_by?: string | null
           name?: string
-          subject_template?: string | null
-          updated_at?: string | null
-          usage_count?: number | null
-          user_id?: string
+          subject_template?: string
+          template_key?: string
           variables?: Json | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "email_templates_last_modified_by_fkey"
+            columns: ["last_modified_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "email_templates_last_modified_by_fkey"
+            columns: ["last_modified_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_templates_last_modified_by_fkey"
+            columns: ["last_modified_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       email_threads: {
         Row: {

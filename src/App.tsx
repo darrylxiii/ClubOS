@@ -68,6 +68,8 @@ const CandidateOnboarding = lazy(() => import("./pages/CandidateOnboarding"));
 const PendingApproval = lazy(() => import("./pages/PendingApproval"));
 const Meetings = lazy(() => import("./pages/Meetings"));
 const MeetingRoom = lazy(() => import("./pages/MeetingRoom"));
+const MemberRequestsPage = lazy(() => import("./pages/admin/MemberRequestsPage"));
+const EmailTemplateManager = lazy(() => import("./pages/admin/EmailTemplateManager"));
 
 // Lazy load protected routes to reduce initial bundle size
 const ClubHome = lazy(() => import("./pages/ClubHome"));
@@ -483,6 +485,7 @@ const App = () => {
                       <Route path="/admin/translation-manager" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><TranslationManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/admin/language-manager" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><LanguageManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/admin/member-requests" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><MemberRequestsPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/email-templates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EmailTemplateManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       {AdminAssessmentsRoutes}
                       
                       <Route path="/hiring-intelligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><HiringIntelligenceHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
