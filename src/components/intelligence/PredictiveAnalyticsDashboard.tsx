@@ -7,13 +7,48 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 
+interface CostPrediction {
+  estimatedCostPerHire: number | null;
+  timeInvestment: string | null;
+  breakdown: {
+    recruiting: number;
+    interviews: number;
+    administrative: number;
+  };
+}
+
+interface QualityPrediction {
+  expectedQuality: string | null;
+  retentionProbability: number | null;
+  timeToProductivity: string | null;
+}
+
+interface CompetitiveIntel {
+  marketDemand: string | null;
+  salaryBenchmark: string | null;
+  competingOffers: string | null;
+  speedToOffer: string | null;
+}
+
+interface Predictions {
+  timeToHire?: any;
+  offerAcceptanceProbability?: any;
+  hiringDifficulty?: any;
+  pipelineHealth?: any;
+  costPrediction?: CostPrediction | null;
+  qualityPrediction?: QualityPrediction | null;
+  competitiveIntel?: CompetitiveIntel | null;
+  actionRecommendations?: any[];
+  skipped?: boolean;
+}
+
 interface PredictiveAnalyticsDashboardProps {
   jobId: string;
 }
 
 export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashboardProps) {
   const [loading, setLoading] = useState(false);
-  const [predictions, setPredictions] = useState<any>(null);
+  const [predictions, setPredictions] = useState<Predictions | null>(null);
 
   const loadPredictions = async () => {
     try {
@@ -24,16 +59,40 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
 
       if (error) throw error;
       
-      // Ensure predictions exist before setting
       if (data?.predictions) {
-        setPredictions(data.predictions);
+        // Normalize data with defensive defaults
+        const normalizedPredictions: Predictions = {
+          ...data.predictions,
+          costPrediction: data.predictions.costPrediction ? {
+            estimatedCostPerHire: data.predictions.costPrediction.estimatedCostPerHire ?? null,
+            timeInvestment: data.predictions.costPrediction.timeInvestment ?? null,
+            breakdown: {
+              recruiting: data.predictions.costPrediction.breakdown?.recruiting ?? 0,
+              interviews: data.predictions.costPrediction.breakdown?.interviews ?? 0,
+              administrative: data.predictions.costPrediction.breakdown?.administrative ?? 0,
+            }
+          } : null,
+          qualityPrediction: data.predictions.qualityPrediction ? {
+            expectedQuality: data.predictions.qualityPrediction.expectedQuality ?? null,
+            retentionProbability: data.predictions.qualityPrediction.retentionProbability ?? null,
+            timeToProductivity: data.predictions.qualityPrediction.timeToProductivity ?? null,
+          } : null,
+          competitiveIntel: data.predictions.competitiveIntel ? {
+            marketDemand: data.predictions.competitiveIntel.marketDemand ?? null,
+            salaryBenchmark: data.predictions.competitiveIntel.salaryBenchmark ?? null,
+            competingOffers: data.predictions.competitiveIntel.competingOffers ?? null,
+            speedToOffer: data.predictions.competitiveIntel.speedToOffer ?? null,
+          } : null,
+        };
+        
+        setPredictions(normalizedPredictions);
         toast.success("Predictive analytics generated");
       } else {
         throw new Error('No predictions returned from AI');
       }
     } catch (error: any) {
       console.error('Error loading predictions:', error);
-      setPredictions(null); // Ensure null on error
+      setPredictions(null);
       toast.error("Failed to generate predictions. You can retry or continue without AI insights.");
     } finally {
       setLoading(false);
@@ -275,11 +334,11 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Est. Cost per Hire</p>
-                <p className="text-xl font-bold">€{predictions.costPrediction.estimatedCostPerHire.toLocaleString()}</p>
+                <p className="text-xl font-bold">€{predictions.costPrediction?.estimatedCostPerHire?.toLocaleString() ?? 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Time Investment</p>
-                <p className="text-xl font-bold">{predictions.costPrediction.timeInvestment}</p>
+                <p className="text-xl font-bold">{predictions.costPrediction?.timeInvestment ?? 'N/A'}</p>
               </div>
             </div>
             <div className="p-3 rounded-lg bg-muted/30">
@@ -287,15 +346,15 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-xs">
                   <span>Recruiting</span>
-                  <span>€{predictions.costPrediction.breakdown.recruiting}</span>
+                  <span>€{predictions.costPrediction?.breakdown?.recruiting ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span>Interviews</span>
-                  <span>€{predictions.costPrediction.breakdown.interviews}</span>
+                  <span>€{predictions.costPrediction?.breakdown?.interviews ?? 0}</span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
                   <span>Administrative</span>
-                  <span>€{predictions.costPrediction.breakdown.administrative}</span>
+                  <span>€{predictions.costPrediction?.breakdown?.administrative ?? 0}</span>
                 </div>
               </div>
             </div>
@@ -313,15 +372,15 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3 rounded-lg bg-muted/30 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Expected Quality</p>
-                <Badge variant="default">{predictions.qualityPrediction.expectedQuality.toUpperCase()}</Badge>
+                <Badge variant="default">{predictions.qualityPrediction?.expectedQuality?.toUpperCase() ?? 'N/A'}</Badge>
               </div>
               <div className="p-3 rounded-lg bg-muted/30 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Retention</p>
-                <p className="text-sm font-semibold">{Math.round(predictions.qualityPrediction.retentionProbability * 100)}%</p>
+                <p className="text-sm font-semibold">{Math.round((predictions.qualityPrediction?.retentionProbability ?? 0) * 100)}%</p>
               </div>
               <div className="p-3 rounded-lg bg-muted/30 text-center">
                 <p className="text-xs text-muted-foreground mb-1">Time to Productivity</p>
-                <Badge variant="outline">{predictions.qualityPrediction.timeToProductivity}</Badge>
+                <Badge variant="outline">{predictions.qualityPrediction?.timeToProductivity ?? 'N/A'}</Badge>
               </div>
             </div>
           </CardContent>
@@ -338,19 +397,19 @@ export function PredictiveAnalyticsDashboard({ jobId }: PredictiveAnalyticsDashb
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Market Demand</p>
-                <Badge variant="outline">{predictions.competitiveIntel.marketDemand.toUpperCase()}</Badge>
+                <Badge variant="outline">{predictions.competitiveIntel?.marketDemand?.toUpperCase() ?? 'N/A'}</Badge>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Salary Benchmark</p>
-                <p className="text-sm font-medium">{predictions.competitiveIntel.salaryBenchmark}</p>
+                <p className="text-sm font-medium">{predictions.competitiveIntel?.salaryBenchmark ?? 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Competing Offers</p>
-                <p className="text-sm font-medium">{predictions.competitiveIntel.competingOffers}</p>
+                <p className="text-sm font-medium">{predictions.competitiveIntel?.competingOffers ?? 'N/A'}</p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Action Timing</p>
-                <p className="text-sm font-medium">{predictions.competitiveIntel.speedToOffer}</p>
+                <p className="text-sm font-medium">{predictions.competitiveIntel?.speedToOffer ?? 'N/A'}</p>
               </div>
             </div>
           </CardContent>
