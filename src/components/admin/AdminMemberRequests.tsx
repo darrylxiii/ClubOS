@@ -76,8 +76,17 @@ interface MemberRequest {
     freelance_hourly_rate_min?: number;
     freelance_hourly_rate_max?: number;
     salary_preference_hidden?: boolean;
+    user_roles?: Array<{ role: string }>;
   };
 }
+
+// Helper function to check if a request is from a pure candidate (no elevated roles)
+const isPureCandidate = (request: MemberRequest): boolean => {
+  const roles = (request.profiles?.user_roles as any[])?.map((r: any) => r.role) || [];
+  return !roles.includes('admin') && 
+         !roles.includes('partner') && 
+         !roles.includes('strategist');
+};
 
 export const AdminMemberRequests = () => {
   const [requests, setRequests] = useState<MemberRequest[]>([]);
@@ -190,8 +199,17 @@ export const AdminMemberRequests = () => {
               .eq('id', userId)
               .single();
             
+            // Fetch user roles separately
+            const { data: userRoles } = await supabase
+              .from('user_roles')
+              .select('role')
+              .eq('user_id', userId);
+            
             if (profileData) {
-              enriched.profiles = profileData;
+              enriched.profiles = {
+                ...profileData,
+                user_roles: userRoles || []
+              };
             }
           }
 
@@ -281,21 +299,35 @@ export const AdminMemberRequests = () => {
 
     setSubmitting(true);
     try {
-      // CRITICAL: Validate onboarding completion before approval
+      // CRITICAL: Validate onboarding completion before approval (only for pure candidates)
       if (reviewAction === 'approve' && selectedRequest.request_type === 'candidate') {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('onboarding_completed_at, phone_verified, onboarding_current_step')
-          .eq('id', selectedRequest.id)
-          .single();
+        // Fetch user roles
+        const { data: userRoles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', selectedRequest.id);
 
-        if (!profile?.onboarding_completed_at || !profile?.phone_verified) {
-          toast.error(
-            `Cannot approve ${selectedRequest.name}. They must complete all 6 onboarding steps with phone verification. Currently on step ${profile?.onboarding_current_step || 0}.`,
-            { duration: 6000 }
-          );
-          setSubmitting(false);
-          return;
+        const roles = userRoles?.map((r) => r.role) || [];
+        const isPureCandidate = !roles.includes('admin') && 
+                                !roles.includes('partner') && 
+                                !roles.includes('strategist');
+
+        // Only block approval if they're a pure candidate without completed onboarding
+        if (isPureCandidate) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_completed_at, phone_verified, onboarding_current_step')
+            .eq('id', selectedRequest.id)
+            .single();
+
+          if (!profile?.onboarding_completed_at || !profile?.phone_verified) {
+            toast.error(
+              `Cannot approve ${selectedRequest.name}. Candidates must complete all 6 onboarding steps with phone verification. Currently on step ${profile?.onboarding_current_step || 0}.`,
+              { duration: 6000 }
+            );
+            setSubmitting(false);
+            return;
+          }
         }
       }
 
@@ -590,15 +622,20 @@ export const AdminMemberRequests = () => {
                       </div>
                     )}
 
-                    {/* Onboarding Progress Tracker for pending candidates */}
-                    {request.status === 'pending' && request.request_type === 'candidate' && (
-                      <div className="mt-4">
-                        <OnboardingProgressTracker request={request} />
-                      </div>
-                    )}
+                  {/* Onboarding Progress Tracker - only for pure candidates, not admins/partners */}
+                  {request.status === 'pending' && 
+                   request.request_type === 'candidate' && 
+                   isPureCandidate(request) && (
+                    <div className="mt-4">
+                      <OnboardingProgressTracker request={request} />
+                    </div>
+                  )}
 
-                    {/* Warning for incomplete onboarding */}
-                    {request.request_type === 'candidate' && !request.profiles?.onboarding_completed_at && request.status === 'pending' && (
+                    {/* Warning for incomplete onboarding - only for pure candidates */}
+                    {request.request_type === 'candidate' && 
+                     isPureCandidate(request) &&
+                     !request.profiles?.onboarding_completed_at && 
+                     request.status === 'pending' && (
                       <Alert variant="destructive" className="mt-3">
                         <AlertCircle className="h-4 w-4" />
                         <AlertDescription>
@@ -637,6 +674,7 @@ export const AdminMemberRequests = () => {
                           className="gap-2"
                           disabled={
                             request.request_type === 'candidate' && 
+                            isPureCandidate(request) &&
                             (!request.profiles?.onboarding_completed_at || !request.profiles?.phone_verified)
                           }
                         >
