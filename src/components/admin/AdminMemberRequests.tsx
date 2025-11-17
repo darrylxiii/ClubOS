@@ -64,6 +64,7 @@ export const AdminMemberRequests = () => {
   const [sendEmail, setSendEmail] = useState(true);
   const [sendSMS, setSendSMS] = useState(true);
   const [requestTypeFilter, setRequestTypeFilter] = useState<'all' | 'candidate' | 'partner'>('all');
+  const [resending, setResending] = useState<{email?: boolean; sms?: boolean}>({});
 
   useEffect(() => {
     fetchRequests();
@@ -318,6 +319,67 @@ export const AdminMemberRequests = () => {
     setSendSMS(true);
   };
 
+  const handleResendNotification = async (request: MemberRequest, notificationType: 'email' | 'sms') => {
+    setResending(prev => ({ ...prev, [notificationType]: true }));
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Get user ID for the request
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', request.email)
+        .single();
+      
+      const userId = profileData?.id;
+      if (!userId) {
+        throw new Error('User not found');
+      }
+
+      if (notificationType === 'email') {
+        const { error } = await supabase.functions.invoke('send-approval-notification', {
+          body: {
+            userId,
+            email: request.email,
+            fullName: request.name,
+            requestType: request.request_type,
+            status: 'approved',
+          }
+        });
+
+        if (error) throw error;
+        toast.success('Email resent successfully');
+      } else {
+        if (!request.phone) {
+          toast.error('No phone number available');
+          return;
+        }
+
+        const { error } = await supabase.functions.invoke('send-approval-sms', {
+          body: {
+            userId,
+            phone: request.phone,
+            fullName: request.name,
+            requestType: request.request_type,
+          }
+        });
+
+        if (error) throw error;
+        toast.success('SMS resent successfully');
+      }
+
+      // Refresh to show updated notification status
+      fetchRequests();
+    } catch (error: any) {
+      console.error('Error resending notification:', error);
+      toast.error(`Failed to resend ${notificationType}`);
+    } finally {
+      setResending(prev => ({ ...prev, [notificationType]: false }));
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -366,6 +428,9 @@ export const AdminMemberRequests = () => {
           {requests.filter(r => requestTypeFilter === 'all' || r.request_type === requestTypeFilter).map(request => {
             const emailSent = request.notifications?.some(n => n.notification_type === 'email' && n.status === 'sent');
             const smsSent = request.notifications?.some(n => n.notification_type === 'sms' && n.status === 'sent');
+            const hasLoggedInAfterApproval = request.activity?.last_login_at && request.reviewed_at 
+              ? new Date(request.activity.last_login_at) > new Date(request.reviewed_at)
+              : false;
             
             return (
             <Card key={request.id} className="hover:shadow-lg transition-shadow">
@@ -515,19 +580,59 @@ export const AdminMemberRequests = () => {
                     {request.status === 'approved' && (
                       <div className="flex flex-col gap-2 p-3 bg-muted rounded-lg">
                         <p className="text-sm font-medium mb-1">Notifications</p>
-                        <div className="flex gap-2">
-                          <Badge variant={emailSent ? "default" : "outline"}><Mail className="w-3 h-3 mr-1" />Email {emailSent ? "Sent" : "Not Sent"}</Badge>
-                          <Badge variant={smsSent ? "default" : "outline"}><Phone className="w-3 h-3 mr-1" />SMS {smsSent ? "Sent" : "Not Sent"}</Badge>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge variant={emailSent ? "default" : "outline"}>
+                              <Mail className="w-3 h-3 mr-1" />
+                              Email {emailSent ? "Sent" : "Not Sent"}
+                            </Badge>
+                            {!emailSent && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => handleResendNotification(request, 'email')}
+                                disabled={resending.email}
+                                className="h-7 text-xs"
+                              >
+                                {resending.email ? 'Sending...' : 'Resend'}
+                              </Button>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <Badge variant={smsSent ? "default" : "outline"}>
+                              <Phone className="w-3 h-3 mr-1" />
+                              SMS {smsSent ? "Sent" : "Not Sent"}
+                            </Badge>
+                            {!smsSent && request.phone && (
+                              <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                onClick={() => handleResendNotification(request, 'sms')}
+                                disabled={resending.sms}
+                                className="h-7 text-xs"
+                              >
+                                {resending.sms ? 'Sending...' : 'Resend'}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}
                     {request.status === 'approved' && (
                       <div className="p-3 bg-muted rounded-lg">
                         <p className="text-sm font-medium mb-2">Login Status</p>
-                        {request.activity?.last_login_at ? (
-                          <div className="flex items-center gap-2 text-green-600"><CheckCircle2 className="w-4 h-4" /><span className="text-sm">Logged in {formatDistanceToNow(new Date(request.activity.last_login_at), { addSuffix: true })}</span></div>
+                        {hasLoggedInAfterApproval ? (
+                          <div className="flex items-center gap-2 text-green-600">
+                            <CheckCircle2 className="w-4 h-4" />
+                            <span className="text-sm">
+                              Logged in {formatDistanceToNow(new Date(request.activity!.last_login_at!), { addSuffix: true })}
+                            </span>
+                          </div>
                         ) : (
-                          <div className="flex items-center gap-2 text-amber-600"><Clock className="w-4 h-4" /><span className="text-sm">Not logged in yet</span></div>
+                          <div className="flex items-center gap-2 text-amber-600">
+                            <Clock className="w-4 h-4" />
+                            <span className="text-sm">Not logged in since approval</span>
+                          </div>
                         )}
                       </div>
                     )}
