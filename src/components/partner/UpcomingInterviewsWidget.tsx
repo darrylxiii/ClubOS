@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Calendar, Clock, Video, Users, AlertCircle, CalendarCheck, User, FileText, CalendarClock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, differenceInMinutes, isPast, isToday, isThisWeek } from 'date-fns';
+import { format, differenceInMinutes, isPast, isToday, isThisWeek, parseISO, isFuture } from 'date-fns';
 import { Link } from 'react-router-dom';
 
 interface UpcomingInterviewsWidgetProps {
@@ -118,7 +118,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         .from('detected_interviews')
         .select(`
           *,
-          applications!inner(
+          applications(
             id,
             candidate_id,
             current_stage_index,
@@ -139,6 +139,16 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         .limit(10);
 
       if (detectedError) throw detectedError;
+
+      // Filter out any without applications
+      const validDetected = (detected || []).filter(d => d.applications);
+
+      console.log('[UpcomingInterviews] Fetched data:', {
+        bookingsCount: bookings?.length || 0,
+        detectedCount: detected?.length || 0,
+        validDetectedCount: validDetected.length,
+        now,
+      });
 
       // Normalize bookings
       const normalizedBookings: NormalizedInterview[] = (bookings || []).map(b => {
@@ -166,7 +176,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
       });
 
       // Normalize detected interviews
-      const normalizedDetected: NormalizedInterview[] = (detected || []).map(d => {
+      const normalizedDetected: NormalizedInterview[] = validDetected.map(d => {
         const app = d.applications as any;
         const candidateProfile = app?.candidate_profiles;
         const stages = app?.stages ? JSON.parse(app.stages) : [];
@@ -182,8 +192,8 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         return {
           id: d.id,
           source: 'detected' as const,
-          scheduled_start: d.scheduled_start,
-          scheduled_end: d.scheduled_end,
+          scheduled_start: parseISO(d.scheduled_start).toISOString(),
+          scheduled_end: parseISO(d.scheduled_end).toISOString(),
           candidate_name: candidateProfile?.full_name || null,
           candidate_email: candidateProfile?.email || null,
           candidate_id: candidateProfile?.id || null,
@@ -237,9 +247,28 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
   const thisWeekInterviews = interviews.filter((i) => 
     isThisWeek(new Date(i.scheduled_start)) && !isToday(new Date(i.scheduled_start))
   );
+  const laterInterviews = interviews.filter((i) => {
+    const start = new Date(i.scheduled_start);
+    return !isToday(start) && !isThisWeek(start) && isFuture(start);
+  });
   const feedbackPending = interviews.filter((i) => 
     isPast(new Date(i.scheduled_end)) && !i.feedback_submitted_at && i.source === 'booking'
   );
+
+  console.log('[UpcomingInterviews] Categories:', {
+    total: interviews.length,
+    today: todayInterviews.length,
+    thisWeek: thisWeekInterviews.length,
+    later: laterInterviews.length,
+    feedbackPending: feedbackPending.length,
+    interviews: interviews.map(i => ({
+      id: i.id,
+      candidate: i.candidate_name,
+      start: i.scheduled_start,
+      isToday: isToday(new Date(i.scheduled_start)),
+      isThisWeek: isThisWeek(new Date(i.scheduled_start)),
+    })),
+  });
 
   if (loading) {
     return (
@@ -267,7 +296,14 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">No upcoming interviews scheduled</p>
+          <p className="text-sm text-muted-foreground">
+            No upcoming interviews scheduled
+            {process.env.NODE_ENV === 'development' && (
+              <span className="block text-xs mt-2 text-muted-foreground/60">
+                Debug: Checked at {new Date().toISOString()}
+              </span>
+            )}
+          </p>
         </CardContent>
       </Card>
     );
@@ -322,6 +358,21 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
             {thisWeekInterviews.length > 3 && (
               <p className="text-xs text-muted-foreground text-center pt-2">
                 +{thisWeekInterviews.length - 3} more this week
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Later Interviews */}
+        {laterInterviews.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-semibold text-foreground">Upcoming</h4>
+            {laterInterviews.slice(0, 3).map((interview) => (
+              <InterviewCard key={interview.id} interview={interview} />
+            ))}
+            {laterInterviews.length > 3 && (
+              <p className="text-xs text-muted-foreground text-center pt-2">
+                +{laterInterviews.length - 3} more upcoming
               </p>
             )}
           </div>
