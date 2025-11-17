@@ -313,7 +313,24 @@ export function AddCompanyDialog({ onSuccess }: AddCompanyDialogProps) {
       onSuccess();
     } catch (error: any) {
       console.error('Error creating company:', error);
-      toast.error(error.message || "Failed to create company");
+      
+      // Parse specific error types
+      if (error.code === '42501') {
+        toast.error("Permission denied. Only partners and admins can create companies.");
+      } else if (error.code === '23505') {
+        // Unique constraint violation
+        if (error.message.includes('companies_name_key')) {
+          toast.error("A company with this name already exists.");
+        } else if (error.message.includes('companies_slug_key')) {
+          toast.error("A company with a similar name already exists. Please choose a different name.");
+        } else {
+          toast.error("This company information conflicts with an existing company.");
+        }
+      } else if (error.message?.includes('row-level security')) {
+        toast.error("You don't have permission to create companies. Please contact an administrator.");
+      } else {
+        toast.error(error.message || "Failed to create company. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
