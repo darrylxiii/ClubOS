@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CheckCircle2, XCircle, Clock, User, Mail, Phone, Briefcase, MapPin, ExternalLink } from "lucide-react";
@@ -45,6 +46,8 @@ export const AdminMemberRequests = () => {
   const [declineReason, setDeclineReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'declined'>('pending');
+  const [sendEmail, setSendEmail] = useState(true);
+  const [sendSMS, setSendSMS] = useState(true);
 
   useEffect(() => {
     fetchRequests();
@@ -91,6 +94,13 @@ export const AdminMemberRequests = () => {
   const handleReview = async () => {
     if (!selectedRequest || !reviewAction) return;
 
+    console.log('[AdminMemberRequests] Starting review process', {
+      request: selectedRequest.name,
+      action: reviewAction,
+      sendEmail,
+      sendSMS
+    });
+
     setSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -121,29 +131,38 @@ export const AdminMemberRequests = () => {
         .update(updateData)
         .eq('id', selectedRequest.id);
 
-      if (updateError) throw updateError;
-
-      // Send notification email with error handling
-      const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-approval-notification', {
-        body: {
-          userId: selectedRequest.id,
-          email: selectedRequest.email,
-          fullName: selectedRequest.name,
-          requestType: selectedRequest.request_type,
-          status: newStatus,
-          declineReason: reviewAction === 'decline' ? declineReason : undefined,
-        }
-      });
-
-      if (emailError) {
-        console.error('Email notification error:', emailError);
-      } else {
-        console.log('Email sent successfully:', emailResult);
+      if (updateError) {
+        console.error('[AdminMemberRequests] Update error:', updateError);
+        throw updateError;
       }
 
-      // Send SMS notification if phone is available and status is approved
+      console.log('[AdminMemberRequests] Status updated successfully');
+
+      // Send notification email with error handling (only if sendEmail is checked)
+      let emailError = null;
+      if (sendEmail) {
+        const { data: emailResult, error: emailErr } = await supabase.functions.invoke('send-approval-notification', {
+          body: {
+            userId: selectedRequest.id,
+            email: selectedRequest.email,
+            fullName: selectedRequest.name,
+            requestType: selectedRequest.request_type,
+            status: newStatus,
+            declineReason: reviewAction === 'decline' ? declineReason : undefined,
+          }
+        });
+        emailError = emailErr;
+
+        if (emailErr) {
+          console.error('[AdminMemberRequests] Email notification error:', emailErr);
+        } else {
+          console.log('[AdminMemberRequests] Email sent successfully:', emailResult);
+        }
+      }
+
+      // Send SMS notification if phone is available and status is approved (only if sendSMS is checked)
       let smsSuccess = false;
-      if (reviewAction === 'approve' && selectedRequest.phone) {
+      if (sendSMS && reviewAction === 'approve' && selectedRequest.phone) {
         const { data: smsResult, error: smsError } = await supabase.functions.invoke('send-approval-sms', {
           body: {
             phone: selectedRequest.phone,
@@ -153,9 +172,9 @@ export const AdminMemberRequests = () => {
         });
 
         if (smsError) {
-          console.error('SMS notification error:', smsError);
+          console.error('[AdminMemberRequests] SMS notification error:', smsError);
         } else {
-          console.log('SMS sent successfully:', smsResult);
+          console.log('[AdminMemberRequests] SMS sent successfully:', smsResult);
           smsSuccess = true;
         }
       }
@@ -180,6 +199,8 @@ export const AdminMemberRequests = () => {
       setSelectedRequest(null);
       setReviewAction(null);
       setDeclineReason('');
+      setSendEmail(true);
+      setSendSMS(true);
       fetchRequests();
 
     } catch (error: any) {
@@ -193,6 +214,9 @@ export const AdminMemberRequests = () => {
   const openReviewDialog = (request: MemberRequest, action: 'approve' | 'decline') => {
     setSelectedRequest(request);
     setReviewAction(action);
+    // Reset notification preferences
+    setSendEmail(true);
+    setSendSMS(true);
   };
 
   if (loading) {
@@ -397,6 +421,38 @@ export const AdminMemberRequests = () => {
               }
             </DialogDescription>
           </DialogHeader>
+
+          {reviewAction === 'approve' && (
+            <div className="space-y-3">
+              <Label>Notification Preferences</Label>
+              <div className="space-y-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="send-email"
+                    checked={sendEmail}
+                    onCheckedChange={(checked) => setSendEmail(checked === true)}
+                  />
+                  <label htmlFor="send-email" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer">
+                    Send approval email
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="send-sms"
+                    checked={sendSMS}
+                    onCheckedChange={(checked) => setSendSMS(checked === true)}
+                    disabled={!selectedRequest?.phone}
+                  />
+                  <label 
+                    htmlFor="send-sms" 
+                    className={`text-sm font-medium leading-none ${!selectedRequest?.phone ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  >
+                    Send approval SMS {!selectedRequest?.phone && '(no phone number)'}
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
 
           {reviewAction === 'decline' && (
             <div className="space-y-2">
