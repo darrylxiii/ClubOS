@@ -80,7 +80,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
           application:applications(
             id,
             candidate_id,
-            candidate_profiles(full_name, email)
+            candidate_profiles!applications_candidate_id_fkey(full_name, email)
           )
         `)
         .eq('job_id', jobId)
@@ -96,10 +96,10 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         .from('detected_interviews')
         .select(`
           *,
-          applications(
+          applications!inner(
             id,
             candidate_id,
-            candidate_profiles(full_name, email)
+            candidate_profiles!applications_candidate_id_fkey(full_name, email)
           )
         `)
         .eq('job_id', jobId)

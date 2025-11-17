@@ -102,35 +102,86 @@ export function CalendarInterviewLinker({
 
   const loadTeamMembers = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch team assignments
+      const { data: assignments, error } = await supabase
         .from('job_team_assignments')
-        .select(`
-          *,
-          company_member:company_members!company_member_id(
-            id,
-            user:profiles!company_members_user_id_fkey(id, email, full_name, avatar_url)
-          ),
-          external_user:profiles!external_user_id(id, email, full_name, avatar_url)
-        `)
+        .select('*')
         .eq('job_id', jobId);
 
       if (error) throw error;
 
-      const resolved = (data || []).map(assignment => {
-        const isCompanyMember = assignment.assignment_type === 'company_member';
-        const user = isCompanyMember 
-          ? (assignment.company_member as any)?.user
-          : assignment.external_user;
+      if (!assignments || assignments.length === 0) {
+        setTeamMembers([]);
+        return;
+      }
 
-        return {
-          id: assignment.id,
-          userId: user?.id,
-          email: user?.email,
-          fullName: user?.full_name,
-          avatarUrl: user?.avatar_url,
-          assignmentType: assignment.assignment_type,
-          jobRole: assignment.job_role,
-        };
+      // Extract company member IDs and external user IDs
+      const companyMemberIds = assignments
+        .filter(a => a.assignment_type === 'company_member' && a.company_member_id)
+        .map(a => a.company_member_id);
+      
+      const externalUserIds = assignments
+        .filter(a => a.assignment_type === 'external_user' && a.external_user_id)
+        .map(a => a.external_user_id);
+
+      // Fetch company members with their profiles
+      let companyMembersData: any[] = [];
+      if (companyMemberIds.length > 0) {
+        const { data: cmData } = await supabase
+          .from('company_members')
+          .select('id, user_id, job_title')
+          .in('id', companyMemberIds);
+        
+        if (cmData && cmData.length > 0) {
+          const userIds = cmData.map(cm => cm.user_id).filter(Boolean);
+          const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, email, full_name, avatar_url')
+            .in('id', userIds);
+          
+          companyMembersData = cmData.map(cm => ({
+            ...cm,
+            profile: profilesData?.find(p => p.id === cm.user_id)
+          }));
+        }
+      }
+
+      // Fetch external user profiles
+      let externalUsersData: any[] = [];
+      if (externalUserIds.length > 0) {
+        const { data: extData } = await supabase
+          .from('profiles')
+          .select('id, email, full_name, avatar_url')
+          .in('id', externalUserIds);
+        
+        externalUsersData = extData || [];
+      }
+
+      // Resolve team members
+      const resolved = assignments.map(assignment => {
+        if (assignment.assignment_type === 'company_member') {
+          const memberData = companyMembersData.find(cm => cm.id === assignment.company_member_id);
+          return {
+            id: assignment.id,
+            userId: memberData?.profile?.id,
+            email: memberData?.profile?.email,
+            fullName: memberData?.profile?.full_name,
+            avatarUrl: memberData?.profile?.avatar_url,
+            assignmentType: assignment.assignment_type,
+            jobRole: assignment.job_role,
+          };
+        } else {
+          const externalUser = externalUsersData.find(u => u.id === assignment.external_user_id);
+          return {
+            id: assignment.id,
+            userId: externalUser?.id,
+            email: externalUser?.email,
+            fullName: externalUser?.full_name,
+            avatarUrl: externalUser?.avatar_url,
+            assignmentType: assignment.assignment_type,
+            jobRole: assignment.job_role,
+          };
+        }
       }).filter(tm => tm.userId && tm.email);
 
       setTeamMembers(resolved);
