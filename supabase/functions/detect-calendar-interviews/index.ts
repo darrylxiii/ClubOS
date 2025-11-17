@@ -277,6 +277,59 @@ serve(async (req) => {
     console.log(`Building lookup maps for ${allAttendeeEmails.size} unique emails`);
     const emailMaps = await buildEmailLookupMaps(supabase, Array.from(allAttendeeEmails));
 
+    // Build job team assignment lookup for matching interviewers
+    const jobIds = Array.from(new Set(
+      allEvents
+        .map(e => e.attendees?.map((a: any) => a.email).filter(Boolean) || [])
+        .flat()
+        .map(email => emailMaps.candidateMap.get(email.toLowerCase())?.jobId)
+        .filter(Boolean)
+    ));
+
+    const jobTeamMap = new Map();
+    if (jobIds.length > 0) {
+      const { data: teamAssignments } = await supabase
+        .from('job_team_assignments')
+        .select(`
+          job_id,
+          external_user_id,
+          company_member_id,
+          job_role,
+          profiles!job_team_assignments_external_user_id_fkey(id, email, full_name),
+          company_members!job_team_assignments_company_member_id_fkey(
+            user_id,
+            profiles!company_members_user_id_fkey(id, email, full_name)
+          )
+        `)
+        .in('job_id', jobIds);
+
+      if (teamAssignments) {
+        teamAssignments.forEach((assignment: any) => {
+          if (!jobTeamMap.has(assignment.job_id)) {
+            jobTeamMap.set(assignment.job_id, []);
+          }
+          
+          if (assignment.profiles) {
+            jobTeamMap.get(assignment.job_id).push({
+              userId: assignment.external_user_id,
+              email: assignment.profiles.email,
+              name: assignment.profiles.full_name,
+              role: assignment.job_role,
+              type: 'external'
+            });
+          } else if (assignment.company_members?.profiles) {
+            jobTeamMap.get(assignment.job_id).push({
+              userId: assignment.company_members.user_id,
+              email: assignment.company_members.profiles.email,
+              name: assignment.company_members.profiles.full_name,
+              role: assignment.job_role,
+              type: 'company_member'
+            });
+          }
+        });
+      }
+    }
+
     const { data: existingInterviews } = await supabase
       .from('detected_interviews')
       .select('calendar_event_id, calendar_provider')
@@ -301,6 +354,21 @@ serve(async (req) => {
 
       if (type === 'unknown' && confidence === 'low') continue;
 
+      // Match interviewers against job team if we have a job
+      const jobId = analysis.candidates[0]?.jobId;
+      const interviewerIds: string[] = [];
+      
+      if (jobId && jobTeamMap.has(jobId)) {
+        const jobTeam = jobTeamMap.get(jobId);
+        attendeeEmails.forEach((email: string) => {
+          const normalizedEmail = email.toLowerCase();
+          const teamMember = jobTeam.find((m: any) => m.email.toLowerCase() === normalizedEmail);
+          if (teamMember && !interviewerIds.includes(teamMember.userId)) {
+            interviewerIds.push(teamMember.userId);
+          }
+        });
+      }
+
       const detectedInterview = {
         calendar_event_id: event.id,
         calendar_provider: event._provider,
@@ -319,7 +387,8 @@ serve(async (req) => {
         candidate_name: analysis.candidates[0]?.name,
         candidate_id: analysis.candidates[0]?.candidateId,
         application_id: analysis.candidates[0]?.applicationId,
-        job_id: analysis.candidates[0]?.jobId,
+        job_id: jobId,
+        interviewer_ids: interviewerIds,
         partner_user_ids: analysis.partners.map(p => p.userId).filter(Boolean),
         partner_emails: analysis.partners.map(p => p.email),
         all_attendee_emails: attendeeEmails,
@@ -333,7 +402,7 @@ serve(async (req) => {
           email: t.email,
           name: t.name 
         })),
-        status: 'pending_review'
+        status: confidence === 'high' && interviewerIds.length > 0 ? 'confirmed' : 'pending_review'
       };
 
       detectedInterviews.push(detectedInterview);

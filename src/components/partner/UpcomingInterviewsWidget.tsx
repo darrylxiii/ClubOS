@@ -2,12 +2,21 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Video, Users, AlertCircle, CalendarCheck } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Calendar, Clock, Video, Users, AlertCircle, CalendarCheck, User, FileText, CalendarClock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, differenceInMinutes, isPast, isToday, isThisWeek } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 interface UpcomingInterviewsWidgetProps {
   jobId: string;
+}
+
+interface InterviewerProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  avatar_url?: string;
 }
 
 interface NormalizedInterview {
@@ -17,13 +26,18 @@ interface NormalizedInterview {
   scheduled_end: string;
   candidate_name: string | null;
   candidate_email: string | null;
+  candidate_id: string | null;
+  candidate_avatar?: string | null;
   interview_type: string | null;
   meeting_link: string | null;
   interviewer_ids: string[];
+  interviewers?: InterviewerProfile[];
   feedback_submitted_at: string | null;
   status?: string;
   confidence?: string;
   event_title?: string;
+  application_stage?: string;
+  job_title?: string;
 }
 
 export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProps) => {
@@ -72,7 +86,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
     try {
       const now = new Date().toISOString();
 
-      // Fetch confirmed bookings
+      // Fetch confirmed bookings with pipeline stage
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
         .select(`
@@ -80,8 +94,16 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
           application:applications(
             id,
             candidate_id,
-            candidate_profiles!applications_candidate_id_fkey(full_name, email)
-          )
+            current_stage_index,
+            stages,
+            candidate_profiles!applications_candidate_id_fkey(
+              id,
+              full_name, 
+              email,
+              avatar_url
+            )
+          ),
+          job:jobs!bookings_job_id_fkey(title)
         `)
         .eq('job_id', jobId)
         .eq('is_interview_booking', true)
@@ -91,7 +113,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
 
       if (bookingsError) throw bookingsError;
 
-      // Fetch confirmed detected interviews
+      // Fetch confirmed detected interviews with pipeline stage
       const { data: detected, error: detectedError } = await supabase
         .from('detected_interviews')
         .select(`
@@ -99,8 +121,16 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
           applications!inner(
             id,
             candidate_id,
-            candidate_profiles!applications_candidate_id_fkey(full_name, email)
-          )
+            current_stage_index,
+            stages,
+            candidate_profiles!applications_candidate_id_fkey(
+              id,
+              full_name, 
+              email,
+              avatar_url
+            )
+          ),
+          job:jobs!detected_interviews_job_id_fkey(title)
         `)
         .eq('job_id', jobId)
         .in('status', ['confirmed', 'pending_review'])
@@ -112,7 +142,11 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
 
       // Normalize bookings
       const normalizedBookings: NormalizedInterview[] = (bookings || []).map(b => {
-        const candidateProfile = (b.application as any)?.candidate_profiles;
+        const app = b.application as any;
+        const candidateProfile = app?.candidate_profiles;
+        const stages = app?.stages ? JSON.parse(app.stages) : [];
+        const currentStage = stages[app?.current_stage_index || 0];
+        
         return {
           id: b.id,
           source: 'booking' as const,
@@ -120,25 +154,24 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
           scheduled_end: b.scheduled_end,
           candidate_name: candidateProfile?.full_name || b.guest_name,
           candidate_email: candidateProfile?.email || b.guest_email,
+          candidate_id: candidateProfile?.id || null,
+          candidate_avatar: candidateProfile?.avatar_url || null,
           interview_type: b.interview_type,
-          meeting_link: b.google_meet_hangout_link || null,
+          meeting_link: b.video_meeting_link || b.quantum_meeting_link,
           interviewer_ids: b.interviewer_ids || [],
           feedback_submitted_at: b.feedback_submitted_at,
+          application_stage: currentStage?.name,
+          job_title: (b.job as any)?.title,
         };
       });
 
       // Normalize detected interviews
       const normalizedDetected: NormalizedInterview[] = (detected || []).map(d => {
-        const candidateProfile = (d.applications as any)?.candidate_profiles;
+        const app = d.applications as any;
+        const candidateProfile = app?.candidate_profiles;
+        const stages = app?.stages ? JSON.parse(app.stages) : [];
+        const currentStage = stages[app?.current_stage_index || 0];
         
-        // Extract interviewer IDs from JSONB fields
-        const partnerIds = Array.isArray(d.detected_partners)
-          ? d.detected_partners.map((p: any) => p.user_id).filter(Boolean)
-          : [];
-        const tqcIds = Array.isArray(d.detected_tqc_members)
-          ? d.detected_tqc_members.map((t: any) => t.user_id).filter(Boolean)
-          : [];
-
         return {
           id: d.id,
           source: 'detected' as const,
@@ -146,23 +179,48 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
           scheduled_end: d.scheduled_end,
           candidate_name: candidateProfile?.full_name || null,
           candidate_email: candidateProfile?.email || null,
+          candidate_id: candidateProfile?.id || null,
+          candidate_avatar: candidateProfile?.avatar_url || null,
           interview_type: d.interview_type,
           meeting_link: d.meeting_link,
-          interviewer_ids: [...partnerIds, ...tqcIds],
+          interviewer_ids: Array.isArray(d.detected_partners) 
+            ? d.detected_partners.map((p: any) => p.user_id).filter(Boolean)
+            : [],
           feedback_submitted_at: null,
           status: d.status,
           confidence: d.detection_confidence,
           event_title: d.event_title,
+          application_stage: currentStage?.name,
+          job_title: (d.job as any)?.title,
         };
       });
 
-      // Merge and sort by scheduled_start
-      const merged = [...normalizedBookings, ...normalizedDetected];
-      merged.sort((a, b) => 
-        new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime()
-      );
+      const allInterviews = [...normalizedBookings, ...normalizedDetected]
+        .sort((a, b) => new Date(a.scheduled_start).getTime() - new Date(b.scheduled_start).getTime());
 
-      setInterviews(merged);
+      // Fetch interviewer profiles for all interviews
+      const allInterviewerIds = Array.from(
+        new Set(allInterviews.flatMap(i => i.interviewer_ids || []))
+      ).filter(Boolean);
+
+      if (allInterviewerIds.length > 0) {
+        const { data: interviewers } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, avatar_url')
+          .in('id', allInterviewerIds);
+
+        const interviewerMap = new Map(
+          (interviewers || []).map(i => [i.id, i])
+        );
+
+        allInterviews.forEach(interview => {
+          interview.interviewers = (interview.interviewer_ids || [])
+            .map(id => interviewerMap.get(id))
+            .filter(Boolean) as InterviewerProfile[];
+        });
+      }
+
+      setInterviews(allInterviews);
     } catch (error) {
       console.error('Error fetching upcoming interviews:', error);
     } finally {
@@ -270,68 +328,147 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
 
 const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
   const startTime = new Date(interview.scheduled_start);
+  const endTime = new Date(interview.scheduled_end);
   const minutesUntil = differenceInMinutes(startTime, new Date());
   const isStartingSoon = minutesUntil <= 15 && minutesUntil > 0;
 
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <div
-      className={`p-3 rounded-lg border transition-colors ${
+      className={`p-4 rounded-lg border transition-all ${
         isStartingSoon
-          ? 'bg-yellow-500/5 border-yellow-500/20'
-          : 'bg-muted/30 border-border/50'
+          ? 'bg-yellow-500/5 border-yellow-500/30 shadow-sm'
+          : 'bg-card border-border hover:border-border/80 hover:shadow-sm'
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <p className="font-medium text-sm truncate">
-              {interview.candidate_name || interview.event_title || 'Interview'}
-            </p>
-            {interview.source === 'detected' && (
-              <Badge variant="outline" className="text-xs shrink-0">
-                <CalendarCheck className="w-3 h-3 mr-1" />
-                From Calendar
-              </Badge>
-            )}
-            {interview.confidence && interview.source === 'detected' && (
-              <Badge 
-                variant={interview.confidence === 'high' ? 'default' : 'secondary'} 
-                className="text-xs shrink-0"
-              >
-                {interview.confidence}
-              </Badge>
-            )}
-            {isStartingSoon && (
-              <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20 text-xs shrink-0">
-                Starting soon
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span>{format(startTime, 'HH:mm')}</span>
+      {/* Header: Candidate + Join Button */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* Candidate Avatar */}
+          <Avatar className="h-10 w-10 shrink-0">
+            <AvatarImage src={interview.candidate_avatar || undefined} />
+            <AvatarFallback className="bg-primary/10 text-primary font-medium">
+              {interview.candidate_name ? getInitials(interview.candidate_name) : '?'}
+            </AvatarFallback>
+          </Avatar>
+
+          {/* Candidate Name + Badges */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1">
+              <p className="font-semibold text-sm truncate">
+                {interview.candidate_name || interview.event_title || 'Interview'}
+              </p>
+              {interview.source === 'detected' && (
+                <Badge variant="outline" className="text-xs shrink-0 border-primary/20 text-primary">
+                  <CalendarCheck className="w-3 h-3 mr-1" />
+                  From Calendar
+                </Badge>
+              )}
+              {isStartingSoon && (
+                <Badge className="text-xs shrink-0 bg-yellow-500/15 text-yellow-700 hover:bg-yellow-500/20 border-yellow-500/30">
+                  ⚡ Starting soon
+                </Badge>
+              )}
             </div>
-            {interview.interview_type && (
-              <Badge variant="outline" className="text-xs py-0">
-                {interview.interview_type.replace('_', ' ')}
-              </Badge>
-            )}
-            {interview.interviewer_ids && interview.interviewer_ids.length > 0 && (
-              <div className="flex items-center gap-1">
-                <Users className="w-3 h-3" />
-                <span>{interview.interviewer_ids.length} interviewer{interview.interviewer_ids.length !== 1 ? 's' : ''}</span>
-              </div>
-            )}
+            
+            {/* Date & Time */}
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="font-medium">
+                {format(startTime, 'EEEE, MMM d')} • {format(startTime, 'HH:mm')}-{format(endTime, 'HH:mm')}
+              </span>
+            </div>
           </div>
         </div>
+
+        {/* Join Button */}
         {interview.meeting_link && (
-          <Button size="sm" variant="outline" className="shrink-0" asChild>
+          <Button 
+            size="sm" 
+            className="shrink-0" 
+            variant={isStartingSoon ? "default" : "outline"}
+            asChild
+          >
             <a href={interview.meeting_link} target="_blank" rel="noopener noreferrer">
-              <Video className="w-3 h-3" />
+              <Video className="w-3.5 h-3.5 mr-1.5" />
+              Join
             </a>
           </Button>
         )}
+      </div>
+
+      {/* Interviewers */}
+      {interview.interviewers && interview.interviewers.length > 0 && (
+        <div className="flex items-center gap-2 mb-3 pb-3 border-b border-border/50">
+          <Users className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+          <span className="text-xs text-muted-foreground shrink-0">With:</span>
+          <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            {interview.interviewers.slice(0, 3).map((interviewer, idx) => (
+              <div key={interviewer.id} className="flex items-center gap-1.5">
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={interviewer.avatar_url || undefined} />
+                  <AvatarFallback className="bg-muted text-xs">
+                    {getInitials(interviewer.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-xs font-medium truncate">
+                  {interviewer.full_name.split(' ')[0]}
+                </span>
+                {idx < Math.min(interview.interviewers!.length - 1, 2) && (
+                  <span className="text-xs text-muted-foreground">•</span>
+                )}
+              </div>
+            ))}
+            {interview.interviewers.length > 3 && (
+              <span className="text-xs text-muted-foreground">
+                +{interview.interviewers.length - 3} more
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Pipeline Stage + Job Title */}
+      {(interview.application_stage || interview.job_title) && (
+        <div className="flex items-center gap-2 mb-3 text-xs">
+          <Badge variant="secondary" className="font-normal">
+            {interview.application_stage || 'Interview'}
+          </Badge>
+          {interview.job_title && (
+            <>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-muted-foreground truncate">{interview.job_title}</span>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Action Shortcuts */}
+      <div className="flex items-center gap-2">
+        {interview.candidate_id && (
+          <Button size="sm" variant="ghost" className="h-8 text-xs" asChild>
+            <Link to={`/partner/candidates/${interview.candidate_id}`}>
+              <User className="w-3.5 h-3.5 mr-1.5" />
+              View Profile
+            </Link>
+          </Button>
+        )}
+        <Button size="sm" variant="ghost" className="h-8 text-xs" disabled>
+          <FileText className="w-3.5 h-3.5 mr-1.5" />
+          Prep Doc
+        </Button>
+        <Button size="sm" variant="ghost" className="h-8 text-xs ml-auto" disabled>
+          <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
+          Reschedule
+        </Button>
       </div>
     </div>
   );
