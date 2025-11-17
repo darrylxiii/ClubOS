@@ -23,7 +23,7 @@ import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp
 const STEPS = ["contact", "professional", "career", "preferences"];
 
 export default function OAuthOnboarding() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -46,6 +46,44 @@ export default function OAuthOnboarding() {
     resendCooldown 
   } = usePhoneVerification();
   const { countryCode } = useCountryDetection();
+
+  // Auth check: redirect if not authenticated or if onboarding already completed
+  useEffect(() => {
+    if (loading) return; // Wait for auth to finish loading
+    
+    if (!user) {
+      console.log('[OAuthOnboarding] No user found, redirecting to /auth');
+      navigate('/auth', { replace: true });
+      return;
+    }
+
+    // Check if onboarding is already completed
+    const checkOnboardingStatus = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('onboarding_completed_at, account_status')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (data?.onboarding_completed_at) {
+          console.log('[OAuthOnboarding] Onboarding already completed, redirecting');
+          // Redirect based on account status
+          if (data.account_status === 'approved') {
+            navigate('/club-home', { replace: true });
+          } else {
+            navigate('/pending-approval', { replace: true });
+          }
+        }
+      } catch (error) {
+        console.error('[OAuthOnboarding] Error checking onboarding status:', error);
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [user, loading, navigate]);
 
   const [formData, setFormData] = useState({
     // Contact
@@ -442,6 +480,15 @@ export default function OAuthOnboarding() {
   };
 
   const progress = ((currentStep + 1) / STEPS.length) * 100;
+
+  // Show loading state while checking authentication
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">

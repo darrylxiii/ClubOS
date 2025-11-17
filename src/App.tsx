@@ -377,6 +377,18 @@ const App = () => {
               }
             />
             <Route
+              path="/oauth-onboarding"
+              element={
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
+                      <OAuthOnboarding />
+                    </Suspense>
+                  </RouteErrorBoundary>
+                </PublicProviders>
+              }
+            />
+            <Route
               path="/privacy"
               element={
                 <PublicProviders>
@@ -532,7 +544,6 @@ const App = () => {
                       <Route path="/candidates/:candidateId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><UnifiedCandidateProfile /></Suspense></ProtectedRoute>} />
                       <Route path="/meetings" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Meetings /></Suspense></ProtectedRoute>} />
                       <Route path="/meetings/:meetingId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingRoom /></Suspense></ProtectedRoute>} />
-                      <Route path="/oauth-onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><OAuthOnboarding /></Suspense></ProtectedRoute>} />
                       
                       {/* 404 Catch-all */}
                       <Route path="*" element={<NotFound />} />
