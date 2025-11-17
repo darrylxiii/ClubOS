@@ -123,8 +123,8 @@ export const AdminMemberRequests = () => {
 
       if (updateError) throw updateError;
 
-      // Send notification email
-      await supabase.functions.invoke('send-approval-notification', {
+      // Send notification email with error handling
+      const { data: emailResult, error: emailError } = await supabase.functions.invoke('send-approval-notification', {
         body: {
           userId: selectedRequest.id,
           email: selectedRequest.email,
@@ -135,11 +135,46 @@ export const AdminMemberRequests = () => {
         }
       });
 
-      toast.success(
-        reviewAction === 'approve' 
-          ? `${selectedRequest.name} has been approved!` 
-          : `Application declined`
-      );
+      if (emailError) {
+        console.error('Email notification error:', emailError);
+      } else {
+        console.log('Email sent successfully:', emailResult);
+      }
+
+      // Send SMS notification if phone is available and status is approved
+      let smsSuccess = false;
+      if (reviewAction === 'approve' && selectedRequest.phone) {
+        const { data: smsResult, error: smsError } = await supabase.functions.invoke('send-approval-sms', {
+          body: {
+            phone: selectedRequest.phone,
+            fullName: selectedRequest.name,
+            requestType: selectedRequest.request_type,
+          }
+        });
+
+        if (smsError) {
+          console.error('SMS notification error:', smsError);
+        } else {
+          console.log('SMS sent successfully:', smsResult);
+          smsSuccess = true;
+        }
+      }
+
+      // Show success toast with notification status
+      if (reviewAction === 'approve') {
+        const notifications = [];
+        if (!emailError) notifications.push('Email');
+        if (smsSuccess) notifications.push('SMS');
+        
+        toast.success(
+          `${selectedRequest.name} has been approved!`,
+          notifications.length > 0 
+            ? { description: `Notifications sent: ${notifications.join(', ')}` }
+            : undefined
+        );
+      } else {
+        toast.success('Application declined');
+      }
 
       // Close dialog and refresh
       setSelectedRequest(null);
