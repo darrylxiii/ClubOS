@@ -19100,6 +19100,7 @@ export type Database = {
         Args: { _module_id: string; _user_id: string }
         Returns: boolean
       }
+      is_pure_candidate: { Args: { check_user_id: string }; Returns: boolean }
       is_team_member: { Args: { check_user_id: string }; Returns: boolean }
       is_tqc_team_email_for_job: {
         Args: { check_email: string; check_job_id?: string }
