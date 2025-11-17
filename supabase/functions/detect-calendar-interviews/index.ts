@@ -112,21 +112,18 @@ function analyzeAttendeesWithMaps(
   for (const email of attendeeEmails) {
     const lowerEmail = email.toLowerCase();
 
-    // Check TQC
     const tqcData = maps.tqcMap.get(lowerEmail);
     if (tqcData) {
       result.tqcMembers.push({ email, ...tqcData });
       continue;
     }
 
-    // Check candidate
     const candidateData = maps.candidateMap.get(lowerEmail);
     if (candidateData) {
       result.candidates.push({ email, ...candidateData });
       continue;
     }
 
-    // Check partner
     const partnerData = maps.partnerMap.get(lowerEmail);
     if (partnerData) {
       result.partners.push({ email, ...partnerData });
@@ -147,28 +144,23 @@ function determineInterviewType(analysis: AttendeeAnalysis): {
   const hasCandidate = analysis.candidates.length > 0;
   const hasPartner = analysis.partners.length > 0;
 
-  // TQC + Candidate (1:1) = First Introduction
   if (hasTQC && hasCandidate && !hasPartner && 
       analysis.tqcMembers.length === 1 && analysis.candidates.length === 1) {
     return { type: 'tqc_intro', confidence: 'high' };
   }
 
-  // TQC + Partner + Candidate = Partner Interview (TQC booked it)
   if (hasTQC && hasPartner && hasCandidate) {
     return { type: 'partner_interview', confidence: 'high' };
   }
 
-  // Multiple Partners + Candidate = Panel Interview
   if (hasPartner && hasCandidate && analysis.partners.length > 1) {
     return { type: 'panel_interview', confidence: 'medium' };
   }
 
-  // Partner + Candidate (no TQC) = Partner Interview
   if (hasPartner && hasCandidate && !hasTQC) {
     return { type: 'partner_interview', confidence: 'medium' };
   }
 
-  // Has candidate but unclear context
   if (hasCandidate) {
     return { type: 'unknown', confidence: 'low' };
   }
@@ -187,10 +179,8 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     const { userId, startDate, endDate } = await req.json();
-
     console.log(`Scanning calendar for user ${userId} from ${startDate} to ${endDate}`);
 
-    // Fetch calendar connections for this user
     const { data: connections } = await supabase
       .from('calendar_connections')
       .select('*')
@@ -206,9 +196,8 @@ serve(async (req) => {
 
     let allEvents: any[] = [];
     
-    // Fetch all events from all connections first
     for (const connection of connections) {
-      console.log(`Checking ${connection.provider} calendar connection ${connection.id}`);
+      console.log(`Fetching ${connection.provider} calendar ${connection.id}`);
 
       const functionName = connection.provider === 'google' 
         ? 'google-calendar-events' 
@@ -225,14 +214,13 @@ serve(async (req) => {
         });
 
         if (eventsError) {
-          console.error(`Error fetching events from ${functionName}:`, eventsError);
+          console.error(`Error fetching ${functionName}:`, eventsError);
           continue;
         }
 
         const events = eventsData?.events || [];
         console.log(`Found ${events.length} events from ${connection.provider}`);
         
-        // Tag events with connection info
         events.forEach((event: any) => {
           event._connectionId = connection.id;
           event._provider = connection.provider;
@@ -244,9 +232,8 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Total events to process: ${allEvents.length}`);
+    console.log(`Total events: ${allEvents.length}`);
 
-    // Collect all unique attendee emails
     const allAttendeeEmails = new Set<string>();
     allEvents.forEach(event => {
       const attendeeEmails = event.attendees?.map((a: any) => a.email).filter(Boolean) || [];
@@ -254,11 +241,8 @@ serve(async (req) => {
     });
 
     console.log(`Building lookup maps for ${allAttendeeEmails.size} unique emails`);
-    
-    // Build lookup maps once for all attendees
     const emailMaps = await buildEmailLookupMaps(supabase, Array.from(allAttendeeEmails));
 
-    // Get existing detected interviews to avoid duplicates
     const { data: existingInterviews } = await supabase
       .from('detected_interviews')
       .select('calendar_event_id, calendar_provider')
@@ -270,73 +254,77 @@ serve(async (req) => {
 
     const detectedInterviews = [];
 
-    // Process all events with pre-built maps (no DB calls in loop)
     for (const event of allEvents) {
       const attendeeEmails = event.attendees?.map((a: any) => a.email).filter(Boolean) || [];
       
       if (attendeeEmails.length === 0) continue;
 
-      // Check if already detected
       const eventKey = `${event._provider}:${event.id}`;
       if (existingSet.has(eventKey)) continue;
 
-      // Analyze attendees using pre-built maps (no DB calls!)
       const analysis = analyzeAttendeesWithMaps(attendeeEmails, emailMaps);
       const { type, confidence } = determineInterviewType(analysis);
 
-      // Only process potential interviews
       if (type === 'unknown' && confidence === 'low') continue;
 
-          // Insert detected interview
-          const detectedInterview = {
-            calendar_event_id: event.id,
-            calendar_provider: connection.provider,
-            calendar_connection_id: connection.id,
-            detected_by: userId,
-            detection_confidence: confidence,
-            detection_type: type,
-            title: event.summary || 'Untitled Meeting',
-            description: event.description,
-            scheduled_start: event.start.dateTime || event.start.date,
-            scheduled_end: event.end.dateTime || event.end.date,
-            location: event.location,
-            meeting_link: event.hangoutLink || event.conferenceData?.entryPoints?.[0]?.uri,
-            tqc_organizer_id: userId,
-            candidate_email: analysis.candidates[0]?.email,
-            candidate_name: analysis.candidates[0]?.name,
-            candidate_id: analysis.candidates[0]?.candidateId,
-            application_id: analysis.candidates[0]?.applicationId,
-            job_id: analysis.candidates[0]?.jobId,
-            partner_user_ids: analysis.partners.map(p => p.userId).filter(Boolean),
-            partner_emails: analysis.partners.map(p => p.email),
-            all_attendee_emails: attendeeEmails,
-            status: 'pending_review'
-          };
+      const detectedInterview = {
+        calendar_event_id: event.id,
+        calendar_provider: event._provider,
+        calendar_connection_id: event._connectionId,
+        detected_by: userId,
+        detection_confidence: confidence,
+        detection_type: type,
+        title: event.summary || 'Untitled Meeting',
+        description: event.description,
+        scheduled_start: event.start?.dateTime || event.start?.date,
+        scheduled_end: event.end?.dateTime || event.end?.date,
+        location: event.location,
+        meeting_link: event.hangoutLink || event.conferenceData?.entryPoints?.[0]?.uri,
+        tqc_organizer_id: userId,
+        candidate_email: analysis.candidates[0]?.email,
+        candidate_name: analysis.candidates[0]?.name,
+        candidate_id: analysis.candidates[0]?.candidateId,
+        application_id: analysis.candidates[0]?.applicationId,
+        job_id: analysis.candidates[0]?.jobId,
+        partner_user_ids: analysis.partners.map(p => p.userId).filter(Boolean),
+        partner_emails: analysis.partners.map(p => p.email),
+        all_attendee_emails: attendeeEmails,
+        detected_partners: analysis.partners.map(p => ({ 
+          user_id: p.userId, 
+          email: p.email,
+          name: p.name 
+        })),
+        detected_tqc_members: analysis.tqcMembers.map(t => ({ 
+          user_id: t.userId, 
+          email: t.email,
+          name: t.name 
+        })),
+        status: 'pending_review'
+      };
 
-          const { data: inserted, error: insertError } = await supabase
-            .from('detected_interviews')
-            .insert(detectedInterview)
-            .select()
-            .single();
+      detectedInterviews.push(detectedInterview);
+    }
 
-          if (insertError) {
-            console.error('Error inserting detected interview:', insertError);
-            continue;
-          }
+    if (detectedInterviews.length > 0) {
+      console.log(`Batch inserting ${detectedInterviews.length} detected interviews`);
+      
+      const { data: inserted, error: insertError } = await supabase
+        .from('detected_interviews')
+        .insert(detectedInterviews)
+        .select();
 
-          console.log(`Detected interview: ${inserted.title}`);
-          detectedInterviews.push(inserted);
-        }
-      } catch (err) {
-        console.error(`Error processing ${connection.provider} calendar:`, err);
+      if (insertError) {
+        console.error('Batch insert error:', insertError);
+      } else {
+        console.log(`Successfully inserted ${inserted?.length || 0} interviews`);
       }
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
+      JSON.stringify({ 
+        success: true, 
         detected: detectedInterviews.length,
-        interviews: detectedInterviews
+        interviews: detectedInterviews 
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
