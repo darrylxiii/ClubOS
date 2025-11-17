@@ -110,20 +110,26 @@ export const AdminMemberRequests = () => {
       const tableName = selectedRequest.request_type === 'candidate' ? 'profiles' : 'partner_requests';
       const statusColumn = selectedRequest.request_type === 'candidate' ? 'account_status' : 'status';
 
-      // Update the appropriate table
+      // Build update data with correct column names per table
       const updateData: any = {
         [statusColumn]: newStatus,
-        reviewed_at: new Date().toISOString(),
-        reviewed_by: user.id,
       };
 
-      if (reviewAction === 'decline') {
-        updateData[selectedRequest.request_type === 'candidate' ? 'account_decline_reason' : 'decline_reason'] = declineReason;
-      }
-
+      // Add reviewed fields based on request type
       if (selectedRequest.request_type === 'candidate') {
-        updateData.account_approved_by = user.id;
+        // Candidates use account_* prefix
         updateData.account_reviewed_at = new Date().toISOString();
+        updateData.account_approved_by = user.id;
+        if (reviewAction === 'decline') {
+          updateData.account_decline_reason = declineReason;
+        }
+      } else {
+        // Partners use standard column names
+        updateData.reviewed_at = new Date().toISOString();
+        updateData.reviewed_by = user.id;
+        if (reviewAction === 'decline') {
+          updateData.decline_reason = declineReason;
+        }
       }
 
       const { error: updateError } = await supabase
