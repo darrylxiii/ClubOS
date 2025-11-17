@@ -108,37 +108,74 @@ export default function OAuthOnboarding() {
       if (error) throw error;
 
       if (data) {
-        // Pre-fill any existing data
-        const employmentType = data.employment_type_preference as "fulltime" | "freelance" | "both" | null;
-        const workLocations = Array.isArray(data.preferred_work_locations) 
-          ? data.preferred_work_locations as Array<{ city: string; country: string; radius_km: number }>
-          : [];
-        
-        setFormData(prev => ({
-          ...prev,
-          phone: data.phone || "",
-          location: data.location || "",
-          current_title: data.current_title || "",
-          linkedin_url: data.linkedin_url || "",
-          bio: data.career_preferences || "",
-          employment_type: employmentType || "fulltime",
-          notice_period: data.notice_period || "2_weeks",
-          remote_work_aspiration: data.remote_work_aspiration || false,
-          current_salary_min: data.current_salary_min || 50000,
-          current_salary_max: data.current_salary_max || 70000,
-          salary_preference_hidden: data.salary_preference_hidden || false,
-          desired_salary_min: data.desired_salary_min || 70000,
-          desired_salary_max: data.desired_salary_max || 90000,
-          remote_work_preference: data.remote_work_preference || false,
-          preferred_work_locations: workLocations,
-          resume_url: data.resume_url || "",
-          resume_filename: data.resume_filename || "",
-        }));
-        
-        // Check if phone is already verified
-        if (data.phone_verified && data.phone) {
-          setPhoneNumber(data.phone);
-          setPhoneVerified(true);
+        // Load saved progress if onboarding not completed
+        if (!data.onboarding_completed_at && data.onboarding_partial_data) {
+          const saved = data.onboarding_partial_data as any;
+          
+          // Resume from saved step
+          setCurrentStep(data.onboarding_current_step || 0);
+          
+          // Restore form data
+          setFormData(prev => ({
+            ...prev,
+            phone: saved.phone || '',
+            location: saved.location || data.location || '',
+            current_title: saved.current_title || data.current_title || '',
+            linkedin_url: saved.linkedin_url || data.linkedin_url || '',
+            bio: saved.bio || data.career_preferences || '',
+            resume_url: saved.resume_url || '',
+            resume_filename: saved.resume_filename || '',
+            employment_type: saved.employment_type || 'fulltime',
+            notice_period: saved.notice_period || '2_weeks',
+            remote_work_aspiration: saved.remote_work_aspiration || false,
+            preferred_work_locations: saved.preferred_work_locations || [],
+            current_salary_min: saved.current_salary_min || 50000,
+            current_salary_max: saved.current_salary_max || 70000,
+            desired_salary_min: saved.desired_salary_min || 70000,
+            desired_salary_max: saved.desired_salary_max || 90000,
+            freelance_hourly_rate_min: saved.freelance_hourly_rate_min || 50,
+            freelance_hourly_rate_max: saved.freelance_hourly_rate_max || 100,
+            salary_preference_hidden: saved.salary_preference_hidden || false,
+            remote_work_preference: saved.remote_work_preference || false,
+          }));
+          
+          setPhoneNumber(saved.phone || '');
+          setPhoneVerified(saved.phone_verified || false);
+          
+          toast.success("Welcome back! We've restored your progress");
+        } else {
+          // Pre-fill any existing data for first-time onboarding
+          const employmentType = data.employment_type_preference as "fulltime" | "freelance" | "both" | null;
+          const workLocations = Array.isArray(data.preferred_work_locations) 
+            ? data.preferred_work_locations as Array<{ city: string; country: string; radius_km: number }>
+            : [];
+          
+          setFormData(prev => ({
+            ...prev,
+            phone: data.phone || "",
+            location: data.location || "",
+            current_title: data.current_title || "",
+            linkedin_url: data.linkedin_url || "",
+            bio: data.career_preferences || "",
+            employment_type: employmentType || "fulltime",
+            notice_period: data.notice_period || "2_weeks",
+            remote_work_aspiration: data.remote_work_aspiration || false,
+            current_salary_min: data.current_salary_min || 50000,
+            current_salary_max: data.current_salary_max || 70000,
+            salary_preference_hidden: data.salary_preference_hidden || false,
+            desired_salary_min: data.desired_salary_min || 70000,
+            desired_salary_max: data.desired_salary_max || 90000,
+            remote_work_preference: data.remote_work_preference || false,
+            preferred_work_locations: workLocations,
+            resume_url: data.resume_url || "",
+            resume_filename: data.resume_filename || "",
+          }));
+          
+          // Check if phone is already verified
+          if (data.phone_verified && data.phone) {
+            setPhoneNumber(data.phone);
+            setPhoneVerified(true);
+          }
         }
       }
     } catch (error) {
