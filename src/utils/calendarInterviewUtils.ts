@@ -112,7 +112,7 @@ export function extractCandidateEmailFromEvent(
   // Match attendee emails with candidate emails in applications
   for (const attendee of event.attendees) {
     const matchedApp = applications.find(
-      app => app.candidate_email?.toLowerCase() === attendee.toLowerCase()
+      app => app.email?.toLowerCase() === attendee.toLowerCase()
     );
     if (matchedApp) return attendee;
   }
@@ -128,12 +128,12 @@ export function suggestCandidateFromEvent(
   const emailMatch = extractCandidateEmailFromEvent(event, applications);
   if (emailMatch) {
     const app = applications.find(
-      app => app.candidate_email?.toLowerCase() === emailMatch.toLowerCase()
+      app => app.email?.toLowerCase() === emailMatch.toLowerCase()
     );
     if (app) {
       return {
         applicationId: app.id,
-        candidateName: app.candidate_full_name,
+        candidateName: app.full_name || app.email || 'Unknown',
         confidence: 'high'
       };
     }
@@ -142,11 +142,11 @@ export function suggestCandidateFromEvent(
   // Try name match in title (medium confidence)
   const titleLower = event.title.toLowerCase();
   for (const app of applications) {
-    const name = app.candidate_full_name?.toLowerCase();
+    const name = app.full_name?.toLowerCase();
     if (name && titleLower.includes(name)) {
       return {
         applicationId: app.id,
-        candidateName: app.candidate_full_name,
+        candidateName: app.full_name || app.email || 'Unknown',
         confidence: 'medium'
       };
     }
@@ -159,7 +159,7 @@ export function suggestCandidateFromEvent(
       if (titleLower.includes(firstName) && titleLower.includes(lastName)) {
         return {
           applicationId: app.id,
-          candidateName: app.candidate_full_name,
+          candidateName: app.full_name || app.email || 'Unknown',
           confidence: 'medium'
         };
       }
