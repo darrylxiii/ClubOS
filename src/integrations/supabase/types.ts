@@ -6263,6 +6263,177 @@ export type Database = {
         }
         Relationships: []
       }
+      detected_interviews: {
+        Row: {
+          application_id: string | null
+          calendar_connection_id: string | null
+          calendar_event_id: string
+          calendar_provider: string
+          candidate_id: string | null
+          created_at: string
+          detected_at: string
+          detected_candidates: Json | null
+          detected_partners: Json | null
+          detected_tqc_members: Json | null
+          detection_confidence: string | null
+          detection_notes: string | null
+          event_description: string | null
+          event_title: string
+          id: string
+          interview_type: string | null
+          job_id: string | null
+          linked_booking_id: string | null
+          location: string | null
+          manually_edited: boolean | null
+          meeting_link: string | null
+          scheduled_end: string
+          scheduled_start: string
+          status: string
+          tqc_organizer_id: string | null
+          unknown_attendees: Json | null
+          updated_at: string
+          user_notes: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          calendar_connection_id?: string | null
+          calendar_event_id: string
+          calendar_provider: string
+          candidate_id?: string | null
+          created_at?: string
+          detected_at?: string
+          detected_candidates?: Json | null
+          detected_partners?: Json | null
+          detected_tqc_members?: Json | null
+          detection_confidence?: string | null
+          detection_notes?: string | null
+          event_description?: string | null
+          event_title: string
+          id?: string
+          interview_type?: string | null
+          job_id?: string | null
+          linked_booking_id?: string | null
+          location?: string | null
+          manually_edited?: boolean | null
+          meeting_link?: string | null
+          scheduled_end: string
+          scheduled_start: string
+          status?: string
+          tqc_organizer_id?: string | null
+          unknown_attendees?: Json | null
+          updated_at?: string
+          user_notes?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          calendar_connection_id?: string | null
+          calendar_event_id?: string
+          calendar_provider?: string
+          candidate_id?: string | null
+          created_at?: string
+          detected_at?: string
+          detected_candidates?: Json | null
+          detected_partners?: Json | null
+          detected_tqc_members?: Json | null
+          detection_confidence?: string | null
+          detection_notes?: string | null
+          event_description?: string | null
+          event_title?: string
+          id?: string
+          interview_type?: string | null
+          job_id?: string | null
+          linked_booking_id?: string | null
+          location?: string | null
+          manually_edited?: boolean | null
+          meeting_link?: string | null
+          scheduled_end?: string
+          scheduled_start?: string
+          status?: string
+          tqc_organizer_id?: string | null
+          unknown_attendees?: Json | null
+          updated_at?: string
+          user_notes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "detected_interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_calendar_connection_id_fkey"
+            columns: ["calendar_connection_id"]
+            isOneToOne: false
+            referencedRelation: "calendar_connections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_linked_booking_id_fkey"
+            columns: ["linked_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_tqc_organizer_id_fkey"
+            columns: ["tqc_organizer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_tqc_organizer_id_fkey"
+            columns: ["tqc_organizer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_tqc_organizer_id_fkey"
+            columns: ["tqc_organizer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       discussion_replies: {
         Row: {
           content: string
