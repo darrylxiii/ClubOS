@@ -71,10 +71,26 @@ const Auth = () => {
   }, []);
 
   useEffect(() => {
-    if (!loading && user && session && !mfaRequired) {
-      console.log("[Auth Page] ✅ User authenticated, navigating to /home");
-      navigate("/home");
-    }
+    const checkOnboardingStatus = async () => {
+      if (!loading && user && session && !mfaRequired) {
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('onboarding_completed_at')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile?.onboarding_completed_at) {
+          console.log("[Auth Page] ⚠️ User needs to complete onboarding");
+          navigate("/oauth-onboarding");
+        } else {
+          console.log("[Auth Page] ✅ User authenticated, navigating to /home");
+          navigate("/home");
+        }
+      }
+    };
+
+    checkOnboardingStatus();
   }, [loading, user, session, mfaRequired, navigate]);
 
   useEffect(() => {
