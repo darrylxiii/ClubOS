@@ -149,19 +149,25 @@ export default function JobDashboard() {
     }
   };
 
-  const isAuthorized = role === 'admin' || role === 'partner';
-
+  // Authorization check with role-based routing
   useEffect(() => {
-    if (!roleLoading && !isAuthorized) {
+    // Wait for role to be fully loaded
+    if (roleLoading) return;
+    
+    // Check authorization (include strategist!)
+    const hasAccess = role === 'admin' || role === 'partner' || role === 'strategist';
+    
+    if (!hasAccess) {
       toast.error("You don't have permission to access this page");
       navigate('/home');
       return;
     }
 
-    if (jobId && isAuthorized) {
+    // Fetch job details
+    if (jobId) {
       fetchJobDetails();
     }
-  }, [jobId, roleLoading, isAuthorized]);
+  }, [jobId, role, roleLoading]);
 
   const fetchJobDetails = async () => {
     try {
@@ -377,7 +383,7 @@ export default function JobDashboard() {
     }
   };
 
-  if (roleLoading || loading) {
+  if (roleLoading || jobRoleLoading || loading) {
     return (
       <AppLayout>
         <div className="animate-pulse space-y-4">

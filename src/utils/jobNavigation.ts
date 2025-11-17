@@ -9,8 +9,8 @@ export type UserRole = 'admin' | 'partner' | 'company_admin' | 'recruiter' | 'us
  * Get the appropriate job view path based on user role
  */
 export const getJobViewPath = (jobId: string, userRole?: UserRole): string => {
-  // Admin/Partner: go to dashboard
-  if (userRole === 'admin' || userRole === 'partner') {
+  // Admin/Partner/Strategist: go to dashboard
+  if (userRole === 'admin' || userRole === 'partner' || userRole === 'strategist') {
     return `/jobs/${jobId}/dashboard`;
   }
   // Candidate/User: go to detail page
