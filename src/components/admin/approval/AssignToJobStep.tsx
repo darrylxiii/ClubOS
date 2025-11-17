@@ -49,14 +49,16 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
 
   const loadCompanies = async () => {
     try {
-      const { data, error } = await supabase
+      const query = (supabase as any)
         .from('companies')
         .select('id, name')
         .eq('is_active', true)
         .order('name');
 
+      const { data, error } = await query;
+
       if (error) throw error;
-      setCompanies(data || []);
+      setCompanies((data as Company[]) || []);
     } catch (error) {
       console.error('Error loading companies:', error);
     } finally {
@@ -66,15 +68,17 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
 
   const loadJobs = async (companyId: string) => {
     try {
-      const { data, error } = await supabase
+      const query = (supabase as any)
         .from('jobs')
         .select('id, title, location, employment_type, salary_min, salary_max')
         .eq('company_id', companyId)
         .eq('is_active', true)
         .order('title');
 
+      const { data, error } = await query;
+
       if (error) throw error;
-      setJobs(data || []);
+      setJobs((data as Job[]) || []);
     } catch (error) {
       console.error('Error loading jobs:', error);
     }

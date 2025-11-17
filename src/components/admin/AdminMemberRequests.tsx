@@ -15,6 +15,7 @@ import { formatDistanceToNow } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { OnboardingProgressTracker } from "./OnboardingProgressTracker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { MemberApprovalWorkflowDialog } from "./approval/MemberApprovalWorkflowDialog";
 
 interface MemberRequest {
   id: string;
@@ -100,9 +101,13 @@ export const AdminMemberRequests = () => {
   const [sendSMS, setSendSMS] = useState(true);
   const [requestTypeFilter, setRequestTypeFilter] = useState<'all' | 'candidate' | 'partner'>('all');
   const [resending, setResending] = useState<{email?: boolean; sms?: boolean}>({});
+  const [showWorkflowDialog, setShowWorkflowDialog] = useState(false);
+  const [workflowRequest, setWorkflowRequest] = useState<MemberRequest | null>(null);
+  const [currentAdminId, setCurrentAdminId] = useState<string>('');
 
   useEffect(() => {
     fetchRequests();
+    loadCurrentAdmin();
 
     // Set up realtime subscriptions
     const profilesChannel = supabase
@@ -142,6 +147,13 @@ export const AdminMemberRequests = () => {
       supabase.removeChannel(onboardingChannel);
     };
   }, [activeTab]);
+
+  const loadCurrentAdmin = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setCurrentAdminId(user.id);
+    }
+  };
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -446,11 +458,24 @@ export const AdminMemberRequests = () => {
   };
 
   const openReviewDialog = (request: MemberRequest, action: 'approve' | 'decline') => {
-    setSelectedRequest(request);
-    setReviewAction(action);
-    // Reset notification preferences
-    setSendEmail(true);
-    setSendSMS(true);
+    if (action === 'approve' && request.request_type === 'candidate') {
+      // Use enhanced workflow for candidate approvals
+      setWorkflowRequest(request);
+      setShowWorkflowDialog(true);
+    } else {
+      // Use simple dialog for partner approvals and all declines
+      setSelectedRequest(request);
+      setReviewAction(action);
+      // Reset notification preferences
+      setSendEmail(true);
+      setSendSMS(true);
+    }
+  };
+
+  const handleWorkflowSuccess = () => {
+    fetchRequests();
+    setShowWorkflowDialog(false);
+    setWorkflowRequest(null);
   };
 
   const handleResendNotification = async (request: MemberRequest, notificationType: 'email' | 'sms') => {
@@ -884,6 +909,17 @@ export const AdminMemberRequests = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Enhanced Approval Workflow Dialog for Candidates */}
+      {workflowRequest && currentAdminId && (
+        <MemberApprovalWorkflowDialog
+          open={showWorkflowDialog}
+          onOpenChange={setShowWorkflowDialog}
+          request={workflowRequest}
+          adminId={currentAdminId}
+          onSuccess={handleWorkflowSuccess}
+        />
+      )}
     </>
   );
 };
