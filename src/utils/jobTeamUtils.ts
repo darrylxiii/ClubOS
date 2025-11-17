@@ -22,18 +22,20 @@ export interface ResolvedTeamMember {
 
 export function resolveTeamMember(assignment: any): ResolvedTeamMember {
   const isCompanyMember = assignment.assignment_type === 'company_member';
+  const email = isCompanyMember
+    ? assignment.company_member?.user?.email
+    : assignment.external_user?.email;
+  const fullName = isCompanyMember
+    ? assignment.company_member?.user?.full_name
+    : assignment.external_user?.full_name;
   
   return {
     id: assignment.id,
     userId: isCompanyMember 
       ? assignment.company_member?.user?.id 
       : assignment.external_user?.id,
-    fullName: isCompanyMember
-      ? assignment.company_member?.user?.full_name
-      : assignment.external_user?.full_name,
-    email: isCompanyMember
-      ? assignment.company_member?.user?.email
-      : assignment.external_user?.email,
+    fullName: fullName || email?.split('@')[0] || 'Team Member',
+    email: email || '',
     avatarUrl: isCompanyMember
       ? assignment.company_member?.user?.avatar_url
       : assignment.external_user?.avatar_url,
@@ -50,7 +52,7 @@ export function resolveTeamMember(assignment: any): ResolvedTeamMember {
       can_make_offers: assignment.can_make_offers,
     },
     assignmentReason: assignment.assignment_reason,
-    assignedBy: assignment.assigned_by_user?.full_name,
+    assignedBy: assignment.assigned_by_user?.full_name || 'Unknown',
     assignedAt: assignment.created_at,
     isPrimaryContact: assignment.is_primary_contact,
   };

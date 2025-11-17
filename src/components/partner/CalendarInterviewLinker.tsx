@@ -475,7 +475,7 @@ export function CalendarInterviewLinker({
                 <SelectContent>
                   {applications.map((app) => (
                     <SelectItem key={app.id} value={app.id}>
-                      {app.candidate_full_name || app.candidate_email || 'Unknown Candidate'}
+                      {app.full_name || app.email || 'Unknown Candidate'}
                     </SelectItem>
                   ))}
                 </SelectContent>
