@@ -472,22 +472,22 @@ const App = () => {
                       {candidateRoutes}
                       
                       {/* Partner & Admin Routes */}
-                      <Route path="/admin" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Admin /></Suspense></ProtectedRoute>} />
-                      <Route path="/admin/candidates" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><AdminCandidates /></Suspense></ProtectedRoute>} />
-                      <Route path="/admin/merge-dashboard" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MergeDashboard /></Suspense></ProtectedRoute>} />
-                      <Route path="/admin/club-sync-requests" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ClubSyncRequestsPage /></Suspense></ProtectedRoute>} />
-                      <Route path="/admin/company-management" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyManagement /></Suspense></ProtectedRoute>} />
-                      <Route path="/admin/analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><GlobalAnalytics /></Suspense></ProtectedRoute>} />
-                      <Route path="/admin/ai-config" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><AIConfiguration /></Suspense></ProtectedRoute>} />
-                      <Route path="/admin/rejections" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><AdminRejections /></Suspense></ProtectedRoute>} />
-                      <Route path="/admin/translation-manager" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><TranslationManager /></Suspense></ProtectedRoute>} />
-                      <Route path="/admin/language-manager" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><LanguageManager /></Suspense></ProtectedRoute>} />
+                      <Route path="/admin" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><Admin /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/merge-dashboard" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><MergeDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/club-sync-requests" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClubSyncRequestsPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/company-management" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CompanyManagement /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><GlobalAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/ai-config" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AIConfiguration /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/rejections" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminRejections /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/translation-manager" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><TranslationManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/language-manager" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><LanguageManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       {AdminAssessmentsRoutes}
                       
-                      <Route path="/hiring-intelligence" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><HiringIntelligenceHub /></Suspense></ProtectedRoute>} />
-                      <Route path="/ml-dashboard" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><EnhancedMLDashboard /></Suspense></ProtectedRoute>} />
-                      <Route path="/revenue-analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><RevenueAnalytics /></Suspense></ProtectedRoute>} />
-                      <Route path="/funnel-analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><FunnelAnalytics /></Suspense></ProtectedRoute>} />
+                      <Route path="/hiring-intelligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><HiringIntelligenceHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/ml-dashboard" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EnhancedMLDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/revenue-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RevenueAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/funnel-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><FunnelAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/feedback-database" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><FeedbackDatabase /></Suspense></ProtectedRoute>} />
                       <Route path="/social-management" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SocialManagement /></Suspense></ProtectedRoute>} />
                       

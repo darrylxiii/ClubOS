@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target } from "lucide-react";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useRole } from "@/contexts/RoleContext";
 import { QuickActionsBar } from "@/components/partner/QuickActionsBar";
 import { SmartInsightsCard } from "@/components/partner/SmartInsightsCard";
 import { EnhancedFiltersPanel } from "@/components/partner/EnhancedFiltersPanel";
@@ -65,7 +65,7 @@ interface JobMetrics {
 export default function JobDashboard() {
   const { jobId } = useParams();
   const navigate = useNavigate();
-  const { role, loading: roleLoading } = useUserRole();
+  const { currentRole: role, loading: roleLoading } = useRole();
   const [job, setJob] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showAddStage, setShowAddStage] = useState(false);
@@ -149,25 +149,12 @@ export default function JobDashboard() {
     }
   };
 
-  // Authorization check with role-based routing
+  // Fetch job details on mount (authorization already handled by JobDashboardRoute)
   useEffect(() => {
-    // Wait for role to be fully loaded
-    if (roleLoading) return;
-    
-    // Check authorization (include strategist!)
-    const hasAccess = role === 'admin' || role === 'partner' || role === 'strategist';
-    
-    if (!hasAccess) {
-      toast.error("You don't have permission to access this page");
-      navigate('/home');
-      return;
-    }
-
-    // Fetch job details
     if (jobId) {
       fetchJobDetails();
     }
-  }, [jobId, role, roleLoading]);
+  }, [jobId]);
 
   const fetchJobDetails = async () => {
     try {
