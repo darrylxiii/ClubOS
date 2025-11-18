@@ -44,6 +44,10 @@ const SubprocessorsPage = lazy(() => import("@/pages/compliance/SubprocessorsPag
 const DataClassificationPage = lazy(() => import("@/pages/compliance/DataClassificationPage"));
 const AuditRequestsPage = lazy(() => import("@/pages/compliance/AuditRequestsPage"));
 
+// Financial & Billing Pages
+const FinancialDashboard = lazy(() => import("@/pages/admin/FinancialDashboard"));
+const PartnerBilling = lazy(() => import("@/pages/partner/PartnerBilling"));
+
 /**
  * Shared routes accessible to all authenticated users
  * Core platform features, communication, learning
@@ -108,5 +112,9 @@ export const sharedRoutes = (
     <Route path="/compliance/subprocessors" element={<ProtectedRoute><SubprocessorsPage /></ProtectedRoute>} />
     <Route path="/compliance/data-classification" element={<ProtectedRoute><DataClassificationPage /></ProtectedRoute>} />
     <Route path="/compliance/audit-requests" element={<ProtectedRoute><AuditRequestsPage /></ProtectedRoute>} />
+
+    {/* Financial & Billing Routes */}
+    <Route path="/admin/financial" element={<ProtectedRoute><FinancialDashboard /></ProtectedRoute>} />
+    <Route path="/partner/billing" element={<ProtectedRoute><PartnerBilling /></ProtectedRoute>} />
   </>
 );
