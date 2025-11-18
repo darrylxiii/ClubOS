@@ -2,7 +2,7 @@ import { AppLayout } from "@/components/AppLayout";
 import { Breadcrumb } from "@/components/Breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Shield } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
 import { UnifiedUserManagement } from "@/components/admin/UnifiedUserManagement";
@@ -74,18 +74,21 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-10 max-w-7xl sticky top-4 z-20">
-              <TabsTrigger value="companies" onClick={(e) => e.currentTarget.blur()}>Companies</TabsTrigger>
-              <TabsTrigger value="users" onClick={(e) => e.currentTarget.blur()}>Users & Roles</TabsTrigger>
-              <TabsTrigger value="activity" onClick={(e) => e.currentTarget.blur()}>Activity</TabsTrigger>
-              <TabsTrigger value="merge" onClick={(e) => e.currentTarget.blur()}>Merge</TabsTrigger>
-              <TabsTrigger value="member-requests" onClick={(e) => e.currentTarget.blur()}>Member Requests</TabsTrigger>
-              <TabsTrigger value="applications" onClick={(e) => e.currentTarget.blur()}>Applications</TabsTrigger>
-              <TabsTrigger value="achievements" onClick={(e) => e.currentTarget.blur()}>Achievements</TabsTrigger>
-              <TabsTrigger value="assessments" onClick={(e) => e.currentTarget.blur()}>Assessments</TabsTrigger>
-              <TabsTrigger value="security" onClick={(e) => e.currentTarget.blur()}>Security</TabsTrigger>
-              <TabsTrigger value="system" onClick={(e) => e.currentTarget.blur()}>System Health</TabsTrigger>
-            </TabsList>
+          <TabsList className="grid w-full grid-cols-13 max-w-[1600px] sticky top-4 z-20">
+            <TabsTrigger value="companies">Companies</TabsTrigger>
+            <TabsTrigger value="users">Users & Roles</TabsTrigger>
+            <TabsTrigger value="activity">Activity</TabsTrigger>
+            <TabsTrigger value="merge">Merge</TabsTrigger>
+            <TabsTrigger value="member-requests">Member Requests</TabsTrigger>
+            <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="achievements">Achievements</TabsTrigger>
+            <TabsTrigger value="assessments">Assessments</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="system">System Health</TabsTrigger>
+            <TabsTrigger value="compliance">Compliance</TabsTrigger>
+            <TabsTrigger value="support">Support</TabsTrigger>
+            <TabsTrigger value="dr">DR</TabsTrigger>
+          </TabsList>
 
           <TabsContent value="companies" className="space-y-4">
             <CompanyManagement />
@@ -151,6 +154,87 @@ const Admin = () => {
             <DisasterRecoveryDashboard />
             <DataIntegrityChecker />
             <RoleAssignmentFix />
+          </TabsContent>
+
+          {/* Compliance Tab */}
+          <TabsContent value="compliance">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Compliance & Legal</CardTitle>
+                  <CardDescription>Manage legal agreements, data classification, and audit rights</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button onClick={() => navigate('/admin/compliance/agreements')}>
+                      Legal Agreements (DPA/BAA)
+                    </Button>
+                    <Button onClick={() => navigate('/legal/subprocessors')}>
+                      Subprocessor Transparency
+                    </Button>
+                    <Button onClick={() => navigate('/admin/compliance/data-classification')}>
+                      Data Classification
+                    </Button>
+                    <Button onClick={() => navigate('/admin/compliance/audit-rights')}>
+                      Audit Rights Tracking
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* Support Tab */}
+          <TabsContent value="support">
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Support Management</CardTitle>
+                  <CardDescription>Manage support tickets, CSM assignments, and knowledge base</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-3 gap-4">
+                    <Button onClick={() => navigate('/admin/support/queue')}>
+                      Support Queue
+                    </Button>
+                    <Button onClick={() => navigate('/admin/csm/assignments')}>
+                      CSM Assignments
+                    </Button>
+                    <Button onClick={() => navigate('/admin/kb/articles')}>
+                      KB Articles Manager
+                    </Button>
+                    <Button onClick={() => navigate('/admin/status')}>
+                      Status Page
+                    </Button>
+                    <Button onClick={() => navigate('/support/tickets')}>
+                      View All Tickets
+                    </Button>
+                    <Button onClick={() => navigate('/help')}>
+                      Knowledge Base
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* DR Tab */}
+          <TabsContent value="dr">
+            <Card>
+              <CardHeader>
+                <CardTitle>Disaster Recovery</CardTitle>
+                <CardDescription>Comprehensive disaster recovery dashboard and tools</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6">
+                <Button 
+                  onClick={() => navigate('/admin/dr-comprehensive')} 
+                  className="w-full"
+                  size="lg"
+                >
+                  Open Comprehensive DR Dashboard
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
         </div>

@@ -18,8 +18,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { sharedRoutes } from "@/routes/shared.routes";
 import { candidateRoutes } from "@/routes/candidate.routes";
 import { AdminAssessmentsRoutes } from "@/routes/admin-assessments.routes";
-import { CookieConsentBanner } from "@/components/support/CookieConsentBanner";
-import { SupportWidget } from "@/components/support/SupportWidget";
+import { QuickAccessHub } from '@/components/QuickAccessHub';
+import { CookieConsentBanner } from '@/components/support/CookieConsentBanner';
 
 // Optimized: Memoized component with scoped invalidation to prevent full app re-renders
 const LanguageSync = memo(() => {
@@ -564,9 +564,8 @@ const App = () => {
                       {/* 404 Catch-all */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
-                    <FeedbackButton />
+                    <QuickAccessHub />
                     <CookieConsentBanner />
-                    <SupportWidget />
                   </ProtectedProviders>
                 </Suspense>
               </PublicProviders>

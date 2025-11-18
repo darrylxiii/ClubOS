@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, BookOpen, TrendingUp, Star } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { AppLayout } from "@/components/AppLayout";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 const categories = [
   { value: 'getting_started', label: 'Getting Started', icon: '🚀' },
@@ -88,7 +90,12 @@ export default function KnowledgeBase() {
   const displayArticles = searchResults || categoryArticles || featuredArticles;
 
   return (
-    <div className="container max-w-7xl py-8">
+    <AppLayout>
+      <div className="container max-w-7xl py-8">
+        <Breadcrumb items={[
+          { label: 'Home', path: '/home' },
+          { label: 'Knowledge Base' }
+        ]} />
       {/* Header */}
       <div className="text-center mb-12">
         <div className="inline-flex items-center justify-center p-3 bg-primary/10 rounded-full mb-4">
@@ -215,6 +222,7 @@ export default function KnowledgeBase() {
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
