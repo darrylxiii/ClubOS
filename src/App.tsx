@@ -556,6 +556,11 @@ const App = () => {
                       <Route path="/meetings" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Meetings /></Suspense></ProtectedRoute>} />
                       <Route path="/meetings/:meetingId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingRoom /></Suspense></ProtectedRoute>} />
                       
+                      {/* Support & Help */}
+                      <Route path="/support/tickets" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SupportTicketList /></Suspense></ProtectedRoute>} />
+                      <Route path="/support/tickets/new" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SupportTicketNew /></Suspense></ProtectedRoute>} />
+                      <Route path="/help" element={<Suspense fallback={<PageLoader />}><KnowledgeBase /></Suspense>} />
+                      
                       {/* 404 Catch-all */}
                       <Route path="*" element={<NotFound />} />
                     </Routes>
@@ -566,6 +571,8 @@ const App = () => {
             } />
           </Routes>
         </TooltipProvider>
+        <CookieConsentBanner />
+        <SupportWidget />
       </BrowserRouter>
     </QueryClientProvider>
   );

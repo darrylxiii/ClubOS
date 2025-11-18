@@ -263,3 +263,16 @@ verify_jwt = true
 
 [functions.process-all-interactions]
 verify_jwt = true
+
+[functions.create-support-ticket]
+verify_jwt = false
+
+[functions.kb-search]
+verify_jwt = false
+
+[functions.verify-database-backups]
+verify_jwt = false
+
+[functions.handle-incident-response]
+verify_jwt = false
+
