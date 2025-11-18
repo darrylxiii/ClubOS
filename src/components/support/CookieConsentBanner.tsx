@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
@@ -9,7 +8,7 @@ import { Cookie, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export const CookieConsentBanner = () => {
-  const { user } = useAuth();
+  const [userId, setUserId] = useState<string | null>(null);
   const [show, setShow] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [consent, setConsent] = useState({
@@ -21,10 +20,14 @@ export const CookieConsentBanner = () => {
   });
 
   useEffect(() => {
-    checkExistingConsent();
-  }, [user]);
+    // Get user without requiring AuthContext
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUserId(user?.id || null);
+      checkExistingConsent(user?.id || null);
+    });
+  }, []);
 
-  const checkExistingConsent = async () => {
+  const checkExistingConsent = async (currentUserId: string | null) => {
     // Check localStorage first (for anonymous users)
     const localConsent = localStorage.getItem('cookie_consent');
     if (localConsent) {
@@ -36,11 +39,11 @@ export const CookieConsentBanner = () => {
     }
 
     // Check database if logged in
-    if (user) {
+    if (currentUserId) {
       const { data } = await supabase
         .from('cookie_consent_records')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', currentUserId)
         .is('withdrawn_at', null)
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
@@ -60,8 +63,8 @@ export const CookieConsentBanner = () => {
     expiresAt.setMonth(expiresAt.getMonth() + 12);
 
     const record = {
-      user_id: user?.id || null,
-      session_id: !user ? crypto.randomUUID() : null,
+      user_id: userId || null,
+      session_id: !userId ? crypto.randomUUID() : null,
       consent_version: 'v1.0',
       ...consentData,
       expires_at: expiresAt.toISOString(),
@@ -74,7 +77,7 @@ export const CookieConsentBanner = () => {
     }));
 
     // Save to database if logged in
-    if (user) {
+    if (userId) {
       await supabase.from('cookie_consent_records').insert(record);
     }
 
