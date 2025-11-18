@@ -74,7 +74,7 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-13 max-w-[1600px] sticky top-4 z-20">
+          <TabsList className="flex w-full max-w-[1600px] overflow-x-auto sticky top-4 z-20 gap-2 justify-start">
             <TabsTrigger value="companies">Companies</TabsTrigger>
             <TabsTrigger value="users">Users & Roles</TabsTrigger>
             <TabsTrigger value="activity">Activity</TabsTrigger>
