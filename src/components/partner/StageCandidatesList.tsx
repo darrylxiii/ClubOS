@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ScheduleInterviewButton } from "./ScheduleInterviewButton";
+import { ensureHttpsUrl } from "@/utils/urlHelpers";
 
 interface Candidate {
   id: string;
@@ -147,7 +148,7 @@ export function StageCandidatesList({
                     )}
                     {candidate.linkedin_url && (
                       <a 
-                        href={candidate.linkedin_url} 
+                        href={ensureHttpsUrl(candidate.linkedin_url) || '#'} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors font-medium"

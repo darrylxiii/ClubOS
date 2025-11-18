@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
+import { ensureHttpsUrl } from "@/utils/urlHelpers";
 
 interface Props {
   candidate: any;
@@ -113,7 +114,7 @@ export const CandidateHeroSection = ({
               )}
               {candidate.linkedin_url && (
                 <Button variant="ghost" size="sm" asChild className="h-auto py-0 px-2">
-                  <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer">
+                  <a href={ensureHttpsUrl(candidate.linkedin_url) || '#'} target="_blank" rel="noopener noreferrer">
                     <Linkedin className="w-4 h-4 mr-1" />
                     LinkedIn
                   </a>
