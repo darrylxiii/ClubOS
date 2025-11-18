@@ -29,6 +29,7 @@ import {
   Link2,
   CreditCard,
   Brain,
+  BookOpen,
   type LucideIcon,
 } from "lucide-react";
 
@@ -89,6 +90,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     items: [
       { name: "My Profile", icon: User, path: "/profile" },
       { name: "Subscription", icon: CreditCard, path: "/subscription" },
+      { name: "Knowledge Base", icon: BookOpen, path: "/help" },
       { name: "Settings", icon: Settings, path: "/settings" },
     ],
   },

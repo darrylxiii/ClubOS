@@ -14,7 +14,7 @@ export const TranslationDebugger = () => {
   const { i18n } = useTranslation();
   const { data: coverage } = useTranslationCoverage();
   const [showMissing, setShowMissing] = useState(false);
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   
   // Only show in development
   if (process.env.NODE_ENV !== 'development') {
@@ -23,6 +23,16 @@ export const TranslationDebugger = () => {
   
   const currentLangData = coverage?.byLanguage[i18n.language];
   const missingCount = coverage?.missingKeys.filter(k => k.language === i18n.language).length || 0;
+  
+  // Listen for trigger event from QuickAccessHub
+  useEffect(() => {
+    const handler = () => {
+      localStorage.removeItem('show-translation-debugger');
+      setIsVisible(true);
+    };
+    window.addEventListener('show-translation-debugger', handler);
+    return () => window.removeEventListener('show-translation-debugger', handler);
+  }, []);
   
   useEffect(() => {
     if (showMissing) {
