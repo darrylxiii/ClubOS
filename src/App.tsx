@@ -116,6 +116,7 @@ const TranslationManager = lazy(() => import("./pages/admin/TranslationManager")
 const LanguageManager = lazy(() => import("./pages/admin/LanguageManager"));
 const DisasterRecoveryPage = lazy(() => import("./pages/admin/DisasterRecoveryPage"));
 const DRRunbooks = lazy(() => import("./pages/admin/DRRunbooks"));
+const ComprehensiveDRPage = lazy(() => import("./pages/admin/ComprehensiveDRPage"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Subscription = lazy(() => import("./pages/Subscription"));
@@ -501,6 +502,7 @@ const App = () => {
                       <Route path="/admin/email-templates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EmailTemplateManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/admin/disaster-recovery" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DisasterRecoveryPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/admin/dr-runbooks" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DRRunbooks /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/admin/dr-comprehensive" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ComprehensiveDRPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       {AdminAssessmentsRoutes}
                       
                       <Route path="/hiring-intelligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><HiringIntelligenceHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />

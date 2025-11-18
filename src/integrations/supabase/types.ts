@@ -6400,6 +6400,48 @@ export type Database = {
           },
         ]
       }
+      data_consistency_logs: {
+        Row: {
+          auto_fixed: boolean | null
+          created_at: string | null
+          fix_actions: Json | null
+          id: string
+          issue_details: Json | null
+          issues_found: number | null
+          records_checked: number | null
+          severity: string | null
+          table_name: string
+          validation_timestamp: string
+          validation_type: string
+        }
+        Insert: {
+          auto_fixed?: boolean | null
+          created_at?: string | null
+          fix_actions?: Json | null
+          id?: string
+          issue_details?: Json | null
+          issues_found?: number | null
+          records_checked?: number | null
+          severity?: string | null
+          table_name: string
+          validation_timestamp?: string
+          validation_type: string
+        }
+        Update: {
+          auto_fixed?: boolean | null
+          created_at?: string | null
+          fix_actions?: Json | null
+          id?: string
+          issue_details?: Json | null
+          issues_found?: number | null
+          records_checked?: number | null
+          severity?: string | null
+          table_name?: string
+          validation_timestamp?: string
+          validation_type?: string
+        }
+        Relationships: []
+      }
       data_export_requests: {
         Row: {
           completed_at: string | null
@@ -6796,6 +6838,185 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dr_compliance_audit: {
+        Row: {
+          audit_date: string
+          audit_type: string
+          auditor: string | null
+          compliance_framework: string | null
+          control_id: string | null
+          created_at: string | null
+          evidence: Json | null
+          finding_details: string | null
+          finding_type: string | null
+          id: string
+          remediation_due_date: string | null
+          remediation_required: boolean | null
+        }
+        Insert: {
+          audit_date?: string
+          audit_type: string
+          auditor?: string | null
+          compliance_framework?: string | null
+          control_id?: string | null
+          created_at?: string | null
+          evidence?: Json | null
+          finding_details?: string | null
+          finding_type?: string | null
+          id?: string
+          remediation_due_date?: string | null
+          remediation_required?: boolean | null
+        }
+        Update: {
+          audit_date?: string
+          audit_type?: string
+          auditor?: string | null
+          compliance_framework?: string | null
+          control_id?: string | null
+          created_at?: string | null
+          evidence?: Json | null
+          finding_details?: string | null
+          finding_type?: string | null
+          id?: string
+          remediation_due_date?: string | null
+          remediation_required?: boolean | null
+        }
+        Relationships: []
+      }
+      dr_contacts: {
+        Row: {
+          availability_schedule: Json | null
+          contact_name: string
+          created_at: string | null
+          email: string
+          escalation_level: number
+          id: string
+          is_active: boolean | null
+          phone: string | null
+          role: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          availability_schedule?: Json | null
+          contact_name: string
+          created_at?: string | null
+          email: string
+          escalation_level: number
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          role: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          availability_schedule?: Json | null
+          contact_name?: string
+          created_at?: string | null
+          email?: string
+          escalation_level?: number
+          id?: string
+          is_active?: boolean | null
+          phone?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      dr_drill_results: {
+        Row: {
+          action_items: Json | null
+          created_at: string | null
+          drill_id: string | null
+          executed_at: string
+          id: string
+          issues_found: string[] | null
+          lessons_learned: string[] | null
+          participants_feedback: Json | null
+          rpo_achieved_minutes: number | null
+          rto_achieved_minutes: number | null
+          success_score: number | null
+        }
+        Insert: {
+          action_items?: Json | null
+          created_at?: string | null
+          drill_id?: string | null
+          executed_at?: string
+          id?: string
+          issues_found?: string[] | null
+          lessons_learned?: string[] | null
+          participants_feedback?: Json | null
+          rpo_achieved_minutes?: number | null
+          rto_achieved_minutes?: number | null
+          success_score?: number | null
+        }
+        Update: {
+          action_items?: Json | null
+          created_at?: string | null
+          drill_id?: string | null
+          executed_at?: string
+          id?: string
+          issues_found?: string[] | null
+          lessons_learned?: string[] | null
+          participants_feedback?: Json | null
+          rpo_achieved_minutes?: number | null
+          rto_achieved_minutes?: number | null
+          success_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dr_drill_results_drill_id_fkey"
+            columns: ["drill_id"]
+            isOneToOne: false
+            referencedRelation: "dr_drill_schedule"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dr_drill_schedule: {
+        Row: {
+          created_at: string | null
+          drill_name: string
+          drill_type: string
+          duration_hours: number
+          id: string
+          objectives: string[] | null
+          participants: string[] | null
+          scheduled_for: string
+          status: string | null
+          success_criteria: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          drill_name: string
+          drill_type: string
+          duration_hours?: number
+          id?: string
+          objectives?: string[] | null
+          participants?: string[] | null
+          scheduled_for: string
+          status?: string | null
+          success_criteria?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          drill_name?: string
+          drill_type?: string
+          duration_hours?: number
+          id?: string
+          objectives?: string[] | null
+          participants?: string[] | null
+          scheduled_for?: string
+          status?: string | null
+          success_criteria?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       email_attachments: {
         Row: {
@@ -7785,6 +8006,48 @@ export type Database = {
           },
         ]
       }
+      external_health_checks: {
+        Row: {
+          check_source: string
+          check_timestamp: string
+          created_at: string | null
+          endpoint_type: string
+          endpoint_url: string
+          error_message: string | null
+          geographic_region: string | null
+          id: string
+          is_healthy: boolean
+          response_time_ms: number | null
+          status_code: number | null
+        }
+        Insert: {
+          check_source: string
+          check_timestamp?: string
+          created_at?: string | null
+          endpoint_type: string
+          endpoint_url: string
+          error_message?: string | null
+          geographic_region?: string | null
+          id?: string
+          is_healthy: boolean
+          response_time_ms?: number | null
+          status_code?: number | null
+        }
+        Update: {
+          check_source?: string
+          check_timestamp?: string
+          created_at?: string | null
+          endpoint_type?: string
+          endpoint_url?: string
+          error_message?: string | null
+          geographic_region?: string | null
+          id?: string
+          is_healthy?: boolean
+          response_time_ms?: number | null
+          status_code?: number | null
+        }
+        Relationships: []
+      }
       funnel_analytics: {
         Row: {
           action: string
@@ -7992,6 +8255,47 @@ export type Database = {
             columns: ["assigned_to"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incident_response_actions: {
+        Row: {
+          action_details: Json | null
+          action_type: string
+          automated: boolean | null
+          created_at: string | null
+          id: string
+          incident_id: string | null
+          performed_at: string
+          performed_by: string | null
+        }
+        Insert: {
+          action_details?: Json | null
+          action_type: string
+          automated?: boolean | null
+          created_at?: string | null
+          id?: string
+          incident_id?: string | null
+          performed_at?: string
+          performed_by?: string | null
+        }
+        Update: {
+          action_details?: Json | null
+          action_type?: string
+          automated?: boolean | null
+          created_at?: string | null
+          id?: string
+          incident_id?: string | null
+          performed_at?: string
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_response_actions_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incident_logs"
             referencedColumns: ["id"]
           },
         ]
@@ -13198,6 +13502,71 @@ export type Database = {
           },
         ]
       }
+      post_incident_reviews: {
+        Row: {
+          action_items: Json | null
+          attendees: string[] | null
+          conducted_by: string | null
+          contributing_factors: string[] | null
+          created_at: string | null
+          follow_up_date: string | null
+          id: string
+          incident_id: string | null
+          incident_summary: string
+          review_date: string
+          root_cause: string | null
+          status: string | null
+          timeline: Json | null
+          updated_at: string | null
+          what_went_well: string[] | null
+          what_went_wrong: string[] | null
+        }
+        Insert: {
+          action_items?: Json | null
+          attendees?: string[] | null
+          conducted_by?: string | null
+          contributing_factors?: string[] | null
+          created_at?: string | null
+          follow_up_date?: string | null
+          id?: string
+          incident_id?: string | null
+          incident_summary: string
+          review_date: string
+          root_cause?: string | null
+          status?: string | null
+          timeline?: Json | null
+          updated_at?: string | null
+          what_went_well?: string[] | null
+          what_went_wrong?: string[] | null
+        }
+        Update: {
+          action_items?: Json | null
+          attendees?: string[] | null
+          conducted_by?: string | null
+          contributing_factors?: string[] | null
+          created_at?: string | null
+          follow_up_date?: string | null
+          id?: string
+          incident_id?: string | null
+          incident_summary?: string
+          review_date?: string
+          root_cause?: string | null
+          status?: string | null
+          timeline?: Json | null
+          updated_at?: string | null
+          what_went_well?: string[] | null
+          what_went_wrong?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_incident_reviews_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incident_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_interactions: {
         Row: {
           created_at: string
@@ -14784,6 +15153,134 @@ export type Database = {
           },
         ]
       }
+      recovery_metrics: {
+        Row: {
+          actual_rpo_minutes: number | null
+          actual_rto_minutes: number | null
+          cost_impact_usd: number | null
+          created_at: string | null
+          customer_impact: string | null
+          data_loss_amount_mb: number | null
+          data_loss_detected: boolean | null
+          downtime_minutes: number | null
+          id: string
+          incident_id: string | null
+          metric_date: string
+          recovery_method: string | null
+          recovery_success: boolean
+          services_affected: string[] | null
+          target_rpo_minutes: number
+          target_rto_minutes: number
+        }
+        Insert: {
+          actual_rpo_minutes?: number | null
+          actual_rto_minutes?: number | null
+          cost_impact_usd?: number | null
+          created_at?: string | null
+          customer_impact?: string | null
+          data_loss_amount_mb?: number | null
+          data_loss_detected?: boolean | null
+          downtime_minutes?: number | null
+          id?: string
+          incident_id?: string | null
+          metric_date?: string
+          recovery_method?: string | null
+          recovery_success: boolean
+          services_affected?: string[] | null
+          target_rpo_minutes?: number
+          target_rto_minutes?: number
+        }
+        Update: {
+          actual_rpo_minutes?: number | null
+          actual_rto_minutes?: number | null
+          cost_impact_usd?: number | null
+          created_at?: string | null
+          customer_impact?: string | null
+          data_loss_amount_mb?: number | null
+          data_loss_detected?: boolean | null
+          downtime_minutes?: number | null
+          id?: string
+          incident_id?: string | null
+          metric_date?: string
+          recovery_method?: string | null
+          recovery_success?: boolean
+          services_affected?: string[] | null
+          target_rpo_minutes?: number
+          target_rto_minutes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recovery_metrics_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "incident_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recovery_playbooks: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          decision_points: Json | null
+          estimated_rpo_minutes: number | null
+          estimated_rto_minutes: number | null
+          external_dependencies: string[] | null
+          id: string
+          is_active: boolean | null
+          last_tested_at: string | null
+          playbook_name: string
+          prerequisites: string[] | null
+          required_contacts: string[] | null
+          rollback_steps: Json | null
+          scenario_type: string
+          severity_level: string
+          steps: Json
+          updated_at: string | null
+          version: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          decision_points?: Json | null
+          estimated_rpo_minutes?: number | null
+          estimated_rto_minutes?: number | null
+          external_dependencies?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          last_tested_at?: string | null
+          playbook_name: string
+          prerequisites?: string[] | null
+          required_contacts?: string[] | null
+          rollback_steps?: Json | null
+          scenario_type: string
+          severity_level: string
+          steps: Json
+          updated_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          decision_points?: Json | null
+          estimated_rpo_minutes?: number | null
+          estimated_rto_minutes?: number | null
+          external_dependencies?: string[] | null
+          id?: string
+          is_active?: boolean | null
+          last_tested_at?: string | null
+          playbook_name?: string
+          prerequisites?: string[] | null
+          required_contacts?: string[] | null
+          rollback_steps?: Json | null
+          scenario_type?: string
+          severity_level?: string
+          steps?: Json
+          updated_at?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
       referral_bonuses: {
         Row: {
           bonus_amount_euros: number
@@ -15471,6 +15968,62 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      service_dependencies: {
+        Row: {
+          created_at: string | null
+          criticality: string
+          dependency_type: string
+          depends_on_service_id: string | null
+          health_check_url: string | null
+          id: string
+          is_active: boolean | null
+          metadata: Json | null
+          mttr_minutes: number | null
+          service_name: string
+          service_type: string
+          sla_uptime_pct: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          criticality: string
+          dependency_type: string
+          depends_on_service_id?: string | null
+          health_check_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          mttr_minutes?: number | null
+          service_name: string
+          service_type: string
+          sla_uptime_pct?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          criticality?: string
+          dependency_type?: string
+          depends_on_service_id?: string | null
+          health_check_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          metadata?: Json | null
+          mttr_minutes?: number | null
+          service_name?: string
+          service_type?: string
+          sla_uptime_pct?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_dependencies_depends_on_service_id_fkey"
+            columns: ["depends_on_service_id"]
+            isOneToOne: false
+            referencedRelation: "service_dependencies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       skill_endorsements: {
         Row: {
