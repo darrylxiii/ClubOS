@@ -1,10 +1,11 @@
-import { Card } from "@/components/ui/card";
-import { usePipelineMetrics } from "@/hooks/useDealPipeline";
-import { TrendingUp, Target, Briefcase, DollarSign } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { usePipelineMetrics, useDealPipeline } from "@/hooks/useDealPipeline";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TrendingUp, DollarSign, Target, AlertCircle } from "lucide-react";
 
 export function PipelineMetricsCards() {
-  const { data: metrics, isLoading } = usePipelineMetrics();
+  const { data: metrics, isLoading: metricsLoading } = usePipelineMetrics();
+  const { data: deals, isLoading: dealsLoading } = useDealPipeline();
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -15,70 +16,76 @@ export function PipelineMetricsCards() {
     }).format(amount);
   };
 
-  if (isLoading) {
+  if (metricsLoading || dealsLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
-          <Card key={i} className="p-6">
-            <Skeleton className="h-4 w-24 mb-2" />
-            <Skeleton className="h-8 w-32" />
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-4 rounded" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-24 mb-1" />
+              <Skeleton className="h-3 w-full" />
+            </CardContent>
           </Card>
         ))}
       </div>
     );
   }
 
+  // Calculate deals with missing fee configuration
+  const dealsWithoutFee = deals?.filter(deal => {
+    const companies = deal.companies as any;
+    return !companies?.placement_fee_percentage;
+  }).length || 0;
+
   const cards = [
-    {
-      title: "Weighted Pipeline",
-      value: formatCurrency(metrics?.weighted_pipeline || 0),
-      icon: Target,
-      description: "Expected revenue based on probability",
-      color: "text-primary",
-    },
     {
       title: "Total Pipeline",
       value: formatCurrency(metrics?.total_pipeline || 0),
       icon: DollarSign,
-      description: "Total potential revenue",
-      color: "text-success",
+      description: `${metrics?.deal_count || 0} active deals`,
+      color: "text-blue-500"
     },
     {
-      title: "Active Deals",
-      value: metrics?.deal_count || 0,
-      icon: Briefcase,
-      description: "Currently in pipeline",
-      color: "text-warning",
+      title: "Weighted Pipeline",
+      value: formatCurrency(metrics?.weighted_pipeline || 0),
+      icon: Target,
+      description: "Probability-adjusted revenue",
+      color: "text-green-500"
     },
     {
       title: "Avg Deal Size",
       value: formatCurrency(metrics?.avg_deal_size || 0),
       icon: TrendingUp,
-      description: "Average deal value",
-      color: "text-accent",
+      description: "Per placement revenue",
+      color: "text-purple-500"
     },
+    {
+      title: "Configuration Status",
+      value: dealsWithoutFee === 0 ? "Complete" : `${dealsWithoutFee} Missing`,
+      icon: dealsWithoutFee === 0 ? Target : AlertCircle,
+      description: dealsWithoutFee === 0 ? "All fees configured" : "Companies need fee setup",
+      color: dealsWithoutFee === 0 ? "text-green-500" : "text-destructive"
+    }
   ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {cards.map((card, index) => {
+      {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <Card key={index} className="p-6 bg-card/50 backdrop-blur-sm border-border/50">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-sm font-medium text-muted-foreground">
-                {card.title}
-              </p>
+          <Card key={card.title}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
               <Icon className={`h-4 w-4 ${card.color}`} />
-            </div>
-            <div className="space-y-1">
-              <p className="text-2xl font-bold text-foreground">
-                {card.value}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {card.description}
-              </p>
-            </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{card.value}</div>
+              <p className="text-xs text-muted-foreground">{card.description}</p>
+            </CardContent>
           </Card>
         );
       })}
