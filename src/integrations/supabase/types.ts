@@ -1610,6 +1610,42 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_verification_logs: {
+        Row: {
+          backup_id: string
+          created_at: string | null
+          id: string
+          issues: Json | null
+          tables_verified: number
+          timestamp: string
+          total_tables: number
+          verification_duration_ms: number
+          verification_status: string
+        }
+        Insert: {
+          backup_id: string
+          created_at?: string | null
+          id?: string
+          issues?: Json | null
+          tables_verified: number
+          timestamp?: string
+          total_tables: number
+          verification_duration_ms: number
+          verification_status: string
+        }
+        Update: {
+          backup_id?: string
+          created_at?: string | null
+          id?: string
+          issues?: Json | null
+          tables_verified?: number
+          timestamp?: string
+          total_tables?: number
+          verification_duration_ms?: number
+          verification_status?: string
+        }
+        Relationships: []
+      }
       blind_spot_sessions: {
         Row: {
           awareness_gaps: Json | null
@@ -12568,6 +12604,64 @@ export type Database = {
           would_apply_again?: boolean | null
         }
         Relationships: []
+      }
+      platform_alerts: {
+        Row: {
+          acknowledged: boolean | null
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          alert_type: string
+          created_at: string | null
+          id: string
+          message: string
+          metadata: Json | null
+          severity: string
+        }
+        Insert: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          message: string
+          metadata?: Json | null
+          severity: string
+        }
+        Update: {
+          acknowledged?: boolean | null
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          message?: string
+          metadata?: Json | null
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "platform_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "platform_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       playlist_tracks: {
         Row: {
