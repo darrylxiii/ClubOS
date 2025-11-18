@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Headphones, MessageCircleHeart, Languages, X } from "lucide-react";
+import { Settings, Headphones, MessageCircleHeart, Languages, X, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -15,9 +15,6 @@ import { useLocation } from "react-router-dom";
 export const QuickAccessHub = () => {
   const [open, setOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [debugMode, setDebugMode] = useState(() => {
-    return document.body.classList.contains('translation-debug-mode');
-  });
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -97,13 +94,10 @@ export const QuickAccessHub = () => {
     }
   };
 
-  const toggleDebugMode = () => {
-    setDebugMode(!debugMode);
-    if (!debugMode) {
-      document.body.classList.add('translation-debug-mode');
-    } else {
-      document.body.classList.remove('translation-debug-mode');
-    }
+  const triggerTranslationDebugger = () => {
+    localStorage.setItem('show-translation-debugger', 'true');
+    window.dispatchEvent(new Event('show-translation-debugger'));
+    setOpen(false);
   };
 
   return (
@@ -124,7 +118,7 @@ export const QuickAccessHub = () => {
           className="w-64 p-2 z-[60]"
         >
           <div className="space-y-1">
-            {/* Support & Help */}
+            {/* Knowledge Base */}
             <Button
               variant="ghost"
               className="w-full justify-start gap-3 h-auto py-3"
@@ -133,12 +127,28 @@ export const QuickAccessHub = () => {
                 setOpen(false);
               }}
             >
+              <BookOpen className="h-5 w-5 shrink-0" />
+              <div className="text-left">
+                <p className="font-medium">Knowledge Base</p>
+                <p className="text-xs text-muted-foreground">Articles & guides</p>
+              </div>
+            </Button>
+
+            <Separator />
+
+            {/* Create Support Ticket */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-3 h-auto py-3"
+              onClick={() => {
+                navigate('/support/tickets/new');
+                setOpen(false);
+              }}
+            >
               <Headphones className="h-5 w-5 shrink-0" />
               <div className="text-left">
-                <p className="font-medium">Support & Help</p>
-                <p className="text-xs text-muted-foreground">
-                  KB articles & tickets
-                </p>
+                <p className="font-medium">Create Support Ticket</p>
+                <p className="text-xs text-muted-foreground">Get direct help</p>
               </div>
             </Button>
 
@@ -170,24 +180,19 @@ export const QuickAccessHub = () => {
               </div>
             </Button>
 
+            {/* Translation Debug (Dev Only) */}
             {isDev && (
               <>
                 <Separator />
-                {/* Translation Debug */}
                 <Button
                   variant="ghost"
                   className="w-full justify-start gap-3 h-auto py-3"
-                  onClick={() => {
-                    toggleDebugMode();
-                    setOpen(false);
-                  }}
+                  onClick={triggerTranslationDebugger}
                 >
                   <Languages className="h-5 w-5 shrink-0" />
                   <div className="text-left">
                     <p className="font-medium">Translation Debug</p>
-                    <p className="text-xs text-muted-foreground">
-                      {debugMode ? 'Enabled' : 'Disabled'}
-                    </p>
+                    <p className="text-xs text-muted-foreground">Open debugger</p>
                   </div>
                 </Button>
               </>
