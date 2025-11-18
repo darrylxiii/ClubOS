@@ -15,6 +15,8 @@ import {
 import { Card } from "@/components/ui/card";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { AppLayout } from "@/components/AppLayout";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 const categories = [
   { value: 'technical', label: 'Technical Issue' },
@@ -98,7 +100,14 @@ export default function SupportTicketNew() {
     formData.priority === 'medium' ? '4 hours' : '24 hours';
 
   return (
-    <div className="container max-w-3xl py-8">
+    <AppLayout>
+      <div className="container max-w-3xl py-8">
+        <Breadcrumb items={[
+          { label: 'Home', path: '/home' },
+          { label: 'Support', path: '/support/tickets' },
+          { label: 'New Ticket' }
+        ]} />
+      
       <Button
         variant="ghost"
         onClick={() => navigate('/support/tickets')}
@@ -214,6 +223,7 @@ export default function SupportTicketNew() {
           </Button>
         </div>
       </form>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

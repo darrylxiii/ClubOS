@@ -103,10 +103,7 @@ export const LanguageSwitcher = () => {
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              <Globe className="h-5 w-5" />
-              <span className="absolute -bottom-1 -right-1 text-xs">
-                {currentLang.flag}
-              </span>
+          <Globe className="h-5 w-5" />
             </>
           )}
         </Button>
