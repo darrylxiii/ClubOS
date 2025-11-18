@@ -15,7 +15,9 @@ import { useLocation } from "react-router-dom";
 export const QuickAccessHub = () => {
   const [open, setOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
+  const [debugMode, setDebugMode] = useState(() => {
+    return document.body.classList.contains('translation-debug-mode');
+  });
   const [rating, setRating] = useState<number | null>(null);
   const [comment, setComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,7 +121,7 @@ export const QuickAccessHub = () => {
         <PopoverContent 
           align="end" 
           side="top" 
-          className="w-64 p-2"
+          className="w-64 p-2 z-[60]"
         >
           <div className="space-y-1">
             {/* Support & Help */}
@@ -210,18 +212,28 @@ export const QuickAccessHub = () => {
               <label className="text-sm font-medium mb-2 block">
                 Rating (1-10)
               </label>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <Button
-                    key={num}
-                    variant={rating === num ? "default" : "outline"}
-                    size="sm"
-                    className="w-10 h-10 p-0"
-                    onClick={() => setRating(num)}
-                  >
-                    {num}
-                  </Button>
-                ))}
+              <div className="grid grid-cols-5 gap-2">
+                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+                  const getColorClass = () => {
+                    if (rating === num) return "";
+                    if (num <= 3) return "border-red-500/50 text-red-500 hover:bg-red-500/10";
+                    if (num <= 5) return "border-orange-500/50 text-orange-500 hover:bg-orange-500/10";
+                    if (num <= 7) return "border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10";
+                    return "border-green-500/50 text-green-500 hover:bg-green-500/10";
+                  };
+                  
+                  return (
+                    <Button
+                      key={num}
+                      variant={rating === num ? "default" : "outline"}
+                      size="sm"
+                      className={`h-10 p-0 ${getColorClass()}`}
+                      onClick={() => setRating(num)}
+                    >
+                      {num}
+                    </Button>
+                  );
+                })}
               </div>
             </div>
 

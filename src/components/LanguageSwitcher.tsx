@@ -98,7 +98,7 @@ export const LanguageSwitcher = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" disabled={isChanging}>
+        <Button variant="ghost" size="icon" className="relative z-[60]" disabled={isChanging}>
           {isChanging ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
@@ -108,7 +108,7 @@ export const LanguageSwitcher = () => {
           )}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="w-48 z-[100]">
         {languages.map(lang => (
           <DropdownMenuItem
             key={lang.code}
