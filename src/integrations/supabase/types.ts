@@ -5551,6 +5551,65 @@ export type Database = {
           },
         ]
       }
+      company_referrer_splits: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          referrer_id: string
+          split_percentage: number
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          referrer_id: string
+          split_percentage: number
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          referrer_id?: string
+          split_percentage?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_referrer_splits_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_referrer_splits_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "company_referrer_splits_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_referrer_splits_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_settings: {
         Row: {
           company_id: string
@@ -13327,6 +13386,7 @@ export type Database = {
           billing_state: string | null
           company_id: string | null
           created_at: string | null
+          default_fee_percentage: number | null
           id: string
           is_verified: boolean | null
           legal_company_name: string
@@ -13350,6 +13410,7 @@ export type Database = {
           billing_state?: string | null
           company_id?: string | null
           created_at?: string | null
+          default_fee_percentage?: number | null
           id?: string
           is_verified?: boolean | null
           legal_company_name: string
@@ -13373,6 +13434,7 @@ export type Database = {
           billing_state?: string | null
           company_id?: string | null
           created_at?: string | null
+          default_fee_percentage?: number | null
           id?: string
           is_verified?: boolean | null
           legal_company_name?: string
@@ -14327,6 +14389,7 @@ export type Database = {
           currency_code: string | null
           fee_amount: number
           fee_percentage: number
+          fee_percentage_used: number | null
           hired_date: string
           id: string
           invoice_id: string | null
@@ -14334,6 +14397,7 @@ export type Database = {
           notes: string | null
           partner_company_id: string | null
           payment_due_date: string | null
+          referrer_splits: Json | null
           status: string | null
           updated_at: string | null
         }
@@ -14346,6 +14410,7 @@ export type Database = {
           currency_code?: string | null
           fee_amount: number
           fee_percentage: number
+          fee_percentage_used?: number | null
           hired_date: string
           id?: string
           invoice_id?: string | null
@@ -14353,6 +14418,7 @@ export type Database = {
           notes?: string | null
           partner_company_id?: string | null
           payment_due_date?: string | null
+          referrer_splits?: Json | null
           status?: string | null
           updated_at?: string | null
         }
@@ -14365,6 +14431,7 @@ export type Database = {
           currency_code?: string | null
           fee_amount?: number
           fee_percentage?: number
+          fee_percentage_used?: number | null
           hired_date?: string
           id?: string
           invoice_id?: string | null
@@ -14372,6 +14439,7 @@ export type Database = {
           notes?: string | null
           partner_company_id?: string | null
           payment_due_date?: string | null
+          referrer_splits?: Json | null
           status?: string | null
           updated_at?: string | null
         }
@@ -16340,6 +16408,101 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projected_earnings: {
+        Row: {
+          application_id: string
+          candidate_id: string | null
+          company_id: string
+          confidence_score: number | null
+          created_at: string | null
+          estimated_salary: number | null
+          fee_percentage: number | null
+          id: string
+          job_id: string
+          projected_fee_amount: number | null
+          referrer_splits: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id: string
+          candidate_id?: string | null
+          company_id: string
+          confidence_score?: number | null
+          created_at?: string | null
+          estimated_salary?: number | null
+          fee_percentage?: number | null
+          id?: string
+          job_id: string
+          projected_fee_amount?: number | null
+          referrer_splits?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string
+          candidate_id?: string | null
+          company_id?: string
+          confidence_score?: number | null
+          created_at?: string | null
+          estimated_salary?: number | null
+          fee_percentage?: number | null
+          id?: string
+          job_id?: string
+          projected_fee_amount?: number | null
+          referrer_splits?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projected_earnings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projected_earnings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: true
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projected_earnings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projected_earnings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "projected_earnings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projected_earnings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projected_earnings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -21675,6 +21838,7 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_projected_earnings: { Args: never; Returns: undefined }
       can_access_board: {
         Args: { _board_id: string; _user_id: string }
         Returns: boolean

@@ -8,6 +8,9 @@ import { PlacementFeesTable } from "@/components/financial/PlacementFeesTable";
 import { InvoicesTable } from "@/components/financial/InvoicesTable";
 import { PayoutApprovalQueue } from "@/components/financial/PayoutApprovalQueue";
 import { FinancialOverviewChart } from "@/components/financial/FinancialOverviewChart";
+import { PartnerFeeConfig } from "@/components/financial/PartnerFeeConfig";
+import { ReferrerSplitsManager } from "@/components/financial/ReferrerSplitsManager";
+import { ProjectedEarnings } from "@/components/financial/ProjectedEarnings";
 
 export default function FinancialDashboard() {
   const { data: stats, isLoading: statsLoading } = useFinancialStats();
