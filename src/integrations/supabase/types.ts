@@ -1610,6 +1610,153 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_request_notifications: {
+        Row: {
+          audit_request_id: string | null
+          id: string
+          notification_type: string
+          read_at: string | null
+          recipient_email: string
+          recipient_id: string | null
+          sent_at: string | null
+        }
+        Insert: {
+          audit_request_id?: string | null
+          id?: string
+          notification_type: string
+          read_at?: string | null
+          recipient_email: string
+          recipient_id?: string | null
+          sent_at?: string | null
+        }
+        Update: {
+          audit_request_id?: string | null
+          id?: string
+          notification_type?: string
+          read_at?: string | null
+          recipient_email?: string
+          recipient_id?: string | null
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_request_notifications_audit_request_id_fkey"
+            columns: ["audit_request_id"]
+            isOneToOne: false
+            referencedRelation: "audit_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_request_responses: {
+        Row: {
+          audit_request_id: string | null
+          created_at: string | null
+          document_name: string | null
+          document_url: string | null
+          id: string
+          responded_by: string | null
+          response_content: string | null
+          response_type: string
+        }
+        Insert: {
+          audit_request_id?: string | null
+          created_at?: string | null
+          document_name?: string | null
+          document_url?: string | null
+          id?: string
+          responded_by?: string | null
+          response_content?: string | null
+          response_type: string
+        }
+        Update: {
+          audit_request_id?: string | null
+          created_at?: string | null
+          document_name?: string | null
+          document_url?: string | null
+          id?: string
+          responded_by?: string | null
+          response_content?: string | null
+          response_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_request_responses_audit_request_id_fkey"
+            columns: ["audit_request_id"]
+            isOneToOne: false
+            referencedRelation: "audit_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_requests: {
+        Row: {
+          assigned_to: string | null
+          audit_purpose: string
+          audit_scope: string
+          audit_type: string
+          company_id: string | null
+          created_at: string | null
+          due_date: string | null
+          id: string
+          metadata: Json | null
+          priority: string | null
+          request_number: string
+          requested_documents: string[] | null
+          requester_email: string
+          requester_id: string | null
+          requester_name: string
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          audit_purpose: string
+          audit_scope: string
+          audit_type: string
+          company_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          request_number: string
+          requested_documents?: string[] | null
+          requester_email: string
+          requester_id?: string | null
+          requester_name: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          audit_purpose?: string
+          audit_scope?: string
+          audit_type?: string
+          company_id?: string | null
+          created_at?: string | null
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          priority?: string | null
+          request_number?: string
+          requested_documents?: string[] | null
+          requester_email?: string
+          requester_id?: string | null
+          requester_name?: string
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_requests_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       backup_policies: {
         Row: {
           created_at: string | null
@@ -6651,6 +6798,104 @@ export type Database = {
           },
         ]
       }
+      data_classification_categories: {
+        Row: {
+          access_logging_required: boolean | null
+          category_level: string
+          category_name: string
+          color_code: string | null
+          created_at: string | null
+          description: string | null
+          encryption_required: boolean | null
+          id: string
+          retention_period_days: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_logging_required?: boolean | null
+          category_level: string
+          category_name: string
+          color_code?: string | null
+          created_at?: string | null
+          description?: string | null
+          encryption_required?: boolean | null
+          id?: string
+          retention_period_days?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_logging_required?: boolean | null
+          category_level?: string
+          category_name?: string
+          color_code?: string | null
+          created_at?: string | null
+          description?: string | null
+          encryption_required?: boolean | null
+          id?: string
+          retention_period_days?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      data_classification_rules: {
+        Row: {
+          access_restrictions: Json | null
+          classification_id: string | null
+          column_name: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_pii: boolean | null
+          is_sensitive: boolean | null
+          masking_rule: string | null
+          notes: string | null
+          requires_consent: boolean | null
+          retention_days: number | null
+          table_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_restrictions?: Json | null
+          classification_id?: string | null
+          column_name: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_pii?: boolean | null
+          is_sensitive?: boolean | null
+          masking_rule?: string | null
+          notes?: string | null
+          requires_consent?: boolean | null
+          retention_days?: number | null
+          table_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_restrictions?: Json | null
+          classification_id?: string | null
+          column_name?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_pii?: boolean | null
+          is_sensitive?: boolean | null
+          masking_rule?: string | null
+          notes?: string | null
+          requires_consent?: boolean | null
+          retention_days?: number | null
+          table_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_classification_rules_classification_id_fkey"
+            columns: ["classification_id"]
+            isOneToOne: false
+            referencedRelation: "data_classification_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       data_consistency_logs: {
         Row: {
           auto_fixed: boolean | null
@@ -10338,6 +10583,164 @@ export type Database = {
             columns: ["academy_id"]
             isOneToOne: false
             referencedRelation: "academies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_agreement_signatures: {
+        Row: {
+          agreement_id: string | null
+          id: string
+          ip_address: unknown
+          signature_data: Json | null
+          signature_method: string
+          signed_at: string | null
+          signer_company: string | null
+          signer_email: string
+          signer_id: string | null
+          signer_name: string
+          signer_title: string | null
+        }
+        Insert: {
+          agreement_id?: string | null
+          id?: string
+          ip_address?: unknown
+          signature_data?: Json | null
+          signature_method: string
+          signed_at?: string | null
+          signer_company?: string | null
+          signer_email: string
+          signer_id?: string | null
+          signer_name: string
+          signer_title?: string | null
+        }
+        Update: {
+          agreement_id?: string | null
+          id?: string
+          ip_address?: unknown
+          signature_data?: Json | null
+          signature_method?: string
+          signed_at?: string | null
+          signer_company?: string | null
+          signer_email?: string
+          signer_id?: string | null
+          signer_name?: string
+          signer_title?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_agreement_signatures_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "legal_agreements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      legal_agreement_templates: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          is_active: boolean | null
+          requires_signature: boolean | null
+          template_name: string
+          template_type: string
+          updated_at: string | null
+          variables: Json | null
+          version: string
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          requires_signature?: boolean | null
+          template_name: string
+          template_type: string
+          updated_at?: string | null
+          variables?: Json | null
+          version: string
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          requires_signature?: boolean | null
+          template_name?: string
+          template_type?: string
+          updated_at?: string | null
+          variables?: Json | null
+          version?: string
+        }
+        Relationships: []
+      }
+      legal_agreements: {
+        Row: {
+          agreement_name: string
+          agreement_type: string
+          auto_renew: boolean | null
+          company_id: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          effective_date: string | null
+          expiration_date: string | null
+          id: string
+          metadata: Json | null
+          status: string
+          template_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agreement_name: string
+          agreement_type: string
+          auto_renew?: boolean | null
+          company_id?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string | null
+          expiration_date?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agreement_name?: string
+          agreement_type?: string
+          auto_renew?: boolean | null
+          company_id?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          effective_date?: string | null
+          expiration_date?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          template_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "legal_agreements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "legal_agreements_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "legal_agreement_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -17037,6 +17440,131 @@ export type Database = {
         }
         Relationships: []
       }
+      subprocessor_changes: {
+        Row: {
+          change_description: string
+          change_type: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          new_data: Json | null
+          notification_sent: boolean | null
+          notification_sent_at: string | null
+          previous_data: Json | null
+          subprocessor_id: string | null
+        }
+        Insert: {
+          change_description: string
+          change_type: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          new_data?: Json | null
+          notification_sent?: boolean | null
+          notification_sent_at?: string | null
+          previous_data?: Json | null
+          subprocessor_id?: string | null
+        }
+        Update: {
+          change_description?: string
+          change_type?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          new_data?: Json | null
+          notification_sent?: boolean | null
+          notification_sent_at?: string | null
+          previous_data?: Json | null
+          subprocessor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subprocessor_changes_subprocessor_id_fkey"
+            columns: ["subprocessor_id"]
+            isOneToOne: false
+            referencedRelation: "subprocessors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subprocessors: {
+        Row: {
+          added_date: string | null
+          certification_urls: Json | null
+          contract_end_date: string | null
+          contract_start_date: string | null
+          created_at: string | null
+          created_by: string | null
+          data_location: string
+          data_processed: string[] | null
+          data_residency: string[] | null
+          dpa_url: string | null
+          id: string
+          is_active: boolean | null
+          last_reviewed_date: string | null
+          notes: string | null
+          privacy_policy_url: string | null
+          risk_level: string | null
+          security_certifications: string[] | null
+          service_provided: string
+          sub_subprocessors: string[] | null
+          updated_at: string | null
+          vendor_description: string | null
+          vendor_name: string
+          vendor_website: string | null
+        }
+        Insert: {
+          added_date?: string | null
+          certification_urls?: Json | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          data_location: string
+          data_processed?: string[] | null
+          data_residency?: string[] | null
+          dpa_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_reviewed_date?: string | null
+          notes?: string | null
+          privacy_policy_url?: string | null
+          risk_level?: string | null
+          security_certifications?: string[] | null
+          service_provided: string
+          sub_subprocessors?: string[] | null
+          updated_at?: string | null
+          vendor_description?: string | null
+          vendor_name: string
+          vendor_website?: string | null
+        }
+        Update: {
+          added_date?: string | null
+          certification_urls?: Json | null
+          contract_end_date?: string | null
+          contract_start_date?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          data_location?: string
+          data_processed?: string[] | null
+          data_residency?: string[] | null
+          dpa_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_reviewed_date?: string | null
+          notes?: string | null
+          privacy_policy_url?: string | null
+          risk_level?: string | null
+          security_certifications?: string[] | null
+          service_provided?: string
+          sub_subprocessors?: string[] | null
+          updated_at?: string | null
+          vendor_description?: string | null
+          vendor_name?: string
+          vendor_website?: string | null
+        }
+        Relationships: []
+      }
       subscription_plans: {
         Row: {
           billing_interval: string
@@ -20663,6 +21191,7 @@ export type Database = {
         }
         Returns: Json
       }
+      generate_audit_request_number: { Args: never; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
       generate_meeting_code: { Args: never; Returns: string }
       generate_profile_slug: { Args: { name: string }; Returns: string }
