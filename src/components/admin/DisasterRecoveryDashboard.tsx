@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AlertCircle, CheckCircle2, Clock, Database, Shield, AlertTriangle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, Database, Shield, AlertTriangle, FileText, TestTube } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 interface BackupVerificationLog {
   id: string;
@@ -27,7 +28,20 @@ interface PlatformAlert {
   created_at: string;
 }
 
+interface PITRTestLog {
+  id: string;
+  test_id: string;
+  timestamp: string;
+  target_recovery_time: string;
+  test_status: 'success' | 'failed';
+  recovery_accuracy: number;
+  duration_seconds: number;
+  data_loss_detected: boolean;
+  notes: string[];
+}
+
 export const DisasterRecoveryDashboard = () => {
+  const navigate = useNavigate();
   // Fetch latest backup verification
   const { data: latestBackup, isLoading: backupLoading } = useQuery({
     queryKey: ['latest-backup-verification'],
@@ -78,6 +92,25 @@ export const DisasterRecoveryDashboard = () => {
     refetchInterval: 30000
   });
 
+  // Fetch PITR test results
+  const { data: pitrTests } = useQuery({
+    queryKey: ['pitr-tests'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('pitr_test_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(10);
+      
+      if (error) throw error;
+      return data as PITRTestLog[];
+    },
+    refetchInterval: 60000
+  });
+
+  // Get latest PITR test
+  const latestPitrTest = pitrTests?.[0];
+
   // Calculate RPO (time since last verified backup)
   const rpoMinutes = latestBackup 
     ? Math.floor((Date.now() - new Date(latestBackup.timestamp).getTime()) / 60000)
@@ -91,13 +124,25 @@ export const DisasterRecoveryDashboard = () => {
       if (error) throw error;
       
       toast.success('Backup verification completed successfully');
-      // Refetch data
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      setTimeout(() => window.location.reload(), 2000);
     } catch (error) {
       console.error('Manual verification failed:', error);
       toast.error('Failed to run backup verification');
+    }
+  };
+
+  const runManualPitrTest = async () => {
+    try {
+      toast.info('Running manual PITR test...');
+      const { data, error } = await supabase.functions.invoke('test-pitr-recovery');
+      
+      if (error) throw error;
+      
+      toast.success('PITR test completed successfully');
+      setTimeout(() => window.location.reload(), 2000);
+    } catch (error) {
+      console.error('Manual PITR test failed:', error);
+      toast.error('Failed to run PITR test');
     }
   };
 
@@ -150,15 +195,29 @@ export const DisasterRecoveryDashboard = () => {
         <div>
           <h2 className="text-3xl font-bold">Disaster Recovery</h2>
           <p className="text-muted-foreground mt-1">
-            Backup verification and platform health monitoring
+            Backup verification, PITR testing, and platform health monitoring
           </p>
         </div>
-        <Button onClick={runManualVerification}>
-          Run Manual Verification
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/admin/dr-runbooks')}
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            DR Runbooks
+          </Button>
+          <Button variant="outline" onClick={runManualPitrTest}>
+            <TestTube className="h-4 w-4 mr-2" />
+            Test PITR
+          </Button>
+          <Button onClick={runManualVerification}>
+            <Database className="h-4 w-4 mr-2" />
+            Verify Backups
+          </Button>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {/* RTO Status */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -221,6 +280,38 @@ export const DisasterRecoveryDashboard = () => {
             </p>
           </CardContent>
         </Card>
+
+        {/* PITR Test Status */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">PITR Test Status</CardTitle>
+            <TestTube className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold flex items-center gap-2">
+              {latestPitrTest?.test_status === 'success' ? (
+                <>
+                  Passing {getStatusIcon('success')}
+                </>
+              ) : latestPitrTest?.test_status === 'failed' ? (
+                <>
+                  Failed {getStatusIcon('failed')}
+                </>
+              ) : (
+                <>
+                  No Data
+                </>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {latestPitrTest ? (
+                <>Last tested {new Date(latestPitrTest.timestamp).toLocaleDateString()}</>
+              ) : (
+                <>No tests run yet</>
+              )}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Active Alerts */}
@@ -272,36 +363,77 @@ export const DisasterRecoveryDashboard = () => {
       )}
 
       {/* Recent Backup Verifications */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Backup Verifications</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {recentBackups?.map((backup) => (
-              <div
-                key={backup.id}
-                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  {getStatusIcon(backup.verification_status)}
-                  <div>
-                    <p className="font-medium">
-                      {new Date(backup.timestamp).toLocaleString()}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {backup.tables_verified}/{backup.total_tables} tables • {backup.verification_duration_ms}ms
-                    </p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Backup Verifications</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {recentBackups?.slice(0, 5).map((backup) => (
+                <div
+                  key={backup.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {getStatusIcon(backup.verification_status)}
+                    <div>
+                      <p className="font-medium">
+                        {new Date(backup.timestamp).toLocaleString()}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {backup.tables_verified}/{backup.total_tables} tables • {backup.verification_duration_ms}ms
+                      </p>
+                    </div>
                   </div>
+                  <Badge variant={backup.verification_status === 'success' ? 'default' : 'secondary'}>
+                    {backup.verification_status}
+                  </Badge>
                 </div>
-                <Badge variant={backup.verification_status === 'success' ? 'default' : 'secondary'}>
-                  {backup.verification_status}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PITR Test Results */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent PITR Tests</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {pitrTests?.slice(0, 5).map((test) => (
+                <div
+                  key={test.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    {getStatusIcon(test.test_status === 'success' ? 'success' : 'failed')}
+                    <div>
+                      <p className="font-medium">
+                        {new Date(test.timestamp).toLocaleString()}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Accuracy: {test.recovery_accuracy}% • {test.duration_seconds}s
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant={test.test_status === 'success' ? 'default' : 'destructive'}>
+                    {test.test_status}
+                  </Badge>
+                </div>
+              ))}
+              {(!pitrTests || pitrTests.length === 0) && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <TestTube className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No PITR tests run yet</p>
+                  <p className="text-sm">Click "Test PITR" to run your first test</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };

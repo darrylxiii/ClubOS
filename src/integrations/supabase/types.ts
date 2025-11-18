@@ -12605,6 +12605,66 @@ export type Database = {
         }
         Relationships: []
       }
+      pitr_test_logs: {
+        Row: {
+          created_at: string | null
+          data_loss_detected: boolean | null
+          duration_seconds: number | null
+          id: string
+          notes: Json | null
+          recovery_accuracy: number | null
+          target_recovery_time: string
+          test_id: string
+          test_status: string
+          timestamp: string
+        }
+        Insert: {
+          created_at?: string | null
+          data_loss_detected?: boolean | null
+          duration_seconds?: number | null
+          id?: string
+          notes?: Json | null
+          recovery_accuracy?: number | null
+          target_recovery_time: string
+          test_id: string
+          test_status: string
+          timestamp: string
+        }
+        Update: {
+          created_at?: string | null
+          data_loss_detected?: boolean | null
+          duration_seconds?: number | null
+          id?: string
+          notes?: Json | null
+          recovery_accuracy?: number | null
+          target_recovery_time?: string
+          test_id?: string
+          test_status?: string
+          timestamp?: string
+        }
+        Relationships: []
+      }
+      pitr_test_markers: {
+        Row: {
+          created_at: string | null
+          id: string
+          marker_value: string
+          test_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          marker_value: string
+          test_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          marker_value?: string
+          test_id?: string
+        }
+        Relationships: []
+      }
       platform_alerts: {
         Row: {
           acknowledged: boolean | null
