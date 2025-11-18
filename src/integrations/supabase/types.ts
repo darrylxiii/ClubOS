@@ -4961,6 +4961,7 @@ export type Database = {
       company_email_domains: {
         Row: {
           added_by: string | null
+          auto_tracked: boolean | null
           company_id: string
           created_at: string | null
           domain: string
@@ -4971,6 +4972,7 @@ export type Database = {
         }
         Insert: {
           added_by?: string | null
+          auto_tracked?: boolean | null
           company_id: string
           created_at?: string | null
           domain: string
@@ -4981,6 +4983,7 @@ export type Database = {
         }
         Update: {
           added_by?: string | null
+          auto_tracked?: boolean | null
           company_id?: string
           created_at?: string | null
           domain?: string

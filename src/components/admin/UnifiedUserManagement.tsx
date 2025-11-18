@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -645,132 +645,131 @@ export function UnifiedUserManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredUsers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={8} className="text-center text-muted-foreground">
-                  No users found
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredUsers.map((user) => (
-                <>
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {user.candidate_id && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={() => toggleRowExpansion(user.id)}
-                          >
-                            {expandedRows.has(user.id) ? (
-                              <ChevronDown className="w-4 h-4" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4" />
-                            )}
-                          </Button>
-                        )}
-                        <span>{user.full_name || 'No name'}</span>
-                        {integrityIssues.has(user.id) && (
-                          <Badge variant="destructive" className="text-xs">
-                            Data Mismatch
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap">
-                        {user.roles.length === 0 ? (
-                          <Badge variant="outline">No roles</Badge>
-                        ) : (
-                          user.roles.map(role => (
-                            <Badge key={role} variant="secondary">
-                              {AVAILABLE_ROLES.find(r => r.value === role)?.label || role}
-                            </Badge>
-                          ))
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {user.company_name ? (
-                        <div className="flex items-center gap-1">
-                          <Building2 className="w-3 h-3 text-muted-foreground" />
-                          <span>{user.company_name}</span>
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">No company</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {user.company_role ? (
-                        <Badge variant="outline" className="capitalize">
-                          {user.company_role}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {user.email_verified ? (
-                        <Badge variant="default">Verified</Badge>
-                      ) : (
-                        <Badge variant="outline">Unverified</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {new Date(user.created_at).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => navigate(`/profile/${user.id}`)}
-                          title="View Full Profile & Settings"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        {user.candidate_id && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => navigate(`/candidates/${user.candidate_id}`)}
-                            title="View as Candidate"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(user)}
-                          title="Edit User"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  {/* Phase 2: Expandable Settings Preview */}
-                  {user.candidate_id && expandedRows.has(user.id) && (
+              {filteredUsers.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center text-muted-foreground">
+                    No users found
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredUsers.map((user) => (
+                  <React.Fragment key={user.id}>
                     <TableRow>
-                      <TableCell colSpan={8} className="bg-muted/50 p-0">
-                        <div className="p-4">
-                          <UserSettingsPreview 
-                            userId={user.id}
-                            candidateId={user.candidate_id}
-                            onViewFull={() => navigate(`/candidates/${user.candidate_id}?tab=settings`)}
-                          />
+                      <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                          {user.candidate_id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6"
+                              onClick={() => toggleRowExpansion(user.id)}
+                            >
+                              {expandedRows.has(user.id) ? (
+                                <ChevronDown className="w-4 h-4" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </Button>
+                          )}
+                          <span>{user.full_name || 'No name'}</span>
+                          {integrityIssues.has(user.id) && (
+                            <Badge variant="destructive" className="text-xs">
+                              Data Mismatch
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-1 flex-wrap">
+                          {user.roles.length === 0 ? (
+                            <Badge variant="outline">No roles</Badge>
+                          ) : (
+                            user.roles.map(role => (
+                              <Badge key={role} variant="secondary">
+                                {AVAILABLE_ROLES.find(r => r.value === role)?.label || role}
+                              </Badge>
+                            ))
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {user.company_name ? (
+                          <div className="flex items-center gap-1">
+                            <Building2 className="w-3 h-3 text-muted-foreground" />
+                            <span>{user.company_name}</span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">No company</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {user.company_role ? (
+                          <Badge variant="outline" className="capitalize">
+                            {user.company_role}
+                          </Badge>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {user.email_verified ? (
+                          <Badge variant="default">Verified</Badge>
+                        ) : (
+                          <Badge variant="outline">Unverified</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(user.created_at).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/profile/${user.id}`)}
+                            title="View Full Profile & Settings"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          {user.candidate_id && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => navigate(`/candidates/${user.candidate_id}`)}
+                              title="View as Candidate"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => openEditDialog(user)}
+                            title="Edit User"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </Button>
                         </div>
                       </TableCell>
                     </TableRow>
-                  )}
-                </>
-              ))
-            )}
+                    {user.candidate_id && expandedRows.has(user.id) && (
+                      <TableRow>
+                        <TableCell colSpan={8} className="bg-muted/50 p-0">
+                          <div className="p-4">
+                            <UserSettingsPreview 
+                              userId={user.id}
+                              candidateId={user.candidate_id}
+                              onViewFull={() => navigate(`/candidates/${user.candidate_id}?tab=settings`)}
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
+                ))
+              )}
+
           </TableBody>
         </Table>
 
