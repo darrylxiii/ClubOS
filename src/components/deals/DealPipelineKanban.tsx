@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useDealPipeline, useDealStages, useUpdateDealStage, Deal } from "@/hooks/useDealPipeline";
+import { MissingFeeWarning } from "./MissingFeeWarning";
 import { DealCard } from "./DealCard";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -75,8 +76,10 @@ export function DealPipelineKanban() {
   }
 
   return (
-    <ScrollArea className="w-full">
-      <div className="flex gap-4 p-1 min-w-max">
+    <>
+      <MissingFeeWarning />
+      <ScrollArea className="w-full">
+        <div className="flex gap-4 p-1 min-w-max">
         {stages?.map((stage) => {
           const stageDeals = getDealsByStage(stage.name);
           const stageValue = getStageValue(stage.name);
@@ -148,5 +151,6 @@ export function DealPipelineKanban() {
       </div>
       <ScrollBar orientation="horizontal" />
     </ScrollArea>
+    </>
   );
 }

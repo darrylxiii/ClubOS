@@ -29,6 +29,10 @@ export interface Deal {
   updated_at: string;
   active_candidates?: number;
   estimated_value?: number;
+  companies?: {
+    name: string;
+    placement_fee_percentage: number | null;
+  };
 }
 
 export interface PipelineMetrics {
