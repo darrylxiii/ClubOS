@@ -74,15 +74,35 @@ export function useDealPipeline() {
       
       if (error) throw error;
       
-      // Transform data to include candidate count and estimated value
-      const deals = data.map((job: any) => ({
-        ...job,
-        company_name: job.companies?.name || job.company_name || 'Unknown',
-        active_candidates: job.applications?.[0]?.count || 0,
-        estimated_value: job.deal_value_override || 0,
-      })) as Deal[];
+      // Transform data and calculate revenue for each deal
+      const dealsWithRevenue = await Promise.all(
+        data.map(async (job: any) => {
+          const feePercentage = job.companies?.placement_fee_percentage || 0;
+          
+          // Get candidate salary stats
+          let avgSalary = 0;
+          try {
+            const { data: salaryData } = await (supabase as any)
+              .rpc('get_pipeline_candidate_stats', { p_job_id: job.id });
+            avgSalary = salaryData?.[0]?.avg_expected_salary || 0;
+          } catch (err) {
+            console.warn('Failed to fetch salary stats for job', job.id);
+          }
+          
+          // Calculate estimated revenue
+          const baseSalary = avgSalary || 60000; // Default fallback
+          const estimatedRevenue = baseSalary * (feePercentage / 100);
+          
+          return {
+            ...job,
+            company_name: job.companies?.name || job.company_name || 'Unknown',
+            active_candidates: job.applications?.[0]?.count || 0,
+            estimated_value: job.deal_value_override || estimatedRevenue,
+          };
+        })
+      ) as Deal[];
       
-      return deals;
+      return dealsWithRevenue;
     },
   });
 }

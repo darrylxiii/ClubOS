@@ -7122,6 +7122,50 @@ export type Database = {
           },
         ]
       }
+      deal_stage_conversions: {
+        Row: {
+          candidate_count: number | null
+          conversion_timestamp: string | null
+          converted: boolean
+          created_at: string | null
+          days_in_previous_stage: number | null
+          from_stage: string
+          id: string
+          job_id: string | null
+          to_stage: string
+        }
+        Insert: {
+          candidate_count?: number | null
+          conversion_timestamp?: string | null
+          converted: boolean
+          created_at?: string | null
+          days_in_previous_stage?: number | null
+          from_stage: string
+          id?: string
+          job_id?: string | null
+          to_stage: string
+        }
+        Update: {
+          candidate_count?: number | null
+          conversion_timestamp?: string | null
+          converted?: boolean
+          created_at?: string | null
+          days_in_previous_stage?: number | null
+          from_stage?: string
+          id?: string
+          job_id?: string | null
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_stage_conversions_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deal_stage_history: {
         Row: {
           changed_at: string | null
@@ -21781,6 +21825,18 @@ export type Database = {
         }
         Relationships: []
       }
+      pipeline_conversion_metrics: {
+        Row: {
+          avg_days_in_stage: number | null
+          conversion_rate: number | null
+          from_stage: string | null
+          median_days_in_stage: number | null
+          successful_transitions: number | null
+          to_stage: string | null
+          total_transitions: number | null
+        }
+        Relationships: []
+      }
       popular_courses: {
         Row: {
           academy_id: string | null
@@ -22177,6 +22233,14 @@ export type Database = {
           path: string[]
         }[]
       }
+      get_historical_conversion_rate: {
+        Args: {
+          p_company_id?: string
+          p_lookback_days?: number
+          p_stage: string
+        }
+        Returns: number
+      }
       get_module_course_id: { Args: { _module_id: string }; Returns: string }
       get_org_chart_tree: {
         Args: { p_company_id: string }
@@ -22188,6 +22252,16 @@ export type Database = {
           path: string[]
           reports_to_member_id: string
           user_id: string
+        }[]
+      }
+      get_pipeline_candidate_stats: {
+        Args: { p_job_id: string }
+        Returns: {
+          avg_current_salary: number
+          avg_expected_salary: number
+          candidate_count: number
+          salary_range_max: number
+          salary_range_min: number
         }[]
       }
       get_popular_courses: {

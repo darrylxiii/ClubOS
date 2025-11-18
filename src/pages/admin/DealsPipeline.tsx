@@ -4,6 +4,7 @@ import { PipelineMetricsCards } from "@/components/deals/PipelineMetricsCards";
 import { RevenueCharts } from "@/components/deals/RevenueCharts";
 import { PipelineInsights } from "@/components/deals/PipelineInsights";
 import { ProjectedEarnings } from "@/components/financial/ProjectedEarnings";
+import { RevenueIntelligenceDashboard } from "@/components/deals/RevenueIntelligenceDashboard";
 import { RoleGate } from "@/components/RoleGate";
 import { AppLayout } from "@/components/AppLayout";
 import { Target, TrendingUp, BarChart3, Lightbulb } from "lucide-react";
@@ -52,6 +53,7 @@ export default function DealsPipeline() {
           </TabsContent>
 
           <TabsContent value="forecasting" className="space-y-6">
+            <RevenueIntelligenceDashboard />
             <ProjectedEarnings />
           </TabsContent>
 
