@@ -21827,13 +21827,11 @@ export type Database = {
       }
       pipeline_conversion_metrics: {
         Row: {
-          avg_days_in_stage: number | null
-          conversion_rate: number | null
+          avg_days_to_convert: number | null
+          conversion_count: number | null
+          conversion_rate_pct: number | null
           from_stage: string | null
-          median_days_in_stage: number | null
-          successful_transitions: number | null
           to_stage: string | null
-          total_transitions: number | null
         }
         Relationships: []
       }
