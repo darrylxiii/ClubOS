@@ -63,24 +63,16 @@ export const ApprovalConfirmationStep = ({
               {summary.action === 'create' && summary.profileCreated && (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span>Create new candidate profile</span>
-                  <Badge variant="secondary">Create</Badge>
+                  <span>Create new candidate profile and link to user account</span>
+                  <Badge variant="secondary">Create & Link</Badge>
                 </div>
               )}
 
-              {summary.jobAssigned && (
+              {summary.action === 'create' && !summary.profileCreated && summary.mergeCount === 0 && (
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span>Assign to role: <strong>{summary.jobTitle}</strong> at <strong>{summary.companyName}</strong></span>
-                  <Badge variant="secondary">Assign</Badge>
-                </div>
-              )}
-
-              {!summary.jobAssigned && (
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-primary" />
-                  <span>Add to general talent pool</span>
-                  <Badge variant="outline">General Pool</Badge>
+                  <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">No candidate profile will be created</span>
+                  <Badge variant="outline">Skip Profile</Badge>
                 </div>
               )}
 
@@ -90,6 +82,15 @@ export const ApprovalConfirmationStep = ({
                 <Badge variant="default">Approve</Badge>
               </div>
             </div>
+
+            {/* Show alert when no profile is created */}
+            {!summary.profileCreated && summary.mergeCount === 0 && (
+              <Alert className="mt-4">
+                <AlertDescription>
+                  The member will be approved and granted platform access. A candidate profile can be created manually later if needed for talent tracking.
+                </AlertDescription>
+              </Alert>
+            )}
           </div>
 
           <div className="border-t pt-4 space-y-3">

@@ -37,7 +37,8 @@ export const MemberApprovalWorkflowDialog = ({
     setMergeActions(merges);
     setCompletedSteps([...completedSteps, 'detect']);
     if (merges.length > 0) {
-      setCurrentStep('assign');
+      // Skip directly to confirmation for merges
+      setCurrentStep('confirm');
     } else {
       setCurrentStep('create');
     }
@@ -52,16 +53,27 @@ export const MemberApprovalWorkflowDialog = ({
   const handleProfileCreated = (data: CandidateProfileData) => {
     setProfileData(data);
     setCompletedSteps([...completedSteps, 'create']);
-    setCurrentStep('assign');
+    setCurrentStep('confirm');
   };
 
-  const handleJobAssignment = (assignment: JobAssignment | null) => {
-    setJobAssignment(assignment);
-    setCompletedSteps([...completedSteps, 'assign']);
+  const handleSkipProfile = () => {
+    setProfileData(null);
+    setCompletedSteps([...completedSteps, 'create']);
     setCurrentStep('confirm');
   };
 
   const handleConfirmApproval = async () => {
+    // Validate admin ID is set
+    if (!adminId) {
+      toast.error('Admin ID is missing. Please refresh and try again.');
+      return;
+    }
+
+    // Validate at least one action or allow empty approval
+    if (mergeActions.length === 0 && !profileData) {
+      console.log('[MemberApproval] Approving member without profile creation or merge');
+    }
+
     setIsSubmitting(true);
     try {
       const result = await memberApprovalService.executeApprovalWorkflow({
@@ -69,7 +81,7 @@ export const MemberApprovalWorkflowDialog = ({
         adminId,
         mergeActions,
         createProfile: profileData || undefined,
-        assignToJob: jobAssignment || undefined,
+        assignToJob: undefined, // No job assignment for candidates
         sendNotifications: { email: sendEmail, sms: sendSMS },
       });
 
@@ -114,14 +126,8 @@ export const MemberApprovalWorkflowDialog = ({
             request={request}
             adminId={adminId}
             onCreateProfile={handleProfileCreated}
+            onSkipProfile={handleSkipProfile}
             onBack={() => setCurrentStep('detect')}
-          />
-        )}
-
-        {currentStep === 'assign' && (
-          <AssignToJobStep
-            onAssign={handleJobAssignment}
-            onBack={() => setCurrentStep(mergeActions.length > 0 ? 'detect' : 'create')}
           />
         )}
 
@@ -131,14 +137,14 @@ export const MemberApprovalWorkflowDialog = ({
               action: mergeActions.length > 0 ? 'merge' : 'create',
               mergeCount: mergeActions.length,
               profileCreated: !!profileData,
-              jobAssigned: !!jobAssignment,
+              jobAssigned: false,
             }}
             sendEmail={sendEmail}
             setSendEmail={setSendEmail}
             sendSMS={sendSMS}
             setSendSMS={setSendSMS}
             onConfirm={handleConfirmApproval}
-            onBack={() => setCurrentStep('assign')}
+            onBack={() => setCurrentStep(mergeActions.length > 0 ? 'detect' : 'create')}
             isSubmitting={isSubmitting}
           />
         )}

@@ -71,9 +71,6 @@ export interface ApprovalWorkflowResult {
 }
 
 export type ApprovalStep = 
-  | 'review'
   | 'detect'
-  | 'merge'
   | 'create'
-  | 'assign'
   | 'confirm';

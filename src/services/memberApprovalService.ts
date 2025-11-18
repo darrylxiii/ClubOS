@@ -45,12 +45,14 @@ export const memberApprovalService = {
    * Create a candidate profile from member request data
    */
   async createCandidateFromRequest(
-    requestData: CandidateProfileData
+    requestData: CandidateProfileData,
+    userId: string
   ): Promise<string | null> {
     try {
       const { data, error } = await supabase
         .from('candidate_profiles')
         .insert({
+          user_id: userId,
           full_name: requestData.full_name,
           email: requestData.email,
           phone: requestData.phone,
@@ -228,7 +230,10 @@ export const memberApprovalService = {
       // Step 2: Create candidate profile if needed
       if (workflowData.createProfile && !candidateId) {
         try {
-          candidateId = await this.createCandidateFromRequest(workflowData.createProfile);
+          candidateId = await this.createCandidateFromRequest(
+            workflowData.createProfile,
+            workflowData.requestId
+          );
 
           if (candidateId) {
             await this.logApprovalAction(
