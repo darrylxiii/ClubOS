@@ -58,6 +58,7 @@ export function UnifiedUserManagement() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserWithRoles[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -268,17 +269,34 @@ export function UnifiedUserManagement() {
   };
 
   const handleUpdateUser = async () => {
-    if (!editingUser) return;
+    console.log('[UnifiedUserManagement] handleUpdateUser called');
+    if (!editingUser) {
+      console.log('[UnifiedUserManagement] No editing user');
+      return;
+    }
+    
+    if (saving) {
+      console.log('[UnifiedUserManagement] Already saving, ignoring duplicate call');
+      return;
+    }
 
+    console.log('[UnifiedUserManagement] Selected roles:', selectedRoles);
+    console.log('[UnifiedUserManagement] Editing user:', editingUser);
+
+    setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
+        console.error('[UnifiedUserManagement] No authenticated user');
         toast.error("Authentication required");
         return;
       }
 
       if (selectedRoles.length === 0) {
-        toast.error("User must have at least one role");
+        console.error('[UnifiedUserManagement] No roles selected');
+        toast.error("User must have at least one role", {
+          description: "Please select at least one role before saving"
+        });
         return;
       }
 
@@ -288,9 +306,12 @@ export function UnifiedUserManagement() {
       // Use exactly the roles selected by admin
       const finalRoles = [...selectedRoles];
 
-      console.log('[UnifiedUserManagement] Updating roles for user:', targetUserId, 'New roles:', finalRoles);
+      console.log('[UnifiedUserManagement] Updating roles for user:', targetUserId);
+      console.log('[UnifiedUserManagement] Old roles:', oldRoles);
+      console.log('[UnifiedUserManagement] New roles:', finalRoles);
 
       // Delete existing roles for the TARGET user
+      console.log('[UnifiedUserManagement] Deleting existing roles...');
       const { error: deleteError } = await supabase
         .from('user_roles')
         .delete()
@@ -298,24 +319,36 @@ export function UnifiedUserManagement() {
 
       if (deleteError) {
         console.error('[UnifiedUserManagement] Delete error:', deleteError);
+        toast.error("Failed to delete old roles", {
+          description: deleteError.message
+        });
         throw deleteError;
       }
 
-      console.log('[UnifiedUserManagement] Deleted old roles, inserting new ones...');
+      console.log('[UnifiedUserManagement] Successfully deleted old roles, inserting new ones...');
 
       // Insert new roles for the TARGET user
-      const { error: insertError } = await supabase
+      const rolesToInsert = finalRoles.map(role => ({
+        user_id: targetUserId,
+        role: role as 'admin' | 'strategist' | 'partner' | 'user'
+      }));
+      
+      console.log('[UnifiedUserManagement] Inserting roles:', rolesToInsert);
+      
+      const { error: insertError, data: insertData } = await supabase
         .from('user_roles')
-        .insert(finalRoles.map(role => ({
-          user_id: targetUserId,
-          role: role as 'admin' | 'strategist' | 'partner' | 'user'
-        })));
+        .insert(rolesToInsert)
+        .select();
 
       if (insertError) {
         console.error('[UnifiedUserManagement] Insert error:', insertError);
+        toast.error("Failed to assign new roles", {
+          description: insertError.message
+        });
         throw insertError;
       }
 
+      console.log('[UnifiedUserManagement] Insert result:', insertData);
       console.log('[UnifiedUserManagement] Roles updated successfully');
 
       // Update company assignment if changed
@@ -387,10 +420,12 @@ export function UnifiedUserManagement() {
       // Refresh the user list to show updated roles
       await fetchData();
     } catch (error: any) {
-      console.error('Error updating user:', error);
+      console.error('[UnifiedUserManagement] Error updating user:', error);
       toast.error("Failed to update user", {
-        description: error.message
+        description: error.message || "Please check the console for details"
       });
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -829,7 +864,9 @@ export function UnifiedUserManagement() {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleUpdateUser}>Save Changes</Button>
+              <Button onClick={handleUpdateUser} disabled={saving}>
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
