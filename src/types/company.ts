@@ -16,6 +16,7 @@ export interface Company extends CompanyBasic {
   linkedin_url: string | null;
   twitter_url: string | null;
   instagram_url: string | null;
+  placement_fee_percentage: number | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

@@ -4479,6 +4479,7 @@ export type Database = {
           meta_title: string | null
           mission: string | null
           name: string
+          placement_fee_percentage: number | null
           slug: string
           tagline: string | null
           tech_stack: Json | null
@@ -4511,6 +4512,7 @@ export type Database = {
           meta_title?: string | null
           mission?: string | null
           name: string
+          placement_fee_percentage?: number | null
           slug: string
           tagline?: string | null
           tech_stack?: Json | null
@@ -4543,6 +4545,7 @@ export type Database = {
           meta_title?: string | null
           mission?: string | null
           name?: string
+          placement_fee_percentage?: number | null
           slug?: string
           tagline?: string | null
           tech_stack?: Json | null
