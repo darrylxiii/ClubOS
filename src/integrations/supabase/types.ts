@@ -7066,6 +7066,139 @@ export type Database = {
         }
         Relationships: []
       }
+      deal_loss_reasons: {
+        Row: {
+          competitor_name: string | null
+          could_revisit: boolean | null
+          created_at: string | null
+          created_by: string | null
+          deal_id: string
+          detailed_reason: string | null
+          id: string
+          lost_to_internal: boolean | null
+          notes: string | null
+          reason_category: string
+          revisit_date: string | null
+        }
+        Insert: {
+          competitor_name?: string | null
+          could_revisit?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          deal_id: string
+          detailed_reason?: string | null
+          id?: string
+          lost_to_internal?: boolean | null
+          notes?: string | null
+          reason_category: string
+          revisit_date?: string | null
+        }
+        Update: {
+          competitor_name?: string | null
+          could_revisit?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          deal_id?: string
+          detailed_reason?: string | null
+          id?: string
+          lost_to_internal?: boolean | null
+          notes?: string | null
+          reason_category?: string
+          revisit_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_loss_reasons_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_stage_history: {
+        Row: {
+          changed_at: string | null
+          changed_by: string | null
+          deal_id: string
+          duration_days: number | null
+          from_stage: string | null
+          id: string
+          metadata: Json | null
+          notes: string | null
+          to_stage: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by?: string | null
+          deal_id: string
+          duration_days?: number | null
+          from_stage?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          to_stage: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string | null
+          deal_id?: string
+          duration_days?: number | null
+          from_stage?: string | null
+          id?: string
+          metadata?: Json | null
+          notes?: string | null
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_stage_history_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_stages: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          id: string
+          is_terminal: boolean | null
+          name: string
+          probability_weight: number
+          stage_order: number
+          stage_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_terminal?: boolean | null
+          name: string
+          probability_weight: number
+          stage_order: number
+          stage_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_terminal?: boolean | null
+          name?: string
+          probability_weight?: number
+          stage_order?: number
+          stage_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       deletion_requests: {
         Row: {
           cancelled_at: string | null
@@ -8600,6 +8733,45 @@ export type Database = {
           is_healthy?: boolean
           response_time_ms?: number | null
           status_code?: number | null
+        }
+        Relationships: []
+      }
+      financial_forecasts: {
+        Row: {
+          actual_revenue: number | null
+          confidence_level: string | null
+          created_at: string | null
+          forecast_month: string
+          id: string
+          metadata: Json | null
+          predicted_placement_revenue: number | null
+          predicted_subscription_revenue: number | null
+          updated_at: string | null
+          variance_percentage: number | null
+        }
+        Insert: {
+          actual_revenue?: number | null
+          confidence_level?: string | null
+          created_at?: string | null
+          forecast_month: string
+          id?: string
+          metadata?: Json | null
+          predicted_placement_revenue?: number | null
+          predicted_subscription_revenue?: number | null
+          updated_at?: string | null
+          variance_percentage?: number | null
+        }
+        Update: {
+          actual_revenue?: number | null
+          confidence_level?: string | null
+          created_at?: string | null
+          forecast_month?: string
+          id?: string
+          metadata?: Json | null
+          predicted_placement_revenue?: number | null
+          predicted_subscription_revenue?: number | null
+          updated_at?: string | null
+          variance_percentage?: number | null
         }
         Relationships: []
       }
@@ -10231,11 +10403,19 @@ export type Database = {
           created_at: string | null
           created_by: string
           currency: string
+          deal_health_score: number | null
+          deal_probability: number | null
+          deal_stage: string | null
+          deal_value_override: number | null
           description: string | null
           employment_type: string | null
+          expected_close_date: string | null
           id: string
+          is_lost: boolean | null
           job_description_url: string | null
+          last_activity_date: string | null
           location: string | null
+          loss_reason_id: string | null
           pipeline_stages: Json | null
           published_at: string | null
           requirements: Json | null
@@ -10259,11 +10439,19 @@ export type Database = {
           created_at?: string | null
           created_by: string
           currency?: string
+          deal_health_score?: number | null
+          deal_probability?: number | null
+          deal_stage?: string | null
+          deal_value_override?: number | null
           description?: string | null
           employment_type?: string | null
+          expected_close_date?: string | null
           id?: string
+          is_lost?: boolean | null
           job_description_url?: string | null
+          last_activity_date?: string | null
           location?: string | null
+          loss_reason_id?: string | null
           pipeline_stages?: Json | null
           published_at?: string | null
           requirements?: Json | null
@@ -10287,11 +10475,19 @@ export type Database = {
           created_at?: string | null
           created_by?: string
           currency?: string
+          deal_health_score?: number | null
+          deal_probability?: number | null
+          deal_stage?: string | null
+          deal_value_override?: number | null
           description?: string | null
           employment_type?: string | null
+          expected_close_date?: string | null
           id?: string
+          is_lost?: boolean | null
           job_description_url?: string | null
+          last_activity_date?: string | null
           location?: string | null
+          loss_reason_id?: string | null
           pipeline_stages?: Json | null
           published_at?: string | null
           requirements?: Json | null
@@ -10310,6 +10506,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_loss_reason_id_fkey"
+            columns: ["loss_reason_id"]
+            isOneToOne: false
+            referencedRelation: "deal_loss_reasons"
             referencedColumns: ["id"]
           },
         ]
@@ -21814,6 +22017,7 @@ export type Database = {
         Returns: number
       }
       calculate_current_mrr: { Args: never; Returns: number }
+      calculate_deal_health_score: { Args: { job_id: string }; Returns: number }
       calculate_name_similarity: {
         Args: { name1: string; name2: string }
         Returns: number
@@ -21839,6 +22043,15 @@ export type Database = {
         Returns: number
       }
       calculate_projected_earnings: { Args: never; Returns: undefined }
+      calculate_weighted_pipeline: {
+        Args: never
+        Returns: {
+          avg_deal_size: number
+          deal_count: number
+          total_pipeline: number
+          weighted_pipeline: number
+        }[]
+      }
       can_access_board: {
         Args: { _board_id: string; _user_id: string }
         Returns: boolean

@@ -46,6 +46,7 @@ const AuditRequestsPage = lazy(() => import("@/pages/compliance/AuditRequestsPag
 
 // Financial & Billing Pages
 const FinancialDashboard = lazy(() => import("@/pages/admin/FinancialDashboard"));
+const DealsPipeline = lazy(() => import("@/pages/admin/DealsPipeline"));
 const PartnerBilling = lazy(() => import("@/pages/partner/PartnerBilling"));
 
 /**
