@@ -32,6 +32,7 @@ import {
   BookOpen,
   Shield,
   LayoutDashboard,
+  Target,
   type LucideIcon,
 } from "lucide-react";
 
@@ -186,6 +187,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Revenue & Growth",
       icon: TrendingUp,
       items: [
+        { name: "Deal Pipeline", icon: Target, path: "/admin/deals-pipeline" },
         { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
         { name: "Revenue Analytics", icon: BarChart3, path: "/revenue-analytics" },
         { name: "Referral Program", icon: Gift, path: "/referrals" },
