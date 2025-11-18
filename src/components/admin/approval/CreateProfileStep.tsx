@@ -12,6 +12,7 @@ interface CreateProfileStepProps {
   request: MemberRequest;
   adminId: string;
   onCreateProfile: (profileData: CandidateProfileData) => void;
+  onSkipProfile: () => void;
   onBack: () => void;
 }
 
@@ -19,6 +20,7 @@ export const CreateProfileStep = ({
   request, 
   adminId, 
   onCreateProfile,
+  onSkipProfile,
   onBack 
 }: CreateProfileStepProps) => {
   const [formData, setFormData] = useState<Partial<CandidateProfileData>>({
@@ -84,7 +86,12 @@ export const CreateProfileStep = ({
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-6">
         <UserPlus className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-semibold">Create Candidate Profile</h3>
+        <div>
+          <h3 className="text-lg font-semibold">Create Candidate Profile</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            You can approve this member without creating a candidate profile. A profile can be created later if needed.
+          </p>
+        </div>
       </div>
 
       <Card>
@@ -232,12 +239,20 @@ export const CreateProfileStep = ({
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button 
-          onClick={handleSubmit}
-          disabled={!formData.full_name || !formData.email}
-        >
-          Create Profile & Continue
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="ghost" 
+            onClick={onSkipProfile}
+          >
+            Skip Profile Creation
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            disabled={!formData.full_name || !formData.email}
+          >
+            Create Profile & Continue
+          </Button>
+        </div>
       </div>
     </div>
   );

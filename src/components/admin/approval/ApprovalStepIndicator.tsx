@@ -8,10 +8,8 @@ interface ApprovalStepIndicatorProps {
 }
 
 const steps: { key: ApprovalStep; label: string }[] = [
-  { key: 'review', label: 'Review' },
-  { key: 'detect', label: 'Detect' },
-  { key: 'merge', label: 'Merge/Create' },
-  { key: 'assign', label: 'Assign' },
+  { key: 'detect', label: 'Detect Profiles' },
+  { key: 'create', label: 'Create Profile' },
   { key: 'confirm', label: 'Confirm' },
 ];
 
