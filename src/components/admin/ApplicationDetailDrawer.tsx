@@ -14,6 +14,7 @@ import {
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureHttpsUrl } from "@/utils/urlHelpers";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
@@ -161,7 +162,7 @@ export function ApplicationDetailDrawer({
                     <div className="flex-1">
                       <p className="text-xs text-muted-foreground uppercase tracking-wide">LinkedIn</p>
                       <a 
-                        href={application.linkedin_url} 
+                        href={ensureHttpsUrl(application.linkedin_url) || '#'} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="text-sm font-medium text-primary hover:underline mt-1 inline-block"

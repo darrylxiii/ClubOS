@@ -116,6 +116,7 @@ export const sharedRoutes = (
 
     {/* Financial & Billing Routes */}
     <Route path="/admin/financial" element={<ProtectedRoute><FinancialDashboard /></ProtectedRoute>} />
+    <Route path="/admin/deals-pipeline" element={<ProtectedRoute><DealsPipeline /></ProtectedRoute>} />
     <Route path="/partner/billing" element={<ProtectedRoute><PartnerBilling /></ProtectedRoute>} />
   </>
 );
