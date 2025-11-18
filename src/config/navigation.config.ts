@@ -30,6 +30,8 @@ import {
   CreditCard,
   Brain,
   BookOpen,
+  Shield,
+  LayoutDashboard,
   type LucideIcon,
 } from "lucide-react";
 
@@ -135,6 +137,13 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       ],
     },
     {
+      title: "Billing",
+      icon: CreditCard,
+      items: [
+        { name: "Billing & Invoices", icon: CreditCard, path: "/partner/billing" },
+      ],
+    },
+    {
       title: "Social Media",
       icon: Share2,
       items: [
@@ -177,6 +186,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "Revenue & Growth",
       icon: TrendingUp,
       items: [
+        { name: "Financial Dashboard", icon: CreditCard, path: "/admin/financial" },
         { name: "Revenue Analytics", icon: BarChart3, path: "/revenue-analytics" },
         { name: "Referral Program", icon: Gift, path: "/referrals" },
       ],
