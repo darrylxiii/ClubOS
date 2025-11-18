@@ -61,10 +61,10 @@ export function useDealPipeline() {
         .from('jobs')
         .select(`
           *,
-          companies(name),
+          companies(name, placement_fee_percentage),
           applications(count)
         `)
-        .eq('status', 'open')
+        .in('status', ['published', 'open'])
         .eq('is_lost', false)
         .order('created_at', { ascending: false });
       

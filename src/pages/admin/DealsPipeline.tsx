@@ -5,12 +5,14 @@ import { RevenueCharts } from "@/components/deals/RevenueCharts";
 import { PipelineInsights } from "@/components/deals/PipelineInsights";
 import { ProjectedEarnings } from "@/components/financial/ProjectedEarnings";
 import { RoleGate } from "@/components/RoleGate";
+import { AppLayout } from "@/components/AppLayout";
 import { Target, TrendingUp, BarChart3, Lightbulb } from "lucide-react";
 
 export default function DealsPipeline() {
   return (
     <RoleGate allowedRoles={['admin', 'strategist']} showLoading>
-      <div className="container mx-auto py-6 space-y-6">
+      <AppLayout>
+        <div className="container mx-auto py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -66,7 +68,8 @@ export default function DealsPipeline() {
             </div>
           </TabsContent>
         </Tabs>
-      </div>
+        </div>
+      </AppLayout>
     </RoleGate>
   );
 }
