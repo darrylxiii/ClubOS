@@ -565,14 +565,14 @@ const App = () => {
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                     <FeedbackButton />
+                    <CookieConsentBanner />
+                    <SupportWidget />
                   </ProtectedProviders>
                 </Suspense>
               </PublicProviders>
             } />
           </Routes>
         </TooltipProvider>
-        <CookieConsentBanner />
-        <SupportWidget />
       </BrowserRouter>
     </QueryClientProvider>
   );
