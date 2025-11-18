@@ -12,8 +12,11 @@ interface ApprovalConfirmationStepProps {
     mergeCount?: number;
     profileCreated?: boolean;
     jobAssigned?: boolean;
-    jobTitle?: string;
-    companyName?: string;
+    jobAssignment?: {
+      jobId: string;
+      companyId: string;
+      stageIndex: number;
+    };
   };
   sendEmail: boolean;
   setSendEmail: (value: boolean) => void;

@@ -51,6 +51,7 @@ export interface CandidateProfileData {
 export interface JobAssignment {
   jobId: string;
   companyId: string;
+  stageIndex: number;
 }
 
 export interface ApprovalWorkflowData {
@@ -73,4 +74,5 @@ export interface ApprovalWorkflowResult {
 export type ApprovalStep = 
   | 'detect'
   | 'create'
+  | 'assign'
   | 'confirm';

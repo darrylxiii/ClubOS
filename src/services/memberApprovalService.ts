@@ -86,7 +86,8 @@ export const memberApprovalService = {
   async linkCandidateToJob(
     candidateId: string,
     jobId: string,
-    adminId: string
+    adminId: string,
+    stageIndex: number = 0
   ): Promise<string | null> {
     try {
       // Get job details
@@ -116,6 +117,14 @@ export const memberApprovalService = {
 
       if (companyError) throw companyError;
 
+      // Define pipeline stages
+      const pipelineStages = [
+        { name: 'Applied', completed: stageIndex >= 0, date: stageIndex >= 0 ? new Date().toISOString() : undefined },
+        { name: 'Screening', completed: stageIndex >= 1, date: stageIndex >= 1 ? new Date().toISOString() : undefined },
+        { name: 'Interview', completed: stageIndex >= 2, date: stageIndex >= 2 ? new Date().toISOString() : undefined },
+        { name: 'Final Round', completed: stageIndex >= 3, date: stageIndex >= 3 ? new Date().toISOString() : undefined },
+      ];
+
       // Create application
       const { data: application, error: applicationError } = await supabase
         .from('applications')
@@ -133,12 +142,8 @@ export const memberApprovalService = {
           application_source: 'direct',
           sourced_by: adminId,
           status: 'submitted',
-          stages: [
-            { name: 'Application', completed: true, date: new Date().toISOString() },
-            { name: 'Screening', completed: false },
-            { name: 'Interview', completed: false },
-            { name: 'Offer', completed: false },
-          ],
+          current_stage_index: stageIndex,
+          stages: pipelineStages,
         })
         .select('id')
         .single();

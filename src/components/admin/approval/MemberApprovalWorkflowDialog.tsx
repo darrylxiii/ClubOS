@@ -32,13 +32,14 @@ export const MemberApprovalWorkflowDialog = ({
   const [sendEmail, setSendEmail] = useState(true);
   const [sendSMS, setSendSMS] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [skipJobAssignment, setSkipJobAssignment] = useState(false);
 
   const handleMergeSelection = (merges: Array<{ candidateId: string; userId: string }>) => {
     setMergeActions(merges);
     setCompletedSteps([...completedSteps, 'detect']);
     if (merges.length > 0) {
-      // Skip directly to confirmation for merges
-      setCurrentStep('confirm');
+      // Skip to job assignment after merge
+      setCurrentStep('assign');
     } else {
       setCurrentStep('create');
     }
@@ -53,12 +54,19 @@ export const MemberApprovalWorkflowDialog = ({
   const handleProfileCreated = (data: CandidateProfileData) => {
     setProfileData(data);
     setCompletedSteps([...completedSteps, 'create']);
-    setCurrentStep('confirm');
+    setCurrentStep('assign');
   };
 
   const handleSkipProfile = () => {
     setProfileData(null);
     setCompletedSteps([...completedSteps, 'create']);
+    setCurrentStep('assign');
+  };
+
+  const handleJobAssignment = (assignment: JobAssignment | null) => {
+    setJobAssignment(assignment);
+    setSkipJobAssignment(assignment === null);
+    setCompletedSteps([...completedSteps, 'assign']);
     setCurrentStep('confirm');
   };
 
@@ -81,7 +89,7 @@ export const MemberApprovalWorkflowDialog = ({
         adminId,
         mergeActions,
         createProfile: profileData || undefined,
-        assignToJob: undefined, // No job assignment for candidates
+        assignToJob: jobAssignment || undefined,
         sendNotifications: { email: sendEmail, sms: sendSMS },
       });
 
@@ -131,20 +139,28 @@ export const MemberApprovalWorkflowDialog = ({
           />
         )}
 
+        {currentStep === 'assign' && (
+          <AssignToJobStep
+            onAssign={handleJobAssignment}
+            onBack={() => setCurrentStep(mergeActions.length > 0 ? 'detect' : 'create')}
+          />
+        )}
+
         {currentStep === 'confirm' && (
           <ApprovalConfirmationStep
             summary={{
               action: mergeActions.length > 0 ? 'merge' : 'create',
               mergeCount: mergeActions.length,
               profileCreated: !!profileData,
-              jobAssigned: false,
+              jobAssigned: !!jobAssignment,
+              jobAssignment: jobAssignment || undefined,
             }}
             sendEmail={sendEmail}
             setSendEmail={setSendEmail}
             sendSMS={sendSMS}
             setSendSMS={setSendSMS}
             onConfirm={handleConfirmApproval}
-            onBack={() => setCurrentStep(mergeActions.length > 0 ? 'detect' : 'create')}
+            onBack={() => setCurrentStep('assign')}
             isSubmitting={isSubmitting}
           />
         )}
