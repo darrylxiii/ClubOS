@@ -36,6 +36,7 @@ interface Company {
   industry: string | null;
   company_size: string | null;
   headquarters_location: string | null;
+  placement_fee_percentage: number | null;
 }
 
 interface CompanyMember {
@@ -85,7 +86,8 @@ export default function CompanySettings() {
     website: "",
     industry: "",
     size: "",
-    location: ""
+    location: "",
+    feePercentage: "20"
   });
 
   useEffect(() => {
@@ -134,7 +136,8 @@ export default function CompanySettings() {
         website: companyData.website_url || "",
         industry: companyData.industry || "",
         size: companyData.company_size || "",
-        location: companyData.headquarters_location || ""
+        location: companyData.headquarters_location || "",
+        feePercentage: companyData.placement_fee_percentage?.toString() || "20"
       });
     }
 
@@ -180,9 +183,25 @@ export default function CompanySettings() {
     if (!company) return;
     
     setSaving(true);
+    const feePercentage = parseFloat(companyForm.feePercentage);
+    
+    if (isNaN(feePercentage) || feePercentage < 0 || feePercentage > 100) {
+      toast.error("Fee percentage must be between 0 and 100");
+      setSaving(false);
+      return;
+    }
+    
     const { error } = await supabase
       .from("companies")
-      .update(companyForm)
+      .update({
+        name: companyForm.name,
+        description: companyForm.description,
+        website_url: companyForm.website,
+        industry: companyForm.industry,
+        company_size: companyForm.size,
+        headquarters_location: companyForm.location,
+        placement_fee_percentage: feePercentage
+      })
       .eq("id", company.id);
 
     if (error) {
@@ -407,6 +426,22 @@ export default function CompanySettings() {
                     placeholder="City, Country"
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label>Placement Fee Percentage (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={companyForm.feePercentage}
+                  onChange={(e) => setCompanyForm({ ...companyForm, feePercentage: e.target.value })}
+                  placeholder="20"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Percentage of candidate's annual salary charged as placement fee (used for revenue calculations)
+                </p>
               </div>
 
               <Button onClick={handleSaveCompany} disabled={saving}>
