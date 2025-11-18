@@ -16,6 +16,7 @@ interface BackupVerificationLog {
   total_tables: number;
   verification_duration_ms: number;
   issues: string[];
+  tier_results?: Record<string, { verified: number; total: number; duration_ms: number }>;
 }
 
 interface PlatformAlert {
@@ -276,7 +277,7 @@ export const DisasterRecoveryDashboard = () => {
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {latestBackup?.tables_verified}/{latestBackup?.total_tables} tables verified
+              {latestBackup?.tables_verified}/{latestBackup?.total_tables} tables verified ({latestBackup && latestBackup.total_tables > 0 ? ((latestBackup.tables_verified / latestBackup.total_tables) * 100).toFixed(1) : '0'}% coverage)
             </p>
           </CardContent>
         </Card>
@@ -357,6 +358,72 @@ export const DisasterRecoveryDashboard = () => {
                   </Button>
                 </div>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Tier-Based Verification Breakdown */}
+      {latestBackup?.tier_results && (
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Backup Verification by Tier</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Latest verification: {new Date(latestBackup.timestamp).toLocaleString()}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {Object.entries(latestBackup.tier_results).map(([tier, stats]) => {
+                const successRate = (stats.verified / stats.total) * 100;
+                return (
+                  <div key={tier} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        {successRate === 100 ? (
+                          <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        ) : successRate >= 90 ? (
+                          <AlertTriangle className="h-4 w-4 text-amber-500" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-red-500" />
+                        )}
+                        <span className="font-medium">{tier}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-muted-foreground">
+                          {stats.verified}/{stats.total} tables
+                        </span>
+                        <Badge variant={
+                          successRate === 100 ? 'default' :
+                          successRate >= 90 ? 'secondary' : 'destructive'
+                        }>
+                          {successRate.toFixed(0)}%
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {stats.duration_ms}ms
+                        </span>
+                      </div>
+                    </div>
+                    <div className="w-full bg-muted rounded-full h-2">
+                      <div
+                        className={`h-2 rounded-full transition-all ${
+                          successRate === 100 ? 'bg-green-500' :
+                          successRate >= 90 ? 'bg-amber-500' : 'bg-red-500'
+                        }`}
+                        style={{ width: `${successRate}%` }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 pt-4 border-t">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Total Coverage</span>
+                <span className="font-medium">
+                  {latestBackup.tables_verified}/{latestBackup.total_tables} tables ({((latestBackup.tables_verified / latestBackup.total_tables) * 100).toFixed(1)}%)
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>
