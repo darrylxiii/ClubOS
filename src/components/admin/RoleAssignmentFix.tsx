@@ -20,18 +20,22 @@ export const RoleAssignmentFix = () => {
       // Check for users without any roles
       const { data: usersWithoutRoles, error: err1 } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          email,
-          full_name,
-          user_roles!left(role)
-        `);
+        .select('id, email, full_name');
 
       if (err1) throw err1;
 
-      const problemUsers = usersWithoutRoles?.filter(
-        u => !u.user_roles || u.user_roles.length === 0
-      ) || [];
+      // Check which users don't have roles
+      const problemUsers: any[] = [];
+      for (const user of usersWithoutRoles || []) {
+        const { data: roles } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id);
+        
+        if (!roles || roles.length === 0) {
+          problemUsers.push(user);
+        }
+      }
 
       if (problemUsers.length > 0) {
         setIssues(prev => [...prev, `${problemUsers.length} users without any role assigned`]);

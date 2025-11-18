@@ -1610,6 +1610,45 @@ export type Database = {
         }
         Relationships: []
       }
+      backup_policies: {
+        Row: {
+          created_at: string | null
+          criticality: string
+          id: string
+          is_immutable: boolean | null
+          last_backup_at: string | null
+          metadata: Json | null
+          replication_frequency: unknown
+          retention_days: number
+          table_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          criticality: string
+          id?: string
+          is_immutable?: boolean | null
+          last_backup_at?: string | null
+          metadata?: Json | null
+          replication_frequency: unknown
+          retention_days: number
+          table_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          criticality?: string
+          id?: string
+          is_immutable?: boolean | null
+          last_backup_at?: string | null
+          metadata?: Json | null
+          replication_frequency?: unknown
+          retention_days?: number
+          table_name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       backup_verification_logs: {
         Row: {
           backup_id: string
@@ -6397,6 +6436,39 @@ export type Database = {
         }
         Relationships: []
       }
+      data_integrity_checks: {
+        Row: {
+          check_type: string
+          created_at: string | null
+          details: Json | null
+          duration_ms: number | null
+          id: string
+          issues_found: number | null
+          status: string
+          table_name: string | null
+        }
+        Insert: {
+          check_type: string
+          created_at?: string | null
+          details?: Json | null
+          duration_ms?: number | null
+          id?: string
+          issues_found?: number | null
+          status: string
+          table_name?: string | null
+        }
+        Update: {
+          check_type?: string
+          created_at?: string | null
+          details?: Json | null
+          duration_ms?: number | null
+          id?: string
+          issues_found?: number | null
+          status?: string
+          table_name?: string | null
+        }
+        Relationships: []
+      }
       deletion_requests: {
         Row: {
           cancelled_at: string | null
@@ -7826,6 +7898,103 @@ export type Database = {
           usage_count?: number | null
         }
         Relationships: []
+      }
+      incident_logs: {
+        Row: {
+          acknowledged_at: string | null
+          actual_rpo_minutes: number | null
+          actual_rto_minutes: number | null
+          affected_services: string[] | null
+          affected_users_count: number | null
+          assigned_to: string | null
+          closed_at: string | null
+          created_at: string | null
+          description: string | null
+          detected_at: string
+          detected_by: string | null
+          id: string
+          incident_id: string
+          metadata: Json | null
+          postmortem_url: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          root_cause: string | null
+          severity: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          actual_rpo_minutes?: number | null
+          actual_rto_minutes?: number | null
+          affected_services?: string[] | null
+          affected_users_count?: number | null
+          assigned_to?: string | null
+          closed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          detected_at?: string
+          detected_by?: string | null
+          id?: string
+          incident_id: string
+          metadata?: Json | null
+          postmortem_url?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          root_cause?: string | null
+          severity: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          actual_rpo_minutes?: number | null
+          actual_rto_minutes?: number | null
+          affected_services?: string[] | null
+          affected_users_count?: number | null
+          assigned_to?: string | null
+          closed_at?: string | null
+          created_at?: string | null
+          description?: string | null
+          detected_at?: string
+          detected_by?: string | null
+          id?: string
+          incident_id?: string
+          metadata?: Json | null
+          postmortem_url?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          root_cause?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "incident_logs_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "incident_logs_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "incident_logs_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       incubator_actions: {
         Row: {
@@ -14798,6 +14967,39 @@ export type Database = {
             referencedColumns: ["code"]
           },
         ]
+      }
+      region_health_checks: {
+        Row: {
+          check_type: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          latency_ms: number | null
+          metadata: Json | null
+          region: string
+          status: string
+        }
+        Insert: {
+          check_type?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          metadata?: Json | null
+          region: string
+          status: string
+        }
+        Update: {
+          check_type?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          metadata?: Json | null
+          region?: string
+          status?: string
+        }
+        Relationships: []
       }
       revenue_metrics: {
         Row: {
