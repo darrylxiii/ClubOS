@@ -212,11 +212,6 @@ export function CompanyDomainsManager({
                     <Badge variant={domain.is_active ? "default" : "secondary"}>
                       {domain.is_active ? "Active" : "Inactive"}
                     </Badge>
-                    {domain.auto_tracked && (
-                      <Badge variant="outline" className="text-xs">
-                        Auto
-                      </Badge>
-                    )}
                   </div>
                   {domain.notes && (
                     <p className="text-xs text-muted-foreground mt-1">
