@@ -37,6 +37,13 @@ const RadioListen = lazy(() => import("@/pages/RadioListen"));
 const DocumentManagement = lazy(() => import("@/pages/DocumentManagement"));
 const EmailSettings = lazy(() => import("@/pages/EmailSettings"));
 
+// Compliance & Legal Pages
+const ComplianceDashboard = lazy(() => import("@/pages/compliance/ComplianceDashboard"));
+const LegalAgreementsPage = lazy(() => import("@/pages/compliance/LegalAgreementsPage"));
+const SubprocessorsPage = lazy(() => import("@/pages/compliance/SubprocessorsPage"));
+const DataClassificationPage = lazy(() => import("@/pages/compliance/DataClassificationPage"));
+const AuditRequestsPage = lazy(() => import("@/pages/compliance/AuditRequestsPage"));
+
 /**
  * Shared routes accessible to all authenticated users
  * Core platform features, communication, learning
@@ -94,5 +101,12 @@ export const sharedRoutes = (
     {/* Documents & Email */}
     <Route path="/documents" element={<ProtectedRoute><DocumentManagement /></ProtectedRoute>} />
     <Route path="/email-settings" element={<ProtectedRoute><EmailSettings /></ProtectedRoute>} />
+    
+    {/* Compliance & Legal */}
+    <Route path="/compliance/dashboard" element={<ProtectedRoute><ComplianceDashboard /></ProtectedRoute>} />
+    <Route path="/compliance/legal-agreements" element={<ProtectedRoute><LegalAgreementsPage /></ProtectedRoute>} />
+    <Route path="/compliance/subprocessors" element={<ProtectedRoute><SubprocessorsPage /></ProtectedRoute>} />
+    <Route path="/compliance/data-classification" element={<ProtectedRoute><DataClassificationPage /></ProtectedRoute>} />
+    <Route path="/compliance/audit-requests" element={<ProtectedRoute><AuditRequestsPage /></ProtectedRoute>} />
   </>
 );
