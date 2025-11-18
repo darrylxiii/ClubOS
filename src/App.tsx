@@ -18,6 +18,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { sharedRoutes } from "@/routes/shared.routes";
 import { candidateRoutes } from "@/routes/candidate.routes";
 import { AdminAssessmentsRoutes } from "@/routes/admin-assessments.routes";
+import { CookieConsentBanner } from "@/components/support/CookieConsentBanner";
+import { SupportWidget } from "@/components/support/SupportWidget";
 
 // Optimized: Memoized component with scoped invalidation to prevent full app re-renders
 const LanguageSync = memo(() => {
@@ -117,6 +119,9 @@ const LanguageManager = lazy(() => import("./pages/admin/LanguageManager"));
 const DisasterRecoveryPage = lazy(() => import("./pages/admin/DisasterRecoveryPage"));
 const DRRunbooks = lazy(() => import("./pages/admin/DRRunbooks"));
 const ComprehensiveDRPage = lazy(() => import("./pages/admin/ComprehensiveDRPage"));
+const SupportTicketList = lazy(() => import("./pages/support/SupportTicketList"));
+const SupportTicketNew = lazy(() => import("./pages/support/SupportTicketNew"));
+const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
 const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const Subscription = lazy(() => import("./pages/Subscription"));

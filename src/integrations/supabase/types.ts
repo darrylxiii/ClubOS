@@ -6169,6 +6169,85 @@ export type Database = {
           },
         ]
       }
+      cookie_consent_records: {
+        Row: {
+          analytics_cookies: boolean | null
+          consent_version: string
+          created_at: string | null
+          expires_at: string | null
+          functional_cookies: boolean | null
+          geo_location: string | null
+          granted_at: string | null
+          id: string
+          ip_address: string | null
+          marketing_cookies: boolean | null
+          necessary_cookies: boolean | null
+          session_id: string | null
+          third_party_cookies: boolean | null
+          user_agent: string | null
+          user_id: string | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          analytics_cookies?: boolean | null
+          consent_version?: string
+          created_at?: string | null
+          expires_at?: string | null
+          functional_cookies?: boolean | null
+          geo_location?: string | null
+          granted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          marketing_cookies?: boolean | null
+          necessary_cookies?: boolean | null
+          session_id?: string | null
+          third_party_cookies?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          analytics_cookies?: boolean | null
+          consent_version?: string
+          created_at?: string | null
+          expires_at?: string | null
+          functional_cookies?: boolean | null
+          geo_location?: string | null
+          granted_at?: string | null
+          id?: string
+          ip_address?: string | null
+          marketing_cookies?: boolean | null
+          necessary_cookies?: boolean | null
+          session_id?: string | null
+          third_party_cookies?: boolean | null
+          user_agent?: string | null
+          user_id?: string | null
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cookie_consent_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "cookie_consent_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cookie_consent_records_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_progress: {
         Row: {
           completed_at: string | null
@@ -6339,6 +6418,178 @@ export type Database = {
             columns: ["learning_path_id"]
             isOneToOne: false
             referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      csm_activities: {
+        Row: {
+          activity_type: string
+          attendees: Json | null
+          company_id: string | null
+          created_at: string | null
+          csm_user_id: string | null
+          duration_minutes: number | null
+          follow_up_date: string | null
+          id: string
+          meeting_recording_url: string | null
+          notes: string | null
+          outcome: string | null
+          subject: string
+        }
+        Insert: {
+          activity_type: string
+          attendees?: Json | null
+          company_id?: string | null
+          created_at?: string | null
+          csm_user_id?: string | null
+          duration_minutes?: number | null
+          follow_up_date?: string | null
+          id?: string
+          meeting_recording_url?: string | null
+          notes?: string | null
+          outcome?: string | null
+          subject: string
+        }
+        Update: {
+          activity_type?: string
+          attendees?: Json | null
+          company_id?: string | null
+          created_at?: string | null
+          csm_user_id?: string | null
+          duration_minutes?: number | null
+          follow_up_date?: string | null
+          id?: string
+          meeting_recording_url?: string | null
+          notes?: string | null
+          outcome?: string | null
+          subject?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "csm_activities_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csm_activities_csm_user_id_fkey"
+            columns: ["csm_user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "csm_activities_csm_user_id_fkey"
+            columns: ["csm_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csm_activities_csm_user_id_fkey"
+            columns: ["csm_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      csm_assignments: {
+        Row: {
+          account_value_tier: string | null
+          assigned_at: string | null
+          assigned_by: string | null
+          company_id: string | null
+          created_at: string | null
+          csm_user_id: string
+          handoff_notes: string | null
+          health_score: number | null
+          id: string
+          is_primary: boolean | null
+          next_check_in_date: string | null
+          risk_level: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_value_tier?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          csm_user_id: string
+          handoff_notes?: string | null
+          health_score?: number | null
+          id?: string
+          is_primary?: boolean | null
+          next_check_in_date?: string | null
+          risk_level?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_value_tier?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          csm_user_id?: string
+          handoff_notes?: string | null
+          health_score?: number | null
+          id?: string
+          is_primary?: boolean | null
+          next_check_in_date?: string | null
+          risk_level?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "csm_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "csm_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csm_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csm_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csm_assignments_csm_user_id_fkey"
+            columns: ["csm_user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "csm_assignments_csm_user_id_fkey"
+            columns: ["csm_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "csm_assignments_csm_user_id_fkey"
+            columns: ["csm_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -9636,6 +9887,177 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kb_article_feedback: {
+        Row: {
+          article_id: string | null
+          created_at: string | null
+          feedback_text: string | null
+          id: string
+          session_id: string | null
+          user_id: string | null
+          was_helpful: boolean
+        }
+        Insert: {
+          article_id?: string | null
+          created_at?: string | null
+          feedback_text?: string | null
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+          was_helpful: boolean
+        }
+        Update: {
+          article_id?: string | null
+          created_at?: string | null
+          feedback_text?: string | null
+          id?: string
+          session_id?: string | null
+          user_id?: string | null
+          was_helpful?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kb_article_feedback_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "knowledge_base_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_article_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "kb_article_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kb_article_feedback_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      knowledge_base_articles: {
+        Row: {
+          author_id: string | null
+          category: string
+          content: string
+          created_at: string | null
+          excerpt: string | null
+          featured: boolean | null
+          helpful_count: number | null
+          id: string
+          last_reviewed_at: string | null
+          last_reviewed_by: string | null
+          not_helpful_count: number | null
+          published_at: string | null
+          related_articles: string[] | null
+          search_keywords: string[] | null
+          slug: string
+          status: string | null
+          title: string
+          updated_at: string | null
+          view_count: number | null
+          visibility: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          category: string
+          content: string
+          created_at?: string | null
+          excerpt?: string | null
+          featured?: boolean | null
+          helpful_count?: number | null
+          id?: string
+          last_reviewed_at?: string | null
+          last_reviewed_by?: string | null
+          not_helpful_count?: number | null
+          published_at?: string | null
+          related_articles?: string[] | null
+          search_keywords?: string[] | null
+          slug: string
+          status?: string | null
+          title: string
+          updated_at?: string | null
+          view_count?: number | null
+          visibility?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          category?: string
+          content?: string
+          created_at?: string | null
+          excerpt?: string | null
+          featured?: boolean | null
+          helpful_count?: number | null
+          id?: string
+          last_reviewed_at?: string | null
+          last_reviewed_by?: string | null
+          not_helpful_count?: number | null
+          published_at?: string | null
+          related_articles?: string[] | null
+          search_keywords?: string[] | null
+          slug?: string
+          status?: string | null
+          title?: string
+          updated_at?: string | null
+          view_count?: number | null
+          visibility?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "knowledge_base_articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_base_articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_base_articles_last_reviewed_by_fkey"
+            columns: ["last_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "knowledge_base_articles_last_reviewed_by_fkey"
+            columns: ["last_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_base_articles_last_reviewed_by_fkey"
+            columns: ["last_reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -16814,6 +17236,259 @@ export type Database = {
           },
         ]
       }
+      support_sla_policies: {
+        Row: {
+          auto_escalate_to_csm: boolean | null
+          business_hours_only: boolean | null
+          channels_available: string[] | null
+          created_at: string | null
+          customer_tier: string
+          escalation_after_minutes: number | null
+          id: string
+          priority_level: string
+          target_first_response_minutes: number
+          target_resolution_hours: number
+        }
+        Insert: {
+          auto_escalate_to_csm?: boolean | null
+          business_hours_only?: boolean | null
+          channels_available?: string[] | null
+          created_at?: string | null
+          customer_tier: string
+          escalation_after_minutes?: number | null
+          id?: string
+          priority_level: string
+          target_first_response_minutes: number
+          target_resolution_hours: number
+        }
+        Update: {
+          auto_escalate_to_csm?: boolean | null
+          business_hours_only?: boolean | null
+          channels_available?: string[] | null
+          created_at?: string | null
+          customer_tier?: string
+          escalation_after_minutes?: number | null
+          id?: string
+          priority_level?: string
+          target_first_response_minutes?: number
+          target_resolution_hours?: number
+        }
+        Relationships: []
+      }
+      support_ticket_messages: {
+        Row: {
+          attachments: Json | null
+          created_at: string | null
+          id: string
+          is_internal: boolean | null
+          message: string
+          read_by_agent: boolean | null
+          read_by_customer: boolean | null
+          sender_email: string | null
+          sender_id: string | null
+          sender_type: string
+          ticket_id: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          message: string
+          read_by_agent?: boolean | null
+          read_by_customer?: boolean | null
+          sender_email?: string | null
+          sender_id?: string | null
+          sender_type: string
+          ticket_id?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          created_at?: string | null
+          id?: string
+          is_internal?: boolean | null
+          message?: string
+          read_by_agent?: boolean | null
+          read_by_customer?: boolean | null
+          sender_email?: string | null
+          sender_id?: string | null
+          sender_type?: string
+          ticket_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_ticket_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "support_ticket_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_ticket_messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_ticket_messages_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      support_tickets: {
+        Row: {
+          actual_resolution_hours: number | null
+          actual_response_minutes: number | null
+          assigned_at: string | null
+          assigned_to: string | null
+          category: string
+          channel: string | null
+          closed_at: string | null
+          company_id: string | null
+          created_at: string | null
+          created_by_email: string | null
+          description: string
+          first_response_at: string | null
+          id: string
+          internal_notes: string | null
+          metadata: Json | null
+          priority: string | null
+          resolved_at: string | null
+          satisfaction_feedback: string | null
+          satisfaction_rating: number | null
+          sla_breached: boolean | null
+          sla_target_resolution_hours: number | null
+          sla_target_response_minutes: number | null
+          status: string | null
+          subject: string
+          tags: string[] | null
+          ticket_number: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          actual_resolution_hours?: number | null
+          actual_response_minutes?: number | null
+          assigned_at?: string | null
+          assigned_to?: string | null
+          category: string
+          channel?: string | null
+          closed_at?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          created_by_email?: string | null
+          description: string
+          first_response_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          metadata?: Json | null
+          priority?: string | null
+          resolved_at?: string | null
+          satisfaction_feedback?: string | null
+          satisfaction_rating?: number | null
+          sla_breached?: boolean | null
+          sla_target_resolution_hours?: number | null
+          sla_target_response_minutes?: number | null
+          status?: string | null
+          subject: string
+          tags?: string[] | null
+          ticket_number: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          actual_resolution_hours?: number | null
+          actual_response_minutes?: number | null
+          assigned_at?: string | null
+          assigned_to?: string | null
+          category?: string
+          channel?: string | null
+          closed_at?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          created_by_email?: string | null
+          description?: string
+          first_response_at?: string | null
+          id?: string
+          internal_notes?: string | null
+          metadata?: Json | null
+          priority?: string | null
+          resolved_at?: string | null
+          satisfaction_feedback?: string | null
+          satisfaction_rating?: number | null
+          sla_breached?: boolean | null
+          sla_target_resolution_hours?: number | null
+          sla_target_response_minutes?: number | null
+          status?: string | null
+          subject?: string
+          tags?: string[] | null
+          ticket_number?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "support_tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           created_at: string | null
@@ -19993,6 +20668,7 @@ export type Database = {
       generate_profile_slug: { Args: { name: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_share_token: { Args: never; Returns: string }
+      generate_support_ticket_number: { Args: never; Returns: string }
       generate_task_number: { Args: never; Returns: string }
       generate_unified_task_number: { Args: never; Returns: string }
       get_board_role: {
