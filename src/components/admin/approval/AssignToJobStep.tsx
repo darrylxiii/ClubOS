@@ -29,10 +29,13 @@ interface AssignToJobStepProps {
 export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [stages, setStages] = useState<{ name: string; order: number }[]>([]);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>('');
   const [selectedJobId, setSelectedJobId] = useState<string>('');
+  const [selectedStageIndex, setSelectedStageIndex] = useState<number>(0);
   const [skipAssignment, setSkipAssignment] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [loadingStages, setLoadingStages] = useState(false);
 
   useEffect(() => {
     loadCompanies();
@@ -46,6 +49,25 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
       setSelectedJobId('');
     }
   }, [selectedCompanyId]);
+
+  useEffect(() => {
+    if (selectedJobId) {
+      const loadDefaultStages = async () => {
+        setLoadingStages(true);
+        setStages([
+          { name: 'Applied', order: 0 },
+          { name: 'Screening', order: 1 },
+          { name: 'Interview', order: 2 },
+          { name: 'Final Round', order: 3 },
+        ]);
+        setLoadingStages(false);
+      };
+      loadDefaultStages();
+    } else {
+      setStages([]);
+      setSelectedStageIndex(0);
+    }
+  }, [selectedJobId]);
 
   const loadCompanies = async () => {
     try {
@@ -85,12 +107,13 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
   };
 
   const handleContinue = () => {
-    if (skipAssignment || !selectedJobId) {
+    if (skipAssignment || !selectedJobId || !selectedCompanyId) {
       onAssign(null);
     } else {
       onAssign({
         jobId: selectedJobId,
         companyId: selectedCompanyId,
+        stageIndex: selectedStageIndex,
       });
     }
   };
@@ -168,6 +191,24 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
                   No active roles found for this company
                 </p>
               )}
+            </div>
+          )}
+
+          {selectedJobId && stages.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="stage">Starting Pipeline Stage</Label>
+              <select
+                id="stage"
+                value={selectedStageIndex.toString()}
+                onChange={(e) => setSelectedStageIndex(parseInt(e.target.value))}
+                className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                {stages.map((stage) => (
+                  <option key={stage.order} value={stage.order.toString()}>
+                    {stage.name}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
 
