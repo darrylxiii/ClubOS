@@ -8544,6 +8544,77 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_settings: {
+        Row: {
+          bank_account_iban: string | null
+          bank_account_swift: string | null
+          bank_name: string | null
+          company_id: string | null
+          company_registration_number: string | null
+          created_at: string | null
+          currency_code: string | null
+          default_payment_terms_days: number | null
+          default_placement_fee_percentage: number | null
+          enable_stripe_payments: boolean | null
+          id: string
+          invoice_footer_notes: string | null
+          invoice_prefix: string | null
+          next_invoice_number: number | null
+          stripe_account_id: string | null
+          tax_rate: number | null
+          updated_at: string | null
+          vat_number: string | null
+        }
+        Insert: {
+          bank_account_iban?: string | null
+          bank_account_swift?: string | null
+          bank_name?: string | null
+          company_id?: string | null
+          company_registration_number?: string | null
+          created_at?: string | null
+          currency_code?: string | null
+          default_payment_terms_days?: number | null
+          default_placement_fee_percentage?: number | null
+          enable_stripe_payments?: boolean | null
+          id?: string
+          invoice_footer_notes?: string | null
+          invoice_prefix?: string | null
+          next_invoice_number?: number | null
+          stripe_account_id?: string | null
+          tax_rate?: number | null
+          updated_at?: string | null
+          vat_number?: string | null
+        }
+        Update: {
+          bank_account_iban?: string | null
+          bank_account_swift?: string | null
+          bank_name?: string | null
+          company_id?: string | null
+          company_registration_number?: string | null
+          created_at?: string | null
+          currency_code?: string | null
+          default_payment_terms_days?: number | null
+          default_placement_fee_percentage?: number | null
+          enable_stripe_payments?: boolean | null
+          id?: string
+          invoice_footer_notes?: string | null
+          invoice_prefix?: string | null
+          next_invoice_number?: number | null
+          stripe_account_id?: string | null
+          tax_rate?: number | null
+          updated_at?: string | null
+          vat_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_settings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       funnel_analytics: {
         Row: {
           action: string
@@ -9769,6 +9840,54 @@ export type Database = {
           used_by?: string | null
         }
         Relationships: []
+      }
+      invoice_line_items: {
+        Row: {
+          created_at: string | null
+          description: string
+          id: string
+          invoice_id: string | null
+          line_total: number
+          placement_fee_id: string | null
+          quantity: number | null
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string | null
+          description: string
+          id?: string
+          invoice_id?: string | null
+          line_total: number
+          placement_fee_id?: string | null
+          quantity?: number | null
+          unit_price: number
+        }
+        Update: {
+          created_at?: string | null
+          description?: string
+          id?: string
+          invoice_id?: string | null
+          line_total?: number
+          placement_fee_id?: string | null
+          quantity?: number | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_line_items_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "partner_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_line_items_placement_fee_id_fkey"
+            columns: ["placement_fee_id"]
+            isOneToOne: false
+            referencedRelation: "placement_fees"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoices: {
         Row: {
@@ -13194,6 +13313,179 @@ export type Database = {
           },
         ]
       }
+      partner_billing_details: {
+        Row: {
+          bank_account_iban: string | null
+          bank_account_name: string | null
+          bank_account_swift: string | null
+          billing_address_line1: string
+          billing_address_line2: string | null
+          billing_city: string
+          billing_country: string
+          billing_email: string
+          billing_postal_code: string
+          billing_state: string | null
+          company_id: string | null
+          created_at: string | null
+          id: string
+          is_verified: boolean | null
+          legal_company_name: string
+          payment_method: string | null
+          preferred_payment_terms_days: number | null
+          updated_at: string | null
+          vat_number: string | null
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          bank_account_iban?: string | null
+          bank_account_name?: string | null
+          bank_account_swift?: string | null
+          billing_address_line1: string
+          billing_address_line2?: string | null
+          billing_city: string
+          billing_country?: string
+          billing_email: string
+          billing_postal_code: string
+          billing_state?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          legal_company_name: string
+          payment_method?: string | null
+          preferred_payment_terms_days?: number | null
+          updated_at?: string | null
+          vat_number?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          bank_account_iban?: string | null
+          bank_account_name?: string | null
+          bank_account_swift?: string | null
+          billing_address_line1?: string
+          billing_address_line2?: string | null
+          billing_city?: string
+          billing_country?: string
+          billing_email?: string
+          billing_postal_code?: string
+          billing_state?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_verified?: boolean | null
+          legal_company_name?: string
+          payment_method?: string | null
+          preferred_payment_terms_days?: number | null
+          updated_at?: string | null
+          vat_number?: string | null
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_billing_details_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_invoices: {
+        Row: {
+          billing_details_id: string | null
+          created_at: string | null
+          created_by: string | null
+          currency_code: string | null
+          due_date: string
+          id: string
+          internal_notes: string | null
+          invoice_date: string
+          invoice_number: string
+          notes: string | null
+          paid_at: string | null
+          partner_company_id: string
+          payment_terms_days: number | null
+          pdf_url: string | null
+          sent_at: string | null
+          status: string | null
+          stripe_payment_intent_id: string | null
+          subtotal: number
+          tax_amount: number
+          tax_rate: number | null
+          total_amount: number
+          updated_at: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          billing_details_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          due_date: string
+          id?: string
+          internal_notes?: string | null
+          invoice_date?: string
+          invoice_number: string
+          notes?: string | null
+          paid_at?: string | null
+          partner_company_id: string
+          payment_terms_days?: number | null
+          pdf_url?: string | null
+          sent_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          subtotal: number
+          tax_amount: number
+          tax_rate?: number | null
+          total_amount: number
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          billing_details_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          due_date?: string
+          id?: string
+          internal_notes?: string | null
+          invoice_date?: string
+          invoice_number?: string
+          notes?: string | null
+          paid_at?: string | null
+          partner_company_id?: string
+          payment_terms_days?: number | null
+          pdf_url?: string | null
+          sent_at?: string | null
+          status?: string | null
+          stripe_payment_intent_id?: string | null
+          subtotal?: number
+          tax_amount?: number
+          tax_rate?: number | null
+          total_amount?: number
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_invoices_billing_details_id_fkey"
+            columns: ["billing_details_id"]
+            isOneToOne: false
+            referencedRelation: "partner_billing_details"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_invoices_partner_company_id_fkey"
+            columns: ["partner_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_requests: {
         Row: {
           agreed_nda: boolean | null
@@ -13451,6 +13743,68 @@ export type Database = {
             columns: ["learning_path_id"]
             isOneToOne: false
             referencedRelation: "learning_paths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payment_transactions: {
+        Row: {
+          amount: number
+          bank_transaction_id: string | null
+          created_at: string | null
+          currency_code: string | null
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          payment_method: string
+          payment_reference: string | null
+          processed_by: string | null
+          proof_of_payment_url: string | null
+          status: string | null
+          stripe_charge_id: string | null
+          stripe_payment_intent_id: string | null
+          transaction_date: string
+        }
+        Insert: {
+          amount: number
+          bank_transaction_id?: string | null
+          created_at?: string | null
+          currency_code?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          payment_method: string
+          payment_reference?: string | null
+          processed_by?: string | null
+          proof_of_payment_url?: string | null
+          status?: string | null
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          transaction_date?: string
+        }
+        Update: {
+          amount?: number
+          bank_transaction_id?: string | null
+          created_at?: string | null
+          currency_code?: string | null
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          payment_method?: string
+          payment_reference?: string | null
+          processed_by?: string | null
+          proof_of_payment_url?: string | null
+          status?: string | null
+          stripe_charge_id?: string | null
+          stripe_payment_intent_id?: string | null
+          transaction_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_transactions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "partner_invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -13962,6 +14316,116 @@ export type Database = {
           test_id?: string
         }
         Relationships: []
+      }
+      placement_fees: {
+        Row: {
+          application_id: string | null
+          candidate_id: string | null
+          candidate_salary: number | null
+          created_at: string | null
+          created_by: string | null
+          currency_code: string | null
+          fee_amount: number
+          fee_percentage: number
+          hired_date: string
+          id: string
+          invoice_id: string | null
+          job_id: string | null
+          notes: string | null
+          partner_company_id: string | null
+          payment_due_date: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          candidate_id?: string | null
+          candidate_salary?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          fee_amount: number
+          fee_percentage: number
+          hired_date: string
+          id?: string
+          invoice_id?: string | null
+          job_id?: string | null
+          notes?: string | null
+          partner_company_id?: string | null
+          payment_due_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          candidate_id?: string | null
+          candidate_salary?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_code?: string | null
+          fee_amount?: number
+          fee_percentage?: number
+          hired_date?: string
+          id?: string
+          invoice_id?: string | null
+          job_id?: string | null
+          notes?: string | null
+          partner_company_id?: string | null
+          payment_due_date?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "placement_fees_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_fees_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_fees_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_fees_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "placement_fees_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_fees_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "placement_fees_partner_company_id_fkey"
+            columns: ["partner_company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       platform_alerts: {
         Row: {
@@ -16287,6 +16751,114 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "invite_codes"
             referencedColumns: ["code"]
+          },
+        ]
+      }
+      referral_payouts: {
+        Row: {
+          application_id: string | null
+          approved_at: string | null
+          approved_by: string | null
+          calculation_basis: Json | null
+          candidate_id: string | null
+          created_at: string | null
+          currency_code: string | null
+          id: string
+          notes: string | null
+          paid_at: string | null
+          payment_details: Json | null
+          payment_method: string | null
+          payment_reference: string | null
+          payout_amount: number
+          processed_at: string | null
+          processed_by: string | null
+          referral_id: string | null
+          referrer_user_id: string
+          rejection_reason: string | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          calculation_basis?: Json | null
+          candidate_id?: string | null
+          created_at?: string | null
+          currency_code?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          payout_amount: number
+          processed_at?: string | null
+          processed_by?: string | null
+          referral_id?: string | null
+          referrer_user_id: string
+          rejection_reason?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          calculation_basis?: Json | null
+          candidate_id?: string | null
+          created_at?: string | null
+          currency_code?: string | null
+          id?: string
+          notes?: string | null
+          paid_at?: string | null
+          payment_details?: Json | null
+          payment_method?: string | null
+          payment_reference?: string | null
+          payout_amount?: number
+          processed_at?: string | null
+          processed_by?: string | null
+          referral_id?: string | null
+          referrer_user_id?: string
+          rejection_reason?: string | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_payouts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_payouts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_payouts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_payouts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "referral_payouts_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -21193,6 +21765,10 @@ export type Database = {
       }
       generate_audit_request_number: { Args: never; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
+      generate_invoice_number: {
+        Args: { p_company_id?: string }
+        Returns: string
+      }
       generate_meeting_code: { Args: never; Returns: string }
       generate_profile_slug: { Args: { name: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
@@ -21420,6 +21996,7 @@ export type Database = {
         Returns: undefined
       }
       update_expired_assignments: { Args: never; Returns: undefined }
+      update_overdue_invoices: { Args: never; Returns: undefined }
       update_relationship_score: {
         Args: { p_related_user_id: string; p_user_id: string }
         Returns: undefined
