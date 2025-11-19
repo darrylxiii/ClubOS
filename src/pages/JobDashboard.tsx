@@ -7,7 +7,13 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target } from "lucide-react";
+import { ArrowLeft, Users, TrendingUp, Clock, Calendar, Download, Sparkles, Building2, Video, MapPin, ClipboardList, Plus, Save, Edit, AlertCircle, Brain, Target, MoreHorizontal, Trophy, XCircle, Archive, Trash2 } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { JobCloseHiredDialog } from "@/components/jobs/JobCloseHiredDialog";
+import { JobCloseLostDialog } from "@/components/jobs/JobCloseLostDialog";
+import { JobDeleteDialog } from "@/components/jobs/JobDeleteDialog";
+import { JobArchiveDialog } from "@/components/jobs/JobArchiveDialog";
+import { useCloseJobWon, useCloseJobLost, useArchiveJob, useDeleteJob } from "@/hooks/useDealPipeline";
 import { useRole } from "@/contexts/RoleContext";
 import { QuickActionsBar } from "@/components/partner/QuickActionsBar";
 import { SmartInsightsCard } from "@/components/partner/SmartInsightsCard";
@@ -72,6 +78,15 @@ export default function JobDashboard() {
   const [loading, setLoading] = useState(true);
   const [showAddStage, setShowAddStage] = useState(false);
   const [showManualInterview, setShowManualInterview] = useState(false);
+  const [showCloseHiredDialog, setShowCloseHiredDialog] = useState(false);
+  const [showCloseLostDialog, setShowCloseLostDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  
+  const closeJobWon = useCloseJobWon();
+  const closeJobLost = useCloseJobLost();
+  const archiveJob = useArchiveJob();
+  const deleteJob = useDeleteJob();
   const [showCalendarLinker, setShowCalendarLinker] = useState(false);
   const [editingStage, setEditingStage] = useState<any>(null);
   const [editingStageIndex, setEditingStageIndex] = useState<number | null>(null);
@@ -460,6 +475,44 @@ export default function JobDashboard() {
                 <Edit className="w-4 h-4" />
                 Edit Job
               </Button>
+              
+              {/* Job Actions Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {job.status !== 'closed' && (
+                    <>
+                      <DropdownMenuItem onClick={() => setShowCloseHiredDialog(true)}>
+                        <Trophy className="w-4 h-4 mr-2 text-success" />
+                        Mark as Hired
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setShowCloseLostDialog(true)}>
+                        <XCircle className="w-4 h-4 mr-2 text-muted-foreground" />
+                        Close - Not Filled
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+                  <DropdownMenuItem onClick={() => setShowArchiveDialog(true)}>
+                    <Archive className="w-4 h-4 mr-2" />
+                    Archive Job
+                  </DropdownMenuItem>
+                  {(job.status === 'draft' || role === 'admin') && (
+                    <DropdownMenuItem 
+                      onClick={() => setShowDeleteDialog(true)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Delete Job
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              
               <Badge 
                 variant={job.status === 'published' ? 'default' : 'secondary'}
                 className="h-8 px-4 text-sm font-bold animate-pulse"
@@ -1066,6 +1119,39 @@ export default function JobDashboard() {
         jobId={jobId}
         applications={applications}
         onInterviewLinked={fetchJobDetails}
+      />
+
+      {/* Job Closure & Management Dialogs */}
+      <JobCloseHiredDialog
+        open={showCloseHiredDialog}
+        onOpenChange={setShowCloseHiredDialog}
+        job={job}
+        applications={applications}
+        onConfirm={handleCloseWon}
+      />
+
+      <JobCloseLostDialog
+        open={showCloseLostDialog}
+        onOpenChange={setShowCloseLostDialog}
+        job={job}
+        applications={applications}
+        onConfirm={handleCloseLost}
+      />
+
+      <JobArchiveDialog
+        open={showArchiveDialog}
+        onOpenChange={setShowArchiveDialog}
+        job={job}
+        onConfirm={handleArchive}
+      />
+
+      <JobDeleteDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        job={job}
+        applicationCount={applications.length}
+        isAdmin={role === 'admin'}
+        onConfirm={handleDelete}
       />
     </AppLayout>
   );
