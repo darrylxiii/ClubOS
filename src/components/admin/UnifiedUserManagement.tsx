@@ -141,6 +141,14 @@ export function UnifiedUserManagement() {
         const member = members?.find(m => m.user_id === profile.id);
         const candidateProfile = candidateProfiles?.find(cp => cp.user_id === profile.id);
         
+        // 🔒 CRITICAL: Ensure roles are always strings, never objects
+        const rawRoles = userRoles?.filter(r => r.user_id === profile.id) || [];
+        const safeRoles = rawRoles.map(r => {
+          // Type guard: ensure we extract string value from role object
+          const roleValue = typeof r.role === 'string' ? r.role : String(r.role);
+          return roleValue;
+        }).filter(role => role && role !== 'undefined' && role !== 'null');
+        
         return {
           id: profile.id,
           email: profile.email,
@@ -150,7 +158,7 @@ export function UnifiedUserManagement() {
           company_id: profile.company_id,
           company_name: company?.name || null,
           company_role: member?.role || null,
-          roles: userRoles?.filter(r => r.user_id === profile.id).map(r => r.role) || [],
+          roles: safeRoles,
           candidate_id: candidateProfile?.id || null,
           desired_salary_min: profile.desired_salary_min || candidateProfile?.desired_salary_min || null,
           desired_salary_max: profile.desired_salary_max || candidateProfile?.desired_salary_max || null,
@@ -430,8 +438,20 @@ export function UnifiedUserManagement() {
   };
 
   const openEditDialog = (user: UserWithRoles) => {
+    console.log('[UnifiedUserManagement] Opening edit dialog for user:', { 
+      email: user.email, 
+      roles: user.roles,
+      rolesType: typeof user.roles,
+      rolesIsArray: Array.isArray(user.roles)
+    });
+    
+    // 🔒 CRITICAL: Ensure roles are strings before setting state
+    const safeRoles = Array.isArray(user.roles) 
+      ? user.roles.filter(r => typeof r === 'string') 
+      : [];
+    
     setEditingUser(user);
-    setSelectedRoles(user.roles);
+    setSelectedRoles(safeRoles);
     setSelectedCompany(user.company_id || "none");
     setSelectedCompanyRole(user.company_role || "recruiter");
     setDialogOpen(true);
@@ -682,14 +702,19 @@ export function UnifiedUserManagement() {
                       <TableCell>{user.email}</TableCell>
                       <TableCell>
                         <div className="flex gap-1 flex-wrap">
-                          {user.roles.length === 0 ? (
+                          {!Array.isArray(user.roles) || user.roles.length === 0 ? (
                             <Badge variant="outline">No roles</Badge>
                           ) : (
-                            user.roles.map(role => (
-                              <Badge key={role} variant="secondary">
-                                {AVAILABLE_ROLES.find(r => r.value === role)?.label || role}
-                              </Badge>
-                            ))
+                            user.roles.map((role, idx) => {
+                              // 🔒 Defensive: Ensure role is a string
+                              const roleString = typeof role === 'string' ? role : String(role);
+                              const roleLabel = AVAILABLE_ROLES.find(r => r.value === roleString)?.label || roleString;
+                              return (
+                                <Badge key={`${roleString}-${idx}`} variant="secondary">
+                                  {roleLabel}
+                                </Badge>
+                              );
+                            })
                           )}
                         </div>
                       </TableCell>
