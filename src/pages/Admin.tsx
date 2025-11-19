@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { CompanyManagement } from "@/components/admin/CompanyManagement";
 import { UnifiedUserManagement } from "@/components/admin/UnifiedUserManagement";
-import { AdminRoleSwitcher } from "@/components/admin/AdminRoleSwitcher";
 import { RoleAssignmentFix } from "@/components/admin/RoleAssignmentFix";
 import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsManager";
 import { AssessmentResultsManager } from "@/components/admin/AssessmentResultsManager";
@@ -73,11 +72,6 @@ const Admin = () => {
           <p className="text-lg text-muted-foreground">
             Manage companies, users, and system configuration
           </p>
-        </div>
-
-        {/* Role Switcher */}
-        <div className="mb-8">
-          <AdminRoleSwitcher />
         </div>
 
         <Tabs defaultValue="companies" className="space-y-6">

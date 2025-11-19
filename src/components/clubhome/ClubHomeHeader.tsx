@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Shield, Users, User, Sparkles } from "lucide-react";
 import { UserRole } from "@/hooks/useUserRole";
 import { NotificationBell } from "@/components/NotificationBell";
-import { RoleSwitcher } from "@/components/RoleSwitcher";
 import { useProfile } from "@/hooks/useProfile";
 import { TypewriterGreeting } from "./TypewriterGreeting";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -119,9 +118,6 @@ export const ClubHomeHeader = ({ role }: ClubHomeHeaderProps) => {
           </div>
         </div>
       </div>
-
-      {/* Role switcher if user has multiple roles */}
-      <RoleSwitcher />
     </div>
   );
 };
