@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.0';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,18 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting: 100 requests per hour per IP (webhooks can be frequent)
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('x-real-ip') || 
+                     req.headers.get('cf-connecting-ip') || 
+                     'unknown';
+    
+    const rateLimit = await checkUserRateLimit(clientIp, 'webhook-dispatcher', 100, 60 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      console.warn('[Webhook Dispatcher] Rate limit exceeded for IP:', clientIp);
+      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
+    }
+
     // SECURITY: Authenticate request - only internal/cron can trigger
     const authHeader = req.headers.get('Authorization');
     const internalToken = Deno.env.get('WEBHOOK_DISPATCHER_TOKEN');

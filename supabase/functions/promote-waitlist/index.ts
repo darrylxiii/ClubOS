@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Card, Heading, Paragraph, Spacer } from "../_shared/email-templates/components.ts";
+import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,6 +15,17 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting: 20 requests per 15 minutes per IP
+    const clientIp = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('x-real-ip') || 
+                     req.headers.get('cf-connecting-ip') || 
+                     'unknown';
+    
+    const rateLimit = await checkUserRateLimit(clientIp, 'promote-waitlist', 20, 15 * 60 * 1000);
+    if (!rateLimit.allowed) {
+      console.warn('[Waitlist Promote] Rate limit exceeded for IP:', clientIp);
+      return createRateLimitResponse(rateLimit.retryAfter!, corsHeaders);
+    }
     const { bookingLinkId, cancelledDate } = await req.json();
 
     const supabaseClient = createClient(
