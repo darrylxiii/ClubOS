@@ -5,7 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Plus, Briefcase, MapPin, DollarSign, LayoutDashboard, Edit, Trash2 } from "lucide-react";
+import { Plus, Briefcase, MapPin, DollarSign, LayoutDashboard, Edit, Trash2, MoreVertical, Trophy, XCircle, Archive, CheckCircle } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { JobCloseHiredDialog } from "@/components/jobs/JobCloseHiredDialog";
+import { JobCloseLostDialog } from "@/components/jobs/JobCloseLostDialog";
+import { JobDeleteDialog } from "@/components/jobs/JobDeleteDialog";
+import { JobArchiveDialog } from "@/components/jobs/JobArchiveDialog";
+import { useCloseJobWon, useCloseJobLost, useArchiveJob, useDeleteJob } from "@/hooks/useDealPipeline";
 import { CreateJobDialog } from "./CreateJobDialog";
 import { EditJobSheet } from "./EditJobSheet";
 
@@ -20,6 +26,16 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedJob, setSelectedJob] = useState<any>(null);
+  const [showCloseHiredDialog, setShowCloseHiredDialog] = useState(false);
+  const [showCloseLostDialog, setShowCloseLostDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+  const [jobApplications, setJobApplications] = useState<any[]>([]);
+  
+  const closeJobWon = useCloseJobWon();
+  const closeJobLost = useCloseJobLost();
+  const archiveJob = useArchiveJob();
+  const deleteJob = useDeleteJob();
 
   useEffect(() => {
     fetchJobs();
@@ -55,6 +71,71 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchApplications = async (jobId: string) => {
+    const { data } = await supabase
+      .from('applications')
+      .select('*, candidate_profiles(expected_salary)')
+      .eq('job_id', jobId);
+    return data || [];
+  };
+
+  const handleCloseHiredAction = async (job: any) => {
+    const apps = await fetchApplications(job.id);
+    setJobApplications(apps);
+    setSelectedJob(job);
+    setShowCloseHiredDialog(true);
+  };
+
+  const handleCloseLostAction = async (job: any) => {
+    const apps = await fetchApplications(job.id);
+    setJobApplications(apps);
+    setSelectedJob(job);
+    setShowCloseLostDialog(true);
+  };
+
+  const handleArchiveAction = (job: any) => {
+    setSelectedJob(job);
+    setShowArchiveDialog(true);
+  };
+
+  const handleDeleteAction = (job: any) => {
+    setSelectedJob(job);
+    setShowDeleteDialog(true);
+  };
+
+  const handleCloseWon = async (hiredCandidateId: string, actualSalary: number, placementFee: number) => {
+    await closeJobWon.mutateAsync({
+      jobId: selectedJob!.id,
+      hiredCandidateId,
+      actualSalary,
+      placementFee
+    });
+    toast.success("Job closed successfully! Revenue tracked.");
+    fetchJobs();
+  };
+
+  const handleCloseLost = async (lossReason: string, lossNotes: string) => {
+    await closeJobLost.mutateAsync({
+      jobId: selectedJob!.id,
+      lossReason,
+      lossNotes
+    });
+    toast.success("Job closed. Loss reason recorded.");
+    fetchJobs();
+  };
+
+  const handleArchive = async () => {
+    await archiveJob.mutateAsync(selectedJob!.id);
+    toast.success("Job archived");
+    fetchJobs();
+  };
+
+  const handleDelete = async () => {
+    await deleteJob.mutateAsync(selectedJob!.id);
+    toast.success("Job deleted");
+    fetchJobs();
   };
 
   const handleStatusChange = async (jobId: string, newStatus: string) => {
@@ -174,48 +255,51 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="default"
-                      onClick={() => navigate(`/jobs/${job.id}/dashboard`)}
-                    >
-                      <LayoutDashboard className="w-4 h-4 mr-2" />
-                      Dashboard
-                    </Button>
-                    {job.status === 'draft' && (
-                      <Button
-                        size="sm"
-                        onClick={() => handleStatusChange(job.id, 'published')}
-                      >
-                        Publish
-                      </Button>
-                    )}
-                    {job.status === 'published' && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleStatusChange(job.id, 'closed')}
-                      >
-                        Close
-                      </Button>
-                    )}
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedJob(job);
-                        setEditDialogOpen(true);
-                      }}
-                    >
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDelete(job.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => navigate(`/jobs/${job.id}/dashboard`)}>
+                          <LayoutDashboard className="w-4 h-4 mr-2" />
+                          Dashboard
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => { setSelectedJob(job); setEditDialogOpen(true); }}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {job.status === 'draft' && (
+                          <DropdownMenuItem onClick={() => handleStatusChange(job.id, 'published')}>
+                            <CheckCircle className="w-4 h-4 mr-2" />
+                            Publish
+                          </DropdownMenuItem>
+                        )}
+                        {job.status === 'published' && (
+                          <>
+                            <DropdownMenuItem onClick={() => handleCloseHiredAction(job)}>
+                              <Trophy className="w-4 h-4 mr-2 text-success" />
+                              Mark as Hired
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleCloseLostAction(job)}>
+                              <XCircle className="w-4 h-4 mr-2" />
+                              Close - Not Filled
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleArchiveAction(job)}>
+                          <Archive className="w-4 h-4 mr-2" />
+                          Archive
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDeleteAction(job)} className="text-destructive">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               </CardHeader>

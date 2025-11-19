@@ -236,3 +236,170 @@ export function useMarkDealLost() {
     },
   });
 }
+
+export function useCloseJobWon() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      jobId, 
+      hiredCandidateId, 
+      actualSalary,
+      placementFee 
+    }: { 
+      jobId: string; 
+      hiredCandidateId: string;
+      actualSalary: number;
+      placementFee: number;
+    }) => {
+      // 1. Update job to closed won
+      const { error: jobError } = await supabase
+        .from('jobs')
+        .update({
+          status: 'closed',
+          closed_at: new Date().toISOString(),
+          deal_stage: 'Closed Won',
+          deal_probability: 100,
+          is_lost: false,
+          deal_value_override: placementFee,
+          last_activity_date: new Date().toISOString()
+        })
+        .eq('id', jobId);
+      
+      if (jobError) throw jobError;
+      
+      // 2. Update hired candidate application
+      const { error: appError } = await supabase
+        .from('applications')
+        .update({
+          status: 'hired',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', hiredCandidateId);
+      
+      if (appError) throw appError;
+      
+      // 3. Close other applications
+      const { error: closeError } = await supabase
+        .from('applications')
+        .update({ status: 'closed' })
+        .eq('job_id', jobId)
+        .neq('id', hiredCandidateId)
+        .in('status', ['active', 'pending']);
+      
+      if (closeError) throw closeError;
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+    }
+  });
+}
+
+export function useCloseJobLost() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      jobId, 
+      lossReason, 
+      lossNotes 
+    }: { 
+      jobId: string;
+      lossReason: string;
+      lossNotes?: string;
+    }) => {
+      // 1. Update job to closed lost
+      const { error: jobError } = await supabase
+        .from('jobs')
+        .update({
+          status: 'closed',
+          closed_at: new Date().toISOString(),
+          deal_stage: 'Closed Lost',
+          deal_probability: 0,
+          is_lost: true,
+          last_activity_date: new Date().toISOString()
+        })
+        .eq('id', jobId);
+      
+      if (jobError) throw jobError;
+      
+      // 2. Insert loss reason
+      const { error: lossError } = await (supabase as any)
+        .from('deal_loss_reasons')
+        .insert({
+          job_id: jobId,
+          reason_category: lossReason,
+          notes: lossNotes
+        });
+      
+      if (lossError) throw lossError;
+      
+      // 3. Close all applications
+      const { error: closeError } = await supabase
+        .from('applications')
+        .update({ status: 'closed' })
+        .eq('job_id', jobId)
+        .in('status', ['active', 'pending']);
+      
+      if (closeError) throw closeError;
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['lost-deals'] });
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['applications'] });
+    }
+  });
+}
+
+export function useArchiveJob() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (jobId: string) => {
+      const { error } = await supabase
+        .from('jobs')
+        .update({
+          status: 'archived',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', jobId);
+      
+      if (error) throw error;
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
+    }
+  });
+}
+
+export function useDeleteJob() {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (jobId: string) => {
+      const { error } = await supabase
+        .from('jobs')
+        .delete()
+        .eq('id', jobId);
+      
+      if (error) throw error;
+      return { success: true };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['jobs'] });
+      queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline-metrics'] });
+    }
+  });
+}
