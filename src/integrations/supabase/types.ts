@@ -2315,6 +2315,7 @@ export type Database = {
           id: string
           reminder_type: string
           scheduled_for: string
+          send_before_minutes: number | null
           sent_at: string | null
           status: string | null
           updated_at: string | null
@@ -2326,6 +2327,7 @@ export type Database = {
           id?: string
           reminder_type: string
           scheduled_for: string
+          send_before_minutes?: number | null
           sent_at?: string | null
           status?: string | null
           updated_at?: string | null
@@ -2337,6 +2339,7 @@ export type Database = {
           id?: string
           reminder_type?: string
           scheduled_for?: string
+          send_before_minutes?: number | null
           sent_at?: string | null
           status?: string | null
           updated_at?: string | null
@@ -16598,6 +16601,7 @@ export type Database = {
           assigned_strategist_id: string | null
           available_hours_per_week: number | null
           avatar_url: string | null
+          bio: string | null
           blocked_companies: Json | null
           career_preferences: string | null
           club_sync_enabled: boolean | null
@@ -16696,6 +16700,7 @@ export type Database = {
           assigned_strategist_id?: string | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
+          bio?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
           club_sync_enabled?: boolean | null
@@ -16794,6 +16799,7 @@ export type Database = {
           assigned_strategist_id?: string | null
           available_hours_per_week?: number | null
           avatar_url?: string | null
+          bio?: string | null
           blocked_companies?: Json | null
           career_preferences?: string | null
           club_sync_enabled?: boolean | null
@@ -21272,6 +21278,36 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          created_at: string | null
+          duration_minutes: number | null
+          ended_at: string | null
+          id: string
+          session_type: string | null
+          started_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          session_type?: string | null
+          started_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          duration_minutes?: number | null
+          ended_at?: string | null
+          id?: string
+          session_type?: string | null
+          started_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_trend_subscriptions: {
         Row: {
           alerted_at: string | null
@@ -22795,8 +22831,11 @@ export type Database = {
       generate_task_number: { Args: never; Returns: string }
       generate_unified_task_number: { Args: never; Returns: string }
       get_achievement_metrics: { Args: never; Returns: Json }
+      get_achievement_stats: { Args: never; Returns: Json }
       get_application_metrics: { Args: never; Returns: Json }
+      get_application_stats: { Args: never; Returns: Json }
       get_assessment_metrics: { Args: never; Returns: Json }
+      get_assessment_stats: { Args: never; Returns: Json }
       get_auth_failure_stats: { Args: { hours_back?: number }; Returns: Json }
       get_board_role: {
         Args: { _board_id: string; _user_id: string }
@@ -22807,6 +22846,7 @@ export type Database = {
         Returns: Json
       }
       get_company_metrics: { Args: never; Returns: Json }
+      get_company_stats: { Args: never; Returns: Json }
       get_department_hierarchy: {
         Args: { p_company_id: string }
         Returns: {
@@ -22867,6 +22907,7 @@ export type Database = {
       }
       get_storage_bucket_stats: { Args: never; Returns: Json }
       get_system_health_metrics: { Args: never; Returns: Json }
+      get_system_health_stats: { Args: never; Returns: Json }
       get_top_achievements_by_unlocks: {
         Args: { limit_count?: number }
         Returns: {
@@ -22892,6 +22933,7 @@ export type Database = {
         }[]
       }
       get_user_metrics: { Args: never; Returns: Json }
+      get_user_stats: { Args: never; Returns: Json }
       get_user_subscription_plan: {
         Args: { check_user_id: string }
         Returns: {
@@ -23079,8 +23121,12 @@ export type Database = {
       }
       update_user_activity_tracking: {
         Args: {
-          p_action_type?: string
+          p_action_type: string
           p_increment_actions?: boolean
+          p_is_login?: boolean
+          p_is_logout?: boolean
+          p_session_duration_minutes?: number
+          p_session_id?: string
           p_user_id: string
         }
         Returns: undefined

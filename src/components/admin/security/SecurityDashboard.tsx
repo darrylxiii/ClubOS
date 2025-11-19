@@ -10,6 +10,7 @@ import { StorageBucketsCard } from "./StorageBucketsCard";
 import { SecurityTrendsChart } from "./SecurityTrendsChart";
 import { SecurityAlertsPanel } from "./SecurityAlertsPanel";
 import { useQueryClient } from "@tanstack/react-query";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
 
 export const SecurityDashboard = () => {
   const queryClient = useQueryClient();
@@ -40,11 +41,11 @@ export const SecurityDashboard = () => {
 
       {/* Metrics Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <RLSPoliciesCard />
-        <AuthFailuresCard />
-        <RateLimitingCard />
-        <EdgeFunctionsCard />
-        <StorageBucketsCard />
+        <ErrorBoundary><RLSPoliciesCard /></ErrorBoundary>
+        <ErrorBoundary><AuthFailuresCard /></ErrorBoundary>
+        <ErrorBoundary><RateLimitingCard /></ErrorBoundary>
+        <ErrorBoundary><EdgeFunctionsCard /></ErrorBoundary>
+        <ErrorBoundary><StorageBucketsCard /></ErrorBoundary>
       </div>
 
       {/* Detailed Views */}
