@@ -168,6 +168,44 @@ export default function JobDashboard() {
     }
   };
 
+  // Job closure and deletion handlers
+  const handleCloseWon = async (hiredCandidateId: string, actualSalary: number, placementFee: number) => {
+    await closeJobWon.mutateAsync({
+      jobId: jobId!,
+      hiredCandidateId,
+      actualSalary,
+      placementFee
+    });
+    toast.success("Job marked as hired successfully");
+    setShowCloseHiredDialog(false);
+    fetchJobDetails();
+  };
+
+  const handleCloseLost = async (lossReason: string, lossNotes?: string) => {
+    await closeJobLost.mutateAsync({
+      jobId: jobId!,
+      lossReason,
+      lossNotes
+    });
+    toast.success("Job closed as not filled");
+    setShowCloseLostDialog(false);
+    fetchJobDetails();
+  };
+
+  const handleArchive = async () => {
+    await archiveJob.mutateAsync(jobId!);
+    toast.success("Job archived successfully");
+    setShowArchiveDialog(false);
+    navigate('/jobs');
+  };
+
+  const handleDelete = async () => {
+    await deleteJob.mutateAsync(jobId!);
+    toast.success("Job deleted successfully");
+    setShowDeleteDialog(false);
+    navigate('/jobs');
+  };
+
   // Fetch job details on mount (authorization already handled by JobDashboardRoute)
   useEffect(() => {
     if (jobId) {
