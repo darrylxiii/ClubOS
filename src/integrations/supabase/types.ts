@@ -1905,6 +1905,36 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_domains: {
+        Row: {
+          company_name: string
+          created_at: string
+          domain: string
+          id: string
+          reason: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_name: string
+          created_at?: string
+          domain: string
+          id?: string
+          reason?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_name?: string
+          created_at?: string
+          domain?: string
+          id?: string
+          reason?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       booking_analytics: {
         Row: {
           avg_booking_time_minutes: number | null
@@ -3636,6 +3666,7 @@ export type Database = {
       }
       candidate_profiles: {
         Row: {
+          actively_looking: boolean | null
           admin_notes: string | null
           ai_concerns: Json | null
           ai_strengths: Json | null
@@ -3672,6 +3703,7 @@ export type Database = {
           full_name: string
           gdpr_consent: boolean | null
           gdpr_consent_date: string | null
+          ghost_mode_enabled: boolean | null
           github_url: string | null
           header_media_type: string | null
           header_media_url: string | null
@@ -3695,6 +3727,7 @@ export type Database = {
           preferred_currency: string | null
           preferred_language: string | null
           profile_completeness: number | null
+          public_fields: Json | null
           rejection_reason: string | null
           remote_preference: string | null
           remote_work_aspiration: boolean | null
@@ -3714,6 +3747,7 @@ export type Database = {
           years_of_experience: number | null
         }
         Insert: {
+          actively_looking?: boolean | null
           admin_notes?: string | null
           ai_concerns?: Json | null
           ai_strengths?: Json | null
@@ -3750,6 +3784,7 @@ export type Database = {
           full_name: string
           gdpr_consent?: boolean | null
           gdpr_consent_date?: string | null
+          ghost_mode_enabled?: boolean | null
           github_url?: string | null
           header_media_type?: string | null
           header_media_url?: string | null
@@ -3773,6 +3808,7 @@ export type Database = {
           preferred_currency?: string | null
           preferred_language?: string | null
           profile_completeness?: number | null
+          public_fields?: Json | null
           rejection_reason?: string | null
           remote_preference?: string | null
           remote_work_aspiration?: boolean | null
@@ -3792,6 +3828,7 @@ export type Database = {
           years_of_experience?: number | null
         }
         Update: {
+          actively_looking?: boolean | null
           admin_notes?: string | null
           ai_concerns?: Json | null
           ai_strengths?: Json | null
@@ -3828,6 +3865,7 @@ export type Database = {
           full_name?: string
           gdpr_consent?: boolean | null
           gdpr_consent_date?: string | null
+          ghost_mode_enabled?: boolean | null
           github_url?: string | null
           header_media_type?: string | null
           header_media_url?: string | null
@@ -3851,6 +3889,7 @@ export type Database = {
           preferred_currency?: string | null
           preferred_language?: string | null
           profile_completeness?: number | null
+          public_fields?: Json | null
           rejection_reason?: string | null
           remote_preference?: string | null
           remote_work_aspiration?: boolean | null
@@ -6045,6 +6084,69 @@ export type Database = {
         }
         Relationships: []
       }
+      consent_receipts: {
+        Row: {
+          application_id: string | null
+          consent_text: string | null
+          consent_type: string
+          expires_at: string | null
+          granted: boolean
+          granted_at: string
+          id: string
+          metadata: Json | null
+          recipient_id: string | null
+          recipient_type: string | null
+          revoked_at: string | null
+          scope: string
+          user_id: string
+        }
+        Insert: {
+          application_id?: string | null
+          consent_text?: string | null
+          consent_type: string
+          expires_at?: string | null
+          granted: boolean
+          granted_at?: string
+          id?: string
+          metadata?: Json | null
+          recipient_id?: string | null
+          recipient_type?: string | null
+          revoked_at?: string | null
+          scope: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string | null
+          consent_text?: string | null
+          consent_type?: string
+          expires_at?: string | null
+          granted?: boolean
+          granted_at?: string
+          id?: string
+          metadata?: Json | null
+          recipient_id?: string | null
+          recipient_type?: string | null
+          revoked_at?: string | null
+          scope?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_receipts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_receipts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contact_roles: {
         Row: {
           created_at: string | null
@@ -7737,6 +7839,129 @@ export type Database = {
             columns: ["track_id"]
             isOneToOne: false
             referencedRelation: "tracks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossier_shares: {
+        Row: {
+          allowed_domains: string[] | null
+          candidate_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_revoked: boolean
+          max_views: number | null
+          metadata: Json | null
+          revoked_at: string | null
+          revoked_by: string | null
+          shared_by: string
+          token: string
+          updated_at: string
+          view_count: number
+          watermark_text: string | null
+        }
+        Insert: {
+          allowed_domains?: string[] | null
+          candidate_id: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          is_revoked?: boolean
+          max_views?: number | null
+          metadata?: Json | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          shared_by: string
+          token: string
+          updated_at?: string
+          view_count?: number
+          watermark_text?: string | null
+        }
+        Update: {
+          allowed_domains?: string[] | null
+          candidate_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_revoked?: boolean
+          max_views?: number | null
+          metadata?: Json | null
+          revoked_at?: string | null
+          revoked_by?: string | null
+          shared_by?: string
+          token?: string
+          updated_at?: string
+          view_count?: number
+          watermark_text?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_shares_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossier_shares_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "dossier_shares_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossier_views: {
+        Row: {
+          dossier_share_id: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          user_agent: string | null
+          view_duration_seconds: number | null
+          viewed_at: string
+          viewer_company: string | null
+          viewer_email: string | null
+          viewer_name: string | null
+        }
+        Insert: {
+          dossier_share_id: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          user_agent?: string | null
+          view_duration_seconds?: number | null
+          viewed_at?: string
+          viewer_company?: string | null
+          viewer_email?: string | null
+          viewer_name?: string | null
+        }
+        Update: {
+          dossier_share_id?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          user_agent?: string | null
+          view_duration_seconds?: number | null
+          viewed_at?: string
+          viewer_company?: string | null
+          viewer_email?: string | null
+          viewer_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_views_dossier_share_id_fkey"
+            columns: ["dossier_share_id"]
+            isOneToOne: false
+            referencedRelation: "dossier_shares"
             referencedColumns: ["id"]
           },
         ]
@@ -16594,6 +16819,7 @@ export type Database = {
           account_decline_reason: string | null
           account_reviewed_at: string | null
           account_status: string | null
+          actively_looking: boolean | null
           allow_stealth_cold_outreach: boolean | null
           apple_music_connected: boolean | null
           apple_music_playlists: Json | null
@@ -16629,6 +16855,8 @@ export type Database = {
           full_name: string | null
           fulltime_hours_per_week_max: number | null
           fulltime_hours_per_week_min: number | null
+          ghost_mode_enabled: boolean | null
+          ghost_mode_reason: string | null
           github_connected: boolean | null
           github_profile_data: Json | null
           github_username: string | null
@@ -16693,6 +16921,7 @@ export type Database = {
           account_decline_reason?: string | null
           account_reviewed_at?: string | null
           account_status?: string | null
+          actively_looking?: boolean | null
           allow_stealth_cold_outreach?: boolean | null
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
@@ -16728,6 +16957,8 @@ export type Database = {
           full_name?: string | null
           fulltime_hours_per_week_max?: number | null
           fulltime_hours_per_week_min?: number | null
+          ghost_mode_enabled?: boolean | null
+          ghost_mode_reason?: string | null
           github_connected?: boolean | null
           github_profile_data?: Json | null
           github_username?: string | null
@@ -16792,6 +17023,7 @@ export type Database = {
           account_decline_reason?: string | null
           account_reviewed_at?: string | null
           account_status?: string | null
+          actively_looking?: boolean | null
           allow_stealth_cold_outreach?: boolean | null
           apple_music_connected?: boolean | null
           apple_music_playlists?: Json | null
@@ -16827,6 +17059,8 @@ export type Database = {
           full_name?: string | null
           fulltime_hours_per_week_max?: number | null
           fulltime_hours_per_week_min?: number | null
+          ghost_mode_enabled?: boolean | null
+          ghost_mode_reason?: string | null
           github_connected?: boolean | null
           github_profile_data?: Json | null
           github_username?: string | null
@@ -22818,6 +23052,7 @@ export type Database = {
         Returns: Json
       }
       generate_audit_request_number: { Args: never; Returns: string }
+      generate_dossier_share_token: { Args: never; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
       generate_invoice_number: {
         Args: { p_company_id?: string }
@@ -22961,11 +23196,17 @@ export type Database = {
         Args: { _company_id: string; _role: string; _user_id: string }
         Returns: boolean
       }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
+      has_role:
+        | { Args: { _role: string; _user_id: string }; Returns: boolean }
+        | {
+            Args: {
+              _role: Database["public"]["Enums"]["app_role"]
+              _user_id: string
+            }
+            Returns: boolean
+          }
+      is_company_blocked_by_candidate: {
+        Args: { _candidate_id: string; _company_email: string }
         Returns: boolean
       }
       is_company_member: {
@@ -22976,6 +23217,7 @@ export type Database = {
         Args: { _course_id: string; _user_id: string }
         Returns: boolean
       }
+      is_dossier_share_valid: { Args: { _token: string }; Returns: boolean }
       is_meeting_participant: {
         Args: { _meeting_id: string; _user_id: string }
         Returns: boolean
