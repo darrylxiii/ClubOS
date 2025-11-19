@@ -94,7 +94,7 @@ export const AssignToJobStep = ({ onAssign, onBack }: AssignToJobStepProps) => {
         .from('jobs')
         .select('id, title, location, employment_type, salary_min, salary_max')
         .eq('company_id', companyId)
-        .eq('is_active', true)
+        .eq('status', 'published')
         .order('title');
 
       const { data, error } = await query;
