@@ -18039,6 +18039,70 @@ export type Database = {
           },
         ]
       }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          description: string
+          dismissed_at: string | null
+          dismissed_by: string | null
+          id: string
+          is_dismissed: boolean | null
+          metadata: Json | null
+          severity: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          description: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          metadata?: Json | null
+          severity: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          description?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          metadata?: Json | null
+          severity?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alerts_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "security_alerts_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alerts_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_logs: {
         Row: {
           created_at: string | null
@@ -18066,6 +18130,66 @@ export type Database = {
           ip_address?: string | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      security_metrics_history: {
+        Row: {
+          authenticated_functions: number | null
+          buckets_with_size_limits: number | null
+          created_at: string | null
+          failed_auth_attempts: number | null
+          id: string
+          metric_date: string
+          public_buckets: number | null
+          public_functions: number | null
+          rate_limit_rejections: number | null
+          tables_with_rls: number
+          total_auth_attempts: number | null
+          total_buckets: number | null
+          total_edge_functions: number | null
+          total_rls_policies: number
+          total_tables: number
+          unique_failed_ips: number | null
+          unique_rate_limited_ips: number | null
+        }
+        Insert: {
+          authenticated_functions?: number | null
+          buckets_with_size_limits?: number | null
+          created_at?: string | null
+          failed_auth_attempts?: number | null
+          id?: string
+          metric_date?: string
+          public_buckets?: number | null
+          public_functions?: number | null
+          rate_limit_rejections?: number | null
+          tables_with_rls: number
+          total_auth_attempts?: number | null
+          total_buckets?: number | null
+          total_edge_functions?: number | null
+          total_rls_policies: number
+          total_tables: number
+          unique_failed_ips?: number | null
+          unique_rate_limited_ips?: number | null
+        }
+        Update: {
+          authenticated_functions?: number | null
+          buckets_with_size_limits?: number | null
+          created_at?: string | null
+          failed_auth_attempts?: number | null
+          id?: string
+          metric_date?: string
+          public_buckets?: number | null
+          public_functions?: number | null
+          rate_limit_rejections?: number | null
+          tables_with_rls?: number
+          total_auth_attempts?: number | null
+          total_buckets?: number | null
+          total_edge_functions?: number | null
+          total_rls_policies?: number
+          total_tables?: number
+          unique_failed_ips?: number | null
+          unique_rate_limited_ips?: number | null
         }
         Relationships: []
       }
@@ -22523,6 +22647,7 @@ export type Database = {
       }
     }
     Functions: {
+      aggregate_daily_security_metrics: { Args: never; Returns: undefined }
       archive_expired_documents: { Args: never; Returns: undefined }
       calculate_activity_level: {
         Args: { last_activity: string }
@@ -22669,6 +22794,7 @@ export type Database = {
       generate_support_ticket_number: { Args: never; Returns: string }
       generate_task_number: { Args: never; Returns: string }
       generate_unified_task_number: { Args: never; Returns: string }
+      get_auth_failure_stats: { Args: { hours_back?: number }; Returns: Json }
       get_board_role: {
         Args: { _board_id: string; _user_id: string }
         Returns: Database["public"]["Enums"]["board_member_role"]
@@ -22727,6 +22853,8 @@ export type Database = {
           total_enrollments: number
         }[]
       }
+      get_rls_policy_count: { Args: never; Returns: Json }
+      get_storage_bucket_stats: { Args: never; Returns: Json }
       get_user_subscription_plan: {
         Args: { check_user_id: string }
         Returns: {
