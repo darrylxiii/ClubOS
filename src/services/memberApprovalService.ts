@@ -58,7 +58,6 @@ export const memberApprovalService = {
           phone: requestData.phone,
           current_title: requestData.current_title,
           linkedin_url: requestData.linkedin_url,
-          location: requestData.location,
           skills: requestData.skills || [],
           years_of_experience: requestData.years_of_experience,
           desired_salary_min: requestData.desired_salary_min,
