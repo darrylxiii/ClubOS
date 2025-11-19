@@ -163,25 +163,6 @@ export const JobManagement = ({ companyId }: JobManagementProps) => {
     }
   };
 
-  const handleDelete = async (jobId: string) => {
-    if (!confirm('Are you sure you want to delete this job?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('jobs')
-        .delete()
-        .eq('id', jobId);
-
-      if (error) throw error;
-      
-      toast.success("Job deleted");
-      fetchJobs();
-    } catch (error) {
-      console.error('Error deleting job:', error);
-      toast.error("Failed to delete job");
-    }
-  };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'published': return 'default';
