@@ -17,6 +17,7 @@ import { SSOManagement } from "@/components/admin/SSOManagement";
 import { ActivityMonitoringDashboard } from "@/components/admin/ActivityMonitoringDashboard";
 import { CompanyEngagementLeaderboard } from "@/components/admin/CompanyEngagementLeaderboard";
 import { DisasterRecoveryDashboard } from "@/components/admin/DisasterRecoveryDashboard";
+import { SecurityDashboard } from "@/components/admin/security/SecurityDashboard";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
@@ -146,6 +147,7 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="security" className="space-y-4">
+            <SecurityDashboard />
             <AuditLogViewer />
             <SSOManagement />
           </TabsContent>
