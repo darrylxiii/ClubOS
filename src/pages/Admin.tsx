@@ -18,6 +18,12 @@ import { ActivityMonitoringDashboard } from "@/components/admin/ActivityMonitori
 import { CompanyEngagementLeaderboard } from "@/components/admin/CompanyEngagementLeaderboard";
 import { DisasterRecoveryDashboard } from "@/components/admin/DisasterRecoveryDashboard";
 import { SecurityDashboard } from "@/components/admin/security/SecurityDashboard";
+import { CompaniesDashboard } from "@/components/admin/companies/CompaniesDashboard";
+import { UsersDashboard } from "@/components/admin/users/UsersDashboard";
+import { ApplicationsDashboard } from "@/components/admin/applications/ApplicationsDashboard";
+import { AchievementsDashboard } from "@/components/admin/achievements/AchievementsDashboard";
+import { AssessmentsDashboard } from "@/components/admin/assessments/AssessmentsDashboard";
+import { SystemHealthDashboard } from "@/components/admin/system/SystemHealthDashboard";
 import { useRole } from "@/contexts/RoleContext";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
