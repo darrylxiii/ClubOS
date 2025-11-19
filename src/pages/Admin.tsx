@@ -97,11 +97,13 @@ const Admin = () => {
             <TabsTrigger value="dr">DR</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="companies" className="space-y-4">
+          <TabsContent value="companies" className="space-y-6">
+            <CompaniesDashboard />
             <CompanyManagement />
           </TabsContent>
 
-          <TabsContent value="users" className="space-y-4">
+          <TabsContent value="users" className="space-y-6">
+            <UsersDashboard />
             <UnifiedUserManagement />
           </TabsContent>
 
@@ -140,28 +142,39 @@ const Admin = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="applications" className="space-y-4">
+          <TabsContent value="applications" className="space-y-6">
+            <ApplicationsDashboard />
             <AdminApplicationHub />
           </TabsContent>
 
-          <TabsContent value="achievements" className="space-y-4">
+          <TabsContent value="achievements" className="space-y-6">
+            <AchievementsDashboard />
             <AdminAchievementsManager />
           </TabsContent>
 
-          <TabsContent value="assessments" className="space-y-4">
+          <TabsContent value="assessments" className="space-y-6">
+            <AssessmentsDashboard />
             <AssessmentResultsManager />
           </TabsContent>
 
-          <TabsContent value="security" className="space-y-4">
+          <TabsContent value="security" className="space-y-6">
             <SecurityDashboard />
             <AuditLogViewer />
             <SSOManagement />
           </TabsContent>
 
-          <TabsContent value="system" className="space-y-4">
-            <DisasterRecoveryDashboard />
-            <DataIntegrityChecker />
-            <RoleAssignmentFix />
+          <TabsContent value="system" className="space-y-6">
+            <SystemHealthDashboard />
+            <Card>
+              <CardHeader>
+                <CardTitle>System Tools</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <DisasterRecoveryDashboard />
+                <DataIntegrityChecker />
+                <RoleAssignmentFix />
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Compliance Tab */}
