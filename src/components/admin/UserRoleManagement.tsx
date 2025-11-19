@@ -80,11 +80,20 @@ export function UserRoleManagement() {
       if (companiesError) throw companiesError;
       setCompanies(companiesData || []);
 
-      // Combine data
-      const usersWithRoles: UserWithRoles[] = (profiles || []).map(profile => ({
-        ...profile,
-        roles: userRoles?.filter(r => r.user_id === profile.id).map(r => r.role) || []
-      }));
+      // Combine data with type safety
+      const usersWithRoles: UserWithRoles[] = (profiles || []).map(profile => {
+        const rawRoles = userRoles?.filter(r => r.user_id === profile.id) || [];
+        // 🔒 CRITICAL: Ensure roles are always strings
+        const safeRoles = rawRoles.map(r => {
+          const roleValue = typeof r.role === 'string' ? r.role : String(r.role);
+          return roleValue;
+        }).filter(role => role && role !== 'undefined' && role !== 'null');
+        
+        return {
+          ...profile,
+          roles: safeRoles
+        };
+      });
 
       setUsers(usersWithRoles);
     } catch (error) {
@@ -230,8 +239,20 @@ export function UserRoleManagement() {
   };
 
   const openEditDialog = (user: UserWithRoles) => {
+    console.log('[UserRoleManagement] Opening edit dialog:', {
+      email: user.email,
+      roles: user.roles,
+      rolesType: typeof user.roles,
+      rolesIsArray: Array.isArray(user.roles)
+    });
+    
+    // 🔒 Ensure roles are strings
+    const safeRoles = Array.isArray(user.roles) 
+      ? user.roles.filter(r => typeof r === 'string')
+      : [];
+    
     setEditingUser(user);
-    setSelectedRoles(user.roles);
+    setSelectedRoles(safeRoles);
     setSelectedCompany("");
     setDialogOpen(true);
   };
@@ -368,14 +389,19 @@ export function UserRoleManagement() {
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
                     <div className="flex gap-1 flex-wrap">
-                      {user.roles.length === 0 ? (
+                      {!Array.isArray(user.roles) || user.roles.length === 0 ? (
                         <Badge variant="outline">No roles</Badge>
                       ) : (
-                        user.roles.map(role => (
-                          <Badge key={role} variant="secondary">
-                            {AVAILABLE_ROLES.find(r => r.value === role)?.label || role}
-                          </Badge>
-                        ))
+                        user.roles.map((role, idx) => {
+                          // 🔒 Defensive: Ensure role is string
+                          const roleString = typeof role === 'string' ? role : String(role);
+                          const roleLabel = AVAILABLE_ROLES.find(r => r.value === roleString)?.label || roleString;
+                          return (
+                            <Badge key={`${roleString}-${idx}`} variant="secondary">
+                              {roleLabel}
+                            </Badge>
+                          );
+                        })
                       )}
                     </div>
                   </TableCell>
