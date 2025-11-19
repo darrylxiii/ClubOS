@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,8 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { validatePostMediaFile } from "@/lib/fileValidation";
-import { FileText, X } from "lucide-react";
+import { FileText, X, AlertCircle, CheckCircle2, Upload } from "lucide-react";
 import { ToolSelector } from "@/components/jobs/ToolSelector";
+import { jobFormSchema, type JobFormData } from "@/schemas/jobFormSchema";
+import { JobFormProgress } from "@/components/jobs/JobFormProgress";
+import { useJobFormDraft } from "@/hooks/useJobFormDraft";
+import { ErrorBoundary } from "@/components/ui/error-boundary";
+import { cn } from "@/lib/utils";
 
 interface CreateJobDialogProps {
   open: boolean;
@@ -19,16 +24,34 @@ interface CreateJobDialogProps {
   onJobCreated: () => void;
 }
 
-export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }: CreateJobDialogProps) => {
+type SubmitStep = "idle" | "creating" | "uploading" | "finalizing" | "complete";
+
+interface FieldError {
+  field: string;
+  message: string;
+}
+
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
+};
+
+const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }: CreateJobDialogProps) => {
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [submitStep, setSubmitStep] = useState<SubmitStep>("idle");
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [jobDescriptionFile, setJobDescriptionFile] = useState<File | null>(null);
   const [supportingDocuments, setSupportingDocuments] = useState<File[]>([]);
   const [requiredTools, setRequiredTools] = useState<any[]>([]);
   const [niceToHaveTools, setNiceToHaveTools] = useState<any[]>([]);
-  const [formData, setFormData] = useState({
+  const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  
+  const [formData, setFormData] = useState<JobFormData>({
     title: '',
     description: '',
     location: '',
@@ -39,11 +62,41 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
     company_id: companyId || '',
   });
 
+  // Draft auto-save
+  const { saveDraft, loadDraft, clearDraft } = useJobFormDraft(
+    formData,
+    requiredTools,
+    niceToHaveTools,
+    open
+  );
+
   useEffect(() => {
     if (open) {
       fetchCompanies();
+      
+      // Try to load draft
+      const draft = loadDraft();
+      if (draft) {
+        const shouldRestore = window.confirm(
+          "Would you like to restore your previous unsaved job posting?"
+        );
+        if (shouldRestore) {
+          setFormData(draft.formData);
+          setRequiredTools(draft.requiredTools);
+          setNiceToHaveTools(draft.niceToHaveTools);
+          toast.success("Draft restored");
+        } else {
+          clearDraft();
+        }
+      }
     }
-  }, [open]);
+  }, [open, loadDraft, clearDraft]);
+
+  // Track unsaved changes
+  useEffect(() => {
+    const hasData = formData.title || formData.description || requiredTools.length > 0;
+    setHasUnsavedChanges(hasData && submitStep === "idle");
+  }, [formData.title, formData.description, requiredTools.length, submitStep]);
 
   const fetchCompanies = async () => {
     try {
@@ -61,6 +114,36 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
     }
   };
 
+  const getFieldError = (field: string): string | undefined => {
+    return fieldErrors.find(e => e.field === field)?.message;
+  };
+
+  const validateField = (field: keyof JobFormData, value: any) => {
+    const testData = { ...formData, [field]: value };
+    const result = jobFormSchema.safeParse(testData);
+    
+    if (result.success) {
+      setFieldErrors(prev => prev.filter(e => e.field !== field));
+      return true;
+    } else {
+      const fieldError = result.error.errors.find(e => e.path[0] === field);
+      if (fieldError) {
+        setFieldErrors(prev => [
+          ...prev.filter(e => e.field !== field),
+          { field, message: fieldError.message }
+        ]);
+      }
+      return false;
+    }
+  };
+
+  const handleInputChange = (field: keyof JobFormData, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (value) {
+      setTimeout(() => validateField(field, value), 300);
+    }
+  };
+
   const handleJobDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -70,6 +153,7 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
         return;
       }
       setJobDescriptionFile(file);
+      toast.success(`File selected: ${file.name}`);
     }
   };
 
@@ -86,7 +170,10 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
       validFiles.push(file);
     }
     
-    setSupportingDocuments(prev => [...prev, ...validFiles]);
+    if (validFiles.length > 0) {
+      setSupportingDocuments(prev => [...prev, ...validFiles]);
+      toast.success(`${validFiles.length} file(s) added`);
+    }
   };
 
   const removeSupportingDocument = (index: number) => {
@@ -94,12 +181,13 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
   };
 
   const uploadFiles = async (jobId: string) => {
-    setUploading(true);
+    setSubmitStep("uploading");
     let jobDescriptionUrl = null;
     const supportingDocsUrls: any[] = [];
+    const totalFiles = (jobDescriptionFile ? 1 : 0) + supportingDocuments.length;
+    let uploadedFiles = 0;
 
     try {
-      // Upload job description
       if (jobDescriptionFile) {
         const fileExt = jobDescriptionFile.name.split('.').pop();
         const fileName = `${jobId}/job-description.${fileExt}`;
@@ -108,146 +196,277 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
           .from('job-documents')
           .upload(fileName, jobDescriptionFile, { upsert: true });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) throw new Error(`Job description upload failed: ${uploadError.message}`);
         jobDescriptionUrl = fileName;
+        uploadedFiles++;
+        setUploadProgress(Math.round((uploadedFiles / totalFiles) * 100));
       }
 
-      // Upload supporting documents
       for (let i = 0; i < supportingDocuments.length; i++) {
         const file = supportingDocuments[i];
         const fileExt = file.name.split('.').pop();
-        const fileName = `${jobId}/supporting/${Date.now()}-${i}.${fileExt}`;
+        const fileName = `${jobId}/supporting-docs/${Date.now()}-${i}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('job-documents')
-          .upload(fileName, file);
+          .upload(fileName, file, { upsert: true });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error(`Failed to upload ${file.name}:`, uploadError);
+          toast.error(`Failed to upload ${file.name}`);
+          continue;
+        }
+
         supportingDocsUrls.push({
           url: fileName,
           name: file.name,
-          uploaded_at: new Date().toISOString()
+          size: file.size,
+          type: file.type
         });
+        
+        uploadedFiles++;
+        setUploadProgress(Math.round((uploadedFiles / totalFiles) * 100));
       }
 
-      // Update job with file URLs
-      const { error: updateError } = await supabase
-        .from('jobs')
-        .update({
-          job_description_url: jobDescriptionUrl,
-          supporting_documents: supportingDocsUrls
-        })
-        .eq('id', jobId);
-
-      if (updateError) throw updateError;
-    } finally {
-      setUploading(false);
+      return { jobDescriptionUrl, supportingDocsUrls };
+    } catch (error: any) {
+      console.error('File upload error:', error);
+      throw error;
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const insertJobTools = async (jobId: string, tools: any[], isRequired: boolean) => {
+    if (tools.length === 0) return;
 
-    const targetCompanyId = companyId || formData.company_id;
-    if (!targetCompanyId) {
-      toast.error("Please select a company");
-      return;
+    const toolInserts = tools.map(tool => {
+      if (!tool.id || typeof tool.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(tool.id)) {
+        throw new Error(`Invalid tool ID format: ${tool.id}`);
+      }
+
+      return {
+        job_id: jobId,
+        tool_id: tool.id,
+        is_required: isRequired,
+        proficiency_level: 'intermediate'
+      };
+    });
+
+    const { error } = await supabase
+      .from('job_tools')
+      .insert(toolInserts);
+
+    if (error) {
+      console.error('Error inserting job tools:', error);
+      throw new Error(`Failed to add ${isRequired ? 'required' : 'nice-to-have'} tools: ${error.message}`);
     }
+  };
 
-    // Validate job description is uploaded
-    if (!jobDescriptionFile) {
-      toast.error("Job description document is required");
-      return;
-    }
-
-    setLoading(true);
-
+  const handleSubmit = async (createAnother: boolean = false) => {
     try {
-      const { data, error } = await supabase
+      setFieldErrors([]);
+      
+      const validationResult = jobFormSchema.safeParse(formData);
+      if (!validationResult.success) {
+        const errors: FieldError[] = validationResult.error.errors.map(err => ({
+          field: err.path[0] as string,
+          message: err.message
+        }));
+        setFieldErrors(errors);
+        toast.error("Please fix the form errors");
+        return;
+      }
+
+      setSubmitStep("creating");
+
+      const { data: job, error: jobError } = await supabase
         .from('jobs')
         .insert({
-          company_id: targetCompanyId,
-          created_by: user!.id,
-          title: formData.title,
-          description: formData.description,
-          location: formData.location,
+          title: formData.title.trim(),
+          description: formData.description.trim(),
+          location: formData.location.trim(),
           employment_type: formData.employment_type,
-          salary_min: formData.salary_min ? parseInt(formData.salary_min) : null,
-          salary_max: formData.salary_max ? parseInt(formData.salary_max) : null,
+          salary_min: formData.salary_min ? parseFloat(formData.salary_min) : null,
+          salary_max: formData.salary_max ? parseFloat(formData.salary_max) : null,
           currency: formData.currency,
-          status: 'draft',
+          company_id: formData.company_id,
+          created_by: user?.id,
+          status: 'open',
+          is_active: true,
         })
         .select()
         .single();
 
-      if (error) throw error;
-
-      // Upload files if any
-      if (data && (jobDescriptionFile || supportingDocuments.length > 0)) {
-        await uploadFiles(data.id);
+      if (jobError || !job) {
+        throw new Error(`Job creation failed: ${jobError?.message || 'Unknown error'}`);
       }
 
-      // Insert job tools
-      const toolInserts = [
-        ...requiredTools.map(tool => ({
-          job_id: data.id,
-          tool_id: tool.id,
-          is_required: true,
-        })),
-        ...niceToHaveTools.map(tool => ({
-          job_id: data.id,
-          tool_id: tool.id,
-          is_required: false,
-        })),
-      ];
+      const jobId = job.id;
 
-      if (toolInserts.length > 0) {
-        const { error: toolsError } = await supabase
-          .from("job_tools")
-          .insert(toolInserts);
+      let jobDescriptionUrl = null;
+      let supportingDocsUrls: any[] = [];
 
-        if (toolsError) {
-          console.error("Error inserting tools:", toolsError);
-          // Don't fail the whole operation if tools fail
+      if (jobDescriptionFile || supportingDocuments.length > 0) {
+        const uploadResult = await uploadFiles(jobId);
+        jobDescriptionUrl = uploadResult.jobDescriptionUrl;
+        supportingDocsUrls = uploadResult.supportingDocsUrls;
+
+        const { error: updateError } = await supabase
+          .from('jobs')
+          .update({
+            job_description_url: jobDescriptionUrl,
+            supporting_documents: supportingDocsUrls.length > 0 ? supportingDocsUrls : null,
+          })
+          .eq('id', jobId);
+
+        if (updateError) {
+          console.error('Failed to update job with file URLs:', updateError);
+          toast.error("Job created but failed to attach files");
         }
       }
 
-      toast.success("Job created successfully");
-      onJobCreated();
-      onOpenChange(false);
-      setFormData({
-        title: '',
-        description: '',
-        location: '',
-        employment_type: 'fulltime',
-        salary_min: '',
-        salary_max: '',
-        currency: 'EUR',
-        company_id: companyId || '',
-      });
-    } catch (error) {
-      console.error('Error creating job:', error);
-      toast.error("Failed to create job");
-    } finally {
-      setLoading(false);
+      setSubmitStep("finalizing");
+      
+      try {
+        await insertJobTools(jobId, requiredTools, true);
+        await insertJobTools(jobId, niceToHaveTools, false);
+      } catch (toolError: any) {
+        console.error('Tool insertion error:', toolError);
+        toast.error(toolError.message || "Job created but failed to add tools");
+      }
+
+      setSubmitStep("complete");
+      clearDraft();
+      
+      toast.success(
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-5 h-5 text-green-500" />
+          <span>Job posted successfully!</span>
+        </div>
+      );
+
+      if (createAnother) {
+        resetForm();
+        setSubmitStep("idle");
+      } else {
+        setTimeout(() => {
+          onOpenChange(false);
+          onJobCreated();
+          resetForm();
+        }, 1500);
+      }
+
+    } catch (error: any) {
+      console.error('Job creation error:', error);
+      setSubmitStep("idle");
+      toast.error(
+        <div className="flex items-start gap-2">
+          <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="font-medium">Failed to create job</p>
+            <p className="text-sm text-muted-foreground">{error.message}</p>
+          </div>
+        </div>
+      );
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      location: '',
+      employment_type: 'fulltime',
+      salary_min: '',
+      salary_max: '',
+      currency: 'EUR',
+      company_id: companyId || '',
+    });
+    setJobDescriptionFile(null);
+    setSupportingDocuments([]);
+    setRequiredTools([]);
+    setNiceToHaveTools([]);
+    setFieldErrors([]);
+    setUploadProgress(0);
+    setHasUnsavedChanges(false);
+  };
+
+  const handleClose = () => {
+    if (hasUnsavedChanges && submitStep === "idle") {
+      const shouldClose = window.confirm(
+        "You have unsaved changes. Your progress will be saved as a draft. Close anyway?"
+      );
+      if (!shouldClose) return;
+      saveDraft();
+    }
+    onOpenChange(false);
+    if (submitStep === "complete") {
+      resetForm();
+      setSubmitStep("idle");
+    }
+  };
+
+  const isSubmitting = submitStep !== "idle" && submitStep !== "complete";
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent 
+        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        aria-describedby="create-job-description"
+      >
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase">Create New Job</DialogTitle>
+          <DialogTitle>Create New Job Posting</DialogTitle>
+          <p id="create-job-description" className="text-sm text-muted-foreground">
+            Fill in the details below to create a new job posting
+          </p>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6">
+
+        {submitStep !== "idle" && submitStep !== "complete" && (
+          <div className="my-4">
+            <JobFormProgress currentStep={submitStep} uploadProgress={uploadProgress} />
+          </div>
+        )}
+
+        {submitStep === "complete" && (
+          <div className="my-4 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+            <div className="flex items-center gap-3 mb-3">
+              <CheckCircle2 className="w-6 h-6 text-primary" />
+              <div>
+                <h3 className="font-semibold">Job Posted Successfully!</h3>
+                <p className="text-sm text-muted-foreground">Your job posting is now live</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => handleSubmit(true)}
+              variant="outline"
+              className="w-full"
+            >
+              Create Another Job
+            </Button>
+          </div>
+        )}
+
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(false);
+          }}
+          className={cn("space-y-4", isSubmitting && "opacity-50 pointer-events-none")}
+        >
           <div className="space-y-2">
-            <Label htmlFor="company">Company *</Label>
+            <Label htmlFor="company" className="flex items-center gap-1">
+              Company <span className="text-destructive">*</span>
+            </Label>
             <Select
               value={formData.company_id}
-              onValueChange={(value) => setFormData({ ...formData, company_id: value })}
-              required
+              onValueChange={(value) => handleInputChange('company_id', value)}
+              disabled={!!companyId || isSubmitting}
             >
-              <SelectTrigger>
+              <SelectTrigger 
+                id="company"
+                className={getFieldError('company_id') ? 'border-destructive' : ''}
+                aria-invalid={!!getFieldError('company_id')}
+                aria-describedby={getFieldError('company_id') ? 'company-error' : undefined}
+              >
                 <SelectValue placeholder="Select a company" />
               </SelectTrigger>
               <SelectContent>
@@ -258,204 +477,306 @@ export const CreateJobDialog = ({ open, onOpenChange, companyId, onJobCreated }:
                 ))}
               </SelectContent>
             </Select>
+            {getFieldError('company_id') && (
+              <p id="company-error" className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {getFieldError('company_id')}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="title">Job Title *</Label>
+            <Label htmlFor="title" className="flex items-center gap-1">
+              Job Title <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="title"
               value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              required
+              onChange={(e) => handleInputChange('title', e.target.value)}
+              placeholder="e.g. Senior Frontend Developer"
+              disabled={isSubmitting}
+              className={getFieldError('title') ? 'border-destructive' : ''}
+              aria-invalid={!!getFieldError('title')}
+              aria-describedby={getFieldError('title') ? 'title-error' : 'title-hint'}
+              maxLength={200}
             />
+            {getFieldError('title') ? (
+              <p id="title-error" className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {getFieldError('title')}
+              </p>
+            ) : (
+              <p id="title-hint" className="text-xs text-muted-foreground">
+                {formData.title.length}/200 characters
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description" className="flex items-center gap-1">
+              Job Description <span className="text-destructive">*</span>
+            </Label>
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Describe the role, responsibilities, and requirements..."
               rows={6}
+              disabled={isSubmitting}
+              className={getFieldError('description') ? 'border-destructive' : ''}
+              aria-invalid={!!getFieldError('description')}
+              aria-describedby={getFieldError('description') ? 'description-error' : 'description-hint'}
+              maxLength={5000}
             />
+            {getFieldError('description') ? (
+              <p id="description-error" className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {getFieldError('description')}
+              </p>
+            ) : (
+              <p id="description-hint" className="text-xs text-muted-foreground">
+                {formData.description.length}/5000 characters
+              </p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="employment_type">Employment Type</Label>
-              <Select
-                value={formData.employment_type}
-                onValueChange={(value) => setFormData({ ...formData, employment_type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="fulltime">Full-time</SelectItem>
-                  <SelectItem value="parttime">Part-time</SelectItem>
-                  <SelectItem value="contract">Contract</SelectItem>
-                  <SelectItem value="freelance">Freelance</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="currency">Currency</Label>
-              <Select
-                value={formData.currency}
-                onValueChange={(value) => setFormData({ ...formData, currency: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="EUR">EUR (€) - Euro</SelectItem>
-                  <SelectItem value="USD">USD ($) - US Dollar</SelectItem>
-                  <SelectItem value="GBP">GBP (£) - British Pound</SelectItem>
-                  <SelectItem value="AED">AED (د.إ) - UAE Dirham</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="salary_min">Min Salary</Label>
-              <Input
-                id="salary_min"
-                type="number"
-                value={formData.salary_min}
-                onChange={(e) => setFormData({ ...formData, salary_min: e.target.value })}
-                placeholder="e.g., 100000"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="salary_max">Max Salary</Label>
-              <Input
-                id="salary_max"
-                type="number"
-                value={formData.salary_max}
-                onChange={(e) => setFormData({ ...formData, salary_max: e.target.value })}
-                placeholder="e.g., 150000"
-              />
-            </div>
-          </div>
-
-          {/* Job Description Upload */}
           <div className="space-y-2">
-            <Label htmlFor="job-description" className="flex items-center gap-1">
-              Job Description Document
-              <span className="text-destructive">*</span>
+            <Label htmlFor="location" className="flex items-center gap-1">
+              Location <span className="text-destructive">*</span>
             </Label>
-            <p className="text-xs text-muted-foreground">
-              Upload a detailed job description (PDF, DOC, or DOCX) - Required for all candidates to view
-            </p>
-            <div className="flex items-center gap-2">
-              <Input
-                id="job-description"
-                type="file"
-                accept=".pdf,.doc,.docx"
-                onChange={handleJobDescriptionChange}
-                className="flex-1"
-                required
-              />
-              {jobDescriptionFile && (
-                <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
-                  <FileText className="w-4 h-4" />
-                  <span className="text-sm">{jobDescriptionFile.name}</span>
+            <Input
+              id="location"
+              value={formData.location}
+              onChange={(e) => handleInputChange('location', e.target.value)}
+              placeholder="e.g. Amsterdam, Netherlands or Remote"
+              disabled={isSubmitting}
+              className={getFieldError('location') ? 'border-destructive' : ''}
+              aria-invalid={!!getFieldError('location')}
+              aria-describedby={getFieldError('location') ? 'location-error' : undefined}
+            />
+            {getFieldError('location') && (
+              <p id="location-error" className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {getFieldError('location')}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="employment_type" className="flex items-center gap-1">
+              Employment Type <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.employment_type}
+              onValueChange={(value: any) => handleInputChange('employment_type', value)}
+              disabled={isSubmitting}
+            >
+              <SelectTrigger id="employment_type">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="fulltime">Full-time</SelectItem>
+                <SelectItem value="parttime">Part-time</SelectItem>
+                <SelectItem value="contract">Contract</SelectItem>
+                <SelectItem value="freelance">Freelance</SelectItem>
+                <SelectItem value="internship">Internship</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Salary Range (Optional)</Label>
+            <div className="grid grid-cols-3 gap-2">
+              <div className="col-span-1">
+                <Select
+                  value={formData.currency}
+                  onValueChange={(value) => handleInputChange('currency', value)}
+                  disabled={isSubmitting}
+                >
+                  <SelectTrigger aria-label="Currency">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="EUR">€ EUR</SelectItem>
+                    <SelectItem value="USD">$ USD</SelectItem>
+                    <SelectItem value="GBP">£ GBP</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Input
+                  type="number"
+                  value={formData.salary_min}
+                  onChange={(e) => handleInputChange('salary_min', e.target.value)}
+                  placeholder="Min"
+                  disabled={isSubmitting}
+                  aria-label="Minimum salary"
+                  min="0"
+                />
+              </div>
+              <div>
+                <Input
+                  type="number"
+                  value={formData.salary_max}
+                  onChange={(e) => handleInputChange('salary_max', e.target.value)}
+                  placeholder="Max"
+                  disabled={isSubmitting}
+                  className={getFieldError('salary_max') ? 'border-destructive' : ''}
+                  aria-label="Maximum salary"
+                  aria-invalid={!!getFieldError('salary_max')}
+                  aria-describedby={getFieldError('salary_max') ? 'salary-error' : undefined}
+                  min="0"
+                />
+              </div>
+            </div>
+            {getFieldError('salary_max') && (
+              <p id="salary-error" className="text-sm text-destructive flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" />
+                {getFieldError('salary_max')}
+              </p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="job-description-file" className="flex items-center gap-2">
+              Job Description File
+              <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+            </Label>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  id="job-description-file"
+                  type="file"
+                  onChange={handleJobDescriptionChange}
+                  disabled={isSubmitting}
+                  accept=".pdf,.doc,.docx"
+                  className="flex-1"
+                  aria-describedby="jd-file-hint"
+                />
+                {jobDescriptionFile && (
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => setJobDescriptionFile(null)}
+                    disabled={isSubmitting}
+                    aria-label="Remove job description file"
                   >
                     <X className="w-4 h-4" />
                   </Button>
+                )}
+              </div>
+              {jobDescriptionFile && (
+                <div className="flex items-center gap-2 p-2 bg-muted rounded-md text-sm">
+                  <FileText className="w-4 h-4 text-primary" />
+                  <span className="flex-1 truncate">{jobDescriptionFile.name}</span>
+                  <span className="text-muted-foreground">{formatFileSize(jobDescriptionFile.size)}</span>
                 </div>
               )}
+              <p id="jd-file-hint" className="text-xs text-muted-foreground">
+                PDF or DOC format, max 10MB
+              </p>
             </div>
           </div>
 
-          {/* Supporting Documents Upload */}
           <div className="space-y-2">
-            <Label htmlFor="supporting-docs">Supporting Documents</Label>
-            <div className="space-y-2">
-              <Input
-                id="supporting-docs"
-                type="file"
-                accept=".pdf,.doc,.docx"
-                multiple
-                onChange={handleSupportingDocumentsChange}
-              />
-              {supportingDocuments.length > 0 && (
-                <div className="space-y-2">
-                  {supportingDocuments.map((file, index) => (
-                    <div key={index} className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
-                      <FileText className="w-4 h-4" />
-                      <span className="text-sm flex-1">{file.name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeSupportingDocument(index)}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <Label htmlFor="supporting-docs" className="flex items-center gap-2">
+              Supporting Documents
+              <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+            </Label>
+            <Input
+              id="supporting-docs"
+              type="file"
+              multiple
+              onChange={handleSupportingDocumentsChange}
+              disabled={isSubmitting}
+              accept=".pdf,.doc,.docx"
+              aria-describedby="support-docs-hint"
+            />
+            <p id="support-docs-hint" className="text-xs text-muted-foreground">
+              Additional documents (max 10MB each)
+            </p>
+            {supportingDocuments.length > 0 && (
+              <div className="space-y-2 mt-2">
+                {supportingDocuments.map((file, index) => (
+                  <div key={index} className="flex items-center gap-2 p-2 bg-muted rounded-md text-sm">
+                    <FileText className="w-4 h-4 text-primary" />
+                    <span className="flex-1 truncate">{file.name}</span>
+                    <span className="text-muted-foreground">{formatFileSize(file.size)}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeSupportingDocument(index)}
+                      disabled={isSubmitting}
+                      className="h-6 w-6"
+                      aria-label={`Remove ${file.name}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* Required Tools & Technologies */}
           <div className="space-y-2">
             <Label>
-              Required Tools & Technologies <span className="text-destructive">*</span>
+              Required Tools & Technologies
+              <span className="text-xs text-muted-foreground font-normal ml-2">(Optional)</span>
             </Label>
-            <p className="text-xs text-muted-foreground">
-              Select tools candidates must be proficient with
-            </p>
             <ToolSelector
               selectedTools={requiredTools}
-              onChange={setRequiredTools}
-              placeholder="Search tools (e.g., Notion, Figma, Python)..."
+              onSelectionChange={setRequiredTools}
+              disabled={isSubmitting}
             />
           </div>
 
-          {/* Nice-to-Have Tools */}
           <div className="space-y-2">
-            <Label>Nice-to-Have Tools</Label>
-            <p className="text-xs text-muted-foreground">
-              Bonus skills that would be beneficial
-            </p>
+            <Label>
+              Nice-to-Have Tools & Technologies
+              <span className="text-xs text-muted-foreground font-normal ml-2">(Optional)</span>
+            </Label>
             <ToolSelector
               selectedTools={niceToHaveTools}
-              onChange={setNiceToHaveTools}
-              placeholder="Search additional tools..."
+              onSelectionChange={setNiceToHaveTools}
+              disabled={isSubmitting}
             />
           </div>
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isSubmitting}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || uploading || !jobDescriptionFile}>
-              {uploading ? "Uploading..." : loading ? "Creating..." : "Create Job"}
+            <Button
+              type="submit"
+              disabled={isSubmitting || !formData.company_id}
+            >
+              {isSubmitting ? (
+                <>
+                  <Upload className="w-4 h-4 mr-2 animate-pulse" />
+                  Creating...
+                </>
+              ) : (
+                'Create Job'
+              )}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
+  );
+};
+
+export const CreateJobDialog = (props: CreateJobDialogProps) => {
+  return (
+    <ErrorBoundary>
+      <CreateJobDialogContent {...props} />
+    </ErrorBoundary>
   );
 };
