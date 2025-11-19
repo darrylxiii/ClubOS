@@ -727,8 +727,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             </Label>
             <ToolSelector
               selectedTools={requiredTools}
-              onSelectionChange={setRequiredTools}
-              disabled={isSubmitting}
+              onChange={setRequiredTools}
             />
           </div>
 
@@ -739,8 +738,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             </Label>
             <ToolSelector
               selectedTools={niceToHaveTools}
-              onSelectionChange={setNiceToHaveTools}
-              disabled={isSubmitting}
+              onChange={setNiceToHaveTools}
             />
           </div>
 
