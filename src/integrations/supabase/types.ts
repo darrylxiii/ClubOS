@@ -22794,6 +22794,9 @@ export type Database = {
       generate_support_ticket_number: { Args: never; Returns: string }
       generate_task_number: { Args: never; Returns: string }
       generate_unified_task_number: { Args: never; Returns: string }
+      get_achievement_metrics: { Args: never; Returns: Json }
+      get_application_metrics: { Args: never; Returns: Json }
+      get_assessment_metrics: { Args: never; Returns: Json }
       get_auth_failure_stats: { Args: { hours_back?: number }; Returns: Json }
       get_board_role: {
         Args: { _board_id: string; _user_id: string }
@@ -22803,6 +22806,7 @@ export type Database = {
         Args: { p_candidate_id: string }
         Returns: Json
       }
+      get_company_metrics: { Args: never; Returns: Json }
       get_department_hierarchy: {
         Args: { p_company_id: string }
         Returns: {
@@ -22854,7 +22858,40 @@ export type Database = {
         }[]
       }
       get_rls_policy_count: { Args: never; Returns: Json }
+      get_role_distribution: {
+        Args: never
+        Returns: {
+          role: string
+          user_count: number
+        }[]
+      }
       get_storage_bucket_stats: { Args: never; Returns: Json }
+      get_system_health_metrics: { Args: never; Returns: Json }
+      get_top_achievements_by_unlocks: {
+        Args: { limit_count?: number }
+        Returns: {
+          achievement_id: string
+          achievement_name: string
+          unlock_count: number
+        }[]
+      }
+      get_top_companies_by_followers: {
+        Args: { limit_count?: number }
+        Returns: {
+          company_id: string
+          company_name: string
+          follower_count: number
+        }[]
+      }
+      get_top_companies_by_jobs: {
+        Args: { limit_count?: number }
+        Returns: {
+          company_id: string
+          company_name: string
+          job_count: number
+        }[]
+      }
+      get_user_metrics: { Args: never; Returns: Json }
       get_user_subscription_plan: {
         Args: { check_user_id: string }
         Returns: {
