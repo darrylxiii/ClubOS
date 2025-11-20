@@ -22,7 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { PromptInputBox } from "@/components/PromptInputBox";
+import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 import { AIQuickActions } from "@/components/ai/AIQuickActions";
 import { useAISuggestions } from "@/hooks/useAISuggestions";
 
@@ -765,13 +765,25 @@ const ClubAI = () => {
             {/* Input area */}
             <div className="border-t border-border p-4">
               <div className="max-w-4xl mx-auto">
-                <PromptInputBox
-                  onSend={(message, files) => sendMessage(message, files)}
-                  isLoading={isLoading}
-                  placeholder="Ask me anything about your career..."
+                <PlaceholdersAndVanishInput
+                  placeholders={[
+                    "What's the best strategy for my job search?",
+                    "How should I prepare for technical interviews?",
+                    "Can you review my career trajectory?",
+                    "What salary should I negotiate for?",
+                    "Help me optimize my LinkedIn profile"
+                  ]}
+                  onChange={(e) => {}}
+                  onSubmit={(e) => {
+                    const target = e.target as HTMLFormElement;
+                    const input = target.querySelector('input') as HTMLInputElement;
+                    if (input?.value) {
+                      sendMessage(input.value);
+                    }
+                  }}
                 />
                 {isLoading && (
-                  <p className="text-xs text-muted-foreground mt-2">
+                  <p className="text-xs text-muted-foreground mt-2 text-center">
                     Club AI is thinking...
                   </p>
                 )}
