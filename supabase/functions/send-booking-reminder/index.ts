@@ -33,8 +33,7 @@ serve(async (req) => {
         booking_links!inner(
           title,
           duration_minutes,
-          user_id,
-          profiles:user_id(full_name, email)
+          user_id
         )
       `)
       .eq("status", "confirmed")

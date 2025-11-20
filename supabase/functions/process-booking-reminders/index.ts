@@ -16,21 +16,9 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Get pending reminders that need to be sent
+    // Get pending reminders using RPC function for proper SQL evaluation
     const { data: reminders, error: remindersError } = await supabase
-      .from("booking_reminders")
-      .select(`
-        *,
-        bookings!inner(
-          *,
-          booking_links!inner(*)
-        )
-      `)
-      .eq("status", "pending")
-      .lte(
-        "send_before_minutes",
-        "EXTRACT(EPOCH FROM (scheduled_start - NOW())) / 60"
-      );
+      .rpc('get_pending_booking_reminders');
 
     if (remindersError) throw remindersError;
 
@@ -38,7 +26,18 @@ serve(async (req) => {
 
     for (const reminder of reminders || []) {
       try {
-        const booking = reminder.bookings as any;
+        // RPC returns flat structure - build booking object for compatibility
+        const booking = {
+          guest_email: reminder.guest_email,
+          guest_name: reminder.guest_name,
+          guest_phone: reminder.guest_phone,
+          scheduled_start: reminder.scheduled_start,
+          booking_links: {
+            title: reminder.link_title,
+            duration_minutes: reminder.duration_minutes,
+            user_id: reminder.user_id,
+          },
+        };
         
         // Send email reminder
         if (reminder.reminder_type === "email" || reminder.reminder_type === "both") {
@@ -69,16 +68,16 @@ serve(async (req) => {
         await supabase
           .from("booking_reminders")
           .update({ status: "sent", sent_at: new Date().toISOString() })
-          .eq("id", reminder.id);
+          .eq("id", reminder.reminder_id);
 
-        results.push({ id: reminder.id, status: "sent" });
+        results.push({ id: reminder.reminder_id, status: "sent" });
       } catch (error: any) {
-        console.error(`Error sending reminder ${reminder.id}:`, error);
+        console.error(`Error sending reminder ${reminder.reminder_id}:`, error);
         await supabase
           .from("booking_reminders")
           .update({ status: "failed" })
-          .eq("id", reminder.id);
-        results.push({ id: reminder.id, status: "failed", error: error.message });
+          .eq("id", reminder.reminder_id);
+        results.push({ id: reminder.reminder_id, status: "failed", error: error.message });
       }
     }
 

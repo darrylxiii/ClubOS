@@ -1192,9 +1192,9 @@ const Profile = () => {
               }
             }
 
-            // Create new calendar connection
+            // Create new calendar connection with proper UUID
             const newConnection: CalendarConnection = {
-              id: `${provider}-${Date.now()}`,
+              id: crypto.randomUUID(),
               provider,
               email,
               label,

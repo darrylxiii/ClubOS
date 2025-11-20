@@ -95,16 +95,20 @@ export function ManualInterviewEntryDialog({
       const scheduledEnd = new Date(scheduledStart);
       scheduledEnd.setMinutes(scheduledEnd.getMinutes() + parseInt(duration));
 
-      // Create detected interview with manual flag
+      // Create detected interview with manual flag and proper UUID
+      const manualEventId = crypto.randomUUID();
+      const referenceNumber = `MNL-${Date.now()}`;
+      
       const { error } = await supabase
         .from('detected_interviews' as any)
         .insert({
-          calendar_event_id: `manual-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          calendar_event_id: manualEventId,
           calendar_provider: 'manual',
           detection_confidence: 'manual',
           detection_type: interviewType,
+          detection_source: 'manual',
           title: `${interviewType === 'tqc_intro' ? 'TQC Introduction' : 'Interview'}: ${application.candidate_full_name}`,
-          description: notes || undefined,
+          description: notes ? `${notes}\n\nRef: ${referenceNumber}` : `Ref: ${referenceNumber}`,
           scheduled_start: scheduledStart.toISOString(),
           scheduled_end: scheduledEnd.toISOString(),
           meeting_link: meetingLink || undefined,
