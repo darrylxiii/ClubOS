@@ -46,7 +46,7 @@ export function CompanyIntelligenceSummary({ companyId }: CompanyIntelligenceSum
           id,
           user_id,
           role,
-          profiles:user_id (
+          profiles!company_members_user_id_fkey (
             full_name,
             email,
             avatar_url
