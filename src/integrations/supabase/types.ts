@@ -23378,20 +23378,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      track_user_event: {
-        Args: {
-          p_action_data?: Json
-          p_device_type?: string
-          p_duration_seconds?: number
-          p_event_category?: string
-          p_event_type: string
-          p_page_path?: string
-          p_referrer?: string
-          p_session_id: string
-          p_user_id: string
-        }
-        Returns: Json
-      }
       try_acquire_booking_slot_lock: {
         Args: {
           p_scheduled_end: string

@@ -68,20 +68,11 @@ export const trackEvent = async (
   }
 ): Promise<void> => {
   try {
-    const sessionId = getSessionId();
-    const deviceType = getDeviceType();
-
-    // Type assertion needed because RPC types aren't fully generated
-    await supabase.rpc('track_user_event', {
-      p_user_id: userId,
-      p_session_id: sessionId,
-      p_event_type: eventType,
-      p_event_category: options?.eventCategory || null,
-      p_action_data: options?.actionData ? JSON.parse(JSON.stringify(options.actionData)) : null,
-      p_page_path: options?.pagePath || window.location.pathname,
-      p_referrer: options?.referrer || document.referrer || null,
-      p_device_type: deviceType,
-      p_duration_seconds: options?.durationSeconds || null,
+    // Note: Activity event tracking disabled - user_activity_events table doesn't exist
+    // Re-enable when proper activity tracking infrastructure is implemented
+    console.log(`[Session Tracking] Event tracked locally: ${eventType}`, {
+      category: options?.eventCategory,
+      page: options?.pagePath || window.location.pathname
     });
   } catch (error) {
     console.error('Error tracking event:', error);
