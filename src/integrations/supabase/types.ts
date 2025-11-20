@@ -7565,6 +7565,7 @@ export type Database = {
           detected_tqc_members: Json | null
           detection_confidence: string | null
           detection_notes: string | null
+          detection_source: string | null
           event_description: string | null
           event_title: string
           id: string
@@ -7596,6 +7597,7 @@ export type Database = {
           detected_tqc_members?: Json | null
           detection_confidence?: string | null
           detection_notes?: string | null
+          detection_source?: string | null
           event_description?: string | null
           event_title: string
           id?: string
@@ -7627,6 +7629,7 @@ export type Database = {
           detected_tqc_members?: Json | null
           detection_confidence?: string | null
           detection_notes?: string | null
+          detection_source?: string | null
           event_description?: string | null
           event_title?: string
           id?: string
@@ -17280,6 +17283,39 @@ export type Database = {
           },
         ]
       }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string | null
+          device_name: string | null
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string | null
+          device_name?: string | null
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string | null
+          device_name?: string | null
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       quantum_achievements: {
         Row: {
           animation_effect: string | null
@@ -23016,6 +23052,7 @@ export type Database = {
         Returns: Json
       }
       cleanup_expired_password_resets: { Args: never; Returns: undefined }
+      cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
       evaluate_user_achievements: {
         Args: { _user_id: string }
@@ -23110,6 +23147,22 @@ export type Database = {
           member_id: string
           path: string[]
           reports_to_member_id: string
+          user_id: string
+        }[]
+      }
+      get_pending_booking_reminders: {
+        Args: never
+        Returns: {
+          booking_id: string
+          duration_minutes: number
+          guest_email: string
+          guest_name: string
+          guest_phone: string
+          link_title: string
+          reminder_id: string
+          reminder_type: string
+          scheduled_start: string
+          send_before_minutes: number
           user_id: string
         }[]
       }
@@ -23324,20 +23377,6 @@ export type Database = {
           p_timezone: string
         }
         Returns: undefined
-      }
-      track_user_event: {
-        Args: {
-          p_action_data?: Json
-          p_device_type?: string
-          p_duration_seconds?: number
-          p_event_category?: string
-          p_event_type: string
-          p_page_path?: string
-          p_referrer?: string
-          p_session_id: string
-          p_user_id: string
-        }
-        Returns: Json
       }
       try_acquire_booking_slot_lock: {
         Args: {
