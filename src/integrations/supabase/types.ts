@@ -7565,6 +7565,7 @@ export type Database = {
           detected_tqc_members: Json | null
           detection_confidence: string | null
           detection_notes: string | null
+          detection_source: string | null
           event_description: string | null
           event_title: string
           id: string
@@ -7596,6 +7597,7 @@ export type Database = {
           detected_tqc_members?: Json | null
           detection_confidence?: string | null
           detection_notes?: string | null
+          detection_source?: string | null
           event_description?: string | null
           event_title: string
           id?: string
@@ -7627,6 +7629,7 @@ export type Database = {
           detected_tqc_members?: Json | null
           detection_confidence?: string | null
           detection_notes?: string | null
+          detection_source?: string | null
           event_description?: string | null
           event_title?: string
           id?: string
@@ -23144,6 +23147,22 @@ export type Database = {
           member_id: string
           path: string[]
           reports_to_member_id: string
+          user_id: string
+        }[]
+      }
+      get_pending_booking_reminders: {
+        Args: never
+        Returns: {
+          booking_id: string
+          duration_minutes: number
+          guest_email: string
+          guest_name: string
+          guest_phone: string
+          link_title: string
+          reminder_id: string
+          reminder_type: string
+          scheduled_start: string
+          send_before_minutes: number
           user_id: string
         }[]
       }
