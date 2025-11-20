@@ -96,16 +96,11 @@ export const trackLogin = async (userId: string, method: 'email' | 'google' | 'l
       actionData: { method },
     });
 
-    // Update activity tracking with login flag
-    // Type assertion needed because RPC function parameters aren't fully reflected in generated types
-    await (supabase.rpc as any)('update_user_activity_tracking', {
-      p_user_id: userId,
-      p_action_type: 'login',
-      p_increment_actions: true,
-      p_session_id: sessionId,
-      p_is_login: true,
-      p_is_logout: false,
-      p_session_duration_minutes: null,
+    // Note: Activity tracking RPC disabled - update_user_activity_tracking function doesn't exist
+    console.log('[Session Tracking] Login tracked locally', {
+      userId,
+      sessionId,
+      method
     });
   } catch (error) {
     console.error('[Session Tracking] Failed to track login:', error);
@@ -127,16 +122,11 @@ export const trackLogout = async (userId: string): Promise<void> => {
       actionData: { session_duration_minutes: sessionDuration },
     });
 
-    // Update activity tracking with logout flag
-    // Type assertion needed because RPC function parameters aren't fully reflected in generated types
-    await (supabase.rpc as any)('update_user_activity_tracking', {
-      p_user_id: userId,
-      p_action_type: 'logout',
-      p_increment_actions: true,
-      p_session_id: sessionId,
-      p_is_login: false,
-      p_is_logout: true,
-      p_session_duration_minutes: sessionDuration,
+    // Note: Activity tracking RPC disabled - update_user_activity_tracking function doesn't exist
+    console.log('[Session Tracking] Logout tracked locally', {
+      userId,
+      sessionId,
+      sessionDuration
     });
 
     // Clear session tracking
