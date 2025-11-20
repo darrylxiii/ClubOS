@@ -68,7 +68,7 @@ export function useDealPipeline() {
           companies(name, placement_fee_percentage),
           applications(count)
         `)
-        .in('status', ['published', 'open'])
+        .not('status', 'in', '(archived,closed)')
         .eq('is_lost', false)
         .order('created_at', { ascending: false });
       
