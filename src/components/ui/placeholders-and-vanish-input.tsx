@@ -44,15 +44,25 @@ export function PlaceholdersAndVanishInput({
   }, [placeholders]);
 
   useEffect(() => {
-    if (isHovered) {
+    // Clear any existing interval first
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    
+    // Only start new interval if not hovered
+    if (!isHovered) {
+      startAnimation();
+    }
+    
+    // Cleanup
+    return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
       }
-    } else {
-      startAnimation();
-    }
-  }, [isHovered]);
+    };
+  }, [isHovered, placeholders]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const newDataRef = useRef<any[]>([]);
@@ -215,7 +225,8 @@ export function PlaceholdersAndVanishInput({
         type="text"
         className={cn(
           "w-full relative text-sm sm:text-base z-50 border-none bg-transparent text-foreground h-full rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-10 pr-20",
-          animating && "text-transparent"
+          animating && "text-transparent",
+          !value && "pointer-events-none"
         )}
       />
 
@@ -257,7 +268,7 @@ export function PlaceholdersAndVanishInput({
       </button>
 
       <div 
-        className="absolute inset-0 flex items-center rounded-full pointer-events-auto cursor-pointer"
+        className="absolute inset-0 flex items-center rounded-full pointer-events-auto cursor-pointer z-40"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={() => {
