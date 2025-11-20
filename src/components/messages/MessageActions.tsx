@@ -8,6 +8,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { ForwardMessageDialog } from './ForwardMessageDialog';
+import { Message } from '@/hooks/useMessages';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +20,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Edit3, Trash2, MessageSquare, Languages } from 'lucide-react';
+import { MoreHorizontal, Edit3, Trash2, MessageSquare, Languages, Forward } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface MessageActionsProps {
@@ -38,6 +40,7 @@ export function MessageActions({
 }: MessageActionsProps) {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [translating, setTranslating] = useState(false);
+  const [forwardDialogOpen, setForwardDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     try {
@@ -93,6 +96,11 @@ export function MessageActions({
             Reply in thread
           </DropdownMenuItem>
 
+          <DropdownMenuItem onClick={() => setForwardDialogOpen(true)}>
+            <Forward className="h-4 w-4 mr-2" />
+            Forward message
+          </DropdownMenuItem>
+
           {isOwnMessage && (
             <>
               <DropdownMenuSeparator />
@@ -136,6 +144,12 @@ export function MessageActions({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ForwardMessageDialog
+        open={forwardDialogOpen}
+        onOpenChange={setForwardDialogOpen}
+        message={message as Message}
+      />
     </>
   );
 }
