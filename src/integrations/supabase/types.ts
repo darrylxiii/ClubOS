@@ -23646,10 +23646,6 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
-      is_conversation_participant: {
-        Args: { check_user_id: string; conv_id: string }
-        Returns: boolean
-      }
       is_course_owner: {
         Args: { _course_id: string; _user_id: string }
         Returns: boolean
