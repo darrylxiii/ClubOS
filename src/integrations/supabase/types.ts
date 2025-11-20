@@ -12962,6 +12962,33 @@ export type Database = {
           },
         ]
       }
+      message_rate_limits: {
+        Row: {
+          created_at: string | null
+          last_message_at: string | null
+          message_count: number | null
+          updated_at: string | null
+          user_id: string
+          window_start: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          last_message_at?: string | null
+          message_count?: number | null
+          updated_at?: string | null
+          user_id: string
+          window_start?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          last_message_at?: string | null
+          message_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           created_at: string | null
@@ -13168,6 +13195,7 @@ export type Database = {
           media_duration: number | null
           media_type: string | null
           media_url: string | null
+          meeting_id: string | null
           message_type: string
           metadata: Json | null
           parent_message_id: string | null
@@ -13179,6 +13207,7 @@ export type Database = {
           sender_id: string
           sentiment_score: number | null
           sticker_url: string | null
+          system_message_type: string | null
           updated_at: string
         }
         Insert: {
@@ -13194,6 +13223,7 @@ export type Database = {
           media_duration?: number | null
           media_type?: string | null
           media_url?: string | null
+          meeting_id?: string | null
           message_type?: string
           metadata?: Json | null
           parent_message_id?: string | null
@@ -13205,6 +13235,7 @@ export type Database = {
           sender_id: string
           sentiment_score?: number | null
           sticker_url?: string | null
+          system_message_type?: string | null
           updated_at?: string
         }
         Update: {
@@ -13220,6 +13251,7 @@ export type Database = {
           media_duration?: number | null
           media_type?: string | null
           media_url?: string | null
+          meeting_id?: string | null
           message_type?: string
           metadata?: Json | null
           parent_message_id?: string | null
@@ -13231,6 +13263,7 @@ export type Database = {
           sender_id?: string
           sentiment_score?: number | null
           sticker_url?: string | null
+          system_message_type?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -13239,6 +13272,13 @@ export type Database = {
             columns: ["conversation_id"]
             isOneToOne: false
             referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
             referencedColumns: ["id"]
           },
           {
