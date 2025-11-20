@@ -351,7 +351,7 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
         className={cn(
           "flex items-center gap-3 w-full px-4 rounded-lg",
           "min-h-[40px] h-[40px]",
-          "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          "transition-all duration-300 ease-out",
           "hover:bg-muted/50 hover:scale-[1.01]",
           "mb-2",
           // Enhanced visual feedback for 4 states
