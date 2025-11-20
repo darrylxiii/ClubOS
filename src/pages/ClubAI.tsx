@@ -23,6 +23,7 @@ import { toast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
+import { EncryptedText } from "@/components/ui/encrypted-text";
 import { AIQuickActions } from "@/components/ai/AIQuickActions";
 import { useAISuggestions } from "@/hooks/useAISuggestions";
 
@@ -725,7 +726,12 @@ const ClubAI = () => {
                          {message.role === "assistant" ? (
                           <div className="space-y-3">
                             <div className="text-sm prose prose-sm max-w-none dark:prose-invert">
-                              <ReactMarkdown>{message.content}</ReactMarkdown>
+                              <EncryptedText 
+                                text={message.content}
+                                revealDelayMs={15}
+                                encryptedClassName="text-muted-foreground/40"
+                                revealedClassName="text-foreground"
+                              />
                             </div>
                             {message.needsConfirmation && (
                               <Button
