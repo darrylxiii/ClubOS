@@ -749,9 +749,13 @@ const ClubAI = () => {
                             )}
                           </div>
                         ) : (
-                          <p className="text-sm whitespace-pre-wrap">
-                            {message.content}
-                          </p>
+                          <EncryptedText 
+                            text={message.content}
+                            className="text-sm whitespace-pre-wrap"
+                            revealDelayMs={20}
+                            encryptedClassName="text-primary-foreground/30"
+                            revealedClassName="text-primary-foreground"
+                          />
                         )}
                       </div>
                       {message.role === "user" && (
