@@ -68,11 +68,20 @@ export const trackEvent = async (
   }
 ): Promise<void> => {
   try {
-    // Note: Activity event tracking disabled - user_activity_events table doesn't exist
-    // Re-enable when proper activity tracking infrastructure is implemented
-    console.log(`[Session Tracking] Event tracked locally: ${eventType}`, {
-      category: options?.eventCategory,
-      page: options?.pagePath || window.location.pathname
+    const sessionId = getSessionId();
+    const deviceType = getDeviceType();
+
+    // Type assertion needed because RPC types aren't fully generated
+    await supabase.rpc('track_user_event', {
+      p_user_id: userId,
+      p_session_id: sessionId,
+      p_event_type: eventType,
+      p_event_category: options?.eventCategory || null,
+      p_action_data: options?.actionData ? JSON.parse(JSON.stringify(options.actionData)) : null,
+      p_page_path: options?.pagePath || window.location.pathname,
+      p_referrer: options?.referrer || document.referrer || null,
+      p_device_type: deviceType,
+      p_duration_seconds: options?.durationSeconds || null,
     });
   } catch (error) {
     console.error('Error tracking event:', error);
@@ -96,11 +105,16 @@ export const trackLogin = async (userId: string, method: 'email' | 'google' | 'l
       actionData: { method },
     });
 
-    // Note: Activity tracking RPC disabled - update_user_activity_tracking function doesn't exist
-    console.log('[Session Tracking] Login tracked locally', {
-      userId,
-      sessionId,
-      method
+    // Update activity tracking with login flag
+    // Type assertion needed because RPC function parameters aren't fully reflected in generated types
+    await (supabase.rpc as any)('update_user_activity_tracking', {
+      p_user_id: userId,
+      p_action_type: 'login',
+      p_increment_actions: true,
+      p_session_id: sessionId,
+      p_is_login: true,
+      p_is_logout: false,
+      p_session_duration_minutes: null,
     });
   } catch (error) {
     console.error('[Session Tracking] Failed to track login:', error);
@@ -122,11 +136,16 @@ export const trackLogout = async (userId: string): Promise<void> => {
       actionData: { session_duration_minutes: sessionDuration },
     });
 
-    // Note: Activity tracking RPC disabled - update_user_activity_tracking function doesn't exist
-    console.log('[Session Tracking] Logout tracked locally', {
-      userId,
-      sessionId,
-      sessionDuration
+    // Update activity tracking with logout flag
+    // Type assertion needed because RPC function parameters aren't fully reflected in generated types
+    await (supabase.rpc as any)('update_user_activity_tracking', {
+      p_user_id: userId,
+      p_action_type: 'logout',
+      p_increment_actions: true,
+      p_session_id: sessionId,
+      p_is_login: false,
+      p_is_logout: true,
+      p_session_duration_minutes: sessionDuration,
     });
 
     // Clear session tracking

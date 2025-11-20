@@ -132,7 +132,7 @@ export function ControlsPanel({
                 meetingInteractions.hoverScale,
                 isActive && !isDangerous && "bg-white/10 hover:bg-white/20 text-white",
                 !isActive && !isDangerous && "bg-white/10 hover:bg-white/20 text-white",
-                isDangerous && isActive && "bg-rose-500/90 hover:bg-rose-600 text-white shadow-[0_0_32px_rgba(244,63,94,0.6)]",
+                isDangerous && isActive && `bg-rose-500/90 hover:bg-rose-600 text-white shadow-[${meetingShadows.glowRed}]`,
               )}
             >
               {children}
@@ -170,7 +170,7 @@ export function ControlsPanel({
       <div className={cn(
         meetingBackdrop.medium,
         "border border-white/10 rounded-full px-8 py-4",
-        "shadow-[0_16px_64px_rgba(0,0,0,0.5)]",
+        `shadow-[${meetingShadows.xl}]`,
         "flex items-center gap-3"
       )}>
         {/* Core Controls - Always Visible */}
@@ -242,7 +242,7 @@ export function ControlsPanel({
             className={cn(
               meetingBackdrop.dark,
               "border border-white/20",
-              "shadow-[0_12px_48px_rgba(0,0,0,0.4)]"
+              `shadow-[${meetingShadows.lg}]`
             )}
             style={{ zIndex: meetingZIndex.dropdown }}
             sideOffset={20}
@@ -292,7 +292,7 @@ export function ControlsPanel({
             className={cn(
               meetingBackdrop.dark,
               "border border-white/20",
-              "shadow-[0_12px_48px_rgba(0,0,0,0.4)]",
+              `shadow-[${meetingShadows.lg}]`,
               "min-w-[280px]"
             )}
             style={{ zIndex: meetingZIndex.dropdown }}

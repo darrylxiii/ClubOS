@@ -28,7 +28,7 @@ export function PresenterHUD({ participantName, onStopSharing, participantCount,
           "bg-gradient-to-r from-rose-500/90 to-rose-600/90",
           meetingBackdrop.heavy,
           "border border-white/10",
-          "shadow-[0_0_32px_rgba(244,63,94,0.6)]"
+          `shadow-[${meetingShadows.glowRed}]`
         )}
         style={{ zIndex: meetingZIndex.panels }}
       >
@@ -71,7 +71,7 @@ export function PresenterHUD({ participantName, onStopSharing, participantCount,
           "fixed rounded-2xl overflow-hidden",
           meetingBackdrop.medium,
           "border border-white/20",
-          "shadow-[0_16px_64px_rgba(0,0,0,0.5)]"
+          `shadow-[${meetingShadows.xl}]`
         )}
         style={{ 
           zIndex: meetingZIndex.panels,
@@ -147,7 +147,7 @@ export function PresenterHUD({ participantName, onStopSharing, participantCount,
               onClick={onStopSharing}
               className={cn(
                 "w-full gap-2 bg-rose-500/90 hover:bg-rose-600 text-white",
-                "shadow-[0_0_32px_rgba(244,63,94,0.6)]",
+                `shadow-[${meetingShadows.glowRed}]`,
                 "transition-all duration-300 hover:scale-105"
               )}
             >

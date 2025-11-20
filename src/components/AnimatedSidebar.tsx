@@ -111,7 +111,7 @@ const DesktopSidebar = ({ children, className, logoLight, logoDark, logoLightSho
       }}
       transition={{
         duration: 0.3,
-        ease: "easeOut",
+        ease: [0.4, 0, 0.2, 1],
       }}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
@@ -351,7 +351,7 @@ export const SidebarGroup = ({ group }: SidebarGroupProps) => {
         className={cn(
           "flex items-center gap-3 w-full px-4 rounded-lg",
           "min-h-[40px] h-[40px]",
-          "transition-all duration-300 ease-out",
+          "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
           "hover:bg-muted/50 hover:scale-[1.01]",
           "mb-2",
           // Enhanced visual feedback for 4 states

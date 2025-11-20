@@ -16,9 +16,6 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
-      transitionTimingFunction: {
-        'smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
-      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

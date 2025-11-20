@@ -53,7 +53,7 @@ export const NavigationGroup = ({
       <button
         onClick={toggle}
         className={cn(
-          "w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all duration-300 ease-out backdrop-blur-[var(--blur-glass-subtle)]",
+          "w-full flex items-center justify-between px-4 py-2 rounded-lg transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] backdrop-blur-[var(--blur-glass-subtle)]",
           "hover:bg-muted/50 hover:scale-[1.01]",
           // Enhanced visual feedback
           isOpen && isActiveGroup && "bg-card/50 border border-border/30 text-primary shadow-[var(--shadow-glass-sm)]",

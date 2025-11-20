@@ -13,9 +13,11 @@ import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 // Lazy load heavy components to reduce initial bundle
+const InputOTP = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTP })));
+const InputOTPGroup = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTPGroup })));
+const InputOTPSlot = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTPSlot })));
 const OAuthDiagnostics = lazy(() => import("@/components/OAuthDiagnostics").then(m => ({ default: m.OAuthDiagnostics })));
 
 const quantumLogo = "/quantum-logo.svg?v=8";

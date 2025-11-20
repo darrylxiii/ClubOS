@@ -20,8 +20,6 @@ import { candidateRoutes } from "@/routes/candidate.routes";
 import { AdminAssessmentsRoutes } from "@/routes/admin-assessments.routes";
 import { QuickAccessHub } from '@/components/QuickAccessHub';
 import { CookieConsentBanner } from '@/components/support/CookieConsentBanner';
-import { InstallBanner } from '@/components/pwa/InstallBanner';
-import { NetworkStatus } from '@/components/NetworkStatus';
 
 // Optimized: Memoized component with scoped invalidation to prevent full app re-renders
 const LanguageSync = memo(() => {
@@ -84,7 +82,6 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const InviteAcceptance = lazy(() => import("./pages/InviteAcceptance"));
 const InviteComplete = lazy(() => import("./pages/InviteComplete"));
-const Install = lazy(() => import("./pages/Install"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const JobDetail = lazy(() => import("./pages/JobDetail"));
 const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
@@ -424,18 +421,6 @@ const App = () => {
               }
             />
             <Route
-              path="/install"
-              element={
-                <PublicProviders>
-                  <RouteErrorBoundary>
-                    <Suspense fallback={<PageLoader />}>
-                      <Install />
-                    </Suspense>
-                  </RouteErrorBoundary>
-                </PublicProviders>
-              }
-            />
-            <Route
               path="/forgot-password"
               element={
                 <PublicProviders>
@@ -581,8 +566,6 @@ const App = () => {
                     </Routes>
                     <QuickAccessHub />
                     <CookieConsentBanner />
-                    <InstallBanner />
-                    <NetworkStatus />
                   </ProtectedProviders>
                 </Suspense>
               </PublicProviders>
