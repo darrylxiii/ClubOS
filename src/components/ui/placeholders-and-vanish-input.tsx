@@ -6,12 +6,15 @@ export function PlaceholdersAndVanishInput({
   placeholders,
   onChange,
   onSubmit,
+  onPlaceholderClick,
 }: {
   placeholders: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onPlaceholderClick?: (text: string) => void;
 }) {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startAnimation = () => {
@@ -39,6 +42,17 @@ export function PlaceholdersAndVanishInput({
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [placeholders]);
+
+  useEffect(() => {
+    if (isHovered) {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    } else {
+      startAnimation();
+    }
+  }, [isHovered]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const newDataRef = useRef<any[]>([]);
@@ -242,7 +256,15 @@ export function PlaceholdersAndVanishInput({
         </motion.svg>
       </button>
 
-      <div className="absolute inset-0 flex items-center rounded-full pointer-events-none">
+      <div 
+        className="absolute inset-0 flex items-center rounded-full pointer-events-auto cursor-pointer"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={() => {
+          const currentText = placeholders[currentPlaceholder];
+          onPlaceholderClick?.(currentText);
+        }}
+      >
         <AnimatePresence mode="wait">
           {!value && (
             <motion.p
@@ -263,7 +285,8 @@ export function PlaceholdersAndVanishInput({
                 duration: 0.3,
                 ease: "linear",
               }}
-              className="text-muted-foreground text-sm sm:text-base font-normal pl-4 sm:pl-12 text-left w-[calc(100%-2rem)] truncate"
+              whileHover={{ scale: 1.02 }}
+              className="text-muted-foreground text-sm sm:text-base font-normal pl-4 sm:pl-12 text-left w-[calc(100%-2rem)] truncate hover:text-foreground transition-colors"
             >
               {placeholders[currentPlaceholder]}
             </motion.p>
