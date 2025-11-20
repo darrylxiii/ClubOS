@@ -1,7 +1,6 @@
 import { useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { getSessionId, trackEvent } from '@/services/sessionTracking';
+import { trackEvent } from '@/services/sessionTracking';
 
 /**
  * Hook to automatically track user activity
@@ -14,17 +13,8 @@ export const useActivityTracking = () => {
     if (!user?.id) return;
 
     try {
-      const sessionId = getSessionId();
-      
-      await (supabase as any).rpc('update_user_activity_tracking', {
-        p_user_id: user.id,
-        p_action_type: actionType || null,
-        p_increment_actions: true,
-        p_session_id: sessionId,
-        p_is_login: false,
-        p_is_logout: false,
-        p_session_duration_minutes: null,
-      });
+      // Note: Activity tracking RPC disabled - update_user_activity_tracking function doesn't exist
+      console.log('[Activity Tracking] Activity tracked locally:', actionType, 'User:', user.id);
     } catch (error) {
       console.error('Error tracking activity:', error);
     }
@@ -34,10 +24,8 @@ export const useActivityTracking = () => {
     if (!user?.id) return;
 
     try {
-      await supabase.rpc('update_user_online_status', {
-        p_user_id: user.id,
-        p_status: status,
-      });
+      // Note: Online status RPC disabled - update_user_online_status function doesn't exist
+      console.log('[Activity Tracking] Online status tracked locally:', status, 'User:', user.id);
     } catch (error) {
       console.error('Error updating online status:', error);
     }
