@@ -137,7 +137,18 @@ export const CreateConversationDialog = ({
         .select()
         .single();
 
-      if (convError) throw convError;
+      if (convError) {
+        console.error('Error creating conversation:', {
+          message: convError.message,
+          code: convError.code,
+          details: convError,
+        });
+        toast.error('Failed to create conversation', {
+          description: convError.message || 'Please try again',
+        });
+        setCreating(false);
+        return;
+      }
 
       // Add all participants including current user
       const allParticipants = [user.id, ...participantIds];
@@ -154,8 +165,16 @@ export const CreateConversationDialog = ({
         );
 
       if (participantError) {
-        console.error('Participant error:', participantError);
-        throw participantError;
+        console.error('Error inserting conversation participants:', {
+          message: participantError.message,
+          code: participantError.code,
+          details: participantError,
+        });
+        toast.error('Failed to add participants to conversation', {
+          description: participantError.message || 'Please try again',
+        });
+        setCreating(false);
+        return;
       }
 
       // Send initial system message for group chats
@@ -184,9 +203,16 @@ export const CreateConversationDialog = ({
       
       onConversationCreated?.(conversation.id);
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-      toast.error('Failed to create conversation');
+    } catch (error: any) {
+      console.error('Error creating conversation:', {
+        message: error?.message,
+        code: error?.code,
+        hint: error?.hint,
+        details: error,
+      });
+      toast.error('Failed to create conversation', {
+        description: error?.message || 'Please try again',
+      });
     } finally {
       setCreating(false);
     }

@@ -116,7 +116,14 @@ export const useMessages = (conversationId?: string) => {
         .select('conversation_id')
         .eq('user_id', user.id);
 
-      if (participantsError) throw participantsError;
+      if (participantsError) {
+        console.error('Error loading userParticipations:', {
+          message: participantsError.message,
+          code: participantsError.code,
+          details: participantsError,
+        });
+        throw participantsError;
+      }
 
       if (!userParticipations || userParticipations.length === 0) {
         setConversations([]);
@@ -132,7 +139,14 @@ export const useMessages = (conversationId?: string) => {
         .in('id', conversationIds)
         .order('last_message_at', { ascending: false, nullsFirst: false });
 
-      if (convosError) throw convosError;
+      if (convosError) {
+        console.error('Error loading conversations:', {
+          message: convosError.message,
+          code: convosError.code,
+          details: convosError,
+        });
+        throw convosError;
+      }
 
       // Get last message, participants, and unread count for each conversation
       // Optimized: Batch queries to eliminate N+1
@@ -251,8 +265,15 @@ export const useMessages = (conversationId?: string) => {
 
       setConversations(conversationsWithDetails as unknown as Conversation[]);
     } catch (error: any) {
-      console.error('Error loading conversations:', error);
-      toast.error('Failed to load conversations');
+      console.error('Error loading conversations:', {
+        message: error?.message,
+        code: error?.code,
+        hint: error?.hint,
+        details: error,
+      });
+      toast.error('Failed to load conversations', {
+        description: error?.message || 'Please try refreshing the page',
+      });
     } finally {
       setLoading(false);
     }
