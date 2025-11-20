@@ -20,6 +20,8 @@ import { candidateRoutes } from "@/routes/candidate.routes";
 import { AdminAssessmentsRoutes } from "@/routes/admin-assessments.routes";
 import { QuickAccessHub } from '@/components/QuickAccessHub';
 import { CookieConsentBanner } from '@/components/support/CookieConsentBanner';
+import { InstallBanner } from '@/components/pwa/InstallBanner';
+import { NetworkStatus } from '@/components/NetworkStatus';
 
 // Optimized: Memoized component with scoped invalidation to prevent full app re-renders
 const LanguageSync = memo(() => {
@@ -566,6 +568,8 @@ const App = () => {
                     </Routes>
                     <QuickAccessHub />
                     <CookieConsentBanner />
+                    <InstallBanner />
+                    <NetworkStatus />
                   </ProtectedProviders>
                 </Suspense>
               </PublicProviders>

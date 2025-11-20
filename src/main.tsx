@@ -24,6 +24,13 @@ try {
   root.render(<App />);
   
   console.log('[Main] ✅ Application initialized successfully');
+  
+  // Register PWA service worker
+  if ('serviceWorker' in navigator) {
+    import('./utils/registerServiceWorker').then(({ registerServiceWorker }) => {
+      registerServiceWorker();
+    });
+  }
 } catch (error) {
   console.error('[Main] ❌ CRITICAL: Failed to initialize application:', error);
   // Render emergency fallback UI
