@@ -45,33 +45,27 @@ export const MessageBubble = ({
     .toUpperCase()
     .slice(0, 2);
 
-  // Generate signed URLs for attachments
+  // Generate signed URLs for attachments (no console.log for production)
   useEffect(() => {
     const loadAttachmentUrls = async () => {
       if (!message.attachments || message.attachments.length === 0) return;
-      
-      console.log('Loading attachment URLs for message:', message.id, message.attachments);
       
       const urls: Record<string, string> = {};
       
       for (const attachment of message.attachments) {
         try {
-          const { data, error } = await supabase.storage
+          const { data } = await supabase.storage
             .from('message-attachments')
-            .createSignedUrl(attachment.file_path, 3600); // 1 hour expiry
+            .createSignedUrl(attachment.file_path, 3600);
           
           if (data?.signedUrl) {
             urls[attachment.id] = data.signedUrl;
-            console.log('Generated signed URL for:', attachment.file_name);
-          } else {
-            console.error('Failed to generate signed URL for:', attachment.file_name, error);
           }
         } catch (err) {
-          console.error('Error loading attachment URL:', err);
+          // Silent fail - URLs will show loading state
         }
       }
       
-      console.log('Final attachment URLs:', urls);
       setAttachmentUrls(urls);
     };
     

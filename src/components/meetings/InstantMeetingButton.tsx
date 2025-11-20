@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMeetingMessages } from '@/hooks/useMeetingMessages';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ interface InstantMeetingButtonProps {
   iconOnly?: boolean;
   className?: string;
   showTemplates?: boolean;
+  conversationId?: string;
 }
 
 export function InstantMeetingButton({
@@ -28,9 +30,11 @@ export function InstantMeetingButton({
   iconOnly = false,
   className,
   showTemplates = true,
+  conversationId,
 }: InstantMeetingButtonProps) {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { createMeetingMessage } = useMeetingMessages();
   const [loading, setLoading] = useState(false);
   const [templates, setTemplates] = useState<any[]>([]);
   const [pmr, setPmr] = useState<any>(null);
@@ -83,6 +87,21 @@ export function InstantMeetingButton({
         toast.success('Meeting created! Redirecting...', {
           description: `Code: ${data.meeting.meeting_code}`,
         });
+
+        // Send system message if in conversation
+        if (conversationId && user) {
+          await createMeetingMessage({
+            conversationId,
+            meetingId: data.meeting.id,
+            systemMessageType: 'meeting_created',
+            content: `Meeting created: ${data.meeting.title || 'Instant Meeting'}`,
+            metadata: {
+              meeting_code: data.meeting.meeting_code,
+              meeting_url: `/meetings/${data.meeting.meeting_code}`,
+              title: data.meeting.title || 'Instant Meeting'
+            }
+          });
+        }
         
         // Redirect to meeting room
         setTimeout(() => {
