@@ -6485,6 +6485,7 @@ export type Database = {
           is_muted: boolean | null
           joined_at: string
           last_read_at: string | null
+          muted_until: string | null
           notifications_enabled: boolean | null
           role: string
           user_id: string
@@ -6495,6 +6496,7 @@ export type Database = {
           is_muted?: boolean | null
           joined_at?: string
           last_read_at?: string | null
+          muted_until?: string | null
           notifications_enabled?: boolean | null
           role: string
           user_id: string
@@ -6505,6 +6507,7 @@ export type Database = {
           is_muted?: boolean | null
           joined_at?: string
           last_read_at?: string | null
+          muted_until?: string | null
           notifications_enabled?: boolean | null
           role?: string
           user_id?: string
@@ -6575,6 +6578,7 @@ export type Database = {
           archived_at: string | null
           created_at: string
           id: string
+          is_archived: boolean | null
           is_pinned: boolean | null
           last_message_at: string | null
           metadata: Json | null
@@ -6588,6 +6592,7 @@ export type Database = {
           archived_at?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean | null
           is_pinned?: boolean | null
           last_message_at?: string | null
           metadata?: Json | null
@@ -6601,6 +6606,7 @@ export type Database = {
           archived_at?: string | null
           created_at?: string
           id?: string
+          is_archived?: boolean | null
           is_pinned?: boolean | null
           last_message_at?: string | null
           metadata?: Json | null
@@ -23638,6 +23644,10 @@ export type Database = {
       }
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_conversation_participant: {
+        Args: { check_user_id: string; conv_id: string }
         Returns: boolean
       }
       is_course_owner: {

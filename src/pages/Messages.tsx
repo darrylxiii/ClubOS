@@ -18,8 +18,10 @@ import {
 import { useMessages } from '@/hooks/useMessages';
 import { useReadReceipts } from '@/hooks/useReadReceipts';
 import { useUserPresence } from '@/hooks/useUserPresence';
+import { useConversationActions } from '@/hooks/useConversationActions';
 import { CreateConversationDialog } from '@/components/messages/CreateConversationDialog';
 import { ConversationListItem } from '@/components/messages/ConversationListItem';
+import { ConversationContextMenu } from '@/components/messages/ConversationContextMenu';
 import { MessageBubble } from '@/components/messages/MessageBubble';
 import { MessageComposer } from '@/components/messages/MessageComposer';
 import { TypingIndicator } from '@/components/messages/TypingIndicator';
@@ -71,6 +73,15 @@ export default function Messages() {
     loadingMore,
     broadcastTyping,
   } = useMessages(selectedConversationId || undefined);
+
+  const {
+    togglePin,
+    toggleArchive,
+    toggleMute,
+    markAllAsRead,
+    leaveConversation,
+    deleteConversation,
+  } = useConversationActions();
 
   // Track user presence
   useUserPresence();
@@ -212,15 +223,28 @@ export default function Messages() {
         <ScrollArea className="flex-1">
           <div className="p-2 space-y-1">
             {filteredConversations.map((conv) => (
-              <ConversationListItem
+              <ConversationContextMenu
                 key={conv.id}
-                conversation={conv as any}
-                isSelected={conv.id === selectedConversationId}
-                onClick={() => {
-                  setSelectedConversationId(conv.id);
-                  setShowMobileSidebar(false);
-                }}
-              />
+                isPinned={conv.is_pinned}
+                isMuted={conv.participants?.find(p => p.user_id === user?.id)?.is_muted}
+                isArchived={conv.is_archived}
+                isGroup={conv.metadata?.is_group}
+                onPin={() => togglePin(conv.id, conv.is_pinned || false)}
+                onArchive={() => toggleArchive(conv.id, conv.is_archived || false)}
+                onMute={() => user && toggleMute(conv.id, user.id, conv.participants?.find(p => p.user_id === user?.id)?.is_muted || false)}
+                onMarkAsRead={() => user && markAllAsRead(conv.id, user.id)}
+                onLeave={conv.metadata?.is_group ? () => user && leaveConversation(conv.id, user.id) : undefined}
+                onDelete={() => deleteConversation(conv.id)}
+              >
+                <ConversationListItem
+                  conversation={conv as any}
+                  isSelected={conv.id === selectedConversationId}
+                  onClick={() => {
+                    setSelectedConversationId(conv.id);
+                    setShowMobileSidebar(false);
+                  }}
+                />
+              </ConversationContextMenu>
             ))}
           </div>
         </ScrollArea>
@@ -305,8 +329,7 @@ export default function Messages() {
                 {messages.map((msg) => 
                   msg.message_type === 'system' ? (
                     <SystemMessageBubble key={msg.id} message={msg} />
-                  ) : (
-                  editingMessageId === msg.id ? (
+                  ) : editingMessageId === msg.id ? (
                     <div key={msg.id} className="px-4">
                       <MessageEditor
                         messageId={msg.id}
@@ -332,7 +355,7 @@ export default function Messages() {
                       onDelete={() => loadMessages()}
                     />
                   )
-                ))}
+                )}
                 {typingUsers.length > 0 && <TypingIndicator typingUsers={typingUsers} />}
                 <div ref={messagesEndRef} />
               </div>
