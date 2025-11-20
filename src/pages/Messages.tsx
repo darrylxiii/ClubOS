@@ -34,6 +34,8 @@ import { MessageEditor } from '@/components/messages/MessageEditor';
 import { ThreadView } from '@/components/messages/ThreadView';
 import { OnlineStatusIndicator } from '@/components/messages/OnlineStatusIndicator';
 import { CallNotificationManager } from '@/components/messages/CallNotificationManager';
+import { SystemMessageBubble } from '@/components/messages/SystemMessageBubble';
+import { MessageLoadMoreTrigger } from '@/components/messages/MessageLoadMoreTrigger';
 import confetti from 'canvas-confetti';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -64,6 +66,9 @@ export default function Messages() {
     sendMessage,
     loadConversations,
     loadMessages,
+    loadMoreMessages,
+    hasMoreMessages,
+    loadingMore,
     broadcastTyping,
   } = useMessages(selectedConversationId || undefined);
 
@@ -291,8 +296,16 @@ export default function Messages() {
 
             {/* Messages Area - Scrollable */}
             <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
+              <MessageLoadMoreTrigger 
+                onLoadMore={loadMoreMessages}
+                hasMore={hasMoreMessages}
+                loading={loadingMore}
+              />
               <div className="space-y-3 pb-4">
-                {messages.map((msg) => (
+                {messages.map((msg) => 
+                  msg.message_type === 'system' ? (
+                    <SystemMessageBubble key={msg.id} message={msg} />
+                  ) : (
                   editingMessageId === msg.id ? (
                     <div key={msg.id} className="px-4">
                       <MessageEditor

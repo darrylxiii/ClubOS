@@ -9,6 +9,8 @@ export interface Message {
   sender_id: string;
   content: string;
   message_type: 'text' | 'system' | 'ai_generated' | 'escalation';
+  system_message_type?: string;
+  meeting_id?: string | null;
   is_read: boolean;
   read_at?: string | null;
   metadata: any;
@@ -92,6 +94,15 @@ export const useMessages = (conversationId?: string) => {
     full_name: string | null;
     avatar_url: string | null;
   }>>([]);
+  
+  // Pagination state
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [oldestMessageDate, setOldestMessageDate] = useState<string | null>(null);
+  const MESSAGES_PER_PAGE = 50;
+  
+  // Store user's conversation IDs for O(1) lookups (fixes N+1 query)
+  const [userConversationIds, setUserConversationIds] = useState<Set<string>>(new Set());
 
   // Load conversations for inbox
   const loadConversations = useCallback(async () => {
@@ -246,18 +257,31 @@ export const useMessages = (conversationId?: string) => {
     }
   }, [user?.id]);
 
-  // Load messages for a specific conversation
-  const loadMessages = useCallback(async () => {
+  // Load messages for a specific conversation with pagination
+  const loadMessages = useCallback(async (loadMore = false) => {
     if (!conversationId || !user?.id) return;
 
+    if (loadMore) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
+
     try {
-      // Fetch messages
-      const { data: messagesData, error: messagesError } = await supabase
+      let query = supabase
         .from('messages')
         .select('*, attachments:message_attachments(*)')
         .eq('conversation_id', conversationId)
         .is('deleted_at', null)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: false })
+        .limit(MESSAGES_PER_PAGE);
+      
+      // For pagination, load messages older than the oldest we have
+      if (loadMore && oldestMessageDate) {
+        query = query.lt('created_at', oldestMessageDate);
+      }
+
+      const { data: messagesData, error: messagesError } = await query;
 
       if (messagesError) throw messagesError;
 
@@ -274,7 +298,30 @@ export const useMessages = (conversationId?: string) => {
         sender: profiles?.find((p) => p.id === msg.sender_id),
       }));
 
-      setMessages(messagesWithSenders as unknown as Message[]);
+      // Update pagination state
+      const hasMore = messagesData && messagesData.length === MESSAGES_PER_PAGE;
+      setHasMoreMessages(hasMore);
+      
+      if (messagesData && messagesData.length > 0) {
+        // Reverse to get chronological order (oldest first)
+        const reversedMessages = [...messagesWithSenders].reverse() as Message[];
+        
+        if (loadMore) {
+          // Prepend older messages
+          setMessages((prev) => [...reversedMessages, ...prev]);
+        } else {
+          // Initial load or refresh
+          setMessages(reversedMessages);
+        }
+        
+        // Track oldest message date for pagination
+        const oldest = messagesData[messagesData.length - 1];
+        setOldestMessageDate(oldest.created_at);
+      } else {
+        if (!loadMore) {
+          setMessages([]);
+        }
+      }
 
       // Mark messages as read
       if (messagesData && messagesData.length > 0) {
@@ -289,9 +336,20 @@ export const useMessages = (conversationId?: string) => {
       console.error('Error loading messages:', error);
       toast.error('Failed to load messages');
     } finally {
-      setLoading(false);
+      if (loadMore) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
-  }, [conversationId, user?.id]);
+  }, [conversationId, user?.id, oldestMessageDate]);
+  
+  // Load more messages (pagination)
+  const loadMoreMessages = useCallback(() => {
+    if (!loadingMore && hasMoreMessages) {
+      loadMessages(true);
+    }
+  }, [loadingMore, hasMoreMessages, loadMessages]);
 
   const sendMessage = useCallback(
     async (content: string, files?: File[], metadata?: Record<string, any>) => {
@@ -365,7 +423,42 @@ export const useMessages = (conversationId?: string) => {
     [conversationId, user?.id]
   );
 
-  // Subscribe to real-time updates - Optimized single multiplexed channel
+  // Load user conversations once and keep in memory (fixes N+1 query)
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const loadUserConversations = async () => {
+      const { data } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+      
+      if (data) {
+        setUserConversationIds(new Set(data.map(c => c.conversation_id)));
+      }
+    };
+    
+    loadUserConversations();
+    
+    // Subscribe to changes in user's conversations
+    const participantsChannel = supabase
+      .channel('user-conversations')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'conversation_participants',
+        filter: `user_id=eq.${user.id}`
+      }, () => {
+        loadUserConversations();
+      })
+      .subscribe();
+    
+    return () => {
+      supabase.removeChannel(participantsChannel);
+    };
+  }, [user?.id]);
+
+  // Subscribe to real-time updates - Optimized with in-memory conversation IDs
   useEffect(() => {
     if (!user?.id) return;
 
@@ -383,17 +476,10 @@ export const useMessages = (conversationId?: string) => {
           const newMessage = payload.new as Message;
           if (newMessage.deleted_at) return;
 
-          // Check if belongs to user's conversations
-          const { data: userConvos } = await supabase
-            .from('conversation_participants')
-            .select('conversation_id')
-            .eq('user_id', user.id);
-
-          const userConvoIds = userConvos?.map(c => c.conversation_id) || [];
-          
-          if (userConvoIds.includes(newMessage.conversation_id)) {
+          // Use in-memory set for O(1) lookup (no more N+1 query!)
+          if (userConversationIds.has(newMessage.conversation_id)) {
             if (conversationId && newMessage.conversation_id === conversationId) {
-              loadMessages();
+              loadMessages(false);
             }
             loadConversations();
           }
@@ -423,16 +509,19 @@ export const useMessages = (conversationId?: string) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, conversationId, loadConversations, loadMessages]);
+  }, [user?.id, conversationId, userConversationIds, loadConversations, loadMessages]);
 
   // Initial load
   useEffect(() => {
     if (conversationId) {
-      loadMessages();
+      // Reset pagination state when conversation changes
+      setOldestMessageDate(null);
+      setHasMoreMessages(true);
+      loadMessages(false);
     } else {
       loadConversations();
     }
-  }, [conversationId, loadMessages, loadConversations]);
+  }, [conversationId, loadConversations]);
 
   const broadcastTyping = useCallback(async () => {
     if (!conversationId) return;
@@ -450,6 +539,9 @@ export const useMessages = (conversationId?: string) => {
     sendMessage,
     loadConversations,
     loadMessages,
+    loadMoreMessages,
+    hasMoreMessages,
+    loadingMore,
     broadcastTyping,
   };
 };
