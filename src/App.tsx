@@ -70,6 +70,7 @@ const CandidateOnboarding = lazy(() => import("./pages/CandidateOnboarding"));
 const PendingApproval = lazy(() => import("./pages/PendingApproval"));
 const Meetings = lazy(() => import("./pages/Meetings"));
 const MeetingRoom = lazy(() => import("./pages/MeetingRoom"));
+const JoinMeeting = lazy(() => import("./pages/JoinMeeting"));
 const MemberRequestsPage = lazy(() => import("./pages/admin/MemberRequestsPage"));
 const EmailTemplateManager = lazy(() => import("./pages/admin/EmailTemplateManager"));
 
