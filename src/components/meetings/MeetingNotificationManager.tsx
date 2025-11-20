@@ -45,12 +45,23 @@ export function MeetingNotificationManager() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      type InvitationRow = {
+        id: string;
+        meeting_id: string;
+        inviter_id: string;
+        status: string;
+        created_at: string;
+      };
+
+      const result = await supabase
         .from('meeting_invitations')
         .select('id, meeting_id, inviter_id, status, created_at')
         .eq('invitee_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
+
+      const data = result.data as InvitationRow[] | null;
+      const error = result.error;
 
       if (error || !data) return;
 
