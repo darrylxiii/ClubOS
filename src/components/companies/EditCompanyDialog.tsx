@@ -68,10 +68,19 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Please upload a JPG, PNG, or WEBP image");
+        return;
+      }
+      
+      // Validate file size
       if (file.size > 5 * 1024 * 1024) {
         toast.error("Logo must be less than 5MB");
         return;
       }
+      
       setLogoFile(file);
       setLogoPreview(URL.createObjectURL(file));
     }
@@ -80,10 +89,19 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
   const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!validTypes.includes(file.type)) {
+        toast.error("Please upload a JPG, PNG, or WEBP image");
+        return;
+      }
+      
+      // Validate file size
       if (file.size > 10 * 1024 * 1024) {
         toast.error("Cover image must be less than 10MB");
         return;
       }
+      
       setCoverFile(file);
       setCoverPreview(URL.createObjectURL(file));
     }
@@ -114,13 +132,20 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
           .from("avatars")
           .upload(fileName, logoFile, { upsert: true });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Logo upload error:', uploadError);
+          toast.error(`Failed to upload logo: ${uploadError.message}`);
+          setUploading(false);
+          setLoading(false);
+          return;
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from("avatars")
           .getPublicUrl(fileName);
 
         updates.logo_url = publicUrl;
+        toast.success("Logo uploaded successfully!");
       }
 
       // Upload cover if changed
@@ -133,13 +158,20 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
           .from("profile-headers")
           .upload(fileName, coverFile, { upsert: true });
 
-        if (uploadError) throw uploadError;
+        if (uploadError) {
+          console.error('Cover upload error:', uploadError);
+          toast.error(`Failed to upload cover: ${uploadError.message}`);
+          setUploading(false);
+          setLoading(false);
+          return;
+        }
 
         const { data: { publicUrl } } = supabase.storage
           .from("profile-headers")
           .getPublicUrl(fileName);
 
         updates.cover_image_url = publicUrl;
+        toast.success("Cover image uploaded successfully!");
       }
 
       // Update company
@@ -296,6 +328,14 @@ export function EditCompanyDialog({ companyId, open, onClose, onSuccess }: EditC
               />
             </div>
           </div>
+
+          {/* Upload Progress Indicator */}
+          {uploading && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Uploading images, please wait...</span>
+            </div>
+          )}
 
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onClose} disabled={loading}>
