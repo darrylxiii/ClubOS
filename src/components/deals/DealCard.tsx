@@ -1,7 +1,8 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { DealHealthBadge } from "./DealHealthBadge";
-import { Building2, Calendar, Users, TrendingUp, AlertCircle } from "lucide-react";
+import { Building2, Calendar, Users, TrendingUp, AlertCircle, Rocket, CheckCircle } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { Deal } from "@/hooks/useDealPipeline";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -10,9 +11,10 @@ interface DealCardProps {
   deal: Deal;
   onDragStart?: (deal: Deal) => void;
   onClick?: (deal: Deal) => void;
+  onPublish?: (dealId: string) => void;
 }
 
-export function DealCard({ deal, onDragStart, onClick }: DealCardProps) {
+export function DealCard({ deal, onDragStart, onClick, onPublish }: DealCardProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -36,10 +38,25 @@ export function DealCard({ deal, onDragStart, onClick }: DealCardProps) {
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-3">
-        <h4 className="font-semibold text-sm leading-tight text-foreground">
-          {deal.title}
-        </h4>
-        <DealHealthBadge score={deal.deal_health_score} showLabel={false} size="sm" />
+        <div className="flex-1">
+          <h4 className="font-semibold text-sm leading-tight text-foreground">
+            {deal.title}
+          </h4>
+        </div>
+        <div className="flex items-center gap-2">
+          <DealHealthBadge score={deal.deal_health_score} showLabel={false} size="sm" />
+          {deal.status === 'draft' && (
+            <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/20">
+              DRAFT
+            </Badge>
+          )}
+          {deal.status === 'published' && (
+            <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+              <CheckCircle className="w-3 h-3 mr-1" />
+              Published
+            </Badge>
+          )}
+        </div>
       </div>
 
       {/* Company */}
@@ -94,6 +111,23 @@ export function DealCard({ deal, onDragStart, onClick }: DealCardProps) {
           <span>{formatDistanceToNow(new Date(deal.last_activity_date), { addSuffix: true })}</span>
         </div>
       </div>
+
+      {/* Activate Button for Draft Jobs */}
+      {deal.status === 'draft' && (
+        <div className="mt-3 pt-3 border-t border-border/50">
+          <Button
+            size="sm"
+            className="w-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPublish?.(deal.id);
+            }}
+          >
+            <Rocket className="w-4 h-4 mr-2" />
+            Activate Job
+          </Button>
+        </div>
+      )}
     </Card>
   );
 }

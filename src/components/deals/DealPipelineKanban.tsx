@@ -7,11 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import confetti from "canvas-confetti";
 
 export function DealPipelineKanban() {
   const { data: stages, isLoading: stagesLoading } = useDealStages();
   const { data: deals, isLoading: dealsLoading } = useDealPipeline();
   const updateDealStage = useUpdateDealStage();
+  const queryClient = useQueryClient();
   const [draggedDeal, setDraggedDeal] = useState<Deal | null>(null);
 
   const handleDragStart = (deal: Deal) => {
@@ -22,25 +26,85 @@ export function DealPipelineKanban() {
     e.preventDefault();
   };
 
-  const handleDrop = (stageName: string) => {
+  const handleDrop = async (stageName: string) => {
     if (!draggedDeal || draggedDeal.deal_stage === stageName) {
       setDraggedDeal(null);
       return;
     }
 
-    updateDealStage.mutate(
-      { dealId: draggedDeal.id, newStage: stageName },
-      {
-        onSuccess: () => {
-          toast.success(`Deal moved to ${stageName}`);
-          setDraggedDeal(null);
-        },
-        onError: () => {
-          toast.error('Failed to update deal stage');
-          setDraggedDeal(null);
-        },
+    // Auto-activate draft jobs when moving forward
+    const shouldAutoActivate = draggedDeal.status === 'draft' && stageName !== 'New';
+    
+    if (shouldAutoActivate) {
+      try {
+        const { error } = await supabase
+          .from('jobs')
+          .update({
+            status: 'published',
+            published_at: new Date().toISOString(),
+            deal_stage: stageName,
+            last_activity_date: new Date().toISOString()
+          })
+          .eq('id', draggedDeal.id);
+
+        if (error) throw error;
+
+        toast.success(`Job activated and moved to ${stageName}`, {
+          description: 'The job is now live and accepting applications'
+        });
+        
+        queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
+      } catch (error) {
+        console.error('Error activating job:', error);
+        toast.error('Failed to update deal');
+      } finally {
+        setDraggedDeal(null);
       }
-    );
+    } else {
+      updateDealStage.mutate(
+        { dealId: draggedDeal.id, newStage: stageName },
+        {
+          onSuccess: () => {
+            toast.success(`Deal moved to ${stageName}`);
+            setDraggedDeal(null);
+          },
+          onError: () => {
+            toast.error('Failed to update deal stage');
+            setDraggedDeal(null);
+          },
+        }
+      );
+    }
+  };
+
+  const handlePublishDeal = async (dealId: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({
+          status: 'published',
+          published_at: new Date().toISOString(),
+          last_activity_date: new Date().toISOString()
+        })
+        .eq('id', dealId);
+
+      if (error) throw error;
+
+      toast.success('Job activated and published!', {
+        description: 'Candidates can now discover and apply to this opportunity'
+      });
+      
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['deal-pipeline'] });
+    } catch (error) {
+      console.error('Error publishing deal:', error);
+      toast.error('Failed to activate job');
+    }
   };
 
   const getDealsByStage = (stageName: string) => {
@@ -134,6 +198,7 @@ export function DealPipelineKanban() {
                     key={deal.id}
                     deal={deal}
                     onDragStart={handleDragStart}
+                    onPublish={handlePublishDeal}
                   />
                 ))}
                 
