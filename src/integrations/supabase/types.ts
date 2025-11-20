@@ -12063,10 +12063,14 @@ export type Database = {
       }
       meeting_invitations: {
         Row: {
+          accepted_at: string | null
           created_at: string | null
           id: string
+          invitation_method: string | null
+          invited_at: string | null
           invitee_email: string | null
           invitee_user_id: string | null
+          inviter_id: string | null
           meeting_id: string
           responded_at: string | null
           response_message: string | null
@@ -12075,10 +12079,14 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          accepted_at?: string | null
           created_at?: string | null
           id?: string
+          invitation_method?: string | null
+          invited_at?: string | null
           invitee_email?: string | null
           invitee_user_id?: string | null
+          inviter_id?: string | null
           meeting_id: string
           responded_at?: string | null
           response_message?: string | null
@@ -12087,10 +12095,14 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          accepted_at?: string | null
           created_at?: string | null
           id?: string
+          invitation_method?: string | null
+          invited_at?: string | null
           invitee_email?: string | null
           invitee_user_id?: string | null
+          inviter_id?: string | null
           meeting_id?: string
           responded_at?: string | null
           response_message?: string | null
@@ -12121,10 +12133,93 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "meeting_invitations_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "meeting_invitations_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_invitations_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "meeting_invitations_meeting_id_fkey"
             columns: ["meeting_id"]
             isOneToOne: false
             referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_join_logs: {
+        Row: {
+          guest_email: string | null
+          id: string
+          join_method: string | null
+          join_source: string | null
+          joined_at: string | null
+          meeting_id: string | null
+          time_to_join_seconds: number | null
+          user_id: string | null
+        }
+        Insert: {
+          guest_email?: string | null
+          id?: string
+          join_method?: string | null
+          join_source?: string | null
+          joined_at?: string | null
+          meeting_id?: string | null
+          time_to_join_seconds?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          guest_email?: string | null
+          id?: string
+          join_method?: string | null
+          join_source?: string | null
+          joined_at?: string | null
+          meeting_id?: string | null
+          time_to_join_seconds?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_join_logs_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_join_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "meeting_join_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meeting_join_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -12492,6 +12587,7 @@ export type Database = {
           branding: Json | null
           created_at: string | null
           created_by_ai: boolean | null
+          created_via: string | null
           description: string | null
           enable_notetaker: boolean | null
           host_id: string
@@ -12501,12 +12597,14 @@ export type Database = {
           meeting_code: string
           meeting_password: string | null
           original_user_request: string | null
+          pmr_id: string | null
           recurrence_rule: string | null
           require_approval: boolean | null
           scheduled_end: string
           scheduled_start: string
           settings: Json | null
           status: string
+          template_id: string | null
           timezone: string
           title: string
           updated_at: string | null
@@ -12521,6 +12619,7 @@ export type Database = {
           branding?: Json | null
           created_at?: string | null
           created_by_ai?: boolean | null
+          created_via?: string | null
           description?: string | null
           enable_notetaker?: boolean | null
           host_id: string
@@ -12530,12 +12629,14 @@ export type Database = {
           meeting_code: string
           meeting_password?: string | null
           original_user_request?: string | null
+          pmr_id?: string | null
           recurrence_rule?: string | null
           require_approval?: boolean | null
           scheduled_end: string
           scheduled_start: string
           settings?: Json | null
           status?: string
+          template_id?: string | null
           timezone?: string
           title: string
           updated_at?: string | null
@@ -12550,6 +12651,7 @@ export type Database = {
           branding?: Json | null
           created_at?: string | null
           created_by_ai?: boolean | null
+          created_via?: string | null
           description?: string | null
           enable_notetaker?: boolean | null
           host_id?: string
@@ -12559,18 +12661,34 @@ export type Database = {
           meeting_code?: string
           meeting_password?: string | null
           original_user_request?: string | null
+          pmr_id?: string | null
           recurrence_rule?: string | null
           require_approval?: boolean | null
           scheduled_end?: string
           scheduled_start?: string
           settings?: Json | null
           status?: string
+          template_id?: string | null
           timezone?: string
           title?: string
           updated_at?: string | null
           video_session_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "meetings_pmr_id_fkey"
+            columns: ["pmr_id"]
+            isOneToOne: false
+            referencedRelation: "personal_meeting_rooms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "meetings_video_session_id_fkey"
             columns: ["video_session_id"]
@@ -14596,6 +14714,73 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "partner_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      personal_meeting_rooms: {
+        Row: {
+          allow_guests: boolean | null
+          created_at: string | null
+          custom_branding: Json | null
+          description: string | null
+          display_name: string
+          id: string
+          is_active: boolean | null
+          require_approval: boolean | null
+          room_code: string
+          total_meetings: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          allow_guests?: boolean | null
+          created_at?: string | null
+          custom_branding?: Json | null
+          description?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          require_approval?: boolean | null
+          room_code: string
+          total_meetings?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          allow_guests?: boolean | null
+          created_at?: string | null
+          custom_branding?: Json | null
+          description?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          require_approval?: boolean | null
+          room_code?: string
+          total_meetings?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personal_meeting_rooms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "personal_meeting_rooms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_meeting_rooms_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -23138,6 +23323,7 @@ export type Database = {
         Returns: string
       }
       generate_meeting_code: { Args: never; Returns: string }
+      generate_pmr_code: { Args: { p_user_id: string }; Returns: string }
       generate_profile_slug: { Args: { name: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_share_token: { Args: never; Returns: string }
