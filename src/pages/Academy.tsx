@@ -40,6 +40,7 @@ import { HeroBanner } from "@/components/academy/HeroBanner";
 import { AcademySidebar } from "@/components/academy/AcademySidebar";
 import { CourseCarousel } from "@/components/academy/CourseCarousel";
 import { EnhancedCategoryGrid } from "@/components/academy/EnhancedCategoryGrid";
+import { CourseAppleCarousel } from "@/components/academy/CourseAppleCarousel";
 
 export default function Academy() {
   const { slug } = useParams();
@@ -237,10 +238,10 @@ export default function Academy() {
               {/* Main Content with Sidebar */}
               <div className="flex gap-6">
                 <main className="flex-1 min-w-0 space-y-8">
-                  {/* Continue Learning Carousel */}
-                  <CourseCarousel
-                    title="Continue Learning"
-                    courses={courses.filter((c: any) => c.enrolled_count && c.enrolled_count > 0).slice(0, 6)}
+                  {/* Featured Courses - Apple Carousel Style */}
+                  <CourseAppleCarousel
+                    title="Featured Courses"
+                    courses={courses.slice(0, 8)}
                   />
 
                   {/* Enhanced Category Grid */}
@@ -249,18 +250,18 @@ export default function Academy() {
                     navigate('/academy?tab=explore');
                   }} />
 
-                  {/* Trending Courses */}
-                  <CourseCarousel
+                  {/* Continue Learning */}
+                  {courses.some((c: any) => c.enrolled_count && c.enrolled_count > 0) && (
+                    <CourseCarousel
+                      title="Continue Learning"
+                      courses={courses.filter((c: any) => c.enrolled_count && c.enrolled_count > 0).slice(0, 6)}
+                    />
+                  )}
+
+                  {/* Trending Courses - Apple Carousel Style */}
+                  <CourseAppleCarousel
                     title="Trending Now"
                     courses={courses.sort((a: any, b: any) => (b.trending_score || 0) - (a.trending_score || 0)).slice(0, 6)}
-                    showTrending
-                  />
-
-                  {/* Recommended For You */}
-                  <CourseCarousel
-                    title="Recommended For You"
-                    courses={courses.slice(0, 6)}
-                    viewAllLink="/academy/my-skills"
                   />
 
                   {/* New Releases */}
