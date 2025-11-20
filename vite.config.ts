@@ -32,6 +32,10 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    // Disable gzip size reporting to reduce memory usage during build
+    reportCompressedSize: false,
+    // Disable sourcemaps to reduce memory usage
+    sourcemap: false,
     modulePreload: {
       polyfill: true,
     },
