@@ -65,11 +65,12 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       <div className="relative w-full">
         <textarea
           className={cn(
-            "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none scrollbar-thin scrollbar-thumb-[#444444] scrollbar-track-transparent hover:scrollbar-thumb-[#555555]",
+            "flex w-full rounded-md border-none bg-transparent px-3 py-2.5 text-base text-gray-100 focus-visible:outline-none focus-visible:ring-0 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] resize-none scrollbar-thin scrollbar-thumb-[#444444] scrollbar-track-transparent hover:scrollbar-thumb-[#555555]",
             className
           )}
           ref={ref}
           rows={1}
+          placeholder=""
           {...props}
         />
         {placeholders.length > 0 && !props.value && (
@@ -652,7 +653,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
           )}
         >
           <PromptInputTextarea
-            placeholder={
+            placeholders={placeholders.length > 0 ? placeholders : [
               showSearch
                 ? "Search the web..."
                 : showThink
@@ -660,8 +661,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                 : showCanvas
                 ? "Create on canvas..."
                 : placeholder
-            }
-            placeholders={placeholders}
+            ]}
             className="text-base"
           />
         </div>

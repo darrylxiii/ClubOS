@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ModelSelector } from "@/components/ui/model-selector";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -61,7 +62,7 @@ const ClubAI = () => {
   const { suggestions: aiSuggestions, unreadCount } = useAISuggestions();
   
   // Model and mode selection
-  const [selectedModel, setSelectedModel] = useState<string>("google/gemini-2.5-flash");
+  const [selectedModel, setSelectedModel] = useState<string>("club-ai-0.1");
   const [selectedMode, setSelectedMode] = useState<"normal" | "search" | "think" | "canvas">("normal");
 
   useEffect(() => {
@@ -780,31 +781,12 @@ const ClubAI = () => {
             <div className="border-t border-border p-4">
               <div className="max-w-4xl mx-auto space-y-3">
                 {/* Model Selector */}
-                <div className="flex items-center justify-center gap-2">
-                  <Button
-                    variant={selectedModel === "google/gemini-2.5-pro" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedModel("google/gemini-2.5-pro")}
-                    className="text-xs"
-                  >
-                    Quantum 1.0
-                  </Button>
-                  <Button
-                    variant={selectedModel === "google/gemini-2.5-flash" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedModel("google/gemini-2.5-flash")}
-                    className="text-xs"
-                  >
-                    Claude
-                  </Button>
-                  <Button
-                    variant={selectedModel === "openai/gpt-5" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedModel("openai/gpt-5")}
-                    className="text-xs"
-                  >
-                    Chat-GPT
-                  </Button>
+                <div className="flex items-center justify-center">
+                  <ModelSelector
+                    value={selectedModel}
+                    onValueChange={setSelectedModel}
+                    className="w-full max-w-xs"
+                  />
                 </div>
                 
                 <PromptInputBox
@@ -824,12 +806,24 @@ const ClubAI = () => {
                   isLoading={isLoading}
                   onSend={(messageText, files) => {
                     if (messageText) {
+                      // Remove any existing prefix to prevent double-prefixing
+                      messageText = messageText.replace(/^\[(Search|Think|Canvas): /, '');
+                      
                       // Add mode prefix if not normal
                       if (selectedMode === "search") messageText = `[Search: ${messageText}]`;
                       else if (selectedMode === "think") messageText = `[Think: ${messageText}]`;
                       else if (selectedMode === "canvas") messageText = `[Canvas: ${messageText}]`;
                       
-                      sendMessage(messageText, undefined, selectedModel);
+                      // Map UI model names to actual API model names
+                      const modelMap: Record<string, string> = {
+                        "club-ai-0.1": "google/gemini-2.5-flash",
+                        "claude-sonnet-4-5": "claude-sonnet-4-5",
+                        "google/gemini-3": "google/gemini-2.5-pro",
+                        "openai/gpt-5.1-pro": "openai/gpt-5"
+                      };
+                      
+                      const actualModel = modelMap[selectedModel] || selectedModel;
+                      sendMessage(messageText, undefined, actualModel);
                     }
                   }}
                 />
