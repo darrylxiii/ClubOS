@@ -53,8 +53,9 @@ export function MeetingNotificationManager() {
         created_at: string;
       };
 
-      const result = await supabase
-        .from('meeting_invitations')
+      const baseQuery = supabase.from('meeting_invitations') as any;
+
+      const result = await baseQuery
         .select('id, meeting_id, inviter_id, status, created_at')
         .eq('invitee_id', user.id)
         .eq('status', 'pending')
@@ -70,8 +71,15 @@ export function MeetingNotificationManager() {
       const inviterIds = [...new Set(data.map(inv => inv.inviter_id))];
       
       const [meetingsRes, profilesRes] = await Promise.all([
-        supabase.from('meetings').select('*').in('id', meetingIds).gte('scheduled_start', new Date().toISOString()),
-        supabase.from('profiles').select('id, full_name, avatar_url').in('id', inviterIds)
+        supabase
+          .from('meetings')
+          .select('id, title, scheduled_start')
+          .in('id', meetingIds)
+          .gte('scheduled_start', new Date().toISOString()),
+        supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', inviterIds),
       ]);
 
 
