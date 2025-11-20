@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Sparkles, Loader2, Briefcase, TrendingUp, MessageSquare, Target, Plus, Clock, Trash2 } from "lucide-react";
+import { Sparkles, Loader2, Briefcase, TrendingUp, MessageSquare, Target, Plus, Clock, Trash2, Globe, Brain, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -59,6 +59,10 @@ const ClubAI = () => {
   
   // AI suggestions
   const { suggestions: aiSuggestions, unreadCount } = useAISuggestions();
+  
+  // Model and mode selection
+  const [selectedModel, setSelectedModel] = useState<string>("google/gemini-2.5-flash");
+  const [selectedMode, setSelectedMode] = useState<"normal" | "search" | "think" | "canvas">("normal");
 
   useEffect(() => {
     loadProfile();
@@ -774,7 +778,66 @@ const ClubAI = () => {
 
             {/* Input area */}
             <div className="border-t border-border p-4">
-              <div className="max-w-4xl mx-auto">
+              <div className="max-w-4xl mx-auto space-y-3">
+                {/* Model Selector and Mode Toggles */}
+                <div className="flex items-center justify-between gap-3">
+                  {/* Model Selector */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant={selectedModel === "google/gemini-2.5-pro" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedModel("google/gemini-2.5-pro")}
+                      className="text-xs"
+                    >
+                      Quantum 1.0
+                    </Button>
+                    <Button
+                      variant={selectedModel === "google/gemini-2.5-flash" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedModel("google/gemini-2.5-flash")}
+                      className="text-xs"
+                    >
+                      Claude
+                    </Button>
+                    <Button
+                      variant={selectedModel === "openai/gpt-5" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedModel("openai/gpt-5")}
+                      className="text-xs"
+                    >
+                      Chat-GPT
+                    </Button>
+                  </div>
+                  
+                  {/* Mode Toggles */}
+                  <div className="flex gap-2">
+                    <Button
+                      variant={selectedMode === "search" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedMode(selectedMode === "search" ? "normal" : "search")}
+                      title="Search Mode - Web search enabled"
+                    >
+                      <Globe className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant={selectedMode === "think" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedMode(selectedMode === "think" ? "normal" : "think")}
+                      title="Deep Think Mode - Extended reasoning"
+                    >
+                      <Brain className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant={selectedMode === "canvas" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSelectedMode(selectedMode === "canvas" ? "normal" : "canvas")}
+                      title="Canvas Mode - Creative work"
+                    >
+                      <Palette className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+                
                 <PlaceholdersAndVanishInput
                   placeholders={[
                     "What's the best strategy for my job search?",
@@ -788,7 +851,13 @@ const ClubAI = () => {
                     const target = e.target as HTMLFormElement;
                     const input = target.querySelector('input') as HTMLInputElement;
                     if (input?.value) {
-                      sendMessage(input.value);
+                      let messageText = input.value;
+                      // Add mode prefix if not normal
+                      if (selectedMode === "search") messageText = `[Search: ${messageText}]`;
+                      else if (selectedMode === "think") messageText = `[Think: ${messageText}]`;
+                      else if (selectedMode === "canvas") messageText = `[Canvas: ${messageText}]`;
+                      
+                      sendMessage(messageText, undefined, selectedModel);
                     }
                   }}
                 />
