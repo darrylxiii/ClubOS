@@ -12271,6 +12271,100 @@ export type Database = {
           },
         ]
       }
+      meeting_notification_analytics: {
+        Row: {
+          created_at: string | null
+          delivered_at: string | null
+          id: string
+          meeting_invitation_id: string
+          notification_type: string
+          opened_at: string | null
+          responded_at: string | null
+          response_action: string | null
+          response_time_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          delivered_at?: string | null
+          id?: string
+          meeting_invitation_id: string
+          notification_type: string
+          opened_at?: string | null
+          responded_at?: string | null
+          response_action?: string | null
+          response_time_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          delivered_at?: string | null
+          id?: string
+          meeting_invitation_id?: string
+          notification_type?: string
+          opened_at?: string | null
+          responded_at?: string | null
+          response_action?: string | null
+          response_time_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_notification_analytics_meeting_invitation_id_fkey"
+            columns: ["meeting_invitation_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meeting_notification_queue: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          meeting_invitation_id: string
+          metadata: Json | null
+          notification_type: string
+          sent_at: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          meeting_invitation_id: string
+          metadata?: Json | null
+          notification_type: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          meeting_invitation_id?: string
+          metadata?: Json | null
+          notification_type?: string
+          sent_at?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_notification_queue_meeting_invitation_id_fkey"
+            columns: ["meeting_invitation_id"]
+            isOneToOne: false
+            referencedRelation: "meeting_invitations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_participants: {
         Row: {
           created_at: string | null
@@ -13888,6 +13982,7 @@ export type Database = {
       }
       notification_preferences: {
         Row: {
+          browser_meetings: boolean | null
           created_at: string
           email_applications: boolean | null
           email_digest: boolean | null
@@ -13895,6 +13990,7 @@ export type Database = {
           email_enabled: boolean | null
           email_interviews: boolean | null
           email_job_matches: boolean | null
+          email_meetings: boolean | null
           email_messages: boolean | null
           email_system: boolean | null
           id: string
@@ -13904,14 +14000,17 @@ export type Database = {
           inapp_job_matches: boolean | null
           inapp_messages: boolean | null
           inapp_system: boolean | null
+          meeting_sound_type: string | null
           quiet_hours_enabled: boolean | null
           quiet_hours_end: string | null
           quiet_hours_start: string | null
           quiet_hours_timezone: string | null
+          sound_meetings: boolean | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          browser_meetings?: boolean | null
           created_at?: string
           email_applications?: boolean | null
           email_digest?: boolean | null
@@ -13919,6 +14018,7 @@ export type Database = {
           email_enabled?: boolean | null
           email_interviews?: boolean | null
           email_job_matches?: boolean | null
+          email_meetings?: boolean | null
           email_messages?: boolean | null
           email_system?: boolean | null
           id?: string
@@ -13928,14 +14028,17 @@ export type Database = {
           inapp_job_matches?: boolean | null
           inapp_messages?: boolean | null
           inapp_system?: boolean | null
+          meeting_sound_type?: string | null
           quiet_hours_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           quiet_hours_timezone?: string | null
+          sound_meetings?: boolean | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          browser_meetings?: boolean | null
           created_at?: string
           email_applications?: boolean | null
           email_digest?: boolean | null
@@ -13943,6 +14046,7 @@ export type Database = {
           email_enabled?: boolean | null
           email_interviews?: boolean | null
           email_job_matches?: boolean | null
+          email_meetings?: boolean | null
           email_messages?: boolean | null
           email_system?: boolean | null
           id?: string
@@ -13952,10 +14056,12 @@ export type Database = {
           inapp_job_matches?: boolean | null
           inapp_messages?: boolean | null
           inapp_system?: boolean | null
+          meeting_sound_type?: string | null
           quiet_hours_enabled?: boolean | null
           quiet_hours_end?: string | null
           quiet_hours_start?: string | null
           quiet_hours_timezone?: string | null
+          sound_meetings?: boolean | null
           updated_at?: string
           user_id?: string
         }
