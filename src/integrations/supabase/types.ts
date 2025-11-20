@@ -23499,6 +23499,21 @@ export type Database = {
       }
       get_company_metrics: { Args: never; Returns: Json }
       get_company_stats: { Args: never; Returns: Json }
+      get_conversation_participants: {
+        Args: { _conversation_id: string }
+        Returns: {
+          avatar_url: string
+          conversation_id: string
+          full_name: string
+          id: string
+          is_muted: boolean
+          joined_at: string
+          last_read_at: string
+          notifications_enabled: boolean
+          role: string
+          user_id: string
+        }[]
+      }
       get_department_hierarchy: {
         Args: { p_company_id: string }
         Returns: {

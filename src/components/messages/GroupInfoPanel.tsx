@@ -117,7 +117,12 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
 
             {membersExpanded && (
               <div className="space-y-2 pl-2">
-                {conversation.participants?.map((participant) => {
+                {(!conversation.participants || conversation.participants.length === 0) ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No participant data available
+                  </p>
+                ) : (
+                  conversation.participants.map((participant) => {
                   const name =
                     participant.profile?.full_name || 'Unknown User';
                   const initials = name
@@ -146,7 +151,8 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
                       </div>
                     </div>
                   );
-                })}
+                  })
+                )}
               </div>
             )}
           </div>
