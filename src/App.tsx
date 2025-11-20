@@ -18,6 +18,12 @@ import { useQueryClient } from "@tanstack/react-query";
 import { sharedRoutes } from "@/routes/shared.routes";
 import { candidateRoutes } from "@/routes/candidate.routes";
 import { AdminAssessmentsRoutes } from "@/routes/admin-assessments.routes";
+import { adminRoutes } from "@/routes/admin.routes";
+import { partnerRoutes } from "@/routes/partner.routes";
+import { analyticsRoutes } from "@/routes/analytics.routes";
+import { meetingsRoutes } from "@/routes/meetings.routes";
+import { jobsRoutes } from "@/routes/jobs.routes";
+import { profilesRoutes } from "@/routes/profiles.routes";
 import { QuickAccessHub } from '@/components/QuickAccessHub';
 import { CookieConsentBanner } from '@/components/support/CookieConsentBanner';
 
@@ -27,7 +33,6 @@ const LanguageSync = memo(() => {
   
   useEffect(() => {
     const handleLanguageChange = (lng: string) => {
-      console.log('[App] Language changed to:', lng);
       
       // Scoped invalidation: Only invalidate i18n-dependent queries
       queryClient.invalidateQueries({ 
@@ -68,123 +73,28 @@ const PartnerFunnel = lazy(() => import("./pages/PartnerFunnel"));
 const PartnershipSubmitted = lazy(() => import("./pages/PartnershipSubmitted"));
 const CandidateOnboarding = lazy(() => import("./pages/CandidateOnboarding"));
 const PendingApproval = lazy(() => import("./pages/PendingApproval"));
-const Meetings = lazy(() => import("./pages/Meetings"));
-const MeetingRoom = lazy(() => import("./pages/MeetingRoom"));
-const JoinMeeting = lazy(() => import("./pages/JoinMeeting"));
-const MemberRequestsPage = lazy(() => import("./pages/admin/MemberRequestsPage"));
-const EmailTemplateManager = lazy(() => import("./pages/admin/EmailTemplateManager"));
-
-// Lazy load protected routes to reduce initial bundle size
-const ClubHome = lazy(() => import("./pages/ClubHome"));
 const OAuthOnboarding = lazy(() => import("./pages/OAuthOnboarding"));
+const ClubHome = lazy(() => import("./pages/ClubHome"));
 
-// Legal pages (public)
+// Legal & Public Pages
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const InviteAcceptance = lazy(() => import("./pages/InviteAcceptance"));
 const InviteComplete = lazy(() => import("./pages/InviteComplete"));
-const Jobs = lazy(() => import("./pages/Jobs"));
-const JobDetail = lazy(() => import("./pages/JobDetail"));
-const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
-const ClubPilot = lazy(() => import("./pages/ClubPilot"));
-const ObjectiveWorkspace = lazy(() => import("./pages/ObjectiveWorkspace"));
+
+// Misc Protected Pages (not in dedicated route files yet)
 const ClubAI = lazy(() => import("./pages/ClubAI"));
-const Academy = lazy(() => import("./pages/Academy"));
-const AcademyCreatorHub = lazy(() => import("./pages/AcademyCreatorHub"));
-const ModuleDetail = lazy(() => import("./pages/ModuleDetail"));
-const CourseDetail = lazy(() => import("./pages/CourseDetail"));
-const LeaderboardPage = lazy(() => import("./pages/LeaderboardPage"));
-const ModuleManagement = lazy(() => import("./pages/ModuleManagement"));
-const CertificateVerification = lazy(() => import("./pages/CertificateVerification"));
-const MySkillsPage = lazy(() => import("./pages/MySkillsPage"));
-const UnifiedCandidateProfile = lazy(() => import("./pages/UnifiedCandidateProfile"));
-const MeetingNotes = lazy(() => import("./pages/MeetingNotes"));
-const ModuleEdit = lazy(() => import("./pages/ModuleEdit"));
-const CourseEdit = lazy(() => import("./pages/CourseEdit"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
+const SocialManagement = lazy(() => import("./pages/SocialManagement"));
 const PartnerOnboarding = lazy(() => import("./pages/PartnerOnboarding"));
-const UserSettings = lazy(() => import("./pages/UserSettings"));
-const EnhancedProfile = lazy(() => import("./pages/EnhancedProfile"));
-const PublicUserProfile = lazy(() => import("./pages/PublicUserProfile"));
-const CandidateProfile = lazy(() => import("./pages/CandidateProfile"));
-const Referrals = lazy(() => import("./pages/Referrals"));
-const InviteDashboard = lazy(() => import("./pages/InviteDashboard"));
-const InterviewPrep = lazy(() => import("./pages/InterviewPrep"));
-const InterviewPrepChat = lazy(() => import("./pages/InterviewPrepChat"));
+const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
 const SalaryInsights = lazy(() => import("./pages/SalaryInsights"));
 const CareerPath = lazy(() => import("./pages/CareerPath"));
-const EnhancedMLDashboard = lazy(() => import("./pages/EnhancedMLDashboard"));
-const HiringIntelligenceHub = lazy(() => import("./pages/HiringIntelligenceHub"));
-const TranslationManager = lazy(() => import("./pages/admin/TranslationManager"));
-const LanguageManager = lazy(() => import("./pages/admin/LanguageManager"));
-const DisasterRecoveryPage = lazy(() => import("./pages/admin/DisasterRecoveryPage"));
-const DRRunbooks = lazy(() => import("./pages/admin/DRRunbooks"));
-const ComprehensiveDRPage = lazy(() => import("./pages/admin/ComprehensiveDRPage"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
+const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
 const SupportTicketList = lazy(() => import("./pages/support/SupportTicketList"));
 const SupportTicketNew = lazy(() => import("./pages/support/SupportTicketNew"));
 const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
-const MeetingHistory = lazy(() => import("./pages/MeetingHistory"));
-const Pricing = lazy(() => import("./pages/Pricing"));
-const Subscription = lazy(() => import("./pages/Subscription"));
-const SubscriptionSuccess = lazy(() => import("./pages/SubscriptionSuccess"));
-const RevenueAnalytics = lazy(() => import("./pages/RevenueAnalytics"));
-const ReferralProgram = lazy(() => import("./pages/ReferralProgram"));
-const MLDashboard = lazy(() => import("./pages/MLDashboard"));
-const InteractionEntry = lazy(() => import("./pages/InteractionEntry"));
-const CompanyIntelligence = lazy(() => import("./pages/CompanyIntelligence"));
-const WhatsAppImport = lazy(() => import("./pages/WhatsAppImport"));
-const InteractionsFeed = lazy(() => import("./pages/InteractionsFeed"));
-const CompanyDomainsSettings = lazy(() => import("./pages/CompanyDomainsSettings"));
-const MeetingIntelligence = lazy(() => import("./pages/MeetingIntelligence"));
-const MeetingInsights = lazy(() => import("./pages/MeetingInsights"));
-const Messages = lazy(() => import("./pages/Messages"));
-const Applications = lazy(() => import("./pages/Applications"));
-const ApplicationDetail = lazy(() => import("./pages/ApplicationDetail"));
-const CompanyApplications = lazy(() => import("./pages/CompanyApplications"));
-const CompanyJobsDashboard = lazy(() => import("./pages/CompanyJobsDashboard"));
-const Companies = lazy(() => import("./pages/Companies"));
-const CompanyPage = lazy(() => import("./pages/CompanyPage"));
-const Scheduling = lazy(() => import("./pages/Scheduling"));
-const JobDashboard = lazy(() => import("./pages/JobDashboard"));
-const Admin = lazy(() => import("./pages/Admin"));
-const AdminCandidates = lazy(() => import("./pages/AdminCandidates"));
-const AssessmentsHub = lazy(() => import("./pages/admin/AssessmentsHub"));
-const MergeDashboard = lazy(() => import("./pages/admin/MergeDashboard"));
-const ClubSyncRequestsPage = lazy(() => import("./pages/admin/ClubSyncRequestsPage"));
-const CompanyManagement = lazy(() => import("./pages/admin/CompanyManagement"));
-const GlobalAnalytics = lazy(() => import("./pages/admin/GlobalAnalytics"));
-const AIConfiguration = lazy(() => import("./pages/admin/AIConfiguration"));
-const Feed = lazy(() => import("./pages/Feed"));
-const Post = lazy(() => import("./pages/Post"));
-const Settings = lazy(() => import("./pages/Settings"));
-const SocialFeed = lazy(() => import("./pages/SocialFeed"));
-const SocialManagement = lazy(() => import("./pages/SocialManagement"));
-const Analytics = lazy(() => import("./pages/Analytics"));
-const CandidateAnalytics = lazy(() => import("./pages/CandidateAnalytics"));
-const PartnerAnalyticsDashboard = lazy(() => import("./pages/PartnerAnalyticsDashboard"));
-const Achievements = lazy(() => import("./pages/Achievements"));
-const FeedbackDatabase = lazy(() => import("./pages/FeedbackDatabase"));
-const FunnelAnalytics = lazy(() => import("./pages/FunnelAnalytics"));
-const AdminRejections = lazy(() => import("./pages/AdminRejections"));
-const PartnerRejections = lazy(() => import("./pages/PartnerRejections"));
-const ClubDJ = lazy(() => import("./pages/ClubDJ"));
-const Radio = lazy(() => import("./pages/Radio"));
-const RadioListen = lazy(() => import("./pages/RadioListen"));
-const Assessments = lazy(() => import("./pages/Assessments"));
-const SwipeGame = lazy(() => import("./pages/SwipeGame"));
-const Miljoenenjacht = lazy(() => import("./pages/Miljoenenjacht"));
-const Incubator20 = lazy(() => import("./pages/assessments/Incubator20"));
-const PressureCooker = lazy(() => import("./pages/PressureCooker"));
-const BlindSpotDetector = lazy(() => import("./pages/BlindSpotDetector"));
-const ValuesPoker = lazy(() => import("./pages/ValuesPoker"));
-const Inbox = lazy(() => import("./pages/Inbox"));
-const DocumentManagement = lazy(() => import("./pages/DocumentManagement"));
-const EmailSettings = lazy(() => import("./pages/EmailSettings"));
-const BookingManagement = lazy(() => import("./pages/BookingManagement"));
-const CompanySettings = lazy(() => import("./pages/CompanySettings"));
-const ExpertMarketplace = lazy(() => import("./pages/ExpertMarketplace"));
-const PartnerTargetCompanies = lazy(() => import("./pages/PartnerTargetCompanies"));
-const TargetCompaniesOverview = lazy(() => import("./pages/admin/TargetCompaniesOverview"));
 
 // Password Reset Pages
 import ForgotPassword from "./pages/ForgotPassword";
@@ -209,7 +119,6 @@ const PageLoader = () => {
   useEffect(() => {
     // Show error after 5 seconds
     const errorTimer = setTimeout(() => {
-      console.error('[PageLoader] ⏰ Loading timeout - showing error UI');
       setShowError(true);
     }, 5000);
 
@@ -493,74 +402,40 @@ const App = () => {
                       {/* Candidate Routes */}
                       {candidateRoutes}
                       
-                      {/* Partner & Admin Routes */}
-                      <Route path="/admin" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><Admin /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/candidates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminCandidates /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/merge-dashboard" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><MergeDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/club-sync-requests" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClubSyncRequestsPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/company-management" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CompanyManagement /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><GlobalAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/ai-config" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AIConfiguration /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/rejections" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><AdminRejections /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/translation-manager" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><TranslationManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/language-manager" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><LanguageManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/member-requests" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><MemberRequestsPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/email-templates" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EmailTemplateManager /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/disaster-recovery" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DisasterRecoveryPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/dr-runbooks" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><DRRunbooks /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/admin/dr-comprehensive" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ComprehensiveDRPage /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      {/* Admin Routes */}
+                      {adminRoutes}
                       {AdminAssessmentsRoutes}
                       
-                      <Route path="/hiring-intelligence" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><HiringIntelligenceHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/ml-dashboard" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><EnhancedMLDashboard /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/revenue-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><RevenueAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/funnel-analytics" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><FunnelAnalytics /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
-                      <Route path="/feedback-database" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><FeedbackDatabase /></Suspense></ProtectedRoute>} />
-                      <Route path="/social-management" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SocialManagement /></Suspense></ProtectedRoute>} />
+                      {/* Partner Routes */}
+                      {partnerRoutes}
                       
-                      <Route path="/partner/analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><PartnerAnalyticsDashboard /></Suspense></ProtectedRoute>} />
-                      <Route path="/partner/rejections" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><PartnerRejections /></Suspense></ProtectedRoute>} />
-                      <Route path="/booking-management" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><BookingManagement /></Suspense></ProtectedRoute>} />
-                      <Route path="/expert-marketplace" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ExpertMarketplace /></Suspense></ProtectedRoute>} />
+                      {/* Analytics Routes */}
+                      {analyticsRoutes}
                       
-                      <Route path="/candidate/analytics" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CandidateAnalytics /></Suspense></ProtectedRoute>} />
-                      <Route path="/subscription" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Subscription /></Suspense></ProtectedRoute>} />
-                      <Route path="/subscription/success" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SubscriptionSuccess /></Suspense></ProtectedRoute>} />
-                      <Route path="/invites" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><InviteDashboard /></Suspense></ProtectedRoute>} />
-                      <Route path="/salary-insights" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SalaryInsights /></Suspense></ProtectedRoute>} />
-                      <Route path="/career-path" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CareerPath /></Suspense></ProtectedRoute>} />
-                      <Route path="/partner-onboarding" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><PartnerOnboarding /></Suspense></ProtectedRoute>} />
-                      <Route path="/meeting-notes/:meetingId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingNotes /></Suspense></ProtectedRoute>} />
-                      <Route path="/company/:id/applications" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyApplications /></Suspense></ProtectedRoute>} />
-                      <Route path="/company/:id/jobs" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyJobsDashboard /></Suspense></ProtectedRoute>} />
-                      <Route path="/company-intelligence" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyIntelligence /></Suspense></ProtectedRoute>} />
-                      <Route path="/company-domains" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><CompanyDomainsSettings /></Suspense></ProtectedRoute>} />
-                      <Route path="/interaction-entry" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><InteractionEntry /></Suspense></ProtectedRoute>} />
-                      <Route path="/interactions-feed" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><InteractionsFeed /></Suspense></ProtectedRoute>} />
-                      <Route path="/whatsapp-import" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><WhatsAppImport /></Suspense></ProtectedRoute>} />
+                      {/* Meetings Routes */}
+                      {meetingsRoutes}
                       
-                      {/* Existing routes */}
-                      <Route path="/club-ai" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><ClubAI /></Suspense></ProtectedRoute>} />
-                      <Route 
-                        path="/jobs/:jobId/dashboard" 
-                        element={
-                          <ProtectedRoute>
-                            <JobDashboardRoute>
-                              <Suspense fallback={<PageLoader />}>
-                                <JobDashboard />
-                              </Suspense>
-                            </JobDashboardRoute>
-                          </ProtectedRoute>
-                        } 
-                      />
-                      <Route path="/candidates/:candidateId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><UnifiedCandidateProfile /></Suspense></ProtectedRoute>} />
-                      <Route path="/meetings" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><Meetings /></Suspense></ProtectedRoute>} />
-                      <Route path="/meetings/:meetingId" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><MeetingRoom /></Suspense></ProtectedRoute>} />
+                      {/* Jobs Routes */}
+                      {jobsRoutes}
+                      
+                      {/* Profile Routes */}
+                      {profilesRoutes}
                       
                       {/* Support & Help */}
-                      <Route path="/support/tickets" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SupportTicketList /></Suspense></ProtectedRoute>} />
-                      <Route path="/support/tickets/new" element={<ProtectedRoute><Suspense fallback={<PageLoader />}><SupportTicketNew /></Suspense></ProtectedRoute>} />
-                      <Route path="/help" element={<Suspense fallback={<PageLoader />}><KnowledgeBase /></Suspense>} />
+                      <Route path="/support/tickets" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SupportTicketList /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/support/tickets/new" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SupportTicketNew /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/help" element={<RouteErrorBoundary><Suspense fallback={<PageLoader />}><KnowledgeBase /></Suspense></RouteErrorBoundary>} />
+                      
+                      {/* Remaining Misc Routes */}
+                      <Route path="/club-ai" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClubAI /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/social-management" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SocialManagement /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/partner-onboarding" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><PartnerOnboarding /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/whatsapp-import" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><WhatsAppImport /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/salary-insights" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SalaryInsights /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/career-path" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><CareerPath /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/subscription" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><Subscription /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/subscription/success" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SubscriptionSuccess /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
+                      <Route path="/expert-marketplace" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ExpertMarketplace /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       
                       {/* 404 Catch-all */}
                       <Route path="*" element={<NotFound />} />

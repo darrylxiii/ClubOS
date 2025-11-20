@@ -57,7 +57,7 @@ export function MeetingNotificationManager() {
 
       const result = await baseQuery
         .select('id, meeting_id, inviter_id, status, created_at')
-        .eq('invitee_id', user.id)
+        .eq('invitee_user_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
@@ -126,7 +126,7 @@ export function MeetingNotificationManager() {
           if (!user) return;
 
           const newInvitation = payload.new as any;
-          if (newInvitation.invitee_id !== user.id) return;
+          if (newInvitation.invitee_user_id !== user.id) return;
 
           // Fetch meeting details
           const { data: meeting } = await supabase

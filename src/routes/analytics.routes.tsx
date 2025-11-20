@@ -1,0 +1,149 @@
+import { lazy } from "react";
+import { Route } from "react-router-dom";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <Loader2 className="w-12 h-12 animate-spin text-primary" />
+  </div>
+);
+
+// Analytics Pages
+const Analytics = lazy(() => import("@/pages/Analytics"));
+const CandidateAnalytics = lazy(() => import("@/pages/CandidateAnalytics"));
+const FunnelAnalytics = lazy(() => import("@/pages/FunnelAnalytics"));
+const RevenueAnalytics = lazy(() => import("@/pages/RevenueAnalytics"));
+const MLDashboard = lazy(() => import("@/pages/MLDashboard"));
+const EnhancedMLDashboard = lazy(() => import("@/pages/EnhancedMLDashboard"));
+const HiringIntelligenceHub = lazy(() => import("@/pages/HiringIntelligenceHub"));
+const CompanyIntelligence = lazy(() => import("@/pages/CompanyIntelligence"));
+const MeetingIntelligence = lazy(() => import("@/pages/MeetingIntelligence"));
+const MeetingInsights = lazy(() => import("@/pages/MeetingInsights"));
+
+export const analyticsRoutes = (
+  <>
+    <Route
+      path="/analytics"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Analytics />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/candidate-analytics"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CandidateAnalytics />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/funnel-analytics"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <FunnelAnalytics />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/revenue-analytics"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <RevenueAnalytics />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/ml-dashboard"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MLDashboard />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/enhanced-ml"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <EnhancedMLDashboard />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/hiring-intelligence"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <HiringIntelligenceHub />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/company-intelligence"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <CompanyIntelligence />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/meeting-intelligence"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MeetingIntelligence />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/meeting-insights"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MeetingInsights />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+  </>
+);

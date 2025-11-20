@@ -1,0 +1,110 @@
+import { lazy } from "react";
+import { Route } from "react-router-dom";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
+import { Suspense } from "react";
+import { Loader2 } from "lucide-react";
+
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <Loader2 className="w-12 h-12 animate-spin text-primary" />
+  </div>
+);
+
+// Meeting Pages
+const Meetings = lazy(() => import("@/pages/Meetings"));
+const MeetingRoom = lazy(() => import("@/pages/MeetingRoom"));
+const JoinMeeting = lazy(() => import("@/pages/JoinMeeting"));
+const MeetingNotes = lazy(() => import("@/pages/MeetingNotes"));
+const MeetingHistory = lazy(() => import("@/pages/MeetingHistory"));
+const Scheduling = lazy(() => import("@/pages/Scheduling"));
+const BookingManagement = lazy(() => import("@/pages/BookingManagement"));
+
+export const meetingsRoutes = (
+  <>
+    <Route
+      path="/meetings"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Meetings />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/meeting/:meetingCode"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MeetingRoom />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/join/:meetingCode"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <JoinMeeting />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/meeting-notes/:meetingId"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MeetingNotes />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/meeting-history"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <MeetingHistory />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/scheduling"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <Scheduling />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/booking-management"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <BookingManagement />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+  </>
+);

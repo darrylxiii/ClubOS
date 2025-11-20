@@ -277,19 +277,7 @@ export function UnifiedUserManagement() {
   };
 
   const handleUpdateUser = async () => {
-    console.log('[UnifiedUserManagement] handleUpdateUser called');
-    if (!editingUser) {
-      console.log('[UnifiedUserManagement] No editing user');
-      return;
-    }
-    
-    if (saving) {
-      console.log('[UnifiedUserManagement] Already saving, ignoring duplicate call');
-      return;
-    }
-
-    console.log('[UnifiedUserManagement] Selected roles:', selectedRoles);
-    console.log('[UnifiedUserManagement] Editing user:', editingUser);
+    if (!editingUser || saving) return;
 
     setSaving(true);
     try {
@@ -310,30 +298,15 @@ export function UnifiedUserManagement() {
 
       const targetUserId = editingUser.id;
       const oldRoles = editingUser.roles;
-
-      // Use exactly the roles selected by admin
       const finalRoles = [...selectedRoles];
 
-      console.log('[UnifiedUserManagement] Updating roles for user:', targetUserId);
-      console.log('[UnifiedUserManagement] Old roles:', oldRoles);
-      console.log('[UnifiedUserManagement] New roles:', finalRoles);
-
       // Delete existing roles for the TARGET user
-      console.log('[UnifiedUserManagement] Deleting existing roles...');
       const { error: deleteError } = await supabase
         .from('user_roles')
         .delete()
         .eq('user_id', targetUserId);
 
-      if (deleteError) {
-        console.error('[UnifiedUserManagement] Delete error:', deleteError);
-        toast.error("Failed to delete old roles", {
-          description: deleteError.message
-        });
-        throw deleteError;
-      }
-
-      console.log('[UnifiedUserManagement] Successfully deleted old roles, inserting new ones...');
+      if (deleteError) throw deleteError;
 
       // Insert new roles for the TARGET user
       const rolesToInsert = finalRoles.map(role => ({
@@ -341,23 +314,12 @@ export function UnifiedUserManagement() {
         role: role as 'admin' | 'strategist' | 'partner' | 'user'
       }));
       
-      console.log('[UnifiedUserManagement] Inserting roles:', rolesToInsert);
-      
-      const { error: insertError, data: insertData } = await supabase
+      const { error: insertError } = await supabase
         .from('user_roles')
         .insert(rolesToInsert)
         .select();
 
-      if (insertError) {
-        console.error('[UnifiedUserManagement] Insert error:', insertError);
-        toast.error("Failed to assign new roles", {
-          description: insertError.message
-        });
-        throw insertError;
-      }
-
-      console.log('[UnifiedUserManagement] Insert result:', insertData);
-      console.log('[UnifiedUserManagement] Roles updated successfully');
+      if (insertError) throw insertError;
 
       // Update company assignment if changed
       if (selectedCompany !== (editingUser.company_id || "none")) {
@@ -417,7 +379,7 @@ export function UnifiedUserManagement() {
         }
       });
 
-      console.log('[UnifiedUserManagement] Audit log created');
+      
 
       toast.success(`Roles updated successfully for ${editingUser.full_name || editingUser.email}`);
       setDialogOpen(false);
