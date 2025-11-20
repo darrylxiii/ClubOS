@@ -668,6 +668,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
               e.preventDefault();
               handleSubmit();
             }}
+            onPlaceholderClick={(text) => setInput(text)}
           />
         </div>
 
