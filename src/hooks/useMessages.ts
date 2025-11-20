@@ -57,6 +57,7 @@ export interface Conversation {
   updated_at: string;
   metadata: any;
   is_pinned?: boolean;
+  is_archived?: boolean;
   pinned_at?: string | null;
   archived_at?: string | null;
   application?: {

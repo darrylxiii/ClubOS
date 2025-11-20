@@ -16,6 +16,9 @@ import {
   Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useConversationMedia } from '@/hooks/useConversationMedia';
+import { SharedMediaGallery } from './SharedMediaGallery';
+import { SharedLinksPanel } from './SharedLinksPanel';
 
 interface GroupInfoPanelProps {
   conversation: {
@@ -43,6 +46,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
   const [linksExpanded, setLinksExpanded] = useState(false);
 
   const isGroup = conversation.metadata?.is_group;
+  const { media, links, loading } = useConversationMedia(conversation.id);
 
   return (
     <div className="w-80 border-l border-border/50 flex flex-col glass-strong animate-fade-in bg-card z-40">
@@ -169,9 +173,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
 
             {filesExpanded && (
               <div className="space-y-2 pl-2">
-                <div className="text-sm text-muted-foreground text-center py-4">
-                  No files shared yet
-                </div>
+                <SharedMediaGallery media={media} loading={loading} />
               </div>
             )}
           </div>
@@ -198,9 +200,7 @@ export const GroupInfoPanel = ({ conversation, onClose }: GroupInfoPanelProps) =
 
             {linksExpanded && (
               <div className="space-y-2 pl-2">
-                <div className="text-sm text-muted-foreground text-center py-4">
-                  No links shared yet
-                </div>
+                <SharedLinksPanel links={links} loading={loading} />
               </div>
             )}
           </div>
