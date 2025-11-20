@@ -3,6 +3,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { ArrowUp, Paperclip, Square, X, StopCircle, Mic, Globe, BrainCog, FolderCode } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { PlaceholdersAndVanishInput } from "./placeholders-and-vanish-input";
 
 // Utility function for className merging
 const cn = (...classes: (string | undefined | null | false)[]) => classes.filter(Boolean).join(" ");
@@ -652,7 +653,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
             isRecording ? "h-0 overflow-hidden opacity-0" : "opacity-100"
           )}
         >
-          <PromptInputTextarea
+          <PlaceholdersAndVanishInput
             placeholders={placeholders.length > 0 ? placeholders : [
               showSearch
                 ? "Search the web..."
@@ -662,7 +663,11 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
                 ? "Create on canvas..."
                 : placeholder
             ]}
-            className="text-base"
+            onChange={(e) => setInput(e.target.value)}
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
           />
         </div>
 

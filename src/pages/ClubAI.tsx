@@ -64,6 +64,13 @@ const ClubAI = () => {
   // Model and mode selection
   const [selectedModel, setSelectedModel] = useState<string>("club-ai-0.1");
   const [selectedMode, setSelectedMode] = useState<"normal" | "search" | "think" | "canvas">("normal");
+  const [dynamicPlaceholders, setDynamicPlaceholders] = useState<string[]>([
+    "What's the best strategy for my job search?",
+    "How should I prepare for technical interviews?",
+    "Can you review my career trajectory?",
+    "What salary should I negotiate for?",
+    "Help me optimize my LinkedIn profile"
+  ]);
 
   useEffect(() => {
     loadProfile();
@@ -72,6 +79,29 @@ const ClubAI = () => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  // Generate dynamic placeholders based on conversation
+  useEffect(() => {
+    const generatePlaceholders = async () => {
+      if (messages.length === 0) return;
+
+      try {
+        const { data, error } = await supabase.functions.invoke("generate-placeholders", {
+          body: { messages }
+        });
+
+        if (!error && data?.placeholders) {
+          setDynamicPlaceholders(data.placeholders);
+        }
+      } catch (error) {
+        console.error("Error generating placeholders:", error);
+      }
+    };
+
+    // Debounce placeholder generation
+    const timer = setTimeout(generatePlaceholders, 2000);
+    return () => clearTimeout(timer);
   }, [messages]);
   
   useEffect(() => {
@@ -814,13 +844,7 @@ const ClubAI = () => {
                 </div>
                 
                 <PromptInputBox
-                  placeholders={[
-                    "What's the best strategy for my job search?",
-                    "How should I prepare for technical interviews?",
-                    "Can you review my career trajectory?",
-                    "What salary should I negotiate for?",
-                    "Help me optimize my LinkedIn profile"
-                  ]}
+                  placeholders={dynamicPlaceholders}
                   showSearch={selectedMode === "search"}
                   showThink={selectedMode === "think"}
                   showCanvas={selectedMode === "canvas"}
