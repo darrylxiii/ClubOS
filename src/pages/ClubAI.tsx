@@ -22,7 +22,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
+import { PromptInputBox } from "@/components/ui/ai-prompt-box";
 import { EncryptedText } from "@/components/ui/encrypted-text";
 import { AIQuickActions } from "@/components/ai/AIQuickActions";
 import { useAISuggestions } from "@/hooks/useAISuggestions";
@@ -779,66 +779,35 @@ const ClubAI = () => {
             {/* Input area */}
             <div className="border-t border-border p-4">
               <div className="max-w-4xl mx-auto space-y-3">
-                {/* Model Selector and Mode Toggles */}
-                <div className="flex items-center justify-between gap-3">
-                  {/* Model Selector */}
-                  <div className="flex gap-2">
-                    <Button
-                      variant={selectedModel === "google/gemini-2.5-pro" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedModel("google/gemini-2.5-pro")}
-                      className="text-xs"
-                    >
-                      Quantum 1.0
-                    </Button>
-                    <Button
-                      variant={selectedModel === "google/gemini-2.5-flash" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedModel("google/gemini-2.5-flash")}
-                      className="text-xs"
-                    >
-                      Claude
-                    </Button>
-                    <Button
-                      variant={selectedModel === "openai/gpt-5" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedModel("openai/gpt-5")}
-                      className="text-xs"
-                    >
-                      Chat-GPT
-                    </Button>
-                  </div>
-                  
-                  {/* Mode Toggles */}
-                  <div className="flex gap-2">
-                    <Button
-                      variant={selectedMode === "search" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedMode(selectedMode === "search" ? "normal" : "search")}
-                      title="Search Mode - Web search enabled"
-                    >
-                      <Globe className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant={selectedMode === "think" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedMode(selectedMode === "think" ? "normal" : "think")}
-                      title="Deep Think Mode - Extended reasoning"
-                    >
-                      <Brain className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant={selectedMode === "canvas" ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedMode(selectedMode === "canvas" ? "normal" : "canvas")}
-                      title="Canvas Mode - Creative work"
-                    >
-                      <Palette className="w-4 h-4" />
-                    </Button>
-                  </div>
+                {/* Model Selector */}
+                <div className="flex items-center justify-center gap-2">
+                  <Button
+                    variant={selectedModel === "google/gemini-2.5-pro" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedModel("google/gemini-2.5-pro")}
+                    className="text-xs"
+                  >
+                    Quantum 1.0
+                  </Button>
+                  <Button
+                    variant={selectedModel === "google/gemini-2.5-flash" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedModel("google/gemini-2.5-flash")}
+                    className="text-xs"
+                  >
+                    Claude
+                  </Button>
+                  <Button
+                    variant={selectedModel === "openai/gpt-5" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedModel("openai/gpt-5")}
+                    className="text-xs"
+                  >
+                    Chat-GPT
+                  </Button>
                 </div>
                 
-                <PlaceholdersAndVanishInput
+                <PromptInputBox
                   placeholders={[
                     "What's the best strategy for my job search?",
                     "How should I prepare for technical interviews?",
@@ -846,12 +815,15 @@ const ClubAI = () => {
                     "What salary should I negotiate for?",
                     "Help me optimize my LinkedIn profile"
                   ]}
-                  onChange={(e) => {}}
-                  onSubmit={(e) => {
-                    const target = e.target as HTMLFormElement;
-                    const input = target.querySelector('input') as HTMLInputElement;
-                    if (input?.value) {
-                      let messageText = input.value;
+                  showSearch={selectedMode === "search"}
+                  showThink={selectedMode === "think"}
+                  showCanvas={selectedMode === "canvas"}
+                  onSearchToggle={() => setSelectedMode(selectedMode === "search" ? "normal" : "search")}
+                  onThinkToggle={() => setSelectedMode(selectedMode === "think" ? "normal" : "think")}
+                  onCanvasToggle={() => setSelectedMode(selectedMode === "canvas" ? "normal" : "canvas")}
+                  isLoading={isLoading}
+                  onSend={(messageText, files) => {
+                    if (messageText) {
                       // Add mode prefix if not normal
                       if (selectedMode === "search") messageText = `[Search: ${messageText}]`;
                       else if (selectedMode === "think") messageText = `[Think: ${messageText}]`;
