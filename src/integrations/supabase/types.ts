@@ -21244,6 +21244,48 @@ export type Database = {
         }
         Relationships: []
       }
+      user_events: {
+        Row: {
+          action_data: Json | null
+          created_at: string | null
+          device_type: string | null
+          duration_seconds: number | null
+          event_category: string | null
+          event_type: string
+          id: string
+          page_path: string | null
+          referrer: string | null
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action_data?: Json | null
+          created_at?: string | null
+          device_type?: string | null
+          duration_seconds?: number | null
+          event_category?: string | null
+          event_type: string
+          id?: string
+          page_path?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action_data?: Json | null
+          created_at?: string | null
+          device_type?: string | null
+          duration_seconds?: number | null
+          event_category?: string | null
+          event_type?: string
+          id?: string
+          page_path?: string | null
+          referrer?: string | null
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_feedback: {
         Row: {
           admin_notes: string | null
@@ -23378,6 +23420,20 @@ export type Database = {
         }
         Returns: undefined
       }
+      track_user_event: {
+        Args: {
+          p_action_data?: Json
+          p_device_type?: string
+          p_duration_seconds?: number
+          p_event_category?: string
+          p_event_type: string
+          p_page_path?: string
+          p_referrer?: string
+          p_session_id: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       try_acquire_booking_slot_lock: {
         Args: {
           p_scheduled_end: string
@@ -23400,18 +23456,31 @@ export type Database = {
         Args: { p_related_user_id: string; p_user_id: string }
         Returns: undefined
       }
-      update_user_activity_tracking: {
-        Args: {
-          p_action_type: string
-          p_increment_actions?: boolean
-          p_is_login?: boolean
-          p_is_logout?: boolean
-          p_session_duration_minutes?: number
-          p_session_id?: string
-          p_user_id: string
-        }
-        Returns: undefined
-      }
+      update_user_activity_tracking:
+        | {
+            Args: {
+              p_action_type: string
+              p_increment_actions?: boolean
+              p_is_login?: boolean
+              p_is_logout?: boolean
+              p_session_duration_minutes?: number
+              p_session_id?: string
+              p_user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              p_action_type: string
+              p_increment_actions?: boolean
+              p_is_login?: boolean
+              p_is_logout?: boolean
+              p_session_duration_minutes?: number
+              p_session_id?: string
+              p_user_id: string
+            }
+            Returns: undefined
+          }
       update_user_online_status: {
         Args: { p_status: string; p_user_id: string }
         Returns: undefined
