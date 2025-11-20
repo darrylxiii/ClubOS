@@ -730,13 +730,41 @@ const ClubAI = () => {
                         )}
                          {message.role === "assistant" ? (
                           <div className="space-y-3">
-                            <div className="text-sm prose prose-sm max-w-none dark:prose-invert">
-                              <EncryptedText 
-                                text={message.content}
-                                revealDelayMs={15}
-                                encryptedClassName="text-muted-foreground/40"
-                                revealedClassName="text-foreground"
-                              />
+                            <div className="prose prose-sm max-w-none dark:prose-invert text-sm">
+                              <ReactMarkdown
+                                components={{
+                                  p: ({ children }) => <p className="mb-2 leading-relaxed">{children}</p>,
+                                  strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                                  em: ({ children }) => <em className="italic text-foreground/90">{children}</em>,
+                                  ul: ({ children }) => <ul className="list-disc pl-5 space-y-1 my-2">{children}</ul>,
+                                  ol: ({ children }) => <ol className="list-decimal pl-5 space-y-1 my-2">{children}</ol>,
+                                  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                                  h1: ({ children }) => <h1 className="text-lg font-semibold mt-3 mb-2">{children}</h1>,
+                                  h2: ({ children }) => <h2 className="text-base font-semibold mt-3 mb-2">{children}</h2>,
+                                  h3: ({ children }) => <h3 className="text-sm font-semibold mt-2 mb-1">{children}</h3>,
+                                  a: (props) => (
+                                    <a
+                                      {...props}
+                                      className="text-primary underline underline-offset-2 hover:text-primary/80"
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    />
+                                  ),
+                                  code: ({ children, className }) => {
+                                    const isInline = !className;
+                                    return isInline ? (
+                                      <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono">{children}</code>
+                                    ) : (
+                                      <code className={className}>{children}</code>
+                                    );
+                                  },
+                                  pre: ({ children }) => (
+                                    <pre className="bg-muted p-3 rounded-lg overflow-x-auto my-2">{children}</pre>
+                                  ),
+                                }}
+                              >
+                                {message.content}
+                              </ReactMarkdown>
                             </div>
                             {message.needsConfirmation && (
                               <Button
@@ -754,13 +782,9 @@ const ClubAI = () => {
                             )}
                           </div>
                         ) : (
-                          <EncryptedText 
-                            text={message.content}
-                            className="text-sm whitespace-pre-wrap"
-                            revealDelayMs={20}
-                            encryptedClassName="text-primary-foreground/30"
-                            revealedClassName="text-primary-foreground"
-                          />
+                          <p className="text-sm whitespace-pre-wrap">
+                            {message.content}
+                          </p>
                         )}
                       </div>
                       {message.role === "user" && (
