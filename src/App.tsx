@@ -84,6 +84,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const TermsOfService = lazy(() => import("./pages/TermsOfService"));
 const InviteAcceptance = lazy(() => import("./pages/InviteAcceptance"));
 const InviteComplete = lazy(() => import("./pages/InviteComplete"));
+const Install = lazy(() => import("./pages/Install"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const JobDetail = lazy(() => import("./pages/JobDetail"));
 const UnifiedTasks = lazy(() => import("./pages/UnifiedTasks"));
@@ -417,6 +418,18 @@ const App = () => {
                   <RouteErrorBoundary>
                     <Suspense fallback={<PageLoader />}>
                       <TermsOfService />
+                    </Suspense>
+                  </RouteErrorBoundary>
+                </PublicProviders>
+              }
+            />
+            <Route
+              path="/install"
+              element={
+                <PublicProviders>
+                  <RouteErrorBoundary>
+                    <Suspense fallback={<PageLoader />}>
+                      <Install />
                     </Suspense>
                   </RouteErrorBoundary>
                 </PublicProviders>
