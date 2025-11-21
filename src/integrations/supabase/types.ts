@@ -18430,6 +18430,36 @@ export type Database = {
         }
         Relationships: []
       }
+      role_verification_logs: {
+        Row: {
+          checked_at: string | null
+          checked_role: string
+          function_name: string | null
+          id: string
+          ip_address: unknown
+          result: boolean
+          user_id: string
+        }
+        Insert: {
+          checked_at?: string | null
+          checked_role: string
+          function_name?: string | null
+          id?: string
+          ip_address?: unknown
+          result: boolean
+          user_id: string
+        }
+        Update: {
+          checked_at?: string | null
+          checked_role?: string
+          function_name?: string | null
+          id?: string
+          ip_address?: unknown
+          result?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       rss_feeds: {
         Row: {
           company_id: string
@@ -23622,6 +23652,12 @@ export type Database = {
         }[]
       }
       get_user_metrics: { Args: never; Returns: Json }
+      get_user_roles: {
+        Args: { _user_id: string }
+        Returns: {
+          role: string
+        }[]
+      }
       get_user_stats: { Args: never; Returns: Json }
       get_user_subscription_plan: {
         Args: { check_user_id: string }
@@ -23847,6 +23883,10 @@ export type Database = {
       use_invite_code: {
         Args: { _code: string; _user_id: string }
         Returns: Json
+      }
+      user_has_role: {
+        Args: { _role: string; _user_id: string }
+        Returns: boolean
       }
       user_has_storage_role: { Args: { user_id: string }; Returns: boolean }
       user_in_video_session: {
