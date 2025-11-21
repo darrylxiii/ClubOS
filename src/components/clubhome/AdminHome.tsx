@@ -1,13 +1,9 @@
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { 
   Users, 
   Building2, 
-  Briefcase, 
   Shield,
-  AlertCircle,
   Settings,
   Activity
 } from "lucide-react";
@@ -16,123 +12,24 @@ import { RecentActivityFeed } from "./RecentActivityFeed";
 import { PlatformGrowthCard } from "./PlatformGrowthCard";
 import { PlatformHealthCard } from "./PlatformHealthCard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
-import { T } from "@/components/T";
-import { useTranslation } from "react-i18next";
+import { UnifiedStatsBar } from "./UnifiedStatsBar";
+import { DashboardSection } from "./DashboardSection";
+import { useRoleStats } from "@/hooks/useRoleStats";
 
 const AdminHomeContent = () => {
-  console.log('👑 [AdminHome] Component mounting');
-  
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalCompanies: 0,
-    totalJobs: 0,
-    pendingReviews: 0
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    console.log('👑 [AdminHome] Fetching stats...');
-    fetchAdminStats();
-  }, []);
-
-  const fetchAdminStats = async () => {
-    try {
-      const [usersRes, companiesRes, jobsRes] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true }),
-        supabase
-          .from('companies')
-          .select('*', { count: 'exact', head: true }),
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-      ]);
-
-      setStats({
-        totalUsers: usersRes.count || 0,
-        totalCompanies: companiesRes.count || 0,
-        totalJobs: jobsRes.count || 0,
-        pendingReviews: 0
-      });
-    } catch (error) {
-      console.error('Error fetching admin stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { stats, loading } = useRoleStats('admin');
 
   return (
     <div className="space-y-6">
-      {/* System Health Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.totalCandidates" fallback="Total Users" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsers}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:status.active" fallback="Active" />
-            </p>
-          </CardContent>
-        </Card>
+      {/* Stats at top */}
+      <UnifiedStatsBar role="admin" stats={stats} loading={loading} />
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Building2 className="h-4 w-4 text-primary" />
-              <T k="common:branding.name" fallback="The Quantum Club" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCompanies}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:branding.tagline" fallback="Elite Talent Platform" />
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.activeJobs" fallback="Active Jobs" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalJobs}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:jobs.posted" fallback="Posted" />
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.pendingReviews" fallback="Pending" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingReviews}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:status.pending" fallback="Pending" />
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quick Management */}
-        <Card>
+      {/* Quick Management & Platform Growth */}
+      <DashboardSection columns={2}>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
+              <Settings className="h-5 w-5 text-primary" />
               Quick Management
             </CardTitle>
             <CardDescription>Common admin tasks</CardDescription>
@@ -164,16 +61,18 @@ const AdminHomeContent = () => {
             </Button>
           </CardContent>
         </Card>
-
-        {/* Platform Growth */}
         <PlatformGrowthCard />
-      </div>
+      </DashboardSection>
 
       {/* Platform Health */}
-      <PlatformHealthCard />
+      <DashboardSection>
+        <PlatformHealthCard />
+      </DashboardSection>
 
       {/* Recent System Activity */}
-      <RecentActivityFeed />
+      <DashboardSection>
+        <RecentActivityFeed />
+      </DashboardSection>
     </div>
   );
 };

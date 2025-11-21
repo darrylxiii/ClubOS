@@ -1,14 +1,8 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { 
   Briefcase, 
-  Users, 
-  TrendingUp, 
-  Calendar,
+  Users,
   MessageSquare,
   FileText,
   PlusCircle
@@ -23,162 +17,41 @@ import { SmartAlertsPanel } from "../partner/SmartAlertsPanel";
 import { HealthScoreDashboard } from "../partner/HealthScoreDashboard";
 import { DailyBriefing } from "../partner/DailyBriefing";
 import { BenchmarkComparison } from "../partner/BenchmarkComparison";
-import { T } from "@/components/T";
-import { useTranslation } from "react-i18next";
+import { UnifiedStatsBar } from "./UnifiedStatsBar";
+import { DashboardSection } from "./DashboardSection";
+import { useRoleStats } from "@/hooks/useRoleStats";
 
 export const PartnerHome = () => {
-  const { user } = useAuth();
   const { companyId } = useUserRole();
-  const [stats, setStats] = useState({
-    activeJobs: 0,
-    totalApplications: 0,
-    interviews: 0,
-    followers: 0
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (companyId) {
-      fetchPartnerStats();
-    }
-  }, [companyId]);
-
-  const fetchPartnerStats = async () => {
-    if (!companyId) return;
-
-    try {
-      // First get company's job IDs
-      const { data: jobs } = await supabase
-        .from('jobs')
-        .select('id')
-        .eq('company_id', companyId);
-
-      const jobIds = jobs?.map(j => j.id) || [];
-
-      const [jobsRes, followersRes, appsRes, meetingsRes] = await Promise.all([
-        supabase
-          .from('jobs')
-          .select('*', { count: 'exact', head: true })
-          .eq('company_id', companyId)
-          .eq('status', 'published'),
-        supabase
-          .from('company_followers')
-          .select('*', { count: 'exact', head: true })
-          .eq('company_id', companyId),
-        jobIds.length > 0 ? supabase
-          .from('applications')
-          .select('*', { count: 'exact', head: true })
-          .in('job_id', jobIds)
-          : { count: 0 },
-        supabase
-          .from('meetings')
-          .select('*', { count: 'exact', head: true })
-          .eq('status', 'scheduled')
-      ]);
-
-      setStats({
-        activeJobs: jobsRes.count || 0,
-        totalApplications: appsRes.count || 0,
-        interviews: meetingsRes.count || 0,
-        followers: followersRes.count || 0
-      });
-    } catch (error) {
-      console.error('Error fetching partner stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { stats, loading } = useRoleStats('partner', undefined, companyId || undefined);
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Intelligence Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          {/* Smart Alerts */}
-          {companyId && <SmartAlertsPanel companyId={companyId} />}
-          
-          {/* Daily Briefing */}
-          {companyId && <DailyBriefing companyId={companyId} />}
-        </div>
-        
-        <div className="space-y-6">
-          {/* Health Score */}
-          {companyId && <HealthScoreDashboard companyId={companyId} />}
-          
-          {/* Benchmarks */}
-          {companyId && <BenchmarkComparison companyId={companyId} />}
-        </div>
-      </div>
+      {/* Stats at top */}
+      <UnifiedStatsBar role="partner" stats={stats} loading={loading} />
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.activeJobs" fallback="Active Jobs" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.activeJobs}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:jobs.posted" fallback="Posted" />
-            </p>
-          </CardContent>
-        </Card>
+      {/* Dashboard Intelligence */}
+      {companyId && (
+        <DashboardSection>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <SmartAlertsPanel companyId={companyId} />
+              <DailyBriefing companyId={companyId} />
+            </div>
+            <div className="space-y-6">
+              <HealthScoreDashboard companyId={companyId} />
+              <BenchmarkComparison companyId={companyId} />
+            </div>
+          </div>
+        </DashboardSection>
+      )}
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.applications" fallback="Applications" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalApplications}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:applications.status.applied" fallback="Applied" />
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.interviews" fallback="Interviews" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.interviews}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:actions.scheduleInterview" fallback="Schedule Interview" />
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              <T k="common:branding.tagline" fallback="Elite Talent Platform" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.followers}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:status.active" fallback="Active" />
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quick Actions */}
-        <Card>
+      {/* Quick Actions & Pipeline */}
+      <DashboardSection columns={2}>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PlusCircle className="h-5 w-5" />
+              <PlusCircle className="h-5 w-5 text-primary" />
               Quick Actions
             </CardTitle>
             <CardDescription>Common tasks and shortcuts</CardDescription>
@@ -210,21 +83,23 @@ export const PartnerHome = () => {
             </Button>
           </CardContent>
         </Card>
-
-        {/* Hiring Pipeline Overview */}
         {companyId && <HiringPipelineOverview companyId={companyId} />}
-      </div>
+      </DashboardSection>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Applications */}
-        {companyId && <RecentApplicationsList companyId={companyId} />}
-
-        {/* Talent Recommendations */}
-        {companyId && <TalentRecommendations companyId={companyId} />}
-      </div>
+      {/* Applications & Recommendations */}
+      {companyId && (
+        <DashboardSection columns={2}>
+          <RecentApplicationsList companyId={companyId} />
+          <TalentRecommendations companyId={companyId} />
+        </DashboardSection>
+      )}
 
       {/* Activity Feed */}
-      {companyId && <PartnerActivityFeed companyId={companyId} />}
+      {companyId && (
+        <DashboardSection>
+          <PartnerActivityFeed companyId={companyId} />
+        </DashboardSection>
+      )}
     </div>
   );
 };
