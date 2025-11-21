@@ -19,7 +19,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.check-data-integrity]
-verify_jwt = false
+verify_jwt = true
 
 [functions.join-waitlist]
 verify_jwt = false

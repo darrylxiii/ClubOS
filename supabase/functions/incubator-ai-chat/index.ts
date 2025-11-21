@@ -1,15 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { verifyRecaptcha, createRecaptchaErrorResponse } from '../_shared/recaptcha-verifier.ts';
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-recaptcha-token",
-};
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { getCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req, false); // Public endpoint but with rate limiting
+  
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(corsHeaders);
   }
 
   try {
@@ -17,6 +16,13 @@ serve(async (req) => {
                      req.headers.get('x-real-ip') || 
                      'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
+    
+    // Phase 2: Add rate limiting to prevent abuse (20 requests per hour per IP)
+    const rateLimitResult = await checkUserRateLimit(clientIP, 'incubator-ai-chat', 20);
+    if (!rateLimitResult.allowed) {
+      console.warn(`[Incubator AI] Rate limit exceeded for IP: ${clientIP}`);
+      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, corsHeaders);
+    }
     
     // Initialize Supabase client with service role for rate limiting and logging
     const supabaseClient = createClient(

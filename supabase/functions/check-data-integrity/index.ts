@@ -1,9 +1,7 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { authenticateUser, requireRole, createAuthErrorResponse } from '../_shared/auth-helpers.ts';
+import { getCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { logAuditEvent } from '../_shared/security-logger.ts';
 
 interface IntegrityIssue {
   user_id: string;
@@ -15,12 +13,19 @@ interface IntegrityIssue {
 }
 
 Deno.serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req, true); // Sensitive operation
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return handleCorsPreFlight(corsHeaders);
   }
 
   try {
+    // Phase 3: Server-side role verification - Only admins can check data integrity
+    const authContext = await authenticateUser(req.headers.get('authorization'));
+    requireRole(authContext, ['admin']);
+    
+    console.log(`[Integrity Check] Initiated by admin: ${authContext.email}`);
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     
@@ -37,7 +42,19 @@ Deno.serve(async (req) => {
 
     const issuesFound = mismatches?.length || 0;
 
-    // Log results
+    // Log audit event
+    await logAuditEvent({
+      eventType: 'data_access',
+      action: 'read',
+      resourceType: 'system',
+      resourceName: 'data_integrity_check',
+      userId: authContext.userId,
+      userEmail: authContext.email,
+      userRole: 'admin',
+      metadata: { issues_found: issuesFound },
+      ipAddress: req.headers.get('x-forwarded-for') || 'unknown'
+    });
+    
     console.log(`Data integrity check completed: ${issuesFound} issue(s) found`);
     
     if (issuesFound > 0) {
@@ -88,6 +105,12 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('Function error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
+    // Handle authentication errors
+    if (errorMessage.includes('authorization') || errorMessage.includes('Unauthorized')) {
+      return createAuthErrorResponse(errorMessage, 401, corsHeaders);
+    }
+    
     return new Response(
       JSON.stringify({ 
         error: errorMessage,
