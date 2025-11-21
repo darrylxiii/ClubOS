@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ProfileCompletion } from "@/components/ProfileCompletion";
@@ -14,55 +14,29 @@ import { ProfileViewers } from "@/components/ProfileViewers";
 import { ActivityTimeline } from "@/components/candidate/ActivityTimeline";
 import { QuickTipsCarousel } from "@/components/candidate/QuickTipsCarousel";
 import { quickTips } from "@/data/quickTips";
-import { Briefcase, Calendar, MessageSquare, Target } from "lucide-react";
+import { Briefcase } from "lucide-react";
+import { UnifiedStatsBar } from "./UnifiedStatsBar";
+import { DashboardSection } from "./DashboardSection";
+import { useRoleStats } from "@/hooks/useRoleStats";
 import { T } from "@/components/T";
-import { useTranslation } from "react-i18next";
 
 export const CandidateHome = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    applications: 0,
-    interviews: 0,
-    messages: 0,
-    matches: 0
-  });
+  const { stats: roleStats, loading } = useRoleStats('user', user?.id);
   const [profileCompletion, setProfileCompletion] = useState(0);
+
+  const stats = roleStats as { applications: number; matches: number; interviews: number; messages: number };
 
   useEffect(() => {
     if (user) {
-      fetchCandidateStats();
+      fetchProfileCompletion();
     }
   }, [user]);
 
-  const fetchCandidateStats = async () => {
+  const fetchProfileCompletion = async () => {
     if (!user) return;
 
     try {
-      const [appsRes, matchesRes, interviewsRes] = await Promise.all([
-        supabase
-          .from('applications')
-          .select('*', { count: 'exact', head: true })
-          .eq('candidate_id', user.id),
-        supabase
-          .from('match_scores')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .gte('overall_score', 70),
-        supabase
-          .from('meeting_participants')
-          .select('meeting_id, meetings!inner(scheduled_start)', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .gte('meetings.scheduled_start', new Date().toISOString())
-      ]);
-
-      setStats({
-        applications: appsRes.count || 0,
-        interviews: interviewsRes.count || 0,
-        messages: 0, // Messages simplified - will be fixed with proper schema later
-        matches: matchesRes.count || 0
-      });
-      
-      // Profile completion - calculate client-side based on profile fields
       const { data: profileData } = await supabase
         .from('profiles')
         .select('full_name, current_title, bio, avatar_url')
@@ -73,33 +47,33 @@ export const CandidateHome = () => {
         (Object.values(profileData).filter(v => v).length / 4) * 100 : 0;
       setProfileCompletion(Math.round(completion));
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      console.error('Error fetching profile completion:', error);
     }
   };
 
   return (
     <div className="space-y-6">
+      {/* Stats at top */}
+      <UnifiedStatsBar role="user" stats={stats} loading={loading} />
+
       {/* Profile Completion */}
       <ProfileCompletion />
 
-      {/* NEW: Quick Tips & Resources Carousel */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <T k="common:home.quickTips.title" as="h2" className="text-2xl font-bold" fallback="Quick Tips & Resources" />
-            <T k="common:home.quickTips.subtitle" as="p" className="text-sm text-muted-foreground" fallback="Expert advice to accelerate your career journey" />
-          </div>
-        </div>
+      {/* Quick Tips & Resources */}
+      <DashboardSection
+        title="Quick Tips & Resources"
+        description="Expert advice to accelerate your career journey"
+      >
         <QuickTipsCarousel tips={quickTips} />
-      </section>
+      </DashboardSection>
 
       {/* Club Projects Banner */}
-      <Card className="bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl border-border/50 shadow-sm hover:shadow-md transition-all">
+      <Card className="glass-strong hover:glass transition-all duration-300">
         <CardContent className="p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <Badge variant="secondary" className="gap-1">
+                <Badge variant="secondary" className="gap-1 bg-premium/20 text-premium-foreground border-premium/30">
                   <Briefcase className="h-3 w-3" />
                   New Feature
                 </Badge>
@@ -120,7 +94,7 @@ export const CandidateHome = () => {
                   ✓ &lt;24h time to hire
                 </div>
               </div>
-              <Button asChild>
+              <Button asChild className="bg-primary hover:bg-primary/90">
                 <Link to="/projects">
                   Explore Projects
                 </Link>
@@ -130,95 +104,38 @@ export const CandidateHome = () => {
         </CardContent>
       </Card>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Briefcase className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.applications" fallback="Applications" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.applications}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:status.active" fallback="Active" />
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Target className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.matches" fallback="Matches" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.matches}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:jobs.matchScore" fallback="Match Score" />
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.interviews" fallback="Interviews" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.interviews}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:actions.scheduleInterview" fallback="Schedule Interview" />
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/50 shadow-sm hover:shadow-md transition-all">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-primary" />
-              <T k="common:home.stats.messages" fallback="Messages" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.messages}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              <T k="common:notifications.unread" fallback="Unread" />
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Quick Actions */}
       {user && (
-        <CandidateQuickActions
-          profileCompletion={profileCompletion}
-          newMatches={stats.matches}
-          pendingApplications={stats.applications}
-          upcomingInterviews={stats.interviews}
-        />
+        <DashboardSection>
+          <CandidateQuickActions
+            profileCompletion={profileCompletion}
+            newMatches={stats.matches}
+            pendingApplications={stats.applications}
+            upcomingInterviews={stats.interviews}
+          />
+        </DashboardSection>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Application Tracker */}
-        {user && <ApplicationStatusTracker userId={user.id} />}
-
-        {/* Top Matches */}
-        {user && <JobRecommendations userId={user.id} />}
-      </div>
+      {/* Application Tracker & Job Recommendations */}
+      {user && (
+        <DashboardSection columns={2}>
+          <ApplicationStatusTracker userId={user.id} />
+          <JobRecommendations userId={user.id} />
+        </DashboardSection>
+      )}
 
       {/* Live Pulse & Profile Views */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <DashboardSection columns={2}>
         <LivePulse />
         <ProfileViewers />
-      </div>
+      </DashboardSection>
 
       {/* Recent Activity */}
-      {user && <ActivityTimeline userId={user.id} />}
+      {user && (
+        <DashboardSection>
+          <ActivityTimeline userId={user.id} />
+        </DashboardSection>
+      )}
     </div>
   );
 };
