@@ -84,6 +84,9 @@ export default function Scheduling() {
     primary_calendar_id: null as string | null,
     create_quantum_meeting: true,
     enable_club_ai: false,
+    video_platform: 'quantum_club' as string,
+    allow_guest_platform_choice: false,
+    available_platforms: ['quantum_club'] as string[],
   });
 
   useEffect(() => {
@@ -206,6 +209,9 @@ export default function Scheduling() {
         primary_calendar_id: null,
         create_quantum_meeting: true,
         enable_club_ai: false,
+        video_platform: 'quantum_club',
+        allow_guest_platform_choice: false,
+        available_platforms: ['quantum_club'],
       });
       setDialogOpen(false);
     } catch (error: any) {
@@ -555,14 +561,21 @@ export default function Scheduling() {
                       ...newLink, 
                       video_platform: platform,
                       create_quantum_meeting: platform === 'quantum_club',
+                      // Auto-add selected platform to available platforms if not already there
+                      available_platforms: newLink.available_platforms.includes(platform)
+                        ? newLink.available_platforms
+                        : [...newLink.available_platforms, platform]
                     } as any)}
                     hasGoogleCalendar={connectedCalendars.some(cal => cal.provider === 'google')}
                     onConnectGoogle={() => {
                       toast.info("Please connect your Google Calendar in Settings → Connections");
-                      // Navigate to connections settings would be better
                     }}
                     enableClubAI={newLink.enable_club_ai}
                     onEnableClubAIChange={(checked) => setNewLink({ ...newLink, enable_club_ai: checked })}
+                    allowGuestChoice={newLink.allow_guest_platform_choice}
+                    onAllowGuestChoiceChange={(checked) => setNewLink({ ...newLink, allow_guest_platform_choice: checked })}
+                    availablePlatforms={newLink.available_platforms}
+                    onAvailablePlatformsChange={(platforms) => setNewLink({ ...newLink, available_platforms: platforms })}
                   />
                 </div>
 

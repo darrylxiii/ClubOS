@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Video, Sparkles, FileText, Users, Settings, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,10 @@ interface VideoPlatformSelectorProps {
   onAutoRecordChange?: (enabled: boolean) => void;
   requireApproval?: boolean;
   onRequireApprovalChange?: (enabled: boolean) => void;
+  allowGuestChoice?: boolean;
+  onAllowGuestChoiceChange?: (enabled: boolean) => void;
+  availablePlatforms?: string[];
+  onAvailablePlatformsChange?: (platforms: string[]) => void;
 }
 
 export function VideoPlatformSelector({
@@ -34,8 +39,25 @@ export function VideoPlatformSelector({
   onAutoRecordChange,
   requireApproval = false,
   onRequireApprovalChange,
+  allowGuestChoice = false,
+  onAllowGuestChoiceChange,
+  availablePlatforms = ['quantum_club'],
+  onAvailablePlatformsChange,
 }: VideoPlatformSelectorProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  const handlePlatformToggle = (platform: string, checked: boolean) => {
+    if (!onAvailablePlatformsChange) return;
+    
+    if (checked) {
+      onAvailablePlatformsChange([...availablePlatforms, platform]);
+    } else {
+      // Prevent unchecking if it's the last platform
+      if (availablePlatforms.length > 1) {
+        onAvailablePlatformsChange(availablePlatforms.filter(p => p !== platform));
+      }
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -135,6 +157,82 @@ export function VideoPlatformSelector({
           </div>
         </Card>
       </RadioGroup>
+
+      {/* Guest Platform Choice Toggle */}
+      {onAllowGuestChoiceChange && (
+        <div className="pt-4 border-t space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="allow_guest_choice" className="text-sm font-medium">
+                Let guests choose their preferred platform
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Allow guests to select from multiple video platforms when booking
+              </p>
+            </div>
+            <Switch 
+              id="allow_guest_choice"
+              checked={allowGuestChoice} 
+              onCheckedChange={onAllowGuestChoiceChange} 
+            />
+          </div>
+
+          {/* Platform Selection for Guests */}
+          {allowGuestChoice && onAvailablePlatformsChange && (
+            <div className="space-y-3 pl-4 border-l-2 border-muted">
+              <Label className="text-sm font-medium">Available Platforms for Guests</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="platform-quantum" 
+                    checked={availablePlatforms.includes('quantum_club')}
+                    onCheckedChange={(checked) => handlePlatformToggle('quantum_club', checked as boolean)}
+                  />
+                  <Label 
+                    htmlFor="platform-quantum" 
+                    className="text-sm font-normal cursor-pointer flex items-center gap-2"
+                  >
+                    <Video className="h-4 w-4 text-primary" />
+                    TQC Meetings
+                    <Badge variant="secondary" className="text-xs">AI-Powered</Badge>
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="platform-google" 
+                    checked={availablePlatforms.includes('google_meet')}
+                    onCheckedChange={(checked) => handlePlatformToggle('google_meet', checked as boolean)}
+                    disabled={!hasGoogleCalendar}
+                  />
+                  <Label 
+                    htmlFor="platform-google" 
+                    className={cn(
+                      "text-sm font-normal cursor-pointer flex items-center gap-2",
+                      !hasGoogleCalendar && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <Video className="h-4 w-4 text-blue-500" />
+                    Google Meet
+                  </Label>
+                </div>
+                
+                {!hasGoogleCalendar && (
+                  <p className="text-xs text-muted-foreground pl-6">
+                    Connect Google Calendar to enable Google Meet
+                  </p>
+                )}
+                
+                {availablePlatforms.length === 1 && (
+                  <p className="text-xs text-amber-600 dark:text-amber-500">
+                    At least one platform must remain selected
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Advanced Settings for TQC Meetings */}
       {value === 'quantum_club' && (

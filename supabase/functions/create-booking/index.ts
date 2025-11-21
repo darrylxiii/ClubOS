@@ -42,6 +42,7 @@ serve(async (req) => {
         name: z.string().optional(),
         email: z.string().email(),
       })).max(10).optional(),
+      guestSelectedPlatform: z.string().optional(),
     });
 
     const {
@@ -55,6 +56,7 @@ serve(async (req) => {
       customResponses,
       notes,
       guests,
+      guestSelectedPlatform,
     } = bookingSchema.parse(await req.json());
     
     console.log(`[Booking] Request received: slug=${bookingLinkSlug}, guest=${guestName}, time=${scheduledStart}, timezone=${timezone}`);
@@ -384,6 +386,7 @@ serve(async (req) => {
         status: "confirmed",
         metadata: bookingMetadata,
         guests: guests || [],
+        guest_selected_platform: guestSelectedPlatform,
       })
       .select()
       .single();
@@ -482,9 +485,23 @@ serve(async (req) => {
     }
     console.log(`[Booking] ========== CALENDAR SYNC END ==========`);
 
-    // Handle video platform based on booking link settings
-    const videoPlatform = bookingLink.video_platform || 'quantum_club';
-    console.log(`[Booking] Video platform: ${videoPlatform}`);
+    // Handle video platform based on booking link settings and guest choice
+    // Priority: guest choice (if allowed) > host default
+    let videoPlatform = bookingLink.video_platform || 'quantum_club';
+    
+    // If guest choice is allowed and guest selected a platform, use that
+    if (bookingLink.allow_guest_platform_choice && guestSelectedPlatform) {
+      // Validate guest selection is in available platforms
+      const availablePlatforms = bookingLink.available_platforms || ['quantum_club'];
+      if (availablePlatforms.includes(guestSelectedPlatform)) {
+        videoPlatform = guestSelectedPlatform;
+        console.log(`[Booking] Using guest-selected platform: ${videoPlatform}`);
+      } else {
+        console.warn(`[Booking] Guest selected invalid platform ${guestSelectedPlatform}, using host default: ${videoPlatform}`);
+      }
+    }
+    
+    console.log(`[Booking] Final video platform: ${videoPlatform}`);
     // Use the actual app domain for meeting links (not Supabase backend domain)
     const siteUrl = Deno.env.get('SITE_URL') || 'https://thequantumclub.app';
 
@@ -540,37 +557,23 @@ serve(async (req) => {
               active_video_platform: 'google_meet',
             })
             .eq('id', booking.id);
+        } else {
+          console.error("[Booking] Google Meet creation returned no video link");
+          throw new Error("Failed to create Google Meet link");
         }
       } catch (googleError: any) {
-        console.error("[Booking] Google Meet creation failed, falling back to TQC Meeting:", googleError);
-        
-        // Fallback to TQC Meeting
-        try {
-          const fallbackResult = await supabaseClient.functions.invoke(
-            "create-meeting-from-booking",
-            { body: { bookingId: booking.id } }
-          );
-          
-          if (fallbackResult.data?.meetingCode) {
-            await supabaseClient
-              .from('bookings')
-              .update({
-                quantum_meeting_link: `${siteUrl}/meetings/${fallbackResult.data.meetingCode}`,
-                quantum_meeting_code: fallbackResult.data.meetingCode,
-                active_video_platform: 'quantum_club',
-                metadata: {
-                  video_platform_fallback: true,
-                  original_platform: 'google_meet',
-                  fallback_reason: googleError?.message || 'Unknown error',
-                }
-              })
-              .eq('id', booking.id);
-            
-            console.log("[Booking] Fallback TQC Meeting created successfully");
-          }
-        } catch (fallbackError) {
-          console.error("[Booking] Fallback meeting creation also failed:", fallbackError);
-        }
+        console.error("[Booking] Google Meet creation failed:", googleError);
+        // Don't fallback - let the booking exist with error logged
+        await supabaseClient
+          .from('bookings')
+          .update({
+            metadata: {
+              ...bookingMetadata,
+              video_platform_error: true,
+              error_message: googleError?.message || 'Google Meet creation failed',
+            }
+          })
+          .eq('id', booking.id);
       }
     }
 
