@@ -30,6 +30,9 @@ interface BookingLink {
   color: string;
   custom_questions: any;
   is_active: boolean;
+  allow_guest_platform_choice?: boolean;
+  available_platforms?: string[];
+  video_platform?: string;
 }
 
 interface Profile {
@@ -55,6 +58,7 @@ export default function BookingPage() {
     Intl.DateTimeFormat().resolvedOptions().timeZone
   );
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+  const [hasGoogleCalendar, setHasGoogleCalendar] = useState(false);
   
   // Phase 7: Analytics tracking
   const analytics = useBookingAnalytics(bookingLink?.id || "");
@@ -92,6 +96,17 @@ export default function BookingPage() {
       if (!profileError && profileData) {
         setProfile(profileData);
       }
+
+      // Check if host has Google Calendar connected
+      const { data: calendarData } = await supabase
+        .from("calendar_connections")
+        .select("id")
+        .eq("user_id", linkData.user_id)
+        .eq("provider", "google")
+        .eq("is_active", true)
+        .limit(1);
+
+      setHasGoogleCalendar(!!calendarData && calendarData.length > 0);
     } catch (error: any) {
       console.error("Error loading booking link:", error);
       toast.error("Failed to load booking page");
@@ -228,6 +243,7 @@ export default function BookingPage() {
                   selectedDate={selectedDate}
                   selectedTime={selectedTime}
                   onComplete={handleBookingComplete}
+                  hasGoogleCalendar={hasGoogleCalendar}
                 />
               )}
 

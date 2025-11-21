@@ -2212,9 +2212,11 @@ export type Database = {
       booking_links: {
         Row: {
           advance_booking_days: number | null
+          allow_guest_platform_choice: boolean | null
           allow_waitlist: boolean | null
           auto_generate_meeting_link: boolean | null
           auto_record: boolean | null
+          available_platforms: string[] | null
           buffer_after_minutes: number | null
           buffer_before_minutes: number | null
           color: string | null
@@ -2251,9 +2253,11 @@ export type Database = {
         }
         Insert: {
           advance_booking_days?: number | null
+          allow_guest_platform_choice?: boolean | null
           allow_waitlist?: boolean | null
           auto_generate_meeting_link?: boolean | null
           auto_record?: boolean | null
+          available_platforms?: string[] | null
           buffer_after_minutes?: number | null
           buffer_before_minutes?: number | null
           color?: string | null
@@ -2290,9 +2294,11 @@ export type Database = {
         }
         Update: {
           advance_booking_days?: number | null
+          allow_guest_platform_choice?: boolean | null
           allow_waitlist?: boolean | null
           auto_generate_meeting_link?: boolean | null
           auto_record?: boolean | null
+          available_platforms?: string[] | null
           buffer_after_minutes?: number | null
           buffer_before_minutes?: number | null
           color?: string | null
@@ -2554,6 +2560,7 @@ export type Database = {
           guest_email: string
           guest_name: string
           guest_phone: string | null
+          guest_selected_platform: string | null
           guests: Json | null
           id: string
           interview_prep_sent_at: string | null
@@ -2607,6 +2614,7 @@ export type Database = {
           guest_email: string
           guest_name: string
           guest_phone?: string | null
+          guest_selected_platform?: string | null
           guests?: Json | null
           id?: string
           interview_prep_sent_at?: string | null
@@ -2660,6 +2668,7 @@ export type Database = {
           guest_email?: string
           guest_name?: string
           guest_phone?: string | null
+          guest_selected_platform?: string | null
           guests?: Json | null
           id?: string
           interview_prep_sent_at?: string | null

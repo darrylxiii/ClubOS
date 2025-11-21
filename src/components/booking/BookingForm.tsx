@@ -15,6 +15,7 @@ import { bookingFormSchema, type BookingFormData } from "@/lib/bookingSchemas";
 import { z } from "zod";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
 import { GuestEmailInput } from "./GuestEmailInput";
+import { GuestPlatformSelector } from "./GuestPlatformSelector";
 
 interface BookingFormProps {
   bookingLink: {
@@ -23,10 +24,14 @@ interface BookingFormProps {
     user_id: string;
     duration_minutes: number;
     custom_questions?: any[];
+    allow_guest_platform_choice?: boolean;
+    available_platforms?: string[];
+    video_platform?: string;
   };
   selectedDate: Date;
   selectedTime: string;
   onComplete: (bookingId: string) => void;
+  hasGoogleCalendar?: boolean;
 }
 
 export function BookingForm({
@@ -34,6 +39,7 @@ export function BookingForm({
   selectedDate,
   selectedTime,
   onComplete,
+  hasGoogleCalendar = false,
 }: BookingFormProps) {
   const { executeRecaptcha } = useGoogleReCaptcha();
   const { trackStep } = useBookingAnalytics(bookingLink.id);
@@ -47,6 +53,11 @@ export function BookingForm({
     notes: "",
   });
   const [guests, setGuests] = useState<Array<{ name?: string; email: string }>>([]);
+  
+  // Platform selection state
+  const [selectedVideoPlatform, setSelectedVideoPlatform] = useState<string>(
+    bookingLink.video_platform || 'quantum_club'
+  );
 
   // Track form view on mount
   useState(() => {
@@ -212,6 +223,7 @@ export function BookingForm({
           timezone: userTimezone,
           notes: formData.notes || null,
           guests: guests.length > 0 ? guests : undefined,
+          guestSelectedPlatform: bookingLink.allow_guest_platform_choice ? selectedVideoPlatform : undefined,
         },
       });
 
@@ -281,6 +293,16 @@ export function BookingForm({
           </span>
         </div>
       </div>
+
+      {/* Guest platform selector - show if host allows choice */}
+      {bookingLink.allow_guest_platform_choice && bookingLink.available_platforms && (
+        <GuestPlatformSelector
+          availablePlatforms={bookingLink.available_platforms}
+          selectedPlatform={selectedVideoPlatform}
+          onPlatformChange={setSelectedVideoPlatform}
+          hasGoogleCalendar={hasGoogleCalendar}
+        />
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         <div className="space-y-2">
