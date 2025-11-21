@@ -10876,6 +10876,7 @@ export type Database = {
             | Database["public"]["Enums"]["club_sync_status_enum"]
             | null
           company_id: string
+          company_name: string | null
           created_at: string | null
           created_by: string
           currency: string
@@ -10912,6 +10913,7 @@ export type Database = {
             | Database["public"]["Enums"]["club_sync_status_enum"]
             | null
           company_id: string
+          company_name?: string | null
           created_at?: string | null
           created_by: string
           currency?: string
@@ -10948,6 +10950,7 @@ export type Database = {
             | Database["public"]["Enums"]["club_sync_status_enum"]
             | null
           company_id?: string
+          company_name?: string | null
           created_at?: string | null
           created_by?: string
           currency?: string
@@ -17659,6 +17662,7 @@ export type Database = {
           category: Database["public"]["Enums"]["achievement_category"]
           created_at: string
           description: string
+          icon: string | null
           icon_emoji: string
           id: string
           is_active: boolean | null
@@ -17675,6 +17679,7 @@ export type Database = {
           category: Database["public"]["Enums"]["achievement_category"]
           created_at?: string
           description: string
+          icon?: string | null
           icon_emoji: string
           id?: string
           is_active?: boolean | null
@@ -17691,6 +17696,7 @@ export type Database = {
           category?: Database["public"]["Enums"]["achievement_category"]
           created_at?: string
           description?: string
+          icon?: string | null
           icon_emoji?: string
           id?: string
           is_active?: boolean | null
