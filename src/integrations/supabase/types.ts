@@ -23448,6 +23448,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_error_threshold: { Args: never; Returns: undefined }
       check_password_reset_rate_limit: {
         Args: { p_email: string; p_ip_address: string }
         Returns: Json
@@ -23569,6 +23570,17 @@ export type Database = {
           path: string[]
         }[]
       }
+      get_edge_function_health: {
+        Args: never
+        Returns: {
+          avg_duration_ms: number
+          error_count: number
+          function_name: string
+          success_count: number
+          success_rate: number
+          total_calls: number
+        }[]
+      }
       get_historical_conversion_rate: {
         Args: {
           p_company_id?: string
@@ -23625,6 +23637,7 @@ export type Database = {
           total_enrollments: number
         }[]
       }
+      get_realtime_system_health: { Args: never; Returns: Json }
       get_rls_policy_count: { Args: never; Returns: Json }
       get_role_distribution: {
         Args: never
