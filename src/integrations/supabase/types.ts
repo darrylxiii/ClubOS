@@ -23860,31 +23860,18 @@ export type Database = {
         Args: { p_related_user_id: string; p_user_id: string }
         Returns: undefined
       }
-      update_user_activity_tracking:
-        | {
-            Args: {
-              p_action_type: string
-              p_increment_actions?: boolean
-              p_is_login?: boolean
-              p_is_logout?: boolean
-              p_session_duration_minutes?: number
-              p_session_id?: string
-              p_user_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              p_action_type: string
-              p_increment_actions?: boolean
-              p_is_login?: boolean
-              p_is_logout?: boolean
-              p_session_duration_minutes?: number
-              p_session_id?: string
-              p_user_id: string
-            }
-            Returns: undefined
-          }
+      update_user_activity_tracking: {
+        Args: {
+          p_action_type: string
+          p_increment_actions?: boolean
+          p_is_login?: boolean
+          p_is_logout?: boolean
+          p_session_duration_minutes?: number
+          p_session_id?: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       update_user_online_status: {
         Args: { p_status: string; p_user_id: string }
         Returns: undefined
