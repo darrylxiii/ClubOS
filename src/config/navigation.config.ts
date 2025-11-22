@@ -18,6 +18,7 @@ import {
   Layers,
   Zap,
   Cog,
+  Activity,
   Share2,
   BarChart3,
   TrendingUp,
@@ -203,6 +204,7 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "System Management",
       icon: Shield,
       items: [
+        { name: "System Health", icon: Activity, path: "/admin/system-health" },
         { name: "Disaster Recovery", icon: Shield, path: "/admin/comprehensive-dr" },
         { name: "Translation Manager", icon: Languages, path: "/admin/translations" },
         { name: "Language Manager", icon: Globe, path: "/admin/languages" },
