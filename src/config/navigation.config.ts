@@ -35,6 +35,7 @@ import {
   Target,
   Globe,
   Languages,
+  Plus,
   type LucideIcon,
 } from "lucide-react";
 
@@ -132,11 +133,22 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "Jobs", icon: Briefcase, path: "/jobs" },
         { name: "Intelligence Hub", icon: Brain, path: "/hiring-intelligence" },
+        { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
         { name: "Applicants", icon: FileText, path: "/applications" },
+        { name: "Interactions", icon: MessageSquare, path: "/interactions" },
+        { name: "Log Interaction", icon: Plus, path: "/interactions/new" },
         { name: "Rejections", icon: Users, path: "/partner/rejections" },
         { name: "Companies", icon: Building, path: "/companies" },
         { name: "Assessments", icon: ClipboardCheck, path: "/assessments" },
         { name: "Hiring Analytics", icon: BarChart3, path: "/partner/analytics" },
+      ],
+    },
+    {
+      title: "Company Settings",
+      icon: Building,
+      items: [
+        { name: "Company Profile", icon: Building, path: "/company-settings" },
+        { name: "Email Domains", icon: Globe, path: "/company-domains" },
       ],
     },
     {

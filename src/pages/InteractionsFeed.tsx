@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Search, Filter, Phone, Mail, MessageSquare, Video, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { CompanyInteraction } from '@/types/interaction';
+import { AppLayout } from '@/components/AppLayout';
 
 export default function InteractionsFeed() {
   const navigate = useNavigate();
@@ -99,7 +100,8 @@ export default function InteractionsFeed() {
   };
 
   return (
-    <div className="container mx-auto py-8">
+    <AppLayout>
+      <div className="container mx-auto py-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Interaction Feed</h1>
@@ -245,6 +247,7 @@ export default function InteractionsFeed() {
           )}
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </AppLayout>
   );
 }

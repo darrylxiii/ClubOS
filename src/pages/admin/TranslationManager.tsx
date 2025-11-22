@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useTranslationCoverage } from '@/hooks/use-translation-coverage';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AppLayout } from '@/components/AppLayout';
 
 const NAMESPACES = ['common', 'auth', 'onboarding'];
 
@@ -212,7 +213,8 @@ export default function TranslationManager() {
   };
 
   return (
-    <div className="container mx-auto py-8 space-y-8">
+    <AppLayout>
+      <div className="container mx-auto py-8 space-y-8">
       <Dialog open={showOnboarding} onOpenChange={setShowOnboarding}>
         <DialogContent>
           <DialogHeader>
@@ -361,6 +363,7 @@ export default function TranslationManager() {
           ) : <Card><CardContent className="py-12 text-center"><p className="text-muted-foreground">No data</p></CardContent></Card>}
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
