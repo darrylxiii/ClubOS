@@ -259,6 +259,10 @@ const App = () => {
               }
             />
             <Route
+              path="/partner-funnel"
+              element={<Navigate to="/partner" replace />}
+            />
+            <Route
               path="/partner/submitted"
               element={
                 <PublicProviders>
