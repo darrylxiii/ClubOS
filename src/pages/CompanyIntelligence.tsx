@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader2, TrendingUp, TrendingDown, Phone, Mail, MessageSquare, Video, User, Calendar, Settings } from 'lucide-react';
 import type { CompanyInteraction, CompanyStakeholder } from '@/types/interaction';
+import { AppLayout } from '@/components/AppLayout';
 
 export default function CompanyIntelligence() {
   const { id } = useParams<{ id: string }>();
@@ -58,17 +59,21 @@ export default function CompanyIntelligence() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+      <AppLayout>
+        <div className="container mx-auto py-8 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      </AppLayout>
     );
   }
 
   if (!company) {
     return (
-      <div className="container mx-auto py-8">
-        <p className="text-muted-foreground">Company not found</p>
-      </div>
+      <AppLayout>
+        <div className="container mx-auto py-8">
+          <p className="text-muted-foreground">Company not found</p>
+        </div>
+      </AppLayout>
     );
   }
 
@@ -102,7 +107,8 @@ export default function CompanyIntelligence() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="container mx-auto py-8">
+    <AppLayout>
+      <div className="container mx-auto py-8">
       {/* Header */}
       <div className="mb-8 flex items-start justify-between">
         <div>
@@ -299,6 +305,7 @@ export default function CompanyIntelligence() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </AppLayout>
   );
 }
