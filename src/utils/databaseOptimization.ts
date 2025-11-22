@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 /**
  * Batch fetch multiple records efficiently
  */
-export const batchFetch = async <T>(
+export const batchFetch = async <T = any>(
   table: string,
   ids: string[],
   batchSize: number = 50
@@ -17,7 +17,7 @@ export const batchFetch = async <T>(
   
   for (let i = 0; i < ids.length; i += batchSize) {
     const batch = ids.slice(i, i + batchSize);
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from(table)
       .select('*')
       .in('id', batch);
@@ -32,13 +32,13 @@ export const batchFetch = async <T>(
 /**
  * Paginated query with cursor
  */
-export const paginatedQuery = async <T>(
+export const paginatedQuery = async <T = any>(
   table: string,
   pageSize: number = 20,
   cursor?: string,
   orderBy: string = 'created_at'
 ): Promise<{ data: T[]; nextCursor: string | null }> => {
-  let query = supabase
+  let query = (supabase as any)
     .from(table)
     .select('*')
     .order(orderBy, { ascending: false })
@@ -69,7 +69,7 @@ export const getCount = async (
   table: string,
   filters?: Record<string, any>
 ): Promise<number> => {
-  let query = supabase
+  let query = (supabase as any)
     .from(table)
     .select('*', { count: 'exact', head: true });
 
@@ -132,7 +132,7 @@ export const clearQueryCache = (pattern?: string) => {
  */
 let searchTimeout: NodeJS.Timeout;
 
-export const debouncedSearch = async <T>(
+export const debouncedSearch = async <T = any>(
   table: string,
   searchField: string,
   searchTerm: string,
@@ -143,7 +143,7 @@ export const debouncedSearch = async <T>(
     
     searchTimeout = setTimeout(async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from(table)
           .select('*')
           .ilike(searchField, `%${searchTerm}%`)
