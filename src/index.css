@@ -205,9 +205,9 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --popover: 0 0% 98%;
     --popover-foreground: 0 0% 10%;
 
-    /* Rich gold accent for premium feel */
-    --primary: 45 80% 60%;
-    --primary-foreground: 0 0% 10%;
+    /* Elegant blue/purple premium palette */
+    --primary: 221 83% 53%;
+    --primary-foreground: 210 40% 98%;
 
     --secondary: 0 0% 95%;
     --secondary-foreground: 0 0% 10%;
@@ -215,11 +215,11 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 40%;
 
-    --accent: 45 90% 65%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 210 40% 98%;
     
-    --premium: 45 95% 70%;
-    --premium-foreground: 0 0% 10%;
+    --premium: 262 83% 58%;
+    --premium-foreground: 210 40% 98%;
 
     --success: 142 65% 50%;
     --success-foreground: 0 0% 100%;
@@ -270,9 +270,9 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --popover: 0 0% 15%;
     --popover-foreground: 0 0% 98%;
 
-    /* Rich gold accent for premium feel (dark mode) */
-    --primary: 45 75% 55%;
-    --primary-foreground: 0 0% 10%;
+    /* Elegant blue/purple premium palette (dark mode) */
+    --primary: 217 91% 60%;
+    --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 0 0% 20%;
     --secondary-foreground: 0 0% 98%;
@@ -280,11 +280,11 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     --muted: 0 0% 18%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 45 85% 60%;
-    --accent-foreground: 0 0% 10%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 210 40% 98%;
     
-    --premium: 45 90% 65%;
-    --premium-foreground: 0 0% 10%;
+    --premium: 262 83% 58%;
+    --premium-foreground: 210 40% 98%;
 
     --success: 142 65% 55%;
     --success-foreground: 0 0% 10%;
