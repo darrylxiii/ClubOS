@@ -11,7 +11,7 @@ export const SystemHealthDashboard = () => {
   const { metrics, isLoading } = useSystemHealthMetrics();
 
   const handleRefresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['system-health-'] });
+    queryClient.invalidateQueries({ queryKey: ['system-health-metrics'] });
   };
 
   if (isLoading || !metrics) {
@@ -45,7 +45,7 @@ export const SystemHealthDashboard = () => {
           primaryMetric="Operational"
           secondaryText={`${metrics.uptime_percentage}% uptime (30d)`}
         >
-          <Badge variant="secondary" className="mt-2 bg-green-500/10 text-green-500 border-green-500/20">
+          <Badge variant="secondary" className="mt-2 bg-success/10 text-success border-success/20">
             ✓ All Systems Go
           </Badge>
         </MetricCard>
