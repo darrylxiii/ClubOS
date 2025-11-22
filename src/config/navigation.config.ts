@@ -33,6 +33,8 @@ import {
   Shield,
   LayoutDashboard,
   Target,
+  Globe,
+  Languages,
   type LucideIcon,
 } from "lucide-react";
 
@@ -181,6 +183,18 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       items: [
         { name: "Hiring Intelligence", icon: Brain, path: "/hiring-intelligence" },
         { name: "ML Dashboard", icon: Brain, path: "/ml-dashboard" },
+        { name: "Enhanced ML", icon: Sparkles, path: "/enhanced-ml" },
+        { name: "Company Intelligence", icon: Building, path: "/company-intelligence" },
+      ],
+    },
+    {
+      title: "System Management",
+      icon: Shield,
+      items: [
+        { name: "Disaster Recovery", icon: Shield, path: "/admin/comprehensive-dr" },
+        { name: "Translation Manager", icon: Languages, path: "/admin/translations" },
+        { name: "Language Manager", icon: Globe, path: "/admin/languages" },
+        { name: "Target Companies", icon: Target, path: "/admin/target-companies" },
       ],
     },
     {
