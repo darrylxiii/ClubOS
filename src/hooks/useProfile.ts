@@ -30,8 +30,13 @@ export const useProfile = (options: UseProfileOptions = {}) => {
   const [error, setError] = useState<Error | null>(null);
 
   const loadProfile = useCallback(async (targetUserId?: string) => {
-    const idToLoad = targetUserId || userId;
-    
+    let idToLoad = targetUserId || userId;
+
+    if (!idToLoad) {
+      const { data: { user } } = await supabase.auth.getUser();
+      idToLoad = user?.id;
+    }
+
     if (!idToLoad) {
       setLoading(false);
       return;
@@ -48,7 +53,7 @@ export const useProfile = (options: UseProfileOptions = {}) => {
         .single();
 
       if (fetchError) throw fetchError;
-      
+
       setProfile(data);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Failed to load profile');
@@ -75,7 +80,7 @@ export const useProfile = (options: UseProfileOptions = {}) => {
         .single();
 
       if (updateError) throw updateError;
-      
+
       setProfile(data);
       toast.success('Profile updated successfully');
       return data;
@@ -95,11 +100,9 @@ export const useProfile = (options: UseProfileOptions = {}) => {
 
   useEffect(() => {
     console.log('[useProfile] Effect triggered - autoLoad:', autoLoad, 'userId:', userId);
-    if (autoLoad && userId) {
-      console.log('[useProfile] 🔄 Loading profile for userId:', userId);
+    if (autoLoad) {
+      console.log('[useProfile] 🔄 Loading profile (userId provided or fetching current)');
       loadProfile();
-    } else if (autoLoad && !userId) {
-      console.log('[useProfile] ⏸️ Waiting for userId to become available');
     }
   }, [autoLoad, userId, loadProfile]);
 

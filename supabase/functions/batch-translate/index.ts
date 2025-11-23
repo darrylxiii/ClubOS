@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
     console.log(`[Batch Translate] Successfully translated ${translations.length} texts`);
 
     // Reconstruct the translation object if sourceTranslations provided
-    let translationObject: Record<string, any> = {};
+    const translationObject: Record<string, any> = {};
     if (sourceTranslations) {
       let textIndex = 0;
       

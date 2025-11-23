@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { StageDetailCard } from "./StageDetailCard";
 import { StageCandidatesList } from "./StageCandidatesList";
 import { PipelineMeetingCard } from "./PipelineMeetingCard";
+import { RescheduleInterviewDialog } from "./RescheduleInterviewDialog";
 import type { DisplaySettings } from "./PipelineDisplaySettings";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "lucide-react";
@@ -102,6 +103,8 @@ export function ExpandablePipelineStage({
 }: ExpandablePipelineStageProps) {
   const [stageBookings, setStageBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
     if (isExpanded && applications.length > 0) {
@@ -113,7 +116,7 @@ export function ExpandablePipelineStage({
     setLoadingBookings(true);
     try {
       const applicationIds = applications.map(app => app.id);
-      
+
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
@@ -139,8 +142,15 @@ export function ExpandablePipelineStage({
   };
 
   const handleRescheduleMeeting = (bookingId: string) => {
-    // TODO: Implement reschedule dialog
-    console.log('Reschedule booking:', bookingId);
+    const booking = stageBookings.find(b => b.id === bookingId);
+    if (booking) {
+      setSelectedBooking(booking);
+      setRescheduleDialogOpen(true);
+    }
+  };
+
+  const handleRescheduled = () => {
+    fetchStageBookings(); // Refresh bookings list
   };
 
   return (
@@ -156,7 +166,7 @@ export function ExpandablePipelineStage({
           onEdit={onEdit}
           onDuplicate={onDuplicate}
           onDelete={onDelete}
-          onViewAnalytics={() => {}}
+          onViewAnalytics={() => { }}
           isExpandable={true}
           isExpanded={isExpanded}
         />
@@ -183,7 +193,7 @@ export function ExpandablePipelineStage({
                     {stageBookings.map((booking) => {
                       const application = applications.find(app => app.id === booking.application_id);
                       if (!application) return null;
-                      
+
                       return (
                         <PipelineMeetingCard
                           key={booking.id}
@@ -231,6 +241,19 @@ export function ExpandablePipelineStage({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Reschedule Dialog */}
+      {selectedBooking && (
+        <RescheduleInterviewDialog
+          open={rescheduleDialogOpen}
+          onOpenChange={setRescheduleDialogOpen}
+          bookingId={selectedBooking.id}
+          currentStartTime={selectedBooking.scheduled_start}
+          currentEndTime={selectedBooking.scheduled_end}
+          candidateName={selectedBooking.guest_name}
+          onRescheduled={handleRescheduled}
+        />
+      )}
     </Card>
   );
 }

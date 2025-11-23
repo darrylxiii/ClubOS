@@ -89,14 +89,28 @@ export default function Messages() {
   // Mark messages as read
   useReadReceipts(selectedConversationId, messages);
 
+  // Scroll to bottom only when new messages arrive (not when loading history)
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      // Check if we should scroll (initial load or new message at bottom)
+      // We use a ref to store the last known newest message ID to compare
+      const shouldScroll = !messagesEndRef.current?.dataset.lastMessageId ||
+        messagesEndRef.current.dataset.lastMessageId !== lastMessage.id;
+
+      if (shouldScroll) {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesEndRef.current) {
+          messagesEndRef.current.dataset.lastMessageId = lastMessage.id;
+        }
+      }
+    }
   }, [messages]);
 
   const selectedConversation = conversations.find((c) => c.id === selectedConversationId);
   const isGroup = selectedConversation?.metadata?.is_group;
 
-  const filteredConversations = conversations.filter((conv) => 
+  const filteredConversations = conversations.filter((conv) =>
     !searchQuery || conv.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -141,7 +155,7 @@ export default function Messages() {
 
   return (
     <AppLayout>
-      <CallNotificationManager 
+      <CallNotificationManager
         conversationId={selectedConversationId || undefined}
         onAcceptCall={(invitationId, callType) => {
           if (selectedConversationId) {
@@ -153,7 +167,7 @@ export default function Messages() {
           }
         }}
       />
-      
+
       {/* Active Call Interfaces */}
       {activeCall && (
         <>
@@ -181,14 +195,14 @@ export default function Messages() {
       <div className="flex h-[calc(100vh-4rem)] bg-background overflow-hidden">
         {/* Mobile sidebar overlay */}
         {showMobileSidebar && (
-          <div 
+          <div
             className="lg:hidden fixed inset-0 bg-background/80 backdrop-blur-sm z-10"
             onClick={() => setShowMobileSidebar(false)}
           />
         )}
 
         {/* Conversation List Panel */}
-        <div 
+        <div
           className={cn(
             "w-full sm:w-80 border-r border-border/20 flex flex-col bg-background transition-transform duration-300 overflow-hidden",
             "lg:translate-x-0",
@@ -196,212 +210,212 @@ export default function Messages() {
             "z-20 h-full"
           )}
         >
-        <div className="p-3 sm:p-4 border-b border-border/30 bg-background/60 backdrop-blur-xl flex-shrink-0">
-          <div className="flex items-center justify-between mb-3 sm:mb-4">
-            <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-primary" />
-              <span>Messages</span>
-            </h2>
-            <Button 
-              size="icon" 
-              onClick={() => setCreateDialogOpen(true)} 
-              className="rounded-full hover:scale-110 transition-all duration-200 bg-primary h-10 w-10"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
-          </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search conversations..." 
-              value={searchQuery} 
-              onChange={(e) => setSearchQuery(e.target.value)} 
-              className="pl-9 bg-muted/30 border-border/30 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm"
-            />
-          </div>
-        </div>
-        <ScrollArea className="flex-1">
-          <div className="p-2 space-y-1">
-            {filteredConversations.map((conv) => (
-              <ConversationContextMenu
-                key={conv.id}
-                isPinned={conv.is_pinned}
-                isMuted={conv.participants?.find(p => p.user_id === user?.id)?.is_muted}
-                isArchived={conv.is_archived}
-                isGroup={conv.metadata?.is_group}
-                onPin={() => togglePin(conv.id, conv.is_pinned || false)}
-                onArchive={() => toggleArchive(conv.id, conv.is_archived || false)}
-                onMute={() => user && toggleMute(conv.id, user.id, conv.participants?.find(p => p.user_id === user?.id)?.is_muted || false)}
-                onMarkAsRead={() => user && markAllAsRead(conv.id, user.id)}
-                onLeave={conv.metadata?.is_group ? () => user && leaveConversation(conv.id, user.id) : undefined}
-                onDelete={() => deleteConversation(conv.id)}
+          <div className="p-3 sm:p-4 border-b border-border/30 bg-background/60 backdrop-blur-xl flex-shrink-0">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h2 className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-primary" />
+                <span>Messages</span>
+              </h2>
+              <Button
+                size="icon"
+                onClick={() => setCreateDialogOpen(true)}
+                className="rounded-full hover:scale-110 transition-all duration-200 bg-primary h-10 w-10"
               >
-                <ConversationListItem
-                  conversation={conv as any}
-                  isSelected={conv.id === selectedConversationId}
-                  onClick={() => {
-                    setSelectedConversationId(conv.id);
-                    setShowMobileSidebar(false);
-                  }}
-                />
-              </ConversationContextMenu>
-            ))}
-          </div>
-        </ScrollArea>
-      </div>
-
-      {/* Main Chat Panel */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {selectedConversationId && selectedConversation ? (
-          <>
-            {/* Chat Header - Fixed */}
-            <div className="flex-shrink-0 h-16 border-b border-border/20 bg-background/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden h-9 w-9"
-                  onClick={() => setShowMobileSidebar(true)}
-                >
-                  <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div className="relative flex-shrink-0">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage 
-                      src={
-                        isGroup 
-                          ? selectedConversation.metadata?.group_avatar
-                          : selectedConversation.participants?.find(p => p.user_id !== user?.id)?.profile?.avatar_url || undefined
-                      }
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-                      {isGroup ? <Users className="h-4 w-4" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  {!isGroup && selectedConversation.participants && (
-                    <OnlineStatusIndicator 
-                      userId={selectedConversation.participants.find(p => p.user_id !== user?.id)?.user_id || ''} 
-                      className="absolute bottom-0 right-0 ring-2 ring-background"
-                    />
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-base truncate">{selectedConversation.title}</h3>
-                  {isGroup && (
-                    <p className="text-xs text-muted-foreground truncate">
-                      {selectedConversation.metadata?.participant_count || 0} members
-                    </p>
-                  )}
-                </div>
-              </div>
-              <div className="flex gap-1 flex-shrink-0">
-                <AudioCallLauncher 
-                  conversationId={selectedConversationId}
-                  participantName={selectedConversation.title}
-                  onSendMessage={sendMessage}
-                />
-                <VideoCallLauncher 
-                  conversationId={selectedConversationId}
-                  participantName={selectedConversation.title}
-                  onSendMessage={sendMessage}
-                />
-                <Button 
-                  variant={showGroupInfo ? "default" : "ghost"}
-                  size="icon" 
-                  onClick={() => setShowGroupInfo(!showGroupInfo)}
-                  className="h-9 w-9"
-                  title={showGroupInfo ? "Hide Info" : "Show Info"}
-                >
-                  <Info className="h-5 w-5" />
-                </Button>
-              </div>
+                <Plus className="h-5 w-5" />
+              </Button>
             </div>
-
-            {/* Messages Area - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
-              <MessageLoadMoreTrigger 
-                onLoadMore={loadMoreMessages}
-                hasMore={hasMoreMessages}
-                loading={loadingMore}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search conversations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 bg-muted/30 border-border/30 rounded-xl focus:ring-2 focus:ring-primary/20 transition-all text-sm"
               />
-              <div className="space-y-3 pb-4">
-                {messages.map((msg) => 
-                  msg.message_type === 'system' ? (
-                    <SystemMessageBubble key={msg.id} message={msg} />
-                  ) : editingMessageId === msg.id ? (
-                    <div key={msg.id} className="px-4">
-                      <MessageEditor
-                        messageId={msg.id}
-                        currentContent={msg.content}
-                        onSave={() => {
-                          setEditingMessageId(null);
-                          loadMessages();
-                        }}
-                        onCancel={() => setEditingMessageId(null)}
+            </div>
+          </div>
+          <ScrollArea className="flex-1">
+            <div className="p-2 space-y-1">
+              {filteredConversations.map((conv) => (
+                <ConversationContextMenu
+                  key={conv.id}
+                  isPinned={conv.is_pinned}
+                  isMuted={conv.participants?.find(p => p.user_id === user?.id)?.is_muted}
+                  isArchived={conv.is_archived}
+                  isGroup={conv.metadata?.is_group}
+                  onPin={() => togglePin(conv.id, conv.is_pinned || false)}
+                  onArchive={() => toggleArchive(conv.id, conv.is_archived || false)}
+                  onMute={() => user && toggleMute(conv.id, user.id, conv.participants?.find(p => p.user_id === user?.id)?.is_muted || false)}
+                  onMarkAsRead={() => user && markAllAsRead(conv.id, user.id)}
+                  onLeave={conv.metadata?.is_group ? () => user && leaveConversation(conv.id, user.id) : undefined}
+                  onDelete={() => deleteConversation(conv.id)}
+                >
+                  <ConversationListItem
+                    conversation={conv as any}
+                    isSelected={conv.id === selectedConversationId}
+                    onClick={() => {
+                      setSelectedConversationId(conv.id);
+                      setShowMobileSidebar(false);
+                    }}
+                  />
+                </ConversationContextMenu>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Main Chat Panel */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          {selectedConversationId && selectedConversation ? (
+            <>
+              {/* Chat Header - Fixed */}
+              <div className="flex-shrink-0 h-16 border-b border-border/20 bg-background/95 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden h-9 w-9"
+                    onClick={() => setShowMobileSidebar(true)}
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                  </Button>
+                  <div className="relative flex-shrink-0">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage
+                        src={
+                          isGroup
+                            ? selectedConversation.metadata?.group_avatar
+                            : selectedConversation.participants?.find(p => p.user_id !== user?.id)?.profile?.avatar_url || undefined
+                        }
+                        className="object-cover"
                       />
-                    </div>
-                  ) : (
-                    <MessageBubble 
-                      key={msg.id} 
-                      message={msg} 
-                      isCurrentUser={msg.sender_id === user?.id} 
-                      isGroup={isGroup}
-                      onEdit={() => setEditingMessageId(msg.id)}
-                      onReply={() => {
-                        setThreadParentMessageId(msg.id);
-                        setShowThreadView(true);
-                      }}
-                      onDelete={() => loadMessages()}
-                    />
-                  )
-                )}
-                {typingUsers.length > 0 && <TypingIndicator typingUsers={typingUsers} />}
-                <div ref={messagesEndRef} />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                        {isGroup ? <Users className="h-4 w-4" /> : selectedConversation.title.slice(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    {!isGroup && selectedConversation.participants && (
+                      <OnlineStatusIndicator
+                        userId={selectedConversation.participants.find(p => p.user_id !== user?.id)?.user_id || ''}
+                        className="absolute bottom-0 right-0 ring-2 ring-background"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-base truncate">{selectedConversation.title}</h3>
+                    {isGroup && (
+                      <p className="text-xs text-muted-foreground truncate">
+                        {selectedConversation.metadata?.participant_count || 0} members
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+                  <AudioCallLauncher
+                    conversationId={selectedConversationId}
+                    participantName={selectedConversation.title}
+                    onSendMessage={sendMessage}
+                  />
+                  <VideoCallLauncher
+                    conversationId={selectedConversationId}
+                    participantName={selectedConversation.title}
+                    onSendMessage={sendMessage}
+                  />
+                  <Button
+                    variant={showGroupInfo ? "default" : "ghost"}
+                    size="icon"
+                    onClick={() => setShowGroupInfo(!showGroupInfo)}
+                    className="h-9 w-9"
+                    title={showGroupInfo ? "Hide Info" : "Show Info"}
+                  >
+                    <Info className="h-5 w-5" />
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            {/* Message Composer - Fixed at Bottom */}
-            <div className="flex-shrink-0 border-t border-border/20 bg-background">
-              <MessageComposer
-                conversationId={selectedConversationId} 
-                onSend={handleSendMessage} 
-                onTyping={broadcastTyping} 
-                disabled={sending} 
-              />
-            </div>
-          </>
-        ) : (
-          <div className="flex-1 flex items-center justify-center">
-            <div className="text-center space-y-4 animate-fade-in">
-              <div className="mx-auto w-20 h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
-                <MessageCircle className="h-10 w-10 text-white" />
+              {/* Messages Area - Scrollable */}
+              <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-muted/20">
+                <MessageLoadMoreTrigger
+                  onLoadMore={loadMoreMessages}
+                  hasMore={hasMoreMessages}
+                  loading={loadingMore}
+                />
+                <div className="space-y-3 pb-4">
+                  {messages.map((msg) =>
+                    msg.message_type === 'system' ? (
+                      <SystemMessageBubble key={msg.id} message={msg} />
+                    ) : editingMessageId === msg.id ? (
+                      <div key={msg.id} className="px-4">
+                        <MessageEditor
+                          messageId={msg.id}
+                          currentContent={msg.content}
+                          onSave={() => {
+                            setEditingMessageId(null);
+                            loadMessages();
+                          }}
+                          onCancel={() => setEditingMessageId(null)}
+                        />
+                      </div>
+                    ) : (
+                      <MessageBubble
+                        key={msg.id}
+                        message={msg}
+                        isCurrentUser={msg.sender_id === user?.id}
+                        isGroup={isGroup}
+                        onEdit={() => setEditingMessageId(msg.id)}
+                        onReply={() => {
+                          setThreadParentMessageId(msg.id);
+                          setShowThreadView(true);
+                        }}
+                        onDelete={() => loadMessages()}
+                      />
+                    )
+                  )}
+                  {typingUsers.length > 0 && <TypingIndicator typingUsers={typingUsers} />}
+                  <div ref={messagesEndRef} />
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold mb-2">Select a conversation</h3>
-                <p className="text-muted-foreground">Choose from your existing conversations or start a new one</p>
+
+              {/* Message Composer - Fixed at Bottom */}
+              <div className="flex-shrink-0 border-t border-border/20 bg-background">
+                <MessageComposer
+                  conversationId={selectedConversationId}
+                  onSend={handleSendMessage}
+                  onTyping={broadcastTyping}
+                  disabled={sending}
+                />
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center">
+              <div className="text-center space-y-4 animate-fade-in">
+                <div className="mx-auto w-20 h-20 rounded-full bg-gradient-accent flex items-center justify-center shadow-glow">
+                  <MessageCircle className="h-10 w-10 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold mb-2">Select a conversation</h3>
+                  <p className="text-muted-foreground">Choose from your existing conversations or start a new one</p>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
 
         {/* Group Info Panel - Always visible when toggled */}
         {selectedConversationId && selectedConversation && showGroupInfo && (
           <>
             {/* Desktop */}
             <div className="hidden lg:block">
-              <GroupInfoPanel 
-                conversation={selectedConversation} 
+              <GroupInfoPanel
+                conversation={selectedConversation}
                 onClose={() => setShowGroupInfo(false)}
               />
             </div>
-            
+
             {/* Mobile Overlay */}
             <div className="lg:hidden fixed inset-0 z-50 bg-background/80 backdrop-blur-sm" onClick={() => setShowGroupInfo(false)}>
               <div className="absolute right-0 top-0 bottom-0 w-full sm:w-80 animate-slide-up" onClick={(e) => e.stopPropagation()}>
-                <GroupInfoPanel 
-                  conversation={selectedConversation} 
+                <GroupInfoPanel
+                  conversation={selectedConversation}
                   onClose={() => setShowGroupInfo(false)}
                 />
               </div>
@@ -410,14 +424,14 @@ export default function Messages() {
         )}
       </div>
 
-      <CreateConversationDialog 
-        open={createDialogOpen} 
-        onOpenChange={setCreateDialogOpen} 
-        onConversationCreated={(id) => { 
-          setSelectedConversationId(id); 
-          loadConversations(); 
-          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); 
-        }} 
+      <CreateConversationDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onConversationCreated={(id) => {
+          setSelectedConversationId(id);
+          loadConversations();
+          confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }}
       />
 
       {selectedConversationId && (
@@ -433,12 +447,12 @@ export default function Messages() {
       {isConnectingCall && (
         <ConnectingCallOverlay callType={activeCall?.type} />
       )}
-      
-      <AIPageCopilot 
-        currentPage="/messages" 
-        contextData={{ 
+
+      <AIPageCopilot
+        currentPage="/messages"
+        contextData={{
           conversationId: selectedConversationId,
-          conversationsCount: conversations.length 
+          conversationsCount: conversations.length
         }}
       />
     </AppLayout>

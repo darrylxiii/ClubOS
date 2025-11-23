@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, ChevronLeft, Save, BookOpen, Upload, X, Link2 } from "lucide-react";
+import { Loader2, ChevronLeft, Save, BookOpen, Upload, X, Link2, Sparkles, Bot } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ModuleEdit() {
@@ -30,6 +30,64 @@ export default function ModuleEdit() {
   });
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<string>("");
+  const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
+  const [showAiSuggestions, setShowAiSuggestions] = useState(false);
+
+  const getAiContentSuggestions = async () => {
+    if (!formData.title || !formData.description) {
+      toast({
+        title: "Missing information",
+        description: "Please add a title and description first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-course-generator', {
+        body: {
+          action: 'suggest_content',
+          courseData: {
+            moduleTitle: formData.title,
+            moduleDescription: formData.description,
+            courseTitle: module?.courses?.title || "Course"
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      const result = JSON.parse(data.content);
+      setAiSuggestions(result.suggestions || []);
+      setShowAiSuggestions(true);
+
+      toast({
+        title: "Suggestions ready",
+        description: "AI has found some content ideas for you",
+      });
+    } catch (error: any) {
+      toast({
+        title: "AI suggestion failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const applySuggestion = (suggestion: any) => {
+    // In a real app, we might use the YouTube API to search for this query
+    // For now, we'll just set the video URL to a search link or placeholder
+    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(suggestion.search_query)}`;
+    window.open(searchUrl, '_blank');
+
+    toast({
+      title: "Opening YouTube Search",
+      description: `Searching for: ${suggestion.search_query}`,
+    });
+  };
 
   useEffect(() => {
     loadModuleData();
@@ -127,15 +185,15 @@ export default function ModuleEdit() {
 
   const convertYouTubeUrl = (url: string): string => {
     if (!url) return "";
-    
+
     // Extract video ID from various YouTube URL formats
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
     const match = url.match(regExp);
-    
+
     if (match && match[2].length === 11) {
       return `https://www.youtube.com/embed/${match[2]}`;
     }
-    
+
     return url;
   };
 
@@ -243,7 +301,7 @@ export default function ModuleEdit() {
             >
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={saving}>
+            <Button onClick={() => handleSubmit()} disabled={saving}>
               {saving ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -329,8 +387,58 @@ export default function ModuleEdit() {
               <TabsContent value="media" className="space-y-6">
                 {/* Video Section */}
                 <div className="space-y-4">
-                  <Label>Video Content</Label>
-                  
+                  <div className="flex items-center justify-between">
+                    <Label>Video Content</Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={getAiContentSuggestions}
+                      disabled={loading || !formData.title}
+                      className="text-primary border-primary/20 hover:bg-primary/5"
+                    >
+                      <Sparkles className="mr-2 h-3 w-3" />
+                      Ask AI for Suggestions
+                    </Button>
+                  </div>
+
+                  {showAiSuggestions && aiSuggestions.length > 0 && (
+                    <div className="p-4 bg-primary/5 rounded-lg border border-primary/10 space-y-3 animate-in fade-in slide-in-from-top-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-sm font-semibold flex items-center gap-2">
+                          <Bot className="h-4 w-4 text-primary" />
+                          AI Suggested Content
+                        </h4>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0"
+                          onClick={() => setShowAiSuggestions(false)}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <div className="grid gap-2">
+                        {aiSuggestions.map((suggestion, idx) => (
+                          <div key={idx} className="p-3 bg-background rounded border text-sm flex items-start justify-between gap-3 group hover:border-primary/30 transition-colors">
+                            <div>
+                              <p className="font-medium text-primary">{suggestion.title}</p>
+                              <p className="text-xs text-muted-foreground mt-1">{suggestion.reason}</p>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => applySuggestion(suggestion)}
+                            >
+                              Search YouTube
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* YouTube URL Input */}
                   <div className="space-y-2">
                     <Label htmlFor="youtube_url" className="text-sm text-muted-foreground">
@@ -431,7 +539,7 @@ export default function ModuleEdit() {
                 {/* Image Section */}
                 <div className="space-y-4">
                   <Label>Module Image</Label>
-                  
+
                   <div className="space-y-2">
                     <Input
                       id="image_upload"

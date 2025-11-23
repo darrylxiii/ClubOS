@@ -204,7 +204,7 @@ serve(async (req) => {
 
     let calendarCheckFailed = false;
     let calendarCheckTimeout = false;
-    let calendarFailureDetails: any[] = [];
+    const calendarFailureDetails: any[] = [];
 
     if (calendars && calendars.length > 0) {
       console.log(`[Booking] Checking ${calendars.length} connected calendars for conflicts`);

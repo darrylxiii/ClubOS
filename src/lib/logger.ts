@@ -107,7 +107,7 @@ class Logger {
       // Extract error details
       let errorMessage = message;
       let errorStack: string | undefined;
-      let metadata: Record<string, unknown> = { ...context };
+      const metadata: Record<string, unknown> = { ...context };
       
       if (error instanceof Error) {
         errorMessage = `${message}: ${error.message}`;

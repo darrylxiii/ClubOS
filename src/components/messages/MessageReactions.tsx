@@ -2,10 +2,16 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Smile } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { EnhancedEmojiPicker } from './EnhancedEmojiPicker';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Reaction {
   id: string;
@@ -21,23 +27,40 @@ interface MessageReactionsProps {
   onReactionsChange: () => void;
 }
 
-const EMOJI_OPTIONS = ['👍', '❤️', '😊', '🎉', '🚀', '👀', '💯', '🔥'];
-
 export function MessageReactions({ messageId, reactions, onReactionsChange }: MessageReactionsProps) {
   const { user } = useAuth();
-  const [isAdding, setIsAdding] = useState(false);
 
+  // Group reactions by emoji
   const groupedReactions = reactions.reduce((acc, reaction) => {
     if (!acc[reaction.emoji]) {
-      acc[reaction.emoji] = { emoji: reaction.emoji, count: 0, userIds: [], hasUserReacted: false };
+      acc[reaction.emoji] = {
+        emoji: reaction.emoji,
+        count: 0,
+        userIds: [],
+        hasUserReacted: false,
+        userNames: []
+      };
     }
     acc[reaction.emoji].count++;
     acc[reaction.emoji].userIds.push(reaction.user_id);
+
+    // Add user name if available (assuming it's passed in the reaction object or we'd need to fetch it)
+    // For now, we'll use a placeholder if not available, but ideally this comes from the join
+    if (reaction.users && reaction.users[0]) {
+      acc[reaction.emoji].userNames.push(reaction.users[0].full_name);
+    }
+
     if (reaction.user_id === user?.id) {
       acc[reaction.emoji].hasUserReacted = true;
     }
     return acc;
-  }, {} as Record<string, { emoji: string; count: number; userIds: string[]; hasUserReacted: boolean }>);
+  }, {} as Record<string, {
+    emoji: string;
+    count: number;
+    userIds: string[];
+    hasUserReacted: boolean;
+    userNames: string[];
+  }>);
 
   const handleReaction = async (emoji: string) => {
     if (!user) return;
@@ -64,47 +87,52 @@ export function MessageReactions({ messageId, reactions, onReactionsChange }: Me
 
   return (
     <div className="flex items-center gap-1 mt-1 flex-wrap">
-      {Object.values(groupedReactions).map(({ emoji, count, hasUserReacted }) => (
-        <Button
-          key={emoji}
-          variant="outline"
-          size="sm"
-          className={cn(
-            'h-6 px-2 text-xs',
-            hasUserReacted && 'bg-primary/10 border-primary'
-          )}
-          onClick={() => handleReaction(emoji)}
-        >
-          <span>{emoji}</span>
-          <span className="ml-1">{count}</span>
-        </Button>
-      ))}
-
-      <Popover open={isAdding} onOpenChange={setIsAdding}>
-        <PopoverTrigger asChild>
-          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-            <Smile className="h-3 w-3" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-2">
-          <div className="grid grid-cols-4 gap-1">
-            {EMOJI_OPTIONS.map((emoji) => (
+      <TooltipProvider>
+        {Object.values(groupedReactions).map(({ emoji, count, hasUserReacted, userNames }) => (
+          <Tooltip key={emoji}>
+            <TooltipTrigger asChild>
               <Button
-                key={emoji}
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="h-8 w-8 p-0"
-                onClick={() => {
-                  handleReaction(emoji);
-                  setIsAdding(false);
-                }}
+                className={cn(
+                  'h-6 px-2 text-xs transition-all hover:scale-105',
+                  hasUserReacted && 'bg-primary/10 border-primary text-primary'
+                )}
+                onClick={() => handleReaction(emoji)}
               >
-                {emoji}
+                <span>{emoji}</span>
+                <span className="ml-1 font-medium">{count}</span>
               </Button>
-            ))}
-          </div>
-        </PopoverContent>
-      </Popover>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="text-xs">
+                {userNames.length > 0 ? (
+                  <div className="flex flex-col gap-0.5">
+                    {userNames.slice(0, 5).map((name, i) => (
+                      <span key={i}>{name}</span>
+                    ))}
+                    {userNames.length > 5 && (
+                      <span className="text-muted-foreground">+{userNames.length - 5} more</span>
+                    )}
+                  </div>
+                ) : (
+                  <span>{count} reaction{count !== 1 ? 's' : ''}</span>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </TooltipProvider>
+
+      <EnhancedEmojiPicker onSelect={handleReaction}>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity data-[state=open]:opacity-100"
+        >
+          <Smile className="h-3 w-3 text-muted-foreground hover:text-foreground" />
+        </Button>
+      </EnhancedEmojiPicker>
     </div>
   );
 }

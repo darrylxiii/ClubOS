@@ -41,7 +41,7 @@ serve(async (req) => {
     );
 
     const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
-    
+
     if (authError || !user) {
       await logAIUsage({
         functionName: 'ai-course-generator',
@@ -89,7 +89,7 @@ serve(async (req) => {
       }
     }
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    
+
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
@@ -125,6 +125,20 @@ Format as JSON: {
     } else if (action === "improve_title") {
       systemPrompt = "You are an expert at creating compelling course titles that attract learners.";
       userPrompt = `Suggest 3 improved versions of this course title: "${prompt}". Make them engaging, clear, and professional. Return as JSON: {"suggestions": ["Title 1", "Title 2", "Title 3"]}`;
+    } else if (action === "suggest_content") {
+      systemPrompt = "You are an expert content curator. Find the best free educational resources (specifically YouTube videos) for learning modules.";
+      userPrompt = `For a learning module titled "${courseData.moduleTitle}" (part of course "${courseData.courseTitle}") with description: "${courseData.moduleDescription}", suggest 3 relevant YouTube video topics/search queries that would be perfect for this lesson. 
+      
+      Return as JSON: {
+        "suggestions": [
+          {
+            "title": "Video Title Idea 1",
+            "search_query": "exact search query for youtube",
+            "reason": "Why this is good"
+          },
+          ...
+        ]
+      }`;
     }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {

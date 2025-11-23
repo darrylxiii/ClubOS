@@ -26,7 +26,7 @@ export default function InteractionsFeed() {
   const loadInteractions = async () => {
     setLoading(true);
     try {
-      let query = (supabase as any)
+      const query = (supabase as any)
         .from('company_interactions')
         .select(`
           *,

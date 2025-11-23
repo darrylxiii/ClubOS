@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone, Shield } from "lucide-react";
+import { ArrowRight, ArrowLeft, CheckCircle, Calendar, Users, Target, Phone, Shield, Clock, Keyboard } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { TrackRequestDialog } from "./TrackRequestDialog";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
@@ -18,8 +18,20 @@ import "react-phone-number-input/style.css";
 import { PartnerRequestTracker } from "./PartnerRequestTracker";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useCountryDetection } from "@/hooks/useCountryDetection";
+import { useFunnelAutoSave } from "@/hooks/useFunnelAutoSave";
+import { ResumeFunnelDialog } from "./ResumeFunnelDialog";
+import { Badge } from "@/components/ui/badge";
 
 const STEPS = ["contact", "company", "partnership", "compliance", "verification"];
+
+// Time estimates for each step (in minutes)
+const STEP_TIME_ESTIMATES: Record<number, number> = {
+  0: 1, // Contact - 1 minute
+  1: 2, // Company - 2 minutes  
+  2: 2, // Partnership - 2 minutes
+  3: 1, // Compliance - 1 minute
+  4: 1, // Verification - 1 minute
+};
 
 export function FunnelSteps() {
   const [currentStep, setCurrentStep] = useState(0);
@@ -29,32 +41,40 @@ export function FunnelSteps() {
   const [trackDialogOpen, setTrackDialogOpen] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
-  
+  const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
+  const [showKeyboardHints, setShowKeyboardHints] = useState(true);
+
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { 
-    sendOTP, 
-    verifyOTP, 
-    otpSent, 
-    isVerifying, 
+
+  // Auto-save hook
+  const autoSave = useFunnelAutoSave({
+    storageKey: 'partner_funnel_save',
+    debounceMs: 300,
+    expiryHours: 24,
+  });
+  const {
+    sendOTP,
+    verifyOTP,
+    otpSent,
+    isVerifying,
     isSendingOtp,
-    resendCooldown 
+    resendCooldown
   } = usePhoneVerification();
-  
-  const { 
-    sendOTP: sendEmailOTP, 
-    verifyOTP: verifyEmailOTP, 
-    otpSent: emailOtpSent, 
-    isVerifying: isVerifyingEmail, 
+
+  const {
+    sendOTP: sendEmailOTP,
+    verifyOTP: verifyEmailOTP,
+    otpSent: emailOtpSent,
+    isVerifying: isVerifyingEmail,
     isSendingOtp: isSendingEmailOtp,
-    resendCooldown: emailResendCooldown 
+    resendCooldown: emailResendCooldown
   } = useEmailVerification();
-  
+
   const { countryCode } = useCountryDetection();
 
   const [emailVerified, setEmailVerified] = useState(false);
   const [emailOtpCode, setEmailOtpCode] = useState("");
-
 
   const [formData, setFormData] = useState({
     // Contact
@@ -78,13 +98,55 @@ export function FunnelSteps() {
     agreed_nda: false,
   });
 
+  // Load saved data on mount
+  useEffect(() => {
+    const savedData = autoSave.load();
+    if (savedData && !savedData.completed) {
+      setResumeDialogOpen(true);
+    }
+  }, []);
+
+  // Auto-save form data when it changes
+  useEffect(() => {
+    if (currentStep > 0 || formData.contact_name || formData.contact_email) {
+      autoSave.save({
+        ...formData,
+        phoneNumber,
+        emailVerified,
+      }, currentStep, sessionId);
+    }
+  }, [formData, currentStep, phoneNumber, emailVerified]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Enter key = Next (skip if in textarea or OTP input)
+      if (e.key === 'Enter' &&
+        e.target instanceof HTMLElement &&
+        e.target.tagName !== 'TEXTAREA' &&
+        !e.target.closest('[role="textbox"]')) {
+        e.preventDefault();
+        handleNext();
+      }
+
+      // Escape key = Back
+      if (e.key === 'Escape' && currentStep > 0 && currentStep < 5) {
+        e.preventDefault();
+        handleBack();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentStep, formData, emailVerified, phoneNumber]);
+
   useEffect(() => {
     trackStep("view");
   }, [currentStep]);
 
   const trackStep = async (action: string) => {
     const timeOnStep = Math.floor((Date.now() - stepStartTime) / 1000);
-    
+
     await supabase.from("funnel_analytics").insert({
       session_id: sessionId,
       step_number: currentStep,
@@ -108,29 +170,29 @@ export function FunnelSteps() {
     if (currentStep === 0 && !emailVerified) {
       const success = await sendEmailOTP(formData.contact_email);
       if (success) {
-        toast({ 
-          title: "Verification code sent", 
-          description: "Please check your email and enter the code below" 
+        toast({
+          title: "Verification code sent",
+          description: "Please check your email and enter the code below"
         });
       }
       return;
     }
-    
+
     if (!validateStep()) return;
-    
+
     // If moving from compliance to verification, send OTP
     if (currentStep === 3) {
       if (!phoneNumber) {
         toast({ title: "Please enter your phone number", variant: "destructive" });
         return;
       }
-      
+
       const success = await sendOTP(phoneNumber);
       if (!success) {
         return;
       }
     }
-    
+
     await trackStep("complete");
     setCurrentStep(currentStep + 1);
   };
@@ -140,9 +202,34 @@ export function FunnelSteps() {
     setCurrentStep(currentStep - 1);
   };
 
+  // Resume dialog handlers
+  const handleContinue = () => {
+    const savedData = autoSave.load();
+    if (savedData) {
+      setFormData(savedData.formData);
+      setCurrentStep(savedData.currentStep);
+      setPhoneNumber(savedData.formData.phoneNumber || "");
+      setEmailVerified(savedData.formData.emailVerified || false);
+      toast({
+        title: "Welcome back!",
+        description: `Resuming at step ${savedData.currentStep + 1} of ${STEPS.length}`,
+      });
+    }
+    setResumeDialogOpen(false);
+  };
+
+  const handleStartFresh = () => {
+    autoSave.clear();
+    setResumeDialogOpen(false);
+    toast({
+      title: "Starting fresh",
+      description: "Previous progress cleared",
+    });
+  };
+
   const validateStep = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
+
     switch (currentStep) {
       case 0: // Contact
         if (!formData.contact_name || !formData.contact_email) {
@@ -181,10 +268,10 @@ export function FunnelSteps() {
         }
         // Validate phone format before proceeding
         if (!phoneNumber.startsWith('+')) {
-          toast({ 
-            title: "Invalid phone format", 
+          toast({
+            title: "Invalid phone format",
             description: "Please make sure your phone number includes the country code (e.g., +31 for Netherlands)",
-            variant: "destructive" 
+            variant: "destructive"
           });
           return false;
         }
@@ -228,6 +315,11 @@ export function FunnelSteps() {
 
       // Redirect to trackable success page with company name
       const encodedCompanyName = encodeURIComponent(formData.company_name || 'unknown');
+
+      // Mark funnel as completed and clear auto-save data
+      autoSave.markCompleted();
+      setTimeout(() => autoSave.clear(), 1000);
+
       navigate(`/partnership-submitted/${encodedCompanyName}`);
     });
 
@@ -474,11 +566,11 @@ export function FunnelSteps() {
               <h2 className="text-2xl font-semibold mb-2 uppercase font-[Inter]">Terms & Compliance</h2>
               <p className="text-muted-foreground">Review and accept our partnership terms</p>
             </div>
-            
+
             <Card className="p-6 glass-effect">
               <h3 className="font-semibold mb-3">No-Cure-No-Pay Model</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                You only pay when we successfully place a candidate. No upfront fees, no retainers. 
+                You only pay when we successfully place a candidate. No upfront fees, no retainers.
                 Our fee is 20% of first-year salary, paid only upon successful hire and completion of probation period.
               </p>
               <div className="flex items-start space-x-3">
@@ -495,7 +587,7 @@ export function FunnelSteps() {
             <Card className="p-6 glass-effect">
               <h3 className="font-semibold mb-3">Privacy & Data Protection</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                We handle all candidate and company data in strict compliance with GDPR and privacy regulations. 
+                We handle all candidate and company data in strict compliance with GDPR and privacy regulations.
                 Data is only shared with explicit consent and used solely for recruitment purposes.
               </p>
               <div className="flex items-start space-x-3">
@@ -520,7 +612,7 @@ export function FunnelSteps() {
             <Card className="p-6 glass-effect">
               <h3 className="font-semibold mb-3">Non-Disclosure Agreement (Optional)</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                For sensitive searches or confidential company information, we can establish an NDA 
+                For sensitive searches or confidential company information, we can establish an NDA
                 to protect proprietary information shared during the partnership.
               </p>
               <div className="flex items-start space-x-3">
@@ -598,7 +690,7 @@ export function FunnelSteps() {
               <CheckCircle className="w-20 h-20 text-primary mx-auto mb-6" />
               <h2 className="text-3xl font-semibold mb-3 uppercase font-[Inter]">Successfully Submitted Partner Request</h2>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Thank you for your interest in partnering with The Quantum Club. 
+                Thank you for your interest in partnering with The Quantum Club.
                 Your strategist is reviewing your request now.
               </p>
             </div>
@@ -624,33 +716,71 @@ export function FunnelSteps() {
     return <Card className="p-8 glass-effect">{renderStep()}</Card>;
   }
 
-  return (
-    <Card className="p-8 glass-effect">
-      {/* Availability Indicator */}
-      {(() => {
-        const spotsLeft = 2; // Update this number dynamically as needed
-        const indicatorColor = spotsLeft >= 4 ? 'bg-green-500' : spotsLeft >= 2 ? 'bg-orange-500' : 'bg-red-500';
-        const textColor = spotsLeft >= 4 ? 'text-green-500' : spotsLeft >= 2 ? 'text-orange-500' : 'text-red-500';
-        
-        return (
-          <div className="flex items-center justify-center gap-3 p-4 glass-effect border border-primary/20 rounded-2xl mb-6">
-            <div className="relative">
-              <div className={`w-3 h-3 ${indicatorColor} rounded-full animate-pulse`}></div>
-              <div className={`absolute inset-0 w-3 h-3 ${indicatorColor} rounded-full animate-ping`}></div>
-            </div>
-            <span className="text-sm font-semibold">
-              <span className={textColor}>{spotsLeft}/5</span> partner spots left for this quarter
-            </span>
-          </div>
-        );
-      })()}
+  // Calculate remaining time
+  const remainingMinutes = Object.entries(STEP_TIME_ESTIMATES)
+    .filter(([step]) => parseInt(step) >= currentStep)
+    .reduce((sum, [_, time]) => sum + time, 0);
 
-      {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-muted-foreground">
-            Step {currentStep + 1} of 5
-          </span>
+  return (
+    <React.Fragment>
+      {/* Resume Dialog */}
+      <ResumeFunnelDialog
+        open={resumeDialogOpen}
+        savedData={autoSave.load()}
+        totalSteps={STEPS.length}
+        onContinue={handleContinue}
+        onStartFresh={handleStartFresh}
+      />
+
+      <Card className="p-8 glass-effect">
+        {/* Availability Indicator */}
+        {(() => {
+          const spotsLeft = 2; // Update this number dynamically as needed
+          const indicatorColor = spotsLeft >= 4 ? 'bg-green-500' : spotsLeft >= 2 ? 'bg-orange-500' : 'bg-red-500';
+          const textColor = spotsLeft >= 4 ? 'text-green-500' : spotsLeft >= 2 ? 'text-orange-500' : 'text-red-500';
+
+          return (
+            <div className="flex items-center justify-center gap-3 p-4 glass-effect border border-primary/20 rounded-2xl mb-6">
+              <div className="relative">
+                <div className={`w-3 h-3 ${indicatorColor} rounded-full animate-pulse`}></div>
+                <div className={`absolute inset-0 w-3 h-3 ${indicatorColor} rounded-full animate-ping`}></div>
+              </div>
+              <span className="text-sm font-semibold">
+                <span className={textColor}>{spotsLeft}/5</span> partner spots left for this quarter
+              </span>
+            </div>
+          );
+        })()}
+
+        {/* Progress Bar */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Step {currentStep + 1} of 5
+              </span>
+              {remainingMinutes > 0 && (
+                <Badge variant="outline" className="text-xs gap-1">
+                  <Clock className="w-3 h-3" />
+                  ~{remainingMinutes} min remaining
+                </Badge>
+              )}
+            </div>
+            {showKeyboardHints && currentStep < 4 && (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
+                  <Keyboard className="w-3 h-3" />
+                  <span className="hidden sm:inline">Enter</span> = Next
+                </Badge>
+                {currentStep > 0 && (
+                  <Badge variant="secondary" className="text-xs gap-1 px-2 py-0.5">
+                    <Keyboard className="w-3 h-3" />
+                    <span className="hidden sm:inline">Esc</span> = Back
+                  </Badge>
+                )}
+              </div>
+            )}
+          </div>
           <span className="text-sm font-medium">
             {Math.round(((currentStep + 1) / 5) * 100)}%
           </span>
@@ -681,8 +811,8 @@ export function FunnelSteps() {
               <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           ) : (
-            <Button 
-              onClick={handleSubmit} 
+            <Button
+              onClick={handleSubmit}
               className="flex-1"
               disabled={!verificationCode || verificationCode.length !== 6 || isVerifying}
             >
@@ -693,5 +823,6 @@ export function FunnelSteps() {
         </div>
       )}
     </Card>
+    </React.Fragment >
   );
 }

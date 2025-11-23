@@ -1,6 +1,6 @@
 // Currency conversion rates (updated hourly)
 // Base currency: EUR
-let EXCHANGE_RATES = {
+const EXCHANGE_RATES = {
   EUR: 1,
   USD: 1.09,
   GBP: 0.86,

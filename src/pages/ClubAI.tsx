@@ -365,7 +365,7 @@ const ClubAI = () => {
     let assistantContent = "";
     let needsConfirmation = false;
     let confirmationMessage = "";
-    let pendingToolCalls: any[] = [];
+    const pendingToolCalls: any[] = [];
 
     const updateAssistant = (chunk: string, toolCalls?: any) => {
       assistantContent += chunk;
@@ -914,7 +914,7 @@ const ClubAI = () => {
                     setIsLoading(true);
                     
                     let assistantContent = "";
-                    let pendingToolCalls: any[] = [];
+                    const pendingToolCalls: any[] = [];
                     
                     const updateAssistant = (chunk: string, toolCalls?: any) => {
                       assistantContent += chunk;

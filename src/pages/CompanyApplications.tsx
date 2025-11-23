@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { 
-  Search, 
-  Filter, 
-  Download, 
-  UserPlus, 
+import {
+  Search,
+  Filter,
+  Download,
+  UserPlus,
   TrendingUp,
   AlertCircle,
   Users,
@@ -19,7 +19,7 @@ import {
 import { ApplicationsTable } from "@/components/partner/ApplicationsTable";
 import { ApplicationsFilters } from "@/components/partner/ApplicationsFilters";
 import { ApplicationsAnalytics } from "@/components/partner/ApplicationsAnalytics";
-import { AddCandidateDialog } from "@/components/partner/AddCandidateDialog";
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -34,7 +34,7 @@ export default function CompanyApplications() {
   const [selectedCompany, setSelectedCompany] = useState<string>("all");
   const [selectedSource, setSelectedSource] = useState<string>("all");
   const [urgencyFilter, setUrgencyFilter] = useState<string>("all");
-  const [addCandidateOpen, setAddCandidateOpen] = useState(false);
+
 
   useEffect(() => {
     loadData();
@@ -62,7 +62,7 @@ export default function CompanyApplications() {
           .select("company_id")
           .eq("user_id", user.id)
           .eq("is_active", true);
-        
+
         companyIds = memberships?.map(m => m.company_id) || [];
       }
 
@@ -238,12 +238,12 @@ export default function CompanyApplications() {
   // Filter applications
   const filteredApplications = applications.filter(app => {
     const candidate = app.candidate_profiles;
-    
-    const matchesSearch = 
+
+    const matchesSearch =
       candidate?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       candidate?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       app.jobs?.title?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesStage = selectedStage === "all" || app.status === selectedStage;
     const matchesJob = selectedJob === "all" || app.job_id === selectedJob;
     const matchesCompany = selectedCompany === "all" || app.jobs?.company_id === selectedCompany;
@@ -253,10 +253,10 @@ export default function CompanyApplications() {
     let matchesUrgency = true;
     if (urgencyFilter !== "all") {
       const lastActivity = candidate?.last_activity_at;
-      const daysSince = lastActivity 
+      const daysSince = lastActivity
         ? Math.floor((Date.now() - new Date(lastActivity).getTime()) / (1000 * 60 * 60 * 24))
         : 999;
-      
+
       if (urgencyFilter === "urgent") {
         matchesUrgency = daysSince > 14;
       } else if (urgencyFilter === "needs-followup") {
@@ -294,8 +294,8 @@ export default function CompanyApplications() {
           app.jobs?.title || '',
           app.status || '',
           new Date(app.applied_at).toLocaleDateString(),
-          candidate?.last_activity_at 
-            ? new Date(candidate.last_activity_at).toLocaleDateString() 
+          candidate?.last_activity_at
+            ? new Date(candidate.last_activity_at).toLocaleDateString()
             : 'N/A',
           candidate?.source_channel || 'N/A',
           candidate?.has_account ? 'Active' : 'Pending Signup'
@@ -339,10 +339,6 @@ export default function CompanyApplications() {
             <Button onClick={handleExport} variant="outline">
               <Download className="w-4 h-4 mr-2" />
               Export
-            </Button>
-            <Button onClick={() => setAddCandidateOpen(true)}>
-              <UserPlus className="w-4 h-4 mr-2" />
-              Add Candidate
             </Button>
           </div>
         </div>
@@ -462,15 +458,7 @@ export default function CompanyApplications() {
         </Tabs>
       </div>
 
-      {jobs.length > 0 && (
-        <AddCandidateDialog
-          open={addCandidateOpen}
-          onOpenChange={setAddCandidateOpen}
-          jobId={jobs[0]?.id}
-          jobTitle={jobs[0]?.title}
-          onCandidateAdded={loadData}
-        />
-      )}
+
     </AppLayout>
   );
 }

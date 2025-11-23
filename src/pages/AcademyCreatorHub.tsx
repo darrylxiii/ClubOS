@@ -8,10 +8,10 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  GraduationCap, 
-  BookOpen, 
-  Users, 
+import {
+  GraduationCap,
+  BookOpen,
+  Users,
   TrendingUp,
   Plus,
   Edit,
@@ -20,19 +20,22 @@ import {
   BarChart3,
   Award,
   Clock,
-  Loader2
+  Loader2,
+  Sparkles
 } from "lucide-react";
 import { CreateCourseDialog } from "@/components/academy/CreateCourseDialog";
+import { GenerateCourseDialog } from "@/components/academy/GenerateCourseDialog";
 
 export default function AcademyCreatorHub() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [courses, setCourses] = useState<any[]>([]);
   const [academy, setAcademy] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showCreateCourse, setShowCreateCourse] = useState(false);
+  const [showGenerateDialog, setShowGenerateDialog] = useState(false);
   const [stats, setStats] = useState({
     totalCourses: 0,
     publishedCourses: 0,
@@ -103,8 +106,8 @@ export default function AcademyCreatorHub() {
 
       toast({
         title: currentStatus ? "Course unpublished" : "Course published",
-        description: currentStatus 
-          ? "Course is now hidden from students" 
+        description: currentStatus
+          ? "Course is now hidden from students"
           : "Course is now visible to students",
       });
 
@@ -142,10 +145,20 @@ export default function AcademyCreatorHub() {
               <p className="text-muted-foreground">Manage your courses and track your impact</p>
             </div>
           </div>
-          <Button onClick={() => setShowCreateCourse(true)} className="squircle">
-            <Plus className="mr-2 h-4 w-4" />
-            Create New Course
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowGenerateDialog(true)}
+              className="squircle border-primary/20 hover:bg-primary/5"
+            >
+              <Sparkles className="mr-2 h-4 w-4 text-primary" />
+              Generate with AI
+            </Button>
+            <Button onClick={() => setShowCreateCourse(true)} className="squircle">
+              <Plus className="mr-2 h-4 w-4" />
+              Create New Course
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -316,6 +329,13 @@ export default function AcademyCreatorHub() {
         <CreateCourseDialog
           open={showCreateCourse}
           onOpenChange={setShowCreateCourse}
+          academyId={academy?.id}
+          onSuccess={loadCreatorData}
+        />
+
+        <GenerateCourseDialog
+          open={showGenerateDialog}
+          onOpenChange={setShowGenerateDialog}
           academyId={academy?.id}
           onSuccess={loadCreatorData}
         />

@@ -1047,7 +1047,7 @@ ${userContext}`;
         
         const decoder = new TextDecoder();
         let fullResponse = "";
-        let toolCalls: any[] = [];
+        const toolCalls: any[] = [];
         
         while (true) {
           const { done, value } = await reader.read();
@@ -1147,7 +1147,7 @@ ${userContext}`;
       const reader = streamForSaving.getReader();
       const decoder = new TextDecoder();
       let fullResponse = "";
-      let toolCalls: any[] = [];
+      const toolCalls: any[] = [];
       
       try {
         while (true) {

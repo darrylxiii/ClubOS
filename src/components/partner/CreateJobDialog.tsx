@@ -50,7 +50,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const [niceToHaveTools, setNiceToHaveTools] = useState<any[]>([]);
   const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  
+
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
     description: '',
@@ -73,7 +73,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   useEffect(() => {
     if (open) {
       fetchCompanies();
-      
+
       // Try to load draft
       const draft = loadDraft();
       if (draft) {
@@ -121,7 +121,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const validateField = (field: keyof JobFormData, value: any) => {
     const testData = { ...formData, [field]: value };
     const result = jobFormSchema.safeParse(testData);
-    
+
     if (result.success) {
       setFieldErrors(prev => prev.filter(e => e.field !== field));
       return true;
@@ -160,7 +160,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const handleSupportingDocumentsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles: File[] = [];
-    
+
     for (const file of files) {
       const validation = validatePostMediaFile(file);
       if (!validation.valid) {
@@ -169,7 +169,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       }
       validFiles.push(file);
     }
-    
+
     if (validFiles.length > 0) {
       setSupportingDocuments(prev => [...prev, ...validFiles]);
       toast.success(`${validFiles.length} file(s) added`);
@@ -191,7 +191,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       if (jobDescriptionFile) {
         const fileExt = jobDescriptionFile.name.split('.').pop();
         const fileName = `${jobId}/job-description.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('job-documents')
           .upload(fileName, jobDescriptionFile, { upsert: true });
@@ -206,7 +206,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         const file = supportingDocuments[i];
         const fileExt = file.name.split('.').pop();
         const fileName = `${jobId}/supporting-docs/${Date.now()}-${i}.${fileExt}`;
-        
+
         const { error: uploadError } = await supabase.storage
           .from('job-documents')
           .upload(fileName, file, { upsert: true });
@@ -214,6 +214,9 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
         if (uploadError) {
           console.error(`Failed to upload ${file.name}:`, uploadError);
           toast.error(`Failed to upload ${file.name}`);
+          // Still increment counter to avoid stuck progress bar
+          uploadedFiles++;
+          setUploadProgress(Math.round((uploadedFiles / totalFiles) * 100));
           continue;
         }
 
@@ -223,7 +226,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           size: file.size,
           type: file.type
         });
-        
+
         uploadedFiles++;
         setUploadProgress(Math.round((uploadedFiles / totalFiles) * 100));
       }
@@ -264,7 +267,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const handleSubmit = async (createAnother: boolean = false) => {
     try {
       setFieldErrors([]);
-      
+
       const validationResult = jobFormSchema.safeParse(formData);
       if (!validationResult.success) {
         const errors: FieldError[] = validationResult.error.errors.map(err => ({
@@ -325,7 +328,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       }
 
       setSubmitStep("finalizing");
-      
+
       try {
         await insertJobTools(jobId, requiredTools, true);
         await insertJobTools(jobId, niceToHaveTools, false);
@@ -336,7 +339,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       setSubmitStep("complete");
       clearDraft();
-      
+
       toast.success(
         <div className="flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-green-500" />
@@ -409,7 +412,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent 
+      <DialogContent
         className="max-w-3xl max-h-[90vh] overflow-y-auto"
         aria-describedby="create-job-description"
       >
@@ -445,7 +448,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           </div>
         )}
 
-        <form 
+        <form
           onSubmit={(e) => {
             e.preventDefault();
             handleSubmit(false);
@@ -461,7 +464,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               onValueChange={(value) => handleInputChange('company_id', value)}
               disabled={!!companyId || isSubmitting}
             >
-              <SelectTrigger 
+              <SelectTrigger
                 id="company"
                 className={getFieldError('company_id') ? 'border-destructive' : ''}
                 aria-invalid={!!getFieldError('company_id')}

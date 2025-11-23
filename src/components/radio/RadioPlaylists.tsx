@@ -25,7 +25,7 @@ export function RadioPlaylists() {
   const { data: playlists, isLoading } = useQuery({
     queryKey: ['spotify-playlists', selectedMood],
     queryFn: async () => {
-      let query = supabase
+      const query = supabase
         .from('playlists')
         .select('*')
         .eq('playlist_type', 'spotify')

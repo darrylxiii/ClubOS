@@ -17,14 +17,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Loader2, 
-  ChevronLeft, 
-  Save, 
+import {
+  Loader2,
+  ChevronLeft,
+  Save,
   Sparkles,
   BookOpen,
   Wand2
 } from "lucide-react";
+import { CourseBuilder, Module } from "@/components/academy/CourseBuilder";
+import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
 
 export default function CourseEdit() {
   const { id } = useParams();
@@ -37,6 +39,7 @@ export default function CourseEdit() {
   const [aiLoading, setAiLoading] = useState(false);
   const [course, setCourse] = useState<any>(null);
   const [modules, setModules] = useState<any[]>([]);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -115,8 +118,8 @@ export default function CourseEdit() {
     setAiLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('ai-course-generator', {
-        body: { 
-          action: 'enhance_description', 
+        body: {
+          action: 'enhance_description',
           prompt: formData.description,
           courseData: { title: formData.title }
         }
@@ -137,6 +140,63 @@ export default function CourseEdit() {
       });
     } finally {
       setAiLoading(false);
+    }
+  };
+
+
+
+  const handleModulesChange = async (newModules: Module[]) => {
+    // Optimistic update
+    setModules(newModules);
+
+    try {
+      const updates = newModules.map((module, index) => ({
+        id: module.id,
+        display_order: index,
+        updated_at: new Date().toISOString(),
+      }));
+
+      const promises = updates.map(update =>
+        supabase
+          .from('modules')
+          .update({ display_order: update.display_order })
+          .eq('id', update.id)
+      );
+
+      await Promise.all(promises);
+    } catch (error: any) {
+      toast({
+        title: "Error reordering modules",
+        description: error.message,
+        variant: "destructive",
+      });
+      loadCourseData();
+    }
+  };
+
+  const handleDeleteModule = async (moduleId: string) => {
+    if (!confirm("Are you sure you want to delete this module?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("modules")
+        .delete()
+        .eq("id", moduleId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Module deleted",
+        description: "The module has been removed successfully",
+      });
+
+      loadCourseData();
+    } catch (error: any) {
+      toast({
+        title: "Error deleting module",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   };
 
@@ -409,43 +469,31 @@ export default function CourseEdit() {
         </Card>
 
         {/* Modules Section */}
+
         <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="font-bold text-lg">Course Modules</h3>
-              <p className="text-sm text-muted-foreground">
-                {modules.length} module{modules.length !== 1 ? "s" : ""} in this course
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              onClick={() => navigate(`/courses/manage-modules/${id}`)}
-            >
-              Manage Modules
-            </Button>
+          <div className="mb-6">
+            <h3 className="font-bold text-lg">Course Modules</h3>
+            <p className="text-sm text-muted-foreground">
+              Manage your course content. Drag to reorder.
+            </p>
           </div>
 
-          {modules.length > 0 && (
-            <div className="space-y-2 mt-4">
-              {modules.slice(0, 5).map((module, index) => (
-                <div
-                  key={module.id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/50"
-                >
-                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-                    {index + 1}
-                  </div>
-                  <p className="text-sm flex-1">{module.title}</p>
-                </div>
-              ))}
-              {modules.length > 5 && (
-                <p className="text-xs text-muted-foreground text-center pt-2">
-                  +{modules.length - 5} more modules
-                </p>
-              )}
-            </div>
-          )}
+          <CourseBuilder
+            modules={modules}
+            onModulesChange={handleModulesChange}
+            onEditModule={(id) => navigate(`/modules/${id}/edit`)}
+            onDeleteModule={handleDeleteModule}
+            onAddModule={() => setShowCreateDialog(true)}
+          />
         </Card>
+
+        <CreateModuleDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          courseId={id!}
+          onSuccess={loadCourseData}
+          nextDisplayOrder={modules.length}
+        />
       </div>
     </AppLayout>
   );

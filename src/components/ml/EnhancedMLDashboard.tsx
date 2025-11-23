@@ -67,7 +67,7 @@ export function EnhancedMLDashboard() {
     try {
       setLoading(true);
 
-      let query = supabase
+      const query = supabase
         .from('interaction_insights')
         .select(`
           *,

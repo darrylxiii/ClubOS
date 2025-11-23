@@ -65,7 +65,7 @@ export const UnifiedTasksList = ({
       const { data, error } = await query;
       if (error) throw error;
       
-      let filteredTasks = data || [];
+      const filteredTasks = data || [];
       
       setTasks(filteredTasks);
     } catch (error) {

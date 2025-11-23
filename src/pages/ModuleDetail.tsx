@@ -189,7 +189,7 @@ export default function ModuleDetail() {
   useEffect(() => {
     if (!videoRef || !user || !module) return;
 
-    let watchStartTime = Date.now();
+    const watchStartTime = Date.now();
     let totalWatchTime = 0;
     let lastUpdateTime = 0;
 

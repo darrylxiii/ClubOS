@@ -33,24 +33,21 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       }
 
       try {
-        // Fetch profile data
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('account_status, onboarding_completed_at')
-          .eq('id', user.id)
-          .single();
+        // Fetch profile and user roles in parallel
+        const [profileResult, userRolesResult] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('account_status, onboarding_completed_at')
+            .eq('id', user.id)
+            .single(),
+          supabase
+            .from('user_roles')
+            .select('role')
+            .eq('user_id', user.id)
+        ]);
 
-        if (profileError) {
-          logger.error("[ProtectedRoute] Error checking account status:", profileError);
-          setCheckingStatus(false);
-          return;
-        }
-
-        // Fetch user roles separately
-        const { data: userRoles } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
+        const { data: profile, error: profileError } = profileResult;
+        const { data: userRoles } = userRolesResult;
 
         // Check if user has elevated roles
         const roles = userRoles?.map((r) => r.role) || [];
@@ -61,7 +58,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
         // Only pure candidates need to complete onboarding
         const needsOnboarding = isPureCandidate && !profile.onboarding_completed_at;
-        
+
         setOnboardingCompleted(!needsOnboarding);
         setAccountStatus(profile.account_status as 'approved' | 'pending' | 'declined');
       } catch (error) {

@@ -14,6 +14,7 @@ import { extractYouTubeVideoId } from "@/lib/youtubeUtils";
 import { SpotifyEmbed } from "@/components/feed/SpotifyEmbed";
 import { StoryShareCard } from "./StoryShareCard";
 import { EnhancedStoryViewer } from "@/components/social/EnhancedStoryViewer";
+import { LinkPreview } from "./LinkPreview";
 
 interface MessageBubbleProps {
   message: Message;
@@ -36,7 +37,7 @@ export const MessageBubble = ({
   const [attachmentUrls, setAttachmentUrls] = useState<Record<string, string>>({});
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [storyViewerData, setStoryViewerData] = useState<any>(null);
-  
+
   const senderName = message.sender?.full_name || "Unknown User";
   const initials = senderName
     .split(" ")
@@ -49,15 +50,15 @@ export const MessageBubble = ({
   useEffect(() => {
     const loadAttachmentUrls = async () => {
       if (!message.attachments || message.attachments.length === 0) return;
-      
+
       const urls: Record<string, string> = {};
-      
+
       for (const attachment of message.attachments) {
         try {
           const { data } = await supabase.storage
             .from('message-attachments')
             .createSignedUrl(attachment.file_path, 3600);
-          
+
           if (data?.signedUrl) {
             urls[attachment.id] = data.signedUrl;
           }
@@ -65,10 +66,10 @@ export const MessageBubble = ({
           // Silent fail - URLs will show loading state
         }
       }
-      
+
       setAttachmentUrls(urls);
     };
-    
+
     loadAttachmentUrls();
   }, [message.attachments, message.id]);
 
@@ -86,7 +87,7 @@ export const MessageBubble = ({
       if (spotifyType && spotifyId) {
         return (
           <div className="space-y-2">
-            <SpotifyEmbed 
+            <SpotifyEmbed
               type={spotifyType}
               spotifyId={spotifyId}
               url={message.media_url}
@@ -127,7 +128,7 @@ export const MessageBubble = ({
     if (message.media_type === 'audio' && message.media_url) {
       const metadata = message.metadata as any;
       const transcript = metadata?.transcript;
-      
+
       return (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -140,8 +141,8 @@ export const MessageBubble = ({
           {transcript && (
             <div className={cn(
               "text-xs italic p-2 rounded-lg border",
-              isCurrentUser 
-                ? "bg-white/10 border-white/20 text-white/90" 
+              isCurrentUser
+                ? "bg-white/10 border-white/20 text-white/90"
                 : "bg-muted/30 border-border/30 text-muted-foreground"
             )}>
               "{transcript}"
@@ -153,7 +154,19 @@ export const MessageBubble = ({
 
     // Only show text content if it exists
     if (message.content && message.content.trim()) {
-      return <p className="break-words">{message.content}</p>;
+      // Check for URLs to preview
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const urls = message.content.match(urlRegex);
+      const firstUrl = urls && urls[0];
+
+      return (
+        <div className="space-y-2">
+          <p className="break-words whitespace-pre-wrap">{message.content}</p>
+          {firstUrl && !message.media_type && (
+            <LinkPreview url={firstUrl} />
+          )}
+        </div>
+      );
     }
 
     // Return null if no content (attachments will be shown below)
@@ -163,7 +176,7 @@ export const MessageBubble = ({
   const handleStoryClick = async () => {
     if (message.media_type === 'story_share' && message.metadata) {
       const metadata = message.metadata as any;
-      
+
       // Fetch the full story data
       const { data: story } = await supabase
         .from('stories')
@@ -190,7 +203,7 @@ export const MessageBubble = ({
     const metadata = message.metadata as any;
     return (
       <>
-        <div 
+        <div
           className={cn(
             "flex gap-3 group animate-fade-in relative",
             isCurrentUser && "flex-row-reverse"
@@ -198,7 +211,7 @@ export const MessageBubble = ({
         >
           {/* Avatar */}
           <div className="relative h-11 w-11 flex-shrink-0">
-            <Avatar 
+            <Avatar
               className="h-11 w-11 cursor-pointer shadow-glass-md ring-2 ring-background hover:ring-primary/60 hover:scale-105 transition-all duration-200"
               onClick={() => navigate(`/profile/${message.sender_id}`)}
             >
@@ -208,8 +221,8 @@ export const MessageBubble = ({
               </AvatarFallback>
             </Avatar>
             {!isCurrentUser && (
-              <OnlineStatusIndicator 
-                userId={message.sender_id} 
+              <OnlineStatusIndicator
+                userId={message.sender_id}
                 className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 ring-2 ring-background"
               />
             )}
@@ -227,7 +240,7 @@ export const MessageBubble = ({
               onStoryClick={handleStoryClick}
               isOwnMessage={isCurrentUser}
             />
-            
+
             {/* Timestamp */}
             <div className={cn(
               "flex items-center gap-1.5 text-xs text-muted-foreground/80 mt-2",
@@ -258,7 +271,7 @@ export const MessageBubble = ({
   }
 
   return (
-    <div 
+    <div
       className={cn(
         "flex gap-3 group animate-fade-in relative",
         isCurrentUser && "flex-row-reverse"
@@ -273,7 +286,7 @@ export const MessageBubble = ({
 
       {/* Avatar with online status */}
       <div className="relative h-11 w-11 flex-shrink-0">
-        <Avatar 
+        <Avatar
           className="h-11 w-11 cursor-pointer shadow-glass-md ring-2 ring-background hover:ring-primary/60 hover:scale-105 transition-all duration-200"
           onClick={() => navigate(`/profile/${message.sender_id}`)}
         >
@@ -283,8 +296,8 @@ export const MessageBubble = ({
           </AvatarFallback>
         </Avatar>
         {!isCurrentUser && (
-          <OnlineStatusIndicator 
-            userId={message.sender_id} 
+          <OnlineStatusIndicator
+            userId={message.sender_id}
             className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 ring-2 ring-background"
           />
         )}
@@ -316,7 +329,7 @@ export const MessageBubble = ({
               {isCurrentUser && (
                 <div className="flex items-center justify-end gap-1.5 mt-1.5">
                   <span className="text-[10px] text-white/60">
-                    {message.read_at 
+                    {message.read_at
                       ? `Read ${format(new Date(message.read_at), "HH:mm")}`
                       : 'Sent'
                     }
@@ -362,7 +375,7 @@ export const MessageBubble = ({
                         </a>
                       );
                     }
-                    
+
                     // Video attachments
                     if (attachment.file_type.startsWith('video/')) {
                       return (
@@ -376,7 +389,7 @@ export const MessageBubble = ({
                         </video>
                       );
                     }
-                    
+
                     // Document attachments (PDF, DOC, etc)
                     const fileSize = attachment.file_size ? `${(attachment.file_size / 1024).toFixed(1)} KB` : '';
                     return (
@@ -435,7 +448,7 @@ export const MessageBubble = ({
                 {format(new Date(message.created_at), "HH:mm")}
               </span>
               <div className="opacity-0 group-hover:opacity-100 transition-all duration-200">
-                <MessageActions 
+                <MessageActions
                   message={message as any}
                   isOwnMessage={isCurrentUser}
                   onEdit={onEdit}

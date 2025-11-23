@@ -118,7 +118,7 @@ serve(async (req) => {
     const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
     
     // Phase 6: Circuit breaker - stop after 2 consecutive failures
-    let consecutiveFailures = 0;
+    const consecutiveFailures = 0;
     const MAX_CONSECUTIVE_FAILURES = 2;
 
     // Process each namespace

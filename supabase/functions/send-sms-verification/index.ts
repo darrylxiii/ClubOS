@@ -10,6 +10,10 @@ const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
+// Development mode - ONLY for local testing, NEVER in production
+const IS_DEVELOPMENT = Deno.env.get("DENO_ENV") === "development";
+const DEV_FIXED_CODE = "123456"; // Fixed code for development testing only
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -34,13 +38,23 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
-      throw new Error('Twilio credentials not configured');
+    // Security Check: In production, Twilio credentials are REQUIRED
+    const hasTwilioCredentials = TWILIO_ACCOUNT_SID && TWILIO_AUTH_TOKEN && TWILIO_PHONE_NUMBER;
+
+    if (!hasTwilioCredentials && !IS_DEVELOPMENT) {
+      // Production MUST have Twilio configured - no bypass allowed
+      console.error('[SECURITY] Twilio credentials missing in production environment');
+      throw new Error('SMS service not configured');
+    }
+
+    if (!hasTwilioCredentials && IS_DEVELOPMENT) {
+      console.warn('[DEV MODE] ⚠️  Using development bypass - Twilio credentials not configured');
+      console.warn('[DEV MODE] This mode is ONLY for local testing and will NOT work in production');
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
     const authHeader = req.headers.get('Authorization');
-    
+
     // Support both authenticated and unauthenticated (public) requests
     let user = null;
     if (authHeader) {
@@ -72,7 +86,7 @@ const handler = async (req: Request): Promise<Response> => {
           max_attempts: rateLimitCheck.max_attempts,
           retry_after_minutes: rateLimitCheck.retry_after_minutes
         });
-        
+
         // Phase 2: Enhanced logging with detailed metadata
         await supabase.from('verification_attempts').insert({
           user_id: user.id,
@@ -106,26 +120,28 @@ const handler = async (req: Request): Promise<Response> => {
 
         // Phase 2: Return detailed error message with retry info
         return new Response(
-          JSON.stringify({ 
+          JSON.stringify({
             error: rateLimitCheck.message || 'Too many attempts. Please try again later.',
             error_code: 'RATE_LIMITED',
             retry_after_minutes: rateLimitCheck.retry_after_minutes,
             retry_after_seconds: rateLimitCheck.retry_after_seconds
           }),
-          { 
+          {
             status: 429,
-            headers: { 
-              ...corsHeaders, 
+            headers: {
+              ...corsHeaders,
               'Content-Type': 'application/json',
               'Retry-After': String(rateLimitCheck.retry_after_seconds || 1800)
-            } 
+            }
           }
         );
       }
     }
 
-    // Generate new code
-    const code = generateCode();
+    // Generate verification code
+    // In development without Twilio: use fixed code for easy testing
+    // In production: always generate cryptographically secure random code
+    const code = (IS_DEVELOPMENT && !TWILIO_ACCOUNT_SID) ? DEV_FIXED_CODE : generateCode();
     const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
 
     // Store verification in database
@@ -142,15 +158,58 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (dbError) throw dbError;
 
-    // Phase 2: Enhanced Twilio error logging
+    // Development Mode Bypass - Skip SMS sending if in dev mode without Twilio
+    if (IS_DEVELOPMENT && !TWILIO_ACCOUNT_SID) {
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('🔧 [DEV MODE] SMS Verification Code Generated');
+      console.log('═══════════════════════════════════════════════════════');
+      console.log(`📱 Phone: ${phone}`);
+      console.log(`🔑 Code: ${code}`);
+      console.log(`⏰ Expires: ${expiresAt.toISOString()}`);
+      console.log('═══════════════════════════════════════════════════════');
+      console.log('⚠️  This is DEVELOPMENT mode - no actual SMS sent');
+      console.log('⚠️  Enter code "${code}" in the verification form');
+      console.log('═══════════════════════════════════════════════════════');
+
+      // Log successful attempt (only for authenticated users)
+      if (user) {
+        await supabase.from('verification_attempts').insert({
+          user_id: user.id,
+          verification_type: 'phone',
+          action: 'send',
+          success: true,
+          phone,
+          ip_address: ipAddress,
+          user_agent: userAgent,
+          metadata: { dev_mode: true }
+        });
+      }
+
+      // Return success WITHOUT exposing the code (security best practice)
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Verification code sent (check server logs for dev code)',
+          code_length: 6,
+          expires_in_minutes: 30,
+          dev_mode: true // Indicator this is development
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
+    // PRODUCTION PATH - Send actual SMS via Twilio
     console.log(`[SMS Verification] Sending SMS to ${phone.substring(0, 8)}****`);
-    
+
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`;
     const twilioAuth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
 
     const formData = new URLSearchParams();
     formData.append('To', phone);
-    formData.append('From', TWILIO_PHONE_NUMBER);
+    formData.append('From', TWILIO_PHONE_NUMBER!);
     formData.append('Body', `Your Quantum Club verification code is: ${code}\n\nThis code expires in 30 minutes.\n\nIf you didn't request this, please ignore.`);
 
     const twilioResponse = await fetch(twilioUrl, {
@@ -170,7 +229,7 @@ const handler = async (req: Request): Promise<Response> => {
         error: twilioData,
         phone: phone.substring(0, 8) + '****'
       });
-      
+
       // Phase 2: Specific Twilio error handling
       const errorMessage = twilioData.message || 'Failed to send SMS';
       throw new Error(`Twilio Error: ${errorMessage}`);
@@ -206,8 +265,8 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Phase 2: Enhanced success response
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         message: 'Verification code sent',
         code_length: 6,
         expires_in_minutes: 30
@@ -219,11 +278,11 @@ const handler = async (req: Request): Promise<Response> => {
     );
   } catch (error: any) {
     console.error('[SMS Verification] Error:', error);
-    
+
     // Phase 2: Categorize error types
     let errorMessage = 'Failed to send verification code';
     let errorCode = 'UNKNOWN_ERROR';
-    
+
     if (error.message?.includes('Twilio')) {
       errorMessage = 'SMS service temporarily unavailable. Please try again.';
       errorCode = 'TWILIO_ERROR';
@@ -231,12 +290,12 @@ const handler = async (req: Request): Promise<Response> => {
       errorMessage = error.message;
       errorCode = 'RATE_LIMITED';
     }
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: errorMessage,
         error_code: errorCode,
-        details: error.message 
+        details: error.message
       }),
       {
         status: 500,

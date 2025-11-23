@@ -95,13 +95,13 @@ export const useMessages = (conversationId?: string) => {
     full_name: string | null;
     avatar_url: string | null;
   }>>([]);
-  
+
   // Pagination state
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [oldestMessageDate, setOldestMessageDate] = useState<string | null>(null);
   const MESSAGES_PER_PAGE = 50;
-  
+
   // Store user's conversation IDs for O(1) lookups (fixes N+1 query)
   const [userConversationIds, setUserConversationIds] = useState<Set<string>>(new Set());
 
@@ -151,7 +151,7 @@ export const useMessages = (conversationId?: string) => {
       // Get last message, participants, and unread count for each conversation
       // Optimized: Batch queries to eliminate N+1
       const convoIds = convos?.map(c => c.id) || [];
-      
+
       // Batch fetch all participants
       const { data: allParticipants } = await supabase
         .from('conversation_participants')
@@ -297,7 +297,7 @@ export const useMessages = (conversationId?: string) => {
         .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .limit(MESSAGES_PER_PAGE);
-      
+
       // For pagination, load messages older than the oldest we have
       if (loadMore && oldestMessageDate) {
         query = query.lt('created_at', oldestMessageDate);
@@ -323,11 +323,11 @@ export const useMessages = (conversationId?: string) => {
       // Update pagination state
       const hasMore = messagesData && messagesData.length === MESSAGES_PER_PAGE;
       setHasMoreMessages(hasMore);
-      
+
       if (messagesData && messagesData.length > 0) {
         // Reverse to get chronological order (oldest first)
         const reversedMessages = [...messagesWithSenders].reverse() as Message[];
-        
+
         if (loadMore) {
           // Prepend older messages
           setMessages((prev) => [...reversedMessages, ...prev]);
@@ -335,7 +335,7 @@ export const useMessages = (conversationId?: string) => {
           // Initial load or refresh
           setMessages(reversedMessages);
         }
-        
+
         // Track oldest message date for pagination
         const oldest = messagesData[messagesData.length - 1];
         setOldestMessageDate(oldest.created_at);
@@ -365,7 +365,7 @@ export const useMessages = (conversationId?: string) => {
       }
     }
   }, [conversationId, user?.id, oldestMessageDate]);
-  
+
   // Load more messages (pagination)
   const loadMoreMessages = useCallback(() => {
     if (!loadingMore && hasMoreMessages) {
@@ -448,20 +448,20 @@ export const useMessages = (conversationId?: string) => {
   // Load user conversations once and keep in memory (fixes N+1 query)
   useEffect(() => {
     if (!user?.id) return;
-    
+
     const loadUserConversations = async () => {
       const { data } = await supabase
         .from('conversation_participants')
         .select('conversation_id')
         .eq('user_id', user.id);
-      
+
       if (data) {
         setUserConversationIds(new Set(data.map(c => c.conversation_id)));
       }
     };
-    
+
     loadUserConversations();
-    
+
     // Subscribe to changes in user's conversations
     const participantsChannel = supabase
       .channel('user-conversations')
@@ -474,7 +474,7 @@ export const useMessages = (conversationId?: string) => {
         loadUserConversations();
       })
       .subscribe();
-    
+
     return () => {
       supabase.removeChannel(participantsChannel);
     };
@@ -503,6 +503,29 @@ export const useMessages = (conversationId?: string) => {
             if (conversationId && newMessage.conversation_id === conversationId) {
               loadMessages(false);
             }
+
+            // Optimistically update conversations list
+            setConversations(prev => {
+              const convoIndex = prev.findIndex(c => c.id === newMessage.conversation_id);
+              if (convoIndex === -1) return prev; // Should not happen if in userConversationIds
+
+              const updatedConvo = { ...prev[convoIndex] };
+              updatedConvo.last_message = newMessage;
+              updatedConvo.last_message_at = newMessage.created_at;
+
+              // Increment unread count if not current conversation
+              if (newMessage.conversation_id !== conversationId && newMessage.sender_id !== user.id) {
+                updatedConvo.unread_count = (updatedConvo.unread_count || 0) + 1;
+              }
+
+              // Move to top
+              const newConversations = [...prev];
+              newConversations.splice(convoIndex, 1);
+              newConversations.unshift(updatedConvo);
+              return newConversations;
+            });
+          } else {
+            // New conversation for this user, reload all to be safe
             loadConversations();
           }
         }
@@ -517,9 +540,9 @@ export const useMessages = (conversationId?: string) => {
         },
         async (payload) => {
           const updatedMessage = payload.new as Message;
-          setMessages((prev) => 
-            prev.map((msg) => 
-              msg.id === updatedMessage.id 
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === updatedMessage.id
                 ? { ...msg, ...updatedMessage, sender: msg.sender }
                 : msg
             )
