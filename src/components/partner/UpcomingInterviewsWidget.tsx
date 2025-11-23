@@ -188,7 +188,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
       const normalizedBookings: NormalizedInterview[] = (bookings || []).map(b => {
         const app = b.application as any;
         const candidateProfile = app?.candidate_profiles;
-        const stages = app?.stages ? JSON.parse(app.stages) : [];
+        const stages = app?.stages ? (typeof app.stages === 'string' ? JSON.parse(app.stages) : app.stages) : [];
         const currentStage = stages[app?.current_stage_index || 0];
         
         return {
@@ -213,7 +213,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
       const normalizedDetected: NormalizedInterview[] = validDetected.map(d => {
         const app = d.applications as any;
         const candidateProfile = app?.candidate_profiles;
-        const stages = app?.stages ? JSON.parse(app.stages) : [];
+        const stages = app?.stages ? (typeof app.stages === 'string' ? JSON.parse(app.stages) : app.stages) : [];
         const currentStage = stages[app?.current_stage_index || 0];
         
         // Use interviewer_ids if available, otherwise fall back to detected_partners
