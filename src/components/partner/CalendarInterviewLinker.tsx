@@ -61,8 +61,34 @@ export function CalendarInterviewLinker({
     if (open && user) {
       loadData();
       loadTeamMembers();
+      // Auto-scan calendar when dialog opens
+      autoScanIfNeeded();
     }
   }, [open, user, jobId]);
+
+  const autoScanIfNeeded = async () => {
+    if (!user) return;
+    
+    try {
+      // Check if we need to scan (only if no recent scan)
+      const { data: recentScans } = await (supabase as any)
+        .from('detected_interviews')
+        .select('detected_at')
+        .eq('detected_by', user.id)
+        .order('detected_at', { ascending: false })
+        .limit(1);
+
+      const lastScan = recentScans?.[0]?.detected_at;
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      
+      // Only auto-scan if no scan in last 5 minutes
+      if (!lastScan || new Date(lastScan) < fiveMinutesAgo) {
+        handleScanCalendar();
+      }
+    } catch (error) {
+      console.error('Auto-scan check failed:', error);
+    }
+  };
 
   const loadData = async () => {
     if (!user) return;
@@ -241,7 +267,12 @@ export function CalendarInterviewLinker({
 
       if (error) throw error;
 
-      toast.success(`Scan complete! Detected ${data?.detectedCount || 0} potential interviews`);
+      const detectedCount = data?.detected || 0;
+      if (detectedCount > 0) {
+        toast.success(`Found ${detectedCount} new interview${detectedCount !== 1 ? 's' : ''}!`);
+      } else {
+        toast.info('No new interviews detected');
+      }
       await loadData(); // Reload data to show new detections
     } catch (error: any) {
       console.error('Calendar scan failed:', error);
@@ -292,13 +323,19 @@ export function CalendarInterviewLinker({
           job_id: jobId,
           application_id: selectedApplicationId,
           candidate_id: application.candidate_id,
+          candidate_email: application.candidate_profiles?.email,
+          candidate_name: application.candidate_profiles?.full_name,
           tqc_organizer_id: user?.id,
+          interviewer_ids: selectedInterviewers,
           status: 'confirmed',
           manually_edited: true,
           user_notes: notes,
           detection_confidence: 'high',
           detected_partners: partnerInterviewers,
-          detected_tqc_members: tqcInterviewers
+          detected_tqc_members: tqcInterviewers,
+          linked_at: new Date().toISOString(),
+          linked_by: user?.id,
+          auto_linked: false
         });
 
       if (error) throw error;

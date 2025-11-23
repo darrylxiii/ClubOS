@@ -7569,6 +7569,7 @@ export type Database = {
       detected_interviews: {
         Row: {
           application_id: string | null
+          auto_linked: boolean | null
           calendar_connection_id: string | null
           calendar_event_id: string
           calendar_provider: string
@@ -7587,7 +7588,9 @@ export type Database = {
           interview_type: string | null
           interviewer_ids: string[] | null
           job_id: string | null
+          linked_at: string | null
           linked_booking_id: string | null
+          linked_by: string | null
           location: string | null
           manually_edited: boolean | null
           meeting_link: string | null
@@ -7601,6 +7604,7 @@ export type Database = {
         }
         Insert: {
           application_id?: string | null
+          auto_linked?: boolean | null
           calendar_connection_id?: string | null
           calendar_event_id: string
           calendar_provider: string
@@ -7619,7 +7623,9 @@ export type Database = {
           interview_type?: string | null
           interviewer_ids?: string[] | null
           job_id?: string | null
+          linked_at?: string | null
           linked_booking_id?: string | null
+          linked_by?: string | null
           location?: string | null
           manually_edited?: boolean | null
           meeting_link?: string | null
@@ -7633,6 +7639,7 @@ export type Database = {
         }
         Update: {
           application_id?: string | null
+          auto_linked?: boolean | null
           calendar_connection_id?: string | null
           calendar_event_id?: string
           calendar_provider?: string
@@ -7651,7 +7658,9 @@ export type Database = {
           interview_type?: string | null
           interviewer_ids?: string[] | null
           job_id?: string | null
+          linked_at?: string | null
           linked_booking_id?: string | null
+          linked_by?: string | null
           location?: string | null
           manually_edited?: boolean | null
           meeting_link?: string | null
@@ -7718,6 +7727,27 @@ export type Database = {
             columns: ["linked_booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_linked_by_fkey"
+            columns: ["linked_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_linked_by_fkey"
+            columns: ["linked_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "detected_interviews_linked_by_fkey"
+            columns: ["linked_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
           {

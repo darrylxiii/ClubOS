@@ -113,8 +113,8 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
 
       if (bookingsError) throw bookingsError;
 
-      // Fetch confirmed detected interviews with pipeline stage
-      const { data: detected, error: detectedError } = await supabase
+      // Fetch upcoming detected interviews (future only)
+      const { data: upcomingDetected, error: upcomingError } = await supabase
         .from('detected_interviews')
         .select(`
           *,
@@ -138,10 +138,44 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
         .order('scheduled_start', { ascending: true })
         .limit(10);
 
-      if (detectedError) throw detectedError;
+      // Fetch ALL confirmed/linked detected interviews (regardless of date)
+      const { data: linkedDetected, error: linkedError } = await supabase
+        .from('detected_interviews')
+        .select(`
+          *,
+          applications(
+            id,
+            candidate_id,
+            current_stage_index,
+            stages,
+            candidate_profiles!applications_candidate_id_fkey(
+              id,
+              full_name, 
+              email,
+              avatar_url
+            )
+          ),
+          job:jobs!detected_interviews_job_id_fkey(title)
+        `)
+        .eq('job_id', jobId)
+        .eq('status', 'confirmed')
+        .order('scheduled_start', { ascending: true })
+        .limit(20);
+
+      if (upcomingError) throw upcomingError;
+      if (linkedError) throw linkedError;
+
+      // Merge and deduplicate
+      const detectedMap = new Map();
+      [...(upcomingDetected || []), ...(linkedDetected || [])].forEach(d => {
+        if (!detectedMap.has(d.id)) {
+          detectedMap.set(d.id, d);
+        }
+      });
+      const detected = Array.from(detectedMap.values());
 
       // Filter out any without applications
-      const validDetected = (detected || []).filter(d => d.applications);
+      const validDetected = detected.filter((d: any) => d.applications);
 
       console.log('[UpcomingInterviews] Fetched data:', {
         bookingsCount: bookings?.length || 0,

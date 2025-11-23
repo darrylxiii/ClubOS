@@ -259,14 +259,21 @@ serve(async (req) => {
 
     console.log(`Total events: ${allEvents.length}`);
 
-    // Limit to 30 most recent events to avoid timeout
+    // Filter future events and sort by date (soonest first)
+    allEvents = allEvents.filter(event => {
+      const eventDate = new Date(event.start?.dateTime || event.start?.date || 0);
+      return eventDate >= new Date(startDate);
+    });
+
     allEvents.sort((a, b) => {
       const dateA = new Date(a.start?.dateTime || a.start?.date || 0);
       const dateB = new Date(b.start?.dateTime || b.start?.date || 0);
-      return dateB.getTime() - dateA.getTime();
+      return dateA.getTime() - dateB.getTime(); // Future first, chronological
     });
-    allEvents = allEvents.slice(0, 30);
-    console.log(`Processing ${allEvents.length} most recent events`);
+    
+    // Process up to 50 events (prioritizing future)
+    allEvents = allEvents.slice(0, 50);
+    console.log(`Processing ${allEvents.length} events (future prioritized)`);
 
     const allAttendeeEmails = new Set<string>();
     allEvents.forEach(event => {
@@ -368,6 +375,20 @@ serve(async (req) => {
           }
         });
       }
+      
+      // If no job team match, populate from detected partners and TQC members
+      if (interviewerIds.length === 0) {
+        analysis.partners.forEach(p => {
+          if (p.userId && !interviewerIds.includes(p.userId)) {
+            interviewerIds.push(p.userId);
+          }
+        });
+        analysis.tqcMembers.forEach(t => {
+          if (t.userId && !interviewerIds.includes(t.userId)) {
+            interviewerIds.push(t.userId);
+          }
+        });
+      }
 
       const detectedInterview = {
         calendar_event_id: event.id,
@@ -402,7 +423,16 @@ serve(async (req) => {
           email: t.email,
           name: t.name 
         })),
-        status: confidence === 'high' && interviewerIds.length > 0 ? 'confirmed' : 'pending_review'
+        status: (() => {
+          // Auto-confirm if high confidence AND (has interviewers OR has known team members)
+          const hasKnownTeamMembers = analysis.partners.length > 0 || analysis.tqcMembers.length > 0;
+          const shouldAutoConfirm = confidence === 'high' && (interviewerIds.length > 0 || hasKnownTeamMembers);
+          return shouldAutoConfirm ? 'confirmed' : 'pending_review';
+        })(),
+        auto_linked: (() => {
+          const hasKnownTeamMembers = analysis.partners.length > 0 || analysis.tqcMembers.length > 0;
+          return confidence === 'high' && (interviewerIds.length > 0 || hasKnownTeamMembers);
+        })()
       };
 
       detectedInterviews.push(detectedInterview);
