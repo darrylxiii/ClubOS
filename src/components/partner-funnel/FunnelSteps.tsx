@@ -780,18 +780,17 @@ export function FunnelSteps() {
                 )}
               </div>
             )}
+            <span className="text-sm font-medium">
+              {Math.round(((currentStep + 1) / 5) * 100)}%
+            </span>
           </div>
-          <span className="text-sm font-medium">
-            {Math.round(((currentStep + 1) / 5) * 100)}%
-          </span>
+          <div className="h-2 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-300"
+              style={{ width: `${((currentStep + 1) / 5) * 100}%` }}
+            />
+          </div>
         </div>
-        <div className="h-2 bg-muted rounded-full overflow-hidden">
-          <div
-            className="h-full bg-primary transition-all duration-300"
-            style={{ width: `${((currentStep + 1) / 5) * 100}%` }}
-          />
-        </div>
-      </div>
 
       {/* Step Content */}
       {renderStep()}
@@ -823,6 +822,6 @@ export function FunnelSteps() {
         </div>
       )}
     </Card>
-    </React.Fragment >
+    </React.Fragment>
   );
 }
