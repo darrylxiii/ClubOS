@@ -224,7 +224,7 @@ export const ApplicationsTable = ({ applications, onUpdate }: ApplicationsTableP
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => navigate(`/candidates/${candidate?.id}`)}
+                            onClick={() => navigate(`/candidate/${candidate?.id}`)}
                           >
                             <ExternalLink className="w-4 h-4" />
                           </Button>

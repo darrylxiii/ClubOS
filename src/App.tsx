@@ -10,7 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { JobDashboardRoute } from "@/components/routes/JobDashboardRoute";
 import { RouteErrorBoundary } from "@/components/RouteErrorBoundary";
 import { TranslationDebugger } from "@/components/TranslationDebugger";
-import { lazy, Suspense, useState, useEffect, memo } from "react";
+import { lazy, Suspense, useState, useEffect, useRef, memo } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import i18n from "@/i18n/config";
@@ -115,6 +115,7 @@ const TimeTrackingPage = lazy(() => import("./pages/TimeTrackingPage"));
 const PageLoader = () => {
   const [showError, setShowError] = useState(false);
   const [countdown, setCountdown] = useState(5);
+  const countdownIntervalRef = useRef<number | null>(null);
 
   useEffect(() => {
     // Show error after 5 seconds
@@ -122,21 +123,32 @@ const PageLoader = () => {
       setShowError(true);
     }, 5000);
 
+    return () => clearTimeout(errorTimer);
+  }, []);
+
+  useEffect(() => {
     // Countdown for reload button
     if (showError) {
-      const countdownInterval = setInterval(() => {
+      countdownIntervalRef.current = window.setInterval(() => {
         setCountdown(prev => {
           if (prev <= 1) {
-            clearInterval(countdownInterval);
+            if (countdownIntervalRef.current) {
+              clearInterval(countdownIntervalRef.current);
+              countdownIntervalRef.current = null;
+            }
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
-      return () => clearInterval(countdownInterval);
+      
+      return () => {
+        if (countdownIntervalRef.current) {
+          clearInterval(countdownIntervalRef.current);
+          countdownIntervalRef.current = null;
+        }
+      };
     }
-
-    return () => clearTimeout(errorTimer);
   }, [showError]);
 
   if (showError) {

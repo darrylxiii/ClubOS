@@ -46,7 +46,7 @@ const ClubAI = () => {
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<{ full_name?: string | null; current_title?: string | null; career_preferences?: string | null; current_salary_min?: number | null; avatar_url?: string | null } | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingAction, setPendingAction] = useState<string>("");
   const [pendingNavigation, setPendingNavigation] = useState<{ path: string; reason: string } | null>(null);
@@ -54,7 +54,12 @@ const ClubAI = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
   // Conversation management
-  const [conversations, setConversations] = useState<any[]>([]);
+  const [conversations, setConversations] = useState<Array<{
+    id: string;
+    messages?: Message[];
+    updated_at: string;
+    [key: string]: unknown;
+  }>>([]);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [showConversations, setShowConversations] = useState(false);
   
@@ -163,8 +168,8 @@ const ClubAI = () => {
     }
   };
   
-  const createNewConversation = async () => {
-    if (!user) return;
+  const createNewConversation = async (): Promise<string | null> => {
+    if (!user) return null;
     
     try {
       const { data, error } = await supabase
@@ -188,6 +193,8 @@ const ClubAI = () => {
         title: "New conversation started",
         description: "You can now chat with Club AI"
       });
+      
+      return data.id;
     } catch (error) {
       console.error("Error creating conversation:", error);
       toast({
@@ -195,6 +202,7 @@ const ClubAI = () => {
         description: "Failed to create conversation",
         variant: "destructive"
       });
+      return null;
     }
   };
   
@@ -235,7 +243,7 @@ const ClubAI = () => {
       const { error } = await supabase
         .from("ai_conversations")
         .update({
-          messages: updatedMessages as any,
+          messages: updatedMessages,
           updated_at: new Date().toISOString()
         })
         .eq("id", currentConversationId);
@@ -280,11 +288,18 @@ const ClubAI = () => {
   const sendMessage = async (messageText: string, uploadedFiles?: File[], selectedModel?: string) => {
     if (!messageText.trim() && (!uploadedFiles || uploadedFiles.length === 0)) return;
     
-    // Create conversation if none exists
-    if (!currentConversationId) {
-      await createNewConversation();
-      // Wait a bit for the conversation to be created
-      await new Promise(resolve => setTimeout(resolve, 500));
+    // Create conversation if none exists and wait for it to be created
+    let conversationId = currentConversationId;
+    if (!conversationId) {
+      conversationId = await createNewConversation();
+      if (!conversationId) {
+        toast({
+          title: "Error",
+          description: "Failed to create conversation. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
     }
 
     // Detect mode from message prefix
@@ -358,8 +373,14 @@ const ClubAI = () => {
     }
 
     const userMessage: Message = { role: "user", content: messageText, mode };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    
+    // Use functional update to get latest messages
+    let currentMessages: Message[] = [];
+    setMessages(prev => {
+      currentMessages = [...prev, userMessage];
+      return currentMessages;
+    });
+    
     setIsLoading(true);
 
     let assistantContent = "";
@@ -435,9 +456,9 @@ const ClubAI = () => {
 
     try {
       await streamChat({
-        messages: [...messages, userMessage],
+        messages: currentMessages,
         userId: user?.id,
-        conversationId: currentConversationId,
+        conversationId: conversationId,
         images: imageDataUrls.length > 0 ? imageDataUrls : undefined,
         documents: documentData.length > 0 ? documentData : undefined,
         selectedModel,
@@ -445,16 +466,19 @@ const ClubAI = () => {
         onDone: async () => {
           setIsLoading(false);
           // Save conversation after AI response is complete
-          const assistantMessage: Message = {
-            role: "assistant",
-            content: assistantContent,
-            needsConfirmation,
-            confirmationMessage,
-            action: pendingToolCalls.length > 0 ? pendingToolCalls[0] : undefined
-          };
-          const finalMessages = [...messages, userMessage, assistantMessage];
-          await saveConversation(finalMessages);
-          await loadConversations();
+          setMessages((prev) => {
+            const assistantMessage: Message = {
+              role: "assistant",
+              content: assistantContent,
+              needsConfirmation,
+              confirmationMessage,
+              action: pendingToolCalls.length > 0 ? pendingToolCalls[0] : undefined
+            };
+            const finalMessages = [...prev, assistantMessage];
+            saveConversation(finalMessages).catch(console.error);
+            loadConversations().catch(console.error);
+            return finalMessages;
+          });
         },
       });
     } catch (error) {

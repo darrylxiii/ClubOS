@@ -835,7 +835,7 @@ export default function JobDashboard() {
                               toast.error('Unable to load candidate profile');
                               return;
                             }
-                            navigate(`/candidates/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(stage.name)}&stageIndex=${stage.order || 0}`);
+                            navigate(`/candidate/${candidateId}?fromJob=${jobId}&stage=${encodeURIComponent(stage.name)}&stageIndex=${stage.order || 0}`);
                           }}
                         />
                       );

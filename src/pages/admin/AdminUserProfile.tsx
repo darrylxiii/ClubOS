@@ -173,7 +173,7 @@ export default function AdminUserProfile() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    onClick={() => navigate(`/candidates/${candidateProfile.id}`)}
+                    onClick={() => navigate(`/candidate/${candidateProfile.id}`)}
                   >
                     <ExternalLink className="w-4 h-4 mr-2" />
                     View as Candidate

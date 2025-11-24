@@ -61,11 +61,18 @@ export default function MeetingTemplates() {
   const loadTemplates = async () => {
     try {
       setLoading(true);
-      // TODO: Fetch from actual meeting_templates table once schema is updated
-      setTemplates([]);
+      const { data, error } = await supabase
+        .from('meeting_templates')
+        .select('*')
+        .or(`user_id.eq.${user?.id},is_public.eq.true`)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTemplates(data || []);
     } catch (error: any) {
       console.error('Error loading templates:', error);
       toast.error('Failed to load templates');
+      setTemplates([]);
     } finally {
       setLoading(false);
     }

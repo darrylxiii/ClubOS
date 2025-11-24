@@ -723,7 +723,7 @@ export function UnifiedUserManagement() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => navigate(`/candidates/${user.candidate_id}`)}
+                              onClick={() => navigate(`/candidate/${user.candidate_id}`)}
                               title="View as Candidate"
                             >
                               <ExternalLink className="w-4 h-4" />
@@ -747,7 +747,7 @@ export function UnifiedUserManagement() {
                             <UserSettingsPreview 
                               userId={user.id}
                               candidateId={user.candidate_id}
-                              onViewFull={() => navigate(`/candidates/${user.candidate_id}?tab=settings`)}
+                              onViewFull={() => navigate(`/candidate/${user.candidate_id}?tab=settings`)}
                             />
                           </div>
                         </TableCell>

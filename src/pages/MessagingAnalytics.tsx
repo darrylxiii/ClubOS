@@ -53,10 +53,59 @@ export default function MessagingAnalytics() {
       .select('id', { count: 'exact' })
       .gte('created_at', thirtyDaysAgo);
 
+    // Calculate actual response time from message timestamps
+    let avgResponseTime = 0;
+    try {
+      // Get conversations where user is a participant
+      const { data: userConversations } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+
+      if (userConversations && userConversations.length > 0) {
+        const conversationIds = userConversations.map(c => c.conversation_id);
+        
+        // Get messages in these conversations, ordered by conversation and timestamp
+        const { data: allMessages } = await supabase
+          .from('messages')
+          .select('id, conversation_id, sender_id, created_at')
+          .in('conversation_id', conversationIds)
+          .gte('created_at', thirtyDaysAgo)
+          .order('conversation_id', { ascending: true })
+          .order('created_at', { ascending: true });
+
+        if (allMessages && allMessages.length > 1) {
+          // Calculate response times: time between a message from someone else and user's reply
+          const responseTimes: number[] = [];
+          for (let i = 0; i < allMessages.length - 1; i++) {
+            const current = allMessages[i];
+            const next = allMessages[i + 1];
+            
+            // If current message is from someone else and next is from user (response)
+            if (current.conversation_id === next.conversation_id &&
+                current.sender_id !== user.id &&
+                next.sender_id === user.id) {
+              const responseTime = new Date(next.created_at).getTime() - 
+                                   new Date(current.created_at).getTime();
+              responseTimes.push(responseTime / (1000 * 60)); // Convert to minutes
+            }
+          }
+          
+          if (responseTimes.length > 0) {
+            avgResponseTime = Math.round(
+              responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error calculating response time:', error);
+    }
+
     setStats({
       totalSent: sentMessages?.length || 0,
       totalReceived: receivedMessages?.length || 0,
-      avgResponseTime: 12, // TODO: Calculate actual response time
+      avgResponseTime: avgResponseTime || 0,
       activeConversations: conversations?.length || 0,
       mediaShared: mediaMessages?.length || 0
     });

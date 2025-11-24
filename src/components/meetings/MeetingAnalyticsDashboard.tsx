@@ -116,14 +116,32 @@ export function MeetingAnalyticsDashboard() {
 
       // Calculate join rate
       const totalInvited = invitations?.length || 0;
-      const joinRate = 75; // Default placeholder
+      const joinedCount = invitations?.filter(inv => inv.status === 'accepted' || inv.status === 'joined').length || 0;
+      const joinRate = totalInvited > 0 ? (joinedCount / totalInvited) * 100 : 0;
+
+      // Calculate average duration from scheduled times or analytics
+      let avgDuration = 0;
+      if (meetings && meetings.length > 0) {
+        const durations = meetings
+          .filter(m => m.scheduled_start && m.scheduled_end)
+          .map(m => {
+            const start = new Date(m.scheduled_start);
+            const end = new Date(m.scheduled_end);
+            return (end.getTime() - start.getTime()) / (1000 * 60); // Convert to minutes
+          })
+          .filter(d => d > 0 && d < 480); // Filter out invalid durations (0 or > 8 hours)
+        
+        if (durations.length > 0) {
+          avgDuration = durations.reduce((sum, d) => sum + d, 0) / durations.length;
+        }
+      }
 
       setAnalytics({
         totalMeetings: meetings?.length || 0,
         instantMeetings: instantCount,
         scheduledMeetings: scheduledCount,
         avgParticipants: Math.round(avgParticipants * 10) / 10,
-        avgDuration: 45, // TODO: Calculate from actual meeting durations
+        avgDuration: Math.round(avgDuration),
         totalParticipants,
         creationMethods,
         weeklyTrend: weeklyData,

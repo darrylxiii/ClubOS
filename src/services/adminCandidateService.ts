@@ -166,9 +166,35 @@ export const adminCandidateService = {
 
   // Get strategists
   async getStrategists() {
-    // Temporarily simplified to avoid TypeScript issues
-    // TODO: Implement proper strategist fetching
-    return { data: [], error: null };
+    try {
+      const { data: strategistRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .eq('role', 'strategist');
+
+      if (rolesError) throw rolesError;
+      if (!strategistRoles || strategistRoles.length === 0) {
+        return { data: [], error: null };
+      }
+
+      const userIds = strategistRoles.map(r => r.user_id);
+      
+      const { data: strategists, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, full_name, email, avatar_url, current_title, company_id')
+        .in('id', userIds)
+        .order('full_name');
+
+      if (profilesError) throw profilesError;
+
+      return { 
+        data: strategists || [], 
+        error: null 
+      };
+    } catch (error: any) {
+      console.error('Error fetching strategists:', error);
+      return { data: [], error };
+    }
   },
 
   // Assign strategist to candidate

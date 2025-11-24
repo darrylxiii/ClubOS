@@ -111,7 +111,11 @@ export function RepostButton({ postId, repostCount, onUpdate, post }: RepostButt
             content: combinedContent,
             type: 'repost_with_commentary'
           }
-        }).catch(err => console.error('Failed to generate AI summary:', err));
+        }).catch(err => {
+          console.error('Failed to generate AI summary:', err);
+          // Non-critical: AI summary generation failure shouldn't block repost
+          toast.error('Repost successful, but AI summary generation failed');
+        });
       }
 
       toast.success("Reposted with your thoughts");

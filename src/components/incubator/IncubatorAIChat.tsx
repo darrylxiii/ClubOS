@@ -27,7 +27,7 @@ export const IncubatorAIChat = memo(({ context, onInteraction }: IncubatorAIChat
 • **Unit economics** - Calculate payback, margins, CAC
 • **Market sizing** - Estimate TAM/SAM/SOM for your industry
 • **GTM strategy** - Channel recommendations for your constraints
-• **Budget planning** - How to allocate your $${(context.scenario?.budget / 1000).toFixed(0)}k
+• **Budget planning** - How to allocate your $${context.scenario?.budget ? (context.scenario.budget / 1000).toFixed(0) : '0'}k
 • **Risk mitigation** - Identify and test key assumptions
 • **Section drafting** - Help write specific plan sections
 
@@ -53,14 +53,19 @@ What would you like to work on?`,
       content: input,
     };
 
-    setMessages(prev => [...prev, userMessage]);
     const messageText = input;
     setInput('');
     setIsLoading(true);
 
     // Create placeholder for assistant response
     const assistantId = (Date.now() + 1).toString();
-    setMessages(prev => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
+    
+    // Use functional update to get the latest messages and add both user message and placeholder
+    let currentMessages: Message[] = [];
+    setMessages(prev => {
+      currentMessages = [...prev, userMessage];
+      return [...currentMessages, { id: assistantId, role: 'assistant' as const, content: '' }];
+    });
 
     try {
       const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/incubator-ai-chat`;
@@ -72,7 +77,7 @@ What would you like to work on?`,
           'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
         body: JSON.stringify({
-          messages: messages.concat(userMessage).map(m => ({
+          messages: currentMessages.map(m => ({
             role: m.role,
             content: m.content,
           })),

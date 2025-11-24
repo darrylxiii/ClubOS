@@ -41,7 +41,7 @@ export function useIncubatorSession(scenario: IncubatorScenario) {
           .from('incubator_sessions')
           .insert([{
             user_id: user.id,
-            scenario_seed: scenario as any,
+            scenario_seed: scenario,
             scenario_difficulty: scenario.difficulty,
           }])
           .select()
@@ -123,24 +123,24 @@ export function useIncubatorSession(scenario: IncubatorScenario) {
 
   // Update plan section
   const updatePlanSection = useCallback((sectionId: keyof IncubatorPlanSection, content: string) => {
-    setPlanSections(prev => ({
-      ...prev,
-      [sectionId]: content,
-    }));
+    setPlanSections(prev => {
+      const newPlan = { ...prev, [sectionId]: content };
+      
+      // Calculate total word count using the updated plan
+      const totalWords = Object.values(newPlan).reduce((sum, text) => {
+        if (!text) return sum;
+        return sum + text.trim().split(/\s+/).length;
+      }, 0);
+      setWordCount(totalWords);
 
-    // Calculate total word count
-    const newPlan = { ...planSections, [sectionId]: content };
-    const totalWords = Object.values(newPlan).reduce((sum, text) => {
-      if (!text) return sum;
-      return sum + text.trim().split(/\s+/).length;
-    }, 0);
-    setWordCount(totalWords);
-
-    logAction({
-      action_type: 'EDIT',
-      payload: { section: sectionId, content, wordCount: totalWords },
+      logAction({
+        action_type: 'EDIT',
+        payload: { section: sectionId, content, wordCount: totalWords },
+      });
+      
+      return newPlan;
     });
-  }, [planSections, logAction]);
+  }, [logAction]);
 
   // Submit assessment
   const submitAssessment = useCallback(async (voiceBlob?: Blob) => {

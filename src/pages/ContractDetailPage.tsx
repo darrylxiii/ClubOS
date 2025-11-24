@@ -9,6 +9,9 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { MilestoneTimeline } from "@/components/contracts/MilestoneTimeline";
 import { PaymentSchedule } from "@/components/contracts/PaymentSchedule";
+import { MilestoneRevisionModal } from "@/components/contracts/MilestoneRevisionModal";
+import { MilestoneFileUploadModal } from "@/components/contracts/MilestoneFileUploadModal";
+import { MilestoneCommentsDrawer } from "@/components/contracts/MilestoneCommentsDrawer";
 import { ProjectContract, ProjectMilestone } from "@/types/projects";
 import { 
   ArrowLeft, 
@@ -111,26 +114,46 @@ export default function ContractDetailPage() {
         .eq('id', milestoneId);
 
       if (error) throw error;
-      toast.success("Milestone approved! Payment processing...");
-      // TODO: Trigger payment release via edge function
+      
+      // Trigger payment release via edge function
+      try {
+        const { error: paymentError } = await supabase.functions.invoke('release-milestone-payment', {
+          body: { milestoneId, contractId },
+        });
+        
+        if (paymentError) {
+          console.error('Payment release error:', paymentError);
+          toast.warning("Milestone approved, but payment release failed. Please contact support.");
+        } else {
+          toast.success("Milestone approved! Payment released successfully.");
+        }
+      } catch (paymentErr) {
+        console.error('Payment release exception:', paymentErr);
+        toast.warning("Milestone approved, but payment release failed. Please contact support.");
+      }
     } catch (error: any) {
       toast.error(error.message);
     }
   };
 
   const handleRequestRevision = async (milestoneId: string) => {
-    // TODO: Open modal for revision feedback
-    toast.info("Revision feedback modal coming soon");
+    setSelectedMilestoneId(milestoneId);
+    setRevisionModalOpen(true);
   };
 
   const handleUploadDeliverable = (milestoneId: string) => {
-    // TODO: Open file upload modal
-    toast.info("File upload modal coming soon");
+    setSelectedMilestoneId(milestoneId);
+    setUploadModalOpen(true);
   };
 
   const handleViewComments = (milestoneId: string) => {
-    // TODO: Open comments drawer
-    toast.info("Comments drawer coming soon");
+    setSelectedMilestoneId(milestoneId);
+    setCommentsDrawerOpen(true);
+  };
+
+  const handleRefreshMilestones = () => {
+    // Refetch milestones after actions
+    window.location.reload(); // Simple refresh, could use query invalidation instead
   };
 
   const handleOpenDispute = () => {
@@ -392,6 +415,29 @@ export default function ContractDetailPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Modals and Drawers */}
+        {selectedMilestoneId && (
+          <>
+            <MilestoneRevisionModal
+              open={revisionModalOpen}
+              onOpenChange={setRevisionModalOpen}
+              milestoneId={selectedMilestoneId}
+              onRevisionRequested={handleRefreshMilestones}
+            />
+            <MilestoneFileUploadModal
+              open={uploadModalOpen}
+              onOpenChange={setUploadModalOpen}
+              milestoneId={selectedMilestoneId}
+              onUploadComplete={handleRefreshMilestones}
+            />
+            <MilestoneCommentsDrawer
+              open={commentsDrawerOpen}
+              onOpenChange={setCommentsDrawerOpen}
+              milestoneId={selectedMilestoneId}
+            />
+          </>
+        )}
       </div>
     </div>
   );

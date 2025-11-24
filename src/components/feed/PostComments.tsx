@@ -68,17 +68,22 @@ export function PostComments({ postId, postAuthorId, onCommentAdded }: PostComme
 
       // Track comment engagement
       if (user.id !== postAuthorId) {
-        await (supabase as any).from('post_engagement_signals').upsert({
-          user_id: user.id,
-          post_id: postId,
-          commented: true,
-          commented_at: new Date().toISOString(),
-        }, { onConflict: 'user_id,post_id' });
+        try {
+          await supabase.from('post_engagement_signals').upsert({
+            user_id: user.id,
+            post_id: postId,
+            commented: true,
+            commented_at: new Date().toISOString(),
+          }, { onConflict: 'user_id,post_id' });
 
-        await (supabase as any).rpc('update_relationship_score', {
-          p_user_id: user.id,
-          p_related_user_id: postAuthorId,
-        });
+          await supabase.rpc('update_relationship_score', {
+            p_user_id: user.id,
+            p_related_user_id: postAuthorId,
+          });
+        } catch (trackingError) {
+          // Non-critical: Log but don't block comment submission
+          console.error('Error tracking comment engagement:', trackingError);
+        }
       }
 
       setNewComment("");

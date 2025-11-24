@@ -27,6 +27,25 @@ export function useAlgorithmicFeed() {
   const [loading, setLoading] = useState(true);
   const [feedType, setFeedType] = useState<'algorithmic' | 'trending' | 'following'>('algorithmic');
 
+  // Helper function to get share count
+  const getShareCount = async (postId: string): Promise<number> => {
+    try {
+      const { count, error } = await supabase
+        .from('post_reposts')
+        .select('*', { count: 'exact', head: true })
+        .eq('original_post_id', postId);
+      
+      if (error) {
+        console.error('Error fetching share count:', error);
+        return 0;
+      }
+      return count || 0;
+    } catch (error) {
+      console.error('Error in getShareCount:', error);
+      return 0;
+    }
+  };
+
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
@@ -173,7 +192,7 @@ export function useAlgorithmicFeed() {
               p_post_author_id: post.user_id,
               p_likes_count: post.post_likes.length,
               p_comments_count: post.post_comments.length,
-              p_shares_count: 0, // TODO: Get from post_shares table
+              p_shares_count: await getShareCount(post.id),
             });
             return { ...post, algorithmScore: Number(scoreData) || 0 };
           } catch (error) {

@@ -1,6 +1,7 @@
 import { memo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { generatePersonalizedScenario } from '@/data/incubatorScenarios';
 import { useIncubatorSession } from '@/hooks/useIncubatorSession';
 import { IncubatorBriefScreen } from '@/components/incubator/IncubatorBriefScreen';
@@ -23,10 +24,27 @@ const Incubator20 = memo(() => {
       return;
     }
 
-    // Generate personalized scenario
-    // TODO: Fetch user profile for better personalization
-    const generatedScenario = generatePersonalizedScenario();
-    setScenario(generatedScenario);
+    // Fetch user profile for better personalization
+    const loadProfileAndGenerateScenario = async () => {
+      try {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('current_title, career_preferences, location, years_of_experience')
+          .eq('id', user.id)
+          .single();
+
+        // Generate personalized scenario with profile data
+        const generatedScenario = generatePersonalizedScenario(profile);
+        setScenario(generatedScenario);
+      } catch (error) {
+        console.error('Error loading profile for scenario:', error);
+        // Fallback to non-personalized scenario
+        const generatedScenario = generatePersonalizedScenario();
+        setScenario(generatedScenario);
+      }
+    };
+
+    loadProfileAndGenerateScenario();
   }, [user, navigate]);
 
   if (!scenario) {

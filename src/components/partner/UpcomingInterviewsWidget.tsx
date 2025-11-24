@@ -442,7 +442,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
       {/* Header: Candidate + Join Button */}
       <div className="flex items-start justify-between gap-3 mb-3">
         <Link 
-          to={interview.candidate_id ? `/partner/candidates/${interview.candidate_id}` : '#'}
+          to={interview.candidate_id ? `/candidate/${interview.candidate_id}` : '#'}
           className={`flex items-center gap-3 flex-1 min-w-0 ${interview.candidate_id ? 'hover:opacity-80 transition-opacity' : 'pointer-events-none'}`}
         >
           {/* Candidate Avatar */}
@@ -548,7 +548,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
       <div className="flex items-center gap-2">
         {interview.candidate_id && (
           <Button size="sm" variant="ghost" className="h-8 text-xs" asChild>
-            <Link to={`/partner/candidates/${interview.candidate_id}`}>
+            <Link to={`/candidate/${interview.candidate_id}`}>
               <User className="w-3.5 h-3.5 mr-1.5" />
               View Profile
             </Link>

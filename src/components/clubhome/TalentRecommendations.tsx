@@ -230,7 +230,7 @@ export const TalentRecommendations = ({ companyId }: TalentRecommendationsProps)
               )}
 
               <Button size="sm" className="w-full" variant="outline" asChild>
-                <Link to={`/candidates/${talent.userId}`}>
+                <Link to={`/candidate/${talent.userId}`}>
                   Review Full Profile
                 </Link>
               </Button>

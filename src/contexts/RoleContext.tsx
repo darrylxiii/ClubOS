@@ -99,7 +99,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     if (!user || availableRoles.length === 0) return;
     
     // Use a ref to track the current role without causing re-subscriptions
-    let lastKnownRole = currentRole;
+    const lastKnownRoleRef = { current: currentRole };
     
     // Subscribe to role preference changes from OTHER sessions/devices only
     const channel = supabase
@@ -115,10 +115,10 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
         (payload) => {
           const newRole = payload.new.preferred_role_view as UserRole;
           // CRITICAL FIX: Only update if the role is actually different to prevent infinite loops
-          // Compare against the ref instead of state to avoid stale closure issues
-          if (newRole && availableRoles.includes(newRole) && newRole !== lastKnownRole) {
+          // Use ref to track current role and update it when role changes
+          if (newRole && availableRoles.includes(newRole) && newRole !== lastKnownRoleRef.current) {
             console.log('[RoleContext] External preference change detected, updating to:', newRole);
-            lastKnownRole = newRole;
+            lastKnownRoleRef.current = newRole;
             setCurrentRole(newRole);
           }
         }
@@ -128,7 +128,7 @@ export const RoleProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, availableRoles]); // FIXED: Removed currentRole from dependencies to prevent re-subscriptions
+  }, [user, availableRoles, currentRole]); // Include currentRole to update ref when it changes
 
   const switchRole = async (newRole: UserRole) => {
     // Prevent switching to the same role

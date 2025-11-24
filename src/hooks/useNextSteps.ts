@@ -52,7 +52,7 @@ export const useNextSteps = () => {
       setLoading(true);
 
       // Fetch all data in parallel
-      const [profileRes, calendarRes, applicationsRes, userMetaRes] = await Promise.all([
+      const [profileRes, calendarRes, applicationsRes, userMetaRes, interviewsRes, referralsRes, notificationsRes, clubSyncRes] = await Promise.all([
         supabase
           .from('profiles')
           .select('resume_url, email_verified, phone_verified, linkedin_url, career_preferences, avatar_url, created_at')
@@ -71,12 +71,35 @@ export const useNextSteps = () => {
           .from('profiles')
           .select('created_at, updated_at')
           .eq('id', user.id)
+          .single(),
+        supabase
+          .from('interviews')
+          .select('id', { count: 'exact', head: true })
+          .eq('candidate_id', user.id)
+          .in('status', ['scheduled', 'confirmed']),
+        supabase
+          .from('referrals')
+          .select('id', { count: 'exact', head: true })
+          .eq('referred_by', user.id),
+        supabase
+          .from('user_preferences')
+          .select('notification_settings')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('profiles')
+          .select('club_sync_enabled')
+          .eq('id', user.id)
           .single()
       ]);
 
       const profile = profileRes.data;
       const calendarCount = calendarRes.count || 0;
       const applicationsCount = applicationsRes.count || 0;
+      const interviewsCount = interviewsRes.count || 0;
+      const referralsCount = referralsRes.count || 0;
+      const notificationsConfigured = !!notificationsRes.data?.notification_settings;
+      const clubSyncEnabled = clubSyncRes.data?.club_sync_enabled || false;
 
       // Build user journey data
       const userData: UserJourneyData = {
@@ -85,16 +108,16 @@ export const useNextSteps = () => {
         resumeUploaded: !!profile?.resume_url,
         calendarConnected: calendarCount > 0,
         applicationsCount: applicationsCount,
-        interviewsScheduled: 0, // TODO: fetch from interviews table when available
+        interviewsScheduled: interviewsCount,
         emailVerified: profile?.email_verified || false,
         phoneVerified: profile?.phone_verified || false,
         hasAvatar: !!profile?.avatar_url,
         hasLinkedIn: !!profile?.linkedin_url,
         hasBio: !!(profile?.career_preferences && profile.career_preferences.length > 50),
         hasCareerPreferences: !!profile?.career_preferences,
-        referralsCount: 0, // TODO: fetch from referrals table when available
-        notificationsConfigured: false, // TODO: check notification settings
-        clubSyncEnabled: false, // TODO: check club sync status
+        referralsCount: referralsCount,
+        notificationsConfigured: notificationsConfigured,
+        clubSyncEnabled: clubSyncEnabled,
         lastActive: userMetaRes.data?.updated_at ? new Date(userMetaRes.data.updated_at) : new Date(),
       };
 

@@ -46,6 +46,30 @@ export default function ContractSignaturePage() {
     mutationFn: async () => {
       if (!signatureData || !contract) throw new Error("Missing signature or contract");
 
+      // Get real IP address from headers or use fallback
+      // Note: In production, this should be passed from the edge function
+      // For now, we'll try to get it from the request if available
+      let clientIp = 'unknown';
+      try {
+        // Attempt to get IP from various sources
+        // In a real implementation, this would come from the server/edge function
+        const forwarded = (window as any).__CLIENT_IP__;
+        if (forwarded) {
+          clientIp = forwarded;
+        } else {
+          // Fallback: Use a service to get IP (for development/testing)
+          // In production, the edge function should provide this
+          const ipResponse = await fetch('https://api.ipify.org?format=json').catch(() => null);
+          if (ipResponse) {
+            const ipData = await ipResponse.json();
+            clientIp = ipData.ip || 'unknown';
+          }
+        }
+      } catch (e) {
+        console.warn('Could not fetch IP address:', e);
+        clientIp = 'unknown';
+      }
+
       // Save signature
       const { error: sigError } = await supabase
         .from('contract_signatures' as any)
@@ -54,7 +78,7 @@ export default function ContractSignaturePage() {
           signer_id: user!.id,
           signer_role: userRole,
           signature_image_url: signatureData,
-          ip_address: 'client-ip', // TODO: Get real IP
+          ip_address: clientIp,
           user_agent: navigator.userAgent,
           terms_version: 'v1.0',
           consent_text: 'I agree to the terms and conditions of this contract'

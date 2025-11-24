@@ -5,6 +5,7 @@ import { StageDetailCard } from "./StageDetailCard";
 import { StageCandidatesList } from "./StageCandidatesList";
 import { PipelineMeetingCard } from "./PipelineMeetingCard";
 import type { DisplaySettings } from "./PipelineDisplaySettings";
+import { RescheduleDialog } from "@/components/booking/RescheduleDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar } from "lucide-react";
 
@@ -138,9 +139,51 @@ export function ExpandablePipelineStage({
     }
   };
 
-  const handleRescheduleMeeting = (bookingId: string) => {
-    // TODO: Implement reschedule dialog
-    console.log('Reschedule booking:', bookingId);
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBookingLink, setSelectedBookingLink] = useState<any>(null);
+
+  const handleRescheduleMeeting = async (bookingId: string) => {
+    const booking = stageBookings.find(b => b.id === bookingId);
+    if (!booking) return;
+
+    try {
+      // Fetch booking with booking link
+      const { data, error } = await supabase
+        .from('bookings')
+        .select(`
+          *,
+          booking_links (
+            id,
+            slug,
+            title,
+            duration_minutes,
+            color,
+            user_id,
+            advance_booking_days,
+            min_notice_hours
+          )
+        `)
+        .eq('id', bookingId)
+        .single();
+
+      if (error) throw error;
+
+      setSelectedBooking({
+        id: data.id,
+        guest_name: data.guest_name || booking.guest_name || 'Guest',
+        scheduled_start: data.scheduled_start,
+        scheduled_end: data.scheduled_end,
+      });
+      setSelectedBookingLink(data.booking_links);
+      setRescheduleDialogOpen(true);
+    } catch (error) {
+      console.error('Error loading booking for reschedule:', error);
+    }
+  };
+
+  const handleRescheduled = () => {
+    fetchStageBookings(); // Refresh bookings
   };
 
   return (
@@ -231,6 +274,17 @@ export function ExpandablePipelineStage({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Reschedule Dialog */}
+      {selectedBooking && selectedBookingLink && (
+        <RescheduleDialog
+          open={rescheduleDialogOpen}
+          onOpenChange={setRescheduleDialogOpen}
+          booking={selectedBooking}
+          bookingLink={selectedBookingLink}
+          onRescheduled={handleRescheduled}
+        />
+      )}
     </Card>
   );
 }

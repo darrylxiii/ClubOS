@@ -125,13 +125,22 @@ export function useEmails(filter: string = "inbox") {
   }, []);
 
   const syncEmails = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Please sign in to sync emails",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSyncing(true);
     try {
       // Get active email connections
       const { data: connections } = await supabase
         .from("email_connections")
         .select("*")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .eq("is_active", true);
 
       if (!connections || connections.length === 0) {
@@ -183,10 +192,12 @@ export function useEmails(filter: string = "inbox") {
       await loadEmails();
 
       // Trigger AI processing for unprocessed emails
+      if (!user) return;
+      
       const { data: unprocessedEmails } = await supabase
         .from("emails")
         .select("id")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .is("ai_processed_at", null)
         .limit(10);
 
@@ -257,7 +268,7 @@ export function useEmails(filter: string = "inbox") {
       await loadEmails();
       throw error;
     }
-  }, []);
+  }, [loadEmails]);
 
   const markAsRead = async (emailId: string) => {
     await updateEmail(emailId, {

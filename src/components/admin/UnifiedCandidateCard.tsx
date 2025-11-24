@@ -110,7 +110,7 @@ export function UnifiedCandidateCard({
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  onClick={() => navigate(`/candidates/${candidate.id}`)}
+                  onClick={() => navigate(`/candidate/${candidate.id}`)}
                   className="h-8 text-xs"
                 >
                   <Eye className="w-3.5 h-3.5 mr-1" />
