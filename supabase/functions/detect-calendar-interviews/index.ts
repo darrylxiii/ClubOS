@@ -390,15 +390,27 @@ serve(async (req) => {
         });
       }
 
+      // Improved auto-linking: Try to find job_id from multiple sources
+      let finalJobId = jobId;
+      if (!finalJobId && analysis.candidates[0]?.jobId) {
+        finalJobId = analysis.candidates[0].jobId;
+      }
+      // If still no job_id, try to find from partner's company jobs
+      if (!finalJobId && analysis.partners.length > 0) {
+        const partnerCompanyId = analysis.partners[0]?.companyId;
+        if (partnerCompanyId) {
+          // Try to find a recent job from this company (we'll let the user link it manually if needed)
+          // For now, we'll leave it null and show it in pending_review
+        }
+      }
+
       const detectedInterview = {
         calendar_event_id: event.id,
         calendar_provider: event._provider,
         calendar_connection_id: event._connectionId,
         detected_by: userId,
-        detection_confidence: confidence,
-        detection_type: type,
-        title: event.summary || 'Untitled Meeting',
-        description: event.description,
+        event_title: event.summary || 'Untitled Meeting',
+        event_description: event.description,
         scheduled_start: event.start?.dateTime || event.start?.date,
         scheduled_end: event.end?.dateTime || event.end?.date,
         location: event.location,
@@ -408,11 +420,10 @@ serve(async (req) => {
         candidate_name: analysis.candidates[0]?.name,
         candidate_id: analysis.candidates[0]?.candidateId,
         application_id: analysis.candidates[0]?.applicationId,
-        job_id: jobId,
+        job_id: finalJobId,
+        interview_type: type,
+        detection_confidence: confidence,
         interviewer_ids: interviewerIds,
-        partner_user_ids: analysis.partners.map(p => p.userId).filter(Boolean),
-        partner_emails: analysis.partners.map(p => p.email),
-        all_attendee_emails: attendeeEmails,
         detected_partners: analysis.partners.map(p => ({ 
           user_id: p.userId, 
           email: p.email,
@@ -423,15 +434,23 @@ serve(async (req) => {
           email: t.email,
           name: t.name 
         })),
+        detected_candidates: analysis.candidates.map(c => ({
+          candidate_id: c.candidateId,
+          application_id: c.applicationId,
+          job_id: c.jobId,
+          email: c.email,
+          name: c.name
+        })),
         status: (() => {
-          // Auto-confirm if high confidence AND (has interviewers OR has known team members)
+          // Auto-confirm if high confidence AND has candidate AND (has interviewers OR has known team members)
+          const hasCandidate = analysis.candidates.length > 0;
           const hasKnownTeamMembers = analysis.partners.length > 0 || analysis.tqcMembers.length > 0;
-          const shouldAutoConfirm = confidence === 'high' && (interviewerIds.length > 0 || hasKnownTeamMembers);
+          const shouldAutoConfirm = confidence === 'high' && hasCandidate && (interviewerIds.length > 0 || hasKnownTeamMembers) && finalJobId;
           return shouldAutoConfirm ? 'confirmed' : 'pending_review';
         })(),
         auto_linked: (() => {
           const hasKnownTeamMembers = analysis.partners.length > 0 || analysis.tqcMembers.length > 0;
-          return confidence === 'high' && (interviewerIds.length > 0 || hasKnownTeamMembers);
+          return confidence === 'high' && (interviewerIds.length > 0 || hasKnownTeamMembers) && finalJobId && analysis.candidates.length > 0;
         })()
       };
 

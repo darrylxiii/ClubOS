@@ -7,6 +7,11 @@ import { Calendar, Clock, Video, Users, AlertCircle, CalendarCheck, User, FileTe
 import { supabase } from '@/integrations/supabase/client';
 import { format, differenceInMinutes, isPast, isToday, isThisWeek, parseISO, isFuture } from 'date-fns';
 import { Link } from 'react-router-dom';
+import { RescheduleMeetingDialog } from '@/components/meetings/RescheduleMeetingDialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { toast } from 'sonner';
 
 interface UpcomingInterviewsWidgetProps {
   jobId: string;
@@ -114,6 +119,7 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
       if (bookingsError) throw bookingsError;
 
       // Fetch upcoming detected interviews (future only)
+      // Include both job-specific and unlinked (pending_review) interviews that might need linking
       const { data: upcomingDetected, error: upcomingError } = await supabase
         .from('detected_interviews')
         .select(`
@@ -132,11 +138,11 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
           ),
           job:jobs!detected_interviews_job_id_fkey(title)
         `)
-        .eq('job_id', jobId)
+        .or(`job_id.eq.${jobId},and(job_id.is.null,status.eq.pending_review)`)
         .in('status', ['confirmed', 'pending_review'])
         .gte('scheduled_start', now)
         .order('scheduled_start', { ascending: true })
-        .limit(10);
+        .limit(20);
 
       // Fetch ALL confirmed/linked detected interviews (regardless of date)
       const { data: linkedDetected, error: linkedError } = await supabase
@@ -174,8 +180,8 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
       });
       const detected = Array.from(detectedMap.values());
 
-      // Filter out any without applications
-      const validDetected = detected.filter((d: any) => d.applications);
+      // Show all detected interviews, even without applications (so they can be linked)
+      const validDetected = detected;
 
       console.log('[UpcomingInterviews] Fetched data:', {
         bookingsCount: bookings?.length || 0,
@@ -223,14 +229,19 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
               ? d.detected_partners.map((p: any) => p.user_id).filter(Boolean)
               : []);
         
+        // Use candidate info from detection if application not linked yet
+        const candidateName = candidateProfile?.full_name || d.candidate_name || null;
+        const candidateEmail = candidateProfile?.email || d.candidate_email || null;
+        const candidateId = candidateProfile?.id || d.candidate_id || null;
+        
         return {
           id: d.id,
           source: 'detected' as const,
           scheduled_start: parseISO(d.scheduled_start).toISOString(),
           scheduled_end: parseISO(d.scheduled_end).toISOString(),
-          candidate_name: candidateProfile?.full_name || null,
-          candidate_email: candidateProfile?.email || null,
-          candidate_id: candidateProfile?.id || null,
+          candidate_name: candidateName,
+          candidate_email: candidateEmail,
+          candidate_id: candidateId,
           candidate_avatar: candidateProfile?.avatar_url || null,
           interview_type: d.interview_type,
           meeting_link: d.meeting_link,
@@ -417,10 +428,95 @@ export const UpcomingInterviewsWidget = ({ jobId }: UpcomingInterviewsWidgetProp
 };
 
 const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
+  const [showReschedule, setShowReschedule] = useState(false);
+  const [showPrepDoc, setShowPrepDoc] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [prepDocUrl, setPrepDocUrl] = useState<string | null>(null);
+  const [feedbackText, setFeedbackText] = useState('');
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  
   const startTime = new Date(interview.scheduled_start);
   const endTime = new Date(interview.scheduled_end);
   const minutesUntil = differenceInMinutes(startTime, new Date());
   const isStartingSoon = minutesUntil <= 15 && minutesUntil > 0;
+  const isPastInterview = isPast(endTime);
+  
+  // Load prep document if exists
+  useEffect(() => {
+    if (interview.source === 'booking' && interview.id) {
+      loadPrepDocument();
+    }
+  }, [interview.id, interview.source]);
+  
+  const loadPrepDocument = async () => {
+    try {
+      // Check if prep document exists in booking metadata or separate table
+      const { data: booking } = await supabase
+        .from('bookings')
+        .select('metadata, interview_prep_doc_url')
+        .eq('id', interview.id)
+        .single();
+      
+      if (booking) {
+        const docUrl = booking.interview_prep_doc_url || (booking.metadata as any)?.prep_doc_url;
+        if (docUrl) {
+          setPrepDocUrl(docUrl);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading prep document:', error);
+    }
+  };
+  
+  const handleSubmitFeedback = async () => {
+    if (!feedbackText.trim()) {
+      toast.error('Please enter feedback');
+      return;
+    }
+    
+    setIsSubmittingFeedback(true);
+    try {
+      if (interview.source === 'booking') {
+        // Submit feedback for booking
+        const { error } = await supabase
+          .from('bookings')
+          .update({
+            feedback_submitted_at: new Date().toISOString(),
+            feedback_notes: feedbackText,
+          })
+          .eq('id', interview.id);
+        
+        if (error) throw error;
+        
+        // Also create/update interview feedback record if table exists
+        const { error: feedbackError } = await supabase
+          .from('interview_feedback')
+          .upsert({
+            booking_id: interview.id,
+            candidate_id: interview.candidate_id,
+            feedback_text: feedbackText,
+            submitted_at: new Date().toISOString(),
+          }, {
+            onConflict: 'booking_id'
+          });
+        
+        if (feedbackError && feedbackError.code !== 'PGRST116') {
+          console.warn('Could not save to interview_feedback table:', feedbackError);
+        }
+      }
+      
+      toast.success('Feedback submitted successfully');
+      setShowFeedback(false);
+      setFeedbackText('');
+      // Trigger refresh
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Error submitting feedback:', error);
+      toast.error(error.message || 'Failed to submit feedback');
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -463,6 +559,12 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
                 <Badge variant="outline" className="text-xs shrink-0 border-primary/20 text-primary">
                   <CalendarCheck className="w-3 h-3 mr-1" />
                   From Calendar
+                </Badge>
+              )}
+              {interview.source === 'detected' && interview.status === 'pending_review' && !interview.candidate_id && (
+                <Badge variant="outline" className="text-xs shrink-0 border-orange-500/30 text-orange-600 bg-orange-50">
+                  <AlertCircle className="w-3 h-3 mr-1" />
+                  Needs Linking
                 </Badge>
               )}
               {isStartingSoon && (
@@ -545,7 +647,7 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
       )}
 
       {/* Action Shortcuts */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         {interview.candidate_id && (
           <Button size="sm" variant="ghost" className="h-8 text-xs" asChild>
             <Link to={`/candidate/${interview.candidate_id}`}>
@@ -554,14 +656,112 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
             </Link>
           </Button>
         )}
-        <Button size="sm" variant="ghost" className="h-8 text-xs" disabled>
-          <FileText className="w-3.5 h-3.5 mr-1.5" />
-          Prep Doc
-        </Button>
-        <Button size="sm" variant="ghost" className="h-8 text-xs ml-auto" disabled>
-          <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
-          Reschedule
-        </Button>
+        
+        {/* Prep Doc Button */}
+        <Dialog open={showPrepDoc} onOpenChange={setShowPrepDoc}>
+          <DialogTrigger asChild>
+            <Button size="sm" variant="ghost" className="h-8 text-xs">
+              <FileText className="w-3.5 h-3.5 mr-1.5" />
+              Prep Doc
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Interview Prep Document</DialogTitle>
+              <DialogDescription>
+                {prepDocUrl ? 'View or update the prep document for this interview' : 'Upload a prep document for this interview'}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              {prepDocUrl ? (
+                <div className="space-y-2">
+                  <Label>Current Document</Label>
+                  <Button asChild variant="outline" className="w-full">
+                    <a href={prepDocUrl} target="_blank" rel="noopener noreferrer">
+                      <FileText className="w-4 h-4 mr-2" />
+                      View Prep Document
+                    </a>
+                  </Button>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  No prep document uploaded yet. Use the manual entry or calendar linker to add one.
+                </p>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Feedback Button - Show for past interviews or if feedback not submitted */}
+        {(isPastInterview || !interview.feedback_submitted_at) && interview.source === 'booking' && (
+          <Dialog open={showFeedback} onOpenChange={setShowFeedback}>
+            <DialogTrigger asChild>
+              <Button size="sm" variant="ghost" className="h-8 text-xs">
+                <FileText className="w-3.5 h-3.5 mr-1.5" />
+                {interview.feedback_submitted_at ? 'View Feedback' : 'Submit Feedback'}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {interview.feedback_submitted_at ? 'Interview Feedback' : 'Submit Interview Feedback'}
+                </DialogTitle>
+                <DialogDescription>
+                  {interview.feedback_submitted_at 
+                    ? 'Feedback has been submitted for this interview'
+                    : 'Share your feedback about this interview'}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="feedback">Feedback</Label>
+                  <Textarea
+                    id="feedback"
+                    value={feedbackText}
+                    onChange={(e) => setFeedbackText(e.target.value)}
+                    placeholder="Enter your feedback about the candidate and interview..."
+                    rows={6}
+                    disabled={!!interview.feedback_submitted_at}
+                  />
+                </div>
+                {!interview.feedback_submitted_at && (
+                  <Button 
+                    onClick={handleSubmitFeedback} 
+                    disabled={isSubmittingFeedback || !feedbackText.trim()}
+                    className="w-full"
+                  >
+                    {isSubmittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                  </Button>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+        
+        {/* Reschedule Button - Only for future bookings */}
+        {!isPastInterview && interview.source === 'booking' && interview.id && (
+          <>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-8 text-xs ml-auto" 
+              onClick={() => setShowReschedule(true)}
+            >
+              <CalendarClock className="w-3.5 h-3.5 mr-1.5" />
+              Reschedule
+            </Button>
+            <RescheduleMeetingDialog
+              open={showReschedule}
+              onOpenChange={setShowReschedule}
+              bookingId={interview.id}
+              currentDate={interview.scheduled_start}
+              onRescheduled={() => {
+                setShowReschedule(false);
+                window.location.reload();
+              }}
+            />
+          </>
+        )}
       </div>
     </div>
   );

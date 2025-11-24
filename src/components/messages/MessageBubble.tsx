@@ -15,6 +15,7 @@ import { SpotifyEmbed } from "@/components/feed/SpotifyEmbed";
 import { StoryShareCard } from "./StoryShareCard";
 import { EnhancedStoryViewer } from "@/components/social/EnhancedStoryViewer";
 import { LinkPreview } from "./LinkPreview";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface MessageBubbleProps {
   message: Message;
@@ -34,9 +35,17 @@ export const MessageBubble = ({
   onDelete,
 }: MessageBubbleProps) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [attachmentUrls, setAttachmentUrls] = useState<Record<string, string>>({});
   const [showStoryViewer, setShowStoryViewer] = useState(false);
   const [storyViewerData, setStoryViewerData] = useState<any>(null);
+  // Initialize read status from message data (for one-on-one) or false (for groups, will be loaded)
+  const [isRead, setIsRead] = useState<boolean>(() => {
+    if (!isCurrentUser) return false;
+    if (isGroup) return false; // Will be loaded from receipts
+    return !!message.read_at; // For one-on-one, use message.read_at
+  });
+  const [readReceipts, setReadReceipts] = useState<any[]>([]);
 
   const senderName = message.sender?.full_name || "Unknown User";
   const initials = senderName
@@ -72,6 +81,100 @@ export const MessageBubble = ({
 
     loadAttachmentUrls();
   }, [message.attachments, message.id]);
+
+  // Load read status for current user's sent messages
+  useEffect(() => {
+    if (!isCurrentUser || !user || !message.id) return;
+
+    const loadReadStatus = async () => {
+      try {
+        if (isGroup) {
+          // For group conversations, check read receipts
+          const { data: receipts, error } = await supabase
+            .from('message_read_receipts')
+            .select('*, user:profiles(id, full_name, avatar_url)')
+            .eq('message_id', message.id)
+            .neq('user_id', user.id);
+
+          if (error && error.code !== 'PGRST116') {
+            console.error('Error loading read receipts:', error);
+            return;
+          }
+
+          if (receipts && receipts.length > 0) {
+            setReadReceipts(receipts);
+            setIsRead(true);
+          } else {
+            setIsRead(false);
+          }
+        } else {
+          // For one-on-one conversations, check read_at on the message
+          const { data: msg, error } = await supabase
+            .from('messages')
+            .select('read_at')
+            .eq('id', message.id)
+            .single();
+
+          if (error && error.code !== 'PGRST116') {
+            console.error('Error loading message read status:', error);
+            return;
+          }
+
+          setIsRead(!!msg?.read_at);
+        }
+      } catch (err) {
+        console.error('Error checking read status:', err);
+      }
+    };
+
+    loadReadStatus();
+
+    // Subscribe to read receipt updates for groups
+    if (isGroup) {
+      const channel = supabase
+        .channel(`read-status-${message.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'message_read_receipts',
+            filter: `message_id=eq.${message.id}`,
+          },
+          () => loadReadStatus()
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+
+    // Subscribe to message updates for one-on-one
+    if (!isGroup) {
+      const channel = supabase
+        .channel(`message-read-${message.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'messages',
+            filter: `id=eq.${message.id}`,
+          },
+          (payload) => {
+            if (payload.new.read_at) {
+              setIsRead(true);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [message.id, isCurrentUser, isGroup, user]);
 
   const renderContent = () => {
     // Check for Story Share
@@ -248,7 +351,7 @@ export const MessageBubble = ({
             )}>
               <span className="font-medium">{format(new Date(message.created_at), "HH:mm")}</span>
               {isCurrentUser && (
-                message.read_at ? (
+                isRead ? (
                   <CheckCheck className="h-3.5 w-3.5" />
                 ) : (
                   <Check className="h-3.5 w-3.5" />
@@ -329,12 +432,16 @@ export const MessageBubble = ({
               {isCurrentUser && (
                 <div className="flex items-center justify-end gap-1.5 mt-1.5">
                   <span className="text-[10px] text-white/60">
-                    {message.read_at
-                      ? `Read ${format(new Date(message.read_at), "HH:mm")}`
+                    {isRead
+                      ? isGroup && readReceipts.length > 0
+                        ? `Read by ${readReceipts.length}`
+                        : message.read_at
+                          ? `Read ${format(new Date(message.read_at), "HH:mm")}`
+                          : 'Read'
                       : 'Sent'
                     }
                   </span>
-                  {message.read_at ? (
+                  {isRead ? (
                     <CheckCheck className="h-3.5 w-3.5 text-white/90" />
                   ) : (
                     <Check className="h-3.5 w-3.5 text-white/60" />

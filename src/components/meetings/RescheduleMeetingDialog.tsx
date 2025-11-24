@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CalendarIcon, Clock } from "lucide-react";
-import { format } from "date-fns";
+import { format, differenceInMinutes } from "date-fns";
 
 interface RescheduleMeetingDialogProps {
   open: boolean;
@@ -30,6 +30,37 @@ export function RescheduleMeetingDialog({
   );
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingDuration, setBookingDuration] = useState<number>(60); // Default 60 minutes
+
+  // Fetch booking duration when dialog opens
+  useEffect(() => {
+    if (open && bookingId) {
+      fetchBookingDuration();
+    }
+  }, [open, bookingId]);
+
+  const fetchBookingDuration = async () => {
+    try {
+      const { data: booking, error } = await supabase
+        .from('bookings')
+        .select('scheduled_start, scheduled_end, booking_links(duration_minutes)')
+        .eq('id', bookingId)
+        .single();
+
+      if (error) throw error;
+
+      if (booking) {
+        // Calculate duration from scheduled times, or use booking link duration
+        const duration = booking.scheduled_start && booking.scheduled_end
+          ? differenceInMinutes(new Date(booking.scheduled_end), new Date(booking.scheduled_start))
+          : (booking.booking_links as any)?.duration_minutes || 60;
+        setBookingDuration(duration);
+      }
+    } catch (error) {
+      console.error('Error fetching booking duration:', error);
+      // Keep default 60 minutes
+    }
+  };
 
   // Generate time slots (9 AM to 6 PM, 30-minute intervals)
   const timeSlots = [];
@@ -53,11 +84,15 @@ export function RescheduleMeetingDialog({
       const newDateTime = new Date(selectedDate);
       newDateTime.setHours(hours, minutes, 0, 0);
 
+      // Use the fetched booking duration
+      const newEndDateTime = new Date(newDateTime.getTime() + bookingDuration * 60 * 1000);
+      
       // Call reschedule edge function
       const { error } = await supabase.functions.invoke("handle-booking-reschedule", {
         body: {
           bookingId,
-          newDateTime: newDateTime.toISOString(),
+          newStart: newDateTime.toISOString(),
+          newEnd: newEndDateTime.toISOString(),
         },
       });
 
