@@ -26,7 +26,7 @@ const handler = async (req: Request): Promise<Response> => {
     }
 
     // Build action-specific prompts
-    let systemPrompt = `You are an AI writing assistant for The Quantum Club's executive email system. Help craft professional, clear, and effective emails.`;
+    const systemPrompt = `You are an AI writing assistant for The Quantum Club's executive email system. Help craft professional, clear, and effective emails.`;
     let userPrompt = "";
 
     switch (action) {

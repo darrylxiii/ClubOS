@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { Progress } from '@/components/ui/progress';
 
 interface Course {
   id: string;
@@ -19,6 +20,7 @@ interface Course {
     full_name?: string;
     avatar_url?: string;
   };
+  progress?: number;
 }
 
 interface CourseCarouselProps {
@@ -26,9 +28,10 @@ interface CourseCarouselProps {
   courses: Course[];
   viewAllLink?: string;
   showTrending?: boolean;
+  showProgress?: boolean;
 }
 
-export const CourseCarousel = ({ title, courses, viewAllLink, showTrending }: CourseCarouselProps) => {
+export const CourseCarousel = ({ title, courses, viewAllLink, showTrending, showProgress }: CourseCarouselProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -115,9 +118,18 @@ export const CourseCarousel = ({ title, courses, viewAllLink, showTrending }: Co
                       🔥 Trending
                     </div>
                   )}
-                  {course.enrolled_count && course.enrolled_count > 0 && (
+                  {course.enrolled_count && course.enrolled_count > 0 && !showProgress && (
                     <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded-md text-xs">
                       {course.enrolled_count} enrolled
+                    </div>
+                  )}
+                  {showProgress && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-sm p-2">
+                      <div className="flex justify-between text-xs mb-1">
+                        <span>Progress</span>
+                        <span>{course.progress || 0}%</span>
+                      </div>
+                      <Progress value={course.progress || 0} className="h-1.5" />
                     </div>
                   )}
                 </div>
@@ -133,7 +145,7 @@ export const CourseCarousel = ({ title, courses, viewAllLink, showTrending }: Co
                       {course.estimated_hours}h course
                     </p>
                   )}
-                  
+
                   {/* Instructor */}
                   {course.profiles && (
                     <div className="flex items-center gap-2 pt-2 border-t">

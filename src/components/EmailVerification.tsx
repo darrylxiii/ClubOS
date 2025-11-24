@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,12 +31,12 @@ export const EmailVerification = ({
     await sendOTP(email);
   };
 
-  const handleVerifyOTP = async () => {
+  const handleVerifyOTP = useCallback(async () => {
     const success = await verifyOTP(email, otpCode, () => {
       onVerificationComplete?.();
       setOtpCode('');
     });
-  };
+  }, [email, otpCode, verifyOTP, onVerificationComplete]);
 
   const handleResendOTP = async () => {
     if (resendCooldown > 0) return;
@@ -49,7 +49,7 @@ export const EmailVerification = ({
     if (otpCode.length === 6 && otpSent) {
       handleVerifyOTP();
     }
-  }, [otpCode]);
+  }, [otpCode, otpSent, handleVerifyOTP]);
 
   // Reset OTP state when email changes
   useEffect(() => {
@@ -57,7 +57,7 @@ export const EmailVerification = ({
       resetVerification();
       setOtpCode('');
     }
-  }, [email]);
+  }, [email, otpSent, resetVerification]);
 
   return (
     <div className="space-y-4">

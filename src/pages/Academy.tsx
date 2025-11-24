@@ -10,10 +10,10 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  GraduationCap, 
-  BookOpen, 
-  Clock, 
+import {
+  GraduationCap,
+  BookOpen,
+  Clock,
   CheckCircle2,
   Award,
   Target,
@@ -47,7 +47,7 @@ export default function Academy() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
-  
+
   const [academy, setAcademy] = useState<any>(null);
   const [courses, setCourses] = useState<any[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<any[]>([]);
@@ -120,7 +120,7 @@ export default function Academy() {
       setAcademy(academyData);
 
       // Load courses - show published courses + user's own unpublished courses
-      let coursesQuery = supabase
+      const coursesQuery = supabase
         .from("courses")
         .select(`
           *,
@@ -157,6 +157,53 @@ export default function Academy() {
           .maybeSingle();
 
         setIsExpert(!!expertData);
+
+        // Fetch progress for all courses
+        const { data: progressData } = await supabase
+          .from('learner_progress')
+          .select(`
+            progress_percentage,
+            modules (
+              course_id
+            )
+          `)
+          .eq('user_id', user.id);
+
+        if (progressData) {
+          // Group by course_id
+          const courseProgress: Record<string, { total: number; count: number }> = {};
+
+          progressData.forEach((p: any) => {
+            const courseId = p.modules?.course_id;
+            if (courseId) {
+              if (!courseProgress[courseId]) {
+                courseProgress[courseId] = { total: 0, count: 0 };
+              }
+              courseProgress[courseId].total += p.progress_percentage;
+              courseProgress[courseId].count += 1;
+            }
+          });
+
+          // Update courses with progress
+          setCourses(prevCourses => prevCourses.map(course => {
+            // We need to know total modules to calculate accurate percentage
+            // But for now, let's use the average of *started* modules, 
+            // or better: we need total modules count for the course.
+            // The course query already fetches modules(count).
+            const totalModules = course.modules?.[0]?.count || 1;
+            const progressInfo = courseProgress[course.id];
+
+            if (progressInfo) {
+              // This is an approximation if we don't have progress rows for unstarted modules.
+              // Assuming learner_progress exists for all modules or we only count started ones?
+              // Actually, typically we want (sum of progress) / (total modules * 100) * 100
+              // = (sum of progress) / total modules
+              const progress = Math.round(progressInfo.total / totalModules);
+              return { ...course, progress, enrolled_count: course.enrolled_count || 1 }; // Mark as enrolled if progress exists
+            }
+            return course;
+          }));
+        }
       }
     } catch (error: any) {
       toast({
@@ -209,9 +256,9 @@ export default function Academy() {
               </div>
               {isExpert && (
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => navigate("/academy/creator")} 
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/academy/creator")}
                     className="squircle"
                   >
                     <GraduationCap className="mr-2 h-4 w-4" />
@@ -251,10 +298,11 @@ export default function Academy() {
                   }} />
 
                   {/* Continue Learning */}
-                  {courses.some((c: any) => c.enrolled_count && c.enrolled_count > 0) && (
+                  {courses.some((c: any) => c.progress && c.progress > 0) && (
                     <CourseCarousel
                       title="Continue Learning"
-                      courses={courses.filter((c: any) => c.enrolled_count && c.enrolled_count > 0).slice(0, 6)}
+                      courses={courses.filter((c: any) => c.progress && c.progress > 0)}
+                      showProgress={true}
                     />
                   )}
 
@@ -279,7 +327,7 @@ export default function Academy() {
             <TabsContent value="my-courses" className="space-y-6">
               <div className="space-y-4">
                 <h2 className="text-2xl font-bold">All Materials</h2>
-                
+
                 {/* Filters */}
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                   <div className="flex gap-2">
@@ -311,7 +359,7 @@ export default function Academy() {
                       <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                       <h3 className="text-xl font-semibold mb-2">No courses yet</h3>
                       <p className="text-muted-foreground mb-6">
-                        {isExpert 
+                        {isExpert
                           ? "Be the first to create a course for this academy!"
                           : "Check back soon for new courses"}
                       </p>
@@ -329,8 +377,8 @@ export default function Academy() {
                           {/* Course image or illustration header */}
                           {course.course_image_url ? (
                             <div className="h-48 relative overflow-hidden">
-                              <img 
-                                src={course.course_image_url} 
+                              <img
+                                src={course.course_image_url}
                                 alt={course.title}
                                 className="w-full h-full object-cover"
                               />
@@ -441,7 +489,7 @@ export default function Academy() {
                   <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                   <h3 className="text-xl font-semibold mb-2">No courses yet</h3>
                   <p className="text-muted-foreground mb-6">
-                    {isExpert 
+                    {isExpert
                       ? "Be the first to create a course for this academy!"
                       : "Check back soon for new courses"}
                   </p>

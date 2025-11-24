@@ -7,15 +7,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { CreateModuleDialog } from "@/components/academy/CreateModuleDialog";
-import { 
-  Loader2, 
-  ChevronLeft, 
+import {
+  Loader2,
+  ChevronLeft,
   Plus,
   GripVertical,
   Pencil,
   Trash2,
   BookOpen
 } from "lucide-react";
+import { CourseBuilder, Module } from "@/components/academy/CourseBuilder";
 
 export default function ModuleManagement() {
   const { id } = useParams();
@@ -100,6 +101,40 @@ export default function ModuleManagement() {
     }
   };
 
+
+
+  const handleModulesChange = async (newModules: Module[]) => {
+    // Optimistic update
+    setModules(newModules);
+
+    try {
+      // Prepare updates for all affected modules
+      const updates = newModules.map((module, index) => ({
+        id: module.id,
+        display_order: index,
+        updated_at: new Date().toISOString(),
+      }));
+
+      const promises = updates.map(update =>
+        supabase
+          .from('modules')
+          .update({ display_order: update.display_order })
+          .eq('id', update.id)
+      );
+
+      await Promise.all(promises);
+
+    } catch (error: any) {
+      toast({
+        title: "Error reordering modules",
+        description: error.message,
+        variant: "destructive",
+      });
+      // Revert to original order (reload data)
+      loadData();
+    }
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -177,43 +212,13 @@ export default function ModuleManagement() {
               </Button>
             </div>
           ) : (
-            <div className="space-y-2">
-              {modules.map((module, index) => (
-                <div
-                  key={module.id}
-                  className="flex items-center gap-3 p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors"
-                >
-                  <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary text-sm font-semibold">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">{module.title}</p>
-                    {module.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-1">
-                        {module.description}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => navigate(`/modules/edit/${module.id}`)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteModule(module.id)}
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <CourseBuilder
+              modules={modules}
+              onModulesChange={handleModulesChange}
+              onEditModule={(id) => navigate(`/modules/${id}/edit`)}
+              onDeleteModule={handleDeleteModule}
+              onAddModule={() => setShowCreateDialog(true)}
+            />
           )}
         </Card>
       </div>

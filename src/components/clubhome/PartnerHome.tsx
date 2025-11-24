@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { 
-  Briefcase, 
+import {
+  Briefcase,
   Users,
   MessageSquare,
   FileText,
@@ -17,6 +17,7 @@ import { SmartAlertsPanel } from "../partner/SmartAlertsPanel";
 import { HealthScoreDashboard } from "../partner/HealthScoreDashboard";
 import { DailyBriefing } from "../partner/DailyBriefing";
 import { BenchmarkComparison } from "../partner/BenchmarkComparison";
+import { PartnerConciergeCard } from "../partner/PartnerConciergeCard";
 import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
@@ -29,6 +30,13 @@ export const PartnerHome = () => {
     <div className="space-y-6">
       {/* Stats at top */}
       <UnifiedStatsBar role="partner" stats={stats} loading={loading} />
+
+      {/* Concierge Card - Premium white-glove service */}
+      {companyId && (
+        <DashboardSection>
+          <PartnerConciergeCard companyId={companyId} />
+        </DashboardSection>
+      )}
 
       {/* Dashboard Intelligence */}
       {companyId && (

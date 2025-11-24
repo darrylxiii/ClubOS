@@ -39,9 +39,35 @@ const PartnerOnboarding = () => {
       .replace(/(^-|-$)/g, '');
   };
 
+  const generateUniqueSlug = async (baseName: string): Promise<string> => {
+    let slug = generateSlug(baseName);
+    let counter = 1;
+
+    // Check if slug exists
+    while (true) {
+      const { data: existing } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (!existing) {
+        return slug; // Unique slug found
+      }
+
+      // Slug exists, try with counter
+      slug = `${generateSlug(baseName)}-${counter}`;
+      counter++;
+
+      if (counter > 100) {
+        throw new Error('Unable to generate unique company slug');
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.name || !formData.company_size || !formData.industry) {
       toast.error("Please fill in all required fields");
       return;
@@ -50,8 +76,23 @@ const PartnerOnboarding = () => {
     setLoading(true);
 
     try {
-      // Create company
-      const slug = generateSlug(formData.name);
+      // Check if user already has a company
+      const { data: existingMembership } = await supabase
+        .from('company_members')
+        .select('company_id, companies!inner(name)')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (existingMembership) {
+        toast.error(`You are already registered with ${(existingMembership as any).companies.name}`, {
+          description: "Please contact support if you need to create a new company."
+        });
+        setLoading(false);
+        return;
+      }
+
+      // Generate unique slug
+      const slug = await generateUniqueSlug(formData.name);
       const { data: company, error: companyError } = await supabase
         .from('companies')
         .insert({

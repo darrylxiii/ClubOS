@@ -839,7 +839,7 @@ async function findFreeSlots(args: any, userId: string, supabase: SupabaseClient
   const workStart = workingHours?.start || '09:00';
   const workEnd = workingHours?.end || '17:00';
   
-  let currentDate = new Date(start);
+  const currentDate = new Date(start);
   while (currentDate <= end) {
     // Skip weekends
     if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {

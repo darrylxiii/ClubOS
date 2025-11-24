@@ -287,7 +287,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       // Get plain text content and remove social URLs
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = content;
-      let plainText = tempDiv.textContent || tempDiv.innerText || '';
+      const plainText = tempDiv.textContent || tempDiv.innerText || '';
       const updatedText = removeSocialMediaUrls(plainText);
       
       // Set the cleaned content
@@ -312,7 +312,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
       setSpotifyEmbeds([...spotifyEmbeds, ...detectedSpotifyEmbeds]);
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = content;
-      let plainText = tempDiv.textContent || tempDiv.innerText || '';
+      const plainText = tempDiv.textContent || tempDiv.innerText || '';
       const updatedText = removeSpotifyUrls(plainText);
       setContent(updatedText);
       setShowSpotifyPrompt(false);
@@ -341,7 +341,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         // Remove the URL from content if it exists
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = content;
-        let plainText = tempDiv.textContent || tempDiv.innerText || '';
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
         
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
@@ -377,7 +377,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         // Remove the URL from content if it exists
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = content;
-        let plainText = tempDiv.textContent || tempDiv.innerText || '';
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
         
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);
@@ -413,7 +413,7 @@ export function CreatePost({ onPostCreated }: CreatePostProps) {
         // Remove the URL from content if it exists
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = content;
-        let plainText = tempDiv.textContent || tempDiv.innerText || '';
+        const plainText = tempDiv.textContent || tempDiv.innerText || '';
         
         if (plainText.includes(url)) {
           const updatedText = removeSocialMediaUrls(plainText);

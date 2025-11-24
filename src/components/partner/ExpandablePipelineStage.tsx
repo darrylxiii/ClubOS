@@ -103,6 +103,9 @@ export function ExpandablePipelineStage({
 }: ExpandablePipelineStageProps) {
   const [stageBookings, setStageBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(false);
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [selectedBookingLink, setSelectedBookingLink] = useState<any>(null);
 
   useEffect(() => {
     if (isExpanded && applications.length > 0) {
@@ -114,7 +117,7 @@ export function ExpandablePipelineStage({
     setLoadingBookings(true);
     try {
       const applicationIds = applications.map(app => app.id);
-      
+
       const { data, error } = await supabase
         .from('bookings')
         .select('*')
@@ -138,10 +141,6 @@ export function ExpandablePipelineStage({
       window.open(booking.meeting_link, '_blank');
     }
   };
-
-  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false);
-  const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [selectedBookingLink, setSelectedBookingLink] = useState<any>(null);
 
   const handleRescheduleMeeting = async (bookingId: string) => {
     const booking = stageBookings.find(b => b.id === bookingId);
@@ -199,7 +198,7 @@ export function ExpandablePipelineStage({
           onEdit={onEdit}
           onDuplicate={onDuplicate}
           onDelete={onDelete}
-          onViewAnalytics={() => {}}
+          onViewAnalytics={() => { }}
           isExpandable={true}
           isExpanded={isExpanded}
         />
@@ -226,7 +225,7 @@ export function ExpandablePipelineStage({
                     {stageBookings.map((booking) => {
                       const application = applications.find(app => app.id === booking.application_id);
                       if (!application) return null;
-                      
+
                       return (
                         <PipelineMeetingCard
                           key={booking.id}

@@ -18,25 +18,25 @@ export function CompanyProfilePreview({ companyId }: CompanyProfilePreviewProps)
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const loadCompanyData = async () => {
+      try {
+        const { data } = await supabase
+          .from("companies")
+          .select("id, name, slug, logo_url, tagline, industry, headquarters_location, company_size, membership_tier")
+          .eq("id", companyId)
+          .eq("is_active", true)
+          .single();
+
+        setCompany(data);
+      } catch (error) {
+        console.error("Error loading company preview:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadCompanyData();
   }, [companyId]);
-
-  const loadCompanyData = async () => {
-    try {
-      const { data } = await supabase
-        .from("companies")
-        .select("id, name, slug, logo_url, tagline, industry, headquarters_location, company_size, membership_tier")
-        .eq("id", companyId)
-        .eq("is_active", true)
-        .single();
-
-      setCompany(data);
-    } catch (error) {
-      console.error("Error loading company preview:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleViewCompany = () => {
     if (company?.slug) {
@@ -65,7 +65,7 @@ export function CompanyProfilePreview({ companyId }: CompanyProfilePreviewProps)
         {/* Header */}
         <div className="flex items-start gap-3">
           <Avatar className="w-16 h-16 border-2 border-accent ring-4 ring-accent/20">
-            <AvatarImage 
+            <AvatarImage
               src={company.logo_url || undefined}
               className="object-contain w-full h-full"
             />

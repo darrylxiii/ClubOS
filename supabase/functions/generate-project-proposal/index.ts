@@ -235,7 +235,7 @@ function calculateSmartRate(freelancer: any, project: any, engagementType: strin
 
 function estimateTimeline(project: any, freelancer: any): number {
   // Base estimate from project
-  let weeks = project.timeline_weeks || 4;
+  const weeks = project.timeline_weeks || 4;
 
   // Adjust based on freelancer availability
   const hoursPerWeek = freelancer.availability_hours_per_week || 20;
