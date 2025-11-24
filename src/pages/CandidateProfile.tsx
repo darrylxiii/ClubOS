@@ -36,7 +36,7 @@ import { UserSettingsViewer } from "@/components/admin/UserSettingsViewer";
 import { AssessmentHistory } from "@/components/candidate/AssessmentHistory";
 
 export default function CandidateProfile() {
-  const { candidateId: id } = useParams<{ candidateId: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const fromJobId = searchParams.get('fromJob');
@@ -78,7 +78,10 @@ export default function CandidateProfile() {
   }, [section, noteId, activeTab]);
 
   const loadCandidate = async () => {
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       // Load candidate profile
@@ -153,7 +156,7 @@ export default function CandidateProfile() {
       <div className="min-h-screen bg-background">
         {/* Pipeline Context Banner */}
         {fromJobId && (
-          <div className="container mx-auto px-4 pt-6">
+          <div className="container mx-auto px-2 sm:px-4 pt-4 sm:pt-6">
             <CandidatePipelineContextBanner
               candidateId={id!}
               candidateName={candidate.full_name}
@@ -170,14 +173,14 @@ export default function CandidateProfile() {
             variant="ghost"
             size="sm"
             onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 z-20"
+            className="absolute top-2 left-2 sm:top-4 sm:left-4 z-20"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
+            <ArrowLeft className="w-4 h-4 sm:mr-2" />
+            <span className="hidden sm:inline">Back</span>
           </Button>
 
           {/* Header Media - Optional wallpaper */}
-          <div className="relative w-full h-64 overflow-hidden bg-muted">
+          <div className="relative w-full h-32 sm:h-48 md:h-64 overflow-hidden bg-muted">
             {candidate.header_media_url ? (
               <>
                 {candidate.header_media_type === 'video' ? (
@@ -204,46 +207,67 @@ export default function CandidateProfile() {
             
             {/* Admin Actions - Top Right */}
             {isTeamView && (
-              <div className="absolute top-4 right-4 z-10 flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditDialogOpen(true)}
-                  className="gap-2 bg-background/80 backdrop-blur-sm"
-                >
-                  <Edit className="w-4 h-4" />
-                  Edit Profile
-                </Button>
-                <CandidateQuickActions 
-                  candidateId={id!} 
-                  candidateEmail={candidate.email}
-                  candidateName={candidate.full_name || 'Candidate'}
-                  onRefresh={loadCandidate}
-                />
-              </div>
+              <>
+                <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 flex gap-1 sm:gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditDialogOpen(true)}
+                    className="gap-1 sm:gap-2 bg-background/80 backdrop-blur-sm text-xs sm:text-sm px-2 sm:px-3"
+                  >
+                    <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Edit Profile</span>
+                    <span className="sm:hidden">Edit</span>
+                  </Button>
+                  <div className="hidden sm:block">
+                    <CandidateQuickActions 
+                      candidateId={id!} 
+                      candidateEmail={candidate.email}
+                      candidateName={candidate.full_name || 'Candidate'}
+                      onRefresh={loadCandidate}
+                    />
+                  </div>
+                </div>
+                {/* Mobile Quick Actions - Below header */}
+                <div className="sm:hidden absolute bottom-2 right-2 z-10">
+                  <CandidateQuickActions 
+                    candidateId={id!} 
+                    candidateEmail={candidate.email}
+                    candidateName={candidate.full_name || 'Candidate'}
+                    onRefresh={loadCandidate}
+                  />
+                </div>
+              </>
             )}
           </div>
 
-          {/* Avatar - Overlapping */}
-          <div className="absolute top-64 left-6 transform -translate-y-1/2 z-10">
-            <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
+          {/* Avatar - Overlapping - Responsive positioning */}
+          <div className="absolute top-24 left-4 sm:top-32 sm:left-6 md:top-48 md:left-6 transform -translate-y-1/2 z-10">
+            <Avatar className="w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 border-2 sm:border-4 border-background shadow-xl">
               <AvatarImage src={candidate.avatar_url || userProfile?.avatar_url} />
-              <AvatarFallback className="text-3xl font-bold">
+              <AvatarFallback className="text-xl sm:text-2xl md:text-3xl font-bold">
                 {candidate.full_name?.substring(0, 2).toUpperCase() || "?"}
               </AvatarFallback>
             </Avatar>
           </div>
 
           {/* Profile Info with Metrics */}
-          <CardContent className="pt-20">
+          <CardContent className="pt-12 sm:pt-16 md:pt-20 px-4 sm:px-6">
             <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h1 className="text-4xl font-bold tracking-tight">{candidate.full_name}</h1>
+              <div className="flex-1 min-w-0 pr-2">
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight break-words">{candidate.full_name}</h1>
                 {candidate.current_title && (
-                  <p className="text-lg text-muted-foreground flex items-center gap-2 mt-2">
-                    <Briefcase className="w-5 h-5" />
-                    {candidate.current_title}
-                    {candidate.current_company && ` at ${candidate.current_company}`}
+                  <p className="text-sm sm:text-base md:text-lg text-muted-foreground flex items-start sm:items-center gap-1 sm:gap-2 mt-2 break-words">
+                    <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 mt-0.5 sm:mt-0" />
+                    <span className="break-words">
+                      {candidate.current_title}
+                      {candidate.current_company && (
+                        <span className="hidden sm:inline"> at {candidate.current_company}</span>
+                      )}
+                      {candidate.current_company && (
+                        <span className="sm:hidden block mt-1">{candidate.current_company}</span>
+                      )}
+                    </span>
                   </p>
                 )}
               </div>
@@ -251,84 +275,88 @@ export default function CandidateProfile() {
             
             {/* Score Badges - Admin View Only */}
             {isTeamView && (
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4">
                 {candidate.profile_completeness !== null && candidate.profile_completeness !== undefined && (
-                  <Badge variant="outline" className="gap-1">
-                    <Target className="w-3 h-3" />
-                    {candidate.profile_completeness}% Complete
+                  <Badge variant="outline" className="gap-1 text-xs sm:text-sm">
+                    <Target className="w-3 h-3 flex-shrink-0" />
+                    <span className="hidden sm:inline">{candidate.profile_completeness}% Complete</span>
+                    <span className="sm:hidden">{candidate.profile_completeness}%</span>
                   </Badge>
                 )}
                 {candidate.engagement_score !== null && candidate.engagement_score !== undefined && (
-                  <Badge variant="outline" className="gap-1">
-                    <Activity className="w-3 h-3" />
-                    Engagement: {candidate.engagement_score}/10
+                  <Badge variant="outline" className="gap-1 text-xs sm:text-sm">
+                    <Activity className="w-3 h-3 flex-shrink-0" />
+                    <span className="hidden sm:inline">Engagement: {candidate.engagement_score}/10</span>
+                    <span className="sm:hidden">Eng: {candidate.engagement_score}</span>
                   </Badge>
                 )}
                 {candidate.fit_score !== null && candidate.fit_score !== undefined && (
-                  <Badge variant="outline" className="gap-1">
-                    <TrendingUp className="w-3 h-3" />
-                    Fit: {candidate.fit_score}/10
+                  <Badge variant="outline" className="gap-1 text-xs sm:text-sm">
+                    <TrendingUp className="w-3 h-3 flex-shrink-0" />
+                    <span className="hidden sm:inline">Fit: {candidate.fit_score}/10</span>
+                    <span className="sm:hidden">Fit: {candidate.fit_score}</span>
                   </Badge>
                 )}
                 {candidate.internal_rating !== null && candidate.internal_rating !== undefined && (
-                  <Badge variant="outline" className="gap-1">
-                    <Star className="w-3 h-3" />
-                    Rating: {candidate.internal_rating}/10
+                  <Badge variant="outline" className="gap-1 text-xs sm:text-sm">
+                    <Star className="w-3 h-3 flex-shrink-0" />
+                    <span className="hidden sm:inline">Rating: {candidate.internal_rating}/10</span>
+                    <span className="sm:hidden">{candidate.internal_rating}/10</span>
                   </Badge>
                 )}
               </div>
             )}
             
             {/* Contact & Location Info */}
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-4">
               {candidate.email && (
-                <div className="flex items-center gap-1">
-                  <Mail className="w-4 h-4" />
-                  {candidate.email}
+                <div className="flex items-center gap-1 min-w-0">
+                  <Mail className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="truncate">{candidate.email}</span>
                 </div>
               )}
               {candidate.phone && (
-                <div className="flex items-center gap-1">
-                  <Phone className="w-4 h-4" />
-                  {candidate.phone}
+                <div className="flex items-center gap-1 min-w-0">
+                  <Phone className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="truncate">{candidate.phone}</span>
                 </div>
               )}
               {candidate.desired_locations?.[0] && (
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-4 h-4" />
-                  {candidate.desired_locations[0]}
+                <div className="flex items-center gap-1 min-w-0">
+                  <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="truncate">{candidate.desired_locations[0]}</span>
                 </div>
               )}
               {candidate.years_of_experience && (
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="text-xs sm:text-sm w-fit">
                   {candidate.years_of_experience} years experience
                 </Badge>
               )}
             </div>
 
             {/* Social Links */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {candidate.linkedin_url && (
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="text-xs sm:text-sm">
                   <a href={candidate.linkedin_url} target="_blank" rel="noopener noreferrer">
-                    <Linkedin className="w-4 h-4 mr-1" />
-                    LinkedIn
+                    <Linkedin className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">LinkedIn</span>
                   </a>
                 </Button>
               )}
               {candidate.github_url && (
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="text-xs sm:text-sm">
                   <a href={candidate.github_url} target="_blank" rel="noopener noreferrer">
-                    <Github className="w-4 h-4 mr-1" />
-                    GitHub
+                    <Github className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">GitHub</span>
                   </a>
                 </Button>
               )}
               {candidate.portfolio_url && (
-                <Button variant="outline" size="sm" asChild>
+                <Button variant="outline" size="sm" asChild className="text-xs sm:text-sm">
                   <a href={candidate.portfolio_url} target="_blank" rel="noopener noreferrer">
-                    <Globe className="w-4 h-4 mr-1" />
-                    Portfolio
+                    <Globe className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" />
+                    <span className="hidden sm:inline">Portfolio</span>
                   </a>
                 </Button>
               )}
@@ -336,27 +364,33 @@ export default function CandidateProfile() {
             
             {/* Last Updated Timestamp - Admin Only */}
             {isTeamView && candidate.last_profile_update && (
-              <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                Last updated: {new Date(candidate.last_profile_update).toLocaleDateString()}
+              <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1 flex-wrap">
+                <Clock className="w-3 h-3 flex-shrink-0" />
+                <span className="break-words">
+                  <span className="hidden sm:inline">Last updated: </span>
+                  <span className="sm:hidden">Updated: </span>
+                  {new Date(candidate.last_profile_update).toLocaleDateString()}
+                </span>
               </p>
             )}
           </CardContent>
         </Card>
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 py-6">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="assessments">Assessments</TabsTrigger>
-              {isTeamView && <TabsTrigger value="team-assessment">Team View</TabsTrigger>}
-              <TabsTrigger value="experience">Experience</TabsTrigger>
-              {isTeamView && <TabsTrigger value="settings">Settings</TabsTrigger>}
-              {isTeamView && <TabsTrigger value="workauth">Work Auth</TabsTrigger>}
-              {isTeamView && <TabsTrigger value="pipeline">Pipeline</TabsTrigger>}
-              {isTeamView && <TabsTrigger value="activity">Activity</TabsTrigger>}
-            </TabsList>
+        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+            <div className="overflow-x-auto -mx-2 sm:mx-0 px-2 sm:px-0">
+              <TabsList className="inline-flex w-auto min-w-full sm:grid sm:w-full sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 h-auto">
+                <TabsTrigger value="overview" className="text-xs sm:text-sm whitespace-nowrap">Overview</TabsTrigger>
+                <TabsTrigger value="assessments" className="text-xs sm:text-sm whitespace-nowrap">Assessments</TabsTrigger>
+                {isTeamView && <TabsTrigger value="team-assessment" className="text-xs sm:text-sm whitespace-nowrap">Team</TabsTrigger>}
+                <TabsTrigger value="experience" className="text-xs sm:text-sm whitespace-nowrap">Experience</TabsTrigger>
+                {isTeamView && <TabsTrigger value="settings" className="text-xs sm:text-sm whitespace-nowrap">Settings</TabsTrigger>}
+                {isTeamView && <TabsTrigger value="workauth" className="text-xs sm:text-sm whitespace-nowrap">Work Auth</TabsTrigger>}
+                {isTeamView && <TabsTrigger value="pipeline" className="text-xs sm:text-sm whitespace-nowrap">Pipeline</TabsTrigger>}
+                {isTeamView && <TabsTrigger value="activity" className="text-xs sm:text-sm whitespace-nowrap">Activity</TabsTrigger>}
+              </TabsList>
+            </div>
 
             {/* Assessments Tab - Available for all users */}
             {candidate.user_id && (
@@ -381,7 +415,7 @@ export default function CandidateProfile() {
 
             {/* Team Assessment Tab - Combines Decision, Documents, Notes, Internal - Admin/Partner Only */}
             {isTeamView && (
-              <TabsContent value="team-assessment" className="space-y-6">
+              <TabsContent value="team-assessment" className="space-y-4 sm:space-y-6">
                 <ErrorBoundary>
                   <CandidateDecisionDashboard candidate={candidate} />
                 </ErrorBoundary>
@@ -423,18 +457,18 @@ export default function CandidateProfile() {
             )}
 
             {/* Overview Tab */}
-            <TabsContent value="overview" className="space-y-6">
+            <TabsContent value="overview" className="space-y-4 sm:space-y-6">
               {/* AI Summary */}
               {candidate.ai_summary && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Target className="w-5 h-5" />
+                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                      <Target className="w-4 h-4 sm:w-5 sm:h-5" />
                       AI Summary
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground whitespace-pre-wrap">
+                    <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap break-words">
                       {candidate.ai_summary}
                     </p>
                   </CardContent>
@@ -445,12 +479,12 @@ export default function CandidateProfile() {
               {candidate.skills && candidate.skills.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Skills</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">Skills</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {candidate.skills.map((skill: any, index: number) => (
-                        <Badge key={index} variant="secondary">
+                        <Badge key={index} variant="secondary" className="text-xs sm:text-sm">
                           {typeof skill === 'string' ? skill : skill.name}
                         </Badge>
                       ))}
@@ -463,12 +497,12 @@ export default function CandidateProfile() {
               {candidate.languages && candidate.languages.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Languages</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">Languages</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {candidate.languages.map((lang: any, index: number) => (
-                        <Badge key={index} variant="outline">
+                        <Badge key={index} variant="outline" className="text-xs sm:text-sm">
                           {typeof lang === 'string' ? lang : `${lang.language} - ${lang.proficiency}`}
                         </Badge>
                       ))}
@@ -480,27 +514,27 @@ export default function CandidateProfile() {
               {/* Career Preferences */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Career Preferences</CardTitle>
+                  <CardTitle className="text-lg sm:text-xl">Career Preferences</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4">
                   {candidate.desired_salary_min && candidate.desired_salary_max && (
                     <div>
-                      <p className="text-sm font-medium mb-1">Salary Expectations</p>
-                      <p className="text-muted-foreground">
+                      <p className="text-xs sm:text-sm font-medium mb-1">Salary Expectations</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground break-words">
                         {candidate.preferred_currency || 'EUR'} {candidate.desired_salary_min.toLocaleString()} - {candidate.desired_salary_max.toLocaleString()}
                       </p>
                     </div>
                   )}
                   {candidate.notice_period && (
                     <div>
-                      <p className="text-sm font-medium mb-1">Notice Period</p>
-                      <p className="text-muted-foreground">{candidate.notice_period}</p>
+                      <p className="text-xs sm:text-sm font-medium mb-1">Notice Period</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground break-words">{candidate.notice_period}</p>
                     </div>
                   )}
                   {candidate.remote_preference && (
                     <div>
-                      <p className="text-sm font-medium mb-1">Remote Preference</p>
-                      <p className="text-muted-foreground capitalize">{candidate.remote_preference}</p>
+                      <p className="text-xs sm:text-sm font-medium mb-1">Remote Preference</p>
+                      <p className="text-xs sm:text-sm text-muted-foreground capitalize break-words">{candidate.remote_preference}</p>
                     </div>
                   )}
                 </CardContent>
@@ -513,27 +547,27 @@ export default function CandidateProfile() {
             </TabsContent>
 
             {/* Experience Tab - Combines Experience, Education, Social */}
-            <TabsContent value="experience" className="space-y-6">
+            <TabsContent value="experience" className="space-y-4 sm:space-y-6">
               {/* Work History */}
               {candidate.work_history && candidate.work_history.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Work Experience</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">Work Experience</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-4 sm:space-y-6">
                     {candidate.work_history.map((job: any, index: number) => (
                       <div key={index} className="space-y-2">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-semibold">{job.title || job.position}</h4>
-                            <p className="text-sm text-muted-foreground">{job.company}</p>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-sm sm:text-base break-words">{job.title || job.position}</h4>
+                            <p className="text-xs sm:text-sm text-muted-foreground break-words">{job.company}</p>
                           </div>
-                          <Badge variant="outline">
+                          <Badge variant="outline" className="text-xs sm:text-sm w-fit">
                             {job.start_date} - {job.end_date || 'Present'}
                           </Badge>
                         </div>
                         {job.description && (
-                          <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                          <p className="text-xs sm:text-sm text-muted-foreground whitespace-pre-wrap break-words">
                             {job.description}
                           </p>
                         )}
@@ -548,13 +582,13 @@ export default function CandidateProfile() {
               {candidate.education && candidate.education.length > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle>Education</CardTitle>
+                    <CardTitle className="text-lg sm:text-xl">Education</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 sm:space-y-4">
                     {candidate.education.map((edu: any, index: number) => (
                       <div key={index} className="space-y-1">
-                        <h4 className="font-semibold">{edu.degree || edu.field_of_study}</h4>
-                        <p className="text-sm text-muted-foreground">{edu.institution || edu.school}</p>
+                        <h4 className="font-semibold text-sm sm:text-base break-words">{edu.degree || edu.field_of_study}</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground break-words">{edu.institution || edu.school}</p>
                         <p className="text-xs text-muted-foreground">
                           {edu.start_year} - {edu.end_year || 'Present'}
                         </p>
@@ -618,14 +652,14 @@ export default function CandidateProfile() {
 
             {/* Work Authorization Tab - Admin Only */}
             {isTeamView && (
-              <TabsContent value="workauth" className="space-y-6">
+              <TabsContent value="workauth" className="space-y-4 sm:space-y-6">
                 <CandidateWorkAuthCard candidate={candidate} />
               </TabsContent>
             )}
 
             {/* Pipeline Tab - Combines Pipeline & Jobs - Admin Only */}
             {isTeamView && (
-              <TabsContent value="pipeline" className="space-y-6">
+              <TabsContent value="pipeline" className="space-y-4 sm:space-y-6">
                 <ErrorBoundary>
                   <CandidatePipelineStatus 
                     candidateId={id!}
@@ -644,7 +678,7 @@ export default function CandidateProfile() {
 
             {/* Activity Tab - Combines Analytics & Activity - Admin Only */}
             {isTeamView && (
-              <TabsContent value="activity" className="space-y-6">
+              <TabsContent value="activity" className="space-y-4 sm:space-y-6">
                 <ErrorBoundary>
                   <CandidateInteractionLog 
                     candidateId={id!}
