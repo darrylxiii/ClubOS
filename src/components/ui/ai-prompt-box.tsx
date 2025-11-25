@@ -582,9 +582,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
   const handleSubmit = () => {
     if (input.trim() || files.length > 0) {
       onSend(input, files);
-      setInput("");
-      setFiles([]);
-      setFilePreviews({});
+      // Input will be cleared after animation completes (handled in onSubmit callback)
     }
   };
 
@@ -666,7 +664,15 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
             onChange={(e) => setInput(e.target.value)}
             onSubmit={(e) => {
               e.preventDefault();
+              const currentInput = input;
+              const currentFiles = [...files];
               handleSubmit();
+              // Clear input after animation completes (animation takes ~400ms)
+              setTimeout(() => {
+                setInput("");
+                setFiles([]);
+                setFilePreviews({});
+              }, 450);
             }}
             onPlaceholderClick={(text) => setInput(text)}
           />

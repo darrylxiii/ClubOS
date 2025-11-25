@@ -18,17 +18,22 @@ export function PlaceholdersAndVanishInput({
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [value, setValue] = useState(propValue || "");
+  const isControlled = propValue !== undefined;
 
   useEffect(() => {
-    if (propValue !== undefined) {
+    // Don't update value from prop during animation
+    // Also, if parent clears the value, we should respect it after animation
+    if (isControlled && !animating && propValue !== prevPropValueRef.current) {
       setValue(propValue);
+      prevPropValueRef.current = propValue;
     }
-  }, [propValue]);
+  }, [propValue, animating, isControlled]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const newDataRef = useRef<{ x: number; y: number; r: number; color: string }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [animating, setAnimating] = useState(false);
+  const prevPropValueRef = useRef<string | undefined>(propValue);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startAnimation = () => {
@@ -134,7 +139,7 @@ export function PlaceholdersAndVanishInput({
     draw();
   }, [value, draw]);
 
-  const animate = (start: number) => {
+  const animate = (start: number, onSubmitEvent?: React.FormEvent<HTMLFormElement>) => {
     const animateFrame = (pos: number = 0) => {
       requestAnimationFrame(() => {
         const newArr = [];
@@ -171,8 +176,12 @@ export function PlaceholdersAndVanishInput({
         if (newDataRef.current.length > 0) {
           animateFrame(pos - 8);
         } else {
+          // Animation complete - clear value and call onSubmit
           setValue("");
           setAnimating(false);
+          if (onSubmitEvent && onSubmit) {
+            onSubmit(onSubmitEvent);
+          }
         }
       });
     };
@@ -180,29 +189,39 @@ export function PlaceholdersAndVanishInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !animating) {
+    if (e.key === "Enter" && !animating && value.trim()) {
+      e.preventDefault();
       vanishAndSubmit();
     }
   };
 
-  const vanishAndSubmit = () => {
+  const vanishAndSubmit = (onSubmitEvent?: React.FormEvent<HTMLFormElement>) => {
+    if (!value.trim() || animating) return;
+    
     setAnimating(true);
     draw();
 
-    const value = inputRef.current?.value || "";
-    if (value && inputRef.current) {
+    const currentValue = value;
+    if (currentValue && inputRef.current) {
       const maxX = newDataRef.current.reduce(
         (prev, current) => (current.x > prev ? current.x : prev),
         0
       );
-      animate(maxX);
+      animate(maxX, onSubmitEvent);
+    } else {
+      // If no value, just submit immediately
+      setAnimating(false);
+      if (onSubmitEvent && onSubmit) {
+        onSubmit(onSubmitEvent);
+      }
     }
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    vanishAndSubmit();
-    onSubmit && onSubmit(e);
+    if (!animating && value.trim()) {
+      vanishAndSubmit(e);
+    }
   };
   
   return (
