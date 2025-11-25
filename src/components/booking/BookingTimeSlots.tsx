@@ -89,17 +89,18 @@ export function BookingTimeSlots({
 
       setLoadingStage("Loading times...");
       setSlots(data.slots || []);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error loading slots:", error);
       
+      const errMessage = error instanceof Error ? error.message : "Unknown error";
       // Specific error messages based on error type
-      const errorMessage = error.message?.includes("timeout")
+      const errorMessage = errMessage.includes("timeout")
         ? "Connection timed out. Please check your internet and try again."
-        : error.message?.includes("network") || error.message?.includes("fetch")
+        : errMessage.includes("network") || errMessage.includes("fetch")
         ? "Network error. Please verify your internet connection."
-        : error.message?.includes("404")
+        : errMessage.includes("404")
         ? "Booking link not found. Please verify the URL."
-        : error.message?.includes("403") || error.message?.includes("unauthorized")
+        : errMessage.includes("403") || errMessage.includes("unauthorized")
         ? "Access denied. This booking link may be inactive."
         : "Unable to load time slots. Please try refreshing the page.";
       

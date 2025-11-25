@@ -49,7 +49,7 @@ export const ViralMapVisualization = () => {
           // Calculate viral metrics
           const shareCount = shares?.length || 0;
           const uniqueSharers = new Set(shares?.map((s) => s.shared_by)).size;
-          const platforms = shares?.reduce((acc: any, s) => {
+          const platforms = shares?.reduce((acc: Record<string, number>, s) => {
             acc[s.shared_to] = (acc[s.shared_to] || 0) + 1;
             return acc;
           }, {});
@@ -153,9 +153,9 @@ export const ViralMapVisualization = () => {
             {/* Platform breakdown */}
             {post.platforms && Object.keys(post.platforms).length > 0 && (
               <div className="flex gap-2 flex-wrap">
-                {Object.entries(post.platforms).map(([platform, count]: any) => (
+                {Object.entries(post.platforms).map(([platform, count]) => (
                   <Badge key={platform} variant="outline">
-                    {platform}: {count}
+                    {platform}: {count as number}
                   </Badge>
                 ))}
               </div>

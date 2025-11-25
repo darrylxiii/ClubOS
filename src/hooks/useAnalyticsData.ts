@@ -11,7 +11,7 @@ export interface AnalyticsData {
   shares: number;
   bookmarks: number;
   avgEngagementRate: number;
-  topPosts: any[];
+  topPosts: { id: string; content: string; created_at: string; views: number; engagement: number; score: number }[];
   viewsByHour: { hour: string; views: number }[];
   deviceBreakdown: { device: string; count: number }[];
   locationBreakdown: { location: string; count: number }[];
@@ -160,8 +160,8 @@ export const useAnalyticsData = (
         .lte("saved_at", endDate.toISOString());
 
       // Calculate metrics
-      const totalViews = engagementSignals?.filter((s: any) => s.viewed_at).length || 0;
-      const uniqueViews = new Set(engagementSignals?.filter((s: any) => s.viewed_at).map((s: any) => s.user_id)).size;
+      const totalViews = engagementSignals?.filter((s: { viewed_at: string | null }) => s.viewed_at).length || 0;
+      const uniqueViews = new Set(engagementSignals?.filter((s: { viewed_at: string | null }) => s.viewed_at).map((s: { user_id: string }) => s.user_id)).size;
       const likes = likesData?.length || 0;
       const comments = commentsData?.length || 0;
       const shares = sharesData?.length || 0;
@@ -171,7 +171,7 @@ export const useAnalyticsData = (
       const avgEngagementRate = totalViews > 0 ? (totalInteractions / totalViews) * 100 : 0;
 
       // Views by hour
-      const viewsByHour = engagementSignals?.reduce((acc: any, s: any) => {
+      const viewsByHour = engagementSignals?.reduce((acc: Record<string, number>, s: { viewed_at: string | null }) => {
         if (s.viewed_at) {
           const hour = new Date(s.viewed_at).getHours();
           const key = `${hour}:00`;

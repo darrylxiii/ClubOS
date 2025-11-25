@@ -200,7 +200,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
           {!file && (
             <div className="space-y-2">
               <Label>Document Type</Label>
-              <RadioGroup value={documentType} onValueChange={(value: any) => setDocumentType(value)}>
+              <RadioGroup value={documentType} onValueChange={(value) => setDocumentType(value as 'resume' | 'cover_letter' | 'certificate')}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="resume" id="resume" />
                   <Label htmlFor="resume" className="cursor-pointer">Resume/CV</Label>

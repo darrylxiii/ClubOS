@@ -136,7 +136,7 @@ export function UnifiedUserManagement() {
       if (membersError) throw membersError;
 
       // Combine all data - JOIN candidate profiles in JavaScript
-      const usersWithRoles: UserWithRoles[] = (profiles || []).map((profile: any) => {
+      const usersWithRoles: UserWithRoles[] = (profiles || []).map((profile) => {
         const company = companiesData?.find(c => c.id === profile.company_id);
         const member = members?.find(m => m.user_id === profile.id);
         const candidateProfile = candidateProfiles?.find(cp => cp.user_id === profile.id);
@@ -173,7 +173,7 @@ export function UnifiedUserManagement() {
       // Check data integrity
       const { data: mismatches } = await supabase.rpc('check_profile_auth_integrity');
       if (mismatches && mismatches.length > 0) {
-        setIntegrityIssues(new Set(mismatches.map((m: any) => m.user_id)));
+        setIntegrityIssues(new Set(mismatches.map((m: { user_id: string }) => m.user_id)));
       } else {
         setIntegrityIssues(new Set());
       }
@@ -389,10 +389,10 @@ export function UnifiedUserManagement() {
       
       // Refresh the user list to show updated roles
       await fetchData();
-    } catch (error: any) {
+    } catch (error) {
       console.error('[UnifiedUserManagement] Error updating user:', error);
       toast.error("Failed to update user", {
-        description: error.message || "Please check the console for details"
+        description: error instanceof Error ? error.message : "Please check the console for details"
       });
     } finally {
       setSaving(false);

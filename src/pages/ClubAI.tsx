@@ -396,7 +396,7 @@ const ClubAI = () => {
         toolCalls.forEach((tc: any) => {
           if (tc.function?.name === "navigate_to_page") {
             try {
-              const args = JSON.parse(tc.function.arguments || "{}");
+              const args = JSON.parse(tc.function.arguments || "{}") as { path: string; reason: string };
               pendingToolCalls.push({
                 type: "navigate",
                 path: args.path,
