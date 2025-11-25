@@ -7,14 +7,28 @@ export function PlaceholdersAndVanishInput({
   onChange,
   onSubmit,
   onPlaceholderClick,
+  value: propValue,
 }: {
   placeholders: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onPlaceholderClick?: (text: string) => void;
+  value?: string;
 }) {
   const [currentPlaceholder, setCurrentPlaceholder] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [value, setValue] = useState(propValue || "");
+
+  useEffect(() => {
+    if (propValue !== undefined) {
+      setValue(propValue);
+    }
+  }, [propValue]);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const newDataRef = useRef<{ x: number; y: number; r: number; color: string }[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [animating, setAnimating] = useState(false);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const startAnimation = () => {
@@ -63,12 +77,6 @@ export function PlaceholdersAndVanishInput({
       }
     };
   }, [isHovered, placeholders]);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const newDataRef = useRef<{ x: number; y: number; r: number; color: string }[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [value, setValue] = useState("");
-  const [animating, setAnimating] = useState(false);
 
   const draw = useCallback(() => {
     if (!inputRef.current) return;
@@ -225,8 +233,7 @@ export function PlaceholdersAndVanishInput({
         type="text"
         className={cn(
           "w-full relative text-sm sm:text-base z-50 border-none bg-transparent text-foreground h-full rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-10 pr-20",
-          animating && "text-transparent",
-          !value && "pointer-events-none"
+          animating && "text-transparent"
         )}
       />
 
@@ -268,13 +275,7 @@ export function PlaceholdersAndVanishInput({
       </button>
 
       <div 
-        className="absolute inset-0 flex items-center rounded-full pointer-events-auto cursor-pointer z-40"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        onClick={() => {
-          const currentText = placeholders[currentPlaceholder];
-          onPlaceholderClick?.(currentText);
-        }}
+        className="absolute inset-0 flex items-center rounded-full pointer-events-none z-50"
       >
         <AnimatePresence mode="wait">
           {!value && (
@@ -284,6 +285,14 @@ export function PlaceholdersAndVanishInput({
                 opacity: 0,
               }}
               key={`current-placeholder-${currentPlaceholder}`}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent triggering other clicks
+                if (onPlaceholderClick) {
+                  onPlaceholderClick(placeholders[currentPlaceholder]);
+                  // Focus input after clicking placeholder
+                  inputRef.current?.focus();
+                }
+              }}
               animate={{
                 y: 0,
                 opacity: 1,
@@ -296,8 +305,7 @@ export function PlaceholdersAndVanishInput({
                 duration: 0.3,
                 ease: "linear",
               }}
-              whileHover={{ scale: 1.02 }}
-              className="text-muted-foreground text-sm sm:text-base font-normal pl-4 sm:pl-12 text-left w-[calc(100%-2rem)] truncate hover:text-foreground transition-colors"
+              className="text-muted-foreground text-sm sm:text-base font-normal pl-4 sm:pl-10 text-left w-[calc(100%-2rem)] truncate pointer-events-auto cursor-pointer hover:text-foreground transition-colors relative"
             >
               {placeholders[currentPlaceholder]}
             </motion.p>

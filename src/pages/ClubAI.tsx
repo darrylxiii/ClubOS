@@ -374,15 +374,7 @@ const ClubAI = () => {
 
     const userMessage: Message = { role: "user", content: messageText, mode };
     
-    // Use functional update to get latest messages
-    let currentMessages: Message[] = [];
-    setMessages(prev => {
-      currentMessages = [...prev, userMessage];
-      return currentMessages;
-    });
-    
-    setIsLoading(true);
-
+    // Initialize variables for streaming
     let assistantContent = "";
     let needsConfirmation = false;
     let confirmationMessage = "";
@@ -453,10 +445,16 @@ const ClubAI = () => {
         }];
       });
     };
-
-    try {
-      await streamChat({
-        messages: currentMessages,
+    
+    // Add user message immediately to show in UI and start streaming
+    setMessages(prev => {
+      const updated = [...prev, userMessage];
+      
+      // Start streaming with the updated messages
+      setIsLoading(true);
+      
+      streamChat({
+        messages: updated,
         userId: user?.id,
         conversationId: conversationId,
         images: imageDataUrls.length > 0 ? imageDataUrls : undefined,
@@ -466,30 +464,34 @@ const ClubAI = () => {
         onDone: async () => {
           setIsLoading(false);
           // Save conversation after AI response is complete
+          // Don't add message again - it's already been added during streaming via updateAssistant
           setMessages((prev) => {
-            const assistantMessage: Message = {
-              role: "assistant",
-              content: assistantContent,
-              needsConfirmation,
-              confirmationMessage,
-              action: pendingToolCalls.length > 0 ? pendingToolCalls[0] : undefined
-            };
-            const finalMessages = [...prev, assistantMessage];
-            saveConversation(finalMessages).catch(console.error);
+            saveConversation(prev).catch(console.error);
             loadConversations().catch(console.error);
-            return finalMessages;
+            
+            // Check if last message has navigation action
+            const lastMsg = prev[prev.length - 1];
+            if (lastMsg?.action?.type === "navigate") {
+              setTimeout(() => {
+                navigate(lastMsg.action!.path);
+              }, 1500);
+            }
+            
+            return prev;
           });
         },
+      }).catch((error) => {
+        console.error("Error sending message:", error);
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive"
+        });
+        setIsLoading(false);
       });
-    } catch (error) {
-      console.error("Error sending message:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive"
-      });
-      setIsLoading(false);
-    }
+      
+      return updated;
+    });
   };
 
   const streamChat = async ({

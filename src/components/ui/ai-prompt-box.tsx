@@ -653,6 +653,7 @@ export const PromptInputBox = React.forwardRef((props: PromptInputBoxProps, ref:
           )}
         >
           <PlaceholdersAndVanishInput
+            value={input}
             placeholders={placeholders.length > 0 ? placeholders : [
               showSearch
                 ? "Search the web..."

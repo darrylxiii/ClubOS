@@ -15,83 +15,12 @@ import {
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { Progress } from "@/components/ui/progress";
-import { useUserRole } from "@/hooks/useUserRole";
-
-interface Document {
-  id: string;
-  document_type: string;
-  file_name: string;
-  file_url: string;
-  file_size_kb: number;
-  uploaded_at: string;
-  uploaded_by: string;
-  is_verified: boolean;
-  version_number: number;
-  parsing_results?: any;
-  uploader_name?: string;
-  uploader_email?: string;
-  expiry_date?: string | null;
-  archived?: boolean;
-  archived_at?: string | null;
-  uploaded_by_role?: string | null;
-}
-
-interface Props {
-  candidateId: string;
-  canUpload: boolean;
-}
-
-const DOCUMENT_TYPES = {
-  'cv': { 
-    label: 'CV/Resume', 
-    icon: FileText, 
-    gradient: 'from-blue-500/20 via-blue-500/10 to-transparent', 
-    badge: 'bg-blue-500/10 text-blue-400 border-blue-500/30',
-    glow: 'hover:shadow-md'
-  },
-  'cover_letter': { 
-    label: 'Cover Letter', 
-    icon: FileText, 
-    gradient: 'from-slate-500/20 via-slate-500/10 to-transparent', 
-    badge: 'bg-slate-500/10 text-slate-400 border-slate-500/30',
-    glow: 'hover:shadow-md'
-  },
-  'portfolio': { 
-    label: 'Portfolio', 
-    icon: FileImage, 
-    gradient: 'from-purple-500/20 via-purple-500/10 to-transparent', 
-    badge: 'bg-purple-500/10 text-purple-400 border-purple-500/30',
-    glow: 'hover:shadow-md'
-  },
-  'certificate': { 
-    label: 'Certificate', 
-    icon: Award, 
-    gradient: 'from-green-500/20 via-green-500/10 to-transparent', 
-    badge: 'bg-green-500/10 text-green-400 border-green-500/30',
-    glow: 'hover:shadow-md'
-  },
-  'reference': { 
-    label: 'Reference', 
-    icon: File, 
-    gradient: 'from-pink-500/20 via-pink-500/10 to-transparent', 
-    badge: 'bg-pink-500/10 text-pink-400 border-pink-500/30',
-    glow: 'hover:shadow-md'
-  },
-  'other': { 
-    label: 'Other', 
-    icon: FolderOpen, 
-    gradient: 'from-muted/20 via-muted/10 to-transparent', 
-    badge: 'bg-muted/10 text-muted-foreground border-muted/30',
-    glow: 'hover:shadow-md'
-  },
-} as const;
+import { useResumeUpload } from "@/hooks/useResumeUpload";
 
 export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   const { role } = useUserRole();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -99,6 +28,8 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   const [dragActive, setDragActive] = useState(false);
   const [expiryDate, setExpiryDate] = useState<string>('');
   const [showArchived, setShowArchived] = useState(false);
+  
+  const { uploadResume, isUploading: uploading, progress: uploadProgress, validateFile } = useResumeUpload();
   
   const isAdminOrPartner = role === 'admin' || role === 'partner' || role === 'strategist';
 
@@ -188,8 +119,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   };
 
   const handleFileSelection = (file: File) => {
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('File size must be less than 10MB');
+    if (!validateFile(file)) {
       return;
     }
     setSelectedFile(file);
@@ -203,57 +133,29 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
     }
   };
 
-  const sanitizeFilename = (filename: string): string => {
-    // Remove file extension
-    const lastDotIndex = filename.lastIndexOf('.');
-    const name = lastDotIndex > 0 ? filename.substring(0, lastDotIndex) : filename;
-    const ext = lastDotIndex > 0 ? filename.substring(lastDotIndex) : '';
-    
-    // Sanitize the name part:
-    // 1. Remove any soft hyphens and zero-width characters
-    // 2. Replace spaces and special chars with hyphens
-    // 3. Remove consecutive hyphens
-    // 4. Convert to lowercase for consistency
-    const sanitized = name
-      .replace(/[\u00AD\u200B-\u200D\uFEFF]/g, '') // Remove invisible chars
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove accents
-      .replace(/[^a-zA-Z0-9._-]/g, '-') // Replace special chars
-      .replace(/-+/g, '-') // Remove consecutive hyphens
-      .replace(/^-|-$/g, '') // Remove leading/trailing hyphens
-      .toLowerCase();
-    
-    return `${sanitized}${ext}`;
-  };
-
   const handleUploadWithType = async () => {
     if (!selectedFile) return;
 
-    setUploading(true);
-    setUploadProgress(10);
-    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      setUploadProgress(30);
+      // Upload using the hook (standardized bucket and path generation)
+      // Note: The hook generates a path like: candidateId/timestamp_filename
+      // CandidateDocumentsViewer previously used: candidateId/timestamp-sanitized_filename
+      // The hook uses regex replacement which is similar but simpler.
+      const result = await uploadResume(selectedFile, candidateId, 'partner');
+      
+      if (!result) return; // Hook handles errors
 
-      const sanitizedName = sanitizeFilename(selectedFile.name);
-      const filePath = `${candidateId}/${Date.now()}-${sanitizedName}`;
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(filePath, selectedFile);
-
-      if (uploadError) throw uploadError;
-
-      setUploadProgress(70);
-
+      // Insert into DB
       const { error: insertError } = await supabase
         .from('candidate_documents')
         .insert({
           candidate_id: candidateId,
           document_type: selectedType,
           file_name: selectedFile.name,
-          file_url: filePath,
+          file_url: result.path,
           file_size_kb: Math.round(selectedFile.size / 1024),
           mime_type: selectedFile.type,
           uploaded_by: user.id,
@@ -263,8 +165,7 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
 
       if (insertError) throw insertError;
 
-      setUploadProgress(100);
-      toast.success(`${DOCUMENT_TYPES[selectedType as keyof typeof DOCUMENT_TYPES]?.label} uploaded successfully`);
+      toast.success(`${DOCUMENT_TYPES[selectedType as keyof typeof DOCUMENT_TYPES]?.label || 'Document'} uploaded successfully`);
       await loadDocuments();
       
       setShowTypeSelector(false);
@@ -273,23 +174,10 @@ export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
       setExpiryDate('');
     } catch (error: any) {
       console.error('Upload error:', error);
-      
-      // Provide specific error messages
-      let errorMessage = 'Failed to upload document';
-      if (error.message?.includes('Invalid key')) {
-        errorMessage = 'Invalid filename. Please rename the file and try again.';
-      } else if (error.message?.includes('size')) {
-        errorMessage = 'File is too large. Maximum size is 10MB.';
-      } else if (error.message) {
-        errorMessage = error.message;
+      // Toast handled by hook for upload errors, but we catch DB errors here
+      if (!error.message?.includes('Upload failed')) { // Primitive check if not already toasted
+         toast.error(error.message || 'Failed to save document metadata');
       }
-      
-      toast.error(errorMessage);
-      setShowTypeSelector(false);
-      setSelectedFile(null);
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
     }
   };
 

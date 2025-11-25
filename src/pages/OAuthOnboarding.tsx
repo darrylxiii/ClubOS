@@ -16,6 +16,7 @@ import { Briefcase, Target, DollarSign, MapPin, Upload, X, Loader2, CheckCircle,
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
 import { usePhoneVerification } from "@/hooks/usePhoneVerification";
 import { useCountryDetection } from "@/hooks/useCountryDetection";
+import { useResumeUpload } from "@/hooks/useResumeUpload";
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
@@ -30,7 +31,9 @@ export default function OAuthOnboarding() {
   const [cities, setCities] = useState<Array<{ id: string; name: string; country: string }>>([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [cityRadius, setCityRadius] = useState(25);
-  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  
+  const { uploadResume, isUploading: isUploadingResume, validateFile } = useResumeUpload();
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Phone verification
@@ -225,33 +228,24 @@ export default function OAuthOnboarding() {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    setIsUploadingResume(true);
+    if (!validateFile(file)) return;
+
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/resume-${Date.now()}.${fileExt}`;
+      // Upload using the hook
+      const result = await uploadResume(file, user.id, 'candidate');
+      
+      if (result) {
+        setFormData(prev => ({
+          ...prev,
+          resume_url: result.url,
+          resume_filename: result.filename,
+        }));
 
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(fileName);
-
-      setFormData(prev => ({
-        ...prev,
-        resume_url: publicUrl,
-        resume_filename: file.name,
-      }));
-
-      toast.success("Resume uploaded successfully!");
+        toast.success("Resume uploaded successfully!");
+      }
     } catch (error: any) {
       console.error('Error uploading resume:', error);
-      toast.error(error.message || "Failed to upload resume");
-    } finally {
-      setIsUploadingResume(false);
+      // Hook handles toast error for upload, but logic error might happen
     }
   };
 

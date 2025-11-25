@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { useResumeUpload } from "@/hooks/useResumeUpload";
 
 interface ResumeUploadModalProps {
   open: boolean;
@@ -16,22 +17,19 @@ interface ResumeUploadModalProps {
   onUploadComplete?: (documentId: string) => void;
 }
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
-const ALLOWED_TYPES = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-];
-
 export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: ResumeUploadModalProps) {
   const { user } = useAuth();
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
   const [dragActive, setDragActive] = useState(false);
   const [documentType, setDocumentType] = useState<'resume' | 'cover_letter' | 'certificate'>('resume');
   const [isPrimary, setIsPrimary] = useState(true);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const { uploadResume, isUploading: uploading, progress: uploadProgress, validateFile } = useResumeUpload({
+    onError: (error) => {
+      console.error("Upload failed:", error);
+    }
+  });
 
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -43,16 +41,6 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
     }
   }, []);
 
-  const validateFile = (file: File): string | null => {
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      return 'Invalid file type. Please upload PDF, DOC, or DOCX files only.';
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      return 'File size exceeds 10MB limit.';
-    }
-    return null;
-  };
-
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -60,9 +48,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
 
     const droppedFile = e.dataTransfer.files?.[0];
     if (droppedFile) {
-      const error = validateFile(droppedFile);
-      if (error) {
-        toast.error(error);
+      if (!validateFile(droppedFile)) {
         return;
       }
       setFile(droppedFile);
@@ -73,14 +59,12 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
         setPreviewUrl(url);
       }
     }
-  }, []);
+  }, [validateFile]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      const error = validateFile(selectedFile);
-      if (error) {
-        toast.error(error);
+      if (!validateFile(selectedFile)) {
         return;
       }
       setFile(selectedFile);
@@ -96,25 +80,14 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
   const handleUpload = async () => {
     if (!file || !user) return;
 
-    setUploading(true);
-    setUploadProgress(0);
-
     try {
-      // Simulate progress for better UX
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
-      }, 200);
-
-      // Upload file to storage
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}/${documentType}_${Date.now()}.${fileExt}`;
+      // 1. Upload file to storage using unified hook
+      const result = await uploadResume(file, user.id, 'candidate', isPrimary && documentType === 'resume');
       
-      const { error: uploadError } = await supabase.storage
-        .from('candidate-documents')
-        .upload(filePath, file);
+      if (!result) return; // Hook handles errors
 
-      if (uploadError) throw uploadError;
-
+      // 2. Update DB (Specific to this component's context)
+      
       // If setting as primary, unset other primary documents of same type
       if (isPrimary) {
         const { error: updateError } = await (supabase as any)
@@ -133,7 +106,7 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
           user_id: user.id,
           document_type: documentType,
           file_name: file.name,
-          file_path: filePath,
+          file_path: result.path, // Use the path returned by the hook (relative path in bucket)
           file_size: file.size,
           file_mime_type: file.type,
           is_primary: isPrimary,
@@ -142,9 +115,6 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
         .single();
 
       if (dbError) throw dbError;
-
-      clearInterval(progressInterval);
-      setUploadProgress(100);
 
       toast.success('Document uploaded successfully!');
       
@@ -158,17 +128,14 @@ export function ResumeUploadModal({ open, onOpenChange, onUploadComplete }: Resu
       }, 500);
 
     } catch (error) {
-      console.error('Error uploading document:', error);
-      toast.error('Failed to upload document. Please try again.');
-    } finally {
-      setUploading(false);
+      console.error('Error processing upload:', error);
+      toast.error('Failed to save document metadata.');
     }
   };
 
   const handleClose = () => {
     setFile(null);
     setPreviewUrl(null);
-    setUploadProgress(0);
     setDocumentType('resume');
     setIsPrimary(true);
     onOpenChange(false);

@@ -16,6 +16,7 @@ import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useCountryDetection } from "@/hooks/useCountryDetection";
+import { useResumeUpload } from "@/hooks/useResumeUpload";
 import { Slider } from "@/components/ui/slider";
 import { CandidateApplicationTracker } from "./CandidateApplicationTracker";
 import { LocationAutocomplete } from "@/components/ui/location-autocomplete";
@@ -42,7 +43,9 @@ export function CandidateOnboardingSteps() {
   const [cities, setCities] = useState<Array<{ id: string; name: string; country: string }>>([]);
   const [selectedCity, setSelectedCity] = useState("");
   const [cityRadius, setCityRadius] = useState(25);
-  const [isUploadingResume, setIsUploadingResume] = useState(false);
+  
+  const { uploadResume, isUploading: isUploadingResume, validateFile } = useResumeUpload();
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
@@ -723,53 +726,27 @@ export function CandidateOnboardingSteps() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
-    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-    if (!validTypes.includes(file.type)) {
-      toast({ title: "Invalid file type", description: "Please upload a PDF or DOC file", variant: "destructive" });
-      return;
-    }
-
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "File too large", description: "Maximum file size is 10MB", variant: "destructive" });
-      return;
-    }
-
-    setIsUploadingResume(true);
+    if (!validateFile(file)) return;
 
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${sessionId}_${Date.now()}.${fileExt}`;
-      const filePath = `onboarding/${fileName}`;
-
-      // Upload to Supabase storage
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false,
+      // Create a new file object with sessionId prefixed to ensure uniqueness/tracing in onboarding folder
+      const renamedFile = new File([file], `${sessionId}_${file.name}`, { type: file.type });
+      
+      // Upload to 'onboarding' "folder" (user_id param treated as folder)
+      const result = await uploadResume(renamedFile, 'onboarding', 'candidate');
+      
+      if (result) {
+        setFormData({
+          ...formData,
+          resume_url: result.url,
+          resume_filename: file.name, // Keep original name for display
         });
 
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('resumes')
-        .getPublicUrl(filePath);
-
-      setFormData({
-        ...formData,
-        resume_url: publicUrl,
-        resume_filename: file.name,
-      });
-
-      toast({ title: "Resume uploaded successfully" });
+        toast({ title: "Resume uploaded successfully" });
+      }
     } catch (error: any) {
       console.error('Upload error:', error);
-      toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-    } finally {
-      setIsUploadingResume(false);
+      // Hook handles toast
     }
   };
 

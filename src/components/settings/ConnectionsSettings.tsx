@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useResumeUpload } from '@/hooks/useResumeUpload';
 
 interface ConnectionsSettingsProps {
   socialConnections: any;
@@ -66,6 +67,8 @@ export const ConnectionsSettings = ({
   const [showEmailLabelDialog, setShowEmailLabelDialog] = useState(false);
   const [pendingEmailProvider, setPendingEmailProvider] = useState<'gmail' | 'outlook' | null>(null);
   const [emailLabel, setEmailLabel] = useState('');
+  
+  const { uploadResume, isUploading: isUploadingResume, validateFile } = useResumeUpload();
 
   useEffect(() => {
     loadUserResumes();
@@ -398,9 +401,11 @@ export const ConnectionsSettings = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setResumeFile(file);
-      setResumeDisplayName(file.name.replace(/\.[^/.]+$/, ''));
-      setShowResumeDialog(true);
+      if (validateFile(file)) {
+        setResumeFile(file);
+        setResumeDisplayName(file.name.replace(/\.[^/.]+$/, ''));
+        setShowResumeDialog(true);
+      }
     }
   };
 
@@ -410,19 +415,10 @@ export const ConnectionsSettings = ({
       return;
     }
 
-    setIsUploadingResume(true);
     try {
-      const fileExt = resumeFile.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      const result = await uploadResume(resumeFile, user.id, 'candidate');
       
-      const { error: uploadError } = await supabase.storage
-        .from('resumes')
-        .upload(fileName, resumeFile, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) throw uploadError;
+      if (!result) return; // Hook handles errors
 
       const { error: dbError } = await supabase
         .from('user_resumes')
@@ -430,7 +426,7 @@ export const ConnectionsSettings = ({
           user_id: user.id,
           file_name: resumeFile.name,
           display_name: resumeDisplayName.trim(),
-          file_path: fileName,
+          file_path: result.path,
           file_size: resumeFile.size,
           mime_type: resumeFile.type,
           is_primary: userResumes.length === 0
@@ -445,9 +441,10 @@ export const ConnectionsSettings = ({
       await loadUserResumes();
     } catch (error) {
       console.error('Error uploading resume:', error);
-      toast.error('Failed to upload resume');
-    } finally {
-      setIsUploadingResume(false);
+      // Hook handles upload errors, we catch DB errors here
+      if ((error as any).message !== 'Upload failed') { // Simple check
+         toast.error('Failed to save resume metadata');
+      }
     }
   };
 
