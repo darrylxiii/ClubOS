@@ -20,30 +20,38 @@ import { format, isPast, differenceInDays } from "date-fns";
 import { UnifiedTaskBoard } from "@/components/unified-tasks/UnifiedTaskBoard";
 import { UnifiedTasksList } from "@/components/unified-tasks/UnifiedTasksList";
 
+interface Objective {
+  id: string;
+  title: string;
+  status: string;
+  priority?: string;
+  milestone_type?: string;
+  due_date?: string;
+  hard_deadline?: string;
+  completion_percentage?: number;
+  description?: string;
+  goals?: string;
+  start_date?: string;
+  tags?: string[];
+  owners?: string[];
+  tasks?: Record<string, any>[];
+}
+
 const ObjectiveWorkspace = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [objective, setObjective] = useState<any>(null);
-  const [ownerProfiles, setOwnerProfiles] = useState<any[]>([]);
-  const [comments, setComments] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
+  const [objective, setObjective] = useState<Objective | null>(null);
+  const [ownerProfiles, setOwnerProfiles] = useState<Record<string, any>[]>([]);
+  const [comments, setComments] = useState<Record<string, any>[]>([]);
+  const [activities, setActivities] = useState<Record<string, any>[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [submittingComment, setSubmittingComment] = useState(false);
-  const [blockingTasks, setBlockingTasks] = useState<any[]>([]);
-  const [blockedByTasks, setBlockedByTasks] = useState<any[]>([]);
+  const [blockingTasks, setBlockingTasks] = useState<Record<string, any>[]>([]);
+  const [blockedByTasks, setBlockedByTasks] = useState<Record<string, any>[]>([]);
 
-  useEffect(() => {
-    if (id && user) {
-      loadObjective();
-      loadComments();
-      loadActivities();
-      loadDependencies();
-    }
-  }, [id, user]);
-
-  const loadObjective = async () => {
+  const loadObjective = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -76,9 +84,9 @@ const ObjectiveWorkspace = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, navigate]);
 
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -97,9 +105,9 @@ const ObjectiveWorkspace = () => {
     } catch (error) {
       console.error("Error loading comments:", error);
     }
-  };
+  }, [id]);
 
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -118,9 +126,9 @@ const ObjectiveWorkspace = () => {
     } catch (error) {
       console.error("Error loading activities:", error);
     }
-  };
+  }, [id]);
 
-  const loadDependencies = async () => {
+  const loadDependencies = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -172,7 +180,16 @@ const ObjectiveWorkspace = () => {
     } catch (error) {
       console.error("Error loading dependencies:", error);
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id && user) {
+      loadObjective();
+      loadComments();
+      loadActivities();
+      loadDependencies();
+    }
+  }, [id, user, loadObjective, loadComments, loadActivities, loadDependencies]);
 
   const handleSubmitComment = async () => {
     if (!newComment.trim() || !user || !id) return;

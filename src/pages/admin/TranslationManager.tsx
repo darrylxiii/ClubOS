@@ -102,7 +102,7 @@ export default function TranslationManager() {
     const loadingToast = toast.loading('Starting translation generation...');
     
     try {
-      const { data, error } = await supabase.functions.invoke('generate-all-translations', { body: { namespace } });
+      const { data, error } = await supabase.functions.invoke('generate-all-translations', { body: { namespace } }) as { data: any, error: any };
       
       toast.dismiss(loadingToast);
       
@@ -138,7 +138,7 @@ export default function TranslationManager() {
     try {
       const { data, error } = await supabase.functions.invoke('generate-all-translations', {
         body: { generateAll: true }
-      });
+      }) as { data: any, error: any };
       
       toast.dismiss(loadingToast);
       

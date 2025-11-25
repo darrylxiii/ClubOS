@@ -15,9 +15,9 @@ const PartnerTargetCompanies = () => {
   const { role, companyId } = useUserRole();
   const { user } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Record<string, any> | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(companyId);
-  const [assignedCompanies, setAssignedCompanies] = useState<any[]>([]);
+  const [assignedCompanies, setAssignedCompanies] = useState<Record<string, any>[]>([]);
   
   const { companies, loading, loadTargetCompanies, handleDeleteCompany, handleVote } = useTargetCompanies(selectedCompanyId);
 
@@ -41,7 +41,7 @@ const PartnerTargetCompanies = () => {
     };
     
     loadAssignedCompanies();
-  }, [role]);
+  }, [role, selectedCompanyId, setAssignedCompanies, setSelectedCompanyId]);
 
   const handleCreateCompany = () => {
     setSelectedCompany(null);

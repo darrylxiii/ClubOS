@@ -28,12 +28,12 @@ export default function MySkillsPage() {
     if (!user) return;
 
     const { data } = await supabase
-      .from('candidate_skills' as any)
+      .from('candidate_skills')
       .select('*')
       .eq('candidate_id', user.id)
       .order('verified', { ascending: false });
 
-    if (data) setSkills(data as any);
+    if (data) setSkills(data as unknown as Skill[]);
     setLoading(false);
   };
 

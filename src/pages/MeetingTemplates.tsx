@@ -54,11 +54,7 @@ export default function MeetingTemplates() {
     is_public: false,
   });
 
-  useEffect(() => {
-    loadTemplates();
-  }, [user]);
-
-  const loadTemplates = async () => {
+  const loadTemplates = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -69,14 +65,18 @@ export default function MeetingTemplates() {
 
       if (error) throw error;
       setTemplates(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading templates:', error);
       toast.error('Failed to load templates');
       setTemplates([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    loadTemplates();
+  }, [loadTemplates]);
 
   const handleSaveTemplate = async () => {
     try {
@@ -112,7 +112,7 @@ export default function MeetingTemplates() {
       setEditingTemplate(null);
       resetForm();
       loadTemplates();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error saving template:', error);
       toast.error('Failed to save template');
     }
@@ -130,7 +130,7 @@ export default function MeetingTemplates() {
       if (error) throw error;
       toast.success('Template deleted');
       loadTemplates();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting template:', error);
       toast.error('Failed to delete template');
     }
@@ -152,7 +152,7 @@ export default function MeetingTemplates() {
       if (error) throw error;
       toast.success('Template duplicated');
       loadTemplates();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error duplicating template:', error);
       toast.error('Failed to duplicate template');
     }
@@ -288,7 +288,7 @@ export default function MeetingTemplates() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="access_type">Access Type</Label>
-                    <Select value={formData.access_type} onValueChange={(value: any) => setFormData({ ...formData, access_type: value })}>
+                    <Select value={formData.access_type} onValueChange={(value: 'public' | 'private' | 'restricted') => setFormData({ ...formData, access_type: value })}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>

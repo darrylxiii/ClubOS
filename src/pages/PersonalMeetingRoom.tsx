@@ -39,13 +39,13 @@ export default function PersonalMeetingRoom() {
 
   useEffect(() => {
     loadPMR();
-  }, [user]);
+  }, [user, loadPMR]);
 
   useEffect(() => {
     if (pmr) {
       generateQRCode();
     }
-  }, [pmr]);
+  }, [pmr, generateQRCode]);
 
   const loadPMR = async () => {
     try {
@@ -66,7 +66,7 @@ export default function PersonalMeetingRoom() {
           require_approval: data.require_approval,
         });
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error loading PMR:', error);
       toast.error('Failed to load personal meeting room');
     } finally {

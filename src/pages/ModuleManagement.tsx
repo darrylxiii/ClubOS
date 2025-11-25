@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Card } from "@/components/ui/card";
@@ -11,12 +11,16 @@ import {
   Loader2,
   ChevronLeft,
   Plus,
-  GripVertical,
-  Pencil,
-  Trash2,
   BookOpen
 } from "lucide-react";
 import { CourseBuilder, Module } from "@/components/academy/CourseBuilder";
+
+interface Course {
+  id: string;
+  title: string;
+  created_by: string;
+  modules?: Module[];
+}
 
 export default function ModuleManagement() {
   const { id } = useParams();
@@ -25,15 +29,11 @@ export default function ModuleManagement() {
   const { toast } = useToast();
 
   const [loading, setLoading] = useState(true);
-  const [course, setCourse] = useState<any>(null);
-  const [modules, setModules] = useState<any[]>([]);
+  const [course, setCourse] = useState<Course | null>(null);
+  const [modules, setModules] = useState<Module[]>([]);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [id, user]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!id) return;
 
     try {
@@ -61,19 +61,24 @@ export default function ModuleManagement() {
         return;
       }
 
-      setCourse(courseData);
-      setModules((courseData.modules || []).sort((a: any, b: any) => a.display_order - b.display_order));
-    } catch (error: any) {
+      setCourse(courseData as unknown as Course);
+      const sortedModules = (courseData.modules || []).sort((a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order);
+      setModules(sortedModules as unknown as Module[]);
+    } catch (error) {
       toast({
         title: "Error loading modules",
-        description: error.message,
+        description: error instanceof Error ? error.message : "Unknown error",
         variant: "destructive",
       });
       navigate("/academy/creator");
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, user, toast, navigate]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   const handleDeleteModule = async (moduleId: string) => {
     if (!confirm("Are you sure you want to delete this module?")) return;

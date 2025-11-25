@@ -139,7 +139,7 @@ async function fetchGoogleCalendarEvents(
         continue;
       }
 
-      const events = data.events.map((event: any) => ({
+      const events = data.events.map((event: Record<string, any>) => ({
         id: `google-${event.id}`,
         title: event.summary || 'Untitled Event',
         start: new Date(event.start.dateTime || event.start.date),
@@ -205,7 +205,7 @@ async function fetchMicrosoftCalendarEvents(
         continue;
       }
 
-      const events = data.events.map((event: any) => ({
+      const events = data.events.map((event: Record<string, any>) => ({
         id: `ms-${event.id}`,
         title: event.summary || 'Untitled Event',
         start: new Date(event.start),

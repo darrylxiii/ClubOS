@@ -28,16 +28,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 const TargetCompaniesOverview = () => {
   const { user } = useAuth();
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [filteredCompanies, setFilteredCompanies] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<Record<string, any>[]>([]);
+  const [filteredCompanies, setFilteredCompanies] = useState<Record<string, any>[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [companyFilter, setCompanyFilter] = useState<string>("all");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [partnerCompanies, setPartnerCompanies] = useState<any[]>([]);
+  const [partnerCompanies, setPartnerCompanies] = useState<Record<string, any>[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<any>(null);
+  const [selectedCompany, setSelectedCompany] = useState<Record<string, any> | null>(null);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string>("");
 
   const loadTargetCompanies = () => {
