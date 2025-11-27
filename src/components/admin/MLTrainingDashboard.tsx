@@ -6,9 +6,36 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Brain, TrendingUp } from 'lucide-react';
 
 export function MLTrainingDashboard() {
-  const [loading, setLoading] = useState(false);
+  const [generatingEmbeddings, setGeneratingEmbeddings] = useState(false);
   const [preparing, setPreparing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const generateEmbeddings = async () => {
+    setGeneratingEmbeddings(true);
+    try {
+      const { data: candidateData, error: candidateError } = await supabase.functions.invoke(
+        'batch-generate-embeddings',
+        { body: { entity_type: 'candidate', limit: 100 } }
+      );
+      if (candidateError) throw candidateError;
+
+      const { data: jobData, error: jobError } = await supabase.functions.invoke(
+        'batch-generate-embeddings',
+        { body: { entity_type: 'job', limit: 100 } }
+      );
+      if (jobError) throw jobError;
+
+      toast({
+        title: "Embeddings Generated",
+        description: `${candidateData.processed} candidates, ${jobData.processed} jobs`
+      });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setGeneratingEmbeddings(false);
+    }
+  };
 
   const prepareTrainingData = async () => {
     setPreparing(true);
@@ -73,25 +100,18 @@ export function MLTrainingDashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4">
-            <Button
-              onClick={prepareTrainingData}
-              disabled={preparing}
-              variant="outline"
-            >
-              {preparing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Prepare Training Data
-            </Button>
-            
-            <Button
-              onClick={trainModel}
-              disabled={loading}
-            >
-              {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              <TrendingUp className="mr-2 h-4 w-4" />
-              Train Model
-            </Button>
-          </div>
+          <Button onClick={generateEmbeddings} disabled={generatingEmbeddings} className="w-full">
+            {generatingEmbeddings && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            1. Generate Embeddings
+          </Button>
+          <Button onClick={prepareTrainingData} disabled={preparing} variant="outline" className="w-full">
+            {preparing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            2. Prepare Training Data
+          </Button>
+          <Button onClick={trainModel} disabled={loading} variant="outline" className="w-full">
+            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            3. Train Model
+          </Button>
         </CardContent>
       </Card>
     </div>

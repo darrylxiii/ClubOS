@@ -66,8 +66,8 @@ serve(async (req) => {
       supabase.from('applications').select('*').eq('candidate_id', candidate_id),
       supabase.from('applications').select('*').eq('candidate_id', candidate_id).in('status', ['interviewed', 'hired']),
       supabase.from('applications').select('*').eq('job_id', job_id),
-      supabase.from('candidate_profiles').select('embedding').eq('id', candidate_id).single(),
-      supabase.from('jobs').select('embedding').eq('id', job_id).single()
+      supabase.from('candidate_profiles').select('profile_embedding').eq('id', candidate_id).single(),
+      supabase.from('jobs').select('job_embedding').eq('id', job_id).single()
     ]);
 
     const candidate = candidateResult.data;
@@ -78,8 +78,8 @@ serve(async (req) => {
     const candidateApplications = candidateApplicationsResult.data || [];
     const candidateInterviews = candidateInterviewsResult.data || [];
     const jobApplications = jobApplicationsResult.data || [];
-    const candidateEmbedding = candidateEmbeddingResult.data?.embedding;
-    const jobEmbedding = jobEmbeddingResult.data?.embedding;
+    const candidateEmbedding = candidateEmbeddingResult.data?.profile_embedding;
+    const jobEmbedding = jobEmbeddingResult.data?.job_embedding;
 
     if (!candidate || !job) {
       return new Response(
