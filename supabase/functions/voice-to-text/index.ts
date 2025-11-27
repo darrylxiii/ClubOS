@@ -42,13 +42,17 @@ serve(async (req) => {
   }
 
   try {
-    const { audio } = await req.json();
+    const { audio, meetingId, participantName, timestamp } = await req.json();
     
     if (!audio) {
       throw new Error('No audio data provided');
     }
 
-    console.log('Processing audio transcription request...');
+    console.log('[Voice-to-Text] Processing audio transcription request...', { 
+      meetingId, 
+      participantName,
+      audioLength: audio.length 
+    });
 
     // Process audio in chunks
     const binaryAudio = processBase64Chunks(audio);
@@ -70,20 +74,26 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
+      console.error('[Voice-to-Text] OpenAI API error:', errorText);
       throw new Error(`OpenAI API error: ${errorText}`);
     }
 
     const result = await response.json();
-    console.log('Transcription successful:', result.text);
+    console.log('[Voice-to-Text] Transcription successful:', result.text);
 
+    // Return with meeting context
     return new Response(
-      JSON.stringify({ text: result.text }),
+      JSON.stringify({ 
+        text: result.text,
+        meetingId,
+        participantName,
+        timestamp: timestamp || new Date().toISOString()
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in voice-to-text function:', error);
+    console.error('[Voice-to-Text] Error in voice-to-text function:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return new Response(
       JSON.stringify({ error: errorMessage }),

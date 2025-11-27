@@ -3261,6 +3261,115 @@ export type Database = {
           },
         ]
       }
+      candidate_interview_performance: {
+        Row: {
+          answer_quality: Json | null
+          application_id: string | null
+          areas_for_improvement: string[] | null
+          candidate_id: string | null
+          coaching_suggestions: string[] | null
+          communication_clarity_score: number | null
+          communication_conciseness_score: number | null
+          communication_confidence_score: number | null
+          created_at: string | null
+          cultural_fit_score: number | null
+          green_flags: string[] | null
+          hiring_recommendation: string | null
+          id: string
+          key_strengths: string[] | null
+          meeting_id: string | null
+          overall_impression: string | null
+          red_flags: string[] | null
+          technical_competence_score: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          answer_quality?: Json | null
+          application_id?: string | null
+          areas_for_improvement?: string[] | null
+          candidate_id?: string | null
+          coaching_suggestions?: string[] | null
+          communication_clarity_score?: number | null
+          communication_conciseness_score?: number | null
+          communication_confidence_score?: number | null
+          created_at?: string | null
+          cultural_fit_score?: number | null
+          green_flags?: string[] | null
+          hiring_recommendation?: string | null
+          id?: string
+          key_strengths?: string[] | null
+          meeting_id?: string | null
+          overall_impression?: string | null
+          red_flags?: string[] | null
+          technical_competence_score?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          answer_quality?: Json | null
+          application_id?: string | null
+          areas_for_improvement?: string[] | null
+          candidate_id?: string | null
+          coaching_suggestions?: string[] | null
+          communication_clarity_score?: number | null
+          communication_conciseness_score?: number | null
+          communication_confidence_score?: number | null
+          created_at?: string | null
+          cultural_fit_score?: number | null
+          green_flags?: string[] | null
+          hiring_recommendation?: string | null
+          id?: string
+          key_strengths?: string[] | null
+          meeting_id?: string | null
+          overall_impression?: string | null
+          red_flags?: string[] | null
+          technical_competence_score?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_interview_performance_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_performance_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_performance_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_performance_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_performance_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_interview_performance_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_invitations: {
         Row: {
           accepted_at: string | null
@@ -9672,6 +9781,81 @@ export type Database = {
         }
         Relationships: []
       }
+      hiring_manager_profiles: {
+        Row: {
+          common_questions: Json | null
+          communication_style: string | null
+          company_id: string | null
+          created_at: string | null
+          cultural_priorities: Json | null
+          decision_patterns: Json | null
+          email: string | null
+          focus_areas: string[] | null
+          full_name: string | null
+          id: string
+          interview_style: string | null
+          last_analyzed_at: string | null
+          meetings_analyzed: number | null
+          question_difficulty_level: string | null
+          typical_interview_duration_mins: number | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          common_questions?: Json | null
+          communication_style?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          cultural_priorities?: Json | null
+          decision_patterns?: Json | null
+          email?: string | null
+          focus_areas?: string[] | null
+          full_name?: string | null
+          id?: string
+          interview_style?: string | null
+          last_analyzed_at?: string | null
+          meetings_analyzed?: number | null
+          question_difficulty_level?: string | null
+          typical_interview_duration_mins?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          common_questions?: Json | null
+          communication_style?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          cultural_priorities?: Json | null
+          decision_patterns?: Json | null
+          email?: string | null
+          focus_areas?: string[] | null
+          full_name?: string | null
+          id?: string
+          interview_style?: string | null
+          last_analyzed_at?: string | null
+          meetings_analyzed?: number | null
+          question_difficulty_level?: string | null
+          typical_interview_duration_mins?: number | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hiring_manager_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hiring_manager_profiles_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_logs: {
         Row: {
           acknowledged_at: string | null
@@ -10558,6 +10742,83 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interview_question_patterns: {
+        Row: {
+          bad_answer_examples: Json | null
+          company_id: string | null
+          created_at: string | null
+          embedding: string | null
+          extracted_from_meeting_id: string | null
+          frequency: number | null
+          good_answer_examples: Json | null
+          id: string
+          interviewer_name: string | null
+          job_id: string | null
+          question_category: string | null
+          question_text: string
+          updated_at: string | null
+        }
+        Insert: {
+          bad_answer_examples?: Json | null
+          company_id?: string | null
+          created_at?: string | null
+          embedding?: string | null
+          extracted_from_meeting_id?: string | null
+          frequency?: number | null
+          good_answer_examples?: Json | null
+          id?: string
+          interviewer_name?: string | null
+          job_id?: string | null
+          question_category?: string | null
+          question_text: string
+          updated_at?: string | null
+        }
+        Update: {
+          bad_answer_examples?: Json | null
+          company_id?: string | null
+          created_at?: string | null
+          embedding?: string | null
+          extracted_from_meeting_id?: string | null
+          frequency?: number | null
+          good_answer_examples?: Json | null
+          id?: string
+          interviewer_name?: string | null
+          job_id?: string | null
+          question_category?: string | null
+          question_text?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "interview_question_patterns_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_question_patterns_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_question_patterns_extracted_from_meeting_id_fkey"
+            columns: ["extracted_from_meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "interview_question_patterns_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
             referencedColumns: ["id"]
           },
         ]
@@ -12413,6 +12674,50 @@ export type Database = {
           },
         ]
       }
+      meeting_intelligence_processing: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          meeting_id: string | null
+          processing_type: string
+          result_data: Json | null
+          started_at: string | null
+          status: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          meeting_id?: string | null
+          processing_type: string
+          result_data?: Json | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          meeting_id?: string | null
+          processing_type?: string
+          result_data?: Json | null
+          started_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_intelligence_processing_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_invitations: {
         Row: {
           accepted_at: string | null
@@ -13030,7 +13335,10 @@ export type Database = {
           ai_confidence_score: number | null
           ai_suggested_time: boolean | null
           allow_guests: boolean | null
+          application_id: string | null
+          booking_id: string | null
           branding: Json | null
+          candidate_id: string | null
           created_at: string | null
           created_by_ai: boolean | null
           created_via: string | null
@@ -13039,9 +13347,12 @@ export type Database = {
           host_id: string
           host_settings: Json | null
           id: string
+          interview_stage: string | null
+          job_id: string | null
           max_participants: number | null
           meeting_code: string
           meeting_password: string | null
+          meeting_type: string | null
           original_user_request: string | null
           pmr_id: string | null
           recurrence_rule: string | null
@@ -13062,7 +13373,10 @@ export type Database = {
           ai_confidence_score?: number | null
           ai_suggested_time?: boolean | null
           allow_guests?: boolean | null
+          application_id?: string | null
+          booking_id?: string | null
           branding?: Json | null
+          candidate_id?: string | null
           created_at?: string | null
           created_by_ai?: boolean | null
           created_via?: string | null
@@ -13071,9 +13385,12 @@ export type Database = {
           host_id: string
           host_settings?: Json | null
           id?: string
+          interview_stage?: string | null
+          job_id?: string | null
           max_participants?: number | null
           meeting_code: string
           meeting_password?: string | null
+          meeting_type?: string | null
           original_user_request?: string | null
           pmr_id?: string | null
           recurrence_rule?: string | null
@@ -13094,7 +13411,10 @@ export type Database = {
           ai_confidence_score?: number | null
           ai_suggested_time?: boolean | null
           allow_guests?: boolean | null
+          application_id?: string | null
+          booking_id?: string | null
           branding?: Json | null
+          candidate_id?: string | null
           created_at?: string | null
           created_by_ai?: boolean | null
           created_via?: string | null
@@ -13103,9 +13423,12 @@ export type Database = {
           host_id?: string
           host_settings?: Json | null
           id?: string
+          interview_stage?: string | null
+          job_id?: string | null
           max_participants?: number | null
           meeting_code?: string
           meeting_password?: string | null
+          meeting_type?: string | null
           original_user_request?: string | null
           pmr_id?: string | null
           recurrence_rule?: string | null
@@ -13121,6 +13444,55 @@ export type Database = {
           video_session_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "meetings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "meetings_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meetings_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "meetings_pmr_id_fkey"
             columns: ["pmr_id"]

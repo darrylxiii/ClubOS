@@ -29,6 +29,7 @@ import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackcha
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
 import { RecordingIndicator } from '@/components/meetings/RecordingIndicator';
 import { PresenterHUD } from '@/components/video-call/PresenterHUD';
+import { useMeetingTranscription } from '@/hooks/useMeetingTranscription';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -76,6 +77,7 @@ export function MeetingVideoCallInterface({
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [userRole, setUserRole] = useState<string>('participant');
   const [isRecording, setIsRecording] = useState(false);
+  const [transcriptionEnabled, setTranscriptionEnabled] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
