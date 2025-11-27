@@ -91,13 +91,13 @@ export function useResumeUpload(options: UseResumeUploadOptions = {}) {
         .from('candidate_documents')
         .insert({
           candidate_id: userId,
-          document_type: documentType,
+          document_type: 'resume',
           file_name: file.name,
-          file_url: filePath,
+          file_url: publicUrl,
           file_size_kb: Math.round(file.size / 1024),
           mime_type: file.type,
           uploaded_by: currentUser?.id,
-          uploaded_by_role: role,
+          uploaded_by_role: uploadType === 'partner' ? 'partner' : 'candidate',
         })
         .select()
         .single();
