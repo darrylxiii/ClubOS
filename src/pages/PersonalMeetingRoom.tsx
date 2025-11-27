@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,18 +36,6 @@ export default function PersonalMeetingRoom() {
     allow_guests: true,
     require_approval: false,
   });
-
-  useEffect(() => {
-    if (user) {
-      loadPMR();
-    }
-  }, [user, loadPMR]);
-
-  useEffect(() => {
-    if (pmr) {
-      generateQRCode();
-    }
-  }, [pmr, generateQRCode]);
 
   const loadPMR = useCallback(async () => {
     try {
@@ -88,13 +76,49 @@ export default function PersonalMeetingRoom() {
           light: '#FFFFFF',
         },
       });
-      setQrCode(qrCodeDataUrl);
+      setQrCodeUrl(qrCodeDataUrl);
     } catch (error) {
       console.error('Error generating QR code:', error);
     }
   }, [pmr]);
 
+  useEffect(() => {
+    if (user) {
+      loadPMR();
+    }
+  }, [user, loadPMR]);
+
+  useEffect(() => {
+    if (pmr) {
+      generateQRCode();
+    }
+  }, [pmr, generateQRCode]);
+
   const createPMR = async () => {
+    try {
+      // Generate a unique room code (8 character alphanumeric)
+      const roomCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+      
+      const { data, error } = await supabase
+        .from('personal_meeting_rooms')
+        .insert([{
+          user_id: user?.id,
+          room_code: roomCode,
+          display_name: customName || 'My Meeting Room',
+          allow_guests: settings.allow_guests,
+          require_approval: settings.require_approval,
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      toast.success('Personal meeting room created');
+      loadPMR();
+    } catch (error: any) {
+      console.error('Error creating PMR:', error);
+      toast.error('Failed to create personal meeting room');
+    }
+  };
 
   const updatePMR = async () => {
     if (!pmr) return;
@@ -133,25 +157,6 @@ export default function PersonalMeetingRoom() {
     } catch (error: any) {
       console.error('Error toggling PMR:', error);
       toast.error('Failed to toggle PMR');
-    }
-  };
-
-  const generateQRCode = async () => {
-    if (!pmr) return;
-    
-    const url = `${window.location.origin}/meetings/${pmr.room_code}`;
-    try {
-      const qrDataUrl = await QRCode.toDataURL(url, {
-        width: 300,
-        margin: 2,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF',
-        },
-      });
-      setQrCodeUrl(qrDataUrl);
-    } catch (error) {
-      console.error('Error generating QR code:', error);
     }
   };
 

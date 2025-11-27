@@ -18,7 +18,7 @@ export const adminCandidateService = {
 
   // Get all candidates with filters
   async getAllCandidates(filters: UnifiedCandidateFilters = {}) {
-    let query = supabase
+    let query = (supabase as any)
       .from('unified_candidate_view')
       .select('*');
     

@@ -36,7 +36,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
 
     const fetchAssignedStrategist = async (): Promise<void> => {
         try {
-            const { data, error } = await supabase
+            const { data, error } = await (supabase as any)
                 .from('talent_strategists')
                 .select('*')
                 .eq('is_active', true)
