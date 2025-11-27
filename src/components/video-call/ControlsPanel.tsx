@@ -71,6 +71,9 @@ interface ControlsPanelProps {
   onOpenBackgrounds?: () => void;
   onToggleBackchannel?: () => void;
   onToggleVoting?: () => void;
+  onOpenTranscription?: () => void;
+  transcriptionEnabled?: boolean;
+  isTranscribing?: boolean;
 }
 
 export function ControlsPanel({
@@ -102,6 +105,9 @@ export function ControlsPanel({
   onOpenBackgrounds,
   onToggleBackchannel,
   onToggleVoting,
+  onOpenTranscription,
+  transcriptionEnabled = false,
+  isTranscribing = false,
 }: ControlsPanelProps) {
   const reactions = ['👍', '👏', '❤️', '😂', '🎉', '👋'];
 
@@ -312,6 +318,13 @@ export function ControlsPanel({
               <DropdownMenuItem onClick={onToggleCaptions} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
                 <Subtitles className={cn("h-4 w-4", captionsEnabled && "text-primary")} />
                 <span>{captionsEnabled ? 'Hide Captions' : 'Show Captions'}</span>
+              </DropdownMenuItem>
+            )}
+            {onOpenTranscription && (
+              <DropdownMenuItem onClick={onOpenTranscription} className="gap-3 text-white hover:bg-white/10 py-3 cursor-pointer">
+                <FileText className={cn("h-4 w-4", transcriptionEnabled && "text-primary")} />
+                <span>Transcription</span>
+                {isTranscribing && <Badge className="ml-auto bg-green-500 text-white text-[10px] animate-pulse">LIVE</Badge>}
               </DropdownMenuItem>
             )}
             {onOpenNotes && (
