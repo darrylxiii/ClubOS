@@ -18,36 +18,58 @@ export const adminCandidateService = {
 
   // Get all candidates with filters
   async getAllCandidates(filters: UnifiedCandidateFilters = {}) {
-    let query = (supabase as any)
-      .from('unified_candidate_view')
-      .select('*');
-    
-    if (filters.strategistId) {
-      query = query.eq('assigned_strategist_id', filters.strategistId);
-    }
-    if (filters.searchTerm) {
-      query = query.or(
-        `full_name.ilike.%${filters.searchTerm}%,email.ilike.%${filters.searchTerm}%`
-      );
-    }
-    
-    const { data, error } = await query.order('created_at', { ascending: false });
-    
-    // Apply client-side filtering for merge status if needed
-    let filteredData = data;
-    if (data && filters.mergeStatus) {
-      if (filters.mergeStatus === 'merged') {
-        filteredData = data.filter((c: any) => c.invitation_status === 'registered');
-      } else if (filters.mergeStatus === 'unlinked') {
-        filteredData = data.filter((c: any) => 
-          !c.invitation_status || c.invitation_status === 'not_invited' || c.invitation_status === 'pending'
-        );
-      } else {
-        filteredData = data.filter((c: any) => c.invitation_status === filters.mergeStatus);
+    try {
+      // Use candidate_profiles directly instead of view to avoid type issues
+      let query = supabase
+        .from('candidate_profiles')
+        .select(`
+          id,
+          full_name,
+          email,
+          phone,
+          current_title,
+          current_company,
+          linkedin_url,
+          invitation_status,
+          assigned_strategist_id,
+          profile_completeness,
+          created_at,
+          merged_at,
+          user_id
+        `);
+      
+      if (filters.strategistId) {
+        query = query.eq('assigned_strategist_id', filters.strategistId);
       }
+      if (filters.searchTerm) {
+        query = query.or(
+          `full_name.ilike.%${filters.searchTerm}%,email.ilike.%${filters.searchTerm}%`
+        );
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      // Apply client-side filtering for merge status if needed
+      let filteredData = data;
+      if (data && filters.mergeStatus) {
+        if (filters.mergeStatus === 'merged') {
+          filteredData = data.filter(c => c.invitation_status === 'registered');
+        } else if (filters.mergeStatus === 'unlinked') {
+          filteredData = data.filter(c => 
+            !c.invitation_status || c.invitation_status === 'not_invited' || c.invitation_status === 'pending'
+          );
+        } else {
+          filteredData = data.filter(c => c.invitation_status === filters.mergeStatus);
+        }
+      }
+      
+      return { data: filteredData, error: null };
+    } catch (error) {
+      console.error('Error fetching candidates:', error);
+      return { data: null, error };
     }
-    
-    return { data: filteredData, error };
   },
 
   // Export candidates to CSV
