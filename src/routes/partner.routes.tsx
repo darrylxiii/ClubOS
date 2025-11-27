@@ -22,6 +22,9 @@ const PartnerTargetCompanies = lazy(() => import("@/pages/PartnerTargetCompanies
 const CompanySettings = lazy(() => import("@/pages/CompanySettings"));
 const CompanyDomainsSettings = lazy(() => import("@/pages/CompanyDomainsSettings"));
 const AuditLog = lazy(() => import("@/pages/partner/AuditLog"));
+const BillingDashboard = lazy(() => import("@/pages/partner/BillingDashboard"));
+const SLADashboard = lazy(() => import("@/pages/partner/SLADashboard"));
+const IntegrationsManagement = lazy(() => import("@/pages/partner/IntegrationsManagement"));
 
 export const partnerRoutes = (
   <>
@@ -140,6 +143,42 @@ export const partnerRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <AuditLog />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/partner/billing"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <BillingDashboard />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/partner/sla"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <SLADashboard />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/partner/integrations"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <IntegrationsManagement />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
