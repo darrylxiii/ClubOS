@@ -5786,6 +5786,58 @@ export type Database = {
           },
         ]
       }
+      company_role_permissions: {
+        Row: {
+          company_id: string
+          created_at: string
+          granted: boolean
+          id: string
+          permission_name: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          granted?: boolean
+          id?: string
+          permission_name: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          granted?: boolean
+          id?: string
+          permission_name?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_company_role_permissions_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_company_role_permissions_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_company_role_permissions_permission"
+            columns: ["permission_name"]
+            isOneToOne: false
+            referencedRelation: "partner_permissions"
+            referencedColumns: ["name"]
+          },
+        ]
+      }
       company_settings: {
         Row: {
           company_id: string
@@ -14399,6 +14451,153 @@ export type Database = {
           },
         ]
       }
+      partner_analytics_snapshots: {
+        Row: {
+          active_candidates: number
+          avg_time_to_hire_days: number | null
+          avg_time_to_interview_days: number | null
+          company_id: string
+          created_at: string
+          hires_made: number
+          id: string
+          interviews_scheduled: number
+          offer_acceptance_rate: number | null
+          offers_sent: number
+          snapshot_date: string
+          source_breakdown: Json | null
+          stage_distribution: Json | null
+          total_applications: number
+        }
+        Insert: {
+          active_candidates?: number
+          avg_time_to_hire_days?: number | null
+          avg_time_to_interview_days?: number | null
+          company_id: string
+          created_at?: string
+          hires_made?: number
+          id?: string
+          interviews_scheduled?: number
+          offer_acceptance_rate?: number | null
+          offers_sent?: number
+          snapshot_date: string
+          source_breakdown?: Json | null
+          stage_distribution?: Json | null
+          total_applications?: number
+        }
+        Update: {
+          active_candidates?: number
+          avg_time_to_hire_days?: number | null
+          avg_time_to_interview_days?: number | null
+          company_id?: string
+          created_at?: string
+          hires_made?: number
+          id?: string
+          interviews_scheduled?: number
+          offer_acceptance_rate?: number | null
+          offers_sent?: number
+          snapshot_date?: string
+          source_breakdown?: Json | null
+          stage_distribution?: Json | null
+          total_applications?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_analytics_snapshots_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_analytics_snapshots_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_audit_log: {
+        Row: {
+          action_type: string
+          actor_id: string
+          after_state: Json | null
+          before_state: Json | null
+          company_id: string
+          created_at: string
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          actor_id: string
+          after_state?: Json | null
+          before_state?: Json | null
+          company_id: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          actor_id?: string
+          after_state?: Json | null
+          before_state?: Json | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_partner_audit_actor"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "fk_partner_audit_actor"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_partner_audit_actor"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_partner_audit_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_partner_audit_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_billing_details: {
         Row: {
           bank_account_iban: string | null
@@ -14588,6 +14787,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      partner_permissions: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
       }
       partner_requests: {
         Row: {
