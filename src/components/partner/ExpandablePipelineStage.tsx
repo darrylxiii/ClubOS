@@ -173,6 +173,7 @@ export function ExpandablePipelineStage({
         guest_name: data.guest_name || booking.guest_name || 'Guest',
         scheduled_start: data.scheduled_start,
         scheduled_end: data.scheduled_end,
+        status: data.status || 'scheduled',
       });
       setSelectedBookingLink(data.booking_links);
       setRescheduleDialogOpen(true);
@@ -279,7 +280,10 @@ export function ExpandablePipelineStage({
         <RescheduleDialog
           open={rescheduleDialogOpen}
           onOpenChange={setRescheduleDialogOpen}
-          booking={selectedBooking}
+          booking={{
+            ...selectedBooking,
+            guest_name: selectedBooking.guest_name || 'Guest',
+          }}
           bookingLink={selectedBookingLink}
           onRescheduled={handleRescheduled}
         />

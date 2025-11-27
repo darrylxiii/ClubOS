@@ -16,6 +16,40 @@ import {
 import { format, differenceInDays } from "date-fns";
 import { Progress } from "@/components/ui/progress";
 import { useResumeUpload } from "@/hooks/useResumeUpload";
+import { useUserRole } from "@/hooks/useUserRole";
+
+interface Props {
+  candidateId: string;
+  canUpload: boolean;
+}
+
+interface Document {
+  id: string;
+  document_type: string;
+  file_name: string;
+  file_url: string;
+  file_size_kb: number;
+  uploaded_at: string;
+  uploaded_by: string;
+  uploaded_by_role: string;
+  uploader_name?: string;
+  uploader_email?: string;
+  expiry_date?: string | null;
+  archived?: boolean;
+  archived_at?: string | null;
+  is_verified?: boolean;
+  version_number: number;
+}
+
+const DOCUMENT_TYPES = {
+  cv: { label: 'Resume/CV', icon: FileText, badge: 'bg-blue-500/10 text-blue-400 border-blue-500/30', gradient: 'from-blue-500/5 to-indigo-500/5', glow: 'hover:shadow-blue-500/20' },
+  cover_letter: { label: 'Cover Letter', icon: FileText, badge: 'bg-purple-500/10 text-purple-400 border-purple-500/30', gradient: 'from-purple-500/5 to-pink-500/5', glow: 'hover:shadow-purple-500/20' },
+  portfolio: { label: 'Portfolio', icon: FileImage, badge: 'bg-pink-500/10 text-pink-400 border-pink-500/30', gradient: 'from-pink-500/5 to-rose-500/5', glow: 'hover:shadow-pink-500/20' },
+  certificate: { label: 'Certificate', icon: Award, badge: 'bg-green-500/10 text-green-400 border-green-500/30', gradient: 'from-green-500/5 to-emerald-500/5', glow: 'hover:shadow-green-500/20' },
+  id_document: { label: 'ID Document', icon: User, badge: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30', gradient: 'from-yellow-500/5 to-amber-500/5', glow: 'hover:shadow-yellow-500/20' },
+  work_permit: { label: 'Work Permit', icon: FileCheck, badge: 'bg-orange-500/10 text-orange-400 border-orange-500/30', gradient: 'from-orange-500/5 to-red-500/5', glow: 'hover:shadow-orange-500/20' },
+  other: { label: 'Other', icon: File, badge: 'bg-gray-500/10 text-gray-400 border-gray-500/30', gradient: 'from-gray-500/5 to-slate-500/5', glow: 'hover:shadow-gray-500/20' },
+};
 
 export const CandidateDocumentsViewer = ({ candidateId, canUpload }: Props) => {
   const { role } = useUserRole();

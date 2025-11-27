@@ -33,6 +33,10 @@ export default function ContractDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
+  const [selectedMilestoneId, setSelectedMilestoneId] = useState<string | null>(null);
+  const [revisionModalOpen, setRevisionModalOpen] = useState(false);
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [commentsDrawerOpen, setCommentsDrawerOpen] = useState(false);
 
   // Fetch contract details
   const { data: contract, isLoading: contractLoading } = useQuery({

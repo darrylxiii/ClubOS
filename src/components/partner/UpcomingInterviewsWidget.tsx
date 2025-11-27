@@ -450,15 +450,15 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
   
   const loadPrepDocument = async () => {
     try {
-      // Check if prep document exists in booking metadata or separate table
+      // Check if prep document exists in booking metadata
       const { data: booking } = await supabase
         .from('bookings')
-        .select('metadata, interview_prep_doc_url')
+        .select('metadata')
         .eq('id', interview.id)
         .single();
       
       if (booking) {
-        const docUrl = booking.interview_prep_doc_url || (booking.metadata as any)?.prep_doc_url;
+        const docUrl = (booking.metadata as any)?.prep_doc_url || (booking.metadata as any)?.interview_prep_doc_url;
         if (docUrl) {
           setPrepDocUrl(docUrl);
         }
@@ -489,10 +489,10 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
         if (error) throw error;
         
         // Also create/update interview feedback record if table exists
-        const { error: feedbackError } = await supabase
+        const { error: feedbackError } = await (supabase as any)
           .from('interview_feedback')
           .upsert({
-            booking_id: interview.id,
+            application_id: interview.candidate_id,
             candidate_id: interview.candidate_id,
             feedback_text: feedbackText,
             submitted_at: new Date().toISOString(),

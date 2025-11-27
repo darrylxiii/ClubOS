@@ -27,7 +27,7 @@ export default function MySkillsPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from('candidate_skills')
       .select('*')
       .eq('candidate_id', user.id)

@@ -85,7 +85,7 @@ export function MilestoneFileUploadModal({
         .getPublicUrl(filePath);
 
       // Update milestone with file reference
-      const { data: milestone, error: fetchError } = await supabase
+      const { data: milestone, error: fetchError } = await (supabase as any)
         .from("project_milestones")
         .select("submitted_files")
         .eq("id", milestoneId)
@@ -101,7 +101,7 @@ export function MilestoneFileUploadModal({
         uploaded_at: new Date().toISOString(),
       };
 
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from("project_milestones")
         .update({
           submitted_files: [...existingFiles, newFile],

@@ -38,7 +38,9 @@ export default function PersonalMeetingRoom() {
   });
 
   useEffect(() => {
-    loadPMR();
+    if (user) {
+      loadPMR();
+    }
   }, [user, loadPMR]);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function PersonalMeetingRoom() {
     }
   }, [pmr, generateQRCode]);
 
-  const loadPMR = async () => {
+  const loadPMR = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -72,33 +74,27 @@ export default function PersonalMeetingRoom() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  const generateQRCode = useCallback(async () => {
+    if (!pmr) return;
+    try {
+      const pmrUrl = `${window.location.origin}/join/${pmr.room_code}`;
+      const qrCodeDataUrl = await QRCode.toDataURL(pmrUrl, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF',
+        },
+      });
+      setQrCode(qrCodeDataUrl);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+  }, [pmr]);
 
   const createPMR = async () => {
-    try {
-      // Generate PMR code using database function
-      const { data: codeData } = await supabase.rpc('generate_pmr_code');
-      
-      const { data, error } = await supabase
-        .from('personal_meeting_rooms')
-        .insert([{
-          user_id: user?.id,
-          room_code: codeData || `pmr-${Date.now()}`,
-          display_name: customName || `${user?.email?.split('@')[0]}'s Room`,
-          allow_guests: settings.allow_guests,
-          require_approval: settings.require_approval,
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setPmr(data);
-      toast.success('Personal Meeting Room created!');
-    } catch (error: any) {
-      console.error('Error creating PMR:', error);
-      toast.error('Failed to create personal meeting room');
-    }
-  };
 
   const updatePMR = async () => {
     if (!pmr) return;

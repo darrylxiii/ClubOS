@@ -19,6 +19,7 @@ export function PlaceholdersAndVanishInput({
   const [isHovered, setIsHovered] = useState(false);
   const [value, setValue] = useState(propValue || "");
   const isControlled = propValue !== undefined;
+  const [animating, setAnimating] = useState(false);
 
   useEffect(() => {
     // Don't update value from prop during animation
@@ -32,7 +33,6 @@ export function PlaceholdersAndVanishInput({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const newDataRef = useRef<{ x: number; y: number; r: number; color: string }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
-  const [animating, setAnimating] = useState(false);
   const prevPropValueRef = useRef<string | undefined>(propValue);
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);

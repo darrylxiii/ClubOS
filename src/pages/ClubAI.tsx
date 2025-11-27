@@ -144,7 +144,11 @@ const ClubAI = () => {
         .order("updated_at", { ascending: false });
       
       if (error) throw error;
-      setConversations(data || []);
+      setConversations((data || []).map((conv: any) => ({
+        ...conv,
+        messages: Array.isArray(conv.messages) ? conv.messages : 
+                  typeof conv.messages === 'string' ? JSON.parse(conv.messages) : []
+      })));
     } catch (error) {
       console.error("Error loading conversations:", error);
     }
@@ -243,7 +247,7 @@ const ClubAI = () => {
       const { error } = await supabase
         .from("ai_conversations")
         .update({
-          messages: updatedMessages,
+          messages: JSON.stringify(updatedMessages) as any,
           updated_at: new Date().toISOString()
         })
         .eq("id", currentConversationId);

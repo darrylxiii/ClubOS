@@ -37,11 +37,11 @@ export function useIncubatorSession(scenario: IncubatorScenario) {
     
     const createSession = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('incubator_sessions')
           .insert([{
             user_id: user.id,
-            scenario_seed: scenario,
+            scenario_seed: JSON.stringify(scenario),
             scenario_difficulty: scenario.difficulty,
           }])
           .select()
