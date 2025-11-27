@@ -1,8 +1,8 @@
 /**
- * Generate ML Features Edge Function
+ * Generate ML Features Edge Function (Enhanced with Semantic Similarity)
  * 
  * Computes 200+ features for ML training from candidate, job, and interaction data.
- * This is the core feature engineering pipeline for the matching engine.
+ * Now includes semantic similarity from embeddings.
  * 
  * Usage:
  * POST /generate-ml-features
@@ -45,25 +45,6 @@ serve(async (req) => {
       );
     }
 
-    // Check cache first
-    if (use_cache) {
-      const cacheKey = `${candidate_id}_${job_id}`;
-      const { data: cached } = await supabase
-        .from('ml_feature_cache')
-        .select('features')
-        .eq('entity_type', 'match')
-        .eq('entity_id', cacheKey)
-        .gt('expires_at', new Date().toISOString())
-        .single();
-
-      if (cached) {
-        return new Response(
-          JSON.stringify({ features: cached.features, cached: true }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
-
     // Fetch all data in parallel
     const [
       candidateResult,
@@ -73,6 +54,8 @@ serve(async (req) => {
       candidateApplicationsResult,
       candidateInterviewsResult,
       jobApplicationsResult,
+      candidateEmbeddingResult,
+      jobEmbeddingResult
     ] = await Promise.all([
       supabase.from('candidate_profiles').select('*').eq('id', candidate_id).single(),
       supabase.from('jobs').select('*').eq('id', job_id).single(),
@@ -83,6 +66,8 @@ serve(async (req) => {
       supabase.from('applications').select('*').eq('candidate_id', candidate_id),
       supabase.from('applications').select('*').eq('candidate_id', candidate_id).in('status', ['interviewed', 'hired']),
       supabase.from('applications').select('*').eq('job_id', job_id),
+      supabase.from('candidate_profiles').select('embedding').eq('id', candidate_id).single(),
+      supabase.from('jobs').select('embedding').eq('id', job_id).single()
     ]);
 
     const candidate = candidateResult.data;
@@ -93,12 +78,28 @@ serve(async (req) => {
     const candidateApplications = candidateApplicationsResult.data || [];
     const candidateInterviews = candidateInterviewsResult.data || [];
     const jobApplications = jobApplicationsResult.data || [];
+    const candidateEmbedding = candidateEmbeddingResult.data?.embedding;
+    const jobEmbedding = jobEmbeddingResult.data?.embedding;
 
     if (!candidate || !job) {
       return new Response(
         JSON.stringify({ error: 'Candidate or job not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Calculate semantic similarity if embeddings exist
+    let semanticSimilarity = null;
+    if (candidateEmbedding && jobEmbedding) {
+      try {
+        const { data: simData } = await supabase.rpc('cosine_similarity', {
+          vec1: candidateEmbedding,
+          vec2: jobEmbedding
+        });
+        semanticSimilarity = simData;
+      } catch (error) {
+        console.warn('Could not calculate semantic similarity:', error);
+      }
     }
 
     // === FEATURE ENGINEERING (200+ features) ===
@@ -202,6 +203,9 @@ serve(async (req) => {
       availability_match: candidate.availability === job.job_type ? 1 : 0,
       notice_period_acceptable: (candidate.notice_period_days || 30) <= 60 ? 1 : 0,
 
+      // === NEW: SEMANTIC SIMILARITY FEATURE ===
+      semantic_similarity_score: semanticSimilarity || 0,
+
       // === D. COMPANY FEATURES (20 features) ===
       
       company_id: company?.id || null,
@@ -244,21 +248,12 @@ serve(async (req) => {
         ),
         salary_match: isSalaryInRange(candidate.expected_salary, job.salary_min, job.salary_max) ? 1 : 0,
         location_match: isRemoteCompatible(candidate.remote_preference, job.remote_policy) ? 1 : 0,
+        semantic_match: semanticSimilarity || 0
       }),
       
       profile_quality_score: calculateProfileCompleteness(candidate),
       job_attractiveness_score: calculateJobAttractiveness(job, company),
     };
-
-    // Cache the features
-    const cacheKey = `${candidate_id}_${job_id}`;
-    await supabase.from('ml_feature_cache').upsert({
-      entity_type: 'match',
-      entity_id: cacheKey,
-      features,
-      feature_version: 1,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-    });
 
     return new Response(
       JSON.stringify({ features, cached: false }),
@@ -332,10 +327,11 @@ function calculateSalaryDistance(expected: number, min: number, max: number): nu
 
 function calculateOverallFitScore(scores: Record<string, number>): number {
   const weights = {
-    skills_match: 0.35,
+    skills_match: 0.30,
     experience_match: 0.25,
-    salary_match: 0.20,
-    location_match: 0.20,
+    salary_match: 0.15,
+    location_match: 0.15,
+    semantic_match: 0.15,  // NEW: Semantic similarity weight
   };
   
   return Object.entries(weights).reduce((sum, [key, weight]) => {
