@@ -183,6 +183,14 @@ export function MeetingVideoCallInterface({
     }
   });
 
+  // Real-time transcription
+  const { transcriptions, isTranscribing } = useMeetingTranscription({
+    meetingId: meeting.id,
+    participantName,
+    localStream,
+    enabled: transcriptionEnabled && meetingStarted && !showDiagnostics
+  });
+
   const handleDiagnosticsComplete = async () => {
     setShowDiagnostics(false);
     
@@ -942,6 +950,9 @@ export function MeetingVideoCallInterface({
         onOpenNotes={() => setShowNotes(true)}
         onToggleCaptions={() => setCaptionsEnabled(!captionsEnabled)}
         captionsEnabled={captionsEnabled}
+        onOpenTranscription={() => setShowTranscription(true)}
+        transcriptionEnabled={transcriptionEnabled}
+        isTranscribing={isTranscribing}
         onOpenHostSettings={meeting.host_id === participantId ? () => setShowHostSettings(true) : undefined}
         onOpenMeetingInfo={() => setShowMeetingDetails(true)}
         onEnablePiP={handleEnablePiP}
@@ -966,8 +977,21 @@ export function MeetingVideoCallInterface({
         }
       />
 
-      {/* Live Captions */}
-      <LiveCaptions enabled={captionsEnabled} localStream={localStream} />
+      {/* Live Captions with Real Transcriptions */}
+      {captionsEnabled && transcriptions.length > 0 && (
+        <div className="absolute bottom-32 left-1/2 -translate-x-1/2 max-w-3xl w-full px-4 z-40">
+          <div className="bg-black/80 backdrop-blur-xl rounded-lg px-6 py-4 border border-white/10">
+            <div className="text-white text-lg leading-relaxed space-y-2">
+              {transcriptions.slice(-3).map((t) => (
+                <div key={t.id}>
+                  <span className="text-blue-400 font-medium">{t.speaker}:</span>{' '}
+                  <span className={t.isFinal ? '' : 'text-white/60 italic'}>{t.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Host Approval Panel */}
       <HostApprovalPanel 
@@ -1009,13 +1033,51 @@ export function MeetingVideoCallInterface({
         </SheetContent>
       </Sheet>
 
-      {/* Transcription Panel */}
+      {/* Transcription Panel with Live Data */}
       <Sheet open={showTranscription} onOpenChange={setShowTranscription}>
-        <SheetContent side="right" className="w-96 p-0 z-[10200]">
-          <SheetHeader className="p-4 border-b">
-            <SheetTitle>Transcription</SheetTitle>
+        <SheetContent side="right" className="w-[500px] z-[10200]">
+          <SheetHeader>
+            <SheetTitle className="flex items-center gap-2">
+              Live Transcription
+              {isTranscribing && (
+                <Badge variant="default" className="animate-pulse">Recording</Badge>
+              )}
+            </SheetTitle>
           </SheetHeader>
-          <TranscriptionPanel meetingId={meeting.id} />
+          <div className="mt-6 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pr-2">
+            {transcriptions.length === 0 ? (
+              <div className="text-center text-muted-foreground py-12">
+                <p className="font-medium">No transcriptions yet</p>
+                <p className="text-sm mt-2">
+                  {isTranscribing ? 'Listening...' : 'Transcription will appear here when enabled'}
+                </p>
+                {!transcriptionEnabled && (
+                  <Button
+                    onClick={() => setTranscriptionEnabled(true)}
+                    variant="outline"
+                    size="sm"
+                    className="mt-4"
+                  >
+                    Enable Transcription
+                  </Button>
+                )}
+              </div>
+            ) : (
+              transcriptions.map((t) => (
+                <div key={t.id} className="border-b pb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-primary">{t.speaker}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(t.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  <p className={`text-sm ${t.isFinal ? '' : 'text-muted-foreground italic'}`}>
+                    {t.text}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
         </SheetContent>
       </Sheet>
 
