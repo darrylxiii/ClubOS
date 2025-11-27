@@ -66,17 +66,18 @@ serve(async (req) => {
 
     console.log(`[ML Match] Matching candidates for job: ${job_id}`);
 
-    // Get active model version
+    // Load active ML model if available
     const { data: activeModel } = await supabase
       .from('ml_models')
-      .select('version, model_type, metrics')
+      .select('*')
       .eq('status', 'active')
       .order('version', { ascending: false })
       .limit(1)
       .maybeSingle();
 
-    const modelVersion = activeModel?.version || 0; // 0 = baseline rule-based
-    console.log(`[ML Match] Using model version: ${modelVersion}`);
+    const useMLModel = activeModel && activeModel.model_weights;
+    const modelVersion = activeModel?.version || 0;
+    console.log(`[ML Match] Using ${useMLModel ? 'trained' : 'baseline'} model v${modelVersion}`);
 
     // Get candidates to score
     let candidateQuery = supabase
@@ -124,12 +125,18 @@ serve(async (req) => {
 
         const features = featureData.features;
 
-        // === BASELINE MODEL (Rule-based scoring) ===
-        // This mimics ML predictions until we have trained models
-        const prediction = calculateBaselinePrediction(features);
+        let prediction;
+        let shapValues;
 
-        // Generate SHAP-like explanations
-        const shapValues = generateShapExplanations(features, prediction.prediction_score);
+        if (useMLModel) {
+          // Use trained ML model
+          prediction = predictWithTrainedModel(features, activeModel.model_weights);
+          shapValues = generateMLShapExplanations(features, activeModel.feature_importance || {});
+        } else {
+          // Fallback to baseline
+          prediction = calculateBaselinePrediction(features);
+          shapValues = generateShapExplanations(features, prediction.prediction_score);
+        }
 
         predictions.push({
           candidate_id: candidate.id,
@@ -197,67 +204,71 @@ serve(async (req) => {
   }
 });
 
-// === BASELINE PREDICTION MODEL ===
-// Weighted scoring algorithm (will be replaced by trained ML model)
+// === TRAINED MODEL INFERENCE ===
+function predictWithTrainedModel(features: any, modelWeights: any): {
+  prediction_score: number;
+  interview_probability: number;
+  predicted_time_to_hire_days: number;
+} {
+  const weights = modelWeights as Record<string, number>;
+  let prediction = 0.5; // Base prediction
+  
+  // Apply learned weights to features
+  for (const [featureName, featureValue] of Object.entries(features)) {
+    if (typeof featureValue === 'number' && weights[featureName]) {
+      const normalizedValue = featureValue > 1 ? featureValue / 100 : featureValue;
+      prediction += normalizedValue * weights[featureName];
+    }
+  }
+  
+  // Clamp to [0, 1]
+  const predictionScore = Math.max(0, Math.min(1, prediction));
+  
+  // Calculate derived metrics
+  const interviewProbability = predictionScore * 0.42;
+  const baseTimeToHire = 35;
+  const urgencyFactor = features.job_is_urgent ? 0.7 : 1.0;
+  const predictedTimeToHire = Math.round(baseTimeToHire * urgencyFactor * (2 - predictionScore));
+  
+  return {
+    prediction_score: Math.round(predictionScore * 10000) / 10000,
+    interview_probability: Math.round(interviewProbability * 10000) / 10000,
+    predicted_time_to_hire_days: predictedTimeToHire
+  };
+}
+
+// === BASELINE PREDICTION MODEL (Fallback) ===
 function calculateBaselinePrediction(features: any): {
   prediction_score: number;
   interview_probability: number;
   predicted_time_to_hire_days: number;
 } {
-  // Weights optimized from historical data (to be replaced by ML)
   const weights = {
-    skills_match: 0.35,
-    experience_match: 0.25,
+    skills_match: 0.30,
+    experience_match: 0.20,
     salary_match: 0.15,
     location_match: 0.10,
+    semantic_similarity: 0.15,
     profile_quality: 0.08,
-    activity_level: 0.05,
-    job_attractiveness: 0.02,
+    activity_level: 0.02,
   };
 
-  // Calculate weighted score
   let score = 0;
-
-  // Skills match (0-1)
-  const skillsScore = features.skills_match_percentage || 0;
-  score += skillsScore * weights.skills_match;
-
-  // Experience match (0-1)
-  const experienceScore = features.experience_years_match || 0;
-  score += experienceScore * weights.experience_match;
-
-  // Salary match (0-1)
-  const salaryScore = features.salary_in_range || 0.5;
-  score += salaryScore * weights.salary_match;
-
-  // Location match (0-1)
-  const locationScore = features.location_remote_compatible || 0.5;
-  score += locationScore * weights.location_match;
-
-  // Profile quality (0-1)
-  const profileScore = features.candidate_profile_completeness || 0.5;
-  score += profileScore * weights.profile_quality;
-
-  // Activity level (inverse of days since active, normalized)
+  score += (features.skills_match_percentage || 0) * weights.skills_match;
+  score += (features.experience_years_match || 0) * weights.experience_match;
+  score += (features.salary_in_range || 0.5) * weights.salary_match;
+  score += (features.location_remote_compatible || 0.5) * weights.location_match;
+  score += (features.semantic_similarity_score || 0) * weights.semantic_similarity;
+  score += (features.candidate_profile_completeness || 0.5) * weights.profile_quality;
+  
   const daysInactive = features.candidate_last_active_days_ago || 30;
-  const activityScore = Math.max(0, 1 - (daysInactive / 90));
-  score += activityScore * weights.activity_level;
+  score += Math.max(0, 1 - (daysInactive / 90)) * weights.activity_level;
 
-  // Job attractiveness (0-1)
-  const jobScore = features.job_attractiveness_score || 0.5;
-  score += jobScore * weights.job_attractiveness;
-
-  // Normalize to 0-1 range
   const predictionScore = Math.max(0, Math.min(1, score));
-
-  // Interview probability (adjusted based on historical conversion rates)
-  const interviewProbability = predictionScore * 0.40; // ~40% of good matches get interviews
-
-  // Predicted time to hire (based on historical averages)
-  const baseTimeToHire = 35; // days
+  const interviewProbability = predictionScore * 0.40;
+  const baseTimeToHire = 35;
   const urgencyFactor = features.job_is_urgent ? 0.7 : 1.0;
-  const experienceFactor = experienceScore > 0.8 ? 0.9 : 1.1;
-  const predictedTimeToHire = Math.round(baseTimeToHire * urgencyFactor * experienceFactor);
+  const predictedTimeToHire = Math.round(baseTimeToHire * urgencyFactor);
 
   return {
     prediction_score: Math.round(predictionScore * 10000) / 10000,
@@ -344,4 +355,38 @@ function generateShapExplanations(features: any, score: number): ShapExplanation
 
   // Return top 5
   return explanations.slice(0, 5);
+}
+
+// Generate explanations from trained model feature importance
+function generateMLShapExplanations(features: any, featureImportance: Record<string, number>): ShapExplanation[] {
+  const explanations: ShapExplanation[] = [];
+  
+  // Sort features by importance
+  const sortedFeatures = Object.entries(featureImportance)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5);
+  
+  for (const [featureName, importance] of sortedFeatures) {
+    const featureValue = features[featureName];
+    const normalizedValue = typeof featureValue === 'number' && featureValue > 1 
+      ? featureValue / 100 
+      : featureValue;
+    
+    explanations.push({
+      feature_name: featureName,
+      feature_value: featureValue,
+      shap_value: importance,
+      impact_direction: normalizedValue > 0.5 ? 'positive' : 'negative',
+      human_readable: `${featureName.replace(/_/g, ' ')}: ${formatFeatureValue(featureValue)}`
+    });
+  }
+  
+  return explanations;
+}
+
+function formatFeatureValue(value: any): string {
+  if (typeof value === 'number') {
+    return value > 1 ? `${Math.round(value)}` : `${Math.round(value * 100)}%`;
+  }
+  return String(value);
 }

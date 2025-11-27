@@ -4585,6 +4585,8 @@ export type Database = {
           description: string | null
           founded_year: number | null
           headquarters_location: string | null
+          hiring_intent_score: number | null
+          hiring_intent_updated_at: string | null
           id: string
           industry: string | null
           instagram_url: string | null
@@ -4618,6 +4620,8 @@ export type Database = {
           description?: string | null
           founded_year?: number | null
           headquarters_location?: string | null
+          hiring_intent_score?: number | null
+          hiring_intent_updated_at?: string | null
           id?: string
           industry?: string | null
           instagram_url?: string | null
@@ -4651,6 +4655,8 @@ export type Database = {
           description?: string | null
           founded_year?: number | null
           headquarters_location?: string | null
+          hiring_intent_score?: number | null
+          hiring_intent_updated_at?: string | null
           id?: string
           industry?: string | null
           instagram_url?: string | null
@@ -9166,6 +9172,45 @@ export type Database = {
           },
         ]
       }
+      entity_relationships: {
+        Row: {
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          relationship_type: string
+          source_id: string
+          source_type: string
+          strength: number | null
+          target_id: string
+          target_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          relationship_type: string
+          source_id: string
+          source_type: string
+          strength?: number | null
+          target_id: string
+          target_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          relationship_type?: string
+          source_id?: string
+          source_type?: string
+          strength?: number | null
+          target_id?: string
+          target_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       error_logs: {
         Row: {
           component_name: string | null
@@ -9993,6 +10038,45 @@ export type Database = {
           resolved_at?: string | null
           retry_count?: number | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      intelligence_queue: {
+        Row: {
+          attempts: number | null
+          created_at: string | null
+          entity_id: string
+          entity_type: string
+          error_message: string | null
+          id: string
+          priority: number | null
+          processed_at: string | null
+          processing_type: string
+          status: string | null
+        }
+        Insert: {
+          attempts?: number | null
+          created_at?: string | null
+          entity_id: string
+          entity_type: string
+          error_message?: string | null
+          id?: string
+          priority?: number | null
+          processed_at?: string | null
+          processing_type: string
+          status?: string | null
+        }
+        Update: {
+          attempts?: number | null
+          created_at?: string | null
+          entity_id?: string
+          entity_type?: string
+          error_message?: string | null
+          id?: string
+          priority?: number | null
+          processed_at?: string | null
+          processing_type?: string
+          status?: string | null
         }
         Relationships: []
       }
@@ -12014,6 +12098,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      market_intelligence: {
+        Row: {
+          confidence_score: number | null
+          created_at: string | null
+          geography: string | null
+          id: string
+          industry: string | null
+          metric_category: string
+          metric_type: string
+          metric_value: Json
+          sample_size: number | null
+          time_period: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string | null
+          geography?: string | null
+          id?: string
+          industry?: string | null
+          metric_category: string
+          metric_type: string
+          metric_value: Json
+          sample_size?: number | null
+          time_period?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string | null
+          geography?: string | null
+          id?: string
+          industry?: string | null
+          metric_category?: string
+          metric_type?: string
+          metric_value?: Json
+          sample_size?: number | null
+          time_period?: string | null
+          valid_until?: string | null
+        }
+        Relationships: []
       }
       match_scores: {
         Row: {
