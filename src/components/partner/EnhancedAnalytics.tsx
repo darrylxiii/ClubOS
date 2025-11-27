@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useRole } from "@/contexts/RoleContext";
 import { Calendar, Download, TrendingUp, Users, Briefcase, CheckCircle } from "lucide-react";
 import { format, subDays } from "date-fns";
-import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, Legend } from "recharts";
 
 export const EnhancedAnalytics = () => {
   const { companyId } = useRole();
@@ -31,13 +31,17 @@ export const EnhancedAnalytics = () => {
     enabled: !!companyId
   });
 
-  const latestSnapshot = snapshots?.[snapshots.length - 1];
+  const latestSnapshot = useMemo(() => snapshots?.[snapshots.length - 1], [snapshots]);
 
-  const chartData = snapshots?.map(s => ({
-    date: format(new Date(s.snapshot_date), 'MMM d'),
-    applications: s.total_applications,
-    hires: s.hires_made
-  })) || [];
+  const chartData = useMemo(() => 
+    snapshots?.map(s => ({
+      date: format(new Date(s.snapshot_date), 'MMM d'),
+      applications: s.total_applications,
+      hires: s.hires_made,
+      interviews: s.interviews_scheduled,
+      offers: s.offers_sent
+    })) || []
+  , [snapshots]);
 
   const handleExport = () => {
     const csv = [
@@ -116,16 +120,52 @@ export const EnhancedAnalytics = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Applications & Hires Trend</CardTitle>
+          <CardTitle>Hiring Pipeline Trends</CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={350}>
             <LineChart data={chartData}>
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Line type="monotone" dataKey="applications" stroke="hsl(var(--primary))" strokeWidth={2} />
-              <Line type="monotone" dataKey="hires" stroke="hsl(var(--secondary))" strokeWidth={2} />
+              <XAxis 
+                dataKey="date" 
+                stroke="hsl(var(--muted-foreground))"
+              />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: 'hsl(var(--background))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px'
+                }}
+              />
+              <Legend />
+              <Line 
+                type="monotone" 
+                dataKey="applications" 
+                stroke="hsl(var(--primary))" 
+                strokeWidth={2}
+                name="Applications"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="interviews" 
+                stroke="hsl(var(--secondary))" 
+                strokeWidth={2}
+                name="Interviews"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="offers" 
+                stroke="hsl(var(--accent))" 
+                strokeWidth={2}
+                name="Offers"
+              />
+              <Line 
+                type="monotone" 
+                dataKey="hires" 
+                stroke="hsl(var(--success))" 
+                strokeWidth={2}
+                name="Hires"
+              />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>

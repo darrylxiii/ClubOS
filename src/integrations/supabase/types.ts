@@ -5880,6 +5880,75 @@ export type Database = {
           },
         ]
       }
+      company_sso_config: {
+        Row: {
+          allowed_domains: string[] | null
+          auto_provision: boolean | null
+          certificate: string | null
+          client_id: string | null
+          client_secret: string | null
+          company_id: string
+          created_at: string | null
+          default_role: string | null
+          entity_id: string | null
+          id: string
+          is_enabled: boolean | null
+          metadata_url: string | null
+          provider: string
+          sso_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          allowed_domains?: string[] | null
+          auto_provision?: boolean | null
+          certificate?: string | null
+          client_id?: string | null
+          client_secret?: string | null
+          company_id: string
+          created_at?: string | null
+          default_role?: string | null
+          entity_id?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          metadata_url?: string | null
+          provider: string
+          sso_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          allowed_domains?: string[] | null
+          auto_provision?: boolean | null
+          certificate?: string | null
+          client_id?: string | null
+          client_secret?: string | null
+          company_id?: string
+          created_at?: string | null
+          default_role?: string | null
+          entity_id?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          metadata_url?: string | null
+          provider?: string
+          sso_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_sso_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_sso_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_stakeholders: {
         Row: {
           communication_style: string | null
@@ -14688,6 +14757,69 @@ export type Database = {
           },
         ]
       }
+      partner_integrations: {
+        Row: {
+          api_key_encrypted: string | null
+          company_id: string
+          config: Json | null
+          created_at: string | null
+          id: string
+          integration_type: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          sync_frequency: string | null
+          sync_status: string | null
+          updated_at: string | null
+          webhook_secret: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          api_key_encrypted?: string | null
+          company_id: string
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          integration_type: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          sync_frequency?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          api_key_encrypted?: string | null
+          company_id?: string
+          config?: Json | null
+          created_at?: string | null
+          id?: string
+          integration_type?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          sync_frequency?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+          webhook_secret?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_integrations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_integrations_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_invoices: {
         Row: {
           billing_details_id: string | null
@@ -14944,6 +15076,114 @@ export type Database = {
             columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_sla_config: {
+        Row: {
+          company_id: string
+          created_at: string | null
+          id: string
+          interview_scheduling_hours: number | null
+          is_active: boolean | null
+          penalties: Json | null
+          replacement_guarantee_days: number | null
+          response_time_hours: number | null
+          shortlist_delivery_hours: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_id: string
+          created_at?: string | null
+          id?: string
+          interview_scheduling_hours?: number | null
+          is_active?: boolean | null
+          penalties?: Json | null
+          replacement_guarantee_days?: number | null
+          response_time_hours?: number | null
+          shortlist_delivery_hours?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          interview_scheduling_hours?: number | null
+          is_active?: boolean | null
+          penalties?: Json | null
+          replacement_guarantee_days?: number | null
+          response_time_hours?: number | null
+          shortlist_delivery_hours?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_sla_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_sla_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_sla_tracking: {
+        Row: {
+          actual_value: number | null
+          company_id: string
+          created_at: string | null
+          id: string
+          is_met: boolean | null
+          measured_at: string | null
+          metric_type: string
+          reference_id: string | null
+          reference_type: string | null
+          target_value: number
+        }
+        Insert: {
+          actual_value?: number | null
+          company_id: string
+          created_at?: string | null
+          id?: string
+          is_met?: boolean | null
+          measured_at?: string | null
+          metric_type: string
+          reference_id?: string | null
+          reference_type?: string | null
+          target_value: number
+        }
+        Update: {
+          actual_value?: number | null
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          is_met?: boolean | null
+          measured_at?: string | null
+          metric_type?: string
+          reference_id?: string | null
+          reference_type?: string | null
+          target_value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_sla_tracking_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_sla_tracking_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
             referencedColumns: ["id"]
           },
         ]
