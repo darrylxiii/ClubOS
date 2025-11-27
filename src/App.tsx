@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { PublicProviders } from "@/contexts/PublicProviders";
 import { ProtectedProviders, ProtectedProvidersLoader } from "@/contexts/ProtectedProviders";
-import { AppearanceProvider } from "@/contexts/AppearanceContext";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { JobDashboardRoute } from "@/components/routes/JobDashboardRoute";
@@ -213,14 +212,13 @@ const queryClient = new QueryClient({
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AppearanceProvider>
-        <BrowserRouter>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <LanguageSync />
-            <TranslationDebugger />
-            <Routes>
+      <BrowserRouter>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <LanguageSync />
+          <TranslationDebugger />
+          <Routes>
             {/* Public Routes - Minimal providers for fastest FCP */}
             <Route
               path="/"
@@ -467,7 +465,6 @@ const App = () => {
           </Routes>
         </TooltipProvider>
       </BrowserRouter>
-    </AppearanceProvider>
     </QueryClientProvider>
   );
 };
