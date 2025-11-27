@@ -488,20 +488,33 @@ const InterviewCard = ({ interview }: { interview: NormalizedInterview }) => {
         
         if (error) throw error;
         
-        // Also create/update interview feedback record if table exists
-        const { error: feedbackError } = await (supabase as any)
-          .from('interview_feedback')
-          .upsert({
-            application_id: interview.candidate_id,
-            candidate_id: interview.candidate_id,
-            feedback_text: feedbackText,
-            submitted_at: new Date().toISOString(),
-          }, {
-            onConflict: 'booking_id'
-          });
-        
-        if (feedbackError && feedbackError.code !== 'PGRST116') {
-          console.warn('Could not save to interview_feedback table:', feedbackError);
+        // Optionally create interview feedback record if needed
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user && interview.candidate_id) {
+            await supabase
+              .from('interview_feedback')
+              .upsert([{
+                application_id: interview.candidate_id,
+                booking_id: interview.id,
+                interview_stage_index: 0,
+                interviewer_id: user.id,
+                recommendation: 'pending',
+                overall_rating: 3,
+                communication_score: 3,
+                technical_score: 3,
+                culture_fit_score: 3,
+                detailed_notes: feedbackText,
+                submitted_at: new Date().toISOString(),
+              }], {
+                onConflict: 'booking_id,interviewer_id'
+              });
+          }
+        } catch (feedbackError: any) {
+          // Silently ignore if table doesn't exist or other issues
+          if (feedbackError.code !== 'PGRST116') {
+            console.warn('Could not save to interview_feedback table:', feedbackError);
+          }
         }
       }
       

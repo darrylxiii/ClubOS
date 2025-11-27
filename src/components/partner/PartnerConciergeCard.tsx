@@ -36,25 +36,28 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
 
     const fetchAssignedStrategist = async (): Promise<void> => {
         try {
+            // Note: Using (supabase as any) to avoid TypeScript type instantiation depth error
+            // This table has complex recursive types that exceed TypeScript's limit
             const { data, error } = await (supabase as any)
                 .from('talent_strategists')
-                .select('*')
+                .select('id, full_name, title, bio, email, availability, photo_url')
                 .eq('is_active', true)
                 .limit(1)
-                .single();
+                .maybeSingle();
 
-            if (error) throw error;
+            if (error && error.code !== 'PGRST116') {
+                throw error;
+            }
             
-            // Use data fields directly without type conversion
             if (data) {
                 setStrategist({
                     id: data.id,
-                    user_id: data.id, // Use id as user_id fallback
+                    user_id: data.id,
                     full_name: data.full_name,
-                    title: data.title,
-                    bio: data.bio,
-                    avatar_url: (data as any).photo_url || (data as any).avatar_url,
-                    email: data.email,
+                    title: data.title || undefined,
+                    bio: data.bio || undefined,
+                    avatar_url: data.photo_url || undefined,
+                    email: data.email || undefined,
                     calendly_link: undefined,
                     is_available: data.availability === 'available',
                 });
