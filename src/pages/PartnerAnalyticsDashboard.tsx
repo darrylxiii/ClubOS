@@ -1,4 +1,5 @@
 import { PartnerAnalytics } from "@/components/partner/PartnerAnalytics";
+import { EnhancedAnalytics } from "@/components/partner/EnhancedAnalytics";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";

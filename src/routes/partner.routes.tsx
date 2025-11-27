@@ -21,6 +21,7 @@ const PartnerRejections = lazy(() => import("@/pages/PartnerRejections"));
 const PartnerTargetCompanies = lazy(() => import("@/pages/PartnerTargetCompanies"));
 const CompanySettings = lazy(() => import("@/pages/CompanySettings"));
 const CompanyDomainsSettings = lazy(() => import("@/pages/CompanyDomainsSettings"));
+const AuditLog = lazy(() => import("@/pages/partner/AuditLog"));
 
 export const partnerRoutes = (
   <>
@@ -127,6 +128,18 @@ export const partnerRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <CompanyDomainsSettings />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/partner/audit-log"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <AuditLog />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
