@@ -1167,6 +1167,39 @@ export type Database = {
           },
         ]
       }
+      appearance_presets: {
+        Row: {
+          category: string
+          created_at: string | null
+          display_order: number | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          name: string
+          thumbnail_url: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          name: string
+          thumbnail_url?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          name?: string
+          thumbnail_url?: string | null
+        }
+        Relationships: []
+      }
       applications: {
         Row: {
           application_source:
@@ -22285,22 +22318,49 @@ export type Database = {
       }
       user_preferences: {
         Row: {
+          accent_color: string | null
+          apply_to_all_pages: boolean | null
+          background_blur_enabled: boolean | null
+          background_blur_intensity: number | null
+          background_enabled: boolean | null
+          background_type: string | null
+          background_value: string | null
           created_at: string
           id: string
+          overlay_color: string | null
+          overlay_opacity: number | null
           preferred_role_view: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          accent_color?: string | null
+          apply_to_all_pages?: boolean | null
+          background_blur_enabled?: boolean | null
+          background_blur_intensity?: number | null
+          background_enabled?: boolean | null
+          background_type?: string | null
+          background_value?: string | null
           created_at?: string
           id?: string
+          overlay_color?: string | null
+          overlay_opacity?: number | null
           preferred_role_view?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          accent_color?: string | null
+          apply_to_all_pages?: boolean | null
+          background_blur_enabled?: boolean | null
+          background_blur_intensity?: number | null
+          background_enabled?: boolean | null
+          background_type?: string | null
+          background_value?: string | null
           created_at?: string
           id?: string
+          overlay_color?: string | null
+          overlay_opacity?: number | null
           preferred_role_view?: string | null
           updated_at?: string
           user_id?: string

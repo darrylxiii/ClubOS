@@ -13,6 +13,7 @@ import { InstantMeetingButton } from "@/components/meetings/InstantMeetingButton
 import { supabase } from "@/integrations/supabase/client";
 import { CallNotificationManager } from "./messages/CallNotificationManager";
 import { MeetingNotificationManager } from "./meetings/MeetingNotificationManager";
+import { DynamicBackground } from "./DynamicBackground";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 import { NotificationBell } from "@/components/NotificationBell";
@@ -100,6 +101,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
   return (
     <div className="min-h-screen flex w-full bg-background">
+      <DynamicBackground />
+      
       {/* Skip to main content link for accessibility */}
       <a 
         href="#main-content" 
