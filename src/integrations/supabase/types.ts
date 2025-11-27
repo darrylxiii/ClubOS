@@ -13820,6 +13820,114 @@ export type Database = {
           },
         ]
       }
+      ml_training_data: {
+        Row: {
+          application_id: string | null
+          candidate_id: string
+          company_id: string | null
+          created_at: string | null
+          features: Json
+          id: string
+          job_id: string
+          label_hired: boolean
+          label_interviewed: boolean
+          label_rejected: boolean
+          match_score_at_time: number | null
+          rejection_stage: string | null
+          semantic_similarity_score: number | null
+          strategist_feedback: string | null
+          time_to_hire_days: number | null
+          time_to_interview_days: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          application_id?: string | null
+          candidate_id: string
+          company_id?: string | null
+          created_at?: string | null
+          features: Json
+          id?: string
+          job_id: string
+          label_hired?: boolean
+          label_interviewed?: boolean
+          label_rejected?: boolean
+          match_score_at_time?: number | null
+          rejection_stage?: string | null
+          semantic_similarity_score?: number | null
+          strategist_feedback?: string | null
+          time_to_hire_days?: number | null
+          time_to_interview_days?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          application_id?: string | null
+          candidate_id?: string
+          company_id?: string | null
+          created_at?: string | null
+          features?: Json
+          id?: string
+          job_id?: string
+          label_hired?: boolean
+          label_interviewed?: boolean
+          label_rejected?: boolean
+          match_score_at_time?: number | null
+          rejection_stage?: string | null
+          semantic_similarity_score?: number | null
+          strategist_feedback?: string | null
+          time_to_hire_days?: number | null
+          time_to_interview_days?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ml_training_runs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          feature_importance: Json | null
+          hyperparameters: Json | null
+          id: string
+          metrics: Json | null
+          model_version: number
+          status: string | null
+          training_end_time: string | null
+          training_samples_count: number | null
+          training_start_time: string
+          updated_at: string | null
+          validation_samples_count: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          feature_importance?: Json | null
+          hyperparameters?: Json | null
+          id?: string
+          metrics?: Json | null
+          model_version: number
+          status?: string | null
+          training_end_time?: string | null
+          training_samples_count?: number | null
+          training_start_time?: string
+          updated_at?: string | null
+          validation_samples_count?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          feature_importance?: Json | null
+          hyperparameters?: Json | null
+          id?: string
+          metrics?: Json | null
+          model_version?: number
+          status?: string | null
+          training_end_time?: string | null
+          training_samples_count?: number | null
+          training_start_time?: string
+          updated_at?: string | null
+          validation_samples_count?: number | null
+        }
+        Relationships: []
+      }
       module_chat_messages: {
         Row: {
           created_at: string | null
@@ -24175,6 +24283,19 @@ export type Database = {
           p_stage: string
         }
         Returns: number
+      }
+      get_ml_training_data: {
+        Args: { limit_count?: number; offset_count?: number }
+        Returns: {
+          candidate_id: string
+          features: Json
+          job_id: string
+          label_hired: boolean
+          label_interviewed: boolean
+          label_rejected: boolean
+          semantic_similarity_score: number
+          training_id: string
+        }[]
       }
       get_module_course_id: { Args: { _module_id: string }; Returns: string }
       get_org_chart_tree: {
