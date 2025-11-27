@@ -3738,6 +3738,7 @@ export type Database = {
           desired_salary_min: number | null
           education: Json | null
           email: string | null
+          embedding_generated_at: string | null
           engagement_score: number | null
           enrichment_data: Json | null
           enrichment_last_run: string | null
@@ -3769,6 +3770,7 @@ export type Database = {
           preferred_currency: string | null
           preferred_language: string | null
           profile_completeness: number | null
+          profile_embedding: string | null
           public_fields: Json | null
           rejection_reason: string | null
           remote_preference: string | null
@@ -3819,6 +3821,7 @@ export type Database = {
           desired_salary_min?: number | null
           education?: Json | null
           email?: string | null
+          embedding_generated_at?: string | null
           engagement_score?: number | null
           enrichment_data?: Json | null
           enrichment_last_run?: string | null
@@ -3850,6 +3853,7 @@ export type Database = {
           preferred_currency?: string | null
           preferred_language?: string | null
           profile_completeness?: number | null
+          profile_embedding?: string | null
           public_fields?: Json | null
           rejection_reason?: string | null
           remote_preference?: string | null
@@ -3900,6 +3904,7 @@ export type Database = {
           desired_salary_min?: number | null
           education?: Json | null
           email?: string | null
+          embedding_generated_at?: string | null
           engagement_score?: number | null
           enrichment_data?: Json | null
           enrichment_last_run?: string | null
@@ -3931,6 +3936,7 @@ export type Database = {
           preferred_currency?: string | null
           preferred_language?: string | null
           profile_completeness?: number | null
+          profile_embedding?: string | null
           public_fields?: Json | null
           rejection_reason?: string | null
           remote_preference?: string | null
@@ -5234,11 +5240,13 @@ export type Database = {
           deal_stage_hint: string | null
           direction: string | null
           duration_minutes: number | null
+          embedding_generated_at: string | null
           external_id: string | null
           id: string
           initiated_by_stakeholder_id: string | null
           insights_extracted_at: string | null
           interaction_date: string
+          interaction_embedding: string | null
           interaction_subtype: string | null
           interaction_type: string
           is_manually_entered: boolean | null
@@ -5267,11 +5275,13 @@ export type Database = {
           deal_stage_hint?: string | null
           direction?: string | null
           duration_minutes?: number | null
+          embedding_generated_at?: string | null
           external_id?: string | null
           id?: string
           initiated_by_stakeholder_id?: string | null
           insights_extracted_at?: string | null
           interaction_date: string
+          interaction_embedding?: string | null
           interaction_subtype?: string | null
           interaction_type: string
           is_manually_entered?: boolean | null
@@ -5300,11 +5310,13 @@ export type Database = {
           deal_stage_hint?: string | null
           direction?: string | null
           duration_minutes?: number | null
+          embedding_generated_at?: string | null
           external_id?: string | null
           id?: string
           initiated_by_stakeholder_id?: string | null
           insights_extracted_at?: string | null
           interaction_date?: string
+          interaction_embedding?: string | null
           interaction_subtype?: string | null
           interaction_type?: string
           is_manually_entered?: boolean | null
@@ -11078,11 +11090,13 @@ export type Database = {
           deal_stage: string | null
           deal_value_override: number | null
           description: string | null
+          embedding_generated_at: string | null
           employment_type: string | null
           expected_close_date: string | null
           id: string
           is_lost: boolean | null
           job_description_url: string | null
+          job_embedding: string | null
           last_activity_date: string | null
           location: string | null
           loss_reason_id: string | null
@@ -11115,11 +11129,13 @@ export type Database = {
           deal_stage?: string | null
           deal_value_override?: number | null
           description?: string | null
+          embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
           id?: string
           is_lost?: boolean | null
           job_description_url?: string | null
+          job_embedding?: string | null
           last_activity_date?: string | null
           location?: string | null
           loss_reason_id?: string | null
@@ -11152,11 +11168,13 @@ export type Database = {
           deal_stage?: string | null
           deal_value_override?: number | null
           description?: string | null
+          embedding_generated_at?: string | null
           employment_type?: string | null
           expected_close_date?: string | null
           id?: string
           is_lost?: boolean | null
           job_description_url?: string | null
+          job_embedding?: string | null
           last_activity_date?: string | null
           location?: string | null
           loss_reason_id?: string | null
@@ -11260,7 +11278,9 @@ export type Database = {
           author_id: string | null
           category: string
           content: string
+          content_embedding: string | null
           created_at: string | null
+          embedding_generated_at: string | null
           excerpt: string | null
           featured: boolean | null
           helpful_count: number | null
@@ -11282,7 +11302,9 @@ export type Database = {
           author_id?: string | null
           category: string
           content: string
+          content_embedding?: string | null
           created_at?: string | null
+          embedding_generated_at?: string | null
           excerpt?: string | null
           featured?: boolean | null
           helpful_count?: number | null
@@ -11304,7 +11326,9 @@ export type Database = {
           author_id?: string | null
           category?: string
           content?: string
+          content_embedding?: string | null
           created_at?: string | null
+          embedding_generated_at?: string | null
           excerpt?: string | null
           featured?: boolean | null
           helpful_count?: number | null
@@ -24032,6 +24056,7 @@ export type Database = {
       cleanup_expired_password_resets: { Args: never; Returns: undefined }
       cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
+      cosine_similarity: { Args: { a: string; b: string }; Returns: number }
       evaluate_user_achievements: {
         Args: { _user_id: string }
         Returns: {
@@ -24132,6 +24157,15 @@ export type Database = {
           success_count: number
           success_rate: number
           total_calls: number
+        }[]
+      }
+      get_embedding_stats: {
+        Args: never
+        Returns: {
+          entity_type: string
+          percentage: number
+          total_records: number
+          with_embeddings: number
         }[]
       }
       get_historical_conversion_rate: {
@@ -24371,6 +24405,54 @@ export type Database = {
           title: string
           updated_at: string
           visibility: string
+        }[]
+      }
+      semantic_search_candidates: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          bio: string
+          current_company: string
+          current_title: string
+          full_name: string
+          id: string
+          location: string
+          similarity_score: number
+          user_id: string
+        }[]
+      }
+      semantic_search_jobs: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          department: string
+          description: string
+          id: string
+          location: string
+          requirements: string
+          similarity_score: number
+          title: string
+        }[]
+      }
+      semantic_search_knowledge: {
+        Args: {
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          category: string
+          content: string
+          id: string
+          similarity_score: number
+          tags: string[]
+          title: string
         }[]
       }
       sync_existing_partner_domains: {
