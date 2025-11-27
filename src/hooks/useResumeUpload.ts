@@ -90,26 +90,17 @@ export function useResumeUpload(options: UseResumeUploadOptions = {}) {
       const { data: document, error: dbError } = await supabase
         .from('candidate_documents')
         .insert({
-          user_id: userId, // The candidate's ID
-          candidate_id: userId, // Some tables use candidate_id, some user_id. It seems likely candidate_documents uses candidate_id or user_id. Checking usage in other files...
-          // ResumeUploadModal uses 'user_id'. CandidateDocumentsViewer uses 'candidate_id'.
-          // We will try to detect which column exists or if both are used.
-          // Based on ResumeUploadModal: user_id
-          // Based on CandidateDocumentsViewer: candidate_id
-          // I'll use 'candidate_id' if it's a partner upload usually, but let's check schemas if possible. 
-          // Since I can't check schema, I'll include both if I can or fallback to what I see in the specific components using this hook.
-          // Actually, for safety, I will NOT insert into DB here if I'm unsure.
-          // BUT, the goal is to unify. 
-          // Let's look at ResumeUploadModal again. It uses `user_id`.
-          // CandidateDocumentsViewer uses `candidate_id`.
-          // This implies the table might have both or they are aliased in my search results.
-          // Let's assume 'candidate_documents' links to the candidate via a column.
-          // I will just return the upload result and let the component handle the specific DB insert for now to avoid breaking things, 
-          // OR I will implement a robust DB insert that tries to be smart.
-          
-          // For now, let's stick to just handling the storage upload and validation in this hook to ensure the "upload" part works perfectly.
-          // The DB insertion logic is tightly coupled with the context (partner vs candidate view).
-        });
+          candidate_id: userId,
+          document_type: documentType,
+          file_name: file.name,
+          file_url: filePath,
+          file_size_kb: Math.round(file.size / 1024),
+          mime_type: file.type,
+          uploaded_by: currentUser?.id,
+          uploaded_by_role: role,
+        })
+        .select()
+        .single();
         
       // Wait, I should probably fix the DB insert here to ensure "perfect" behavior.
       // Let's try to do the profile update for primary resumes at least.

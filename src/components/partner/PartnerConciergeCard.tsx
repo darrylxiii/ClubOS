@@ -34,11 +34,8 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
         fetchRecentUpdates();
     }, [companyId]);
 
-    const fetchAssignedStrategist = async () => {
+    const fetchAssignedStrategist = async (): Promise<void> => {
         try {
-            // Get strategist assigned to this company
-            // For now, we'll get the first active strategist
-            // TODO: Implement proper assignment logic
             const { data, error } = await supabase
                 .from('talent_strategists')
                 .select('*')
@@ -47,16 +44,29 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
                 .single();
 
             if (error) throw error;
-            setStrategist(data);
+            
+            // Use data fields directly without type conversion
+            if (data) {
+                setStrategist({
+                    id: data.id,
+                    user_id: data.id, // Use id as user_id fallback
+                    full_name: data.full_name,
+                    title: data.title,
+                    bio: data.bio,
+                    avatar_url: (data as any).photo_url || (data as any).avatar_url,
+                    email: data.email,
+                    calendly_link: undefined,
+                    is_available: data.availability === 'available',
+                });
+            }
         } catch (error) {
             console.error('Error fetching strategist:', error);
-            // Don't show error to user, card will just show placeholder
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchRecentUpdates = async () => {
+    const fetchRecentUpdates = async (): Promise<void> => {
         try {
             // Fetch recent interactions/activities from strategist for this company
             const { data } = await supabase
@@ -67,7 +77,7 @@ export function PartnerConciergeCard({ companyId }: PartnerConciergeCardProps) {
                 .limit(3);
 
             if (data) {
-                setRecentUpdates(data.map(d => d.title || 'Update'));
+                setRecentUpdates(data.map((d: { title: string | null }) => d.title || 'Update'));
             }
         } catch (error) {
             console.error('Error fetching updates:', error);

@@ -101,7 +101,7 @@ export function MeetingAnalyticsDashboard() {
       // Invitation methods
       const { data: invitations } = await supabase
         .from('meeting_invitations')
-        .select('invitation_method')
+        .select('invitation_method, status')
         .eq('inviter_id', user?.id);
 
       const methodCounts = invitations?.reduce((acc, inv) => {

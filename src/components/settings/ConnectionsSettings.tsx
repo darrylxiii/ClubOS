@@ -68,7 +68,7 @@ export const ConnectionsSettings = ({
   const [pendingEmailProvider, setPendingEmailProvider] = useState<'gmail' | 'outlook' | null>(null);
   const [emailLabel, setEmailLabel] = useState('');
   
-  const { uploadResume, isUploading: isUploadingResume, validateFile } = useResumeUpload();
+  const { uploadResume, isUploading: isUploadingResumeHook, validateFile } = useResumeUpload();
 
   useEffect(() => {
     loadUserResumes();

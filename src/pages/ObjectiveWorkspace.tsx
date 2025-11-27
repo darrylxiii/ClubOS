@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
@@ -66,7 +66,11 @@ const ObjectiveWorkspace = () => {
         .single();
 
       if (error) throw error;
-      setObjective(data);
+      setObjective({
+        ...data,
+        tags: Array.isArray(data.tags) ? data.tags : 
+              typeof data.tags === 'string' ? JSON.parse(data.tags) : []
+      });
 
       // Load owner profiles
       if (data.owners && data.owners.length > 0) {

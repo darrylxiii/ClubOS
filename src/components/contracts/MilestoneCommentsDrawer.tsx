@@ -67,7 +67,7 @@ export function MilestoneCommentsDrawer({
         }
         throw error;
       }
-      setComments((data as Comment[]) || []);
+      setComments(data && Array.isArray(data) ? data as unknown as Comment[] : []);
     } catch (error: any) {
       console.error("Error loading comments:", error);
       // Don't show error toast if table doesn't exist

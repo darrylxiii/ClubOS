@@ -32,12 +32,19 @@ export function MilestoneRevisionModal({
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
+      // First get current revision count
+      const { data: milestone } = await (supabase as any)
+        .from("project_milestones")
+        .select("revision_count")
+        .eq("id", milestoneId)
+        .single();
+
+      const { error } = await (supabase as any)
         .from("project_milestones")
         .update({
           status: "revision_requested",
           feedback_from_client: feedback,
-          revision_count: supabase.raw("revision_count + 1"),
+          revision_count: (milestone?.revision_count || 0) + 1,
           updated_at: new Date().toISOString(),
         })
         .eq("id", milestoneId);

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { AppLayout } from '@/components/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -31,6 +31,10 @@ interface MeetingTemplate {
   is_public: boolean;
   usage_count: number;
   created_at: string;
+  settings?: any;
+  user_id?: string;
+  duration_minutes?: number;
+  updated_at?: string;
 }
 
 export default function MeetingTemplates() {
@@ -64,7 +68,12 @@ export default function MeetingTemplates() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTemplates(data || []);
+      setTemplates((data || []).map((template: any) => ({
+        ...template,
+        default_duration: template.default_duration || template.duration_minutes || 60,
+        usage_count: template.usage_count || 0,
+        icon: template.icon || '📅'
+      })));
     } catch (error) {
       console.error('Error loading templates:', error);
       toast.error('Failed to load templates');
