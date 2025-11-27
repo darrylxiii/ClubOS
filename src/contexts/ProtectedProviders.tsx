@@ -4,6 +4,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import { VideoPlayerProvider } from "@/contexts/VideoPlayerContext";
 import { NavigationHistoryProvider } from "@/contexts/NavigationHistoryContext";
 import { MotionProvider } from "@/contexts/MotionContext";
+import { AppearanceProvider } from "@/contexts/AppearanceContext";
 import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
 import { ActivityTracker } from "@/components/ActivityTracker";
 import { Loader2 } from "lucide-react";
@@ -19,20 +20,22 @@ interface ProtectedProvidersProps {
  */
 export const ProtectedProviders = ({ children }: ProtectedProvidersProps) => {
   return (
-    <RoleProvider>
-      <SubscriptionProvider>
-        <VideoPlayerProvider>
-          <NavigationHistoryProvider>
-            <MotionProvider>
-              <ActivityTracker>
-                <FloatingVideoPlayer />
-                {children}
-              </ActivityTracker>
-            </MotionProvider>
-          </NavigationHistoryProvider>
-        </VideoPlayerProvider>
-      </SubscriptionProvider>
-    </RoleProvider>
+    <AppearanceProvider>
+      <RoleProvider>
+        <SubscriptionProvider>
+          <VideoPlayerProvider>
+            <NavigationHistoryProvider>
+              <MotionProvider>
+                <ActivityTracker>
+                  <FloatingVideoPlayer />
+                  {children}
+                </ActivityTracker>
+              </MotionProvider>
+            </NavigationHistoryProvider>
+          </VideoPlayerProvider>
+        </SubscriptionProvider>
+      </RoleProvider>
+    </AppearanceProvider>
   );
 };
 

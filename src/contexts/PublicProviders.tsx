@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AppearanceProvider } from "@/contexts/AppearanceContext";
 
 interface PublicProvidersProps {
   children: ReactNode;
@@ -17,7 +18,9 @@ export const PublicProviders = ({ children }: PublicProvidersProps) => {
     <ErrorBoundary>
       <ThemeProvider attribute="class" defaultTheme="dark">
         <AuthProvider>
-          {children}
+          <AppearanceProvider>
+            {children}
+          </AppearanceProvider>
         </AuthProvider>
       </ThemeProvider>
     </ErrorBoundary>
