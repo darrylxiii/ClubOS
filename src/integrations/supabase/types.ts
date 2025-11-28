@@ -25050,6 +25050,7 @@ export type Database = {
       cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
       cleanup_inactive_participants: { Args: never; Returns: undefined }
+      cleanup_stale_channel_participants: { Args: never; Returns: undefined }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
       evaluate_user_achievements: {
         Args: { _user_id: string }

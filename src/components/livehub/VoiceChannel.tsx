@@ -29,6 +29,7 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [pushToTalkEnabled, setPushToTalkEnabled] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
   
   const {
     isConnected,
@@ -77,6 +78,7 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
   };
 
   const handleJoinChannel = async () => {
+    setIsJoining(true);
     try {
       await joinChannel();
       
@@ -86,9 +88,12 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
       }
       
       toast.success('Connected to voice channel');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error joining channel:', error);
-      toast.error('Failed to connect to voice channel');
+      const errorMessage = error?.message || 'Failed to connect to voice channel';
+      toast.error(errorMessage);
+    } finally {
+      setIsJoining(false);
     }
   };
 
@@ -201,10 +206,20 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
             <p className="text-sm text-muted-foreground">
               {participants.length} {participants.length === 1 ? 'person' : 'people'} in channel
             </p>
-            <Button onClick={handleJoinChannel} size="lg" className="gap-2">
+            <Button 
+              onClick={handleJoinChannel} 
+              size="lg" 
+              className="gap-2"
+              disabled={isJoining}
+            >
               <Phone className="w-4 h-4" />
-              Join Voice
+              {isJoining ? 'Connecting...' : 'Join Voice'}
             </Button>
+            {isJoining && (
+              <p className="text-xs text-muted-foreground animate-pulse">
+                Requesting microphone access...
+              </p>
+            )}
           </div>
         ) : (
           <div className="flex-1 w-full flex flex-col">
