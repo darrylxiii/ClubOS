@@ -102,7 +102,25 @@ const Admin = () => {
           </TabsContent>
 
           <TabsContent value="activity" className="space-y-4">
-            <ActivityMonitoringDashboard />
+            <Card>
+              <CardHeader>
+                <CardTitle>User Activity Analytics</CardTitle>
+                <CardDescription>
+                  Comprehensive tracking and analysis of user behavior across the platform
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    View detailed real-time analytics, user journeys, engagement metrics, frustration signals, 
+                    search analytics, and partner health monitoring.
+                  </p>
+                  <Button onClick={() => navigate('/admin/user-activity')} className="w-full sm:w-auto">
+                    Open Full Analytics Dashboard
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
             <CompanyEngagementLeaderboard />
           </TabsContent>
 

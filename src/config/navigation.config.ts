@@ -206,7 +206,8 @@ const roleSpecificGroups: Record<'candidate' | 'partner' | 'admin', NavigationGr
       title: "System Management",
       icon: Shield,
       items: [
-        { name: "System Health", icon: Activity, path: "/admin/system-health" },
+        { name: "User Activity", icon: Activity, path: "/admin/user-activity" },
+        { name: "System Health", icon: Shield, path: "/admin/system-health" },
         { name: "Disaster Recovery", icon: Shield, path: "/admin/comprehensive-dr" },
         { name: "Translation Manager", icon: Languages, path: "/admin/translations" },
         { name: "Language Manager", icon: Globe, path: "/admin/languages" },
