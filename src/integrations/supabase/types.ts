@@ -12662,6 +12662,59 @@ export type Database = {
           },
         ]
       }
+      livehub_channel_participants: {
+        Row: {
+          channel_id: string
+          created_at: string | null
+          id: string
+          is_hand_raised: boolean | null
+          is_muted: boolean | null
+          is_speaking: boolean | null
+          is_video_on: boolean | null
+          joined_at: string | null
+          left_at: string | null
+          role: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string | null
+          id?: string
+          is_hand_raised?: boolean | null
+          is_muted?: boolean | null
+          is_speaking?: boolean | null
+          is_video_on?: boolean | null
+          joined_at?: string | null
+          left_at?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string | null
+          id?: string
+          is_hand_raised?: boolean | null
+          is_muted?: boolean | null
+          is_speaking?: boolean | null
+          is_video_on?: boolean | null
+          joined_at?: string | null
+          left_at?: string | null
+          role?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "livehub_channel_participants_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       market_intelligence: {
         Row: {
           confidence_score: number | null
