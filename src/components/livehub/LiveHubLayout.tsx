@@ -2,6 +2,7 @@ import { useState } from 'react';
 import ServerSidebar from './ServerSidebar';
 import ChannelList from './ChannelList';
 import VoiceChannel from './VoiceChannel';
+import StageChannel from './StageChannel';
 import TextChannel from './TextChannel';
 import MemberList from './MemberList';
 import { useLiveHubPresence } from '@/hooks/useLiveHubPresence';
@@ -30,10 +31,12 @@ const LiveHubLayout = () => {
       {/* Main Content Area - takes remaining space */}
       <div className="flex-1 flex flex-col min-w-0">
         {selectedChannelId ? (
-          selectedChannelType === 'voice' || selectedChannelType === 'video' || selectedChannelType === 'stage' ? (
+          selectedChannelType === 'stage' ? (
+            <StageChannel channelId={selectedChannelId} />
+          ) : selectedChannelType === 'voice' || selectedChannelType === 'video' ? (
             <VoiceChannel 
               channelId={selectedChannelId}
-              channelType={selectedChannelType as 'voice' | 'video' | 'stage'}
+              channelType={selectedChannelType as 'voice' | 'video'}
             />
           ) : (
             <TextChannel channelId={selectedChannelId} />
