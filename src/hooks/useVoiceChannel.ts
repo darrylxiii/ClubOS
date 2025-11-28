@@ -159,31 +159,41 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   };
 
   const joinChannel = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
 
     try {
+      // First, leave any other channels the user might be in
+      const { error: leaveError } = await supabase
+        .from('live_channel_participants')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (leaveError && !leaveError.message.includes('0 rows')) {
+        console.warn('Error leaving previous channels:', leaveError);
+      }
+
       // Get microphone access
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
-      });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          }
+        });
+      } catch (mediaError) {
+        throw new Error('Failed to access microphone. Please check your permissions.');
+      }
       
       localStreamRef.current = stream;
 
-      // Check if already in channel, if so remove stale entry
-      await supabase
+      // Insert new participant record using explicit insert
+      const { error: insertError } = await supabase
         .from('live_channel_participants')
-        .delete()
-        .eq('channel_id', channelId)
-        .eq('user_id', user.id);
-
-      // Add to participants table with upsert
-      const { error } = await supabase
-        .from('live_channel_participants')
-        .upsert({
+        .insert({
           channel_id: channelId,
           user_id: user.id,
           role: 'speaker',
@@ -192,13 +202,15 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
           is_video_on: false,
           is_screen_sharing: false,
           is_speaking: false
-        }, {
-          onConflict: 'channel_id,user_id'
         });
 
-      if (error) {
-        console.error('Error joining channel:', error);
-        throw error;
+      if (insertError) {
+        // Clean up media stream on error
+        stream.getTracks().forEach(track => track.stop());
+        localStreamRef.current = null;
+        
+        console.error('Error joining channel:', insertError);
+        throw new Error('Failed to join channel. Please try again.');
       }
 
       setIsConnected(true);

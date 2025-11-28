@@ -25,10 +25,9 @@ export function useStageChannel(channelId: string) {
   // Load participants
   const loadParticipants = useCallback(async () => {
     const { data, error } = await supabase
-      .from('livehub_channel_participants')
+      .from('live_channel_participants')
       .select('*')
-      .eq('channel_id', channelId)
-      .is('left_at', null);
+      .eq('channel_id', channelId);
 
     if (error) {
       console.error('Error loading participants:', error);
@@ -53,7 +52,7 @@ export function useStageChannel(channelId: string) {
         user_id: p.user_id,
         display_name: profile?.full_name || 'Unknown',
         avatar_url: profile?.avatar_url || null,
-        role: p.role as 'host' | 'speaker' | 'listener',
+        role: (p.role || 'listener') as 'host' | 'speaker' | 'listener',
         is_muted: p.is_muted ?? true,
         is_video_on: p.is_video_on ?? false,
         is_hand_raised: p.is_hand_raised ?? false,
@@ -74,10 +73,18 @@ export function useStageChannel(channelId: string) {
 
   // Join channel
   const joinChannel = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    // First, leave any other channels
+    await supabase
+      .from('live_channel_participants')
+      .delete()
+      .eq('user_id', user.id);
 
     const { error } = await supabase
-      .from('livehub_channel_participants')
+      .from('live_channel_participants')
       .insert({
         channel_id: channelId,
         user_id: user.id,
@@ -85,11 +92,14 @@ export function useStageChannel(channelId: string) {
         is_muted: true,
         is_video_on: false,
         is_hand_raised: false,
+        is_deafened: false,
+        is_screen_sharing: false,
+        is_speaking: false
       });
 
-    if (error && !error.message.includes('duplicate')) {
+    if (error) {
       console.error('Error joining channel:', error);
-      throw error;
+      throw new Error('Failed to join stage channel. Please try again.');
     }
 
     setIsConnected(true);
@@ -101,8 +111,8 @@ export function useStageChannel(channelId: string) {
     if (!myParticipant) return;
 
     await supabase
-      .from('livehub_channel_participants')
-      .update({ left_at: new Date().toISOString() })
+      .from('live_channel_participants')
+      .delete()
       .eq('id', myParticipant.id);
 
     setIsConnected(false);
@@ -115,7 +125,7 @@ export function useStageChannel(channelId: string) {
 
     const newMuted = !isMuted;
     await supabase
-      .from('livehub_channel_participants')
+      .from('live_channel_participants')
       .update({ is_muted: newMuted })
       .eq('id', myParticipant.id);
 
@@ -128,7 +138,7 @@ export function useStageChannel(channelId: string) {
 
     const newVideo = !isVideoOn;
     await supabase
-      .from('livehub_channel_participants')
+      .from('live_channel_participants')
       .update({ is_video_on: newVideo })
       .eq('id', myParticipant.id);
 
@@ -141,7 +151,7 @@ export function useStageChannel(channelId: string) {
 
     const newHandRaised = !myParticipant.is_hand_raised;
     await supabase
-      .from('livehub_channel_participants')
+      .from('live_channel_participants')
       .update({ is_hand_raised: newHandRaised })
       .eq('id', myParticipant.id);
 
@@ -151,7 +161,7 @@ export function useStageChannel(channelId: string) {
   // Moderator: Invite to speak
   const inviteToSpeak = useCallback(async (participantId: string) => {
     await supabase
-      .from('livehub_channel_participants')
+      .from('live_channel_participants')
       .update({ role: 'speaker', is_hand_raised: false })
       .eq('id', participantId);
 
@@ -161,7 +171,7 @@ export function useStageChannel(channelId: string) {
   // Moderator: Move to audience
   const moveToAudience = useCallback(async (participantId: string) => {
     await supabase
-      .from('livehub_channel_participants')
+      .from('live_channel_participants')
       .update({ role: 'listener', is_muted: true, is_video_on: false })
       .eq('id', participantId);
 
@@ -171,7 +181,7 @@ export function useStageChannel(channelId: string) {
   // Moderator: Lower hand
   const lowerHand = useCallback(async (participantId: string) => {
     await supabase
-      .from('livehub_channel_participants')
+      .from('live_channel_participants')
       .update({ is_hand_raised: false })
       .eq('id', participantId);
 
@@ -189,7 +199,7 @@ export function useStageChannel(channelId: string) {
         {
           event: '*',
           schema: 'public',
-          table: 'livehub_channel_participants',
+          table: 'live_channel_participants',
           filter: `channel_id=eq.${channelId}`
         },
         () => loadParticipants()
