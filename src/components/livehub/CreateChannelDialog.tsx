@@ -52,9 +52,10 @@ const CreateChannelDialog = ({ open, onOpenChange, serverId, onChannelCreated }:
       setCategory('GENERAL');
       setAutoRecord(false);
       setAutoTranscribe(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating channel:', error);
-      toast.error('Failed to create channel');
+      const errorMessage = error?.message || 'Failed to create channel';
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

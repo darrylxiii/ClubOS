@@ -25189,6 +25189,7 @@ export type Database = {
           role: string
         }[]
       }
+      get_user_server_ids: { Args: never; Returns: string[] }
       get_user_stats: { Args: never; Returns: Json }
       get_user_subscription_plan: {
         Args: { check_user_id: string }
@@ -25248,6 +25249,7 @@ export type Database = {
         Returns: boolean
       }
       is_pure_candidate: { Args: { check_user_id: string }; Returns: boolean }
+      is_server_admin: { Args: { check_server_id: string }; Returns: boolean }
       is_team_member: { Args: { check_user_id: string }; Returns: boolean }
       is_tqc_team_email_for_job: {
         Args: { check_email: string; check_job_id?: string }
