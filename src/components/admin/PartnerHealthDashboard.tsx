@@ -35,11 +35,18 @@ export function PartnerHealthDashboard() {
 
   const fetchPartnerHealth = async () => {
     try {
-      const metricsQuery = await supabase.from('partner_engagement_metrics').select('*').gte('date', new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0]);
-      const profilesQuery = await supabase.from('profiles').select('id, full_name').eq('role', 'partner');
+      const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().split('T')[0];
+      
+      // @ts-ignore - Avoiding deep type instantiation from Supabase queries
+      const metricsQuery = supabase.from('partner_engagement_metrics').select('*').gte('date', sevenDaysAgo);
+      // @ts-ignore - Avoiding deep type instantiation from Supabase queries  
+      const profilesQuery = supabase.from('profiles').select('*').eq('role', 'partner');
+      
+      const metricsResult: any = await metricsQuery;
+      const profilesResult: any = await profilesQuery;
 
-      const metrics = metricsQuery.data as any[] || [];
-      const profiles = profilesQuery.data as any[] || [];
+      const metrics: any[] = metricsResult.data || [];
+      const profiles: any[] = profilesResult.data || [];
 
       if (profiles.length === 0) return;
 
