@@ -12268,6 +12268,38 @@ export type Database = {
           },
         ]
       }
+      live_channel_message_reactions: {
+        Row: {
+          created_at: string | null
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_channel_message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "live_channel_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       live_channel_messages: {
         Row: {
           attachments: Json | null
