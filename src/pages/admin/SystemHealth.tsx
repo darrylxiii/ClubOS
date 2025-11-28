@@ -3,9 +3,11 @@ import { useSystemHealth } from "@/hooks/useSystemHealth";
 import { Activity, CheckCircle2, AlertCircle, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SystemHealthMetrics } from "@/components/admin/system/SystemHealthMetrics";
 import { FunctionHealthTable } from "@/components/admin/system/FunctionHealthTable";
 import { ErrorLogViewer } from "@/components/admin/system/ErrorLogViewer";
+import { UserActivityDashboard } from "@/components/admin/UserActivityDashboard";
 
 export default function SystemHealth() {
   const { health, functions, isLoading, refetch } = useSystemHealth();
@@ -79,14 +81,31 @@ export default function SystemHealth() {
         </CardHeader>
       </Card>
 
-      {/* Key Metrics */}
-      <SystemHealthMetrics health={health} />
+      {/* Tabbed Interface */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="activity">User Activity</TabsTrigger>
+          <TabsTrigger value="functions">Functions</TabsTrigger>
+          <TabsTrigger value="errors">Error Logs</TabsTrigger>
+        </TabsList>
 
-      {/* Edge Functions Health */}
-      <FunctionHealthTable functions={functions} />
+        <TabsContent value="overview" className="space-y-4 mt-6">
+          <SystemHealthMetrics health={health} />
+        </TabsContent>
 
-      {/* Recent Error Logs */}
-      <ErrorLogViewer />
+        <TabsContent value="activity" className="mt-6">
+          <UserActivityDashboard />
+        </TabsContent>
+
+        <TabsContent value="functions" className="mt-6">
+          <FunctionHealthTable functions={functions} />
+        </TabsContent>
+
+        <TabsContent value="errors" className="mt-6">
+          <ErrorLogViewer />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
