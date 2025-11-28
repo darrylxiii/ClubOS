@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, Clock, TrendingUp, History } from "lucide-react";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
+import { getDefaultPipelineStages } from "@/utils/pipelineUtils";
 
 interface Props {
   application: any;
@@ -11,32 +12,19 @@ interface Props {
   onViewHistory?: () => void;
 }
 
-const STAGE_ORDER = [
-  'applied',
-  'screening',
-  'interview',
-  'technical',
-  'final',
-  'offer',
-  'hired'
-];
-
-const STAGE_LABELS: Record<string, string> = {
-  'applied': 'Applied',
-  'screening': 'Screening',
-  'interview': 'Interview',
-  'technical': 'Technical',
-  'final': 'Final Round',
-  'offer': 'Offer',
-  'hired': 'Hired'
-};
-
 export const PipelineBreakdownCard = ({ application, onAdvance, onDecline, onViewHistory }: Props) => {
   if (!application) return null;
 
-  const currentStage = application.stage?.toLowerCase() || 'applied';
-  const currentIndex = STAGE_ORDER.findIndex(s => currentStage.includes(s)) || 0;
+  // Get stages from application or job's pipeline_stages or use defaults
+  const stages = application.stages?.length > 0 
+    ? application.stages 
+    : application.job?.pipeline_stages?.length > 0
+    ? application.job.pipeline_stages
+    : getDefaultPipelineStages();
+  
+  const currentIndex = application.current_stage_index ?? 0;
   const daysInStage = application.days_in_stage || 0;
+  const currentStage = stages[currentIndex];
 
   const getUrgencyColor = (days: number) => {
     if (days < 3) return 'text-green-500 bg-green-500/10 border-green-500/30';
@@ -47,7 +35,7 @@ export const PipelineBreakdownCard = ({ application, onAdvance, onDecline, onVie
 
   const getNextStage = () => {
     const nextIndex = currentIndex + 1;
-    return nextIndex < STAGE_ORDER.length ? STAGE_LABELS[STAGE_ORDER[nextIndex]] : 'Hired';
+    return nextIndex < stages.length ? stages[nextIndex].name : 'Complete';
   };
 
   return (
@@ -60,7 +48,7 @@ export const PipelineBreakdownCard = ({ application, onAdvance, onDecline, onVie
           </CardTitle>
           <div className="flex items-center gap-2">
             <Badge className="text-base px-3 py-1.5 bg-primary/10 border-primary/30">
-              {STAGE_LABELS[STAGE_ORDER[currentIndex]] || currentStage}
+              {currentStage?.name || 'In Progress'}
             </Badge>
             <Badge variant="outline" className={`${getUrgencyColor(daysInStage)}`}>
               <Clock className="w-3 h-3 mr-1" />
@@ -73,15 +61,15 @@ export const PipelineBreakdownCard = ({ application, onAdvance, onDecline, onVie
         {/* Horizontal Stage Timeline */}
         <div className="relative">
           <div className="flex items-center justify-between">
-            {STAGE_ORDER.map((stage, idx) => {
+            {stages.map((stage: any, idx: number) => {
               const isCompleted = idx < currentIndex;
               const isCurrent = idx === currentIndex;
               const isFuture = idx > currentIndex;
 
               return (
-                <div key={stage} className="flex flex-col items-center gap-2 flex-1 relative">
+                <div key={stage.id || idx} className="flex flex-col items-center gap-2 flex-1 relative">
                   {/* Connector Line */}
-                  {idx < STAGE_ORDER.length - 1 && (
+                  {idx < stages.length - 1 && (
                     <div
                       className={`absolute top-5 left-1/2 w-full h-0.5 -z-10 ${
                         idx < currentIndex ? 'bg-green-500' : 'bg-border'
@@ -118,13 +106,13 @@ export const PipelineBreakdownCard = ({ application, onAdvance, onDecline, onVie
                         : 'text-muted-foreground/50'
                     }`}
                   >
-                    {STAGE_LABELS[stage]}
+                    {stage.name}
                   </span>
 
                   {/* Stage Date for completed */}
-                  {isCompleted && application.stage_completed_at && (
+                  {isCompleted && stage.completed_at && (
                     <span className="text-xs text-muted-foreground">
-                      {new Date(application.stage_completed_at).toLocaleDateString('en-US', {
+                      {new Date(stage.completed_at).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric'
                       })}

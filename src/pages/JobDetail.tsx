@@ -192,6 +192,30 @@ export default function JobDetail() {
     }
 
     try {
+      // Get the job's actual pipeline stages
+      const pipelineStages = job?.pipeline_stages || [
+        { name: 'Applied', order: 0 },
+        { name: 'Screening', order: 1 },
+        { name: 'Interview', order: 2 },
+        { name: 'Offer', order: 3 }
+      ];
+      
+      // Convert pipeline stages to application stages format
+      const applicationStages = pipelineStages.map((stage: any, index: number) => ({
+        id: stage.id || `stage-${index}`,
+        name: stage.name,
+        order: stage.order ?? index,
+        status: index === 0 ? 'in_progress' : 'pending',
+        started_at: index === 0 ? new Date().toISOString() : null,
+        description: stage.description,
+        duration_minutes: stage.duration_minutes,
+        format: stage.format,
+        owner: stage.owner,
+        resources: stage.resources,
+        location: stage.location,
+        meeting_link: stage.meeting_link,
+      }));
+
       const { error } = await supabase
         .from('applications')
         .insert({
@@ -201,11 +225,7 @@ export default function JobDetail() {
           company_name: job?.companies?.name || 'Company',
           status: 'active',
           current_stage_index: 0,
-          stages: [{
-            name: 'Applied',
-            status: 'in_progress',
-            started_at: new Date().toISOString(),
-          }],
+          stages: applicationStages,
         });
 
       if (error) throw error;
@@ -447,7 +467,10 @@ export default function JobDetail() {
               />
               <ResponsibilityGrid responsibilities={job.responsibilities} />
               <BenefitsShowcase benefits={job.benefits} />
-              <ApplicationTimeline />
+              <ApplicationTimeline 
+                jobPipelineStages={job.pipeline_stages}
+                currentStage={isApplied ? 0 : undefined}
+              />
             </TabsContent>
 
             {/* Company Tab */}
