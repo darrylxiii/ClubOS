@@ -117,8 +117,9 @@ export function useCandidateTracking() {
     
     trackingService.trackSearch({
       searchQuery: query,
-      filters: JSON.stringify(filters),
+      searchFilters: filters,
       resultsCount,
+      searchCategory: 'jobs',
     });
   }, [user]);
 
