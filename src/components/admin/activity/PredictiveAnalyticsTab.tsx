@@ -34,7 +34,7 @@ export function PredictiveAnalyticsTab() {
         .limit(20);
       
       if (error) return [];
-      return data || [];
+      return (data || []) as any[];
     },
     refetchInterval: 60000,
   });
