@@ -278,7 +278,7 @@ const App = () => {
               element={<Navigate to="/partner" replace />}
             />
             <Route
-              path="/partner/submitted"
+              path="/partnership-submitted/:companyName"
               element={
                 <PublicProviders>
                   <RouteErrorBoundary>
@@ -288,6 +288,10 @@ const App = () => {
                   </RouteErrorBoundary>
                 </PublicProviders>
               }
+            />
+            <Route
+              path="/partner/submitted"
+              element={<Navigate to="/partnership-submitted/partner" replace />}
             />
             <Route
               path="/onboarding"

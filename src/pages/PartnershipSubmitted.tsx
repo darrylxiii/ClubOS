@@ -16,7 +16,7 @@ declare global {
 }
 
 export default function PartnershipSubmitted() {
-  const { companyName } = useParams<{ companyName: string }>();
+  const { companyName } = useParams<{ companyName?: string }>();
   const navigate = useNavigate();
 
   useEffect(() => {
