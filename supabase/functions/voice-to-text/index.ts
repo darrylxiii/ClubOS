@@ -36,6 +36,39 @@ function processBase64Chunks(base64String: string, chunkSize = 32768) {
   return result;
 }
 
+// Convert PCM16 data to WAV format with proper headers
+function pcm16ToWav(pcm16Data: Uint8Array, sampleRate = 24000, channels = 1): Uint8Array {
+  const dataSize = pcm16Data.length;
+  const wavHeader = new ArrayBuffer(44);
+  const view = new DataView(wavHeader);
+  
+  // RIFF chunk descriptor
+  view.setUint32(0, 0x52494646, false); // "RIFF"
+  view.setUint32(4, 36 + dataSize, true); // File size - 8
+  view.setUint32(8, 0x57415645, false); // "WAVE"
+  
+  // fmt sub-chunk
+  view.setUint32(12, 0x666d7420, false); // "fmt "
+  view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+  view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+  view.setUint16(22, channels, true); // NumChannels
+  view.setUint32(24, sampleRate, true); // SampleRate
+  view.setUint32(28, sampleRate * channels * 2, true); // ByteRate
+  view.setUint16(32, channels * 2, true); // BlockAlign
+  view.setUint16(34, 16, true); // BitsPerSample
+  
+  // data sub-chunk
+  view.setUint32(36, 0x64617461, false); // "data"
+  view.setUint32(40, dataSize, true); // Subchunk2Size
+  
+  // Combine header and PCM data
+  const wavFile = new Uint8Array(44 + dataSize);
+  wavFile.set(new Uint8Array(wavHeader), 0);
+  wavFile.set(pcm16Data, 44);
+  
+  return wavFile;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -54,13 +87,14 @@ serve(async (req) => {
       audioLength: audio.length 
     });
 
-    // Process audio in chunks
-    const binaryAudio = processBase64Chunks(audio);
+    // Process audio in chunks and convert to WAV
+    const pcm16Data = processBase64Chunks(audio);
+    const wavData = pcm16ToWav(pcm16Data);
     
     // Prepare form data
     const formData = new FormData();
-    const blob = new Blob([binaryAudio], { type: 'audio/webm' });
-    formData.append('file', blob, 'audio.webm');
+    const blob = new Blob([wavData as BlobPart], { type: 'audio/wav' });
+    formData.append('file', blob, 'audio.wav');
     formData.append('model', 'whisper-1');
 
     // Send to OpenAI
