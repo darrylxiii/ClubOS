@@ -17,10 +17,15 @@ interface Participant {
   };
 }
 
-export const useVoiceChannel = (channelId: string) => {
+interface VoiceChannelOptions {
+  pushToTalkEnabled?: boolean;
+}
+
+export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions = {}) => {
   const { user } = useAuth();
+  const { pushToTalkEnabled = false } = options;
   const [isConnected, setIsConnected] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(pushToTalkEnabled); // Start muted if PTT enabled
   const [isDeafened, setIsDeafened] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -30,6 +35,7 @@ export const useVoiceChannel = (channelId: string) => {
   
   const localStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const vadIntervalRef = useRef<number | null>(null);
 
   // Use the transcription hook
   const { transcriptions, isTranscribing } = useMeetingTranscription({
@@ -223,6 +229,8 @@ export const useVoiceChannel = (channelId: string) => {
   };
 
   const toggleMute = useCallback(() => {
+    if (pushToTalkEnabled) return; // Don't allow manual toggle in PTT mode
+    
     setIsMuted(prev => {
       const newMuted = !prev;
       if (localStreamRef.current) {
@@ -233,7 +241,17 @@ export const useVoiceChannel = (channelId: string) => {
       updateParticipantStatus({ is_muted: newMuted });
       return newMuted;
     });
-  }, []);
+  }, [pushToTalkEnabled]);
+
+  const setPushToTalkActive = useCallback((active: boolean) => {
+    if (!pushToTalkEnabled || !localStreamRef.current) return;
+    
+    setIsMuted(!active);
+    localStreamRef.current.getAudioTracks().forEach(track => {
+      track.enabled = active;
+    });
+    updateParticipantStatus({ is_muted: !active });
+  }, [pushToTalkEnabled]);
 
   const toggleDeafen = useCallback(() => {
     setIsDeafened(prev => {
@@ -362,6 +380,7 @@ export const useVoiceChannel = (channelId: string) => {
     toggleVideo,
     toggleScreenShare,
     startRecording,
-    stopRecording
+    stopRecording,
+    setPushToTalkActive
   };
 };
