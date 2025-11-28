@@ -15807,6 +15807,63 @@ export type Database = {
           },
         ]
       }
+      partner_engagement_metrics: {
+        Row: {
+          activity_trend: string | null
+          average_response_time_hours: number | null
+          candidates_shortlisted: number | null
+          candidates_viewed: number | null
+          created_at: string | null
+          date: string
+          engagement_score: number | null
+          id: string
+          meetings_scheduled: number | null
+          messages_sent: number | null
+          offers_created: number | null
+          partner_id: string
+          pipeline_updates: number | null
+          total_logins: number | null
+          total_session_time_minutes: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          activity_trend?: string | null
+          average_response_time_hours?: number | null
+          candidates_shortlisted?: number | null
+          candidates_viewed?: number | null
+          created_at?: string | null
+          date?: string
+          engagement_score?: number | null
+          id?: string
+          meetings_scheduled?: number | null
+          messages_sent?: number | null
+          offers_created?: number | null
+          partner_id: string
+          pipeline_updates?: number | null
+          total_logins?: number | null
+          total_session_time_minutes?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          activity_trend?: string | null
+          average_response_time_hours?: number | null
+          candidates_shortlisted?: number | null
+          candidates_viewed?: number | null
+          created_at?: string | null
+          date?: string
+          engagement_score?: number | null
+          id?: string
+          meetings_scheduled?: number | null
+          messages_sent?: number | null
+          offers_created?: number | null
+          partner_id?: string
+          pipeline_updates?: number | null
+          total_logins?: number | null
+          total_session_time_minutes?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       partner_integrations: {
         Row: {
           api_key_encrypted: string | null
@@ -23306,6 +23363,87 @@ export type Database = {
         }
         Relationships: []
       }
+      user_frustration_signals: {
+        Row: {
+          count: number | null
+          created_at: string | null
+          element_info: Json | null
+          id: string
+          page_path: string
+          session_id: string
+          signal_type: string
+          user_id: string | null
+        }
+        Insert: {
+          count?: number | null
+          created_at?: string | null
+          element_info?: Json | null
+          id?: string
+          page_path: string
+          session_id: string
+          signal_type: string
+          user_id?: string | null
+        }
+        Update: {
+          count?: number | null
+          created_at?: string | null
+          element_info?: Json | null
+          id?: string
+          page_path?: string
+          session_id?: string
+          signal_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_journey_tracking: {
+        Row: {
+          action_taken: string | null
+          action_target: string | null
+          conversion_event: boolean | null
+          created_at: string | null
+          from_page: string | null
+          id: string
+          journey_id: string
+          session_id: string
+          step_name: string
+          step_number: number
+          time_to_action_ms: number | null
+          to_page: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_taken?: string | null
+          action_target?: string | null
+          conversion_event?: boolean | null
+          created_at?: string | null
+          from_page?: string | null
+          id?: string
+          journey_id: string
+          session_id: string
+          step_name: string
+          step_number: number
+          time_to_action_ms?: number | null
+          to_page?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_taken?: string | null
+          action_target?: string | null
+          conversion_event?: boolean | null
+          created_at?: string | null
+          from_page?: string | null
+          id?: string
+          journey_id?: string
+          session_id?: string
+          step_name?: string
+          step_number?: number
+          time_to_action_ms?: number | null
+          to_page?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_network: {
         Row: {
           connected_user_id: string
@@ -23333,6 +23471,78 @@ export type Database = {
           interaction_count?: number | null
           last_interaction?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_page_analytics: {
+        Row: {
+          bounce: boolean | null
+          created_at: string | null
+          engaged: boolean | null
+          entry_timestamp: string
+          exit_timestamp: string | null
+          exit_type: string | null
+          form_fields_abandoned: number | null
+          form_fields_interacted: number | null
+          id: string
+          mouse_distance_pixels: number | null
+          mouse_idle_time_seconds: number | null
+          page_path: string
+          scroll_depth_avg: number | null
+          scroll_depth_max: number | null
+          scroll_velocity_avg: number | null
+          session_id: string
+          time_on_page_seconds: number | null
+          total_clicks: number | null
+          total_scrolls: number | null
+          unique_elements_clicked: number | null
+          user_id: string | null
+        }
+        Insert: {
+          bounce?: boolean | null
+          created_at?: string | null
+          engaged?: boolean | null
+          entry_timestamp: string
+          exit_timestamp?: string | null
+          exit_type?: string | null
+          form_fields_abandoned?: number | null
+          form_fields_interacted?: number | null
+          id?: string
+          mouse_distance_pixels?: number | null
+          mouse_idle_time_seconds?: number | null
+          page_path: string
+          scroll_depth_avg?: number | null
+          scroll_depth_max?: number | null
+          scroll_velocity_avg?: number | null
+          session_id: string
+          time_on_page_seconds?: number | null
+          total_clicks?: number | null
+          total_scrolls?: number | null
+          unique_elements_clicked?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          bounce?: boolean | null
+          created_at?: string | null
+          engaged?: boolean | null
+          entry_timestamp?: string
+          exit_timestamp?: string | null
+          exit_type?: string | null
+          form_fields_abandoned?: number | null
+          form_fields_interacted?: number | null
+          id?: string
+          mouse_distance_pixels?: number | null
+          mouse_idle_time_seconds?: number | null
+          page_path?: string
+          scroll_depth_avg?: number | null
+          scroll_depth_max?: number | null
+          scroll_velocity_avg?: number | null
+          session_id?: string
+          time_on_page_seconds?: number | null
+          total_clicks?: number | null
+          total_scrolls?: number | null
+          unique_elements_clicked?: number | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -23542,6 +23752,111 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_search_analytics: {
+        Row: {
+          clicked_result_position: number | null
+          created_at: string | null
+          id: string
+          results_count: number | null
+          search_category: string | null
+          search_filters: Json | null
+          search_query: string
+          session_id: string
+          time_to_first_click_ms: number | null
+          user_id: string | null
+        }
+        Insert: {
+          clicked_result_position?: number | null
+          created_at?: string | null
+          id?: string
+          results_count?: number | null
+          search_category?: string | null
+          search_filters?: Json | null
+          search_query: string
+          session_id: string
+          time_to_first_click_ms?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          clicked_result_position?: number | null
+          created_at?: string | null
+          id?: string
+          results_count?: number | null
+          search_category?: string | null
+          search_filters?: Json | null
+          search_query?: string
+          session_id?: string
+          time_to_first_click_ms?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_session_events: {
+        Row: {
+          created_at: string | null
+          element_class: string | null
+          element_id: string | null
+          element_tag: string | null
+          element_text: string | null
+          event_timestamp: string
+          event_type: string
+          id: string
+          metadata: Json | null
+          page_path: string
+          scroll_depth_percent: number | null
+          scroll_direction: string | null
+          session_id: string
+          time_on_element_ms: number | null
+          user_id: string | null
+          viewport_height: number | null
+          viewport_width: number | null
+          x_coordinate: number | null
+          y_coordinate: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          element_class?: string | null
+          element_id?: string | null
+          element_tag?: string | null
+          element_text?: string | null
+          event_timestamp?: string
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          page_path: string
+          scroll_depth_percent?: number | null
+          scroll_direction?: string | null
+          session_id: string
+          time_on_element_ms?: number | null
+          user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+          x_coordinate?: number | null
+          y_coordinate?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          element_class?: string | null
+          element_id?: string | null
+          element_tag?: string | null
+          element_text?: string | null
+          event_timestamp?: string
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          page_path?: string
+          scroll_depth_percent?: number | null
+          scroll_direction?: string | null
+          session_id?: string
+          time_on_element_ms?: number | null
+          user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
+          x_coordinate?: number | null
+          y_coordinate?: number | null
         }
         Relationships: []
       }
@@ -24974,6 +25289,10 @@ export type Database = {
         Args: { last_activity: string }
         Returns: string
       }
+      calculate_partner_health_score: {
+        Args: { p_partner_id: string }
+        Returns: Json
+      }
       calculate_post_score: {
         Args: {
           p_comments_count: number
@@ -24987,6 +25306,10 @@ export type Database = {
         Returns: number
       }
       calculate_projected_earnings: { Args: never; Returns: undefined }
+      calculate_user_engagement_score: {
+        Args: { p_days?: number; p_user_id: string }
+        Returns: number
+      }
       calculate_weighted_pipeline: {
         Args: never
         Returns: {
@@ -25055,6 +25378,7 @@ export type Database = {
       cleanup_inactive_participants: { Args: never; Returns: undefined }
       cleanup_stale_channel_participants: { Args: never; Returns: undefined }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
+      detect_churn_risk: { Args: { p_user_id: string }; Returns: string }
       evaluate_user_achievements: {
         Args: { _user_id: string }
         Returns: {
