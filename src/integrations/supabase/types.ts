@@ -23058,6 +23058,7 @@ export type Database = {
           online_status: string
           session_count: number | null
           total_actions: number | null
+          total_session_duration_minutes: number
           updated_at: string | null
           user_id: string
         }
@@ -23071,6 +23072,7 @@ export type Database = {
           online_status?: string
           session_count?: number | null
           total_actions?: number | null
+          total_session_duration_minutes?: number
           updated_at?: string | null
           user_id: string
         }
@@ -23084,6 +23086,7 @@ export type Database = {
           online_status?: string
           session_count?: number | null
           total_actions?: number | null
+          total_session_duration_minutes?: number
           updated_at?: string | null
           user_id?: string
         }
