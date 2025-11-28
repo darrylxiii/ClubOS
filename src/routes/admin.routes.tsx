@@ -30,6 +30,7 @@ const EmailTemplateManager = lazy(() => import("@/pages/admin/EmailTemplateManag
 const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompaniesOverview"));
 const AdminRejections = lazy(() => import("@/pages/AdminRejections"));
 const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
+const UserActivity = lazy(() => import("@/pages/admin/UserActivity"));
 
 export const adminRoutes = (
   <>
@@ -244,6 +245,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <FeedbackDatabase />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/user-activity"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <UserActivity />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
