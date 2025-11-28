@@ -25260,6 +25260,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      join_default_server: { Args: never; Returns: undefined }
       log_achievement_event: {
         Args: { _event_data?: Json; _event_type: string; _user_id: string }
         Returns: string
