@@ -151,7 +151,7 @@ export function PredictiveAnalyticsTab() {
         <CardContent>
           <ScrollArea className="h-[400px]">
             <div className="space-y-3">
-              {churnSignals?.map((signal) => {
+              {churnSignals?.map((signal: any) => {
                 const risk = getRiskLevel(signal.risk_score || 0);
                 return (
                   <div key={signal.id} className="p-4 rounded-lg bg-muted/20 border border-border/10">
