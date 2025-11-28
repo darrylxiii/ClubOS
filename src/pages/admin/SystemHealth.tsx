@@ -8,6 +8,8 @@ import { SystemHealthMetrics } from "@/components/admin/system/SystemHealthMetri
 import { FunctionHealthTable } from "@/components/admin/system/FunctionHealthTable";
 import { ErrorLogViewer } from "@/components/admin/system/ErrorLogViewer";
 import { UserActivityDashboard } from "@/components/admin/UserActivityDashboard";
+import { PartnerHealthDashboard } from "@/components/admin/PartnerHealthDashboard";
+import { UserJourneyVisualization } from "@/components/admin/UserJourneyVisualization";
 
 export default function SystemHealth() {
   const { health, functions, isLoading, refetch } = useSystemHealth();
@@ -86,6 +88,7 @@ export default function SystemHealth() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="activity">User Activity</TabsTrigger>
+          <TabsTrigger value="partners">Partner Health</TabsTrigger>
           <TabsTrigger value="functions">Functions</TabsTrigger>
           <TabsTrigger value="errors">Error Logs</TabsTrigger>
         </TabsList>
@@ -94,8 +97,13 @@ export default function SystemHealth() {
           <SystemHealthMetrics health={health} />
         </TabsContent>
 
-        <TabsContent value="activity" className="mt-6">
+        <TabsContent value="activity" className="space-y-4 mt-6">
           <UserActivityDashboard />
+          <UserJourneyVisualization />
+        </TabsContent>
+
+        <TabsContent value="partners" className="mt-6">
+          <PartnerHealthDashboard />
         </TabsContent>
 
         <TabsContent value="functions" className="mt-6">
