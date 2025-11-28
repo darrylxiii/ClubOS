@@ -286,6 +286,63 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_alert_preferences: {
+        Row: {
+          admin_id: string | null
+          alert_type: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          min_severity: string | null
+          notification_channels: string[] | null
+        }
+        Insert: {
+          admin_id?: string | null
+          alert_type: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_severity?: string | null
+          notification_channels?: string[] | null
+        }
+        Update: {
+          admin_id?: string | null
+          alert_type?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          min_severity?: string | null
+          notification_channels?: string[] | null
+        }
+        Relationships: []
+      }
+      admin_analytics_queries: {
+        Row: {
+          admin_id: string | null
+          created_at: string | null
+          id: string
+          query_context: Json | null
+          query_text: string
+          response_text: string | null
+        }
+        Insert: {
+          admin_id?: string | null
+          created_at?: string | null
+          id?: string
+          query_context?: Json | null
+          query_text: string
+          response_text?: string | null
+        }
+        Update: {
+          admin_id?: string | null
+          created_at?: string | null
+          id?: string
+          query_context?: Json | null
+          query_text?: string
+          response_text?: string | null
+        }
+        Relationships: []
+      }
       admin_audit_activity: {
         Row: {
           action_category: string
@@ -1031,6 +1088,39 @@ export type Database = {
           tokens_used?: number | null
           user_agent?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      analytics_ai_insights: {
+        Row: {
+          action_items: Json | null
+          confidence_score: number | null
+          expires_at: string | null
+          generated_at: string | null
+          id: string
+          insight_content: Json
+          insight_type: string
+          user_segment: string | null
+        }
+        Insert: {
+          action_items?: Json | null
+          confidence_score?: number | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          insight_content: Json
+          insight_type: string
+          user_segment?: string | null
+        }
+        Update: {
+          action_items?: Json | null
+          confidence_score?: number | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          insight_content?: Json
+          insight_type?: string
+          user_segment?: string | null
         }
         Relationships: []
       }
@@ -7472,6 +7562,39 @@ export type Database = {
           },
         ]
       }
+      custom_funnels: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          is_shared: boolean | null
+          name: string
+          steps: Json
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_shared?: boolean | null
+          name: string
+          steps: Json
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_shared?: boolean | null
+          name?: string
+          steps?: Json
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       customer_acquisition: {
         Row: {
           acquisition_channel: string
@@ -7955,6 +8078,45 @@ export type Database = {
           scheduled_for?: string
           status?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      detected_anomalies: {
+        Row: {
+          affected_segment: string | null
+          affected_users: number | null
+          alert_sent: boolean | null
+          anomaly_type: string
+          detected_at: string | null
+          detection_data: Json
+          id: string
+          resolution_notes: string | null
+          resolved_at: string | null
+          severity: string
+        }
+        Insert: {
+          affected_segment?: string | null
+          affected_users?: number | null
+          alert_sent?: boolean | null
+          anomaly_type: string
+          detected_at?: string | null
+          detection_data: Json
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity: string
+        }
+        Update: {
+          affected_segment?: string | null
+          affected_users?: number | null
+          alert_sent?: boolean | null
+          anomaly_type?: string
+          detected_at?: string | null
+          detection_data?: Json
+          id?: string
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          severity?: string
         }
         Relationships: []
       }
@@ -9822,6 +9984,47 @@ export type Database = {
           utm_source?: string | null
         }
         Relationships: []
+      }
+      funnel_analytics_cache: {
+        Row: {
+          calculated_at: string | null
+          cohort_type: string | null
+          date_range_end: string
+          date_range_start: string
+          funnel_id: string | null
+          id: string
+          overall_conversion: number | null
+          step_metrics: Json
+        }
+        Insert: {
+          calculated_at?: string | null
+          cohort_type?: string | null
+          date_range_end: string
+          date_range_start: string
+          funnel_id?: string | null
+          id?: string
+          overall_conversion?: number | null
+          step_metrics: Json
+        }
+        Update: {
+          calculated_at?: string | null
+          cohort_type?: string | null
+          date_range_end?: string
+          date_range_start?: string
+          funnel_id?: string | null
+          id?: string
+          overall_conversion?: number | null
+          step_metrics?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funnel_analytics_cache_funnel_id_fkey"
+            columns: ["funnel_id"]
+            isOneToOne: false
+            referencedRelation: "custom_funnels"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       funnel_config: {
         Row: {
@@ -19930,6 +20133,44 @@ export type Database = {
         }
         Relationships: []
       }
+      report_executions: {
+        Row: {
+          error_message: string | null
+          execution_time: string | null
+          file_urls: Json | null
+          id: string
+          recipients_sent: number | null
+          report_id: string | null
+          status: string
+        }
+        Insert: {
+          error_message?: string | null
+          execution_time?: string | null
+          file_urls?: Json | null
+          id?: string
+          recipients_sent?: number | null
+          report_id?: string | null
+          status: string
+        }
+        Update: {
+          error_message?: string | null
+          execution_time?: string | null
+          file_urls?: Json | null
+          id?: string
+          recipients_sent?: number | null
+          report_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_executions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       revenue_metrics: {
         Row: {
           active_subscriptions: number | null
@@ -20407,6 +20648,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      scheduled_reports: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          filters: Json | null
+          format: string[] | null
+          id: string
+          include_charts: boolean | null
+          is_active: boolean | null
+          last_sent_at: string | null
+          name: string
+          recipients: string[]
+          report_type: string
+          schedule_cron: string
+          timezone: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          filters?: Json | null
+          format?: string[] | null
+          id?: string
+          include_charts?: boolean | null
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          name: string
+          recipients: string[]
+          report_type: string
+          schedule_cron: string
+          timezone?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          filters?: Json | null
+          format?: string[] | null
+          id?: string
+          include_charts?: boolean | null
+          is_active?: boolean | null
+          last_sent_at?: string | null
+          name?: string
+          recipients?: string[]
+          report_type?: string
+          schedule_cron?: string
+          timezone?: string | null
+        }
+        Relationships: []
       }
       security_alerts: {
         Row: {
@@ -23293,11 +23585,15 @@ export type Database = {
         Row: {
           anomaly_score: number | null
           behavior_vector: Json
+          cluster_confidence: number | null
           cluster_id: number | null
           created_at: string | null
           date: string
+          feature_vector: Json | null
           id: string
+          last_clustering_at: string | null
           metadata: Json | null
+          segment_description: string | null
           segment_label: string | null
           updated_at: string | null
           user_id: string
@@ -23305,11 +23601,15 @@ export type Database = {
         Insert: {
           anomaly_score?: number | null
           behavior_vector: Json
+          cluster_confidence?: number | null
           cluster_id?: number | null
           created_at?: string | null
           date?: string
+          feature_vector?: Json | null
           id?: string
+          last_clustering_at?: string | null
           metadata?: Json | null
+          segment_description?: string | null
           segment_label?: string | null
           updated_at?: string | null
           user_id: string
@@ -23317,11 +23617,15 @@ export type Database = {
         Update: {
           anomaly_score?: number | null
           behavior_vector?: Json
+          cluster_confidence?: number | null
           cluster_id?: number | null
           created_at?: string | null
           date?: string
+          feature_vector?: Json | null
           id?: string
+          last_clustering_at?: string | null
           metadata?: Json | null
+          segment_description?: string | null
           segment_label?: string | null
           updated_at?: string | null
           user_id?: string
@@ -25579,6 +25883,16 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_segments_summary: {
+        Row: {
+          avg_anomaly_score: number | null
+          cluster_id: number | null
+          segment_label: string | null
+          user_count: number | null
+          user_ids: string[] | null
+        }
+        Relationships: []
       }
     }
     Functions: {

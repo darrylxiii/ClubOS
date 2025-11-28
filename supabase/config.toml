@@ -279,6 +279,21 @@ verify_jwt = false
 [functions.club-ai-chat]
 verify_jwt = true
 
+[functions.analytics-ai-assistant]
+verify_jwt = true
+
+[functions.detect-anomalies]
+verify_jwt = false
+
+[functions.generate-user-embeddings]
+verify_jwt = false
+
+[functions.execute-scheduled-report]
+verify_jwt = false
+
+[functions.calculate-funnel-metrics]
+verify_jwt = true
+
 [functions.generate-placeholders]
 verify_jwt = true
 
