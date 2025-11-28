@@ -13,6 +13,7 @@ interface JobDetailsSectionProps {
     benefits?: string[];
     responsibilities?: string[];
     tags?: string[];
+    pipeline_stages?: any[];
   };
   company?: {
     name: string;
@@ -44,7 +45,7 @@ export function JobDetailsSection({ job, company, showCompanyInfo = true }: JobD
       <BenefitsShowcase benefits={job.benefits} />
 
       {/* Application Process */}
-      <ApplicationTimeline />
+      <ApplicationTimeline jobPipelineStages={job.pipeline_stages} />
 
       {/* About Company */}
       {showCompanyInfo && company && (

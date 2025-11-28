@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, Circle, Clock, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 import { candidateProfileTokens } from "@/config/candidate-profile-tokens";
+import { getDefaultPipelineStages } from "@/utils/pipelineUtils";
 
 interface Props {
   application?: any;
@@ -11,21 +12,19 @@ interface Props {
   onDecline?: () => void;
 }
 
-const STAGE_ORDER = [
-  'applied',
-  'screening', 
-  'interview',
-  'technical',
-  'final',
-  'offer',
-  'hired'
-];
-
 export const PipelineSidebarCard = ({ application, onAdvance, onDecline }: Props) => {
   if (!application) return null;
 
-  const currentStage = application.stage || 'applied';
+  // Get stages from application or job's pipeline_stages or use defaults
+  const stages = application.stages?.length > 0 
+    ? application.stages 
+    : application.job?.pipeline_stages?.length > 0
+    ? application.job.pipeline_stages
+    : getDefaultPipelineStages();
+  
+  const currentIndex = application.current_stage_index ?? 0;
   const daysInStage = application.days_in_stage || 0;
+  const currentStage = stages[currentIndex];
   
   const getUrgencyColor = (days: number) => {
     if (days < 3) return 'text-green-500';
@@ -35,8 +34,8 @@ export const PipelineSidebarCard = ({ application, onAdvance, onDecline }: Props
   };
 
   const getNextStage = () => {
-    const currentIndex = STAGE_ORDER.indexOf(currentStage);
-    return STAGE_ORDER[currentIndex + 1] || 'hired';
+    const nextIndex = currentIndex + 1;
+    return nextIndex < stages.length ? stages[nextIndex].name : 'Complete';
   };
 
   return (
@@ -51,7 +50,7 @@ export const PipelineSidebarCard = ({ application, onAdvance, onDecline }: Props
         {/* Current Stage Badge */}
         <div className="space-y-2">
           <Badge className={`${candidateProfileTokens.badges.primary} text-lg px-4 py-2 w-full justify-center`}>
-            {currentStage.replace('_', ' ').toUpperCase()}
+            {currentStage?.name?.toUpperCase() || 'IN PROGRESS'}
           </Badge>
           
           <div className="flex items-center justify-between text-sm">
@@ -65,15 +64,14 @@ export const PipelineSidebarCard = ({ application, onAdvance, onDecline }: Props
 
         {/* Stage Timeline */}
         <div className="space-y-3">
-          {STAGE_ORDER.map((stage, idx) => {
-            const currentIndex = STAGE_ORDER.indexOf(currentStage);
+          {stages.map((stage: any, idx: number) => {
             const isCompleted = idx < currentIndex;
             const isCurrent = idx === currentIndex;
             const isFuture = idx > currentIndex;
 
             return (
               <motion.div
-                key={stage}
+                key={stage.id || idx}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: idx * 0.05 }}
@@ -93,17 +91,17 @@ export const PipelineSidebarCard = ({ application, onAdvance, onDecline }: Props
                   <Circle className="w-5 h-5 text-muted-foreground/30" />
                 )}
                 
-                <span className={`text-sm capitalize ${
+                <span className={`text-sm ${
                   isCurrent ? 'font-semibold text-foreground' : 
                   isCompleted ? 'text-muted-foreground' : 
                   'text-muted-foreground/50'
                 }`}>
-                  {stage.replace('_', ' ')}
+                  {stage.name}
                 </span>
 
-                {isCompleted && application.stage_completed_at && (
+                {isCompleted && stage.completed_at && (
                   <span className="text-xs text-muted-foreground ml-auto">
-                    {new Date(application.stage_completed_at).toLocaleDateString()}
+                    {new Date(stage.completed_at).toLocaleDateString()}
                   </span>
                 )}
               </motion.div>
@@ -119,7 +117,7 @@ export const PipelineSidebarCard = ({ application, onAdvance, onDecline }: Props
               className="w-full"
               size="sm"
             >
-              Advance to {getNextStage().replace('_', ' ')}
+              Advance to {getNextStage()}
             </Button>
           )}
           {onDecline && (

@@ -1,6 +1,7 @@
-import { FileText, Video, Users, CheckCircle2, Lightbulb, Clock } from "lucide-react";
+import { Lightbulb, Clock } from "lucide-react";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { getStageIcon, getDefaultStageTip, formatStageDuration } from "@/utils/pipelineUtils";
 
 interface TimelineStage {
   name: string;
@@ -12,45 +13,54 @@ interface TimelineStage {
 const defaultStages: TimelineStage[] = [
   {
     name: "Application Review",
-    icon: FileText,
+    icon: getStageIcon("Application Review"),
     duration: "1-2 days",
     tip: "Ensure your profile is complete and highlights relevant experience"
   },
   {
     name: "Screening Call",
-    icon: Video,
+    icon: getStageIcon("Screening Call"),
     duration: "30 minutes",
     tip: "Prepare to discuss your background and motivations"
   },
   {
     name: "Technical Interview",
-    icon: Users,
+    icon: getStageIcon("Technical Interview"),
     duration: "1-2 hours",
     tip: "Review job requirements and prepare examples of your work"
   },
   {
     name: "Final Round",
-    icon: Users,
+    icon: getStageIcon("Final Round"),
     duration: "1 hour",
     tip: "Meet the team and discuss culture fit and expectations"
   },
   {
     name: "Offer",
-    icon: CheckCircle2,
+    icon: getStageIcon("Offer"),
     duration: "1-3 days",
     tip: "Review compensation package and negotiate if needed"
   }
 ];
 
 interface ApplicationTimelineProps {
+  jobPipelineStages?: any[];
   stages?: TimelineStage[];
   currentStage?: number;
 }
 
 export function ApplicationTimeline({ 
-  stages = defaultStages,
+  jobPipelineStages,
+  stages,
   currentStage 
 }: ApplicationTimelineProps) {
+  // Convert job pipeline stages to display format if provided
+  const displayStages = jobPipelineStages?.map(stage => ({
+    name: stage.name,
+    icon: getStageIcon(stage.name),
+    duration: formatStageDuration(stage),
+    tip: stage.description || getDefaultStageTip(stage.name),
+  })) || stages || defaultStages;
   return (
     <Card className="border-2 hover:border-primary transition-all hover-scale">
       <CardHeader>
@@ -71,7 +81,7 @@ export function ApplicationTimeline({
               <div className="absolute left-6 top-8 bottom-8 w-0.5 bg-gradient-to-b from-primary via-accent to-chart-2" />
 
               <div className="space-y-6">
-                {stages.map((stage, index) => {
+                {displayStages.map((stage, index) => {
                   const Icon = stage.icon;
                   const isPast = currentStage !== undefined && index < currentStage;
                   const isCurrent = currentStage === index;
