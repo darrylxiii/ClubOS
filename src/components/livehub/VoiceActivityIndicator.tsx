@@ -1,16 +1,28 @@
-const VoiceActivityIndicator = () => {
+interface VoiceActivityIndicatorProps {
+  isActive: boolean;
+}
+
+const VoiceActivityIndicator = ({ isActive }: VoiceActivityIndicatorProps) => {
+  if (!isActive) return null;
+  
   return (
-    <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-1">
-      {[0, 1, 2, 3, 4].map((i) => (
-        <div
-          key={i}
-          className="w-1 bg-primary rounded-full animate-pulse"
-          style={{
-            height: `${Math.random() * 20 + 10}px`,
-            animationDelay: `${i * 0.1}s`
-          }}
-        />
-      ))}
+    <div className="flex items-center gap-1 px-4 py-2 bg-green-500/10 border border-green-500/20 rounded-full backdrop-blur-sm">
+      <div className="flex items-center gap-0.5">
+        {[0, 1, 2, 3, 4].map((i) => (
+          <div
+            key={i}
+            className="w-1 bg-green-500 rounded-full animate-pulse"
+            style={{
+              height: `${Math.random() * 16 + 8}px`,
+              animationDelay: `${i * 0.1}s`,
+              animationDuration: '0.8s'
+            }}
+          />
+        ))}
+      </div>
+      <span className="text-xs font-semibold text-green-500 ml-2">
+        You're speaking
+      </span>
     </div>
   );
 };

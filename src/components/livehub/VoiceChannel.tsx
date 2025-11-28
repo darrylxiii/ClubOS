@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceChannel } from '@/hooks/useVoiceChannel';
+import { usePushToTalk } from '@/hooks/usePushToTalk';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Phone, PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, Monitor, Volume2, VolumeX } from 'lucide-react';
 import ParticipantGrid from './ParticipantGrid';
 import VoiceActivityIndicator from './VoiceActivityIndicator';
@@ -25,6 +28,7 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
   const { user } = useAuth();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isRecording, setIsRecording] = useState(false);
+  const [pushToTalkEnabled, setPushToTalkEnabled] = useState(false);
   
   const {
     isConnected,
@@ -41,8 +45,16 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
     toggleVideo,
     toggleScreenShare,
     startRecording,
-    stopRecording
-  } = useVoiceChannel(channelId);
+    stopRecording,
+    setPushToTalkActive
+  } = useVoiceChannel(channelId, { pushToTalkEnabled });
+
+  const { isPushing } = usePushToTalk({
+    enabled: pushToTalkEnabled && isConnected,
+    hotkey: 'Space',
+    onPushStart: () => setPushToTalkActive?.(true),
+    onPushEnd: () => setPushToTalkActive?.(false),
+  });
 
   useEffect(() => {
     loadChannel();
@@ -119,11 +131,32 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
     <div className="flex-1 flex flex-col bg-background">
       {/* Channel Header */}
       <div className="h-12 px-4 flex items-center justify-between border-b border-border">
-        <div className="flex items-center gap-2">
-          <Volume2 className="w-5 h-5 text-muted-foreground" />
-          <h2 className="font-semibold">{channel.name}</h2>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Volume2 className="w-5 h-5 text-muted-foreground" />
+            <h2 className="font-semibold">{channel.name}</h2>
+            {isConnected && (
+              <span className="text-xs text-primary">Connected</span>
+            )}
+          </div>
+          
+          {/* Push-to-Talk Toggle */}
           {isConnected && (
-            <span className="text-xs text-primary">Connected</span>
+            <div className="flex items-center gap-2 border-l border-border pl-4">
+              <Switch
+                id="ptt-mode"
+                checked={pushToTalkEnabled}
+                onCheckedChange={setPushToTalkEnabled}
+              />
+              <Label htmlFor="ptt-mode" className="text-xs cursor-pointer font-normal">
+                Push to Talk {pushToTalkEnabled && '(Space)'}
+              </Label>
+              {pushToTalkEnabled && isPushing && (
+                <span className="text-xs text-green-500 font-semibold animate-pulse">
+                  TRANSMITTING
+                </span>
+              )}
+            </div>
           )}
         </div>
         
@@ -179,12 +212,16 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
               <ParticipantGrid 
                 participants={participants} 
                 channelType={channelType}
+                currentUserId={user?.id}
+                currentUserSpeaking={isSpeaking}
               />
             </div>
 
             {/* Voice Activity Indicator */}
             {isSpeaking && (
-              <VoiceActivityIndicator />
+              <div className="fixed bottom-32 left-1/2 transform -translate-x-1/2">
+                <VoiceActivityIndicator isActive={true} />
+              </div>
             )}
 
             {/* Controls */}
@@ -194,6 +231,8 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
                 size="icon"
                 className={`h-12 w-12 rounded-full ${isMuted ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500' : ''}`}
                 onClick={toggleMute}
+                disabled={pushToTalkEnabled}
+                title={pushToTalkEnabled ? "Mute control disabled in Push-to-Talk mode" : undefined}
               >
                 {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
               </Button>
