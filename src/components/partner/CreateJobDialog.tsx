@@ -50,6 +50,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const [niceToHaveTools, setNiceToHaveTools] = useState<any[]>([]);
   const [fieldErrors, setFieldErrors] = useState<FieldError[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [restoreDraftDialogOpen, setRestoreDraftDialogOpen] = useState(false);
+  const [closeConfirmDialogOpen, setCloseConfirmDialogOpen] = useState(false);
 
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -77,17 +79,10 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       // Try to load draft
       const draft = loadDraft();
       if (draft) {
-        const shouldRestore = window.confirm(
-          "Would you like to restore your previous unsaved job posting?"
-        );
-        if (shouldRestore) {
-          setFormData(draft.formData);
-          setRequiredTools(draft.requiredTools);
-          setNiceToHaveTools(draft.niceToHaveTools);
-          toast.success("Draft restored");
-        } else {
-          clearDraft();
-        }
+        setFormData(draft.formData);
+        setRequiredTools(draft.requiredTools);
+        setNiceToHaveTools(draft.niceToHaveTools);
+        toast.success("Draft restored");
       }
     }
   }, [open, loadDraft, clearDraft]);
@@ -395,10 +390,6 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
   const handleClose = () => {
     if (hasUnsavedChanges && submitStep === "idle") {
-      const shouldClose = window.confirm(
-        "You have unsaved changes. Your progress will be saved as a draft. Close anyway?"
-      );
-      if (!shouldClose) return;
       saveDraft();
     }
     onOpenChange(false);

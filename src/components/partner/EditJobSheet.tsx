@@ -41,6 +41,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [closeConfirmDialogOpen, setCloseConfirmDialogOpen] = useState(false);
   const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([]);
   const [jobDescriptionFile, setJobDescriptionFile] = useState<File | null>(null);
   const [supportingDocuments, setSupportingDocuments] = useState<File[]>([]);
@@ -330,13 +331,9 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
 
   const handleClose = () => {
     if (hasUnsavedChanges) {
-      if (window.confirm("You have unsaved changes. Are you sure you want to close?")) {
-        onOpenChange(false);
-        setHasUnsavedChanges(false);
-      }
-    } else {
-      onOpenChange(false);
+      toast.info("You have unsaved changes");
     }
+    onOpenChange(false);
   };
 
   return (
