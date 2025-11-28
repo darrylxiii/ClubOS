@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { ChevronDown, ChevronRight, Hash, Volume2, Video, Radio, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 import CreateChannelDialog from './CreateChannelDialog';
 
 interface Channel {
@@ -45,7 +46,14 @@ const ChannelList = ({ selectedChannelId, onChannelSelect }: ChannelListProps) =
     try {
       // Call RPC to ensure user is member of default server
       const { error: rpcError } = await supabase.rpc('join_default_server');
-      if (rpcError) console.error('Error joining default server:', rpcError);
+      if (rpcError) {
+        console.error('Error joining default server:', rpcError);
+        // Retry once if it fails
+        const { error: retryError } = await supabase.rpc('join_default_server');
+        if (retryError) {
+          console.error('Retry failed:', retryError);
+        }
+      }
       
       // Load channels after ensuring membership
       await loadChannels();
@@ -64,6 +72,7 @@ const ChannelList = ({ selectedChannelId, onChannelSelect }: ChannelListProps) =
 
     if (serverError || !serverData) {
       console.error('Error loading server:', serverError);
+      toast.error('Failed to load server. Please refresh the page.');
       return;
     }
 
