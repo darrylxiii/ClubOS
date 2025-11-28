@@ -97,9 +97,20 @@ export function useMeetingTranscription({
       return;
     }
 
+    // Delay setup to ensure stream is ready
+    const setupTimer = setTimeout(() => {
+      setupAudioCapture();
+    }, 1000);
+
     // Initialize MediaRecorder for proper audio format
     const setupAudioCapture = async () => {
       try {
+        // Validate stream has audio tracks
+        if (!localStream.getAudioTracks().length) {
+          console.warn('[Transcription] No audio tracks in stream');
+          return;
+        }
+
         // Check for supported mime types
         const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
           ? 'audio/webm;codecs=opus'
@@ -116,6 +127,11 @@ export function useMeetingTranscription({
           if (event.data.size > 0) {
             audioChunksRef.current.push(event.data);
           }
+        };
+
+        mediaRecorder.onerror = (event) => {
+          console.error('[Transcription] MediaRecorder error:', event);
+          toast.error('Transcription error occurred');
         };
 
         mediaRecorder.onstop = async () => {
@@ -138,16 +154,15 @@ export function useMeetingTranscription({
         }, 5000);
 
         setIsTranscribing(true);
-        toast.success('Live transcription started');
+        console.log('[Transcription] Started successfully');
       } catch (error) {
         console.error('[Transcription] Setup failed:', error);
-        toast.error('Failed to start transcription');
+        // Don't show toast for transcription errors to avoid spam
       }
     };
 
-    setupAudioCapture();
-
     return () => {
+      clearTimeout(setupTimer);
       if (transcriptionIntervalRef.current) {
         clearInterval(transcriptionIntervalRef.current);
       }

@@ -37,6 +37,7 @@ import {
   Globe,
   Languages,
   Plus,
+  Radio,
   type LucideIcon,
 } from "lucide-react";
 
@@ -69,6 +70,7 @@ const baseNavigationGroups: NavigationGroup[] = [
     title: "Communication",
     icon: MessageSquare,
     items: [
+      { name: "Live Hub", icon: Radio, path: "/live-hub" },
       { name: "Inbox", icon: Mail, path: "/inbox" },
       { name: "Messages", icon: MessageSquare, path: "/messages" },
       { name: "Meetings", icon: Video, path: "/meetings" },

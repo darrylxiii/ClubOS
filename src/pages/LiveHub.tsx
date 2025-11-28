@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { AppLayout } from '@/components/AppLayout';
 import LiveHubLayout from '@/components/livehub/LiveHubLayout';
 
 const LiveHub = () => {
@@ -15,7 +16,11 @@ const LiveHub = () => {
 
   if (!user) return null;
 
-  return <LiveHubLayout />;
+  return (
+    <AppLayout>
+      <LiveHubLayout />
+    </AppLayout>
+  );
 };
 
 export default LiveHub;
