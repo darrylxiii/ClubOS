@@ -111,6 +111,9 @@ const ContractDetailPage = lazy(() => import("./pages/ContractDetailPage"));
 const ContractSignaturePage = lazy(() => import("./pages/ContractSignaturePage"));
 const TimeTrackingPage = lazy(() => import("./pages/TimeTrackingPage"));
 
+// Live Hub
+const LiveHub = lazy(() => import("./pages/LiveHub"));
+
 // PageLoader with aggressive timeout and emergency fallback
 const PageLoader = () => {
   const [showError, setShowError] = useState(false);
@@ -443,6 +446,7 @@ const App = () => {
                       <Route path="/help" element={<RouteErrorBoundary><Suspense fallback={<PageLoader />}><KnowledgeBase /></Suspense></RouteErrorBoundary>} />
                       
                       {/* Remaining Misc Routes */}
+                      <Route path="/live-hub" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><LiveHub /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/club-ai" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><ClubAI /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/social-management" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><SocialManagement /></Suspense></RouteErrorBoundary></ProtectedRoute>} />
                       <Route path="/partner-onboarding" element={<ProtectedRoute><RouteErrorBoundary><Suspense fallback={<PageLoader />}><PartnerOnboarding /></Suspense></RouteErrorBoundary></ProtectedRoute>} />

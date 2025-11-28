@@ -12268,6 +12268,308 @@ export type Database = {
           },
         ]
       }
+      live_channel_messages: {
+        Row: {
+          attachments: Json | null
+          channel_id: string | null
+          content: string
+          created_at: string | null
+          id: string
+          is_pinned: boolean | null
+          reply_to_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          attachments?: Json | null
+          channel_id?: string | null
+          content: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          reply_to_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          attachments?: Json | null
+          channel_id?: string | null
+          content?: string
+          created_at?: string | null
+          id?: string
+          is_pinned?: boolean | null
+          reply_to_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_channel_messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_channel_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "live_channel_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_channel_participants: {
+        Row: {
+          channel_id: string | null
+          id: string
+          is_deafened: boolean | null
+          is_hand_raised: boolean | null
+          is_muted: boolean | null
+          is_screen_sharing: boolean | null
+          is_speaking: boolean | null
+          is_video_on: boolean | null
+          joined_at: string | null
+          last_activity_at: string | null
+          role: string | null
+          user_id: string | null
+        }
+        Insert: {
+          channel_id?: string | null
+          id?: string
+          is_deafened?: boolean | null
+          is_hand_raised?: boolean | null
+          is_muted?: boolean | null
+          is_screen_sharing?: boolean | null
+          is_speaking?: boolean | null
+          is_video_on?: boolean | null
+          joined_at?: string | null
+          last_activity_at?: string | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          channel_id?: string | null
+          id?: string
+          is_deafened?: boolean | null
+          is_hand_raised?: boolean | null
+          is_muted?: boolean | null
+          is_screen_sharing?: boolean | null
+          is_speaking?: boolean | null
+          is_video_on?: boolean | null
+          joined_at?: string | null
+          last_activity_at?: string | null
+          role?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_channel_participants_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_channel_recordings: {
+        Row: {
+          ai_action_items: Json | null
+          ai_decisions: Json | null
+          ai_insights: Json | null
+          ai_summary: string | null
+          channel_id: string | null
+          created_at: string | null
+          duration_seconds: number | null
+          ended_at: string | null
+          file_size_bytes: number | null
+          id: string
+          participants: Json | null
+          processing_status: string | null
+          started_at: string | null
+          started_by: string | null
+          storage_path: string | null
+          transcript: Json | null
+        }
+        Insert: {
+          ai_action_items?: Json | null
+          ai_decisions?: Json | null
+          ai_insights?: Json | null
+          ai_summary?: string | null
+          channel_id?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          participants?: Json | null
+          processing_status?: string | null
+          started_at?: string | null
+          started_by?: string | null
+          storage_path?: string | null
+          transcript?: Json | null
+        }
+        Update: {
+          ai_action_items?: Json | null
+          ai_decisions?: Json | null
+          ai_insights?: Json | null
+          ai_summary?: string | null
+          channel_id?: string | null
+          created_at?: string | null
+          duration_seconds?: number | null
+          ended_at?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          participants?: Json | null
+          processing_status?: string | null
+          started_at?: string | null
+          started_by?: string | null
+          storage_path?: string | null
+          transcript?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_channel_recordings_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_channels: {
+        Row: {
+          auto_record: boolean | null
+          auto_transcribe: boolean | null
+          category: string | null
+          channel_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_locked: boolean | null
+          name: string
+          permissions: Json | null
+          position: number | null
+          server_id: string | null
+          updated_at: string | null
+          user_limit: number | null
+        }
+        Insert: {
+          auto_record?: boolean | null
+          auto_transcribe?: boolean | null
+          category?: string | null
+          channel_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_locked?: boolean | null
+          name: string
+          permissions?: Json | null
+          position?: number | null
+          server_id?: string | null
+          updated_at?: string | null
+          user_limit?: number | null
+        }
+        Update: {
+          auto_record?: boolean | null
+          auto_transcribe?: boolean | null
+          category?: string | null
+          channel_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_locked?: boolean | null
+          name?: string
+          permissions?: Json | null
+          position?: number | null
+          server_id?: string | null
+          updated_at?: string | null
+          user_limit?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_channels_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "live_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_server_members: {
+        Row: {
+          id: string
+          joined_at: string | null
+          nickname: string | null
+          role: string | null
+          server_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string
+          joined_at?: string | null
+          nickname?: string | null
+          role?: string | null
+          server_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string
+          joined_at?: string | null
+          nickname?: string | null
+          role?: string | null
+          server_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_server_members_server_id_fkey"
+            columns: ["server_id"]
+            isOneToOne: false
+            referencedRelation: "live_servers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_servers: {
+        Row: {
+          banner_url: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          icon_url: string | null
+          id: string
+          is_default: boolean | null
+          name: string
+          settings: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          is_default?: boolean | null
+          name: string
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          icon_url?: string | null
+          id?: string
+          is_default?: boolean | null
+          name?: string
+          settings?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       live_session_listeners: {
         Row: {
           id: string
@@ -24662,6 +24964,7 @@ export type Database = {
       cleanup_expired_password_resets: { Args: never; Returns: undefined }
       cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
+      cleanup_inactive_participants: { Args: never; Returns: undefined }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
       evaluate_user_achievements: {
         Args: { _user_id: string }
