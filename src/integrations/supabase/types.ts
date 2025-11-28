@@ -286,6 +286,51 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_activity: {
+        Row: {
+          action_category: string
+          action_type: string
+          admin_id: string
+          created_at: string | null
+          id: string
+          impact_score: number | null
+          metadata: Json | null
+          new_value: Json | null
+          old_value: Json | null
+          reason: string | null
+          target_entity: string
+          target_id: string | null
+        }
+        Insert: {
+          action_category: string
+          action_type: string
+          admin_id: string
+          created_at?: string | null
+          id?: string
+          impact_score?: number | null
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          target_entity: string
+          target_id?: string | null
+        }
+        Update: {
+          action_category?: string
+          action_type?: string
+          admin_id?: string
+          created_at?: string | null
+          id?: string
+          impact_score?: number | null
+          metadata?: Json | null
+          new_value?: Json | null
+          old_value?: Json | null
+          reason?: string | null
+          target_entity?: string
+          target_id?: string | null
+        }
+        Relationships: []
+      }
       admin_member_approval_actions: {
         Row: {
           action_data: Json | null
@@ -2919,6 +2964,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      candidate_activity_metrics: {
+        Row: {
+          applications_completed: number | null
+          applications_started: number | null
+          applications_submitted: number | null
+          created_at: string | null
+          date: string
+          id: string
+          interview_prep_time_minutes: number | null
+          jobs_saved: number | null
+          jobs_viewed: number | null
+          messages_received: number | null
+          messages_sent: number | null
+          profile_completeness: number | null
+          profile_updates: number | null
+          resume_updates: number | null
+          resume_views: number | null
+          search_queries: number | null
+          total_session_time_minutes: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          applications_completed?: number | null
+          applications_started?: number | null
+          applications_submitted?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          interview_prep_time_minutes?: number | null
+          jobs_saved?: number | null
+          jobs_viewed?: number | null
+          messages_received?: number | null
+          messages_sent?: number | null
+          profile_completeness?: number | null
+          profile_updates?: number | null
+          resume_updates?: number | null
+          resume_views?: number | null
+          search_queries?: number | null
+          total_session_time_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          applications_completed?: number | null
+          applications_started?: number | null
+          applications_submitted?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          interview_prep_time_minutes?: number | null
+          jobs_saved?: number | null
+          jobs_viewed?: number | null
+          messages_received?: number | null
+          messages_sent?: number | null
+          profile_completeness?: number | null
+          profile_updates?: number | null
+          resume_updates?: number | null
+          resume_views?: number | null
+          search_queries?: number | null
+          total_session_time_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       candidate_application_logs: {
         Row: {
@@ -23178,6 +23289,108 @@ export type Database = {
           },
         ]
       }
+      user_behavior_embeddings: {
+        Row: {
+          anomaly_score: number | null
+          behavior_vector: Json
+          cluster_id: number | null
+          created_at: string | null
+          date: string
+          id: string
+          metadata: Json | null
+          segment_label: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          anomaly_score?: number | null
+          behavior_vector: Json
+          cluster_id?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          metadata?: Json | null
+          segment_label?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          anomaly_score?: number | null
+          behavior_vector?: Json
+          cluster_id?: number | null
+          created_at?: string | null
+          date?: string
+          id?: string
+          metadata?: Json | null
+          segment_label?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_device_info: {
+        Row: {
+          browser: string | null
+          browser_version: string | null
+          connection_type: string | null
+          created_at: string | null
+          device_type: string
+          first_seen_at: string | null
+          id: string
+          ip_address: unknown
+          language: string | null
+          last_seen_at: string | null
+          os: string | null
+          screen_resolution: string | null
+          session_id: string
+          timezone: string | null
+          updated_at: string | null
+          user_agent: string | null
+          user_id: string
+          viewport_size: string | null
+        }
+        Insert: {
+          browser?: string | null
+          browser_version?: string | null
+          connection_type?: string | null
+          created_at?: string | null
+          device_type: string
+          first_seen_at?: string | null
+          id?: string
+          ip_address?: unknown
+          language?: string | null
+          last_seen_at?: string | null
+          os?: string | null
+          screen_resolution?: string | null
+          session_id: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id: string
+          viewport_size?: string | null
+        }
+        Update: {
+          browser?: string | null
+          browser_version?: string | null
+          connection_type?: string | null
+          created_at?: string | null
+          device_type?: string
+          first_seen_at?: string | null
+          id?: string
+          ip_address?: unknown
+          language?: string | null
+          last_seen_at?: string | null
+          os?: string | null
+          screen_resolution?: string | null
+          session_id?: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id?: string
+          viewport_size?: string | null
+        }
+        Relationships: []
+      }
       user_engagement: {
         Row: {
           achievements: Json | null
@@ -23266,6 +23479,45 @@ export type Database = {
           id?: string
           page_path?: string | null
           referrer?: string | null
+          session_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_feature_usage: {
+        Row: {
+          action_type: string
+          completed: boolean | null
+          created_at: string | null
+          duration_ms: number | null
+          feature_category: string
+          feature_name: string
+          id: string
+          metadata: Json | null
+          session_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          completed?: boolean | null
+          created_at?: string | null
+          duration_ms?: number | null
+          feature_category: string
+          feature_name: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          completed?: boolean | null
+          created_at?: string | null
+          duration_ms?: number | null
+          feature_category?: string
+          feature_name?: string
+          id?: string
+          metadata?: Json | null
           session_id?: string | null
           user_id?: string
         }
@@ -23543,6 +23795,51 @@ export type Database = {
           total_scrolls?: number | null
           unique_elements_clicked?: number | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_performance_metrics: {
+        Row: {
+          api_response_times: Json | null
+          cls: number | null
+          created_at: string | null
+          fcp_ms: number | null
+          fid_ms: number | null
+          id: string
+          lcp_ms: number | null
+          network_info: Json | null
+          page_path: string
+          session_id: string
+          ttfb_ms: number | null
+          user_id: string
+        }
+        Insert: {
+          api_response_times?: Json | null
+          cls?: number | null
+          created_at?: string | null
+          fcp_ms?: number | null
+          fid_ms?: number | null
+          id?: string
+          lcp_ms?: number | null
+          network_info?: Json | null
+          page_path: string
+          session_id: string
+          ttfb_ms?: number | null
+          user_id: string
+        }
+        Update: {
+          api_response_times?: Json | null
+          cls?: number | null
+          created_at?: string | null
+          fcp_ms?: number | null
+          fid_ms?: number | null
+          id?: string
+          lcp_ms?: number | null
+          network_info?: Json | null
+          page_path?: string
+          session_id?: string
+          ttfb_ms?: number | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -24917,6 +25214,26 @@ export type Database = {
         }
         Relationships: []
       }
+      mv_daily_user_segments: {
+        Row: {
+          date: string | null
+          device_type: string | null
+          sessions: number | null
+          unique_users: number | null
+        }
+        Relationships: []
+      }
+      mv_feature_usage_summary: {
+        Row: {
+          avg_duration_ms: number | null
+          completion_rate: number | null
+          feature_category: string | null
+          feature_name: string | null
+          total_uses: number | null
+          unique_users: number | null
+        }
+        Relationships: []
+      }
       pipeline_conversion_metrics: {
         Row: {
           avg_days_to_convert: number | null
@@ -25705,6 +26022,7 @@ export type Database = {
         Returns: undefined
       }
       refresh_activity_dashboard_view: { Args: never; Returns: undefined }
+      refresh_analytics_views: { Args: never; Returns: undefined }
       register_listener: {
         Args: {
           p_ip_address?: string
