@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Mic, MicOff, Volume2 } from 'lucide-react';
 
@@ -7,6 +8,7 @@ interface Participant {
   is_muted: boolean;
   is_speaking: boolean;
   is_video_on: boolean;
+  stream?: MediaStream;
   user?: {
     full_name: string;
     avatar_url: string | null;
@@ -18,9 +20,30 @@ interface ParticipantGridProps {
   channelType: 'voice' | 'video' | 'stage';
   currentUserId?: string;
   currentUserSpeaking?: boolean;
+  localStream?: MediaStream | null;
 }
 
-const ParticipantGrid = ({ participants, channelType, currentUserId, currentUserSpeaking }: ParticipantGridProps) => {
+const ParticipantGrid = ({ participants, channelType, currentUserId, currentUserSpeaking, localStream }: ParticipantGridProps) => {
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+
+  useEffect(() => {
+    // Attach local stream to current user's video element if video is on
+    if (localStream && currentUserId) {
+      const videoEl = videoRefs.current.get(currentUserId);
+      if (videoEl && localStream.getVideoTracks().length > 0) {
+        videoEl.srcObject = localStream;
+        videoEl.play().catch(err => console.error('Error playing local video:', err));
+      }
+    }
+  }, [localStream, currentUserId]);
+
+  const setVideoRef = (participantId: string, el: HTMLVideoElement | null) => {
+    if (el) {
+      videoRefs.current.set(participantId, el);
+    } else {
+      videoRefs.current.delete(participantId);
+    }
+  };
   const getGridCols = () => {
     const count = participants.length;
     if (count === 1) return 'grid-cols-1';
@@ -45,8 +68,16 @@ const ParticipantGrid = ({ participants, channelType, currentUserId, currentUser
                 : 'border-2 border-border'
             }`}
           >
-            {/* Video would go here if enabled */}
-            {!participant.is_video_on && (
+            {/* Video element for video channels */}
+            {participant.is_video_on && (isCurrentUser || channelType === 'video') ? (
+              <video
+                ref={(el) => setVideoRef(participant.id, el)}
+                className="w-full h-full object-cover"
+                autoPlay
+                playsInline
+                muted={isCurrentUser} // Mute own video to prevent echo
+              />
+            ) : (
               <Avatar className="h-20 w-20">
                 <AvatarImage src={participant.user?.avatar_url || undefined} />
                 <AvatarFallback className="text-2xl">

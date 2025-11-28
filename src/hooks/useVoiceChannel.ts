@@ -173,23 +173,40 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
       
       localStreamRef.current = stream;
 
-      // Add to participants table
+      // Check if already in channel, if so remove stale entry
+      await supabase
+        .from('live_channel_participants')
+        .delete()
+        .eq('channel_id', channelId)
+        .eq('user_id', user.id);
+
+      // Add to participants table with upsert
       const { error } = await supabase
         .from('live_channel_participants')
-        .insert({
+        .upsert({
           channel_id: channelId,
           user_id: user.id,
-          role: 'speaker'
+          role: 'speaker',
+          is_muted: pushToTalkEnabled,
+          is_deafened: false,
+          is_video_on: false,
+          is_screen_sharing: false,
+          is_speaking: false
+        }, {
+          onConflict: 'channel_id,user_id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error joining channel:', error);
+        throw error;
+      }
 
       setIsConnected(true);
     } catch (error) {
       console.error('Error joining channel:', error);
       throw error;
     }
-  }, [user, channelId]);
+  }, [user, channelId, pushToTalkEnabled]);
 
   const leaveChannel = useCallback(async () => {
     if (!user) return;
@@ -373,6 +390,7 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     participants,
     transcriptions,
     isTranscribing,
+    localStream: localStreamRef.current,
     joinChannel,
     leaveChannel,
     toggleMute,

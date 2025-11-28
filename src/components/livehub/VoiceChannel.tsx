@@ -38,6 +38,7 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
     isScreenSharing,
     isSpeaking,
     participants,
+    localStream,
     joinChannel,
     leaveChannel,
     toggleMute,
@@ -214,6 +215,7 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
                 channelType={channelType}
                 currentUserId={user?.id}
                 currentUserSpeaking={isSpeaking}
+                localStream={isVideoOn ? localStream : null}
               />
             </div>
 
