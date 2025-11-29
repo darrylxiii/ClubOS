@@ -11,7 +11,9 @@ import { VoiceSettingsDialog } from './VoiceSettingsDialog';
 import { AdminRoleManager } from './AdminRoleManager';
 import { ChannelSettingsDialog } from './ChannelSettingsDialog';
 import { DirectMessageView } from './DirectMessageView';
+import { UserStatusSelector } from './UserStatusSelector';
 import { useLiveHubPresence } from '@/hooks/useLiveHubPresence';
+import { useUserPresenceExtended } from '@/hooks/useUserPresenceExtended';
 import { Button } from '@/components/ui/button';
 import { Search, Settings, Bell } from 'lucide-react';
 
@@ -24,6 +26,9 @@ const LiveHubLayout = () => {
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [showRoleManager, setShowRoleManager] = useState(false);
   const [showChannelSettings, setShowChannelSettings] = useState(false);
+  
+  // Initialize user presence
+  useUserPresenceExtended();
   const { onlineMembers } = useLiveHubPresence();
 
   const handleChannelSelect = (channelId: string, channelType: string, shouldAutoJoin = false) => {
@@ -68,6 +73,7 @@ const LiveHubLayout = () => {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <UserStatusSelector />
             <Button
               variant="ghost"
               size="icon"
