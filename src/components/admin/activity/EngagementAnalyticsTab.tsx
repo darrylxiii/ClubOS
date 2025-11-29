@@ -10,30 +10,67 @@ export default function EngagementAnalyticsTab() {
     queryFn: async () => {
       const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
       
+      // Try dedicated analytics table first
       const { data: pageAnalytics } = await supabase
         .from('user_page_analytics')
         .select('*')
         .gte('entry_timestamp', sevenDaysAgo);
 
-      const pageMetrics = (pageAnalytics || []).reduce((acc: any, page: any) => {
-        const path = page.page_path;
-        if (!acc[path]) {
-          acc[path] = {
-            path,
-            views: 0,
-            totalTime: 0,
-            totalScroll: 0,
-            engaged: 0,
-            bounced: 0
-          };
-        }
-        acc[path].views += 1;
-        acc[path].totalTime += page.time_on_page_seconds || 0;
-        acc[path].totalScroll += page.scroll_depth_max || 0;
-        if (page.engaged) acc[path].engaged += 1;
-        if (page.bounce) acc[path].bounced += 1;
-        return acc;
-      }, {});
+      // Fallback to session events if no page analytics
+      let pageMetrics: any = {};
+      
+      if (pageAnalytics && pageAnalytics.length > 0) {
+        pageMetrics = pageAnalytics.reduce((acc: any, page: any) => {
+          const path = page.page_path;
+          if (!acc[path]) {
+            acc[path] = {
+              path,
+              views: 0,
+              totalTime: 0,
+              totalScroll: 0,
+              engaged: 0,
+              bounced: 0
+            };
+          }
+          acc[path].views += 1;
+          acc[path].totalTime += page.time_on_page_seconds || 0;
+          acc[path].totalScroll += page.scroll_depth_max || 0;
+          if (page.engaged) acc[path].engaged += 1;
+          if (page.bounce) acc[path].bounced += 1;
+          return acc;
+        }, {});
+      } else {
+        // Fallback: calculate from session events
+        const { data: sessionEvents } = await supabase
+          .from('user_session_events')
+          .select('page_path, event_timestamp, event_type, metadata')
+          .gte('event_timestamp', sevenDaysAgo)
+          .order('event_timestamp', { ascending: true });
+
+        pageMetrics = (sessionEvents || []).reduce((acc: any, event: any) => {
+          const path = event.page_path || '/';
+          if (!acc[path]) {
+            acc[path] = {
+              path,
+              views: 0,
+              totalTime: 0,
+              totalScroll: 0,
+              engaged: 0,
+              bounced: 0
+            };
+          }
+          
+          if (event.event_type === 'page_view') acc[path].views += 1;
+          if (event.event_type === 'scroll') {
+            acc[path].totalScroll += event.metadata?.scrollDepthPercent || 0;
+          }
+          if (event.metadata?.timeOnElementMs) {
+            acc[path].totalTime += Math.floor(event.metadata.timeOnElementMs / 1000);
+          }
+          
+          return acc;
+        }, {});
+      }
 
       const topPages = Object.values(pageMetrics)
         .map((page: any) => ({

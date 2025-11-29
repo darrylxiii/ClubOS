@@ -122,6 +122,99 @@ class TrackingService {
     }
   }
 
+  async trackDeviceInfo(deviceInfo: {
+    deviceType: string;
+    os: string;
+    browser: string;
+    screenWidth: number;
+    screenHeight: number;
+    timezone: string;
+  }) {
+    const userId = await this.getUserId();
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase.from('user_device_info').insert({
+        user_id: userId,
+        session_id: this.sessionId,
+        device_type: deviceInfo.deviceType,
+        os: deviceInfo.os,
+        browser: deviceInfo.browser,
+        screen_resolution: `${deviceInfo.screenWidth}x${deviceInfo.screenHeight}`,
+        timezone: deviceInfo.timezone,
+      });
+
+      if (error) {
+        console.error('[TrackingService] Failed to track device info:', error);
+      }
+    } catch (error) {
+      console.error('[TrackingService] Exception tracking device info:', error);
+    }
+  }
+
+  async trackFeatureUsage(featureData: {
+    featureName: string;
+    featureCategory: string;
+    actionType: string;
+    completed: boolean;
+    durationMs?: number;
+  }) {
+    const userId = await this.getUserId();
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase.from('user_feature_usage').insert({
+        user_id: userId,
+        session_id: this.sessionId,
+        feature_name: featureData.featureName,
+        feature_category: featureData.featureCategory,
+        action_type: featureData.actionType,
+        completed: featureData.completed,
+        duration_ms: featureData.durationMs,
+      });
+
+      if (error) {
+        console.error('[TrackingService] Failed to track feature usage:', error);
+      }
+    } catch (error) {
+      console.error('[TrackingService] Exception tracking feature usage:', error);
+    }
+  }
+
+  async trackAdminAction(actionData: {
+    actionType: string;
+    actionCategory: string;
+    targetEntity: string;
+    targetId?: string;
+    reason?: string;
+    impactScore?: number;
+    oldValue?: any;
+    newValue?: any;
+  }) {
+    const userId = await this.getUserId();
+    if (!userId) return;
+
+    try {
+      const { error } = await supabase.from('admin_audit_activity').insert({
+        admin_id: userId,
+        action_type: actionData.actionType,
+        action_category: actionData.actionCategory,
+        target_entity: actionData.targetEntity,
+        target_id: actionData.targetId,
+        reason: actionData.reason,
+        impact_score: actionData.impactScore || 5,
+        old_value: actionData.oldValue,
+        new_value: actionData.newValue,
+      });
+
+      if (error) {
+        console.error('[TrackingService] Failed to track admin action:', error);
+      }
+    } catch (error) {
+      console.error('[TrackingService] Exception tracking admin action:', error);
+    }
+  }
+
   private async queueEvent(event: Partial<TrackingEvent>) {
     const userId = await this.getUserId();
     if (!userId) return;
@@ -164,40 +257,59 @@ class TrackingService {
 
     this.pageStartTime = Date.now();
 
-    const { data, error } = await supabase
-      .from('user_page_analytics')
-      .insert({
-        user_id: userId,
-        session_id: this.sessionId,
-        page_path: entry.pagePath,
-        entry_timestamp: new Date().toISOString(),
-        viewport_width: entry.viewportWidth,
-        viewport_height: entry.viewportHeight,
-      })
-      .select('id')
-      .single();
+    try {
+      const { data, error } = await supabase
+        .from('user_page_analytics')
+        .insert({
+          user_id: userId,
+          session_id: this.sessionId,
+          page_path: entry.pagePath,
+          entry_timestamp: new Date().toISOString(),
+          referrer: entry.referrer || null,
+          viewport_width: entry.viewportWidth,
+          viewport_height: entry.viewportHeight,
+        })
+        .select('id')
+        .single();
 
-    if (!error && data) {
-      this.currentPageAnalyticsId = data.id;
+      if (error) {
+        console.error('[TrackingService] Failed to track page entry:', error);
+        console.error('[TrackingService] Entry data:', entry);
+      } else if (data) {
+        this.currentPageAnalyticsId = data.id;
+      }
+    } catch (error) {
+      console.error('[TrackingService] Exception tracking page entry:', error);
     }
   }
 
   async trackPageExit(exit: PageExit) {
-    if (!this.currentPageAnalyticsId) return;
+    if (!this.currentPageAnalyticsId) {
+      this.currentPageAnalyticsId = null;
+      return;
+    }
 
-    await supabase
-      .from('user_page_analytics')
-      .update({
-        exit_timestamp: new Date().toISOString(),
-        time_on_page_seconds: exit.timeOnPage,
-        scroll_depth_max: exit.scrollDepthMax,
-        exit_type: exit.exitType,
-        engaged: exit.timeOnPage > 30 && exit.scrollDepthMax > 50,
-        bounce: exit.timeOnPage < 5 && exit.scrollDepthMax < 25,
-      })
-      .eq('id', this.currentPageAnalyticsId);
+    try {
+      const { error } = await supabase
+        .from('user_page_analytics')
+        .update({
+          exit_timestamp: new Date().toISOString(),
+          time_on_page_seconds: exit.timeOnPage,
+          scroll_depth_max: exit.scrollDepthMax,
+          exit_type: exit.exitType,
+          engaged: exit.timeOnPage > 30 && exit.scrollDepthMax > 50,
+          bounce: exit.timeOnPage < 5 && exit.scrollDepthMax < 25,
+        })
+        .eq('id', this.currentPageAnalyticsId);
 
-    this.currentPageAnalyticsId = null;
+      if (error) {
+        console.error('[TrackingService] Failed to track page exit:', error);
+      }
+    } catch (error) {
+      console.error('[TrackingService] Exception tracking page exit:', error);
+    } finally {
+      this.currentPageAnalyticsId = null;
+    }
   }
 
   async trackFrustrationSignal(signal: FrustrationSignal) {
