@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMeetingTranscription } from './useMeetingTranscription';
 import { useLiveHubWebRTC } from './useLiveHubWebRTC';
+import { toast } from 'sonner';
 
 interface Participant {
   id: string;
@@ -35,6 +36,7 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   const [currentRecordingId, setCurrentRecordingId] = useState<string | null>(null);
   
   const localStreamRef = useRef<MediaStream | null>(null);
+  const screenStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const vadIntervalRef = useRef<number | null>(null);
   const lastSpeakingUpdateRef = useRef<number>(0);
@@ -337,21 +339,72 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   const toggleScreenShare = useCallback(async () => {
     try {
       if (!isScreenSharing) {
-        const screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-        setIsScreenSharing(true);
+        // Request screen share with optimal settings
+        const screenStream = await navigator.mediaDevices.getDisplayMedia({ 
+          video: {
+            displaySurface: 'monitor', // Prefer entire screen
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            frameRate: { ideal: 30, max: 60 }
+          },
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            sampleRate: 48000
+          }
+        });
         
-        screenStream.getVideoTracks()[0].onended = () => {
-          setIsScreenSharing(false);
-          updateParticipantStatus({ is_screen_sharing: false });
+        screenStreamRef.current = screenStream;
+        
+        // Handle when user stops sharing via browser UI
+        screenStream.getVideoTracks()[0].onended = async () => {
+          console.log('Screen share ended by user');
+          await stopScreenShare();
         };
+        
+        // Add screen share track to existing peer connections
+        if (localStreamRef.current) {
+          screenStream.getTracks().forEach(track => {
+            localStreamRef.current?.addTrack(track);
+          });
+        }
+        
+        setIsScreenSharing(true);
+        await updateParticipantStatus({ is_screen_sharing: true });
+        
+        console.log('Screen sharing started', {
+          videoTrack: screenStream.getVideoTracks()[0]?.label,
+          settings: screenStream.getVideoTracks()[0]?.getSettings()
+        });
       } else {
-        setIsScreenSharing(false);
+        await stopScreenShare();
       }
-      updateParticipantStatus({ is_screen_sharing: !isScreenSharing });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error toggling screen share:', error);
+      if (error.name === 'NotAllowedError') {
+        toast.error('Screen sharing permission denied');
+      } else if (error.name === 'NotFoundError') {
+        toast.error('No screen available to share');
+      } else {
+        toast.error('Failed to start screen sharing');
+      }
     }
   }, [isScreenSharing]);
+
+  const stopScreenShare = async () => {
+    if (screenStreamRef.current) {
+      // Stop all screen share tracks
+      screenStreamRef.current.getTracks().forEach(track => {
+        track.stop();
+        localStreamRef.current?.removeTrack(track);
+      });
+      screenStreamRef.current = null;
+    }
+    
+    setIsScreenSharing(false);
+    await updateParticipantStatus({ is_screen_sharing: false });
+    console.log('Screen sharing stopped');
+  };
 
   const startRecording = useCallback(async () => {
     if (!user) return;
@@ -416,6 +469,7 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     transcriptions,
     isTranscribing,
     localStream: localStreamRef.current,
+    screenStream: screenStreamRef.current,
     remoteStreams,
     isWebRTCConnected,
     joinChannel,

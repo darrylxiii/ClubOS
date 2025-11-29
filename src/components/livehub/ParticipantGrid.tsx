@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Mic, MicOff, Volume2 } from 'lucide-react';
+import { Mic, MicOff, Volume2, Monitor } from 'lucide-react';
 
 interface Participant {
   id: string;
@@ -8,6 +8,7 @@ interface Participant {
   is_muted: boolean;
   is_speaking: boolean;
   is_video_on: boolean;
+  is_screen_sharing: boolean;
   stream?: MediaStream;
   user?: {
     full_name: string;
@@ -134,6 +135,9 @@ const ParticipantGrid = ({ participants, channelType, currentUserId, currentUser
                 {participant.user?.full_name || 'Unknown User'}
               </span>
               <div className="flex items-center gap-1">
+                {participant.is_screen_sharing && (
+                  <Monitor className="w-4 h-4 text-primary" />
+                )}
                 {participant.is_muted ? (
                   <MicOff className="w-4 h-4 text-destructive" />
                 ) : (
