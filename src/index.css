@@ -693,6 +693,44 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
   }
+
+  /* Mobile optimizations */
+  @media (max-width: 768px) {
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    html, body {
+      scroll-behavior: smooth;
+      overscroll-behavior-y: none; /* Prevent pull-to-refresh on whole page */
+    }
+  }
+
+  /* Prevent text selection on buttons for better mobile UX */
+  button, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Optimize touch targets for mobile */
+  @media (pointer: coarse) {
+    button:not(.no-touch-target), 
+    a:not(.no-touch-target), 
+    [role="button"]:not(.no-touch-target) {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+
+  /* PWA mobile app feeling */
+  @supports (-webkit-touch-callout: none) {
+    /* iOS specific fixes */
+    input, textarea, select {
+      font-size: 16px; /* Prevent iOS zoom on focus */
+    }
+  }
 }
 
 
