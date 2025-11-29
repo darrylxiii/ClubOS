@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, Users } from 'lucide-react';
+import { Menu, Search, Users, ArrowLeft } from 'lucide-react';
 import { useSwipeable } from 'react-swipeable';
 import MobileVoiceChannel from './MobileVoiceChannel';
 import StageChannel from './StageChannel';
@@ -14,6 +14,7 @@ import { NotificationBell } from './NotificationBell';
 import LiveHubBottomNav from './LiveHubBottomNav';
 import MobileChannelSheet from './MobileChannelSheet';
 import MobileMemberSheet from './MobileMemberSheet';
+import ChannelList from './ChannelList';
 
 interface MobileLiveHubLayoutProps {
   selectedChannelId: string | null;
@@ -64,6 +65,11 @@ const MobileLiveHubLayout = ({
     setShowChannelSheet(false);
   };
 
+  const handleBack = () => {
+    // Clear selection to return to channel list
+    onChannelSelect(null as any, '', false);
+  };
+
   const handleNavChange = (panel: 'home' | 'servers' | 'messages' | 'notifications' | 'you') => {
     setActivePanel(panel);
     
@@ -102,22 +108,39 @@ const MobileLiveHubLayout = ({
   // Get contextual header title
   const getHeaderTitle = () => {
     if (selectedConversationId) return 'Direct Message';
-    if (selectedChannelId) return 'Channel';
+    if (selectedChannelId) {
+      // You could fetch channel name here if needed
+      return 'Channel';
+    }
     return 'The Quantum Club';
   };
+
+  // Check if we should show back button
+  const showBackButton = selectedChannelId || selectedConversationId;
 
   return (
     <div className="flex flex-col h-full bg-background text-foreground overflow-hidden" {...swipeHandlers}>
       {/* Unified Contextual Header */}
       <div className="h-14 px-4 flex items-center justify-between border-b border-border bg-card shrink-0 safe-area-top">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setShowChannelSheet(true)}
-          className="h-10 w-10"
-        >
-          <Menu className="h-5 w-5" />
-        </Button>
+        {showBackButton ? (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleBack}
+            className="h-10 w-10"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowChannelSheet(true)}
+            className="h-10 w-10"
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
         
         <div className="flex-1 text-center">
           <h1 className="text-lg font-semibold truncate">
@@ -126,14 +149,16 @@ const MobileLiveHubLayout = ({
         </div>
 
         <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setShowMemberSheet(true)}
-            className="h-10 w-10"
-          >
-            <Users className="h-5 w-5" />
-          </Button>
+          {selectedChannelId && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowMemberSheet(true)}
+              className="h-10 w-10"
+            >
+              <Users className="h-5 w-5" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -163,11 +188,13 @@ const MobileLiveHubLayout = ({
             <MobileTextChannel channelId={selectedChannelId} />
           )
         ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground px-4">
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">Welcome to The Quantum Club</h2>
-              <p className="text-sm">Swipe right or tap menu to select a channel</p>
-            </div>
+          <div className="h-full overflow-y-auto">
+            <ChannelList
+              selectedChannelId={selectedChannelId}
+              selectedConversationId={selectedConversationId}
+              onChannelSelect={handleChannelSelect}
+              onConversationSelect={handleConversationSelect}
+            />
           </div>
         )}
       </div>
