@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Menu, Search, Settings } from 'lucide-react';
-import VoiceChannel from './VoiceChannel';
+import MobileVoiceChannel from './MobileVoiceChannel';
 import StageChannel from './StageChannel';
-import TextChannel from './TextChannel';
+import MobileTextChannel from './MobileTextChannel';
 import { DirectMessageView } from './DirectMessageView';
 import { SearchDialog } from './SearchDialog';
 import { VoiceSettingsDialog } from './VoiceSettingsDialog';
@@ -121,13 +121,19 @@ const MobileLiveHubLayout = ({
           selectedChannelType === 'stage' ? (
             <StageChannel channelId={selectedChannelId} />
           ) : selectedChannelType === 'voice' || selectedChannelType === 'video' ? (
-            <VoiceChannel 
+            <MobileVoiceChannel 
               channelId={selectedChannelId}
               channelType={selectedChannelType as 'voice' | 'video'}
               autoJoin={autoJoin}
             />
           ) : (
-            <TextChannel channelId={selectedChannelId} />
+            <MobileTextChannel 
+              channelId={selectedChannelId}
+              onBack={() => {
+                setShowChannelDrawer(true);
+                setActivePanel('channels');
+              }}
+            />
           )
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground px-4">
