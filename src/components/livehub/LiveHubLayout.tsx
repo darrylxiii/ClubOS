@@ -25,6 +25,8 @@ const LiveHubLayout = () => {
   const [selectedChannelType, setSelectedChannelType] = useState<string>('text');
   const [autoJoin, setAutoJoin] = useState(false);
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+  const [connectedChannelId, setConnectedChannelId] = useState<string | null>(null);
+  const [connectedChannelName, setConnectedChannelName] = useState<string>('');
   const [showSearch, setShowSearch] = useState(false);
   const [showVoiceSettings, setShowVoiceSettings] = useState(false);
   const [showRoleManager, setShowRoleManager] = useState(false);
@@ -54,8 +56,18 @@ const LiveHubLayout = () => {
         selectedChannelType={selectedChannelType}
         selectedConversationId={selectedConversationId}
         autoJoin={autoJoin}
+        connectedChannelId={connectedChannelId}
+        connectedChannelName={connectedChannelName}
         onChannelSelect={handleChannelSelect}
         onConversationSelect={handleConversationSelect}
+        onConnect={(channelId, channelName) => {
+          setConnectedChannelId(channelId);
+          setConnectedChannelName(channelName);
+        }}
+        onDisconnect={() => {
+          setConnectedChannelId(null);
+          setConnectedChannelName('');
+        }}
         onlineMembers={onlineMembers}
         showSearch={showSearch}
         setShowSearch={setShowSearch}
@@ -79,6 +91,7 @@ const LiveHubLayout = () => {
       <ChannelList 
         selectedChannelId={selectedChannelId}
         selectedConversationId={selectedConversationId}
+        connectedChannelId={connectedChannelId}
         onChannelSelect={handleChannelSelect}
         onConversationSelect={handleConversationSelect}
       />
