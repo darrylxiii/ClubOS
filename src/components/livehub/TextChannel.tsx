@@ -22,6 +22,9 @@ import MessageThreadSidebar from './MessageThreadSidebar';
 import MessageReactions from './MessageReactions';
 import PinnedMessagesPanel from './PinnedMessagesPanel';
 import FileAttachment from './FileAttachment';
+import { EmojiPicker } from './EmojiPicker';
+import { MentionAutocomplete } from './MentionAutocomplete';
+import { MessageFormatter } from './MessageFormatter';
 
 interface TextChannelProps {
   channelId: string;
@@ -58,8 +61,12 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
   const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
   const [editingContent, setEditingContent] = useState('');
+  const [showMentionAutocomplete, setShowMentionAutocomplete] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   
   const { typingUsers, startTyping, stopTyping } = useLiveHubTyping(channelId);
   const { markAsRead } = useLiveHubUnread();
@@ -204,6 +211,14 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
     // Stop typing indicator
     stopTyping();
 
+    // Extract mentions
+    const mentionRegex = /@(\w+)/g;
+    const mentions: string[] = [];
+    let match;
+    while ((match = mentionRegex.exec(newMessage)) !== null) {
+      mentions.push(match[1]);
+    }
+
     let attachments: Attachment[] | null = null;
 
     if (uploadingFiles.length > 0) {
@@ -222,7 +237,8 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
         channel_id: channelId,
         user_id: user.id,
         content: newMessage.trim(),
-        attachments: attachments as any
+        attachments: attachments as any,
+        mentions: mentions.length > 0 ? mentions : null,
       }]);
 
     if (error) {
@@ -285,6 +301,41 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
     } else {
       stopTyping();
     }
+
+    // Check for @ mentions
+    const cursorPosition = inputRef.current?.selectionStart || 0;
+    const textBeforeCursor = value.slice(0, cursorPosition);
+    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+
+    if (mentionMatch && inputRef.current) {
+      setMentionQuery(mentionMatch[1]);
+      setShowMentionAutocomplete(true);
+      
+      // Calculate position
+      const rect = inputRef.current.getBoundingClientRect();
+      setMentionPosition({
+        top: rect.top - 200,
+        left: rect.left,
+      });
+    } else {
+      setShowMentionAutocomplete(false);
+    }
+  };
+
+  const handleMentionSelect = (member: { full_name: string }) => {
+    const cursorPosition = inputRef.current?.selectionStart || 0;
+    const textBeforeCursor = newMessage.slice(0, cursorPosition);
+    const textAfterCursor = newMessage.slice(cursorPosition);
+    const mentionMatch = textBeforeCursor.match(/@(\w*)$/);
+
+    if (mentionMatch) {
+      const beforeMention = textBeforeCursor.slice(0, mentionMatch.index);
+      const newText = `${beforeMention}@${member.full_name} ${textAfterCursor}`;
+      setNewMessage(newText);
+    }
+
+    setShowMentionAutocomplete(false);
+    inputRef.current?.focus();
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -394,12 +445,14 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                       </Button>
                     </div>
                   ) : (
-                    <p className="text-sm break-words">
-                      {message.content}
+                    <>
+                      <div className="text-sm break-words">
+                        <MessageFormatter content={message.content} />
+                      </div>
                       {(message as any).is_edited && (
-                        <span className="text-xs text-muted-foreground ml-1">(edited)</span>
+                        <span className="text-xs text-muted-foreground">(edited)</span>
                       )}
-                    </p>
+                    </>
                   )}
                   
                   {/* Attachments */}
@@ -496,7 +549,14 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
         )}
 
         {/* Message Input */}
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border relative">
+          {showMentionAutocomplete && (
+            <MentionAutocomplete
+              query={mentionQuery}
+              onSelect={handleMentionSelect}
+              position={mentionPosition}
+            />
+          )}
           <div className="flex gap-2">
             <input
               ref={fileInputRef}
@@ -512,13 +572,21 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
             >
               <Paperclip className="h-4 w-4" />
             </Button>
-            <Input
+            <textarea
+              ref={inputRef}
               value={newMessage}
               onChange={(e) => handleInputChange(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={`Message #${channelName}`}
-              className="flex-1"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder={`Message #${channelName} (supports **bold**, *italic*, \`code\`, @mentions)`}
+              className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[40px] max-h-[120px]"
+              rows={1}
             />
+            <EmojiPicker onSelect={(emoji) => setNewMessage((prev) => prev + emoji)} />
             <Button onClick={sendMessage} size="icon">
               <Send className="h-4 w-4" />
             </Button>
