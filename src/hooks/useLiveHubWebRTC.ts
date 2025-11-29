@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 interface Peer {
   userId: string;
@@ -50,7 +52,7 @@ export function useLiveHubWebRTC({ channelId, localStream, enabled }: UseLiveHub
   const { user } = useAuth();
   const [peers, setPeers] = useState<Map<string, Peer>>(new Map());
   const [remoteStreams, setRemoteStreams] = useState<Map<string, MediaStream>>(new Map());
-  const signalingSocketRef = useRef<WebSocket | null>(null);
+  const signalingChannelRef = useRef<RealtimeChannel | null>(null);
   const peersRef = useRef<Map<string, Peer>>(new Map());
 
   useEffect(() => {
@@ -82,74 +84,69 @@ export function useLiveHubWebRTC({ channelId, localStream, enabled }: UseLiveHub
   }, [localStream, enabled]);
 
   const connectToSignaling = () => {
-    const projectId = 'dpjucecmoyfzrduhlctt';
-    const wsUrl = `wss://${projectId}.supabase.co/functions/v1/webrtc-signaling`;
+    console.log('Connecting to WebRTC signaling via Supabase Realtime');
     
-    const ws = new WebSocket(wsUrl);
-    signalingSocketRef.current = ws;
+    const channel = supabase
+      .channel(`webrtc:${channelId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'webrtc_signals',
+          filter: `channel_id=eq.${channelId}`
+        },
+        async (payload) => {
+          const signal = payload.new;
+          console.log('Received signal:', signal.signal_type, 'from:', signal.from_user_id);
 
-    ws.onopen = () => {
-      console.log('Connected to WebRTC signaling server');
-      ws.send(JSON.stringify({
-        type: 'join',
-        channelId,
-        userId: user!.id
-      }));
-    };
+          // Ignore signals from self
+          if (signal.from_user_id === user!.id) return;
 
-    ws.onmessage = async (event) => {
-      const message = JSON.parse(event.data);
-      console.log('Received signaling message:', message.type);
+          // Check if signal is for us (null means broadcast)
+          if (signal.to_user_id && signal.to_user_id !== user!.id) return;
 
-      switch (message.type) {
-        case 'peer-joined':
-          if (message.userId !== user!.id) {
-            await createPeerConnection(message.userId, true);
+          switch (signal.signal_type) {
+            case 'join':
+              await createPeerConnection(signal.from_user_id, true);
+              break;
+
+            case 'offer':
+              await handleOffer(signal.from_user_id, signal.signal_data);
+              break;
+
+            case 'answer':
+              await handleAnswer(signal.from_user_id, signal.signal_data);
+              break;
+
+            case 'ice-candidate':
+              await handleIceCandidate(signal.from_user_id, signal.signal_data);
+              break;
+
+            case 'leave':
+              removePeerConnection(signal.from_user_id);
+              break;
           }
-          break;
+        }
+      )
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('Connected to signaling channel');
+          // Send join signal
+          await sendSignal('join', null, {});
+        }
+      });
 
-        case 'offer':
-          if (message.fromUserId !== user!.id) {
-            await handleOffer(message.fromUserId, message.offer);
-          }
-          break;
-
-        case 'answer':
-          if (message.fromUserId !== user!.id) {
-            await handleAnswer(message.fromUserId, message.answer);
-          }
-          break;
-
-        case 'ice-candidate':
-          if (message.fromUserId !== user!.id) {
-            await handleIceCandidate(message.fromUserId, message.candidate);
-          }
-          break;
-
-        case 'peer-left':
-          removePeerConnection(message.userId);
-          break;
-      }
-    };
-
-    ws.onerror = (error) => {
-      console.error('WebRTC signaling error:', error);
-    };
-
-    ws.onclose = () => {
-      console.log('Disconnected from WebRTC signaling server');
-    };
+    signalingChannelRef.current = channel;
   };
 
-  const disconnectFromSignaling = () => {
-    if (signalingSocketRef.current) {
-      signalingSocketRef.current.send(JSON.stringify({
-        type: 'leave',
-        channelId,
-        userId: user!.id
-      }));
-      signalingSocketRef.current.close();
-      signalingSocketRef.current = null;
+  const disconnectFromSignaling = async () => {
+    if (signalingChannelRef.current && user) {
+      // Send leave signal
+      await sendSignal('leave', null, {});
+      
+      await supabase.removeChannel(signalingChannelRef.current);
+      signalingChannelRef.current = null;
     }
 
     // Close all peer connections
@@ -159,6 +156,25 @@ export function useLiveHubWebRTC({ channelId, localStream, enabled }: UseLiveHub
     peersRef.current.clear();
     setPeers(new Map());
     setRemoteStreams(new Map());
+  };
+
+  const sendSignal = async (
+    signalType: string, 
+    toUserId: string | null, 
+    signalData: any
+  ) => {
+    if (!user) return;
+
+    // Use type assertion until types regenerate after migration
+    await supabase
+      .from('webrtc_signals')
+      .insert({
+        channel_id: channelId,
+        from_user_id: user.id,
+        to_user_id: toUserId,
+        signal_type: signalType,
+        signal_data: signalData
+      } as any);
   };
 
   const createPeerConnection = async (userId: string, shouldCreateOffer: boolean) => {
@@ -186,15 +202,9 @@ export function useLiveHubWebRTC({ channelId, localStream, enabled }: UseLiveHub
     };
 
     // Handle ICE candidates
-    peerConnection.onicecandidate = (event) => {
-      if (event.candidate && signalingSocketRef.current) {
-        signalingSocketRef.current.send(JSON.stringify({
-          type: 'ice-candidate',
-          channelId,
-          fromUserId: user!.id,
-          targetUserId: userId,
-          candidate: event.candidate
-        }));
+    peerConnection.onicecandidate = async (event) => {
+      if (event.candidate) {
+        await sendSignal('ice-candidate', userId, event.candidate);
       }
     };
 
@@ -219,16 +229,7 @@ export function useLiveHubWebRTC({ channelId, localStream, enabled }: UseLiveHub
     if (shouldCreateOffer) {
       const offer = await peerConnection.createOffer();
       await peerConnection.setLocalDescription(offer);
-
-      if (signalingSocketRef.current) {
-        signalingSocketRef.current.send(JSON.stringify({
-          type: 'offer',
-          channelId,
-          fromUserId: user!.id,
-          targetUserId: userId,
-          offer
-        }));
-      }
+      await sendSignal('offer', userId, offer);
     }
 
     return peerConnection;
@@ -239,7 +240,7 @@ export function useLiveHubWebRTC({ channelId, localStream, enabled }: UseLiveHub
 
     let peer = peersRef.current.get(fromUserId);
     if (!peer) {
-      const connection = await createPeerConnection(fromUserId, false);
+      await createPeerConnection(fromUserId, false);
       peer = peersRef.current.get(fromUserId)!;
     }
 
@@ -247,15 +248,7 @@ export function useLiveHubWebRTC({ channelId, localStream, enabled }: UseLiveHub
     const answer = await peer.connection.createAnswer();
     await peer.connection.setLocalDescription(answer);
 
-    if (signalingSocketRef.current) {
-      signalingSocketRef.current.send(JSON.stringify({
-        type: 'answer',
-        channelId,
-        fromUserId: user!.id,
-        targetUserId: fromUserId,
-        answer
-      }));
-    }
+    await sendSignal('answer', fromUserId, answer);
   };
 
   const handleAnswer = async (fromUserId: string, answer: RTCSessionDescriptionInit) => {
@@ -295,6 +288,6 @@ export function useLiveHubWebRTC({ channelId, localStream, enabled }: UseLiveHub
 
   return {
     remoteStreams,
-    isConnected: signalingSocketRef.current?.readyState === WebSocket.OPEN
+    isConnected: signalingChannelRef.current !== null
   };
 }
