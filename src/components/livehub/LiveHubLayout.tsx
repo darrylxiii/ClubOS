@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useMobileDetection } from '@/hooks/useMobileDetection';
 import ServerSidebar from './ServerSidebar';
 import ChannelList from './ChannelList';
 import VoiceChannel from './VoiceChannel';
@@ -16,8 +17,10 @@ import { useLiveHubPresence } from '@/hooks/useLiveHubPresence';
 import { useUserPresenceExtended } from '@/hooks/useUserPresenceExtended';
 import { Button } from '@/components/ui/button';
 import { Search, Settings, Bell } from 'lucide-react';
+import MobileLiveHubLayout from './MobileLiveHubLayout';
 
 const LiveHubLayout = () => {
+  const isMobile = useMobileDetection();
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [selectedChannelType, setSelectedChannelType] = useState<string>('text');
   const [autoJoin, setAutoJoin] = useState(false);
@@ -43,6 +46,30 @@ const LiveHubLayout = () => {
     setSelectedChannelId(null); // Clear channel selection
   };
 
+  // Render mobile layout
+  if (isMobile) {
+    return (
+      <MobileLiveHubLayout
+        selectedChannelId={selectedChannelId}
+        selectedChannelType={selectedChannelType}
+        selectedConversationId={selectedConversationId}
+        autoJoin={autoJoin}
+        onChannelSelect={handleChannelSelect}
+        onConversationSelect={handleConversationSelect}
+        onlineMembers={onlineMembers}
+        showSearch={showSearch}
+        setShowSearch={setShowSearch}
+        showVoiceSettings={showVoiceSettings}
+        setShowVoiceSettings={setShowVoiceSettings}
+        showRoleManager={showRoleManager}
+        setShowRoleManager={setShowRoleManager}
+        showChannelSettings={showChannelSettings}
+        setShowChannelSettings={setShowChannelSettings}
+      />
+    );
+  }
+
+  // Render desktop layout
   return (
     <div className="flex h-full bg-background text-foreground overflow-hidden">
       {/* Server Sidebar - leftmost */}
