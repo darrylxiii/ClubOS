@@ -18,7 +18,7 @@ interface Channel {
 
 interface ChannelListProps {
   selectedChannelId: string | null;
-  onChannelSelect: (channelId: string, channelType: string) => void;
+  onChannelSelect: (channelId: string, channelType: string, autoJoin?: boolean) => void;
 }
 
 interface ChannelParticipant {
@@ -242,7 +242,10 @@ const ChannelList = ({ selectedChannelId, onChannelSelect }: ChannelListProps) =
                     return (
                       <div key={channel.id}>
                         <button
-                          onClick={() => onChannelSelect(channel.id, channel.channel_type)}
+                          onClick={() => {
+                            const shouldAutoJoin = isVoiceType;
+                            onChannelSelect(channel.id, channel.channel_type, shouldAutoJoin);
+                          }}
                           className={`relative w-full px-2 py-1.5 flex items-center gap-2 text-sm rounded group ${
                             selectedChannelId === channel.id
                               ? 'bg-primary/10 text-primary'

@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 interface VoiceChannelProps {
   channelId: string;
   channelType: 'voice' | 'video' | 'stage';
+  autoJoin?: boolean;
 }
 
 interface Channel {
@@ -26,7 +27,7 @@ interface Channel {
   auto_transcribe: boolean;
 }
 
-const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
+const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannelProps) => {
   const { user } = useAuth();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isRecording, setIsRecording] = useState(false);
@@ -66,6 +67,13 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
   useEffect(() => {
     loadChannel();
   }, [channelId]);
+
+  // Auto-join when autoJoin prop is true
+  useEffect(() => {
+    if (autoJoin && !isConnected && !isJoining && channel) {
+      handleJoinChannel();
+    }
+  }, [autoJoin, channelId]);
 
   const loadChannel = async () => {
     const { data, error } = await supabase
@@ -200,9 +208,9 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
         )}
       </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
-        {!isConnected ? (
+      {/* Main Content - Fixed layout */}
+      {!isConnected ? (
+        <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center space-y-4">
             <div className="w-20 h-20 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
               <Phone className="w-10 h-10 text-primary" />
@@ -226,14 +234,16 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
               </p>
             )}
           </div>
-        ) : (
-          <div className="flex-1 w-full flex flex-col">
-            {/* Remote Audio Players */}
-            {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
-              <RemoteAudioPlayer key={userId} userId={userId} stream={stream} />
-            ))}
+        </div>
+      ) : (
+        <>
+          {/* Remote Audio Players */}
+          {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
+            <RemoteAudioPlayer key={userId} userId={userId} stream={stream} />
+          ))}
 
-            {/* Screen Share Spotlight */}
+          {/* Participant Grid / Screen Share - Scrollable */}
+          <div className="flex-1 min-h-0 overflow-auto">
             {(() => {
               // Check if anyone is screen sharing
               const screenSharingParticipants = participants.filter(p => p.is_screen_sharing);
@@ -242,7 +252,7 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
               if (localScreenShare) {
                 const currentUserParticipant = participants.find(p => p.user_id === user?.id);
                 return (
-                  <div className="flex-1 w-full p-4">
+                  <div className="w-full h-full p-4">
                     <ScreenShareSpotlight
                       userId={user!.id}
                       userName={currentUserParticipant?.user?.full_name || 'You'}
@@ -261,7 +271,7 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
                 
                 if (remoteStream) {
                   return (
-                    <div className="flex-1 w-full p-4">
+                    <div className="w-full h-full p-4">
                       <ScreenShareSpotlight
                         userId={sharingParticipant.user_id}
                         userName={sharingParticipant.user?.full_name || 'Unknown User'}
@@ -276,79 +286,77 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
               
               // No screen sharing - show normal participant grid
               return (
-                <div className="flex-1 overflow-auto">
-                  <ParticipantGrid 
-                    participants={participants} 
-                    channelType={channelType}
-                    currentUserId={user?.id}
-                    currentUserSpeaking={isSpeaking}
-                    localStream={localStream}
-                  />
-                </div>
+                <ParticipantGrid 
+                  participants={participants} 
+                  channelType={channelType}
+                  currentUserId={user?.id}
+                  currentUserSpeaking={isSpeaking}
+                  localStream={localStream}
+                />
               );
             })()}
+          </div>
 
-            {/* Voice Activity Indicator */}
-            {isSpeaking && (
-              <div className="fixed bottom-32 left-1/2 transform -translate-x-1/2">
-                <VoiceActivityIndicator isActive={true} />
-              </div>
+          {/* Voice Activity Indicator - Fixed above controls */}
+          {isSpeaking && (
+            <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2 z-10">
+              <VoiceActivityIndicator isActive={true} />
+            </div>
+          )}
+
+          {/* Controls - Fixed at bottom */}
+          <div className="h-20 border-t border-border px-4 flex items-center justify-center gap-2 bg-background">
+            <Button
+              variant="secondary"
+              size="icon"
+              className={`h-12 w-12 rounded-full ${isMuted ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500' : ''}`}
+              onClick={toggleMute}
+              disabled={pushToTalkEnabled}
+              title={pushToTalkEnabled ? "Mute control disabled in Push-to-Talk mode" : undefined}
+            >
+              {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+            </Button>
+
+            {channelType === 'video' && (
+              <Button
+                variant={isVideoOn ? "secondary" : "ghost"}
+                size="icon"
+                className="h-12 w-12 rounded-full"
+                onClick={toggleVideo}
+              >
+                {isVideoOn ? <VideoIcon className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
+              </Button>
             )}
 
-            {/* Controls */}
-            <div className="h-20 border-t border-border px-4 flex items-center justify-center gap-2">
-              <Button
-                variant="secondary"
-                size="icon"
-                className={`h-12 w-12 rounded-full ${isMuted ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500' : ''}`}
-                onClick={toggleMute}
-                disabled={pushToTalkEnabled}
-                title={pushToTalkEnabled ? "Mute control disabled in Push-to-Talk mode" : undefined}
-              >
-                {isMuted ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
-              </Button>
+            <Button
+              variant={isScreenSharing ? "secondary" : "ghost"}
+              size="icon"
+              className={`h-12 w-12 rounded-full ${isScreenSharing ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
+              onClick={toggleScreenShare}
+            >
+              <Monitor className="w-5 h-5" />
+            </Button>
 
-              {channelType === 'video' && (
-                <Button
-                  variant={isVideoOn ? "secondary" : "ghost"}
-                  size="icon"
-                  className="h-12 w-12 rounded-full"
-                  onClick={toggleVideo}
-                >
-                  {isVideoOn ? <VideoIcon className="w-5 h-5" /> : <VideoOff className="w-5 h-5" />}
-                </Button>
-              )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-12 w-12 rounded-full ${isDeafened ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500' : ''}`}
+              onClick={toggleDeafen}
+            >
+              {isDeafened ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            </Button>
 
-              <Button
-                variant={isScreenSharing ? "secondary" : "ghost"}
-                size="icon"
-                className={`h-12 w-12 rounded-full ${isScreenSharing ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
-                onClick={toggleScreenShare}
-              >
-                <Monitor className="w-5 h-5" />
-              </Button>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`h-12 w-12 rounded-full ${isDeafened ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500' : ''}`}
-                onClick={toggleDeafen}
-              >
-                {isDeafened ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </Button>
-
-              <Button
-                variant="secondary"
-                size="icon"
-                className="h-12 w-12 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-500"
-                onClick={handleLeaveChannel}
-              >
-                <PhoneOff className="w-5 h-5" />
-              </Button>
-            </div>
+            <Button
+              variant="secondary"
+              size="icon"
+              className="h-12 w-12 rounded-full bg-red-500/20 hover:bg-red-500/30 text-red-500"
+              onClick={handleLeaveChannel}
+            >
+              <PhoneOff className="w-5 h-5" />
+            </Button>
           </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };
