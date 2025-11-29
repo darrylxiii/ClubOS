@@ -15,14 +15,19 @@ import LiveHubBottomNav from './LiveHubBottomNav';
 import MobileChannelSheet from './MobileChannelSheet';
 import MobileMemberSheet from './MobileMemberSheet';
 import ChannelList from './ChannelList';
+import MobileVoiceIndicator from './MobileVoiceIndicator';
 
 interface MobileLiveHubLayoutProps {
   selectedChannelId: string | null;
   selectedChannelType: string;
   selectedConversationId: string | null;
   autoJoin: boolean;
+  connectedChannelId: string | null;
+  connectedChannelName: string;
   onChannelSelect: (channelId: string, channelType: string, shouldAutoJoin?: boolean) => void;
   onConversationSelect: (conversationId: string) => void;
+  onConnect: (channelId: string, channelName: string) => void;
+  onDisconnect: () => void;
   onlineMembers: any[];
   showSearch: boolean;
   setShowSearch: (show: boolean) => void;
@@ -39,8 +44,12 @@ const MobileLiveHubLayout = ({
   selectedChannelType,
   selectedConversationId,
   autoJoin,
+  connectedChannelId,
+  connectedChannelName,
   onChannelSelect,
   onConversationSelect,
+  onConnect,
+  onDisconnect,
   onlineMembers,
   showSearch,
   setShowSearch,
@@ -56,6 +65,7 @@ const MobileLiveHubLayout = ({
   const [showMemberSheet, setShowMemberSheet] = useState(false);
 
   const handleChannelSelect = (channelId: string, channelType: string, shouldAutoJoin?: boolean) => {
+    // If switching to a different voice channel while connected, the useVoiceChannel hook will handle disconnection
     onChannelSelect(channelId, channelType, shouldAutoJoin);
     setShowChannelSheet(false);
   };
@@ -183,6 +193,8 @@ const MobileLiveHubLayout = ({
               channelId={selectedChannelId}
               channelType={selectedChannelType as 'voice' | 'video'}
               autoJoin={autoJoin}
+              onConnect={onConnect}
+              onDisconnect={onDisconnect}
             />
           ) : (
             <MobileTextChannel channelId={selectedChannelId} />
@@ -192,12 +204,22 @@ const MobileLiveHubLayout = ({
             <ChannelList
               selectedChannelId={selectedChannelId}
               selectedConversationId={selectedConversationId}
+              connectedChannelId={connectedChannelId}
               onChannelSelect={handleChannelSelect}
               onConversationSelect={handleConversationSelect}
             />
           </div>
         )}
       </div>
+
+      {/* Floating Voice Indicator - shows when connected but viewing different channel */}
+      {connectedChannelId && selectedChannelId !== connectedChannelId && (
+        <MobileVoiceIndicator
+          channelName={connectedChannelName}
+          onTap={() => handleChannelSelect(connectedChannelId, 'voice', false)}
+          onDisconnect={onDisconnect}
+        />
+      )}
 
       {/* Bottom Navigation - Discord-style 4 items */}
       <LiveHubBottomNav activePanel={activePanel} onPanelChange={handleNavChange} />

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChevronDown, ChevronRight, Hash, Volume2, Video, Radio, Plus, MessageSquare } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useLiveHubUnread } from '@/hooks/useLiveHubUnread';
 import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ interface Channel {
 interface ChannelListProps {
   selectedChannelId: string | null;
   selectedConversationId: string | null;
+  connectedChannelId?: string | null;
   onChannelSelect: (channelId: string, channelType: string, autoJoin?: boolean) => void;
   onConversationSelect: (conversationId: string) => void;
 }
@@ -36,7 +38,7 @@ interface ChannelParticipant {
   };
 }
 
-const ChannelList = ({ selectedChannelId, selectedConversationId, onChannelSelect, onConversationSelect }: ChannelListProps) => {
+const ChannelList = ({ selectedChannelId, selectedConversationId, connectedChannelId, onChannelSelect, onConversationSelect }: ChannelListProps) => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [channelParticipants, setChannelParticipants] = useState<Record<string, ChannelParticipant[]>>({});
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['GENERAL', 'STRATEGY', 'RECRUITMENT', 'CLIENT CALLS']));
@@ -287,10 +289,13 @@ const ChannelList = ({ selectedChannelId, selectedConversationId, onChannelSelec
                         >
                           {getChannelIcon(channel.channel_type)}
                           <span className="flex-1 truncate text-left">{channel.name}</span>
+                          {connectedChannelId === channel.id && (
+                            <Badge className="bg-green-500 text-white text-[10px] px-1.5 py-0">LIVE</Badge>
+                          )}
                           {channel.channel_type === 'text' && getUnreadCount(channel.id) > 0 && (
                             <UnreadBadge count={getUnreadCount(channel.id)} />
                           )}
-                          {isVoiceType && participants.length > 0 && (
+                          {isVoiceType && participants.length > 0 && connectedChannelId !== channel.id && (
                             <span className="text-xs text-muted-foreground">
                               {participants.length}
                             </span>

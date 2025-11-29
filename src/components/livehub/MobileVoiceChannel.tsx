@@ -12,6 +12,8 @@ interface MobileVoiceChannelProps {
   channelId: string;
   channelType: 'voice' | 'video';
   autoJoin?: boolean;
+  onConnect?: (channelId: string, channelName: string) => void;
+  onDisconnect?: () => void;
 }
 
 interface Channel {
@@ -20,7 +22,7 @@ interface Channel {
   channel_type: string;
 }
 
-const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false }: MobileVoiceChannelProps) => {
+const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnect, onDisconnect }: MobileVoiceChannelProps) => {
   const { user } = useAuth();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isJoining, setIsJoining] = useState(false);
@@ -69,6 +71,10 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false }: Mobile
     
     try {
       await joinChannel();
+      // Notify parent of successful connection
+      if (channel) {
+        onConnect?.(channelId, channel.name);
+      }
       toast.success('Connected to voice channel');
     } catch (error: any) {
       console.error('Error joining channel:', error);
@@ -87,6 +93,8 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false }: Mobile
     try {
       await leaveChannel();
       toast.success('Disconnected');
+      // Notify parent to disconnect and navigate back
+      onDisconnect?.();
     } catch (error) {
       console.error('Error leaving channel:', error);
     }
