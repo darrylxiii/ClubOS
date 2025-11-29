@@ -104,13 +104,21 @@ class TrackingService {
     const batch = this.eventQueue.splice(0, this.BATCH_SIZE);
     
     try {
-      await supabase.from('user_session_events').insert(batch);
-    } catch (error) {
-      console.error('Failed to flush tracking events:', error);
-      // Re-queue failed events (with a limit to prevent infinite growth)
-      if (this.eventQueue.length < 500) {
-        this.eventQueue.unshift(...batch);
+      const { error } = await supabase
+        .from('user_session_events')
+        .insert(batch);
+      
+      if (error) {
+        console.error('[TrackingService] Failed to insert events:', error);
+        console.error('[TrackingService] Failed batch sample:', JSON.stringify(batch[0], null, 2));
+        // Re-add failed events to queue (with limit)
+        if (this.eventQueue.length < 500) {
+          this.eventQueue.unshift(...batch);
+        }
       }
+    } catch (error) {
+      console.error('[TrackingService] Exception flushing events:', error);
+      console.error('[TrackingService] Failed batch size:', batch.length);
     }
   }
 

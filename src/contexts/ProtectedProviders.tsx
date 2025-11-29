@@ -7,6 +7,7 @@ import { MotionProvider } from "@/contexts/MotionContext";
 import { AppearanceProvider } from "@/contexts/AppearanceContext";
 import { FloatingVideoPlayer } from "@/components/FloatingVideoPlayer";
 import { ActivityTracker } from "@/components/ActivityTracker";
+import { TrackingProvider } from "@/components/tracking/TrackingProvider";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedProvidersProps {
@@ -27,8 +28,10 @@ export const ProtectedProviders = ({ children }: ProtectedProvidersProps) => {
             <NavigationHistoryProvider>
               <MotionProvider>
                 <ActivityTracker>
-                  <FloatingVideoPlayer />
-                  {children}
+                  <TrackingProvider>
+                    <FloatingVideoPlayer />
+                    {children}
+                  </TrackingProvider>
                 </ActivityTracker>
               </MotionProvider>
             </NavigationHistoryProvider>
