@@ -48,7 +48,7 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false }: Mobile
     if (autoJoin && !isConnected && !isJoining && channel) {
       handleJoinChannel();
     }
-  }, [autoJoin, channelId]);
+  }, [autoJoin, isConnected, isJoining, channel]);
 
   const loadChannel = async () => {
     const { data } = await supabase
@@ -120,9 +120,28 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false }: Mobile
             </div>
             <div>
               <h3 className="text-2xl font-semibold mb-2">{channel.name}</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 {participants.length} {participants.length === 1 ? 'person' : 'people'} in channel
               </p>
+
+              {/* Show participant avatars */}
+              {participants.length > 0 && (
+                <div className="flex justify-center items-center gap-2">
+                  {participants.slice(0, 5).map((participant) => (
+                    <Avatar key={participant.id} className="h-10 w-10 border-2 border-primary/20">
+                      <AvatarImage src={participant.user?.avatar_url || undefined} />
+                      <AvatarFallback className="text-xs">
+                        {participant.user?.full_name?.substring(0, 2).toUpperCase() || '?'}
+                      </AvatarFallback>
+                    </Avatar>
+                  ))}
+                  {participants.length > 5 && (
+                    <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
+                      <span className="text-xs font-semibold">+{participants.length - 5}</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <Button 
               onClick={handleJoinChannel} 

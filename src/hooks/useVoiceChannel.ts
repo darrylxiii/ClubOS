@@ -265,16 +265,24 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   const updateParticipantStatus = async (updates: Partial<Participant>) => {
     if (!user) return;
 
-    await supabase
-      .from('live_channel_participants')
-      .update(updates)
-      .eq('channel_id', channelId)
-      .eq('user_id', user.id);
+    try {
+      const { error } = await supabase
+        .from('live_channel_participants')
+        .update(updates)
+        .eq('channel_id', channelId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating participant status:', error);
+        toast.error('Failed to update status');
+      }
+    } catch (error) {
+      console.error('Error updating participant status:', error);
+      toast.error('Failed to update status');
+    }
   };
 
   const toggleMute = useCallback(() => {
-    if (pushToTalkEnabled) return; // Don't allow manual toggle in PTT mode
-    
     setIsMuted(prev => {
       const newMuted = !prev;
       if (localStreamRef.current) {
@@ -285,7 +293,7 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
       updateParticipantStatus({ is_muted: newMuted });
       return newMuted;
     });
-  }, [pushToTalkEnabled]);
+  }, []);
 
   const setPushToTalkActive = useCallback((active: boolean) => {
     if (!pushToTalkEnabled || !localStreamRef.current) return;

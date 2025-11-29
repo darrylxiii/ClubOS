@@ -13133,6 +13133,27 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_live_channel_participants_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "fk_live_channel_participants_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_live_channel_participants_user"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "live_channel_participants_channel_id_fkey"
             columns: ["channel_id"]
             isOneToOne: false
@@ -26371,41 +26392,99 @@ export type Database = {
       }
       webrtc_signals: {
         Row: {
+          channel_id: string | null
           created_at: string
+          from_user_id: string | null
           id: string
-          meeting_id: string
+          meeting_id: string | null
           processed: boolean | null
           receiver_id: string | null
           sender_id: string
           signal_data: Json
           signal_type: string
+          to_user_id: string | null
         }
         Insert: {
+          channel_id?: string | null
           created_at?: string
+          from_user_id?: string | null
           id?: string
-          meeting_id: string
+          meeting_id?: string | null
           processed?: boolean | null
           receiver_id?: string | null
           sender_id: string
           signal_data?: Json
           signal_type: string
+          to_user_id?: string | null
         }
         Update: {
+          channel_id?: string | null
           created_at?: string
+          from_user_id?: string | null
           id?: string
-          meeting_id?: string
+          meeting_id?: string | null
           processed?: boolean | null
           receiver_id?: string | null
           sender_id?: string
           signal_data?: Json
           signal_type?: string
+          to_user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "webrtc_signals_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webrtc_signals_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "webrtc_signals_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webrtc_signals_from_user_id_fkey"
+            columns: ["from_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "webrtc_signals_meeting_id_fkey"
             columns: ["meeting_id"]
             isOneToOne: false
             referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webrtc_signals_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "webrtc_signals_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webrtc_signals_to_user_id_fkey"
+            columns: ["to_user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -27141,6 +27220,7 @@ export type Database = {
       cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
       cleanup_inactive_participants: { Args: never; Returns: undefined }
+      cleanup_old_webrtc_signals: { Args: never; Returns: undefined }
       cleanup_stale_channel_participants: { Args: never; Returns: undefined }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
       detect_churn_risk: { Args: { p_user_id: string }; Returns: string }
