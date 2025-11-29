@@ -29,13 +29,21 @@ const ParticipantGrid = ({ participants, channelType, currentUserId, currentUser
   useEffect(() => {
     // Attach local stream to current user's video element if video is on
     if (localStream && currentUserId) {
-      const videoEl = videoRefs.current.get(currentUserId);
+      const currentUserParticipant = participants.find(p => p.user_id === currentUserId);
+      if (!currentUserParticipant) return;
+      
+      const videoEl = videoRefs.current.get(currentUserParticipant.id);
       if (videoEl && localStream.getVideoTracks().length > 0) {
+        console.log('[Video] Attaching local stream to video element', {
+          participantId: currentUserParticipant.id,
+          hasVideoTracks: localStream.getVideoTracks().length > 0,
+          videoTrackEnabled: localStream.getVideoTracks()[0]?.enabled
+        });
         videoEl.srcObject = localStream;
         videoEl.play().catch(err => console.error('Error playing local video:', err));
       }
     }
-  }, [localStream, currentUserId]);
+  }, [localStream, currentUserId, participants]);
 
   const setVideoRef = (participantId: string, el: HTMLVideoElement | null) => {
     if (el) {
@@ -69,10 +77,10 @@ const ParticipantGrid = ({ participants, channelType, currentUserId, currentUser
             }`}
           >
             {/* Video element for video channels */}
-            {participant.is_video_on && (isCurrentUser || channelType === 'video') ? (
+            {participant.is_video_on && channelType === 'video' ? (
               <video
                 ref={(el) => setVideoRef(participant.id, el)}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover rounded-lg"
                 autoPlay
                 playsInline
                 muted={isCurrentUser} // Mute own video to prevent echo
