@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { RemoteAudioPlayer } from './RemoteAudioPlayer';
 import { 
   Phone, PhoneOff, Mic, MicOff, Video, VideoOff, 
   Hand, UserPlus, UserMinus, Crown, Users
@@ -33,6 +34,8 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
     listeners,
     isHost,
     isSpeaker,
+    remoteStreams,
+    isWebRTCConnected,
     joinChannel,
     leaveChannel,
     toggleMute,
@@ -121,6 +124,11 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
           </div>
         ) : (
           <>
+            {/* Remote Audio Players */}
+            {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
+              <RemoteAudioPlayer key={userId} userId={userId} stream={stream} />
+            ))}
+
             {/* Speakers Section */}
             <div className="border-b border-border">
               <div className="px-4 py-2 bg-muted/30">

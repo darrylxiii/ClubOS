@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useLiveHubWebRTC } from './useLiveHubWebRTC';
 
 interface StageParticipant {
   id: string;
@@ -21,6 +22,14 @@ export function useStageChannel(channelId: string) {
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isVideoOn, setIsVideoOn] = useState(false);
+  const localStreamRef = useRef<MediaStream | null>(null);
+
+  // Use WebRTC for peer connections
+  const { remoteStreams, isConnected: isWebRTCConnected } = useLiveHubWebRTC({
+    channelId,
+    localStream: localStreamRef.current,
+    enabled: isConnected
+  });
 
   // Load participants
   const loadParticipants = useCallback(async () => {
@@ -77,6 +86,26 @@ export function useStageChannel(channelId: string) {
       throw new Error('User not authenticated');
     }
 
+    // Get microphone access
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true
+        }
+      });
+      localStreamRef.current = stream;
+      
+      // Mute by default for stage
+      stream.getAudioTracks().forEach(track => {
+        track.enabled = false;
+      });
+    } catch (error) {
+      console.error('Error accessing microphone:', error);
+      throw new Error('Failed to access microphone');
+    }
+
     // First, leave any other channels
     await supabase
       .from('live_channel_participants')
@@ -110,6 +139,12 @@ export function useStageChannel(channelId: string) {
   const leaveChannel = useCallback(async () => {
     if (!myParticipant) return;
 
+    // Stop local stream
+    if (localStreamRef.current) {
+      localStreamRef.current.getTracks().forEach(track => track.stop());
+      localStreamRef.current = null;
+    }
+
     await supabase
       .from('live_channel_participants')
       .delete()
@@ -121,15 +156,20 @@ export function useStageChannel(channelId: string) {
 
   // Toggle mute
   const toggleMute = useCallback(async () => {
-    if (!myParticipant) return;
+    if (!myParticipant || !localStreamRef.current) return;
 
     const newMuted = !isMuted;
+    setIsMuted(newMuted);
+
+    // Enable/disable audio track
+    localStreamRef.current.getAudioTracks().forEach(track => {
+      track.enabled = !newMuted;
+    });
+
     await supabase
       .from('live_channel_participants')
       .update({ is_muted: newMuted })
       .eq('id', myParticipant.id);
-
-    setIsMuted(newMuted);
   }, [myParticipant, isMuted]);
 
   // Toggle video
@@ -225,6 +265,8 @@ export function useStageChannel(channelId: string) {
     listeners,
     isHost,
     isSpeaker,
+    remoteStreams,
+    isWebRTCConnected,
     joinChannel,
     leaveChannel,
     toggleMute,
