@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useMeetingTranscription } from './useMeetingTranscription';
+import { useLiveHubWebRTC } from './useLiveHubWebRTC';
 
 interface Participant {
   id: string;
@@ -36,6 +37,13 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   const localStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const vadIntervalRef = useRef<number | null>(null);
+
+  // Use WebRTC for peer connections
+  const { remoteStreams, isConnected: isWebRTCConnected } = useLiveHubWebRTC({
+    channelId,
+    localStream: localStreamRef.current,
+    enabled: isConnected
+  });
 
   // Use the transcription hook
   const { transcriptions, isTranscribing } = useMeetingTranscription({
@@ -403,6 +411,8 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     transcriptions,
     isTranscribing,
     localStream: localStreamRef.current,
+    remoteStreams,
+    isWebRTCConnected,
     joinChannel,
     leaveChannel,
     toggleMute,

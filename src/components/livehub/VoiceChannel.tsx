@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Phone, PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, Monitor, Volume2, VolumeX } from 'lucide-react';
 import ParticipantGrid from './ParticipantGrid';
 import VoiceActivityIndicator from './VoiceActivityIndicator';
+import { RemoteAudioPlayer } from './RemoteAudioPlayer';
 import { toast } from 'sonner';
 
 interface VoiceChannelProps {
@@ -40,6 +41,8 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
     isSpeaking,
     participants,
     localStream,
+    remoteStreams,
+    isWebRTCConnected,
     joinChannel,
     leaveChannel,
     toggleMute,
@@ -223,6 +226,11 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
           </div>
         ) : (
           <div className="flex-1 w-full flex flex-col">
+            {/* Remote Audio Players */}
+            {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
+              <RemoteAudioPlayer key={userId} userId={userId} stream={stream} />
+            ))}
+
             {/* Participants */}
             <div className="flex-1 overflow-auto">
               <ParticipantGrid 
