@@ -8,13 +8,32 @@ export function UserSegmentsTab() {
   const { data: deviceData, isLoading } = useQuery({
     queryKey: ['user-segments-device'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      
+      // Try to get device info from dedicated table
+      const { data: deviceInfo } = await supabase
         .from('user_device_info')
         .select('device_type, os, browser, timezone')
-        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
+        .gte('created_at', sevenDaysAgo);
       
-      if (error) throw error;
-      return data || [];
+      // Fallback: derive from session events metadata
+      if (!deviceInfo || deviceInfo.length === 0) {
+        const { data: sessionEvents } = await supabase
+          .from('user_session_events')
+          .select('metadata')
+          .gte('created_at', sevenDaysAgo);
+        
+        const derivedData = (sessionEvents || []).map((e: any) => ({
+          device_type: e.metadata?.deviceType || 'unknown',
+          os: e.metadata?.os || 'Unknown',
+          browser: e.metadata?.browser || 'Unknown',
+          timezone: e.metadata?.timezone || 'Unknown',
+        }));
+        
+        return derivedData;
+      }
+      
+      return deviceInfo || [];
     },
     refetchInterval: 30000,
   });

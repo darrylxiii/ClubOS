@@ -24,6 +24,42 @@ export function useComprehensiveTracking(options: UseComprehensiveTrackingOption
     return enabled && Math.random() < sampleRate && user;
   }, [enabled, sampleRate, user]);
 
+  // Track device info on mount (once per session)
+  useEffect(() => {
+    if (!shouldTrack()) return;
+
+    const detectDevice = () => {
+      const ua = navigator.userAgent;
+      let deviceType = 'desktop';
+      if (/mobile/i.test(ua)) deviceType = 'mobile';
+      else if (/tablet|ipad/i.test(ua)) deviceType = 'tablet';
+
+      let os = 'Unknown';
+      if (/windows/i.test(ua)) os = 'Windows';
+      else if (/mac/i.test(ua)) os = 'MacOS';
+      else if (/linux/i.test(ua)) os = 'Linux';
+      else if (/android/i.test(ua)) os = 'Android';
+      else if (/ios|iphone|ipad/i.test(ua)) os = 'iOS';
+
+      let browser = 'Unknown';
+      if (/chrome/i.test(ua) && !/edg/i.test(ua)) browser = 'Chrome';
+      else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'Safari';
+      else if (/firefox/i.test(ua)) browser = 'Firefox';
+      else if (/edg/i.test(ua)) browser = 'Edge';
+
+      return {
+        deviceType,
+        os,
+        browser,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      };
+    };
+
+    trackingService.trackDeviceInfo(detectDevice());
+  }, [shouldTrack, user]);
+
   // Track page entry
   useEffect(() => {
     if (!shouldTrack()) return;
