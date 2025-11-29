@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { ChevronDown, ChevronRight, Hash, Volume2, Video, Radio, Plus } from 'lucide-react';
+import { ChevronDown, ChevronRight, Hash, Volume2, Video, Radio, Plus, MessageSquare } from 'lucide-react';
 import { useLiveHubUnread } from '@/hooks/useLiveHubUnread';
 import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import CreateChannelDialog from './CreateChannelDialog';
+import { DirectMessageList } from './DirectMessageList';
 
 interface Channel {
   id: string;
@@ -18,7 +20,9 @@ interface Channel {
 
 interface ChannelListProps {
   selectedChannelId: string | null;
+  selectedConversationId: string | null;
   onChannelSelect: (channelId: string, channelType: string, autoJoin?: boolean) => void;
+  onConversationSelect: (conversationId: string) => void;
 }
 
 interface ChannelParticipant {
@@ -32,11 +36,12 @@ interface ChannelParticipant {
   };
 }
 
-const ChannelList = ({ selectedChannelId, onChannelSelect }: ChannelListProps) => {
+const ChannelList = ({ selectedChannelId, selectedConversationId, onChannelSelect, onConversationSelect }: ChannelListProps) => {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [channelParticipants, setChannelParticipants] = useState<Record<string, ChannelParticipant[]>>({});
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['GENERAL', 'STRATEGY', 'RECRUITMENT', 'CLIENT CALLS']));
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showDMs, setShowDMs] = useState(true);
   const [serverId, setServerId] = useState<string | null>(null);
   const { getUnreadCount } = useLiveHubUnread();
 
@@ -219,6 +224,32 @@ const ChannelList = ({ selectedChannelId, onChannelSelect }: ChannelListProps) =
       {/* Channels */}
       <ScrollArea className="flex-1">
         <div className="py-2">
+          {/* Direct Messages Section */}
+          <div className="mb-3">
+            <button
+              onClick={() => setShowDMs(!showDMs)}
+              className="w-full px-4 py-1 flex items-center gap-1 text-xs font-semibold text-muted-foreground hover:text-foreground uppercase tracking-wide transition-colors"
+            >
+              {showDMs ? (
+                <ChevronDown className="w-3 h-3 shrink-0" />
+              ) : (
+                <ChevronRight className="w-3 h-3 shrink-0" />
+              )}
+              <MessageSquare className="w-3 h-3" />
+              <span className="truncate">Direct Messages</span>
+            </button>
+
+            {showDMs && (
+              <DirectMessageList
+                onSelectConversation={onConversationSelect}
+                selectedConversationId={selectedConversationId || undefined}
+              />
+            )}
+          </div>
+
+          <Separator className="my-2" />
+
+          {/* Channel Categories */}
           {Object.entries(channelsByCategory).map(([category, categoryChannels]) => (
             <div key={category} className="mb-3">
               <button
