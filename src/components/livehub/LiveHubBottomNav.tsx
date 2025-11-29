@@ -1,18 +1,17 @@
-import { Home, Hash, MessageSquare, Users, Settings } from 'lucide-react';
+import { Grid, MessageSquare, Bell, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LiveHubBottomNavProps {
-  activePanel: 'home' | 'channels' | 'dms' | 'members' | 'settings';
-  onPanelChange: (panel: 'home' | 'channels' | 'dms' | 'members' | 'settings') => void;
+  activePanel: 'home' | 'servers' | 'messages' | 'notifications' | 'you';
+  onPanelChange: (panel: 'home' | 'servers' | 'messages' | 'notifications' | 'you') => void;
 }
 
 const LiveHubBottomNav = ({ activePanel, onPanelChange }: LiveHubBottomNavProps) => {
   const navItems = [
-    { id: 'home' as const, icon: Home, label: 'Home' },
-    { id: 'channels' as const, icon: Hash, label: 'Channels' },
-    { id: 'dms' as const, icon: MessageSquare, label: 'DMs' },
-    { id: 'members' as const, icon: Users, label: 'Members' },
-    { id: 'settings' as const, icon: Settings, label: 'Settings' },
+    { id: 'servers' as const, icon: Grid, label: 'Servers' },
+    { id: 'messages' as const, icon: MessageSquare, label: 'Messages' },
+    { id: 'notifications' as const, icon: Bell, label: 'Notifications' },
+    { id: 'you' as const, icon: User, label: 'You' },
   ];
 
   return (

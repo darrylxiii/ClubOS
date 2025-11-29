@@ -158,22 +158,6 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false }: Mobile
         <>
           {/* Connected View */}
           <div className="flex-1 flex flex-col">
-            {/* Header */}
-            <div className="h-14 px-4 flex items-center justify-between border-b border-border safe-area-top">
-              <div>
-                <h2 className="font-semibold">{channel.name}</h2>
-                <p className="text-xs text-primary">Connected</p>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowControls(!showControls)}
-                className="h-10 w-10"
-              >
-                <ChevronDown className={`h-5 w-5 transition-transform ${showControls ? 'rotate-180' : ''}`} />
-              </Button>
-            </div>
-
             {/* Participants Grid */}
             <div className="flex-1 overflow-auto p-4">
               <div className="grid grid-cols-2 gap-4">
