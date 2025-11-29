@@ -97,17 +97,20 @@ export function useMeetingTranscription({
       return;
     }
 
-    // Delay setup to ensure stream is ready
-    const setupTimer = setTimeout(() => {
-      setupAudioCapture();
-    }, 1000);
-
     // Initialize MediaRecorder for proper audio format
     const setupAudioCapture = async () => {
       try {
-        // Validate stream has audio tracks
-        if (!localStream.getAudioTracks().length) {
+        // Validate stream has audio tracks and they're enabled
+        const audioTracks = localStream.getAudioTracks();
+        if (!audioTracks.length) {
           console.warn('[Transcription] No audio tracks in stream');
+          return;
+        }
+
+        // Wait for tracks to be ready
+        const activeTrack = audioTracks.find(track => track.readyState === 'live' && track.enabled);
+        if (!activeTrack) {
+          console.warn('[Transcription] No active audio tracks available');
           return;
         }
 
@@ -129,9 +132,25 @@ export function useMeetingTranscription({
           }
         };
 
-        mediaRecorder.onerror = (event) => {
-          console.error('[Transcription] MediaRecorder error:', event);
-          toast.error('Transcription error occurred');
+        mediaRecorder.onerror = (event: Event) => {
+          console.error('[Transcription] MediaRecorder error:', {
+            error: event,
+            state: mediaRecorder.state,
+            stream: localStream,
+            tracks: localStream.getAudioTracks().map(t => ({
+              id: t.id,
+              enabled: t.enabled,
+              muted: t.muted,
+              readyState: t.readyState
+            }))
+          });
+          
+          // Stop recording on error
+          if (transcriptionIntervalRef.current) {
+            clearInterval(transcriptionIntervalRef.current);
+            transcriptionIntervalRef.current = null;
+          }
+          setIsTranscribing(false);
         };
 
         mediaRecorder.onstop = async () => {
@@ -143,6 +162,18 @@ export function useMeetingTranscription({
             await processAudioBlob(audioBlob);
           }
         };
+
+        // Listen for track ended events
+        audioTracks.forEach(track => {
+          track.onended = () => {
+            console.warn('[Transcription] Audio track ended');
+            if (transcriptionIntervalRef.current) {
+              clearInterval(transcriptionIntervalRef.current);
+              transcriptionIntervalRef.current = null;
+            }
+            setIsTranscribing(false);
+          };
+        });
 
         // Record in 5-second intervals
         mediaRecorder.start();
@@ -157,9 +188,14 @@ export function useMeetingTranscription({
         console.log('[Transcription] Started successfully');
       } catch (error) {
         console.error('[Transcription] Setup failed:', error);
-        // Don't show toast for transcription errors to avoid spam
+        setIsTranscribing(false);
       }
     };
+
+    // Delay setup to ensure stream is ready
+    const setupTimer = setTimeout(() => {
+      setupAudioCapture();
+    }, 1500);
 
     return () => {
       clearTimeout(setupTimer);
