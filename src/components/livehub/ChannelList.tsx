@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { ChevronDown, ChevronRight, Hash, Volume2, Video, Radio, Plus } from 'lucide-react';
+import { useLiveHubUnread } from '@/hooks/useLiveHubUnread';
+import { UnreadBadge } from '@/components/messages/UnreadBadge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
@@ -36,6 +38,7 @@ const ChannelList = ({ selectedChannelId, onChannelSelect }: ChannelListProps) =
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(['GENERAL', 'STRATEGY', 'RECRUITMENT', 'CLIENT CALLS']));
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [serverId, setServerId] = useState<string | null>(null);
+  const { getUnreadCount } = useLiveHubUnread();
 
   useEffect(() => {
     ensureMembership();
@@ -240,14 +243,19 @@ const ChannelList = ({ selectedChannelId, onChannelSelect }: ChannelListProps) =
                       <div key={channel.id}>
                         <button
                           onClick={() => onChannelSelect(channel.id, channel.channel_type)}
-                          className={`w-full px-2 py-1.5 flex items-center gap-2 text-sm rounded group ${
+                          className={`relative w-full px-2 py-1.5 flex items-center gap-2 text-sm rounded group ${
                             selectedChannelId === channel.id
                               ? 'bg-primary/10 text-primary'
+                              : getUnreadCount(channel.id) > 0
+                              ? 'text-foreground font-semibold'
                               : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                           }`}
                         >
                           {getChannelIcon(channel.channel_type)}
                           <span className="flex-1 truncate text-left">{channel.name}</span>
+                          {channel.channel_type === 'text' && getUnreadCount(channel.id) > 0 && (
+                            <UnreadBadge count={getUnreadCount(channel.id)} />
+                          )}
                           {isVoiceType && participants.length > 0 && (
                             <span className="text-xs text-muted-foreground">
                               {participants.length}

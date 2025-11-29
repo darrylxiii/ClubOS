@@ -17,47 +17,93 @@ export const useLiveHubPresence = () => {
   }, []);
 
   const loadMembers = async () => {
-    const { data, error } = await supabase
+    // Get all profiles with their presence status
+    const { data: profiles, error: profileError } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url')
       .limit(50);
 
-    if (error) {
-      console.error('Error loading members:', error);
+    if (profileError) {
+      console.error('Error loading members:', profileError);
       return;
     }
 
-    // For now, mark all as online - in production, you'd check actual presence
-    setOnlineMembers((data || []).map(member => ({
-      ...member,
-      status: 'online' as const
-    })));
+    // Get user presence data
+    const { data: presenceData } = await supabase
+      .from('user_presence')
+      .select('user_id, status, last_seen')
+      .in('user_id', profiles?.map(p => p.id) || []);
+
+    const presenceMap = new Map(presenceData?.map(p => [p.user_id, p]) || []);
+
+    // Determine status based on last_seen and status
+    const now = new Date();
+    const membersWithStatus = (profiles || []).map(member => {
+      const presence = presenceMap.get(member.id);
+      let status: 'online' | 'away' | 'offline' = 'offline';
+
+      if (presence) {
+        if (presence.status === 'online') {
+          const lastSeen = new Date(presence.last_seen);
+          const minutesSinceLastSeen = (now.getTime() - lastSeen.getTime()) / 1000 / 60;
+          
+          if (minutesSinceLastSeen < 5) {
+            status = 'online';
+          } else if (minutesSinceLastSeen < 15) {
+            status = 'away';
+          } else {
+            status = 'offline';
+          }
+        }
+      }
+
+      return {
+        ...member,
+        status
+      };
+    });
+
+    setOnlineMembers(membersWithStatus);
   };
 
   const subscribeToPresence = () => {
-    const channel = supabase.channel('online-users');
+    // Subscribe to user_presence table changes for real-time updates
+    const presenceChannel = supabase
+      .channel('user_presence_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'user_presence'
+        },
+        () => {
+          // Reload members when presence changes
+          loadMembers();
+        }
+      )
+      .subscribe();
 
-    channel
+    // Track current user's presence
+    const trackingChannel = supabase.channel('livehub-presence');
+    
+    trackingChannel
       .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        console.log('Presence state:', state);
-      })
-      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-        console.log('User joined:', key, newPresences);
-      })
-      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-        console.log('User left:', key, leftPresences);
+        const state = trackingChannel.presenceState();
+        console.log('LiveHub presence state:', state);
       })
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          await channel.track({
-            online_at: new Date().toISOString()
+          await trackingChannel.track({
+            online_at: new Date().toISOString(),
+            location: 'livehub'
           });
         }
       });
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(presenceChannel);
+      supabase.removeChannel(trackingChannel);
     };
   };
 
