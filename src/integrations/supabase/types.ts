@@ -12795,8 +12795,11 @@ export type Database = {
           channel_id: string | null
           content: string
           created_at: string | null
+          edited_at: string | null
           id: string
+          is_edited: boolean | null
           is_pinned: boolean | null
+          mentions: string[] | null
           reply_to_id: string | null
           updated_at: string | null
           user_id: string | null
@@ -12806,8 +12809,11 @@ export type Database = {
           channel_id?: string | null
           content: string
           created_at?: string | null
+          edited_at?: string | null
           id?: string
+          is_edited?: boolean | null
           is_pinned?: boolean | null
+          mentions?: string[] | null
           reply_to_id?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -12817,8 +12823,11 @@ export type Database = {
           channel_id?: string | null
           content?: string
           created_at?: string | null
+          edited_at?: string | null
           id?: string
+          is_edited?: boolean | null
           is_pinned?: boolean | null
+          mentions?: string[] | null
           reply_to_id?: string | null
           updated_at?: string | null
           user_id?: string | null
@@ -12893,6 +12902,54 @@ export type Database = {
           },
         ]
       }
+      live_channel_read_states: {
+        Row: {
+          channel_id: string
+          created_at: string | null
+          id: string
+          last_read_at: string | null
+          last_read_message_id: string | null
+          unread_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string | null
+          id?: string
+          last_read_at?: string | null
+          last_read_message_id?: string | null
+          unread_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string | null
+          id?: string
+          last_read_at?: string | null
+          last_read_message_id?: string | null
+          unread_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_channel_read_states_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "live_channel_read_states_last_read_message_id_fkey"
+            columns: ["last_read_message_id"]
+            isOneToOne: false
+            referencedRelation: "live_channel_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       live_channel_recordings: {
         Row: {
           ai_action_items: Json | null
@@ -12951,6 +13008,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "live_channel_recordings_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_channel_user_settings: {
+        Row: {
+          channel_id: string
+          created_at: string | null
+          id: string
+          is_muted: boolean | null
+          notification_level: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          created_at?: string | null
+          id?: string
+          is_muted?: boolean | null
+          notification_level?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          created_at?: string | null
+          id?: string
+          is_muted?: boolean | null
+          notification_level?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_channel_user_settings_channel_id_fkey"
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "live_channels"
@@ -26554,6 +26649,10 @@ export type Database = {
           p_user_agent?: string
         }
         Returns: string
+      }
+      mark_channel_as_read: {
+        Args: { p_channel_id: string; p_user_id: string }
+        Returns: undefined
       }
       owns_message_attachment: {
         Args: { _file_path: string }

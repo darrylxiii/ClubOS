@@ -1,7 +1,10 @@
 import { useEffect, useState, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { Hash, Send, Pin, PinOff, MessageSquare, MoreVertical, Paperclip, X } from 'lucide-react';
+import { Hash, Send, Pin, PinOff, MessageSquare, MoreVertical, Paperclip, X, Edit2, Trash2 } from 'lucide-react';
+import { useLiveHubTyping } from '@/hooks/useLiveHubTyping';
+import { useLiveHubUnread } from '@/hooks/useLiveHubUnread';
+import { TypingIndicator } from '@/components/messages/TypingIndicator';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -53,14 +56,24 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
   const [threadMessage, setThreadMessage] = useState<Message | null>(null);
   const [showPinnedPanel, setShowPinnedPanel] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState<File[]>([]);
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingContent, setEditingContent] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { typingUsers, startTyping, stopTyping } = useLiveHubTyping(channelId);
+  const { markAsRead } = useLiveHubUnread();
 
   useEffect(() => {
     loadChannel();
     loadMessages();
     subscribeToMessages();
-  }, [channelId]);
+    
+    // Mark channel as read when opened
+    if (user) {
+      markAsRead(channelId);
+    }
+  }, [channelId, user, markAsRead]);
 
   useEffect(() => {
     scrollToBottom();
@@ -188,6 +201,9 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
   const sendMessage = async () => {
     if ((!newMessage.trim() && uploadingFiles.length === 0) || !user) return;
 
+    // Stop typing indicator
+    stopTyping();
+
     let attachments: Attachment[] | null = null;
 
     if (uploadingFiles.length > 0) {
@@ -218,6 +234,57 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
     setNewMessage('');
     setUploadingFiles([]);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const editMessage = async (messageId: string, newContent: string) => {
+    if (!newContent.trim()) return;
+
+    const { error } = await supabase
+      .from('live_channel_messages')
+      .update({ 
+        content: newContent,
+        is_edited: true,
+        edited_at: new Date().toISOString()
+      })
+      .eq('id', messageId);
+
+    if (error) {
+      console.error('Error editing message:', error);
+      toast.error('Failed to edit message');
+      return;
+    }
+
+    setEditingMessageId(null);
+    setEditingContent('');
+    toast.success('Message edited');
+  };
+
+  const deleteMessage = async (messageId: string) => {
+    if (!confirm('Are you sure you want to delete this message?')) return;
+
+    const { error } = await supabase
+      .from('live_channel_messages')
+      .delete()
+      .eq('id', messageId);
+
+    if (error) {
+      console.error('Error deleting message:', error);
+      toast.error('Failed to delete message');
+      return;
+    }
+
+    toast.success('Message deleted');
+  };
+
+  const handleInputChange = (value: string) => {
+    setNewMessage(value);
+    
+    // Trigger typing indicator
+    if (value.length > 0) {
+      startTyping();
+    } else {
+      stopTyping();
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -282,7 +349,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                     <span className="font-semibold text-sm">
                       {message.user?.full_name || 'Unknown User'}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                   <span className="text-xs text-muted-foreground">
                       {format(new Date(message.created_at), 'HH:mm')}
                     </span>
                     {message.is_pinned && (
@@ -292,7 +359,48 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm break-words">{message.content}</p>
+                  
+                  {/* Message Content - Editable */}
+                  {editingMessageId === message.id ? (
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        value={editingContent}
+                        onChange={(e) => setEditingContent(e.target.value)}
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            editMessage(message.id, editingContent);
+                          }
+                          if (e.key === 'Escape') {
+                            setEditingMessageId(null);
+                            setEditingContent('');
+                          }
+                        }}
+                        className="flex-1"
+                        autoFocus
+                      />
+                      <Button size="sm" onClick={() => editMessage(message.id, editingContent)}>
+                        Save
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => {
+                          setEditingMessageId(null);
+                          setEditingContent('');
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <p className="text-sm break-words">
+                      {message.content}
+                      {(message as any).is_edited && (
+                        <span className="text-xs text-muted-foreground ml-1">(edited)</span>
+                      )}
+                    </p>
+                  )}
                   
                   {/* Attachments */}
                   {message.attachments && message.attachments.map((attachment, idx) => (
@@ -318,6 +426,24 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                         <MessageSquare className="w-4 h-4 mr-2" />
                         Start Thread
                       </DropdownMenuItem>
+                      {message.user_id === user?.id && (
+                        <>
+                          <DropdownMenuItem onClick={() => {
+                            setEditingMessageId(message.id);
+                            setEditingContent(message.content);
+                          }}>
+                            <Edit2 className="w-4 h-4 mr-2" />
+                            Edit Message
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => deleteMessage(message.id)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete Message
+                          </DropdownMenuItem>
+                        </>
+                      )}
                       <DropdownMenuItem onClick={() => togglePin(message.id, message.is_pinned ?? false)}>
                         {message.is_pinned ? (
                           <>
@@ -338,6 +464,13 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
             ))}
             <div ref={scrollRef} />
           </div>
+          
+          {/* Typing Indicator */}
+          {typingUsers.length > 0 && (
+            <div className="px-4 pb-2">
+              <TypingIndicator typingUsers={typingUsers} />
+            </div>
+          )}
         </ScrollArea>
 
         {/* File Upload Preview */}
@@ -381,7 +514,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
             </Button>
             <Input
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
+              onChange={(e) => handleInputChange(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={`Message #${channelName}`}
               className="flex-1"
