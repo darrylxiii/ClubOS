@@ -166,25 +166,6 @@ const MobileTextChannel = ({ channelId, onBack }: MobileTextChannelProps) => {
 
   return (
     <div className="flex flex-col h-full bg-background">
-      {/* Mobile Header */}
-      <div className="h-14 px-4 flex items-center gap-3 border-b border-border bg-card shrink-0 safe-area-top">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onBack}
-          className="h-10 w-10"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </Button>
-        <div className="flex-1 min-w-0">
-          <h2 className="font-semibold truncate">{channelName}</h2>
-          <p className="text-xs text-muted-foreground">{messages.length} messages</p>
-        </div>
-        <Button variant="ghost" size="icon" className="h-10 w-10">
-          <MoreVertical className="h-5 w-5" />
-        </Button>
-      </div>
-
       {/* Pull-to-refresh indicator */}
       {isRefreshing && (
         <div className="h-8 flex items-center justify-center bg-muted/50">

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Menu, Search, Settings } from 'lucide-react';
+import { Menu, Search, Users } from 'lucide-react';
+import { useSwipeable } from 'react-swipeable';
 import MobileVoiceChannel from './MobileVoiceChannel';
 import StageChannel from './StageChannel';
 import MobileTextChannel from './MobileTextChannel';
@@ -10,10 +11,9 @@ import { VoiceSettingsDialog } from './VoiceSettingsDialog';
 import { AdminRoleManager } from './AdminRoleManager';
 import { ChannelSettingsDialog } from './ChannelSettingsDialog';
 import { NotificationBell } from './NotificationBell';
-import { UserStatusSelector } from './UserStatusSelector';
 import LiveHubBottomNav from './LiveHubBottomNav';
-import ChannelDrawer from './ChannelDrawer';
-import MemberDrawer from './MemberDrawer';
+import MobileChannelSheet from './MobileChannelSheet';
+import MobileMemberSheet from './MobileMemberSheet';
 
 interface MobileLiveHubLayoutProps {
   selectedChannelId: string | null;
@@ -50,42 +50,70 @@ const MobileLiveHubLayout = ({
   showChannelSettings,
   setShowChannelSettings,
 }: MobileLiveHubLayoutProps) => {
-  const [activePanel, setActivePanel] = useState<'home' | 'channels' | 'dms' | 'members' | 'settings'>('home');
-  const [showChannelDrawer, setShowChannelDrawer] = useState(false);
-  const [showMemberDrawer, setShowMemberDrawer] = useState(false);
+  const [activePanel, setActivePanel] = useState<'home' | 'servers' | 'messages' | 'notifications' | 'you'>('home');
+  const [showChannelSheet, setShowChannelSheet] = useState(false);
+  const [showMemberSheet, setShowMemberSheet] = useState(false);
 
   const handleChannelSelect = (channelId: string, channelType: string, shouldAutoJoin?: boolean) => {
     onChannelSelect(channelId, channelType, shouldAutoJoin);
-    setShowChannelDrawer(false);
-    setActivePanel('home');
+    setShowChannelSheet(false);
   };
 
   const handleConversationSelect = (conversationId: string) => {
     onConversationSelect(conversationId);
-    setShowChannelDrawer(false);
-    setActivePanel('home');
+    setShowChannelSheet(false);
   };
 
-  const handleNavChange = (panel: 'home' | 'channels' | 'dms' | 'members' | 'settings') => {
+  const handleNavChange = (panel: 'home' | 'servers' | 'messages' | 'notifications' | 'you') => {
     setActivePanel(panel);
     
-    if (panel === 'channels' || panel === 'dms') {
-      setShowChannelDrawer(true);
-    } else if (panel === 'members') {
-      setShowMemberDrawer(true);
-    } else if (panel === 'settings') {
+    if (panel === 'servers') {
+      setShowChannelSheet(true);
+    } else if (panel === 'messages') {
+      setShowChannelSheet(true);
+    } else if (panel === 'you') {
       setShowVoiceSettings(true);
     }
   };
 
+  // Swipe gesture handlers - Edge detection for natural navigation
+  const swipeHandlers = useSwipeable({
+    onSwipedRight: (eventData) => {
+      // Only open from edge (left 50px of screen)
+      if (eventData.initial[0] < 50) {
+        setShowChannelSheet(true);
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(30);
+      }
+    },
+    onSwipedLeft: (eventData) => {
+      // Only open from edge (right 50px of screen)
+      if (eventData.initial[0] > window.innerWidth - 50) {
+        setShowMemberSheet(true);
+        // Haptic feedback
+        if (navigator.vibrate) navigator.vibrate(30);
+      }
+    },
+    trackMouse: false,
+    trackTouch: true,
+    preventScrollOnSwipe: false,
+  });
+
+  // Get contextual header title
+  const getHeaderTitle = () => {
+    if (selectedConversationId) return 'Direct Message';
+    if (selectedChannelId) return 'Channel';
+    return 'The Quantum Club';
+  };
+
   return (
-    <div className="flex flex-col h-full bg-background text-foreground overflow-hidden">
-      {/* Mobile Header */}
+    <div className="flex flex-col h-full bg-background text-foreground overflow-hidden" {...swipeHandlers}>
+      {/* Unified Contextual Header */}
       <div className="h-14 px-4 flex items-center justify-between border-b border-border bg-card shrink-0 safe-area-top">
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => setShowChannelDrawer(true)}
+          onClick={() => setShowChannelSheet(true)}
           className="h-10 w-10"
         >
           <Menu className="h-5 w-5" />
@@ -93,14 +121,19 @@ const MobileLiveHubLayout = ({
         
         <div className="flex-1 text-center">
           <h1 className="text-lg font-semibold truncate">
-            {selectedConversationId ? 'Direct Message' : 
-             selectedChannelId ? 'Channel' : 
-             'The Quantum Club'}
+            {getHeaderTitle()}
           </h1>
         </div>
 
         <div className="flex items-center gap-1">
-          <UserStatusSelector />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowMemberSheet(true)}
+            className="h-10 w-10"
+          >
+            <Users className="h-5 w-5" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -113,7 +146,7 @@ const MobileLiveHubLayout = ({
         </div>
       </div>
 
-      {/* Main Content Area - Full Screen */}
+      {/* Main Content Area - Headless (no internal headers) */}
       <div className="flex-1 overflow-hidden">
         {selectedConversationId ? (
           <DirectMessageView conversationId={selectedConversationId} />
@@ -127,41 +160,34 @@ const MobileLiveHubLayout = ({
               autoJoin={autoJoin}
             />
           ) : (
-            <MobileTextChannel 
-              channelId={selectedChannelId}
-              onBack={() => {
-                setShowChannelDrawer(true);
-                setActivePanel('channels');
-              }}
-            />
+            <MobileTextChannel channelId={selectedChannelId} />
           )
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground px-4">
             <div className="text-center">
               <h2 className="text-xl font-semibold mb-2">Welcome to The Quantum Club</h2>
-              <p className="text-sm">Tap the menu to select a channel</p>
+              <p className="text-sm">Swipe right or tap menu to select a channel</p>
             </div>
           </div>
         )}
       </div>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation - Discord-style 4 items */}
       <LiveHubBottomNav activePanel={activePanel} onPanelChange={handleNavChange} />
 
-      {/* Channel Drawer */}
-      <ChannelDrawer
-        open={showChannelDrawer}
-        onOpenChange={setShowChannelDrawer}
+      {/* Side Sheets */}
+      <MobileChannelSheet
+        open={showChannelSheet}
+        onOpenChange={setShowChannelSheet}
         selectedChannelId={selectedChannelId}
         selectedConversationId={selectedConversationId}
         onChannelSelect={handleChannelSelect}
         onConversationSelect={handleConversationSelect}
       />
 
-      {/* Member Drawer */}
-      <MemberDrawer
-        open={showMemberDrawer}
-        onOpenChange={setShowMemberDrawer}
+      <MobileMemberSheet
+        open={showMemberSheet}
+        onOpenChange={setShowMemberSheet}
         onlineMembers={onlineMembers}
         channelType={selectedChannelType}
         channelId={selectedChannelId}
