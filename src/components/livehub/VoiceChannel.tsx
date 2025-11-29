@@ -238,7 +238,7 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
                 channelType={channelType}
                 currentUserId={user?.id}
                 currentUserSpeaking={isSpeaking}
-                localStream={isVideoOn ? localStream : null}
+                localStream={localStream}
               />
             </div>
 
