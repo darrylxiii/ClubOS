@@ -72,19 +72,25 @@ const ParticipantGrid = ({ participants, channelType, currentUserId, currentUser
             key={participant.id}
             className={`relative aspect-video rounded-lg bg-card flex items-center justify-center transition-all duration-300 ${
               isSpeaking 
-                ? 'ring-4 ring-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)]' 
+                ? 'ring-4 ring-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)] animate-pulse' 
                 : 'border-2 border-border'
             }`}
           >
             {/* Video element for video channels */}
             {participant.is_video_on && channelType === 'video' ? (
-              <video
-                ref={(el) => setVideoRef(participant.id, el)}
-                className="w-full h-full object-cover rounded-lg"
-                autoPlay
-                playsInline
-                muted={isCurrentUser} // Mute own video to prevent echo
-              />
+              <div className="relative w-full h-full">
+                <video
+                  ref={(el) => setVideoRef(participant.id, el)}
+                  className="w-full h-full object-cover rounded-lg"
+                  autoPlay
+                  playsInline
+                  muted={isCurrentUser} // Mute own video to prevent echo
+                />
+                {/* Speaking pulse overlay for video */}
+                {isSpeaking && (
+                  <div className="absolute inset-0 rounded-lg ring-4 ring-green-500 ring-inset animate-pulse pointer-events-none" />
+                )}
+              </div>
             ) : (
               <Avatar className="h-20 w-20">
                 <AvatarImage src={participant.user?.avatar_url || undefined} />
