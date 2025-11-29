@@ -22,6 +22,8 @@ import { Loader2 } from "lucide-react";
 import { RejectedApplicationsTab } from "@/components/candidate/RejectedApplicationsTab";
 import { useMobileDetection } from "@/hooks/useMobileDetection";
 import { MobileApplicationPipeline } from "@/components/applications/MobileApplicationPipeline";
+import { useAchievementTrigger } from "@/hooks/useAchievementTrigger";
+import { useEffect } from "react";
 
 interface Application {
   id: string;
@@ -56,10 +58,21 @@ export default function Applications() {
   const { user } = useAuth();
   const { data: applications = [], isLoading, isFetching } = useApplications(user?.id, true); // Include rejected
   const isMobile = useMobileDetection();
+  const { triggerAchievementCheck } = useAchievementTrigger();
 
   const activeApplications = applications.filter(app => app.status === "active");
   const rejectedApplications = applications.filter(app => app.status === "rejected");
   const archivedApplications = applications.filter(app => app.status !== "active" && app.status !== "rejected");
+
+  // Trigger achievement check when viewing applications
+  useEffect(() => {
+    if (user && applications.length > 0) {
+      triggerAchievementCheck({
+        eventType: 'job_viewed',
+        eventData: { count: applications.length }
+      });
+    }
+  }, [user, applications.length]);
 
   if (isLoading) {
     return (

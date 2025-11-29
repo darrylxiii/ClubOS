@@ -1,8 +1,9 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Lock, Sparkles, Calendar } from "lucide-react";
+import { Lock, Sparkles, Calendar, TrendingUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { AchievementProgressCard } from "./AchievementProgressCard";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ interface Achievement {
   points: number;
   is_unlocked: boolean;
   progress?: any;
+  unlock_criteria?: any;
 }
 
 interface BadgeCardProps {
@@ -34,6 +36,11 @@ interface BadgeCardProps {
 }
 
 export const BadgeCard = ({ achievement, isTimeline = false }: BadgeCardProps) => {
+  // If locked and has progress data, use the progress card
+  if (!achievement.is_unlocked && achievement.progress) {
+    return <AchievementProgressCard achievement={achievement} progress={achievement.progress} />;
+  }
+
   const rarityColors: Record<string, string> = {
     common: "from-gray-500/20 to-gray-600/20 border-gray-500/30",
     rare: "from-blue-500/20 to-cyan-500/20 border-blue-500/30",
