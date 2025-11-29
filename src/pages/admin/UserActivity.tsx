@@ -29,14 +29,15 @@ export default function UserActivity() {
     queryFn: async () => {
       const oneDayAgo = new Date(Date.now() - 86400000).toISOString();
       
-      const [sessions, events, frustrations] = await Promise.all([
+      const [sessions, events, frustrations, legacyEvents] = await Promise.all([
         supabase.from('user_page_analytics').select('*', { count: 'exact' }).gte('entry_timestamp', oneDayAgo),
         supabase.from('user_session_events').select('*', { count: 'exact' }).gte('event_timestamp', oneDayAgo),
-        supabase.from('user_frustration_signals').select('*', { count: 'exact' }).gte('created_at', oneDayAgo)
+        supabase.from('user_frustration_signals').select('*', { count: 'exact' }).gte('created_at', oneDayAgo),
+        supabase.from('user_events').select('*', { count: 'exact' }).gte('created_at', oneDayAgo)
       ]);
 
       return {
-        sessions: sessions.count || 0,
+        sessions: (sessions.count || 0) + (legacyEvents.count || 0),
         events: events.count || 0,
         frustrations: frustrations.count || 0,
         activeUsers: sessions.data?.filter((s: any) => !s.exit_timestamp).length || 0

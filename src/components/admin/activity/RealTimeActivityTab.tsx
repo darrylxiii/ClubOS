@@ -10,28 +10,50 @@ export default function RealTimeActivityTab() {
     queryFn: async () => {
       const fiveMinutesAgo = new Date(Date.now() - 300000).toISOString();
       
-      const { data: sessions } = await supabase
-        .from('user_page_analytics')
-        .select('*')
-        .gte('entry_timestamp', fiveMinutesAgo)
-        .is('exit_timestamp', null);
+      const [sessions, sessionEvents, legacyEvents] = await Promise.all([
+        supabase
+          .from('user_page_analytics')
+          .select('*')
+          .gte('entry_timestamp', fiveMinutesAgo)
+          .is('exit_timestamp', null),
+        supabase
+          .from('user_session_events')
+          .select('*')
+          .gte('event_timestamp', fiveMinutesAgo)
+          .order('event_timestamp', { ascending: false })
+          .limit(50),
+        supabase
+          .from('user_events')
+          .select('*')
+          .gte('created_at', fiveMinutesAgo)
+          .order('created_at', { ascending: false })
+          .limit(50)
+      ]);
 
-      const { data: events } = await supabase
-        .from('user_session_events')
-        .select('*')
-        .gte('event_timestamp', fiveMinutesAgo)
-        .order('event_timestamp', { ascending: false })
-        .limit(50);
+      // Merge events from both tracking systems
+      const allEvents = [
+        ...(sessionEvents.data || []).map((e: any) => ({
+          ...e,
+          timestamp: e.event_timestamp,
+          type: e.event_type
+        })),
+        ...(legacyEvents.data || []).map((e: any) => ({
+          ...e,
+          timestamp: e.created_at,
+          type: e.event_type,
+          page_path: e.page_path || e.metadata?.page_path
+        }))
+      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-      const deviceBreakdown = events?.reduce((acc: any, event: any) => {
+      const deviceBreakdown = allEvents.reduce((acc: any, event: any) => {
         const device = event.metadata?.device_type || 'unknown';
         acc[device] = (acc[device] || 0) + 1;
         return acc;
       }, {});
 
       return {
-        activeSessions: sessions || [],
-        recentEvents: events || [],
+        activeSessions: sessions.data || [],
+        recentEvents: allEvents.slice(0, 50),
         deviceBreakdown: deviceBreakdown || {}
       };
     },
@@ -118,7 +140,7 @@ export default function RealTimeActivityTab() {
                 <div key={event.id} className="flex items-center justify-between p-2 border-b text-sm">
                   <div className="flex items-center gap-3 flex-1">
                     <Badge variant="secondary" className="text-xs">
-                      {event.event_type}
+                      {event.type}
                     </Badge>
                     <span className="text-muted-foreground truncate">{event.page_path}</span>
                     {event.element_id && (
@@ -126,7 +148,7 @@ export default function RealTimeActivityTab() {
                     )}
                   </div>
                   <span className="text-xs text-muted-foreground whitespace-nowrap ml-4">
-                    {new Date(event.event_timestamp).toLocaleTimeString()}
+                    {new Date(event.timestamp).toLocaleTimeString()}
                   </span>
                 </div>
               ))
