@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Phone, PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, Monitor, Volume2, VolumeX } from 'lucide-react';
 import ParticipantGrid from './ParticipantGrid';
 import VoiceActivityIndicator from './VoiceActivityIndicator';
+import ScreenShareSpotlight from './ScreenShareSpotlight';
 import { RemoteAudioPlayer } from './RemoteAudioPlayer';
 import { toast } from 'sonner';
 
@@ -41,6 +42,7 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
     isSpeaking,
     participants,
     localStream,
+    screenStream,
     remoteStreams,
     isWebRTCConnected,
     joinChannel,
@@ -231,16 +233,60 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
               <RemoteAudioPlayer key={userId} userId={userId} stream={stream} />
             ))}
 
-            {/* Participants */}
-            <div className="flex-1 overflow-auto">
-              <ParticipantGrid 
-                participants={participants} 
-                channelType={channelType}
-                currentUserId={user?.id}
-                currentUserSpeaking={isSpeaking}
-                localStream={localStream}
-              />
-            </div>
+            {/* Screen Share Spotlight */}
+            {(() => {
+              // Check if anyone is screen sharing
+              const screenSharingParticipants = participants.filter(p => p.is_screen_sharing);
+              const localScreenShare = isScreenSharing && screenStream;
+              
+              if (localScreenShare) {
+                const currentUserParticipant = participants.find(p => p.user_id === user?.id);
+                return (
+                  <div className="flex-1 w-full p-4">
+                    <ScreenShareSpotlight
+                      userId={user!.id}
+                      userName={currentUserParticipant?.user?.full_name || 'You'}
+                      userAvatar={currentUserParticipant?.user?.avatar_url}
+                      stream={localStream!}
+                      isLocal={true}
+                      onStop={toggleScreenShare}
+                    />
+                  </div>
+                );
+              }
+              
+              if (screenSharingParticipants.length > 0) {
+                const sharingParticipant = screenSharingParticipants[0];
+                const remoteStream = remoteStreams.get(sharingParticipant.user_id);
+                
+                if (remoteStream) {
+                  return (
+                    <div className="flex-1 w-full p-4">
+                      <ScreenShareSpotlight
+                        userId={sharingParticipant.user_id}
+                        userName={sharingParticipant.user?.full_name || 'Unknown User'}
+                        userAvatar={sharingParticipant.user?.avatar_url}
+                        stream={remoteStream}
+                        isLocal={false}
+                      />
+                    </div>
+                  );
+                }
+              }
+              
+              // No screen sharing - show normal participant grid
+              return (
+                <div className="flex-1 overflow-auto">
+                  <ParticipantGrid 
+                    participants={participants} 
+                    channelType={channelType}
+                    currentUserId={user?.id}
+                    currentUserSpeaking={isSpeaking}
+                    localStream={localStream}
+                  />
+                </div>
+              );
+            })()}
 
             {/* Voice Activity Indicator */}
             {isSpeaking && (
@@ -274,9 +320,9 @@ const VoiceChannel = ({ channelId, channelType }: VoiceChannelProps) => {
               )}
 
               <Button
-                variant="ghost"
+                variant={isScreenSharing ? "secondary" : "ghost"}
                 size="icon"
-                className="h-12 w-12 rounded-full"
+                className={`h-12 w-12 rounded-full ${isScreenSharing ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
                 onClick={toggleScreenShare}
               >
                 <Monitor className="w-5 h-5" />
