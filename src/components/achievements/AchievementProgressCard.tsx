@@ -13,7 +13,11 @@ interface Achievement {
   rarity: string;
   category: string;
   points: number;
-  unlock_criteria: any;
+  unlock_criteria?: any;
+  unlocked_at?: string | null;
+  animation_effect?: string;
+  is_unlocked?: boolean;
+  progress?: any;
 }
 
 interface Progress {

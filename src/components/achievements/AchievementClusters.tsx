@@ -67,10 +67,17 @@ export const AchievementClusters = ({
       const { data: allAchievements } = await supabase
         .from("quantum_achievements")
         .select("*")
-        .eq("is_active", true);
+        .eq("is_active", true)
+        .eq("is_secret", false); // Don't show secret achievements here
 
       const { data: userAchievements } = await supabase
         .from("user_quantum_achievements")
+        .select("*")
+        .eq("user_id", user?.id);
+
+      // Fetch progress for locked achievements
+      const { data: progressData } = await supabase
+        .from("achievement_progress")
         .select("*")
         .eq("user_id", user?.id);
 
@@ -78,9 +85,14 @@ export const AchievementClusters = ({
         userAchievements?.map((ua) => [ua.achievement_id, ua]) || []
       );
 
+      const progressMap = new Map(
+        progressData?.map((p) => [p.achievement_id, p]) || []
+      );
+
       const formatted: Achievement[] =
         allAchievements?.map((achievement) => {
           const userAch = unlockedMap.get(achievement.id);
+          const progress = progressMap.get(achievement.id);
           return {
             id: userAch?.id || achievement.id,
             achievement_id: achievement.id,
@@ -93,7 +105,7 @@ export const AchievementClusters = ({
             animation_effect: achievement.animation_effect,
             points: achievement.points,
             is_unlocked: !!userAch,
-            progress: userAch?.progress,
+            progress: progress,
           };
         }) || [];
 

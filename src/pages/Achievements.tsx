@@ -5,6 +5,10 @@ import { AchievementTimeline } from "@/components/achievements/AchievementTimeli
 import { AchievementClusters } from "@/components/achievements/AchievementClusters";
 import { AchievementFeed } from "@/components/achievements/AchievementFeed";
 import { AchievementSearch } from "@/components/achievements/AchievementSearch";
+import { AchievementUnlockToast } from "@/components/achievements/AchievementUnlockToast";
+import { AchievementLeaderboard } from "@/components/achievements/AchievementLeaderboard";
+import { DailyChallenges } from "@/components/achievements/DailyChallenges";
+import { AchievementTree } from "@/components/achievements/AchievementTree";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CompanyAchievements } from "@/components/partner/CompanyAchievements";
 import { AdminAchievementsManager } from "@/components/admin/AdminAchievementsManager";
@@ -44,10 +48,16 @@ const Achievements = () => {
     return (
       <AppLayout>
         <BackgroundVideo />
+        <AchievementUnlockToast />
 
         <div className="relative z-10 min-h-screen">
           {/* Hero Banner */}
           <AchievementHero />
+
+          {/* Daily Challenges Banner */}
+          <div className="container mx-auto px-4 py-6">
+            <DailyChallenges />
+          </div>
 
           {/* Timeline of Ascendance */}
           <div className="container mx-auto px-4 py-8">
@@ -75,6 +85,8 @@ const Achievements = () => {
               <TabsList className="glass mb-8">
                 <TabsTrigger value="clusters">Achievement Gallery</TabsTrigger>
                 <TabsTrigger value="feed">Community Feed</TabsTrigger>
+                <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+                <TabsTrigger value="tree">Achievement Paths</TabsTrigger>
                 <TabsTrigger value="company">Custom Company Achievements</TabsTrigger>
               </TabsList>
 
@@ -88,6 +100,14 @@ const Achievements = () => {
 
               <TabsContent value="feed">
                 <AchievementFeed />
+              </TabsContent>
+
+              <TabsContent value="leaderboard">
+                <AchievementLeaderboard />
+              </TabsContent>
+
+              <TabsContent value="tree">
+                <AchievementTree />
               </TabsContent>
 
               <TabsContent value="company">
@@ -110,10 +130,16 @@ const Achievements = () => {
   return (
     <AppLayout>
       <BackgroundVideo />
+      <AchievementUnlockToast />
 
       <div className="relative z-10 min-h-screen">
         {/* Hero Banner */}
         <AchievementHero />
+
+        {/* Daily Challenges Banner */}
+        <div className="container mx-auto px-4 py-6">
+          <DailyChallenges />
+        </div>
 
         {/* Timeline of Ascendance */}
         <div className="container mx-auto px-4 py-8">
@@ -141,6 +167,8 @@ const Achievements = () => {
             <TabsList className="glass mb-8">
               <TabsTrigger value="clusters">Achievement Gallery</TabsTrigger>
               <TabsTrigger value="feed">Community Feed</TabsTrigger>
+              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+              <TabsTrigger value="tree">Achievement Paths</TabsTrigger>
             </TabsList>
 
             <TabsContent value="clusters" className="space-y-8">
@@ -153,6 +181,14 @@ const Achievements = () => {
 
             <TabsContent value="feed">
               <AchievementFeed />
+            </TabsContent>
+
+            <TabsContent value="leaderboard">
+              <AchievementLeaderboard />
+            </TabsContent>
+
+            <TabsContent value="tree">
+              <AchievementTree />
             </TabsContent>
           </Tabs>
         </div>
