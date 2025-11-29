@@ -37,6 +37,8 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   const localStreamRef = useRef<MediaStream | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
   const vadIntervalRef = useRef<number | null>(null);
+  const lastSpeakingUpdateRef = useRef<number>(0);
+  const SPEAKING_UPDATE_THROTTLE = 500; // ms
 
   // Use WebRTC for peer connections
   const { remoteStreams, isConnected: isWebRTCConnected } = useLiveHubWebRTC({
@@ -90,7 +92,10 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
           const speaking = average > threshold;
           setIsSpeaking(speaking);
           
-          if (speaking !== isSpeaking) {
+          // Throttle database updates for speaking status
+          const now = Date.now();
+          if (speaking !== isSpeaking && now - lastSpeakingUpdateRef.current > SPEAKING_UPDATE_THROTTLE) {
+            lastSpeakingUpdateRef.current = now;
             updateParticipantStatus({ is_speaking: speaking });
           }
           

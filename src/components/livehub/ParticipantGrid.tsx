@@ -25,31 +25,44 @@ interface ParticipantGridProps {
 
 const ParticipantGrid = ({ participants, channelType, currentUserId, currentUserSpeaking, localStream }: ParticipantGridProps) => {
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
+  const attachedStreamsRef = useRef<Set<string>>(new Set());
 
+  // Stable effect - only runs when localStream or currentUserId changes
   useEffect(() => {
-    // Attach local stream to current user's video element if video is on
-    if (localStream && currentUserId) {
-      const currentUserParticipant = participants.find(p => p.user_id === currentUserId);
-      if (!currentUserParticipant) return;
-      
-      const videoEl = videoRefs.current.get(currentUserParticipant.id);
-      if (videoEl && localStream.getVideoTracks().length > 0) {
-        console.log('[Video] Attaching local stream to video element', {
-          participantId: currentUserParticipant.id,
-          hasVideoTracks: localStream.getVideoTracks().length > 0,
-          videoTrackEnabled: localStream.getVideoTracks()[0]?.enabled
-        });
-        videoEl.srcObject = localStream;
-        videoEl.play().catch(err => console.error('Error playing local video:', err));
+    if (!localStream || !currentUserId) return;
+    
+    // Check all video refs and attach stream if needed
+    videoRefs.current.forEach((videoEl, participantId) => {
+      const participant = participants.find(p => p.id === participantId);
+      if (participant?.user_id === currentUserId && participant.is_video_on) {
+        // Only attach if not already attached with same stream
+        if (videoEl.srcObject !== localStream && !attachedStreamsRef.current.has(participantId)) {
+          console.log('[Video] Attaching local stream', { participantId });
+          videoEl.srcObject = localStream;
+          videoEl.play().catch(err => console.error('Error playing local video:', err));
+          attachedStreamsRef.current.add(participantId);
+        }
       }
-    }
-  }, [localStream, currentUserId, participants]);
+    });
+  }, [localStream, currentUserId]);
 
   const setVideoRef = (participantId: string, el: HTMLVideoElement | null) => {
     if (el) {
       videoRefs.current.set(participantId, el);
+      
+      // Attach stream immediately if this is current user's video
+      const participant = participants.find(p => p.id === participantId);
+      if (participant?.user_id === currentUserId && localStream && participant.is_video_on) {
+        if (el.srcObject !== localStream && !attachedStreamsRef.current.has(participantId)) {
+          console.log('[Video] Attaching local stream on mount', { participantId });
+          el.srcObject = localStream;
+          el.play().catch(err => console.error('Error playing local video:', err));
+          attachedStreamsRef.current.add(participantId);
+        }
+      }
     } else {
       videoRefs.current.delete(participantId);
+      attachedStreamsRef.current.delete(participantId);
     }
   };
   const getGridCols = () => {
@@ -70,10 +83,10 @@ const ParticipantGrid = ({ participants, channelType, currentUserId, currentUser
         return (
           <div
             key={participant.id}
-            className={`relative aspect-video rounded-lg bg-card flex items-center justify-center transition-all duration-300 ${
+            className={`relative aspect-video rounded-lg bg-card flex items-center justify-center transition-all duration-300 ease-in-out ${
               isSpeaking 
-                ? 'ring-4 ring-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)] animate-pulse' 
-                : 'border-2 border-border'
+                ? 'ring-4 ring-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)]' 
+                : 'border-2 border-border ring-0 shadow-none'
             }`}
           >
             {/* Video element for video channels */}
