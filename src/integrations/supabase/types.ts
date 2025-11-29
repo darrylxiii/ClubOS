@@ -8620,6 +8620,80 @@ export type Database = {
           },
         ]
       }
+      dm_conversations: {
+        Row: {
+          created_at: string
+          id: string
+          last_message_at: string | null
+          participant_one: string
+          participant_two: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant_one: string
+          participant_two: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_message_at?: string | null
+          participant_one?: string
+          participant_two?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dm_messages: {
+        Row: {
+          attachments: Json | null
+          content: string
+          conversation_id: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          is_read: boolean
+          read_at: string | null
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: Json | null
+          content: string
+          conversation_id: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_read?: boolean
+          read_at?: string | null
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: Json | null
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          is_read?: boolean
+          read_at?: string | null
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dm_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "dm_conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dossier_shares: {
         Row: {
           allowed_domains: string[] | null
@@ -12895,6 +12969,56 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "live_channel_participants_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      live_channel_permissions: {
+        Row: {
+          can_join: boolean
+          can_manage_messages: boolean
+          can_screen_share: boolean
+          can_speak: boolean
+          can_video: boolean
+          can_view: boolean
+          channel_id: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+        }
+        Insert: {
+          can_join?: boolean
+          can_manage_messages?: boolean
+          can_screen_share?: boolean
+          can_speak?: boolean
+          can_video?: boolean
+          can_view?: boolean
+          channel_id: string
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Update: {
+          can_join?: boolean
+          can_manage_messages?: boolean
+          can_screen_share?: boolean
+          can_speak?: boolean
+          can_video?: boolean
+          can_view?: boolean
+          channel_id?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "live_channel_permissions_channel_id_fkey"
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "live_channels"
@@ -23786,6 +23910,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_activity: {
+        Row: {
+          activity_details: Json | null
+          activity_type: string
+          ended_at: string | null
+          id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_details?: Json | null
+          activity_type: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_details?: Json | null
+          activity_type?: string
+          ended_at?: string | null
+          id?: string
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_activity_tracking: {
         Row: {
           activity_level: string
@@ -24539,6 +24690,45 @@ export type Database = {
           status?: string
           updated_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_profiles_extended: {
+        Row: {
+          bio: string | null
+          created_at: string
+          custom_status: string | null
+          id: string
+          language: string | null
+          status_emoji: string | null
+          status_message: string | null
+          theme: string | null
+          timezone: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          custom_status?: string | null
+          id: string
+          language?: string | null
+          status_emoji?: string | null
+          status_message?: string | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          custom_status?: string | null
+          id?: string
+          language?: string | null
+          status_emoji?: string | null
+          status_message?: string | null
+          theme?: string | null
+          timezone?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -26550,6 +26740,10 @@ export type Database = {
         }[]
       }
       get_user_metrics: { Args: never; Returns: Json }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       get_user_roles: {
         Args: { _user_id: string }
         Returns: {
@@ -26870,6 +27064,15 @@ export type Database = {
       board_visibility: "personal" | "shared" | "company"
       club_sync_status_enum: "not_offered" | "pending" | "accepted" | "declined"
       company_achievement_type: "custom" | "platform_generated"
+      notification_type:
+        | "mention"
+        | "reply"
+        | "dm"
+        | "call_invite"
+        | "channel_invite"
+        | "server_invite"
+        | "role_change"
+        | "achievement"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -27029,6 +27232,16 @@ export const Constants = {
       board_visibility: ["personal", "shared", "company"],
       club_sync_status_enum: ["not_offered", "pending", "accepted", "declined"],
       company_achievement_type: ["custom", "platform_generated"],
+      notification_type: [
+        "mention",
+        "reply",
+        "dm",
+        "call_invite",
+        "channel_invite",
+        "server_invite",
+        "role_change",
+        "achievement",
+      ],
     },
   },
 } as const
