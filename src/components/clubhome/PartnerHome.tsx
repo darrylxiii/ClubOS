@@ -10,7 +10,7 @@ import {
 import { Link } from "react-router-dom";
 import { useUserRole } from "@/hooks/useUserRole";
 import { RecentApplicationsList } from "./RecentApplicationsList";
-import { TalentRecommendations } from "./TalentRecommendations";
+import { TalentRecommendations } from "../partner/TalentRecommendations";
 import { HiringPipelineOverview } from "./HiringPipelineOverview";
 import { PartnerActivityFeed } from "./PartnerActivityFeed";
 import { SmartAlertsPanel } from "../partner/SmartAlertsPanel";
@@ -18,6 +18,7 @@ import { HealthScoreDashboard } from "../partner/HealthScoreDashboard";
 import { DailyBriefing } from "../partner/DailyBriefing";
 import { BenchmarkComparison } from "../partner/BenchmarkComparison";
 import { PartnerConciergeCard } from "../partner/PartnerConciergeCard";
+import { SLATracker } from "../partner/SLATracker";
 import { UnifiedStatsBar } from "./UnifiedStatsBar";
 import { DashboardSection } from "./DashboardSection";
 import { useRoleStats } from "@/hooks/useRoleStats";
@@ -49,6 +50,7 @@ export const PartnerHome = () => {
             <div className="space-y-6">
               <HealthScoreDashboard companyId={companyId} />
               <BenchmarkComparison companyId={companyId} />
+              <SLATracker companyId={companyId} />
             </div>
           </div>
         </DashboardSection>

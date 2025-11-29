@@ -6711,6 +6711,102 @@ export type Database = {
           },
         ]
       }
+      company_strategist_assignments: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          company_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          notes: string | null
+          sla_config: Json | null
+          strategist_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          sla_config?: Json | null
+          strategist_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          notes?: string | null
+          sla_config?: Json | null
+          strategist_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_strategist_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "company_strategist_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_strategist_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_strategist_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_strategist_assignments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_strategist_assignments_strategist_id_fkey"
+            columns: ["strategist_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["profile_id"]
+          },
+          {
+            foreignKeyName: "company_strategist_assignments_strategist_id_fkey"
+            columns: ["strategist_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_strategist_assignments_strategist_id_fkey"
+            columns: ["strategist_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_reviews: {
         Row: {
           approved_at: string | null
@@ -21717,6 +21813,60 @@ export type Database = {
         }
         Relationships: []
       }
+      sla_tracking: {
+        Row: {
+          breach_duration_hours: number | null
+          company_id: string | null
+          completed_at: string | null
+          created_at: string | null
+          event_id: string | null
+          event_type: string
+          id: string
+          is_breach: boolean | null
+          metadata: Json | null
+          sla_deadline: string
+        }
+        Insert: {
+          breach_duration_hours?: number | null
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          event_type: string
+          id?: string
+          is_breach?: boolean | null
+          metadata?: Json | null
+          sla_deadline: string
+        }
+        Update: {
+          breach_duration_hours?: number | null
+          company_id?: string | null
+          completed_at?: string | null
+          created_at?: string | null
+          event_id?: string | null
+          event_type?: string
+          id?: string
+          is_breach?: boolean | null
+          metadata?: Json | null
+          sla_deadline?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sla_tracking_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sla_tracking_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_campaigns: {
         Row: {
           budget: number | null
@@ -22873,6 +23023,94 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      talent_matches: {
+        Row: {
+          candidate_id: string | null
+          company_id: string | null
+          contacted_at: string | null
+          created_at: string | null
+          id: string
+          job_id: string | null
+          match_factors: Json | null
+          match_score: number | null
+          recommended_at: string | null
+          status: string | null
+          updated_at: string | null
+          viewed_at: string | null
+        }
+        Insert: {
+          candidate_id?: string | null
+          company_id?: string | null
+          contacted_at?: string | null
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          match_factors?: Json | null
+          match_score?: number | null
+          recommended_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Update: {
+          candidate_id?: string | null
+          company_id?: string | null
+          contacted_at?: string | null
+          created_at?: string | null
+          id?: string
+          job_id?: string | null
+          match_factors?: Json | null
+          match_score?: number | null
+          recommended_at?: string | null
+          status?: string | null
+          updated_at?: string | null
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "talent_matches_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_matches_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "talent_matches_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_matches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_matches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "talent_matches_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       talent_strategists: {
         Row: {
@@ -26941,6 +27179,10 @@ export type Database = {
         Returns: Json
       }
       generate_audit_request_number: { Args: never; Returns: string }
+      generate_daily_analytics_snapshot: {
+        Args: { p_company_id: string }
+        Returns: undefined
+      }
       generate_dossier_share_token: { Args: never; Returns: string }
       generate_invite_code: { Args: never; Returns: string }
       generate_invoice_number: {
@@ -26957,6 +27199,10 @@ export type Database = {
         Returns: undefined
       }
       generate_support_ticket_number: { Args: never; Returns: string }
+      generate_talent_matches: {
+        Args: { p_job_id: string; p_limit?: number }
+        Returns: undefined
+      }
       generate_task_number: { Args: never; Returns: string }
       generate_unified_task_number: { Args: never; Returns: string }
       get_achievement_metrics: { Args: never; Returns: Json }
