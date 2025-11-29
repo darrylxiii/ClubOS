@@ -10419,6 +10419,75 @@ export type Database = {
           },
         ]
       }
+      hiring_metrics_weekly: {
+        Row: {
+          avg_days_to_hire: number | null
+          avg_days_to_interview: number | null
+          company_id: string
+          conversion_rate_application_to_interview: number | null
+          conversion_rate_interview_to_offer: number | null
+          conversion_rate_offer_to_hire: number | null
+          created_at: string | null
+          hires: number | null
+          id: string
+          total_applications: number | null
+          total_interviews: number | null
+          total_offers: number | null
+          updated_at: string | null
+          week_end: string
+          week_start: string
+        }
+        Insert: {
+          avg_days_to_hire?: number | null
+          avg_days_to_interview?: number | null
+          company_id: string
+          conversion_rate_application_to_interview?: number | null
+          conversion_rate_interview_to_offer?: number | null
+          conversion_rate_offer_to_hire?: number | null
+          created_at?: string | null
+          hires?: number | null
+          id?: string
+          total_applications?: number | null
+          total_interviews?: number | null
+          total_offers?: number | null
+          updated_at?: string | null
+          week_end: string
+          week_start: string
+        }
+        Update: {
+          avg_days_to_hire?: number | null
+          avg_days_to_interview?: number | null
+          company_id?: string
+          conversion_rate_application_to_interview?: number | null
+          conversion_rate_interview_to_offer?: number | null
+          conversion_rate_offer_to_hire?: number | null
+          created_at?: string | null
+          hires?: number | null
+          id?: string
+          total_applications?: number | null
+          total_interviews?: number | null
+          total_offers?: number | null
+          updated_at?: string | null
+          week_end?: string
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hiring_metrics_weekly_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hiring_metrics_weekly_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       incident_logs: {
         Row: {
           acknowledged_at: string | null
@@ -16317,6 +16386,66 @@ export type Database = {
           },
         ]
       }
+      partner_ai_insights: {
+        Row: {
+          company_id: string
+          confidence_score: number | null
+          content: string
+          created_at: string | null
+          data_points: Json | null
+          expires_at: string | null
+          generated_at: string | null
+          id: string
+          impact_level: string | null
+          insight_type: string
+          is_read: boolean | null
+          title: string
+        }
+        Insert: {
+          company_id: string
+          confidence_score?: number | null
+          content: string
+          created_at?: string | null
+          data_points?: Json | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          impact_level?: string | null
+          insight_type: string
+          is_read?: boolean | null
+          title: string
+        }
+        Update: {
+          company_id?: string
+          confidence_score?: number | null
+          content?: string
+          created_at?: string | null
+          data_points?: Json | null
+          expires_at?: string | null
+          generated_at?: string | null
+          id?: string
+          impact_level?: string | null
+          insight_type?: string
+          is_read?: boolean | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_ai_insights_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_ai_insights_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_analytics_snapshots: {
         Row: {
           active_candidates: number
@@ -16457,6 +16586,60 @@ export type Database = {
           },
           {
             foreignKeyName: "fk_partner_audit_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_benchmarks: {
+        Row: {
+          calculated_at: string | null
+          company_id: string
+          company_value: number | null
+          created_at: string | null
+          id: string
+          industry_average: number | null
+          industry_percentile: number | null
+          metric_type: string
+          period_end: string | null
+          period_start: string | null
+        }
+        Insert: {
+          calculated_at?: string | null
+          company_id: string
+          company_value?: number | null
+          created_at?: string | null
+          id?: string
+          industry_average?: number | null
+          industry_percentile?: number | null
+          metric_type: string
+          period_end?: string | null
+          period_start?: string | null
+        }
+        Update: {
+          calculated_at?: string | null
+          company_id?: string
+          company_value?: number | null
+          created_at?: string | null
+          id?: string
+          industry_average?: number | null
+          industry_percentile?: number | null
+          metric_type?: string
+          period_end?: string | null
+          period_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_benchmarks_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_benchmarks_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "public_companies"
@@ -16610,6 +16793,60 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      partner_health_scores: {
+        Row: {
+          bottleneck_score: number | null
+          calculated_at: string | null
+          company_id: string
+          conversion_rate_score: number | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          overall_score: number | null
+          pipeline_velocity_score: number | null
+          response_time_score: number | null
+        }
+        Insert: {
+          bottleneck_score?: number | null
+          calculated_at?: string | null
+          company_id: string
+          conversion_rate_score?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          overall_score?: number | null
+          pipeline_velocity_score?: number | null
+          response_time_score?: number | null
+        }
+        Update: {
+          bottleneck_score?: number | null
+          calculated_at?: string | null
+          company_id?: string
+          conversion_rate_score?: number | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          overall_score?: number | null
+          pipeline_velocity_score?: number | null
+          response_time_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_health_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_health_scores_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       partner_integrations: {
         Row: {
@@ -17035,6 +17272,66 @@ export type Database = {
           },
           {
             foreignKeyName: "partner_sla_tracking_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "public_companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_smart_alerts: {
+        Row: {
+          action_required: string | null
+          action_url: string | null
+          alert_type: string
+          company_id: string
+          created_at: string | null
+          id: string
+          is_dismissed: boolean | null
+          message: string
+          metadata: Json | null
+          severity: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_required?: string | null
+          action_url?: string | null
+          alert_type: string
+          company_id: string
+          created_at?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          message: string
+          metadata?: Json | null
+          severity: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_required?: string | null
+          action_url?: string | null
+          alert_type?: string
+          company_id?: string
+          created_at?: string | null
+          id?: string
+          is_dismissed?: boolean | null
+          message?: string
+          metadata?: Json | null
+          severity?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_smart_alerts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_smart_alerts_company_id_fkey"
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "public_companies"
@@ -26495,6 +26792,16 @@ export type Database = {
         Args: { end_date: string; start_date: string }
         Returns: number
       }
+      calculate_company_health_score: {
+        Args: { p_company_id: string; p_period_days?: number }
+        Returns: {
+          bottleneck_score: number
+          conversion_rate_score: number
+          overall_score: number
+          pipeline_velocity_score: number
+          response_time_score: number
+        }[]
+      }
       calculate_current_mrr: { Args: never; Returns: number }
       calculate_deal_health_score: { Args: { job_id: string }; Returns: number }
       calculate_name_similarity: {
@@ -26645,6 +26952,10 @@ export type Database = {
       generate_profile_slug: { Args: { name: string }; Returns: string }
       generate_referral_code: { Args: never; Returns: string }
       generate_share_token: { Args: never; Returns: string }
+      generate_smart_alerts: {
+        Args: { p_company_id: string }
+        Returns: undefined
+      }
       generate_support_ticket_number: { Args: never; Returns: string }
       generate_task_number: { Args: never; Returns: string }
       generate_unified_task_number: { Args: never; Returns: string }
@@ -26856,7 +27167,6 @@ export type Database = {
         Returns: boolean
       }
       has_role:
-        | { Args: { _role: string; _user_id: string }; Returns: boolean }
         | {
             Args: {
               _role: Database["public"]["Enums"]["app_role"]
@@ -26864,6 +27174,7 @@ export type Database = {
             }
             Returns: boolean
           }
+        | { Args: { _role: string; _user_id: string }; Returns: boolean }
       is_company_blocked_by_candidate: {
         Args: { _candidate_id: string; _company_email: string }
         Returns: boolean
