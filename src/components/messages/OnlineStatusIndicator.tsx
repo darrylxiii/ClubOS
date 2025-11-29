@@ -5,23 +5,15 @@ import { cn } from "@/lib/utils";
 interface OnlineStatusIndicatorProps {
   userId: string;
   className?: string;
+  showCustomStatus?: boolean;
 }
 
-// Calculate online status dynamically based on last activity
-const calculateStatus = (lastActivity: string | null): 'online' | 'away' | 'busy' | 'offline' => {
-  if (!lastActivity) return 'offline';
-  
-  const lastActivityTime = new Date(lastActivity).getTime();
-  const now = Date.now();
-  const minutesAgo = (now - lastActivityTime) / (1000 * 60);
-  
-  if (minutesAgo < 2) return 'online';
-  if (minutesAgo < 30) return 'away';
-  return 'offline';
-};
+type UserStatus = 'online' | 'away' | 'dnd' | 'invisible' | 'offline';
 
-export const OnlineStatusIndicator = ({ userId, className }: OnlineStatusIndicatorProps) => {
-  const [status, setStatus] = useState<'online' | 'away' | 'busy' | 'offline'>('offline');
+export const OnlineStatusIndicator = ({ userId, className, showCustomStatus = false }: OnlineStatusIndicatorProps) => {
+  const [status, setStatus] = useState<UserStatus>('offline');
+  const [customStatus, setCustomStatus] = useState<string | null>(null);
+  const [customEmoji, setCustomEmoji] = useState<string | null>(null);
 
   useEffect(() => {
     loadStatus();
@@ -30,13 +22,13 @@ export const OnlineStatusIndicator = ({ userId, className }: OnlineStatusIndicat
     const interval = setInterval(loadStatus, 30000);
 
     const channel = supabase
-      .channel(`presence-${userId}`)
+      .channel(`presence-extended-${userId}`)
       .on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'user_activity_tracking',
+          table: 'user_presence_extended',
           filter: `user_id=eq.${userId}`,
         },
         () => {
@@ -53,32 +45,52 @@ export const OnlineStatusIndicator = ({ userId, className }: OnlineStatusIndicat
 
   const loadStatus = async () => {
     const { data } = await supabase
-      .from('user_activity_tracking')
-      .select('last_activity_at')
+      .from('user_presence_extended')
+      .select('status, custom_status, custom_status_emoji')
       .eq('user_id', userId)
       .maybeSingle();
 
     if (data) {
-      setStatus(calculateStatus(data.last_activity_at));
+      // Don't show invisible users as online
+      const userStatus = data.status as UserStatus;
+      setStatus(userStatus === 'invisible' ? 'offline' : userStatus);
+      setCustomStatus(data.custom_status);
+      setCustomEmoji(data.custom_status_emoji);
     }
   };
 
   const statusColors = {
     online: "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]",
     away: "bg-yellow-500",
-    busy: "bg-red-500",
+    dnd: "bg-red-500",
+    invisible: "bg-gray-400",
     offline: "bg-gray-400",
   };
 
+  const statusLabels = {
+    online: "Online",
+    away: "Away",
+    dnd: "Do Not Disturb",
+    invisible: "Offline",
+    offline: "Offline",
+  };
+
   return (
-    <div
-      className={cn(
-        "w-3 h-3 rounded-full ring-2 ring-background",
-        statusColors[status],
-        status === 'online' && "animate-pulse",
-        className
+    <div className="flex items-center gap-2">
+      <div
+        className={cn(
+          "w-3 h-3 rounded-full ring-2 ring-background",
+          statusColors[status],
+          status === 'online' && "animate-pulse",
+          className
+        )}
+        title={statusLabels[status]}
+      />
+      {showCustomStatus && (customStatus || customEmoji) && (
+        <span className="text-xs text-muted-foreground">
+          {customEmoji} {customStatus}
+        </span>
       )}
-      title={status.charAt(0).toUpperCase() + status.slice(1)}
-    />
+    </div>
   );
 };

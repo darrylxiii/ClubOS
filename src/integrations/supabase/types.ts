@@ -13402,6 +13402,45 @@ export type Database = {
           },
         ]
       }
+      livehub_audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          entity_id: string | null
+          entity_type: string
+          id: string
+          ip_address: unknown
+          new_value: Json | null
+          old_value: Json | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          ip_address?: unknown
+          new_value?: Json | null
+          old_value?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          ip_address?: unknown
+          new_value?: Json | null
+          old_value?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       livehub_channel_participants: {
         Row: {
           channel_id: string
@@ -24693,6 +24732,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_presence_extended: {
+        Row: {
+          current_activity: string | null
+          custom_status: string | null
+          custom_status_emoji: string | null
+          custom_status_expires_at: string | null
+          last_seen: string | null
+          status: string
+          timezone: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          current_activity?: string | null
+          custom_status?: string | null
+          custom_status_emoji?: string | null
+          custom_status_expires_at?: string | null
+          last_seen?: string | null
+          status?: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          current_activity?: string | null
+          custom_status?: string | null
+          custom_status_emoji?: string | null
+          custom_status_expires_at?: string | null
+          last_seen?: string | null
+          status?: string
+          timezone?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles_extended: {
         Row: {
           bio: string | null
@@ -26411,6 +26486,7 @@ export type Database = {
     Functions: {
       aggregate_daily_security_metrics: { Args: never; Returns: undefined }
       archive_expired_documents: { Args: never; Returns: undefined }
+      auto_delete_old_audit_logs: { Args: never; Returns: undefined }
       calculate_activity_level: {
         Args: { last_activity: string }
         Returns: string
