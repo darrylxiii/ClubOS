@@ -10,11 +10,13 @@ import { useLiveHubPresence } from '@/hooks/useLiveHubPresence';
 const LiveHubLayout = () => {
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null);
   const [selectedChannelType, setSelectedChannelType] = useState<string>('text');
+  const [autoJoin, setAutoJoin] = useState(false);
   const { onlineMembers } = useLiveHubPresence();
 
-  const handleChannelSelect = (channelId: string, channelType: string) => {
+  const handleChannelSelect = (channelId: string, channelType: string, shouldAutoJoin = false) => {
     setSelectedChannelId(channelId);
     setSelectedChannelType(channelType);
+    setAutoJoin(shouldAutoJoin);
   };
 
   return (
@@ -37,6 +39,7 @@ const LiveHubLayout = () => {
             <VoiceChannel 
               channelId={selectedChannelId}
               channelType={selectedChannelType as 'voice' | 'video'}
+              autoJoin={autoJoin}
             />
           ) : (
             <TextChannel channelId={selectedChannelId} />
@@ -52,7 +55,11 @@ const LiveHubLayout = () => {
       </div>
 
       {/* Member List - rightmost */}
-      <MemberList onlineMembers={onlineMembers} />
+      <MemberList 
+        onlineMembers={onlineMembers}
+        channelType={selectedChannelType}
+        channelId={selectedChannelId}
+      />
     </div>
   );
 };
