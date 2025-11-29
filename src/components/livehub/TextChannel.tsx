@@ -365,8 +365,8 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
   return (
     <div className="flex-1 flex bg-background">
       <div className="flex-1 flex flex-col">
-        {/* Channel Header */}
-        <div className="h-12 px-4 flex items-center justify-between border-b border-border">
+        {/* Channel Header - Fixed at top */}
+        <div className="h-12 px-4 flex items-center justify-between border-b border-border bg-background">
           <div className="flex items-center gap-2">
             <Hash className="w-5 h-5 text-muted-foreground" />
             <h2 className="font-semibold">{channelName}</h2>
@@ -384,7 +384,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
           )}
         </div>
 
-        {/* Messages */}
+        {/* Messages - Scrollable area */}
         <ScrollArea className="flex-1 px-4">
           <div className="py-4 space-y-4">
             {messages.map((message) => (
@@ -462,8 +462,6 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
                   {/* Reactions */}
                   <MessageReactions messageId={message.id} />
-
-                  {/* Thread indicator would go here */}
                 </div>
 
                 {/* Message Actions */}
@@ -518,17 +516,17 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
             <div ref={scrollRef} />
           </div>
           
-          {/* Typing Indicator */}
+          {/* Typing Indicator - Inside scroll area but at bottom */}
           {typingUsers.length > 0 && (
-            <div className="px-4 pb-2">
+            <div className="pb-4">
               <TypingIndicator typingUsers={typingUsers} />
             </div>
           )}
         </ScrollArea>
 
-        {/* File Upload Preview */}
+        {/* File Upload Preview - Fixed above input */}
         {uploadingFiles.length > 0 && (
-          <div className="px-4 py-2 border-t border-border">
+          <div className="px-4 py-2 border-t border-border bg-background">
             <div className="flex gap-2 flex-wrap">
               {uploadingFiles.map((file, idx) => (
                 <div key={idx} className="flex items-center gap-2 px-3 py-1 bg-muted rounded text-sm">
@@ -548,8 +546,8 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
           </div>
         )}
 
-        {/* Message Input */}
-        <div className="p-4 border-t border-border relative">
+        {/* Message Input - Fixed at bottom */}
+        <div className="p-4 border-t border-border relative bg-background">
           {showMentionAutocomplete && (
             <MentionAutocomplete
               query={mentionQuery}
