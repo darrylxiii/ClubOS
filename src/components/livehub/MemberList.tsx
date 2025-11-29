@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { UserProfileCard } from './UserProfileCard';
 
 interface Member {
   id: string;
@@ -19,6 +20,8 @@ interface MemberListProps {
 const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) => {
   const [channelParticipants, setChannelParticipants] = useState<Member[]>([]);
   const [showAllMembers, setShowAllMembers] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [showProfileCard, setShowProfileCard] = useState(false);
 
   // Load channel participants for voice/video channels
   useEffect(() => {
@@ -80,6 +83,11 @@ const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) 
     };
   };
 
+  const handleMemberClick = (memberId: string) => {
+    setSelectedUserId(memberId);
+    setShowProfileCard(true);
+  };
+
   const isVoiceChannel = ['voice', 'video', 'stage'].includes(channelType || '');
   const displayMembers = isVoiceChannel && !showAllMembers ? channelParticipants : onlineMembers;
   const otherMembers = isVoiceChannel 
@@ -126,6 +134,7 @@ const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) 
                 {channelParticipants.map((member) => (
                   <div
                     key={member.id}
+                    onClick={() => handleMemberClick(member.id)}
                     className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer"
                   >
                     <div className="relative">
@@ -153,6 +162,7 @@ const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) 
                 {otherMembers.map((member) => (
                   <div
                     key={member.id}
+                    onClick={() => handleMemberClick(member.id)}
                     className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer opacity-60"
                   >
                     <div className="relative">
@@ -174,6 +184,7 @@ const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) 
           {!isVoiceChannel && displayMembers.map((member) => (
             <div
               key={member.id}
+              onClick={() => handleMemberClick(member.id)}
               className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-accent cursor-pointer"
             >
               <div className="relative">
@@ -190,6 +201,15 @@ const MemberList = ({ onlineMembers, channelType, channelId }: MemberListProps) 
           ))}
         </div>
       </ScrollArea>
+
+      {/* User Profile Card */}
+      {selectedUserId && (
+        <UserProfileCard
+          open={showProfileCard}
+          onOpenChange={setShowProfileCard}
+          userId={selectedUserId}
+        />
+      )}
     </div>
   );
 };

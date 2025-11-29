@@ -10,17 +10,16 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, MessageSquare, User, Hash } from 'lucide-react';
 import { useLiveHubSearch } from '@/hooks/useLiveHubSearch';
-import { useNavigate } from 'react-router-dom';
 
 interface SearchDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onChannelSelect: (channelId: string, channelType: string) => void;
 }
 
-export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
+export function SearchDialog({ open, onOpenChange, onChannelSelect }: SearchDialogProps) {
   const [query, setQuery] = useState('');
   const { results, loading, search } = useLiveHubSearch();
-  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -34,13 +33,11 @@ export function SearchDialog({ open, onOpenChange }: SearchDialogProps) {
 
   const handleSelectResult = (result: typeof results[0]) => {
     if (result.type === 'message' && result.channelId) {
-      navigate(`/live-hub?channel=${result.channelId}&message=${result.id}`);
-    } else if (result.type === 'user') {
-      // Open user profile
-      navigate(`/live-hub?profile=${result.id}`);
+      onChannelSelect(result.channelId, 'text');
     } else if (result.type === 'channel') {
-      navigate(`/live-hub?channel=${result.id}`);
+      onChannelSelect(result.id, result.subtitle || 'text');
     }
+    // For user type, we could open a DM in the future
     onOpenChange(false);
   };
 
