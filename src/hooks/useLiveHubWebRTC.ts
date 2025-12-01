@@ -223,15 +223,28 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     if (!user) return;
 
     try {
-      await supabase
+      const { error } = await supabase
         .from('webrtc_signals')
         .insert({
+          // New columns for Live Hub
           channel_id: channelId,
           from_user_id: user.id,
           to_user_id: toUserId,
+          // Legacy columns (for backward compatibility with existing schema)
+          sender_id: user.id,
+          receiver_id: toUserId,
+          // Signal data
           signal_type: signalType,
           signal_data: signalData
         } as any);
+
+      if (error) {
+        console.error('Signal insert failed:', error);
+        // Only show toast for critical signal types
+        if (['offer', 'answer'].includes(signalType)) {
+          toast.error('Connection issue - trying to reconnect...');
+        }
+      }
     } catch (e) {
       console.error('Error sending signal:', e);
     }

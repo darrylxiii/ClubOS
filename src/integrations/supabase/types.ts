@@ -24542,6 +24542,7 @@ export type Database = {
           last_login_at: string | null
           online_status: string
           session_count: number | null
+          status: string | null
           total_actions: number | null
           total_session_duration_minutes: number
           updated_at: string | null
@@ -24556,6 +24557,7 @@ export type Database = {
           last_login_at?: string | null
           online_status?: string
           session_count?: number | null
+          status?: string | null
           total_actions?: number | null
           total_session_duration_minutes?: number
           updated_at?: string | null
@@ -24570,6 +24572,7 @@ export type Database = {
           last_login_at?: string | null
           online_status?: string
           session_count?: number | null
+          status?: string | null
           total_actions?: number | null
           total_session_duration_minutes?: number
           updated_at?: string | null
@@ -26399,7 +26402,7 @@ export type Database = {
           meeting_id: string | null
           processed: boolean | null
           receiver_id: string | null
-          sender_id: string
+          sender_id: string | null
           signal_data: Json
           signal_type: string
           to_user_id: string | null
@@ -26412,7 +26415,7 @@ export type Database = {
           meeting_id?: string | null
           processed?: boolean | null
           receiver_id?: string | null
-          sender_id: string
+          sender_id?: string | null
           signal_data?: Json
           signal_type: string
           to_user_id?: string | null
@@ -26425,7 +26428,7 @@ export type Database = {
           meeting_id?: string | null
           processed?: boolean | null
           receiver_id?: string | null
-          sender_id?: string
+          sender_id?: string | null
           signal_data?: Json
           signal_type?: string
           to_user_id?: string | null
