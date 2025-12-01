@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Brain, Sparkles, TrendingUp, AlertCircle, Users, Calendar, Target, BarChart3 } from "lucide-react";
+import { Brain, Sparkles, TrendingUp, AlertCircle, Users, Calendar, Target, BarChart3, Briefcase, FileText, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { PredictiveAnalyticsDashboard } from "@/components/intelligence/PredictiveAnalyticsDashboard";
@@ -32,28 +32,46 @@ export default function HiringIntelligenceHub() {
     try {
       setLoading(true);
 
-      // Load all jobs
+      // Load all jobs with published OR draft status (not 'open' which doesn't exist)
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs')
-        .select('*, companies(name), applications(count)')
-        .eq('status', 'open')
+        .select('*, companies(name)')
+        .in('status', ['published', 'draft'])
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
 
-      // Load applications for active candidates
+      // Load application counts per job separately (proper way to count)
+      const jobIds = jobsData?.map(j => j.id) || [];
+      let applicationCounts: Record<string, number> = {};
+      
+      if (jobIds.length > 0) {
+        const { data: appCountData } = await supabase
+          .from('applications')
+          .select('job_id')
+          .in('job_id', jobIds);
+        
+        // Aggregate counts client-side
+        appCountData?.forEach(app => {
+          applicationCounts[app.job_id] = (applicationCounts[app.job_id] || 0) + 1;
+        });
+      }
+
+      // Load applications for active candidates with match scores
       const { data: applications } = await supabase
         .from('applications')
-        .select('*, candidate_profiles(*)')
-        .eq('status', 'active')
-        .order('match_score', { ascending: false })
+        .select('*, candidate_profiles(full_name, first_name, last_name), jobs(title, companies(name))')
+        .in('status', ['active', 'screening', 'interview', 'offer'])
+        .order('match_score', { ascending: false, nullsFirst: false })
         .limit(20);
 
-      // Load upcoming interviews
+      // Load upcoming interviews - enhanced detection:
+      // 1. Bookings marked as interview bookings
+      // 2. OR bookings with a job_id association (likely an interview)
       const { data: interviews } = await supabase
         .from('bookings')
-        .select('*, candidate_profiles(full_name), jobs(title, companies(name))')
-        .eq('is_interview_booking', true)
+        .select('*, candidate_profiles(full_name, first_name, last_name), jobs(title, companies(name))')
+        .or('is_interview_booking.eq.true,job_id.not.is.null')
         .gte('scheduled_start', new Date().toISOString())
         .order('scheduled_start', { ascending: true })
         .limit(10);
@@ -65,44 +83,57 @@ export default function HiringIntelligenceHub() {
         .order('created_at', { ascending: false })
         .limit(100);
 
-      // Calculate stats
-      const activeJobs = jobsData?.length || 0;
-      const candidatesInPipeline = applications?.length || 0;
-      const avgMatch = predictions?.length > 0 
-        ? (predictions.reduce((sum, p) => sum + p.prediction_score, 0) / predictions.length * 100).toFixed(1)
+      // Calculate average match score from applications (not predictions)
+      const applicationsWithScores = applications?.filter(a => a.match_score != null) || [];
+      const avgMatchFromApps = applicationsWithScores.length > 0
+        ? (applicationsWithScores.reduce((sum, a) => sum + (a.match_score || 0), 0) / applicationsWithScores.length).toFixed(1)
         : 0;
+
+      // Calculate stats
+      const activeJobs = jobsData?.filter(j => j.status === 'published').length || 0;
+      const totalJobs = jobsData?.length || 0;
+      const candidatesInPipeline = applications?.length || 0;
 
       setStats({
         activeJobs,
+        totalJobs,
         aiInsightsGenerated: predictions?.length || 0,
-        predictedHires: Math.ceil(candidatesInPipeline * 0.15), // Estimate 15% hire rate
-        avgMatchScore: avgMatch,
-        jobsWithCandidates: jobsData?.filter((j: any) => j.applications && j.applications.length > 0).length || 0,
+        predictedHires: candidatesInPipeline > 0 ? Math.ceil(candidatesInPipeline * 0.15) : 0,
+        avgMatchScore: avgMatchFromApps,
+        jobsWithCandidates: Object.keys(applicationCounts).length,
+        totalCandidates: candidatesInPipeline,
       });
 
       // Process jobs with health scores
       const jobsWithHealth = jobsData?.map((job: any) => {
-        const appCount = job.applications?.length || 0;
-        const healthScore = appCount > 0 ? Math.min(100, appCount * 10) : 0;
+        const appCount = applicationCounts[job.id] || 0;
+        // Health score based on application count and job status
+        let healthScore = 0;
+        if (job.status === 'published') {
+          healthScore = appCount > 10 ? 100 : appCount > 5 ? 80 : appCount > 2 ? 60 : appCount > 0 ? 40 : 20;
+        } else {
+          healthScore = 10; // Draft jobs have low health
+        }
+        
         return {
           ...job,
           candidatesInPipeline: appCount,
-          upcomingInterviews: 0, // Would need to calculate from bookings
+          upcomingInterviews: 0,
           healthScore,
           alerts: healthScore < 50 ? 1 : 0,
         };
       }) || [];
 
       setJobs(jobsWithHealth);
-      setJobsNeedingAttention(jobsWithHealth.filter((j: any) => j.healthScore < 60));
+      setJobsNeedingAttention(jobsWithHealth.filter((j: any) => j.healthScore < 60 && j.status === 'published'));
       setTopCandidatesAcrossJobs(applications?.slice(0, 6) || []);
       setUpcomingInterviewsAllJobs(interviews || []);
 
       // Interview stats
       setInterviewStats({
         thisWeek: interviews?.length || 0,
-        feedbackPending: 0, // Would need to calculate
-        avgFeedbackTime: 12, // Placeholder
+        feedbackPending: 0,
+        avgFeedbackTime: 12,
       });
 
     } catch (error) {
@@ -122,6 +153,27 @@ export default function HiringIntelligenceHub() {
       </AppLayout>
     );
   }
+
+  // Empty state component for reusability
+  const EmptyState = ({ icon: Icon, title, description, action }: { 
+    icon: any; 
+    title: string; 
+    description: string; 
+    action?: { label: string; onClick: () => void } 
+  }) => (
+    <div className="text-center py-12 px-6">
+      <div className="mx-auto w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+        <Icon className="h-6 w-6 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">{description}</p>
+      {action && (
+        <Button onClick={action.onClick} variant="outline">
+          {action.label}
+        </Button>
+      )}
+    </div>
+  );
 
   return (
     <AppLayout>
@@ -152,18 +204,19 @@ export default function HiringIntelligenceHub() {
             <CardContent>
               <div className="text-3xl font-bold">{stats.activeJobs}</div>
               <p className="text-xs text-muted-foreground">
-                {stats.jobsWithCandidates} with active candidates
+                {stats.totalJobs > stats.activeJobs && `${stats.totalJobs - stats.activeJobs} drafts • `}
+                {stats.jobsWithCandidates} with candidates
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm text-muted-foreground">AI Insights Generated</CardTitle>
+              <CardTitle className="text-sm text-muted-foreground">Candidates in Pipeline</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats.aiInsightsGenerated}</div>
-              <p className="text-xs text-muted-foreground">Last 7 days</p>
+              <div className="text-3xl font-bold">{stats.totalCandidates}</div>
+              <p className="text-xs text-muted-foreground">Across all active jobs</p>
             </CardContent>
           </Card>
 
@@ -182,8 +235,12 @@ export default function HiringIntelligenceHub() {
               <CardTitle className="text-sm text-muted-foreground">Avg Match Score</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{stats.avgMatchScore}%</div>
-              <p className="text-xs text-muted-foreground">ML matching accuracy</p>
+              <div className="text-3xl font-bold">
+                {stats.avgMatchScore > 0 ? `${stats.avgMatchScore}%` : '—'}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {stats.avgMatchScore > 0 ? 'ML matching accuracy' : 'No scores yet'}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -203,31 +260,46 @@ export default function HiringIntelligenceHub() {
             {/* Jobs Requiring Attention */}
             <Card>
               <CardHeader>
-                <CardTitle>Jobs Requiring Attention</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-amber-500" />
+                  Jobs Requiring Attention
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {jobsNeedingAttention.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      All jobs are healthy! 🎉
-                    </p>
-                  ) : (
-                    jobsNeedingAttention.map(job => (
+                {jobs.length === 0 ? (
+                  <EmptyState
+                    icon={Briefcase}
+                    title="No Jobs Yet"
+                    description="Create and publish jobs to start tracking hiring intelligence and candidate pipelines."
+                    action={{ label: "Create Job", onClick: () => navigate('/jobs/new') }}
+                  />
+                ) : jobsNeedingAttention.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="mx-auto w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
+                      <TrendingUp className="h-6 w-6 text-green-500" />
+                    </div>
+                    <p className="text-sm text-muted-foreground">All published jobs are healthy!</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {jobsNeedingAttention.map(job => (
                       <div key={job.id} className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
                           <h3 className="font-semibold">{job.title}</h3>
                           <p className="text-sm text-muted-foreground">{job.companies?.name}</p>
                         </div>
                         <div className="flex items-center gap-4">
-                          <Badge variant="destructive">{job.alerts} alert{job.alerts !== 1 ? 's' : ''}</Badge>
+                          <Badge variant="outline" className="text-amber-600 border-amber-600">
+                            {job.candidatesInPipeline === 0 ? 'No candidates' : `${job.candidatesInPipeline} candidates`}
+                          </Badge>
                           <Button onClick={() => navigate(`/jobs/${job.id}/dashboard`)}>
                             View Dashboard
                           </Button>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -237,77 +309,115 @@ export default function HiringIntelligenceHub() {
                 <CardTitle>Pipeline Health Across Jobs</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {jobs.map(job => (
-                    <Card 
-                      key={job.id} 
-                      className="border-l-4 cursor-pointer hover:shadow-lg transition-shadow"
-                      style={{
-                        borderLeftColor: job.healthScore > 80 ? 'hsl(var(--success))' : 
-                                       job.healthScore > 60 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))'
-                      }}
-                      onClick={() => navigate(`/jobs/${job.id}/dashboard`)}
-                    >
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm">{job.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-2">
-                          <div className="flex justify-between text-xs">
-                            <span>Health Score</span>
-                            <span className="font-bold">{job.healthScore}%</span>
+                {jobs.length === 0 ? (
+                  <EmptyState
+                    icon={BarChart3}
+                    title="No Pipeline Data"
+                    description="Publish jobs and receive applications to see pipeline health metrics."
+                  />
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {jobs.map(job => (
+                      <Card 
+                        key={job.id} 
+                        className="border-l-4 cursor-pointer hover:shadow-lg transition-shadow"
+                        style={{
+                          borderLeftColor: job.healthScore > 80 ? 'hsl(142, 76%, 36%)' : 
+                                         job.healthScore > 60 ? 'hsl(48, 96%, 53%)' : 
+                                         job.healthScore > 30 ? 'hsl(38, 92%, 50%)' : 'hsl(0, 84%, 60%)'
+                        }}
+                        onClick={() => navigate(`/jobs/${job.id}/dashboard`)}
+                      >
+                        <CardHeader className="pb-2">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-sm">{job.title}</CardTitle>
+                            <Badge variant={job.status === 'published' ? 'default' : 'secondary'} className="text-xs">
+                              {job.status}
+                            </Badge>
                           </div>
-                          <Progress value={job.healthScore} />
-                          <div className="text-xs text-muted-foreground">
-                            {job.candidatesInPipeline} candidates • {job.upcomingInterviews} interviews
+                        </CardHeader>
+                        <CardContent>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-xs">
+                              <span>Health Score</span>
+                              <span className="font-bold">{job.healthScore}%</span>
+                            </div>
+                            <Progress value={job.healthScore} />
+                            <div className="text-xs text-muted-foreground">
+                              {job.candidatesInPipeline} candidate{job.candidatesInPipeline !== 1 ? 's' : ''}
+                            </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
           {/* Top Candidates Tab */}
           <TabsContent value="candidates" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {topCandidatesAcrossJobs.map(app => (
-                <CandidateIntelligenceDossier
-                  key={app.id}
-                  candidateId={app.candidate_id}
-                  jobId={app.job_id}
-                />
-              ))}
-            </div>
+            {topCandidatesAcrossJobs.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <EmptyState
+                    icon={Users}
+                    title="No Candidates Yet"
+                    description="When candidates apply to your jobs, the top performers will appear here with AI-generated insights."
+                    action={{ label: "View Jobs", onClick: () => navigate('/jobs') }}
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {topCandidatesAcrossJobs.map(app => (
+                  <CandidateIntelligenceDossier
+                    key={app.id}
+                    candidateId={app.candidate_id}
+                    jobId={app.job_id}
+                  />
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* Interviews Tab */}
           <TabsContent value="interviews" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Upcoming Interviews (All Jobs)</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Upcoming Interviews (All Jobs)
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="space-y-3">
-                  {upcomingInterviewsAllJobs.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-8">
-                      No upcoming interviews scheduled
-                    </p>
-                  ) : (
-                    upcomingInterviewsAllJobs.map(interview => (
-                      <div key={interview.id} className="flex items-center justify-between p-4 border rounded-lg">
+                {upcomingInterviewsAllJobs.length === 0 ? (
+                  <EmptyState
+                    icon={Calendar}
+                    title="No Upcoming Interviews"
+                    description="Schedule interviews with candidates from the job dashboard. Interviews will appear here automatically."
+                    action={{ label: "View Jobs", onClick: () => navigate('/jobs') }}
+                  />
+                ) : (
+                  <div className="space-y-3">
+                    {upcomingInterviewsAllJobs.map(interview => (
+                      <div key={interview.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                         <div className="flex items-center gap-4">
                           <Avatar>
                             <AvatarFallback>
-                              {interview.candidate_profiles?.full_name?.[0] || '?'}
+                              {interview.candidate_profiles?.first_name?.[0] || 
+                               interview.candidate_profiles?.full_name?.[0] || '?'}
                             </AvatarFallback>
                           </Avatar>
                           <div>
-                            <h3 className="font-semibold">{interview.candidate_profiles?.full_name || 'Candidate'}</h3>
+                            <h3 className="font-semibold">
+                              {interview.candidate_profiles?.first_name && interview.candidate_profiles?.last_name
+                                ? `${interview.candidate_profiles.first_name} ${interview.candidate_profiles.last_name}`
+                                : interview.candidate_profiles?.full_name || 'Candidate'}
+                            </h3>
                             <p className="text-sm text-muted-foreground">
-                              {interview.jobs?.title} • {interview.jobs?.companies?.name}
+                              {interview.jobs?.title || 'Interview'} • {interview.jobs?.companies?.name || 'Company'}
                             </p>
                           </div>
                         </div>
@@ -318,9 +428,9 @@ export default function HiringIntelligenceHub() {
                           <p className="text-xs text-muted-foreground">{interview.meeting_type || 'Interview'}</p>
                         </div>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
 
@@ -340,7 +450,7 @@ export default function HiringIntelligenceHub() {
                   <CardTitle className="text-sm text-muted-foreground">Feedback Pending</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-yellow-500">{interviewStats.feedbackPending}</div>
+                  <div className="text-2xl font-bold text-amber-500">{interviewStats.feedbackPending}</div>
                   <p className="text-xs text-muted-foreground">Awaiting submission</p>
                 </CardContent>
               </Card>
@@ -358,9 +468,22 @@ export default function HiringIntelligenceHub() {
 
           {/* Predictions Tab */}
           <TabsContent value="predictions" className="space-y-6">
-            {jobs.map(job => (
-              <PredictiveAnalyticsDashboard key={job.id} jobId={job.id} />
-            ))}
+            {jobs.length === 0 ? (
+              <Card>
+                <CardContent className="pt-6">
+                  <EmptyState
+                    icon={Target}
+                    title="No Predictions Available"
+                    description="AI predictions will appear once you have active jobs with candidates in the pipeline."
+                    action={{ label: "Create Job", onClick: () => navigate('/jobs/new') }}
+                  />
+                </CardContent>
+              </Card>
+            ) : (
+              jobs.filter(j => j.status === 'published').map(job => (
+                <PredictiveAnalyticsDashboard key={job.id} jobId={job.id} />
+              ))
+            )}
           </TabsContent>
 
           {/* Performance Tab */}
