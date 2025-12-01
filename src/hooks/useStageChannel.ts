@@ -27,7 +27,8 @@ export function useStageChannel(channelId: string) {
   // Use WebRTC for peer connections
   const { remoteStreams, isConnected: isWebRTCConnected } = useLiveHubWebRTC({
     channelId,
-    localStream: localStreamRef.current,
+    localStream: localStreamRef.current!,
+    localScreenStream: null,
     enabled: isConnected
   });
 

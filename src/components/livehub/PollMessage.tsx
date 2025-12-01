@@ -57,10 +57,10 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
     };
 
     const loadVotes = async () => {
-        const { data: pollVotes, error } = await supabase
-            .from('poll_votes')
+        const { data: pollVotes, error } = await (supabase
+            .from('poll_votes' as any)
             .select('selected_options, ranking, user_id')
-            .eq('poll_id', pollId);
+            .eq('poll_id', pollId) as any);
 
         if (error) {
             console.error('Error loading votes:', error);
@@ -138,15 +138,15 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
 
         setUserVote([index]);
 
-        const { error } = await supabase
-            .from('poll_votes')
+        const { error } = await (supabase
+            .from('poll_votes' as any)
             .upsert({
                 poll_id: pollId,
                 user_id: user.id,
                 selected_options: [index]
-            }, {
+            } as any, {
                 onConflict: 'poll_id,user_id'
-            });
+            }) as any);
 
         if (error) {
             console.error('Error voting:', error);
@@ -171,15 +171,15 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
 
         setUserVote(newVote);
 
-        const { error } = await supabase
-            .from('poll_votes')
+        const { error } = await (supabase
+            .from('poll_votes' as any)
             .upsert({
                 poll_id: pollId,
                 user_id: user.id,
                 selected_options: newVote
-            }, {
+            } as any, {
                 onConflict: 'poll_id,user_id'
-            });
+            }) as any);
 
         if (error) {
             console.error('Error voting:', error);
@@ -201,16 +201,16 @@ export const PollMessage = ({ pollId, pollData }: PollMessageProps) => {
     const submitRanking = async () => {
         if (!user || isClosed || rankedOptions.length === 0) return;
 
-        const { error } = await supabase
-            .from('poll_votes')
+        const { error } = await (supabase
+            .from('poll_votes' as any)
             .upsert({
                 poll_id: pollId,
                 user_id: user.id,
                 selected_options: [],
                 ranking: rankedOptions
-            }, {
+            } as any, {
                 onConflict: 'poll_id,user_id'
-            });
+            }) as any);
 
         if (error) {
             console.error('Error voting:', error);

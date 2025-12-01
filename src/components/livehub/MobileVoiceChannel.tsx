@@ -115,8 +115,8 @@ const MobileVoiceChannel = ({ channelId, channelType, autoJoin = false, onConnec
   return (
     <div className="flex flex-col h-full bg-background">
       {/* Remote Audio Players */}
-      {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
-        <RemoteAudioPlayer key={userId} userId={userId} stream={stream} />
+      {Array.from(remoteStreams.entries()).map(([userId, streamBundle]) => (
+        streamBundle.camera && <RemoteAudioPlayer key={userId} userId={userId} stream={streamBundle.camera} />
       ))}
 
       {!isConnected ? (

@@ -271,8 +271,8 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
       if (messageError || !messageData) throw messageError;
 
       // Create poll entry
-      const { error: pollError } = await supabase
-        .from('polls')
+      const { error: pollError } = await (supabase
+        .from('polls' as any)
         .insert({
           message_id: messageData.id,
           channel_id: channelId,
@@ -283,7 +283,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
           allow_add_options: pollData.allowAddOptions || false,
           show_results_before_vote: pollData.showResultsBeforeVote !== false,
           close_at: pollData.closeAt || null
-        });
+        } as any) as any);
 
       if (pollError) throw pollError;
 
@@ -499,9 +499,8 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                       </div>
                     ) : isPoll && pollData ? (
                       <PollMessage
-                        messageId={message.id}
-                        data={pollData}
-                        channelId={channelId}
+                        pollId={message.id}
+                        pollData={pollData}
                       />
                     ) : (
                       <>
