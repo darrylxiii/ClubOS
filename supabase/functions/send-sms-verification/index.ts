@@ -138,6 +138,38 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
+    // IDEMPOTENCY CHECK: Check if a code was sent to this phone recently (within 60 seconds)
+    // Return success without generating a new code to prevent duplicate SMSes
+    const { data: recentCode } = await supabase
+      .from('phone_verifications')
+      .select('id, code, created_at')
+      .eq('phone', phone)
+      .eq('verified', false)
+      .gt('expires_at', new Date().toISOString())
+      .gt('created_at', new Date(Date.now() - 60000).toISOString()) // Within last 60 seconds
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (recentCode) {
+      console.log(`[SMS Verification] Idempotency: Recent code exists for ${phone.substring(0, 8)}****, returning success without new SMS`);
+      
+      // Return success without sending a new SMS - this handles rapid clicks
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Verification code already sent',
+          code_length: 6,
+          expires_in_minutes: 30,
+          idempotent: true
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
+    }
+
     // Generate verification code
     // In development without Twilio: use fixed code for easy testing
     // In production: always generate cryptographically secure random code

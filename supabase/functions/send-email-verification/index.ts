@@ -63,6 +63,12 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
       if (rateLimitCheck && !rateLimitCheck.allowed) {
+        console.log(`[Email Verification] Rate limit exceeded for user ${user.id}:`, {
+          attempts: rateLimitCheck.attempts,
+          max_attempts: rateLimitCheck.max_attempts,
+          retry_after_minutes: rateLimitCheck.retry_after_minutes
+        });
+
         await supabase.from('verification_attempts').insert({
           user_id: user.id,
           verification_type: 'email',
@@ -71,14 +77,63 @@ const handler = async (req: Request): Promise<Response> => {
           email,
           error_message: rateLimitCheck.message,
           ip_address: ipAddress,
-          user_agent: userAgent
+          user_agent: userAgent,
+          metadata: {
+            rate_limited: true,
+            attempts: rateLimitCheck.attempts,
+            max_attempts: rateLimitCheck.max_attempts,
+            retry_after_minutes: rateLimitCheck.retry_after_minutes
+          }
         });
 
+        // Return detailed error with retry information
         return new Response(
-          JSON.stringify({ error: rateLimitCheck.message }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          JSON.stringify({
+            error: rateLimitCheck.message || 'Too many attempts. Please try again later.',
+            error_code: 'RATE_LIMITED',
+            retry_after_minutes: rateLimitCheck.retry_after_minutes,
+            retry_after_seconds: rateLimitCheck.retry_after_seconds
+          }),
+          {
+            status: 429,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+              'Retry-After': String(rateLimitCheck.retry_after_seconds || 1800)
+            }
+          }
         );
       }
+    }
+
+    // IDEMPOTENCY CHECK: Check if a code was sent to this email recently (within 60 seconds)
+    // Return success without generating a new code to prevent duplicate emails
+    const { data: recentCode } = await supabase
+      .from('email_verifications')
+      .select('id, code, created_at')
+      .eq('email', email)
+      .eq('verified', false)
+      .gt('expires_at', new Date().toISOString())
+      .gt('created_at', new Date(Date.now() - 60000).toISOString()) // Within last 60 seconds
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (recentCode) {
+      console.log(`[Email Verification] Idempotency: Recent code exists for ${email}, returning success without new email`);
+      
+      // Return success without sending a new email - this handles rapid clicks
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: 'Verification code already sent',
+          idempotent: true
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+        }
+      );
     }
 
     // Generate new code
