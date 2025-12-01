@@ -1,23 +1,108 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { validatePhoneNumber, validateOTP } from '@/lib/validation';
 import type { VerificationHookReturn } from '@/types/verification';
+
+const COOLDOWN_STORAGE_KEY = 'phone_verification_cooldown';
+const COOLDOWN_DURATION = 60; // seconds
+const DEBOUNCE_MS = 1000; // minimum ms between send attempts
 
 export const usePhoneVerification = (): VerificationHookReturn => {
   const [otpSent, setOtpSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  
+  // Debounce refs
+  const lastSendAttemptRef = useRef<number>(0);
+  const cooldownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Restore cooldown from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem(COOLDOWN_STORAGE_KEY);
+    if (stored) {
+      try {
+        const { expiresAt } = JSON.parse(stored);
+        const remaining = Math.ceil((expiresAt - Date.now()) / 1000);
+        if (remaining > 0) {
+          setResendCooldown(remaining);
+          setOtpSent(true);
+          startCooldownTimer(remaining);
+        } else {
+          localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+        }
+      } catch {
+        localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+      }
+    }
+    
+    return () => {
+      if (cooldownIntervalRef.current) {
+        clearInterval(cooldownIntervalRef.current);
+      }
+    };
+  }, []);
+
+  const startCooldownTimer = useCallback((duration: number) => {
+    // Clear any existing interval
+    if (cooldownIntervalRef.current) {
+      clearInterval(cooldownIntervalRef.current);
+    }
+    
+    setResendCooldown(duration);
+    
+    // Store expiry time in localStorage
+    localStorage.setItem(COOLDOWN_STORAGE_KEY, JSON.stringify({
+      expiresAt: Date.now() + (duration * 1000)
+    }));
+    
+    cooldownIntervalRef.current = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          if (cooldownIntervalRef.current) {
+            clearInterval(cooldownIntervalRef.current);
+            cooldownIntervalRef.current = null;
+          }
+          localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }, []);
 
   const sendOTP = useCallback(async (phoneNumber: string) => {
+    // Debounce check - prevent rapid successive calls
+    const now = Date.now();
+    if (now - lastSendAttemptRef.current < DEBOUNCE_MS) {
+      console.log('[PhoneVerification] Debounced - too soon since last attempt');
+      return false;
+    }
+    
+    // Don't allow if already sending or in cooldown
+    if (isSendingOtp) {
+      console.log('[PhoneVerification] Already sending OTP');
+      return false;
+    }
+    
+    if (resendCooldown > 0) {
+      toast.error(`Please wait ${resendCooldown} seconds before requesting another code`);
+      return false;
+    }
+
     const phoneValidation = validatePhoneNumber(phoneNumber);
     if (!phoneValidation.isValid) {
       toast.error(phoneValidation.error);
       return false;
     }
 
+    lastSendAttemptRef.current = now;
     setIsSendingOtp(true);
+    
+    // Start cooldown immediately to prevent rapid clicks
+    startCooldownTimer(COOLDOWN_DURATION);
+
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
@@ -28,73 +113,48 @@ export const usePhoneVerification = (): VerificationHookReturn => {
         } : {}
       });
 
-      // Phase 2: Better error handling with specific messages
       if (error) {
         console.error('[Phone Verification] Edge function error:', error);
-        
-        // Check if it's a rate limit error
-        if (error.message?.includes('rate limit') || error.message?.includes('Too many')) {
-          const retryMatch = error.message.match(/(\d+)\s*minutes?/);
-          const minutes = retryMatch ? retryMatch[1] : 'a few';
-          toast.error(`Too many attempts. Please wait ${minutes} minutes before trying again.`, {
-            duration: 5000
-          });
-        } else {
-          toast.error('Unable to send verification code. Please try again.');
+        // Reset cooldown on error so user can retry
+        setResendCooldown(0);
+        localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+        if (cooldownIntervalRef.current) {
+          clearInterval(cooldownIntervalRef.current);
+          cooldownIntervalRef.current = null;
         }
-        return false;
+        throw error;
       }
 
-      // Phase 2: Parse backend error responses
+      // Handle rate limit error with retry info
       if (data?.error) {
-        console.error('[Phone Verification] Backend error:', data);
-        
-        // Handle rate limiting with countdown
-        if (data.error.includes('rate limit') || data.error.includes('Too many')) {
-          const retryMatch = data.error.match(/(\d+)\s*minutes?/);
-          const minutes = retryMatch ? retryMatch[1] : 'a few';
-          toast.error(`Too many verification attempts. Please wait ${minutes} minutes before trying again.`, {
-            duration: 5000
-          });
-        } else {
-          toast.error(data.error);
+        if (data.retry_after_seconds || data.retry_after_minutes) {
+          const retrySeconds = data.retry_after_seconds || Math.ceil(data.retry_after_minutes * 60);
+          startCooldownTimer(retrySeconds);
+          toast.error(`Too many attempts. Please wait ${Math.ceil(retrySeconds / 60)} minute(s).`);
+          return false;
         }
-        return false;
+        // Reset cooldown on other errors
+        setResendCooldown(0);
+        localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+        if (cooldownIntervalRef.current) {
+          clearInterval(cooldownIntervalRef.current);
+          cooldownIntervalRef.current = null;
+        }
+        throw new Error(data.error);
       }
 
-      // Phase 3: Only set OTP sent after successful backend confirmation
-      if (data?.success) {
-        setOtpSent(true);
-        toast.success('Verification code sent to your phone');
-        
-        // Start 60-second cooldown
-        setResendCooldown(60);
-        const interval = setInterval(() => {
-          setResendCooldown((prev) => {
-            if (prev <= 1) {
-              clearInterval(interval);
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-
-        return true;
-      } else {
-        console.error('[Phone Verification] Unexpected response format:', data);
-        toast.error('Unable to send verification code. Please try again.');
-        return false;
-      }
+      setOtpSent(true);
+      toast.success('Verification code sent to your phone');
+      return true;
     } catch (error: any) {
-      console.error('[Phone Verification] Unexpected error:', error);
+      console.error('[Phone Verification] Error:', error);
       
-      // Phase 2: Better error message parsing
-      if (error.message?.includes('rate limit') || error.message?.includes('Too many')) {
-        const retryMatch = error.message.match(/(\d+)\s*minutes?/);
-        const minutes = retryMatch ? retryMatch[1] : 'a few';
-        toast.error(`Too many attempts. Please wait ${minutes} minutes before trying again.`, {
-          duration: 5000
-        });
+      // Parse rate limit from error message
+      const retryMatch = error.message?.match(/wait (\d+) minute/i);
+      if (retryMatch) {
+        const minutes = parseInt(retryMatch[1], 10);
+        startCooldownTimer(minutes * 60);
+        toast.error(`Too many attempts. Please wait ${minutes} minute(s).`);
       } else {
         toast.error(error.message || 'Failed to send verification code');
       }
@@ -102,7 +162,7 @@ export const usePhoneVerification = (): VerificationHookReturn => {
     } finally {
       setIsSendingOtp(false);
     }
-  }, []);
+  }, [isSendingOtp, resendCooldown, startCooldownTimer]);
 
   const verifyOTP = useCallback(async (
     phoneNumber: string,
@@ -153,6 +213,11 @@ export const usePhoneVerification = (): VerificationHookReturn => {
     setIsVerifying(false);
     setIsSendingOtp(false);
     setResendCooldown(0);
+    localStorage.removeItem(COOLDOWN_STORAGE_KEY);
+    if (cooldownIntervalRef.current) {
+      clearInterval(cooldownIntervalRef.current);
+      cooldownIntervalRef.current = null;
+    }
   }, []);
 
   return {

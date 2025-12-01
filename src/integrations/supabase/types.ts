@@ -27212,10 +27212,24 @@ export type Database = {
         Args: { check_user_id: string; limit_type_param: string }
         Returns: Json
       }
-      check_verification_rate_limit: {
-        Args: { _action: string; _user_id: string; _verification_type: string }
-        Returns: Json
-      }
+      check_verification_rate_limit:
+        | {
+            Args: {
+              _action: string
+              _user_id: string
+              _verification_type: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              _max_attempts?: number
+              _user_id: string
+              _verification_type: string
+              _window_minutes?: number
+            }
+            Returns: Json
+          }
       cleanup_expired_password_resets: { Args: never; Returns: undefined }
       cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
@@ -27586,6 +27600,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      reset_user_verification_rate_limit: {
+        Args: { _user_id: string; _verification_type?: string }
+        Returns: Json
       }
       search_candidate_notes: {
         Args: {
