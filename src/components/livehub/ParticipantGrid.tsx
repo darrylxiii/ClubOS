@@ -16,56 +16,85 @@ interface Participant {
   };
 }
 
+interface RemoteStreamBundle {
+  camera: MediaStream | null;
+  screen: MediaStream | null;
+}
+
 interface ParticipantGridProps {
   participants: Participant[];
   channelType: 'voice' | 'video' | 'stage';
   currentUserId?: string;
   currentUserSpeaking?: boolean;
   localStream?: MediaStream | null;
+  remoteStreams?: Map<string, RemoteStreamBundle>;
 }
 
-const ParticipantGrid = ({ participants, channelType, currentUserId, currentUserSpeaking, localStream }: ParticipantGridProps) => {
+const ParticipantGrid = ({
+  participants,
+  channelType,
+  currentUserId,
+  currentUserSpeaking,
+  localStream,
+  remoteStreams
+}: ParticipantGridProps) => {
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const attachedStreamsRef = useRef<Set<string>>(new Set());
 
-  // Stable effect - only runs when localStream or currentUserId changes
+  // Stable effect - only runs when streams change
   useEffect(() => {
-    if (!localStream || !currentUserId) return;
-    
     // Check all video refs and attach stream if needed
     videoRefs.current.forEach((videoEl, participantId) => {
       const participant = participants.find(p => p.id === participantId);
-      if (participant?.user_id === currentUserId && participant.is_video_on) {
+      if (!participant || !participant.is_video_on) return;
+
+      let streamToAttach: MediaStream | null = null;
+
+      if (participant.user_id === currentUserId) {
+        streamToAttach = localStream || null;
+      } else if (remoteStreams) {
+        const streams = remoteStreams.get(participant.user_id);
+        streamToAttach = streams?.camera || null;
+      }
+
+      if (streamToAttach) {
         // Only attach if not already attached with same stream
-        if (videoEl.srcObject !== localStream && !attachedStreamsRef.current.has(participantId)) {
-          console.log('[Video] Attaching local stream', { participantId });
-          videoEl.srcObject = localStream;
-          videoEl.play().catch(err => console.error('Error playing local video:', err));
-          attachedStreamsRef.current.add(participantId);
+        if (videoEl.srcObject !== streamToAttach) {
+          console.log('[Video] Attaching stream', { participantId, userId: participant.user_id });
+          videoEl.srcObject = streamToAttach;
+          videoEl.play().catch(err => console.error('Error playing video:', err));
         }
       }
     });
-  }, [localStream, currentUserId]);
+  }, [localStream, remoteStreams, participants, currentUserId]);
 
   const setVideoRef = (participantId: string, el: HTMLVideoElement | null) => {
     if (el) {
       videoRefs.current.set(participantId, el);
-      
-      // Attach stream immediately if this is current user's video
+
+      // Attach stream immediately on mount
       const participant = participants.find(p => p.id === participantId);
-      if (participant?.user_id === currentUserId && localStream && participant.is_video_on) {
-        if (el.srcObject !== localStream && !attachedStreamsRef.current.has(participantId)) {
-          console.log('[Video] Attaching local stream on mount', { participantId });
-          el.srcObject = localStream;
-          el.play().catch(err => console.error('Error playing local video:', err));
-          attachedStreamsRef.current.add(participantId);
+      if (participant && participant.is_video_on) {
+        let streamToAttach: MediaStream | null = null;
+
+        if (participant.user_id === currentUserId) {
+          streamToAttach = localStream || null;
+        } else if (remoteStreams) {
+          const streams = remoteStreams.get(participant.user_id);
+          streamToAttach = streams?.camera || null;
+        }
+
+        if (streamToAttach && el.srcObject !== streamToAttach) {
+          console.log('[Video] Attaching stream on mount', { participantId });
+          el.srcObject = streamToAttach;
+          el.play().catch(err => console.error('Error playing video:', err));
         }
       }
     } else {
       videoRefs.current.delete(participantId);
-      attachedStreamsRef.current.delete(participantId);
     }
   };
+
   const getGridCols = () => {
     const count = participants.length;
     if (count === 1) return 'grid-cols-1';
@@ -80,15 +109,14 @@ const ParticipantGrid = ({ participants, channelType, currentUserId, currentUser
       {participants.map((participant) => {
         const isCurrentUser = participant.user_id === currentUserId;
         const isSpeaking = isCurrentUser ? currentUserSpeaking : participant.is_speaking;
-        
+
         return (
           <div
             key={participant.id}
-            className={`relative aspect-video rounded-lg bg-card flex items-center justify-center transition-all duration-300 ease-in-out ${
-              isSpeaking 
-                ? 'ring-4 ring-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)]' 
+            className={`relative aspect-video rounded-lg bg-card flex items-center justify-center transition-all duration-300 ease-in-out ${isSpeaking
+                ? 'ring-4 ring-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)]'
                 : 'border-2 border-border ring-0 shadow-none'
-            }`}
+              }`}
           >
             {/* Video element for video channels */}
             {participant.is_video_on && channelType === 'video' ? (

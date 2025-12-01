@@ -3,14 +3,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceChannel } from '@/hooks/useVoiceChannel';
 import { usePushToTalk } from '@/hooks/usePushToTalk';
+import { useRecordingWithEffects } from '@/hooks/useRecordingWithEffects';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Phone, PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff, Monitor, Volume2, VolumeX } from 'lucide-react';
+import {
+  Phone, PhoneOff, Mic, MicOff, Video as VideoIcon, VideoOff,
+  Monitor, Volume2, VolumeX, Smile, PenTool, Circle, Square
+} from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import ParticipantGrid from './ParticipantGrid';
 import VoiceActivityIndicator from './VoiceActivityIndicator';
 import ScreenShareSpotlight from './ScreenShareSpotlight';
 import { RemoteAudioPlayer } from './RemoteAudioPlayer';
+import { LiveReactions } from './LiveReactions';
+import { Whiteboard } from './Whiteboard';
+import { RecordingSettingsDialog, RecordingSettings } from './RecordingSettingsDialog';
 import { toast } from 'sonner';
 
 interface VoiceChannelProps {
@@ -27,13 +39,17 @@ interface Channel {
   auto_transcribe: boolean;
 }
 
+const REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '🎉', '👏', '🔥'];
+
 const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannelProps) => {
   const { user } = useAuth();
   const [channel, setChannel] = useState<Channel | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [pushToTalkEnabled, setPushToTalkEnabled] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
-  
+  const [isWhiteboardOpen, setIsWhiteboardOpen] = useState(false);
+  const [showRecordingSettings, setShowRecordingSettings] = useState(false);
+
   const {
     isConnected,
     isMuted,
@@ -54,7 +70,9 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     toggleScreenShare,
     startRecording,
     stopRecording,
-    setPushToTalkActive
+    setPushToTalkActive,
+    sendReaction,
+    sendWhiteboardEvent
   } = useVoiceChannel(channelId, { pushToTalkEnabled });
 
   const { isPushing } = usePushToTalk({
@@ -63,6 +81,34 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     onPushStart: () => setPushToTalkActive?.(true),
     onPushEnd: () => setPushToTalkActive?.(false),
   });
+
+  // Recording with virtual backgrounds
+  const recording = useRecordingWithEffects({
+    videoStream: localStream,
+    audioStream: localStream,
+    enabled: isConnected
+  });
+
+  const handleStartRecording = (settings: RecordingSettings) => {
+    recording.startRecording({
+      quality: settings.quality,
+      format: settings.format,
+      audioBitrate: settings.audioBitrate
+    });
+    setIsRecording(true);
+  };
+
+  const handleStopRecording = () => {
+    recording.stopRecording();
+    setIsRecording(false);
+
+    // Download after 1 second to allow blob creation
+    setTimeout(() => {
+      if (recording.recordedBlob) {
+        recording.downloadRecording(`call-${channelId}-${new Date().toISOString()}.webm`);
+      }
+    }, 1000);
+  };
 
   useEffect(() => {
     loadChannel();
@@ -94,12 +140,12 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     setIsJoining(true);
     try {
       await joinChannel();
-      
-      // Auto-start recording if enabled
-      if (channel?.auto_record) {
-        await handleStartRecording();
-      }
-      
+
+      // Note: Auto-record now requires user to configure settings via dialog
+      // if (channel?.auto_record) {
+      //   setShowRecordingSettings(true);
+      // }
+
       toast.success('Connected to voice channel');
     } catch (error: any) {
       console.error('Error joining channel:', error);
@@ -122,34 +168,44 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     }
   };
 
-  const handleStartRecording = async () => {
-    try {
-      await startRecording();
-      setIsRecording(true);
-      toast.success('Recording started');
-    } catch (error) {
-      console.error('Error starting recording:', error);
-      toast.error('Failed to start recording');
-    }
-  };
 
-  const handleStopRecording = async () => {
-    try {
-      await stopRecording();
-      setIsRecording(false);
-      toast.success('Recording stopped and processing...');
-    } catch (error) {
-      console.error('Error stopping recording:', error);
-      toast.error('Failed to stop recording');
-    }
-  };
 
   if (!channel) return null;
 
+  // Determine active screen share (local or remote)
+  // We prioritize local screen share, then first remote screen share found
+  let activeScreenShare: { userId: string; stream: MediaStream; userName?: string; avatarUrl?: string | null } | null = null;
+
+  if (isScreenSharing && screenStream && user) {
+    activeScreenShare = {
+      userId: user.id,
+      stream: screenStream,
+      userName: 'You',
+      avatarUrl: undefined // Could fetch from profile if needed, but 'You' is fine
+    };
+  } else {
+    // Find first remote screen share
+    for (const [userId, streams] of remoteStreams.entries()) {
+      if (streams.screen) {
+        const participant = participants.find(p => p.user_id === userId);
+        activeScreenShare = {
+          userId,
+          stream: streams.screen,
+          userName: participant?.user?.full_name || 'Unknown User',
+          avatarUrl: participant?.user?.avatar_url
+        };
+        break;
+      }
+    }
+  }
+
   return (
-    <div className="flex-1 flex flex-col bg-background">
+    <div className="flex-1 flex flex-col bg-background h-full overflow-hidden relative">
+      {/* Live Reactions Overlay */}
+      <LiveReactions channelId={channelId} />
+
       {/* Channel Header */}
-      <div className="h-12 px-4 flex items-center justify-between border-b border-border">
+      <div className="h-12 px-4 flex items-center justify-between border-b border-border shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Volume2 className="w-5 h-5 text-muted-foreground" />
@@ -158,7 +214,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
               <span className="text-xs text-primary">Connected</span>
             )}
           </div>
-          
+
           {/* Push-to-Talk Toggle */}
           {isConnected && (
             <div className="flex items-center gap-2 border-l border-border pl-4">
@@ -178,29 +234,46 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
             </div>
           )}
         </div>
-        
+
         {isConnected && channel.auto_record && (
           <div className="flex items-center gap-2">
-            {isRecording ? (
+            {recording.isRecording ? (
               <>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                  <span className="text-xs text-muted-foreground">Recording</span>
-                </div>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
                   onClick={handleStopRecording}
+                  className="gap-2"
                 >
-                  Stop Recording
+                  <Square className="w-4 h-4 fill-current" />
+                  Stop Recording ({Math.floor(recording.recordingDuration / 60)}:{String(recording.recordingDuration % 60).padStart(2, '0')})
                 </Button>
+                {recording.isPaused ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={recording.resumeRecording}
+                  >
+                    Resume
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={recording.pauseRecording}
+                  >
+                    Pause
+                  </Button>
+                )}
               </>
             ) : (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={handleStartRecording}
+                onClick={() => setShowRecordingSettings(true)}
+                className="gap-2"
               >
+                <Circle className="w-4 h-4" />
                 Start Recording
               </Button>
             )}
@@ -208,7 +281,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
         )}
       </div>
 
-      {/* Main Content - Fixed layout */}
+      {/* Main Content */}
       {!isConnected ? (
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center space-y-4">
@@ -219,9 +292,9 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
             <p className="text-sm text-muted-foreground">
               {participants.length} {participants.length === 1 ? 'person' : 'people'} in channel
             </p>
-            <Button 
-              onClick={handleJoinChannel} 
-              size="lg" 
+            <Button
+              onClick={handleJoinChannel}
+              size="lg"
               className="gap-2"
               disabled={isJoining}
             >
@@ -236,66 +309,51 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
           </div>
         </div>
       ) : (
-        <>
-          {/* Remote Audio Players */}
-          {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
-            <RemoteAudioPlayer key={userId} userId={userId} stream={stream} />
+        <div className="flex-1 flex flex-col min-h-0">
+          {/* Remote Audio Players (Camera streams usually have audio) */}
+          {Array.from(remoteStreams.entries()).map(([userId, streams]) => (
+            streams.camera && (
+              <RemoteAudioPlayer key={userId} userId={userId} stream={streams.camera} />
+            )
           ))}
 
-          {/* Participant Grid / Screen Share - Scrollable */}
-          <div className="flex-1 min-h-0 overflow-auto">
-            {(() => {
-              // Check if anyone is screen sharing
-              const screenSharingParticipants = participants.filter(p => p.is_screen_sharing);
-              const localScreenShare = isScreenSharing && screenStream;
-              
-              if (localScreenShare) {
-                const currentUserParticipant = participants.find(p => p.user_id === user?.id);
-                return (
-                  <div className="w-full h-full p-4">
-                    <ScreenShareSpotlight
-                      userId={user!.id}
-                      userName={currentUserParticipant?.user?.full_name || 'You'}
-                      userAvatar={currentUserParticipant?.user?.avatar_url}
-                      stream={localStream!}
-                      isLocal={true}
-                      onStop={toggleScreenShare}
-                    />
-                  </div>
-                );
-              }
-              
-              if (screenSharingParticipants.length > 0) {
-                const sharingParticipant = screenSharingParticipants[0];
-                const remoteStream = remoteStreams.get(sharingParticipant.user_id);
-                
-                if (remoteStream) {
-                  return (
-                    <div className="w-full h-full p-4">
-                      <ScreenShareSpotlight
-                        userId={sharingParticipant.user_id}
-                        userName={sharingParticipant.user?.full_name || 'Unknown User'}
-                        userAvatar={sharingParticipant.user?.avatar_url}
-                        stream={remoteStream}
-                        isLocal={false}
-                      />
-                    </div>
-                  );
-                }
-              }
-              
-              // No screen sharing - show normal participant grid
-              return (
-                <ParticipantGrid 
-                  participants={participants} 
+          {/* Content Area: Whiteboard OR Screen Share OR Grid */}
+          {isWhiteboardOpen ? (
+            <div className="flex-1 min-h-0">
+              <Whiteboard
+                channelId={channelId}
+                onSendEvent={(event) => sendWhiteboardEvent?.(event)}
+              />
+            </div>
+          ) : (
+            <>
+              {/* Screen Share Spotlight (if active) */}
+              {activeScreenShare && (
+                <div className="flex-1 p-4 min-h-0 border-b border-border">
+                  <ScreenShareSpotlight
+                    userId={activeScreenShare.userId}
+                    userName={activeScreenShare.userName || 'User'}
+                    userAvatar={activeScreenShare.avatarUrl}
+                    stream={activeScreenShare.stream}
+                    isLocal={activeScreenShare.userId === user?.id}
+                    onStop={activeScreenShare.userId === user?.id ? toggleScreenShare : undefined}
+                  />
+                </div>
+              )}
+
+              {/* Participant Grid */}
+              <div className={`${activeScreenShare ? 'h-48 shrink-0' : 'flex-1'} overflow-auto bg-background transition-all duration-300`}>
+                <ParticipantGrid
+                  participants={participants}
                   channelType={channelType}
                   currentUserId={user?.id}
                   currentUserSpeaking={isSpeaking}
                   localStream={localStream}
+                  remoteStreams={remoteStreams}
                 />
-              );
-            })()}
-          </div>
+              </div>
+            </>
+          )}
 
           {/* Voice Activity Indicator - Fixed above controls */}
           {isSpeaking && (
@@ -305,7 +363,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
           )}
 
           {/* Controls - Fixed at bottom */}
-          <div className="h-20 border-t border-border px-4 flex items-center justify-center gap-2 bg-background">
+          <div className="h-20 border-t border-border px-4 flex items-center justify-center gap-2 bg-background shrink-0 relative z-10">
             <Button
               variant="secondary"
               size="icon"
@@ -338,6 +396,40 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
             </Button>
 
             <Button
+              variant={isWhiteboardOpen ? "secondary" : "ghost"}
+              size="icon"
+              className={`h-12 w-12 rounded-full ${isWhiteboardOpen ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''}`}
+              onClick={() => setIsWhiteboardOpen(!isWhiteboardOpen)}
+            >
+              <PenTool className="w-5 h-5" />
+            </Button>
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-12 w-12 rounded-full"
+                >
+                  <Smile className="w-5 h-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2" side="top">
+                <div className="flex gap-2">
+                  {REACTIONS.map(emoji => (
+                    <button
+                      key={emoji}
+                      className="text-2xl hover:scale-125 transition-transform p-1"
+                      onClick={() => sendReaction?.(emoji)}
+                    >
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <Button
               variant="ghost"
               size="icon"
               className={`h-12 w-12 rounded-full ${isDeafened ? 'bg-red-500/20 hover:bg-red-500/30 text-red-500' : ''}`}
@@ -355,8 +447,15 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
               <PhoneOff className="w-5 h-5" />
             </Button>
           </div>
-        </>
+        </div>
       )}
+
+      {/* Recording Settings Dialog */}
+      <RecordingSettingsDialog
+        open={showRecordingSettings}
+        onOpenChange={setShowRecordingSettings}
+        onStartRecording={handleStartRecording}
+      />
     </div>
   );
 };

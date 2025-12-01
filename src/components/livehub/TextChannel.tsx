@@ -25,6 +25,8 @@ import FileAttachment from './FileAttachment';
 import { EmojiPicker } from './EmojiPicker';
 import { MentionAutocomplete } from './MentionAutocomplete';
 import { MessageFormatter } from './MessageFormatter';
+import { PollCreator } from './PollCreator';
+import { PollMessage } from './PollMessage';
 
 interface TextChannelProps {
   channelId: string;
@@ -67,7 +69,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  
+
   const { typingUsers, startTyping, stopTyping } = useLiveHubTyping(channelId);
   const { markAsRead } = useLiveHubUnread();
 
@@ -75,7 +77,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
     loadChannel();
     loadMessages();
     subscribeToMessages();
-    
+
     // Mark channel as read when opened
     if (user) {
       markAsRead(channelId);
@@ -118,13 +120,13 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
         .in('id', userIds);
 
       const userMap = new Map(userData?.map(u => [u.id, u]) || []);
-      
+
       const messagesWithUsers = data.map(msg => ({
         ...msg,
         attachments: msg.attachments as unknown as Attachment[] | null,
         user: userMap.get(msg.user_id)
       }));
-      
+
       setMessages(messagesWithUsers);
       return;
     }
@@ -166,7 +168,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
       .from('live_channel_messages')
       .select('*', { count: 'exact', head: true })
       .eq('reply_to_id', messageId);
-    
+
     return count || 0;
   };
 
@@ -224,7 +226,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
     if (uploadingFiles.length > 0) {
       const uploaded = await Promise.all(uploadingFiles.map(file => uploadFile(file)));
       attachments = uploaded.filter(a => a !== null) as Attachment[];
-      
+
       if (attachments.length === 0 && uploadingFiles.length > 0) {
         toast.error('Failed to upload files');
         return;
@@ -249,7 +251,47 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
     setNewMessage('');
     setUploadingFiles([]);
-    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const createPoll = async (pollData: import('./PollCreator').PollData) => {
+    if (!user) return;
+
+    try {
+      // Create message first
+      const { data: messageData, error: messageError } = await supabase
+        .from('live_channel_messages')
+        .insert([{
+          channel_id: channelId,
+          user_id: user.id,
+          content: `[POLL] ${pollData.question}`,
+        }])
+        .select()
+        .single();
+
+      if (messageError || !messageData) throw messageError;
+
+      // Create poll entry
+      const { error: pollError } = await supabase
+        .from('polls')
+        .insert({
+          message_id: messageData.id,
+          channel_id: channelId,
+          created_by: user.id,
+          question: pollData.question,
+          options: pollData.options,
+          poll_type: pollData.pollType,
+          allow_add_options: pollData.allowAddOptions || false,
+          show_results_before_vote: pollData.showResultsBeforeVote !== false,
+          close_at: pollData.closeAt || null
+        });
+
+      if (pollError) throw pollError;
+
+      toast.success('Poll created');
+    } catch (error: any) {
+      console.error('Error creating poll:', error);
+      toast.error('Failed to create poll');
+    }
   };
 
   const editMessage = async (messageId: string, newContent: string) => {
@@ -257,7 +299,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
     const { error } = await supabase
       .from('live_channel_messages')
-      .update({ 
+      .update({
         content: newContent,
         is_edited: true,
         edited_at: new Date().toISOString()
@@ -294,7 +336,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
 
   const handleInputChange = (value: string) => {
     setNewMessage(value);
-    
+
     // Trigger typing indicator
     if (value.length > 0) {
       startTyping();
@@ -310,7 +352,7 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
     if (mentionMatch && inputRef.current) {
       setMentionQuery(mentionMatch[1]);
       setShowMentionAutocomplete(true);
-      
+
       // Calculate position
       const rect = inputRef.current.getBoundingClientRect();
       setMentionPosition({
@@ -372,8 +414,8 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
             <h2 className="font-semibold">{channelName}</h2>
           </div>
           {pinnedCount > 0 && (
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="sm"
               onClick={() => setShowPinnedPanel(!showPinnedPanel)}
               className="gap-2"
@@ -387,135 +429,153 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
         {/* Messages - Scrollable area */}
         <ScrollArea className="flex-1 px-4">
           <div className="py-4 space-y-4">
-            {messages.map((message) => (
-              <div key={message.id} className="group flex gap-3 hover:bg-muted/30 -mx-2 px-2 py-1 rounded">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={message.user?.avatar_url || undefined} />
-                  <AvatarFallback>
-                    {message.user?.full_name?.substring(0, 2).toUpperCase() || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-semibold text-sm">
-                      {message.user?.full_name || 'Unknown User'}
-                    </span>
-                   <span className="text-xs text-muted-foreground">
-                      {format(new Date(message.created_at), 'HH:mm')}
-                    </span>
-                    {message.is_pinned && (
-                      <Badge variant="secondary" className="h-4 px-1 text-xs">
-                        <Pin className="w-3 h-3 mr-1" />
-                        Pinned
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  {/* Message Content - Editable */}
-                  {editingMessageId === message.id ? (
-                    <div className="flex gap-2 mt-1">
-                      <Input
-                        value={editingContent}
-                        onChange={(e) => setEditingContent(e.target.value)}
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            editMessage(message.id, editingContent);
-                          }
-                          if (e.key === 'Escape') {
+            {messages.map((message) => {
+              const isPoll = message.content.startsWith('[POLL]');
+              let pollData = null;
+              if (isPoll) {
+                try {
+                  pollData = JSON.parse(message.content.substring(7));
+                } catch (e) {
+                  console.error('Failed to parse poll data', e);
+                }
+              }
+
+              return (
+                <div key={message.id} className="group flex gap-3 hover:bg-muted/30 -mx-2 px-2 py-1 rounded">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={message.user?.avatar_url || undefined} />
+                    <AvatarFallback>
+                      {message.user?.full_name?.substring(0, 2).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-semibold text-sm">
+                        {message.user?.full_name || 'Unknown User'}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(message.created_at), 'HH:mm')}
+                      </span>
+                      {message.is_pinned && (
+                        <Badge variant="secondary" className="h-4 px-1 text-xs">
+                          <Pin className="w-3 h-3 mr-1" />
+                          Pinned
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Message Content - Editable or Poll */}
+                    {editingMessageId === message.id ? (
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          value={editingContent}
+                          onChange={(e) => setEditingContent(e.target.value)}
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              editMessage(message.id, editingContent);
+                            }
+                            if (e.key === 'Escape') {
+                              setEditingMessageId(null);
+                              setEditingContent('');
+                            }
+                          }}
+                          className="flex-1"
+                          autoFocus
+                        />
+                        <Button size="sm" onClick={() => editMessage(message.id, editingContent)}>
+                          Save
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
                             setEditingMessageId(null);
                             setEditingContent('');
-                          }
-                        }}
-                        className="flex-1"
-                        autoFocus
-                      />
-                      <Button size="sm" onClick={() => editMessage(message.id, editingContent)}>
-                        Save
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => {
-                          setEditingMessageId(null);
-                          setEditingContent('');
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="text-sm break-words">
-                        <MessageFormatter content={message.content} />
+                          }}
+                        >
+                          Cancel
+                        </Button>
                       </div>
-                      {(message as any).is_edited && (
-                        <span className="text-xs text-muted-foreground">(edited)</span>
-                      )}
-                    </>
-                  )}
-                  
-                  {/* Attachments */}
-                  {message.attachments && message.attachments.map((attachment, idx) => (
-                    <FileAttachment key={idx} attachment={attachment} />
-                  ))}
+                    ) : isPoll && pollData ? (
+                      <PollMessage
+                        messageId={message.id}
+                        data={pollData}
+                        channelId={channelId}
+                      />
+                    ) : (
+                      <>
+                        <div className="text-sm break-words">
+                          <MessageFormatter content={message.content} />
+                        </div>
+                        {(message as any).is_edited && (
+                          <span className="text-xs text-muted-foreground">(edited)</span>
+                        )}
+                      </>
+                    )}
 
-                  {/* Reactions */}
-                  <MessageReactions messageId={message.id} />
-                </div>
+                    {/* Attachments */}
+                    {message.attachments && message.attachments.map((attachment, idx) => (
+                      <FileAttachment key={idx} attachment={attachment} />
+                    ))}
 
-                {/* Message Actions */}
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setThreadMessage(message)}>
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        Start Thread
-                      </DropdownMenuItem>
-                      {message.user_id === user?.id && (
-                        <>
-                          <DropdownMenuItem onClick={() => {
-                            setEditingMessageId(message.id);
-                            setEditingContent(message.content);
-                          }}>
-                            <Edit2 className="w-4 h-4 mr-2" />
-                            Edit Message
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => deleteMessage(message.id)}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Delete Message
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      <DropdownMenuItem onClick={() => togglePin(message.id, message.is_pinned ?? false)}>
-                        {message.is_pinned ? (
+                    {/* Reactions */}
+                    <MessageReactions messageId={message.id} />
+                  </div>
+
+                  {/* Message Actions */}
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => setThreadMessage(message)}>
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Start Thread
+                        </DropdownMenuItem>
+                        {message.user_id === user?.id && !isPoll && (
                           <>
-                            <PinOff className="w-4 h-4 mr-2" />
-                            Unpin Message
-                          </>
-                        ) : (
-                          <>
-                            <Pin className="w-4 h-4 mr-2" />
-                            Pin Message
+                            <DropdownMenuItem onClick={() => {
+                              setEditingMessageId(message.id);
+                              setEditingContent(message.content);
+                            }}>
+                              <Edit2 className="w-4 h-4 mr-2" />
+                              Edit Message
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => deleteMessage(message.id)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete Message
+                            </DropdownMenuItem>
                           </>
                         )}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <DropdownMenuItem onClick={() => togglePin(message.id, message.is_pinned ?? false)}>
+                          {message.is_pinned ? (
+                            <>
+                              <PinOff className="w-4 h-4 mr-2" />
+                              Unpin Message
+                            </>
+                          ) : (
+                            <>
+                              <Pin className="w-4 h-4 mr-2" />
+                              Pin Message
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={scrollRef} />
           </div>
-          
+
           {/* Typing Indicator - Inside scroll area but at bottom */}
           {typingUsers.length > 0 && (
             <div className="pb-4">
@@ -532,9 +592,9 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
                 <div key={idx} className="flex items-center gap-2 px-3 py-1 bg-muted rounded text-sm">
                   <Paperclip className="w-3 h-3" />
                   <span className="max-w-[150px] truncate">{file.name}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
                     className="h-4 w-4 p-0"
                     onClick={() => removeUploadingFile(idx)}
                   >
@@ -563,13 +623,16 @@ const TextChannel = ({ channelId }: TextChannelProps) => {
               className="hidden"
               onChange={handleFileSelect}
             />
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
             >
               <Paperclip className="h-4 w-4" />
             </Button>
+
+            <PollCreator onCreate={createPoll} />
+
             <textarea
               ref={inputRef}
               value={newMessage}
