@@ -25,11 +25,11 @@ export function useWhiteboardPersistence({
         if (!enabled || !channelId) return null;
 
         try {
-            const { data, error } = await supabase
-                .from('whiteboard_states')
+            const { data, error } = await (supabase
+                .from('whiteboard_states' as any)
                 .select('state_data')
                 .eq('channel_id', channelId)
-                .single();
+                .single() as any);
 
             if (error) {
                 if (error.code === 'PGRST116') {
@@ -60,15 +60,15 @@ export function useWhiteboardPersistence({
         }
 
         try {
-            const { error } = await supabase
-                .from('whiteboard_states')
+            const { error } = await (supabase
+                .from('whiteboard_states' as any)
                 .upsert({
                     channel_id: channelId,
                     state_data: stateData,
                     updated_by: user.id
-                }, {
+                } as any, {
                     onConflict: 'channel_id'
-                });
+                }) as any);
 
             if (error) throw error;
 
@@ -106,14 +106,14 @@ export function useWhiteboardPersistence({
         if (!enabled || !channelId || !user) return;
 
         try {
-            await supabase
-                .from('whiteboard_history')
+            await (supabase
+                .from('whiteboard_history' as any)
                 .insert({
                     channel_id: channelId,
                     operation_type: operationType,
                     operation_data: operationData,
                     user_id: user.id
-                });
+                } as any) as any);
         } catch (error: any) {
             console.error('Error logging whiteboard operation:', error);
         }
@@ -158,10 +158,10 @@ export function useWhiteboardPersistence({
         if (!enabled || !channelId || !user) return;
 
         try {
-            await supabase
-                .from('whiteboard_states')
+            await (supabase
+                .from('whiteboard_states' as any)
                 .delete()
-                .eq('channel_id', channelId);
+                .eq('channel_id', channelId) as any);
 
             await logOperation('clear', {});
 

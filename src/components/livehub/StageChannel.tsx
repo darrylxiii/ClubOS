@@ -125,8 +125,8 @@ const StageChannel = ({ channelId }: StageChannelProps) => {
         ) : (
           <>
             {/* Remote Audio Players */}
-            {Array.from(remoteStreams.entries()).map(([userId, stream]) => (
-              <RemoteAudioPlayer key={userId} userId={userId} stream={stream} />
+            {Array.from(remoteStreams.entries()).map(([userId, streamBundle]) => (
+              streamBundle.camera && <RemoteAudioPlayer key={userId} userId={userId} stream={streamBundle.camera} />
             ))}
 
             {/* Speakers Section */}

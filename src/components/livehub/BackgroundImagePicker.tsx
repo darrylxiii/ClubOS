@@ -33,17 +33,17 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
     const loadBackgrounds = async () => {
         if (!user) return;
 
-        const { data, error } = await supabase
-            .from('virtual_backgrounds')
+        const { data, error } = await (supabase
+            .from('virtual_backgrounds' as any)
             .select('*')
             .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: false }) as any);
 
         if (error) {
             console.error('Error loading backgrounds:', error);
             toast.error('Failed to load backgrounds');
         } else {
-            setBackgrounds(data || []);
+            setBackgrounds((data || []) as VirtualBackground[]);
         }
         setLoading(false);
     };
@@ -88,14 +88,14 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
             const thumbnailUrl = publicUrl;
 
             // Save to database
-            const { error: dbError } = await supabase
-                .from('virtual_backgrounds')
+            const { error: dbError } = await (supabase
+                .from('virtual_backgrounds' as any)
                 .insert({
                     user_id: user.id,
                     image_url: publicUrl,
                     thumbnail_url: thumbnailUrl,
                     name: file.name
-                });
+                }) as any);
 
             if (dbError) throw dbError;
 
@@ -129,10 +129,10 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
             }
 
             // Delete from database
-            const { error: dbError } = await supabase
-                .from('virtual_backgrounds')
+            const { error: dbError } = await (supabase
+                .from('virtual_backgrounds' as any)
                 .delete()
-                .eq('id', id);
+                .eq('id', id) as any);
 
             if (dbError) throw dbError;
 
@@ -215,9 +215,9 @@ export const BackgroundImagePicker = ({ selectedImageUrl, onSelect }: Background
                                 />
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                                     <Button
-                                        variant="destructive"
+                                        variant="secondary"
                                         size="icon"
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity bg-red-500/80 hover:bg-red-600 text-white"
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             deleteBackground(bg.id, bg.image_url);
