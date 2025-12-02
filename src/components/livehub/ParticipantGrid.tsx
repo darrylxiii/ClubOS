@@ -43,6 +43,7 @@ const ParticipantGrid = ({
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   const [videoStates, setVideoStates] = useState<Map<string, VideoState>>(new Map());
   const retryTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  const mountedRef = useRef(true);
 
   // Helper to verify video tracks in a stream
   const verifyVideoTracks = useCallback((stream: MediaStream | null, participantId: string): boolean => {
@@ -85,7 +86,9 @@ const ParticipantGrid = ({
 
     // Verify tracks first
     if (!verifyVideoTracks(stream, participantId)) {
-      setVideoStates(prev => new Map(prev).set(participantId, 'no-tracks'));
+      if (mountedRef.current) {
+        setVideoStates(prev => new Map(prev).set(participantId, 'no-tracks'));
+      }
       
       // Retry after delay - tracks might not be ready yet
       const timeout = setTimeout(() => {
@@ -103,7 +106,9 @@ const ParticipantGrid = ({
     }
 
     console.log('[Video] Attaching stream', { participantId, streamId: stream.id });
-    setVideoStates(prev => new Map(prev).set(participantId, 'loading'));
+    if (mountedRef.current) {
+      setVideoStates(prev => new Map(prev).set(participantId, 'loading'));
+    }
 
     videoEl.srcObject = stream;
 
@@ -125,11 +130,15 @@ const ParticipantGrid = ({
     videoEl.play()
       .then(() => {
         console.log('[Video] Playing successfully', { participantId });
-        setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
+        if (mountedRef.current) {
+          setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
+        }
       })
       .catch(err => {
         console.error('[Video] Play failed:', { participantId, error: err.message });
-        setVideoStates(prev => new Map(prev).set(participantId, 'error'));
+        if (mountedRef.current) {
+          setVideoStates(prev => new Map(prev).set(participantId, 'error'));
+        }
         
         // Retry on autoplay errors
         if (err.name === 'NotAllowedError') {
@@ -162,7 +171,9 @@ const ParticipantGrid = ({
         attachStream(videoEl, streamToAttach, participant.id);
       } else {
         // No stream yet, set loading state
-        setVideoStates(prev => new Map(prev).set(participant.id, 'loading'));
+        if (mountedRef.current) {
+          setVideoStates(prev => new Map(prev).set(participant.id, 'loading'));
+        }
         
         // Log for debugging
         console.log('[Video] Waiting for stream', { 
@@ -176,25 +187,40 @@ const ParticipantGrid = ({
     });
   }, [localStream, remoteStreams, participants, currentUserId, channelType, attachStream]);
 
-  // Cleanup retry timeouts on unmount
+  // Cleanup retry timeouts and mark unmounted
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
       retryTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
       retryTimeoutsRef.current.clear();
     };
   }, []);
 
+  // Clean up video states when participants change
+  useEffect(() => {
+    const currentParticipantIds = new Set(participants.map(p => p.id));
+    setVideoStates(prev => {
+      const newStates = new Map<string, VideoState>();
+      prev.forEach((state, participantId) => {
+        if (currentParticipantIds.has(participantId)) {
+          newStates.set(participantId, state);
+        }
+      });
+      // Only update if something was actually removed
+      if (newStates.size !== prev.size) {
+        return newStates;
+      }
+      return prev;
+    });
+  }, [participants]);
+
+  // Ref callback - NO STATE UPDATES HERE to prevent infinite loops
   const setVideoRef = useCallback((participantId: string, el: HTMLVideoElement | null) => {
     if (el) {
       videoRefs.current.set(participantId, el);
     } else {
       videoRefs.current.delete(participantId);
-      // Clear state when element is removed
-      setVideoStates(prev => {
-        const newStates = new Map(prev);
-        newStates.delete(participantId);
-        return newStates;
-      });
     }
   }, []);
 
