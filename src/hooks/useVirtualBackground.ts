@@ -57,17 +57,61 @@ export function useVirtualBackground(inputStream: MediaStream | null, options: V
             video.srcObject = inputStream;
             video.playsInline = true;
             video.muted = true;
-            await video.play();
+            
+            // CRITICAL FIX: Wait for video metadata to load before accessing dimensions
+            await new Promise<void>((resolve, reject) => {
+                const timeout = setTimeout(() => {
+                    console.warn('[VirtualBackground] Video metadata load timeout, attempting to proceed');
+                    resolve();
+                }, 5000);
+
+                const checkDimensions = () => {
+                    if (video.videoWidth > 0 && video.videoHeight > 0) {
+                        clearTimeout(timeout);
+                        console.log('[VirtualBackground] Video ready with dimensions:', video.videoWidth, 'x', video.videoHeight);
+                        resolve();
+                    }
+                };
+
+                video.onloadedmetadata = checkDimensions;
+                video.onloadeddata = checkDimensions;
+                
+                video.play().then(() => {
+                    // Check dimensions after play starts
+                    if (video.videoWidth > 0 && video.videoHeight > 0) {
+                        clearTimeout(timeout);
+                        resolve();
+                    }
+                }).catch(err => {
+                    console.error('[VirtualBackground] Error playing video:', err);
+                    clearTimeout(timeout);
+                    reject(err);
+                });
+            });
+
             videoRef.current = video;
 
-            // Create canvas for output
+            // Verify we have valid dimensions before creating canvas
+            const width = video.videoWidth || 640;
+            const height = video.videoHeight || 480;
+            
+            if (width === 0 || height === 0) {
+                console.error('[VirtualBackground] Invalid video dimensions, using fallback 640x480');
+            }
+
+            // Create canvas for output with verified dimensions
             const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = width;
+            canvas.height = height;
             canvasRef.current = canvas;
 
+            console.log('[VirtualBackground] Canvas created with dimensions:', canvas.width, 'x', canvas.height);
+
             const ctx = canvas.getContext('2d');
-            if (!ctx) return;
+            if (!ctx) {
+                console.error('[VirtualBackground] Failed to get canvas context');
+                return;
+            }
 
             // Initialize SelfieSegmentation
             const selfieSegmentation = new SelfieSegmentation({
@@ -122,8 +166,8 @@ export function useVirtualBackground(inputStream: MediaStream | null, options: V
                 onFrame: async () => {
                     await selfieSegmentation.send({ image: video });
                 },
-                width: video.videoWidth,
-                height: video.videoHeight,
+                width: canvas.width,
+                height: canvas.height,
             });
 
             camera.start();
@@ -138,10 +182,15 @@ export function useVirtualBackground(inputStream: MediaStream | null, options: V
                 stream.addTrack(audioTrack);
             }
 
+            console.log('[VirtualBackground] Processed stream created with tracks:', stream.getTracks().map(t => ({ kind: t.kind, enabled: t.enabled })));
             setProcessedStream(stream);
         };
 
-        init();
+        init().catch(err => {
+            console.error('[VirtualBackground] Init failed:', err);
+            // Fallback to original stream on error
+            setProcessedStream(inputStream);
+        });
 
         return () => {
             if (cameraRef.current) {

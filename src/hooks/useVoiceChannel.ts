@@ -377,34 +377,76 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   const toggleVideo = useCallback(async () => {
     try {
       if (!isVideoOn) {
-        const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        console.log('[Video] Requesting camera access...');
+        const videoStream = await navigator.mediaDevices.getUserMedia({ 
+          video: {
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            facingMode: 'user'
+          } 
+        });
+
+        const newVideoTrack = videoStream.getVideoTracks()[0];
+        console.log('[Video] Camera acquired:', { 
+          label: newVideoTrack.label, 
+          settings: newVideoTrack.getSettings() 
+        });
 
         // Add video track to local stream
         if (localStreamRef.current) {
-          videoStream.getVideoTracks().forEach(track => {
-            localStreamRef.current?.addTrack(track);
-          });
-          // Update state to trigger renegotiation
-          setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
-        }
-
-        setIsVideoOn(true);
-      } else {
-        // Stop and remove video tracks
-        if (localStreamRef.current) {
+          // Remove any existing video tracks first
           localStreamRef.current.getVideoTracks().forEach(track => {
             track.stop();
             localStreamRef.current?.removeTrack(track);
           });
-          // Update state to trigger renegotiation
-          setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+          
+          // Add new video track
+          localStreamRef.current.addTrack(newVideoTrack);
+          
+          // CRITICAL FIX: Keep ref and state in sync with new MediaStream
+          // This triggers re-renders AND ensures WebRTC gets updated
+          const updatedStream = new MediaStream(localStreamRef.current.getTracks());
+          localStreamRef.current = updatedStream;
+          setLocalStream(updatedStream);
+          
+          console.log('[Video] Stream updated with video track:', {
+            streamId: updatedStream.id,
+            tracks: updatedStream.getTracks().map(t => ({ kind: t.kind, label: t.label, enabled: t.enabled }))
+          });
+        } else {
+          // No existing stream, create new one with video
+          localStreamRef.current = videoStream;
+          setLocalStream(videoStream);
+        }
+
+        setIsVideoOn(true);
+        await updateParticipantStatus({ is_video_on: true });
+      } else {
+        console.log('[Video] Turning off camera...');
+        // Stop and remove video tracks
+        if (localStreamRef.current) {
+          localStreamRef.current.getVideoTracks().forEach(track => {
+            console.log('[Video] Stopping track:', track.label);
+            track.stop();
+            localStreamRef.current?.removeTrack(track);
+          });
+          
+          // CRITICAL FIX: Keep ref and state in sync
+          const updatedStream = new MediaStream(localStreamRef.current.getTracks());
+          localStreamRef.current = updatedStream;
+          setLocalStream(updatedStream);
+          
+          console.log('[Video] Video track removed, remaining tracks:', {
+            streamId: updatedStream.id,
+            tracks: updatedStream.getTracks().map(t => ({ kind: t.kind, label: t.label }))
+          });
         }
 
         setIsVideoOn(false);
+        await updateParticipantStatus({ is_video_on: false });
       }
-      updateParticipantStatus({ is_video_on: !isVideoOn });
     } catch (error) {
-      console.error('Error toggling video:', error);
+      console.error('[Video] Error toggling video:', error);
       toast.error('Failed to access camera');
     }
   }, [isVideoOn]);
