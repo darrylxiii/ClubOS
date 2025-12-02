@@ -109,57 +109,74 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     subscribeToParticipants();
   }, [channelId]);
 
-  // Voice activity detection
+  // Optimized Voice Activity Detection using setInterval (lower CPU than requestAnimationFrame)
   useEffect(() => {
     if (!isConnected || isMuted || isDeafened || !localStream) {
       setIsSpeaking(false);
+      if (vadIntervalRef.current) {
+        clearInterval(vadIntervalRef.current);
+        vadIntervalRef.current = null;
+      }
       return;
     }
 
     const setupVAD = async () => {
       try {
-        const audioContext = new AudioContext();
+        // Use low-latency AudioContext for VAD
+        const audioContext = new AudioContext({ 
+          latencyHint: 'interactive',
+          sampleRate: 48000 
+        });
         audioContextRef.current = audioContext;
 
         const source = audioContext.createMediaStreamSource(localStream);
         const analyzer = audioContext.createAnalyser();
-        analyzer.fftSize = 512;
+        analyzer.fftSize = 256;                    // Reduced from 512 for lower CPU
+        analyzer.smoothingTimeConstant = 0.5;      // Add smoothing for stability
 
         source.connect(analyzer);
 
         const dataArray = new Uint8Array(analyzer.frequencyBinCount);
-        const threshold = 30; // Adjust based on testing
+        const threshold = 25;  // Slightly lower threshold for better sensitivity
 
-        const checkAudio = () => {
-          if (!isConnected) return;
+        // Use setInterval instead of requestAnimationFrame for predictable timing
+        // 100ms interval = 10 checks/sec (vs 60+ with RAF) - much lower CPU
+        vadIntervalRef.current = window.setInterval(() => {
+          if (!audioContextRef.current || audioContextRef.current.state === 'closed') return;
 
           analyzer.getByteFrequencyData(dataArray);
           const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-
           const speaking = average > threshold;
-          setIsSpeaking(speaking);
 
-          // Throttle database updates for speaking status
-          const now = Date.now();
-          if (speaking !== isSpeaking && now - lastSpeakingUpdateRef.current > SPEAKING_UPDATE_THROTTLE) {
-            lastSpeakingUpdateRef.current = now;
-            updateParticipantStatus({ is_speaking: speaking });
-          }
+          setIsSpeaking(prev => {
+            if (prev !== speaking) {
+              // Throttle database updates for speaking status
+              const now = Date.now();
+              if (now - lastSpeakingUpdateRef.current > SPEAKING_UPDATE_THROTTLE) {
+                lastSpeakingUpdateRef.current = now;
+                updateParticipantStatus({ is_speaking: speaking });
+              }
+            }
+            return speaking;
+          });
+        }, 100);
 
-          requestAnimationFrame(checkAudio);
-        };
-
-        checkAudio();
+        console.log('[VAD] Setup complete with optimized settings');
       } catch (error) {
-        console.error('Error setting up VAD:', error);
+        console.error('[VAD] Error setting up:', error);
       }
     };
 
     setupVAD();
 
     return () => {
+      if (vadIntervalRef.current) {
+        clearInterval(vadIntervalRef.current);
+        vadIntervalRef.current = null;
+      }
       if (audioContextRef.current) {
         audioContextRef.current.close();
+        audioContextRef.current = null;
       }
     };
   }, [isConnected, isMuted, isDeafened, localStream]);
@@ -237,13 +254,18 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
       // Get microphone access
       let stream: MediaStream;
       try {
+        // Optimized audio constraints for low-latency voice
         stream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
-            autoGainControl: true
+            autoGainControl: true,
+            sampleRate: 48000,      // Opus native rate for best quality
+            channelCount: 1,        // Mono for voice (reduces bandwidth)
+            sampleSize: 16          // 16-bit depth
           }
         });
+        console.log('[Audio] Microphone acquired with optimized constraints');
       } catch (mediaError) {
         throw new Error('Failed to access microphone. Please check your permissions.');
       }
