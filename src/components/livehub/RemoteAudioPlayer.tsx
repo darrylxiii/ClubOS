@@ -8,14 +8,41 @@ interface RemoteAudioPlayerProps {
   isDeafened?: boolean;
 }
 
+// Singleton AudioContext for all remote audio - prevents browser limits
+let sharedAudioContext: AudioContext | null = null;
+
+const getSharedAudioContext = async (): Promise<AudioContext> => {
+  if (!sharedAudioContext || sharedAudioContext.state === 'closed') {
+    sharedAudioContext = new AudioContext({ 
+      latencyHint: 'interactive',  // Lowest latency mode
+      sampleRate: 48000            // Opus native rate
+    });
+    console.log('[RemoteAudio] Created shared AudioContext', {
+      latency: sharedAudioContext.baseLatency,
+      sampleRate: sharedAudioContext.sampleRate
+    });
+  }
+  
+  if (sharedAudioContext.state === 'suspended') {
+    try {
+      await sharedAudioContext.resume();
+      console.log('[RemoteAudio] Resumed shared AudioContext');
+    } catch (e) {
+      console.warn('[RemoteAudio] Could not resume AudioContext:', e);
+    }
+  }
+  
+  return sharedAudioContext;
+};
+
 export function RemoteAudioPlayer({ userId, stream, volume = 1, isDeafened = false }: RemoteAudioPlayerProps) {
-  const audioContextRef = useRef<AudioContext | null>(null);
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const gainNodeRef = useRef<GainNode | null>(null);
   const [hasInteracted, setHasInteracted] = useState(false);
   const [setupFailed, setSetupFailed] = useState(false);
   const retryCountRef = useRef(0);
   const maxRetries = 3;
+  const isSetupRef = useRef(false);
 
   // Handle user interaction requirement for audio playback
   const handleUserInteraction = useCallback(() => {
@@ -36,31 +63,27 @@ export function RemoteAudioPlayer({ userId, stream, volume = 1, isDeafened = fal
 
   // Setup low-latency AudioContext for playback
   const setupAudioPlayback = useCallback(async () => {
-    if (!stream) return;
+    if (!stream || isSetupRef.current) return;
 
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) {
-      console.log(`[RemoteAudioPlayer] No audio tracks in stream for ${userId}`);
+      console.log(`[RemoteAudio] No audio tracks in stream for ${userId}`);
       return;
     }
 
     try {
-      // Close existing context if any
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        await audioContextRef.current.close();
+      // Cleanup existing nodes first (but don't close shared context)
+      if (sourceNodeRef.current) {
+        sourceNodeRef.current.disconnect();
+        sourceNodeRef.current = null;
+      }
+      if (gainNodeRef.current) {
+        gainNodeRef.current.disconnect();
+        gainNodeRef.current = null;
       }
 
-      // Create low-latency AudioContext optimized for voice
-      const audioContext = new AudioContext({ 
-        latencyHint: 'interactive',  // Lowest latency mode
-        sampleRate: 48000            // Opus native rate
-      });
-      audioContextRef.current = audioContext;
-
-      // Resume context if suspended (autoplay policy)
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
+      // Get shared AudioContext
+      const audioContext = await getSharedAudioContext();
 
       // Create source from remote stream
       const source = audioContext.createMediaStreamSource(stream);
@@ -75,16 +98,19 @@ export function RemoteAudioPlayer({ userId, stream, volume = 1, isDeafened = fal
       source.connect(gainNode);
       gainNode.connect(audioContext.destination);
 
+      isSetupRef.current = true;
       setSetupFailed(false);
       retryCountRef.current = 0;
-      console.log(`[RemoteAudioPlayer] Low-latency audio setup complete for ${userId}`, {
+      
+      console.log(`[RemoteAudio] Low-latency audio setup complete for ${userId}`, {
         latency: audioContext.baseLatency,
         sampleRate: audioContext.sampleRate,
-        state: audioContext.state
+        state: audioContext.state,
+        trackCount: audioTracks.length
       });
 
     } catch (err: any) {
-      console.error(`[RemoteAudioPlayer] Error setting up audio for ${userId}:`, err);
+      console.error(`[RemoteAudio] Error setting up audio for ${userId}:`, err);
       
       if (err.name === 'NotAllowedError') {
         setSetupFailed(true);
@@ -107,16 +133,17 @@ export function RemoteAudioPlayer({ userId, stream, volume = 1, isDeafened = fal
 
     const audioTracks = stream.getAudioTracks();
     if (audioTracks.length === 0) {
-      console.log(`[RemoteAudioPlayer] No audio tracks in stream for ${userId}`);
+      console.log(`[RemoteAudio] No audio tracks in stream for ${userId}`);
       return;
     }
 
-    console.log(`[RemoteAudioPlayer] Setting up low-latency audio for ${userId}, tracks:`, audioTracks.length);
+    console.log(`[RemoteAudio] Setting up low-latency audio for ${userId}, tracks:`, audioTracks.length);
+    isSetupRef.current = false; // Reset so we can setup again
     setupAudioPlayback();
 
     // Handle track ended
     const handleTrackEnded = () => {
-      console.log(`[RemoteAudioPlayer] Audio track ended for ${userId}`);
+      console.log(`[RemoteAudio] Audio track ended for ${userId}`);
     };
 
     audioTracks.forEach(track => {
@@ -128,7 +155,7 @@ export function RemoteAudioPlayer({ userId, stream, volume = 1, isDeafened = fal
         track.removeEventListener('ended', handleTrackEnded);
       });
       
-      // Cleanup audio context
+      // Cleanup nodes (but don't close shared context)
       if (sourceNodeRef.current) {
         sourceNodeRef.current.disconnect();
         sourceNodeRef.current = null;
@@ -137,28 +164,26 @@ export function RemoteAudioPlayer({ userId, stream, volume = 1, isDeafened = fal
         gainNodeRef.current.disconnect();
         gainNodeRef.current = null;
       }
-      if (audioContextRef.current && audioContextRef.current.state !== 'closed') {
-        audioContextRef.current.close();
-        audioContextRef.current = null;
-      }
+      isSetupRef.current = false;
     };
   }, [stream, userId, setupAudioPlayback]);
 
   // Retry setup when user interacts (if previously failed)
   useEffect(() => {
     if (hasInteracted && setupFailed) {
+      isSetupRef.current = false;
       setupAudioPlayback();
     }
   }, [hasInteracted, setupFailed, setupAudioPlayback]);
 
   // Update gain for volume/deafen changes
   useEffect(() => {
-    if (gainNodeRef.current) {
+    if (gainNodeRef.current && sharedAudioContext) {
       const targetVolume = isDeafened ? 0 : volume;
       // Smooth volume transition to avoid clicks
       gainNodeRef.current.gain.setTargetAtTime(
         targetVolume, 
-        audioContextRef.current?.currentTime || 0, 
+        sharedAudioContext.currentTime, 
         0.01 // 10ms time constant for smooth transition
       );
     }
@@ -167,19 +192,19 @@ export function RemoteAudioPlayer({ userId, stream, volume = 1, isDeafened = fal
   // Resume audio context if it gets suspended
   useEffect(() => {
     const handleVisibilityChange = async () => {
-      if (document.visibilityState === 'visible' && audioContextRef.current?.state === 'suspended') {
+      if (document.visibilityState === 'visible' && sharedAudioContext?.state === 'suspended') {
         try {
-          await audioContextRef.current.resume();
-          console.log(`[RemoteAudioPlayer] Resumed audio context for ${userId}`);
+          await sharedAudioContext.resume();
+          console.log(`[RemoteAudio] Resumed shared AudioContext on visibility change`);
         } catch (e) {
-          console.warn(`[RemoteAudioPlayer] Could not resume audio context:`, e);
+          console.warn(`[RemoteAudio] Could not resume AudioContext:`, e);
         }
       }
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [userId]);
+  }, []);
 
   // No DOM element needed - AudioContext handles playback directly
   return null;

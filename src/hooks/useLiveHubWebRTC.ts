@@ -11,6 +11,7 @@ interface Peer {
   makingOffer: boolean;
   ignoreOffer: boolean;
   isSettingRemoteAnswerPending: boolean;
+  pendingCandidates: RTCIceCandidateInit[]; // Queue for ICE candidates before remote description
 }
 
 interface RemoteStreamBundle {
@@ -86,22 +87,15 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     peersRef.current.forEach((peer) => {
       const senders = peer.connection.getSenders();
 
-      // If stream is null, remove tracks of this type? 
-      // Actually, we need to be careful not to remove the OTHER stream's tracks.
-      // But since we don't easily know which sender belongs to which stream without storing it,
-      // we rely on the track IDs or just add/replace.
-
       if (stream) {
         stream.getTracks().forEach(track => {
-          const sender = senders.find(s => s.track?.kind === track.kind && s.track?.label === track.label); // Heuristic
-          // Better: Check if we already have a sender for this track ID
           const existingSender = senders.find(s => s.track?.id === track.id);
 
           if (!existingSender) {
             try {
               peer.connection.addTrack(track, stream);
             } catch (e) {
-              console.error(`Error adding ${type} track:`, e);
+              console.error(`[WebRTC] Error adding ${type} track:`, e);
             }
           }
         });
@@ -112,10 +106,6 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
           type
         });
       }
-
-      // Removal logic is tricky without tracking sender -> stream map.
-      // For now, we assume addTrack works and we rely on negotiation to handle removals if we were to implement full sync.
-      // But for "toggle", we usually just stop tracks or replace them.
     });
   };
 
@@ -130,7 +120,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
   }, [enabled, user, channelId]);
 
   const connectToSignaling = () => {
-    console.log('Connecting to WebRTC signaling via Supabase Realtime');
+    console.log('[WebRTC] Connecting to signaling via Supabase Realtime');
 
     const channel = supabase
       .channel(`webrtc:${channelId}`)
@@ -148,11 +138,14 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
           if (signal.from_user_id === user!.id) return;
           if (signal.to_user_id && signal.to_user_id !== user!.id) return;
 
-          console.log('Received signal:', signal.signal_type, 'from:', signal.from_user_id);
+          console.log('[WebRTC] Signal received:', signal.signal_type, 'from:', signal.from_user_id);
 
           switch (signal.signal_type) {
             case 'join':
-              await createPeerConnection(signal.from_user_id, true);
+              // DETERMINISTIC: Higher user ID is always the initiator
+              const shouldInitiate = user!.id > signal.from_user_id;
+              console.log('[WebRTC] Join from', signal.from_user_id, '- I initiate:', shouldInitiate);
+              await createPeerConnection(signal.from_user_id, shouldInitiate);
               break;
 
             case 'offer':
@@ -167,6 +160,10 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
               await handleIceCandidate(signal.from_user_id, signal.signal_data);
               break;
 
+            case 'ice-candidates-batch':
+              await handleIceCandidatesBatch(signal.from_user_id, signal.signal_data.candidates);
+              break;
+
             case 'stream-metadata':
               handleStreamMetadata(signal.from_user_id, signal.signal_data);
               break;
@@ -176,7 +173,6 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
               break;
 
             case 'reaction':
-              // Dispatch custom event for UI to handle
               window.dispatchEvent(new CustomEvent(`reaction:${channelId}`, {
                 detail: { emoji: signal.signal_data.emoji, userId: signal.from_user_id }
               }));
@@ -192,8 +188,35 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       )
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
-          console.log('Connected to signaling channel');
+          console.log('[WebRTC] Connected to signaling channel');
+          
+          // Small delay to ensure all peers have subscribed
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // Send join signal
           await sendSignal('join', null, {});
+          
+          // Query existing participants and connect to them
+          try {
+            const { data: existingParticipants } = await supabase
+              .from('live_channel_participants')
+              .select('user_id')
+              .eq('channel_id', channelId)
+              .neq('user_id', user!.id);
+            
+            console.log('[WebRTC] Existing participants:', existingParticipants?.length || 0);
+            
+            // Connect to each existing participant we don't already have
+            for (const p of existingParticipants || []) {
+              if (!peersRef.current.has(p.user_id)) {
+                const shouldInitiate = user!.id > p.user_id;
+                console.log('[WebRTC] Connecting to existing participant:', p.user_id, '- I initiate:', shouldInitiate);
+                await createPeerConnection(p.user_id, shouldInitiate);
+              }
+            }
+          } catch (e) {
+            console.warn('[WebRTC] Could not query existing participants:', e);
+          }
         }
       });
 
@@ -226,33 +249,28 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       const { error } = await supabase
         .from('webrtc_signals')
         .insert({
-          // New columns for Live Hub
           channel_id: channelId,
           from_user_id: user.id,
           to_user_id: toUserId,
-          // Legacy columns (for backward compatibility with existing schema)
           sender_id: user.id,
           receiver_id: toUserId,
-          // Signal data
           signal_type: signalType,
           signal_data: signalData
         } as any);
 
       if (error) {
-        console.error('Signal insert failed:', error);
-        // Only show toast for critical signal types
+        console.error('[WebRTC] Signal insert failed:', error);
         if (['offer', 'answer'].includes(signalType)) {
           toast.error('Connection issue - trying to reconnect...');
         }
       }
     } catch (e) {
-      console.error('Error sending signal:', e);
+      console.error('[WebRTC] Error sending signal:', e);
     }
   };
 
   const sendReaction = async (emoji: string) => {
     await sendSignal('reaction', null, { emoji });
-    // Also show local reaction
     window.dispatchEvent(new CustomEvent(`reaction:${channelId}`, {
       detail: { emoji, userId: user?.id }
     }));
@@ -323,7 +341,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         if (report.type === 'inbound-rtp' && report.kind === 'audio') {
           audioStats.packetsLost = report.packetsLost || 0;
           audioStats.packetsReceived = report.packetsReceived || 0;
-          audioStats.jitter = (report.jitter || 0) * 1000; // Convert to ms
+          audioStats.jitter = (report.jitter || 0) * 1000;
           audioStats.concealedSamples = report.concealedSamples || 0;
         }
         if (report.type === 'candidate-pair' && report.state === 'succeeded') {
@@ -335,7 +353,6 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         ? (audioStats.packetsLost / (audioStats.packetsLost + audioStats.packetsReceived)) * 100 
         : 0;
 
-      // Log quality issues
       if (lossRate > 5 || audioStats.jitter > 50) {
         console.warn('[Audio] Quality degraded for', userId, {
           lossRate: lossRate.toFixed(1) + '%',
@@ -357,7 +374,6 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
   useEffect(() => {
     if (!enabled) return;
 
-    // Monitor audio stats every 3 seconds
     audioStatsIntervalRef.current = setInterval(() => {
       peersRef.current.forEach((peer, usrId) => {
         monitorAudioStats(peer.connection, usrId);
@@ -371,12 +387,28 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     };
   }, [enabled]);
 
+  // Flush queued ICE candidates after remote description is set
+  const flushPendingCandidates = async (peer: Peer) => {
+    if (peer.pendingCandidates.length === 0) return;
+    
+    console.log('[ICE] Flushing', peer.pendingCandidates.length, 'queued candidates for', peer.userId);
+    
+    for (const candidate of peer.pendingCandidates) {
+      try {
+        await peer.connection.addIceCandidate(new RTCIceCandidate(candidate));
+      } catch (err) {
+        console.warn('[ICE] Error adding queued candidate:', err);
+      }
+    }
+    peer.pendingCandidates = [];
+  };
+
   const createPeerConnection = async (userId: string, isInitiator: boolean) => {
     if (peersRef.current.has(userId)) {
       return peersRef.current.get(userId)!;
     }
 
-    console.log(`Creating peer connection with ${userId}, initiator: ${isInitiator}`);
+    console.log(`[WebRTC] Creating peer connection with ${userId}, initiator: ${isInitiator}`);
 
     const peerConnection = new RTCPeerConnection(ICE_SERVERS);
     const peer: Peer = {
@@ -385,10 +417,11 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       isPolite: !isInitiator,
       makingOffer: false,
       ignoreOffer: false,
-      isSettingRemoteAnswerPending: false
+      isSettingRemoteAnswerPending: false,
+      pendingCandidates: [] // Initialize ICE candidate queue
     };
 
-    // Add local tracks
+    // Add local tracks BEFORE any negotiation
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach(track => {
         peerConnection.addTrack(track, localStreamRef.current!);
@@ -425,31 +458,14 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         trackCount: remoteStream.getTracks().length
       });
 
-      // Check if stream has video tracks
-      const hasVideoTracks = remoteStream.getVideoTracks().length > 0;
-      const hasActiveVideo = remoteStream.getVideoTracks().some(t => t.enabled && t.readyState === 'live');
-      
-      console.log('[WebRTC] Stream video status', {
-        userId,
-        hasVideoTracks,
-        hasActiveVideo,
-        videoTracks: remoteStream.getVideoTracks().map(t => ({
-          label: t.label,
-          enabled: t.enabled,
-          readyState: t.readyState
-        }))
-      });
-
       // Determine type based on metadata OR track label heuristics
       let type = remoteStreamTypesRef.current.get(streamId);
       if (!type) {
-        // Heuristic: check track label for screen share indicators
         const isScreenShare = track.label?.toLowerCase().includes('screen') || 
                               track.label?.toLowerCase().includes('window') ||
                               track.label?.toLowerCase().includes('monitor') ||
                               track.label?.toLowerCase().includes('display');
         type = isScreenShare ? 'screen' : 'camera';
-        
         console.log('[WebRTC] Inferred stream type:', type, 'from label:', track.label);
       }
 
@@ -460,58 +476,88 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         if (type === 'screen') {
           userStreams.screen = remoteStream;
         } else {
-          // Only set as camera if it has video tracks OR it's an audio-only update to existing
           userStreams.camera = remoteStream;
         }
 
         console.log('[WebRTC] Updated remote streams for', userId, {
           hasCameraStream: !!userStreams.camera,
-          hasScreenStream: !!userStreams.screen,
-          cameraVideoTracks: userStreams.camera?.getVideoTracks().length || 0,
-          screenVideoTracks: userStreams.screen?.getVideoTracks().length || 0
+          hasScreenStream: !!userStreams.screen
         });
 
         newStreams.set(userId, { ...userStreams });
         return newStreams;
       });
 
-      // Listen for track events to detect changes
-      track.onended = () => {
-        console.log('[WebRTC] Track ended:', { userId, kind: track.kind, label: track.label });
-      };
-
-      track.onmute = () => {
-        console.log('[WebRTC] Track muted:', { userId, kind: track.kind, label: track.label });
-      };
-
-      track.onunmute = () => {
-        console.log('[WebRTC] Track unmuted:', { userId, kind: track.kind, label: track.label });
-      };
+      track.onended = () => console.log('[WebRTC] Track ended:', { userId, kind: track.kind });
+      track.onmute = () => console.log('[WebRTC] Track muted:', { userId, kind: track.kind });
+      track.onunmute = () => console.log('[WebRTC] Track unmuted:', { userId, kind: track.kind });
     };
 
-    // Handle ICE candidates
+    // Handle ICE candidates - send immediately
     peerConnection.onicecandidate = async (event) => {
       if (event.candidate) {
         await sendSignal('ice-candidate', userId, event.candidate);
       }
     };
 
-    // Negotiation Needed
+    // ICE connection state monitoring
+    peerConnection.oniceconnectionstatechange = () => {
+      console.log('[ICE] Connection state:', peerConnection.iceConnectionState, 'for', userId);
+    };
+
+    peerConnection.onicegatheringstatechange = () => {
+      console.log('[ICE] Gathering state:', peerConnection.iceGatheringState, 'for', userId);
+    };
+
+    peerConnection.onsignalingstatechange = () => {
+      console.log('[Signaling] State:', peerConnection.signalingState, 'for', userId);
+    };
+
+    // Negotiation Needed - with track verification
     peerConnection.onnegotiationneeded = async () => {
+      // Wait a tick to ensure tracks are fully added
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      // Verify we have tracks before creating offer
+      const senders = peerConnection.getSenders();
+      if (senders.length === 0) {
+        console.warn('[WebRTC] No senders yet, deferring offer');
+        return;
+      }
+
       try {
         peer.makingOffer = true;
+        console.log('[WebRTC] Creating offer for', userId, 'with', senders.length, 'senders');
         await peerConnection.setLocalDescription();
         await sendSignal('offer', userId, peerConnection.localDescription);
       } catch (err) {
-        console.error('Error during negotiation:', err);
+        console.error('[WebRTC] Error during negotiation:', err);
       } finally {
         peer.makingOffer = false;
       }
     };
 
+    // Connection state change with proper ICE restart
     peerConnection.onconnectionstatechange = () => {
-      if (peerConnection.connectionState === 'failed') {
+      const state = peerConnection.connectionState;
+      console.log('[WebRTC] Connection state changed to:', state, 'for', userId);
+      
+      if (state === 'failed') {
+        console.log('[WebRTC] Connection failed - initiating ICE restart for', userId);
+        // Full renegotiation with ICE restart
         peerConnection.restartIce();
+        peerConnection.createOffer({ iceRestart: true })
+          .then(offer => peerConnection.setLocalDescription(offer))
+          .then(() => sendSignal('offer', userId, peerConnection.localDescription))
+          .catch(err => console.error('[ICE Restart] Error:', err));
+      } else if (state === 'disconnected') {
+        // Give it 3 seconds before taking action
+        setTimeout(() => {
+          if (peerConnection.connectionState === 'disconnected') {
+            console.log('[WebRTC] Still disconnected, restarting ICE for', userId);
+            peerConnection.restartIce();
+          }
+        }, 3000);
       }
     };
 
@@ -522,21 +568,14 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
   };
 
   const handleStreamMetadata = (fromUserId: string, metadata: { streamId: string, type: 'camera' | 'screen' }) => {
-    console.log('Received stream metadata:', metadata);
+    console.log('[WebRTC] Received stream metadata:', metadata);
     remoteStreamTypesRef.current.set(metadata.streamId, metadata.type);
 
-    // Refresh remote streams to apply type
     setRemoteStreams(prev => {
       const newStreams = new Map(prev);
       const userStreams = newStreams.get(fromUserId);
 
       if (userStreams) {
-        // Check if we have this stream already and move it if needed
-        // This is a bit complex because we need to find the stream object by ID
-        // But typically ontrack fires after or around same time.
-        // If ontrack already fired, we might have put it in 'camera' default.
-
-        // Let's iterate current streams to find the one with this ID
         let foundStream: MediaStream | null = null;
         if (userStreams.camera?.id === metadata.streamId) foundStream = userStreams.camera;
         if (userStreams.screen?.id === metadata.streamId) foundStream = userStreams.screen;
@@ -560,8 +599,8 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
   const handleOffer = async (fromUserId: string, offer: RTCSessionDescriptionInit) => {
     let peer = peersRef.current.get(fromUserId);
     if (!peer) {
-      const newPeer = await createPeerConnection(fromUserId, false);
-      peer = newPeer.connection ? newPeer : undefined;
+      // DETERMINISTIC: If we receive an offer, we're the responder (not initiator)
+      peer = await createPeerConnection(fromUserId, false);
     }
 
     if (!peer) return;
@@ -569,6 +608,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     const readyForOffer = !peer.makingOffer || (peer.makingOffer && peer.isPolite);
 
     if (!readyForOffer) {
+      console.log('[WebRTC] Ignoring offer - collision detected, I am impolite peer');
       peer.ignoreOffer = true;
       return;
     }
@@ -576,41 +616,72 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     peer.ignoreOffer = false;
 
     try {
+      console.log('[WebRTC] Setting remote description (offer) from', fromUserId);
       await peer.connection.setRemoteDescription(new RTCSessionDescription(offer));
+      
+      // Flush queued ICE candidates now that remote description is set
+      await flushPendingCandidates(peer);
+      
       await peer.connection.setLocalDescription();
       await sendSignal('answer', fromUserId, peer.connection.localDescription);
+      console.log('[WebRTC] Sent answer to', fromUserId);
     } catch (err) {
-      console.error('Error handling offer:', err);
+      console.error('[WebRTC] Error handling offer:', err);
     }
   };
 
   const handleAnswer = async (fromUserId: string, answer: RTCSessionDescriptionInit) => {
     const peer = peersRef.current.get(fromUserId);
-    if (!peer) return;
+    if (!peer) {
+      console.warn('[WebRTC] No peer found for answer from', fromUserId);
+      return;
+    }
 
     try {
+      console.log('[WebRTC] Setting remote description (answer) from', fromUserId);
       await peer.connection.setRemoteDescription(new RTCSessionDescription(answer));
+      
+      // Flush queued ICE candidates now that remote description is set
+      await flushPendingCandidates(peer);
     } catch (err) {
-      console.error('Error handling answer:', err);
+      console.error('[WebRTC] Error handling answer:', err);
     }
   };
 
   const handleIceCandidate = async (fromUserId: string, candidate: RTCIceCandidateInit) => {
     const peer = peersRef.current.get(fromUserId);
-    if (!peer) return;
+    if (!peer) {
+      console.warn('[ICE] No peer for candidate from', fromUserId);
+      return;
+    }
+
+    // QUEUE candidates if remote description not set yet
+    if (!peer.connection.remoteDescription) {
+      console.log('[ICE] Queuing candidate - remote description not set yet for', fromUserId);
+      peer.pendingCandidates.push(candidate);
+      return;
+    }
 
     try {
       await peer.connection.addIceCandidate(new RTCIceCandidate(candidate));
     } catch (err) {
       if (!peer.ignoreOffer) {
-        console.error('Error adding ICE candidate:', err);
+        console.error('[ICE] Error adding candidate:', err);
       }
+    }
+  };
+
+  const handleIceCandidatesBatch = async (fromUserId: string, candidates: RTCIceCandidateInit[]) => {
+    console.log('[ICE] Received batch of', candidates.length, 'candidates from', fromUserId);
+    for (const candidate of candidates) {
+      await handleIceCandidate(fromUserId, candidate);
     }
   };
 
   const removePeerConnection = (userId: string) => {
     const peer = peersRef.current.get(userId);
     if (peer) {
+      console.log('[WebRTC] Removing peer connection for', userId);
       peer.connection.close();
       peersRef.current.delete(userId);
       setPeers(new Map(peersRef.current));
