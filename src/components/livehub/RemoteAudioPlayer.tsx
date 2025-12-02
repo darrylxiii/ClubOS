@@ -115,12 +115,13 @@ export function RemoteAudioPlayer({ userId, stream, volume = 1, isDeafened = fal
     }
   }, [volume, isDeafened]);
 
+  // NOTE: Do NOT use muted attribute - it conflicts with autoplay and volume control
+  // Volume is already set to 0 when deafened via audioRef.current.volume
   return (
     <audio
       ref={audioRef}
       autoPlay
       playsInline
-      muted={isDeafened}
       style={{ display: 'none' }}
       data-user-id={userId}
     />

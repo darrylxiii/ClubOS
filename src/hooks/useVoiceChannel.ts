@@ -29,6 +29,7 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   const { pushToTalkEnabled = false } = options;
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(pushToTalkEnabled); // Start muted if PTT enabled
+  const initialPTTRenderRef = useRef(true); // Track initial render for PTT sync
   const [isDeafened, setIsDeafened] = useState(false);
   const [isVideoOn, setIsVideoOn] = useState(false);
   const [isScreenSharing, setIsScreenSharing] = useState(false);
@@ -335,44 +336,113 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     }
   };
 
+  // CRITICAL: Sync mute state when PTT mode changes mid-session
+  useEffect(() => {
+    // Skip initial render - useState already handles that
+    if (initialPTTRenderRef.current) {
+      initialPTTRenderRef.current = false;
+      return;
+    }
+
+    // Only react if we're connected
+    if (!isConnected) return;
+
+    if (pushToTalkEnabled) {
+      // PTT just enabled - mute by default (user holds space to talk)
+      console.log('[Controls] PTT Enabled mid-session - muting mic');
+      setIsMuted(true);
+      localStreamRef.current?.getAudioTracks().forEach(track => {
+        track.enabled = false;
+      });
+      updateParticipantStatus({ is_muted: true });
+    } else {
+      // PTT just disabled - unmute by default (normal mic mode)
+      console.log('[Controls] PTT Disabled mid-session - unmuting mic');
+      setIsMuted(false);
+      localStreamRef.current?.getAudioTracks().forEach(track => {
+        track.enabled = true;
+      });
+      updateParticipantStatus({ is_muted: false });
+    }
+  }, [pushToTalkEnabled, isConnected]);
+
   const toggleMute = useCallback(() => {
+    console.log('[Controls] toggleMute called', { 
+      currentMuted: isMuted, 
+      pushToTalkEnabled,
+      hasStream: !!localStreamRef.current,
+      audioTracks: localStreamRef.current?.getAudioTracks().length 
+    });
+    
     setIsMuted(prev => {
       const newMuted = !prev;
       if (localStreamRef.current) {
         localStreamRef.current.getAudioTracks().forEach(track => {
           track.enabled = !newMuted;
+          console.log('[Controls] Audio track enabled:', !newMuted);
         });
       }
       updateParticipantStatus({ is_muted: newMuted });
       return newMuted;
     });
-  }, []);
+  }, [isMuted, pushToTalkEnabled]);
 
   const setPushToTalkActive = useCallback((active: boolean) => {
-    if (!pushToTalkEnabled || !localStreamRef.current) return;
+    if (!pushToTalkEnabled || !localStreamRef.current) {
+      console.log('[Controls] setPushToTalkActive ignored', { pushToTalkEnabled, hasStream: !!localStreamRef.current });
+      return;
+    }
 
+    console.log('[Controls] setPushToTalkActive:', active);
     setIsMuted(!active);
     localStreamRef.current.getAudioTracks().forEach(track => {
       track.enabled = active;
+      console.log('[Controls] PTT track enabled:', active);
     });
     updateParticipantStatus({ is_muted: !active });
   }, [pushToTalkEnabled]);
 
   const toggleDeafen = useCallback(() => {
+    console.log('[Controls] toggleDeafen called', { 
+      currentDeafened: isDeafened, 
+      pushToTalkEnabled,
+      hasStream: !!localStreamRef.current 
+    });
+    
     setIsDeafened(prev => {
       const newDeafened = !prev;
+      
       if (newDeafened) {
+        // Deafening - mute mic
+        console.log('[Controls] Deafening - muting mic');
         setIsMuted(true);
         if (localStreamRef.current) {
           localStreamRef.current.getAudioTracks().forEach(track => {
             track.enabled = false;
           });
         }
+      } else {
+        // UN-deafening - restore mic (unless in PTT mode)
+        console.log('[Controls] Undeafening - restoring mic state', { pushToTalkEnabled });
+        if (!pushToTalkEnabled) {
+          setIsMuted(false);
+          if (localStreamRef.current) {
+            localStreamRef.current.getAudioTracks().forEach(track => {
+              track.enabled = true;
+              console.log('[Controls] Audio track re-enabled after undeafen');
+            });
+          }
+        }
+        // If PTT is enabled, stay muted until user presses space
       }
-      updateParticipantStatus({ is_deafened: newDeafened, is_muted: newDeafened });
+      
+      updateParticipantStatus({ 
+        is_deafened: newDeafened, 
+        is_muted: newDeafened || pushToTalkEnabled 
+      });
       return newDeafened;
     });
-  }, []);
+  }, [isDeafened, pushToTalkEnabled]);
 
   const toggleVideo = useCallback(async () => {
     try {
