@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceChannel } from '@/hooks/useVoiceChannel';
@@ -310,11 +310,26 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
         </div>
       ) : (
         <div className="flex-1 flex flex-col min-h-0">
-          {/* Remote Audio Players (Camera streams usually have audio) */}
+          {/* Remote Audio Players - Camera and Screen share audio with deafen support */}
           {Array.from(remoteStreams.entries()).map(([userId, streams]) => (
-            streams.camera && (
-              <RemoteAudioPlayer key={userId} userId={userId} stream={streams.camera} />
-            )
+            <React.Fragment key={userId}>
+              {/* Camera audio */}
+              {streams.camera && streams.camera.getAudioTracks().length > 0 && (
+                <RemoteAudioPlayer 
+                  userId={`${userId}-camera`} 
+                  stream={streams.camera} 
+                  isDeafened={isDeafened}
+                />
+              )}
+              {/* Screen share audio (if present) */}
+              {streams.screen && streams.screen.getAudioTracks().length > 0 && (
+                <RemoteAudioPlayer 
+                  userId={`${userId}-screen`} 
+                  stream={streams.screen}
+                  isDeafened={isDeafened}
+                />
+              )}
+            </React.Fragment>
           ))}
 
           {/* Content Area: Whiteboard OR Screen Share OR Grid */}
