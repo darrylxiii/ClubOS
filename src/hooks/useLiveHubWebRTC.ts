@@ -296,12 +296,47 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
 
     // Handle incoming tracks
     peerConnection.ontrack = (event) => {
+      const track = event.track;
       const [remoteStream] = event.streams;
       const streamId = remoteStream.id;
-      console.log('Received remote track from', userId, 'Stream ID:', streamId);
+      
+      console.log('[WebRTC] Received remote track', { 
+        userId, 
+        kind: track.kind,
+        label: track.label,
+        enabled: track.enabled,
+        readyState: track.readyState,
+        streamId,
+        trackCount: remoteStream.getTracks().length
+      });
 
-      // Determine type based on metadata we might have received
-      const type = remoteStreamTypesRef.current.get(streamId) || 'camera'; // Default to camera if unknown
+      // Check if stream has video tracks
+      const hasVideoTracks = remoteStream.getVideoTracks().length > 0;
+      const hasActiveVideo = remoteStream.getVideoTracks().some(t => t.enabled && t.readyState === 'live');
+      
+      console.log('[WebRTC] Stream video status', {
+        userId,
+        hasVideoTracks,
+        hasActiveVideo,
+        videoTracks: remoteStream.getVideoTracks().map(t => ({
+          label: t.label,
+          enabled: t.enabled,
+          readyState: t.readyState
+        }))
+      });
+
+      // Determine type based on metadata OR track label heuristics
+      let type = remoteStreamTypesRef.current.get(streamId);
+      if (!type) {
+        // Heuristic: check track label for screen share indicators
+        const isScreenShare = track.label?.toLowerCase().includes('screen') || 
+                              track.label?.toLowerCase().includes('window') ||
+                              track.label?.toLowerCase().includes('monitor') ||
+                              track.label?.toLowerCase().includes('display');
+        type = isScreenShare ? 'screen' : 'camera';
+        
+        console.log('[WebRTC] Inferred stream type:', type, 'from label:', track.label);
+      }
 
       setRemoteStreams(prev => {
         const newStreams = new Map(prev);
@@ -310,12 +345,33 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         if (type === 'screen') {
           userStreams.screen = remoteStream;
         } else {
+          // Only set as camera if it has video tracks OR it's an audio-only update to existing
           userStreams.camera = remoteStream;
         }
 
-        newStreams.set(userId, userStreams);
+        console.log('[WebRTC] Updated remote streams for', userId, {
+          hasCameraStream: !!userStreams.camera,
+          hasScreenStream: !!userStreams.screen,
+          cameraVideoTracks: userStreams.camera?.getVideoTracks().length || 0,
+          screenVideoTracks: userStreams.screen?.getVideoTracks().length || 0
+        });
+
+        newStreams.set(userId, { ...userStreams });
         return newStreams;
       });
+
+      // Listen for track events to detect changes
+      track.onended = () => {
+        console.log('[WebRTC] Track ended:', { userId, kind: track.kind, label: track.label });
+      };
+
+      track.onmute = () => {
+        console.log('[WebRTC] Track muted:', { userId, kind: track.kind, label: track.label });
+      };
+
+      track.onunmute = () => {
+        console.log('[WebRTC] Track unmuted:', { userId, kind: track.kind, label: track.label });
+      };
     };
 
     // Handle ICE candidates

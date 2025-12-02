@@ -1,6 +1,6 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Mic, MicOff, Volume2, Monitor } from 'lucide-react';
+import { Mic, MicOff, Volume2, Monitor, Video, VideoOff, Loader2 } from 'lucide-react';
 
 interface Participant {
   id: string;
@@ -30,6 +30,8 @@ interface ParticipantGridProps {
   remoteStreams?: Map<string, RemoteStreamBundle>;
 }
 
+type VideoState = 'loading' | 'ready' | 'no-tracks' | 'error';
+
 const ParticipantGrid = ({
   participants,
   channelType,
@@ -39,14 +41,113 @@ const ParticipantGrid = ({
   remoteStreams
 }: ParticipantGridProps) => {
   const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
-  const attachedStreamsRef = useRef<Set<string>>(new Set());
+  const [videoStates, setVideoStates] = useState<Map<string, VideoState>>(new Map());
+  const retryTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
-  // Stable effect - only runs when streams change
+  // Helper to verify video tracks in a stream
+  const verifyVideoTracks = useCallback((stream: MediaStream | null, participantId: string): boolean => {
+    if (!stream) {
+      console.log('[Video] No stream for', participantId);
+      return false;
+    }
+
+    const videoTracks = stream.getVideoTracks();
+    if (videoTracks.length === 0) {
+      console.warn('[Video] Stream has no video tracks', { participantId, streamId: stream.id });
+      return false;
+    }
+
+    const activeTrack = videoTracks.find(t => t.enabled && t.readyState === 'live');
+    if (!activeTrack) {
+      console.warn('[Video] No active video track', { 
+        participantId, 
+        tracks: videoTracks.map(t => ({ label: t.label, enabled: t.enabled, readyState: t.readyState }))
+      });
+      return false;
+    }
+
+    console.log('[Video] Valid video track found', { 
+      participantId, 
+      trackLabel: activeTrack.label,
+      settings: activeTrack.getSettings?.()
+    });
+    return true;
+  }, []);
+
+  // Attach stream to video element with verification and retry
+  const attachStream = useCallback((videoEl: HTMLVideoElement, stream: MediaStream, participantId: string) => {
+    // Clear any existing retry timeout
+    const existingTimeout = retryTimeoutsRef.current.get(participantId);
+    if (existingTimeout) {
+      clearTimeout(existingTimeout);
+      retryTimeoutsRef.current.delete(participantId);
+    }
+
+    // Verify tracks first
+    if (!verifyVideoTracks(stream, participantId)) {
+      setVideoStates(prev => new Map(prev).set(participantId, 'no-tracks'));
+      
+      // Retry after delay - tracks might not be ready yet
+      const timeout = setTimeout(() => {
+        if (verifyVideoTracks(stream, participantId)) {
+          attachStream(videoEl, stream, participantId);
+        }
+      }, 1000);
+      retryTimeoutsRef.current.set(participantId, timeout);
+      return;
+    }
+
+    // Check if already attached to same stream
+    if (videoEl.srcObject === stream) {
+      return;
+    }
+
+    console.log('[Video] Attaching stream', { participantId, streamId: stream.id });
+    setVideoStates(prev => new Map(prev).set(participantId, 'loading'));
+
+    videoEl.srcObject = stream;
+
+    // Handle metadata loaded
+    videoEl.onloadedmetadata = () => {
+      console.log('[Video] Metadata loaded', { 
+        participantId, 
+        width: videoEl.videoWidth, 
+        height: videoEl.videoHeight 
+      });
+    };
+
+    // Handle when video can play
+    videoEl.oncanplay = () => {
+      console.log('[Video] Can play', { participantId });
+    };
+
+    // Play and handle result
+    videoEl.play()
+      .then(() => {
+        console.log('[Video] Playing successfully', { participantId });
+        setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
+      })
+      .catch(err => {
+        console.error('[Video] Play failed:', { participantId, error: err.message });
+        setVideoStates(prev => new Map(prev).set(participantId, 'error'));
+        
+        // Retry on autoplay errors
+        if (err.name === 'NotAllowedError') {
+          const timeout = setTimeout(() => {
+            videoEl.play().catch(() => {});
+          }, 1000);
+          retryTimeoutsRef.current.set(participantId, timeout);
+        }
+      });
+  }, [verifyVideoTracks]);
+
+  // Effect to handle stream changes
   useEffect(() => {
-    // Check all video refs and attach stream if needed
-    videoRefs.current.forEach((videoEl, participantId) => {
-      const participant = participants.find(p => p.id === participantId);
-      if (!participant || !participant.is_video_on) return;
+    participants.forEach(participant => {
+      if (!participant.is_video_on || channelType !== 'video') return;
+
+      const videoEl = videoRefs.current.get(participant.id);
+      if (!videoEl) return;
 
       let streamToAttach: MediaStream | null = null;
 
@@ -58,42 +159,44 @@ const ParticipantGrid = ({
       }
 
       if (streamToAttach) {
-        // Only attach if not already attached with same stream
-        if (videoEl.srcObject !== streamToAttach) {
-          console.log('[Video] Attaching stream', { participantId, userId: participant.user_id });
-          videoEl.srcObject = streamToAttach;
-          videoEl.play().catch(err => console.error('Error playing video:', err));
-        }
+        attachStream(videoEl, streamToAttach, participant.id);
+      } else {
+        // No stream yet, set loading state
+        setVideoStates(prev => new Map(prev).set(participant.id, 'loading'));
+        
+        // Log for debugging
+        console.log('[Video] Waiting for stream', { 
+          participantId: participant.id, 
+          userId: participant.user_id,
+          isCurrentUser: participant.user_id === currentUserId,
+          hasLocalStream: !!localStream,
+          remoteStreamKeys: remoteStreams ? Array.from(remoteStreams.keys()) : []
+        });
       }
     });
-  }, [localStream, remoteStreams, participants, currentUserId]);
+  }, [localStream, remoteStreams, participants, currentUserId, channelType, attachStream]);
 
-  const setVideoRef = (participantId: string, el: HTMLVideoElement | null) => {
+  // Cleanup retry timeouts on unmount
+  useEffect(() => {
+    return () => {
+      retryTimeoutsRef.current.forEach(timeout => clearTimeout(timeout));
+      retryTimeoutsRef.current.clear();
+    };
+  }, []);
+
+  const setVideoRef = useCallback((participantId: string, el: HTMLVideoElement | null) => {
     if (el) {
       videoRefs.current.set(participantId, el);
-
-      // Attach stream immediately on mount
-      const participant = participants.find(p => p.id === participantId);
-      if (participant && participant.is_video_on) {
-        let streamToAttach: MediaStream | null = null;
-
-        if (participant.user_id === currentUserId) {
-          streamToAttach = localStream || null;
-        } else if (remoteStreams) {
-          const streams = remoteStreams.get(participant.user_id);
-          streamToAttach = streams?.camera || null;
-        }
-
-        if (streamToAttach && el.srcObject !== streamToAttach) {
-          console.log('[Video] Attaching stream on mount', { participantId });
-          el.srcObject = streamToAttach;
-          el.play().catch(err => console.error('Error playing video:', err));
-        }
-      }
     } else {
       videoRefs.current.delete(participantId);
+      // Clear state when element is removed
+      setVideoStates(prev => {
+        const newStates = new Map(prev);
+        newStates.delete(participantId);
+        return newStates;
+      });
     }
-  };
+  }, []);
 
   const getGridCols = () => {
     const count = participants.length;
@@ -104,11 +207,51 @@ const ParticipantGrid = ({
     return 'grid-cols-4';
   };
 
+  const renderVideoState = (participantId: string, isVideoOn: boolean) => {
+    const state = videoStates.get(participantId);
+    
+    if (!isVideoOn) return null;
+
+    switch (state) {
+      case 'loading':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm rounded-lg">
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <span className="text-xs text-muted-foreground">Loading video...</span>
+            </div>
+          </div>
+        );
+      case 'no-tracks':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm rounded-lg">
+            <div className="flex flex-col items-center gap-2">
+              <VideoOff className="w-8 h-8 text-muted-foreground" />
+              <span className="text-xs text-muted-foreground">Waiting for video...</span>
+            </div>
+          </div>
+        );
+      case 'error':
+        return (
+          <div className="absolute inset-0 flex items-center justify-center bg-card/80 backdrop-blur-sm rounded-lg">
+            <div className="flex flex-col items-center gap-2">
+              <VideoOff className="w-8 h-8 text-destructive" />
+              <span className="text-xs text-destructive">Video error</span>
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className={`grid ${getGridCols()} gap-4 p-4`}>
       {participants.map((participant) => {
         const isCurrentUser = participant.user_id === currentUserId;
         const isSpeaking = isCurrentUser ? currentUserSpeaking : participant.is_speaking;
+        const videoState = videoStates.get(participant.id);
+        const showVideo = participant.is_video_on && channelType === 'video';
 
         return (
           <div
@@ -119,17 +262,21 @@ const ParticipantGrid = ({
               }`}
           >
             {/* Video element for video channels */}
-            {participant.is_video_on && channelType === 'video' ? (
+            {showVideo ? (
               <div className="relative w-full h-full">
                 <video
                   ref={(el) => setVideoRef(participant.id, el)}
-                  className="w-full h-full object-cover rounded-lg"
+                  className={`w-full h-full object-cover rounded-lg ${videoState !== 'ready' ? 'opacity-0' : 'opacity-100'} transition-opacity duration-300`}
                   autoPlay
                   playsInline
                   muted={isCurrentUser} // Mute own video to prevent echo
                 />
+                
+                {/* Video state overlay */}
+                {renderVideoState(participant.id, participant.is_video_on)}
+                
                 {/* Speaking pulse overlay for video */}
-                {isSpeaking && (
+                {isSpeaking && videoState === 'ready' && (
                   <div className="absolute inset-0 rounded-lg ring-4 ring-green-500 ring-inset animate-pulse pointer-events-none" />
                 )}
               </div>
@@ -154,6 +301,13 @@ const ParticipantGrid = ({
                     </span>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Video indicator when video is on */}
+            {showVideo && videoState === 'ready' && (
+              <div className="absolute top-2 right-2 z-10">
+                <Video className="w-4 h-4 text-primary" />
               </div>
             )}
 
