@@ -69,44 +69,71 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
 
   // Map to store stream ID -> type ('camera' | 'screen') for remote streams
   const remoteStreamTypesRef = useRef<Map<string, 'camera' | 'screen'>>(new Map());
+  
+  // Track if we've successfully connected signaling
+  const signalingReadyRef = useRef(false);
 
-  // Update refs and handle track updates
+  // Update refs SYNCHRONOUSLY and handle track updates
   useEffect(() => {
+    console.log('[WebRTC] Local stream changed:', localStream ? 'present' : 'null');
     localStreamRef.current = localStream;
-    updateTracks(localStream, 'camera');
-  }, [localStream, enabled]);
+    
+    // Only update tracks if signaling is ready
+    if (signalingReadyRef.current && localStream) {
+      updateTracksForAllPeers(localStream, 'camera');
+    }
+  }, [localStream]);
 
   useEffect(() => {
+    console.log('[WebRTC] Screen stream changed:', localScreenStream ? 'present' : 'null');
     localScreenStreamRef.current = localScreenStream;
-    updateTracks(localScreenStream, 'screen');
-  }, [localScreenStream, enabled]);
+    
+    if (signalingReadyRef.current && localScreenStream) {
+      updateTracksForAllPeers(localScreenStream, 'screen');
+    }
+  }, [localScreenStream]);
 
-  const updateTracks = (stream: MediaStream | null, type: 'camera' | 'screen') => {
+  const updateTracksForAllPeers = async (stream: MediaStream, type: 'camera' | 'screen') => {
     if (!enabled) return;
 
-    peersRef.current.forEach((peer) => {
+    console.log(`[WebRTC] Updating ${type} tracks for all peers, track count:`, stream.getTracks().length);
+
+    for (const [userId, peer] of peersRef.current.entries()) {
       const senders = peer.connection.getSenders();
+      let addedNewTrack = false;
 
-      if (stream) {
-        stream.getTracks().forEach(track => {
-          const existingSender = senders.find(s => s.track?.id === track.id);
+      for (const track of stream.getTracks()) {
+        const existingSender = senders.find(s => s.track?.id === track.id);
 
-          if (!existingSender) {
-            try {
-              peer.connection.addTrack(track, stream);
-            } catch (e) {
-              console.error(`[WebRTC] Error adding ${type} track:`, e);
-            }
+        if (!existingSender) {
+          try {
+            console.log(`[WebRTC] Adding ${track.kind} track to peer ${userId}`);
+            peer.connection.addTrack(track, stream);
+            addedNewTrack = true;
+          } catch (e) {
+            console.error(`[WebRTC] Error adding ${type} track:`, e);
           }
-        });
-
-        // Send metadata about this stream
-        sendSignal('stream-metadata', peer.userId, {
-          streamId: stream.id,
-          type
-        });
+        }
       }
-    });
+
+      // Send metadata about this stream
+      await sendSignal('stream-metadata', userId, {
+        streamId: stream.id,
+        type
+      });
+
+      // CRITICAL: Force renegotiation if we added new tracks and negotiation didn't trigger
+      if (addedNewTrack && peer.connection.signalingState === 'stable') {
+        console.log(`[WebRTC] Forcing renegotiation for ${userId} after adding tracks`);
+        try {
+          const offer = await peer.connection.createOffer();
+          await peer.connection.setLocalDescription(offer);
+          await sendSignal('offer', userId, peer.connection.localDescription);
+        } catch (err) {
+          console.error('[WebRTC] Renegotiation error:', err);
+        }
+      }
+    }
   };
 
   useEffect(() => {
@@ -189,9 +216,24 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       .subscribe(async (status) => {
         if (status === 'SUBSCRIBED') {
           console.log('[WebRTC] Connected to signaling channel');
+          signalingReadyRef.current = true;
+          
+          // Wait for local stream to be available before connecting
+          let waitAttempts = 0;
+          while (!localStreamRef.current && waitAttempts < 20) {
+            console.log('[WebRTC] Waiting for local stream...');
+            await new Promise(resolve => setTimeout(resolve, 100));
+            waitAttempts++;
+          }
+          
+          if (!localStreamRef.current) {
+            console.warn('[WebRTC] No local stream after waiting, proceeding anyway');
+          } else {
+            console.log('[WebRTC] Local stream ready, proceeding with signaling');
+          }
           
           // Small delay to ensure all peers have subscribed
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, 200));
           
           // Send join signal
           await sendSignal('join', null, {});
@@ -224,6 +266,8 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
   };
 
   const disconnectFromSignaling = async () => {
+    signalingReadyRef.current = false;
+    
     if (signalingChannelRef.current && user) {
       await sendSignal('leave', null, {});
       await supabase.removeChannel(signalingChannelRef.current);
@@ -236,6 +280,7 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     peersRef.current.clear();
     setPeers(new Map());
     setRemoteStreams(new Map());
+    remoteStreamTypesRef.current.clear();
   };
 
   const sendSignal = async (
@@ -405,10 +450,11 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
 
   const createPeerConnection = async (userId: string, isInitiator: boolean) => {
     if (peersRef.current.has(userId)) {
+      console.log(`[WebRTC] Peer connection already exists for ${userId}`);
       return peersRef.current.get(userId)!;
     }
 
-    console.log(`[WebRTC] Creating peer connection with ${userId}, initiator: ${isInitiator}`);
+    console.log(`[WebRTC] Creating peer connection with ${userId}, initiator: ${isInitiator}, hasLocalStream: ${!!localStreamRef.current}`);
 
     const peerConnection = new RTCPeerConnection(ICE_SERVERS);
     const peer: Peer = {
@@ -418,23 +464,42 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       makingOffer: false,
       ignoreOffer: false,
       isSettingRemoteAnswerPending: false,
-      pendingCandidates: [] // Initialize ICE candidate queue
+      pendingCandidates: []
     };
 
+    // Store peer FIRST before adding tracks (prevents race conditions)
+    peersRef.current.set(userId, peer);
+    setPeers(new Map(peersRef.current));
+
     // Add local tracks BEFORE any negotiation
+    let tracksAdded = 0;
     if (localStreamRef.current) {
+      console.log(`[WebRTC] Adding ${localStreamRef.current.getTracks().length} local tracks for ${userId}`);
       localStreamRef.current.getTracks().forEach(track => {
-        peerConnection.addTrack(track, localStreamRef.current!);
+        try {
+          peerConnection.addTrack(track, localStreamRef.current!);
+          tracksAdded++;
+          console.log(`[WebRTC] Added ${track.kind} track: ${track.label}`);
+        } catch (e) {
+          console.error('[WebRTC] Error adding track:', e);
+        }
       });
-      sendSignal('stream-metadata', userId, { streamId: localStreamRef.current.id, type: 'camera' });
+      await sendSignal('stream-metadata', userId, { streamId: localStreamRef.current.id, type: 'camera' });
     }
 
     if (localScreenStreamRef.current) {
       localScreenStreamRef.current.getTracks().forEach(track => {
-        peerConnection.addTrack(track, localScreenStreamRef.current!);
+        try {
+          peerConnection.addTrack(track, localScreenStreamRef.current!);
+          tracksAdded++;
+        } catch (e) {
+          console.error('[WebRTC] Error adding screen track:', e);
+        }
       });
-      sendSignal('stream-metadata', userId, { streamId: localScreenStreamRef.current.id, type: 'screen' });
+      await sendSignal('stream-metadata', userId, { streamId: localScreenStreamRef.current.id, type: 'screen' });
     }
+    
+    console.log(`[WebRTC] Total tracks added: ${tracksAdded} for peer ${userId}`);
 
     // Configure audio for optimal voice quality
     setOpusPreference(peerConnection);
@@ -513,23 +578,32 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       console.log('[Signaling] State:', peerConnection.signalingState, 'for', userId);
     };
 
-    // Negotiation Needed - with track verification
+    // Negotiation Needed - ONLY initiator creates offers
     peerConnection.onnegotiationneeded = async () => {
-      // Wait a tick to ensure tracks are fully added
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // Only the initiator should create offers
+      if (!isInitiator) {
+        console.log('[WebRTC] Skipping offer - not initiator for', userId);
+        return;
+      }
       
-      // Verify we have tracks before creating offer
-      const senders = peerConnection.getSenders();
-      if (senders.length === 0) {
-        console.warn('[WebRTC] No senders yet, deferring offer');
+      // Wait a tick to ensure tracks are fully added
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Check signaling state
+      if (peerConnection.signalingState !== 'stable') {
+        console.log('[WebRTC] Skipping offer - signaling not stable:', peerConnection.signalingState);
         return;
       }
 
       try {
         peer.makingOffer = true;
+        const senders = peerConnection.getSenders();
         console.log('[WebRTC] Creating offer for', userId, 'with', senders.length, 'senders');
-        await peerConnection.setLocalDescription();
+        
+        const offer = await peerConnection.createOffer();
+        await peerConnection.setLocalDescription(offer);
         await sendSignal('offer', userId, peerConnection.localDescription);
+        console.log('[WebRTC] Offer sent to', userId);
       } catch (err) {
         console.error('[WebRTC] Error during negotiation:', err);
       } finally {
@@ -542,16 +616,16 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       const state = peerConnection.connectionState;
       console.log('[WebRTC] Connection state changed to:', state, 'for', userId);
       
-      if (state === 'failed') {
+      if (state === 'connected') {
+        console.log('[WebRTC] Successfully connected to', userId);
+      } else if (state === 'failed') {
         console.log('[WebRTC] Connection failed - initiating ICE restart for', userId);
-        // Full renegotiation with ICE restart
         peerConnection.restartIce();
         peerConnection.createOffer({ iceRestart: true })
           .then(offer => peerConnection.setLocalDescription(offer))
           .then(() => sendSignal('offer', userId, peerConnection.localDescription))
           .catch(err => console.error('[ICE Restart] Error:', err));
       } else if (state === 'disconnected') {
-        // Give it 3 seconds before taking action
         setTimeout(() => {
           if (peerConnection.connectionState === 'disconnected') {
             console.log('[WebRTC] Still disconnected, restarting ICE for', userId);
@@ -561,8 +635,26 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       }
     };
 
-    peersRef.current.set(userId, peer);
-    setPeers(new Map(peersRef.current));
+    // CRITICAL: If initiator and we have tracks, create initial offer NOW
+    // This ensures offer is always sent, even if onnegotiationneeded doesn't fire
+    if (isInitiator && tracksAdded > 0) {
+      console.log('[WebRTC] Initiator with tracks - creating initial offer for', userId);
+      setTimeout(async () => {
+        if (peerConnection.signalingState === 'stable' && !peer.makingOffer) {
+          try {
+            peer.makingOffer = true;
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            await sendSignal('offer', userId, peerConnection.localDescription);
+            console.log('[WebRTC] Initial offer sent to', userId);
+          } catch (err) {
+            console.error('[WebRTC] Error creating initial offer:', err);
+          } finally {
+            peer.makingOffer = false;
+          }
+        }
+      }, 200);
+    }
 
     return peer;
   };
