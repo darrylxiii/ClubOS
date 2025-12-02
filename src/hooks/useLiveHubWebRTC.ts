@@ -262,6 +262,115 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     await sendSignal('whiteboard-event', null, event);
   };
 
+  // Configure audio sender for optimal voice quality
+  const configureAudioSender = async (pc: RTCPeerConnection, userId: string) => {
+    try {
+      const audioSender = pc.getSenders().find(s => s.track?.kind === 'audio');
+      if (!audioSender) return;
+
+      const params = audioSender.getParameters();
+      if (!params.encodings || params.encodings.length === 0) {
+        params.encodings = [{}];
+      }
+
+      // Optimize for voice: 64kbps max, high priority
+      params.encodings[0].maxBitrate = 64000;
+      params.encodings[0].networkPriority = 'high';
+      params.encodings[0].priority = 'high';
+
+      await audioSender.setParameters(params);
+      console.log('[Audio] Configured sender for', userId, '- 64kbps, high priority');
+    } catch (error) {
+      console.warn('[Audio] Could not configure sender params:', error);
+    }
+  };
+
+  // Set Opus as preferred codec for audio
+  const setOpusPreference = (pc: RTCPeerConnection) => {
+    try {
+      const transceivers = pc.getTransceivers();
+      const audioTransceiver = transceivers.find(t => 
+        t.receiver.track?.kind === 'audio' || t.sender.track?.kind === 'audio'
+      );
+      
+      if (audioTransceiver && RTCRtpSender.getCapabilities) {
+        const codecs = RTCRtpSender.getCapabilities('audio')?.codecs || [];
+        const opusCodecs = codecs.filter(c => c.mimeType === 'audio/opus');
+        
+        if (opusCodecs.length > 0 && audioTransceiver.setCodecPreferences) {
+          audioTransceiver.setCodecPreferences(opusCodecs);
+          console.log('[Audio] Set Opus as preferred codec');
+        }
+      }
+    } catch (error) {
+      console.warn('[Audio] Could not set codec preference:', error);
+    }
+  };
+
+  // Monitor audio stats for quality tracking
+  const monitorAudioStats = async (pc: RTCPeerConnection, userId: string) => {
+    try {
+      const stats = await pc.getStats();
+      let audioStats = {
+        packetsLost: 0,
+        packetsReceived: 0,
+        jitter: 0,
+        concealedSamples: 0,
+        rtt: 0
+      };
+
+      stats.forEach(report => {
+        if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+          audioStats.packetsLost = report.packetsLost || 0;
+          audioStats.packetsReceived = report.packetsReceived || 0;
+          audioStats.jitter = (report.jitter || 0) * 1000; // Convert to ms
+          audioStats.concealedSamples = report.concealedSamples || 0;
+        }
+        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+          audioStats.rtt = (report.currentRoundTripTime || 0) * 1000;
+        }
+      });
+
+      const lossRate = audioStats.packetsReceived > 0 
+        ? (audioStats.packetsLost / (audioStats.packetsLost + audioStats.packetsReceived)) * 100 
+        : 0;
+
+      // Log quality issues
+      if (lossRate > 5 || audioStats.jitter > 50) {
+        console.warn('[Audio] Quality degraded for', userId, {
+          lossRate: lossRate.toFixed(1) + '%',
+          jitter: audioStats.jitter.toFixed(0) + 'ms',
+          rtt: audioStats.rtt.toFixed(0) + 'ms'
+        });
+      }
+
+      return audioStats;
+    } catch (error) {
+      console.warn('[Audio] Stats monitoring error:', error);
+      return null;
+    }
+  };
+
+  // Audio stats monitoring interval
+  const audioStatsIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (!enabled) return;
+
+    // Monitor audio stats every 3 seconds
+    audioStatsIntervalRef.current = setInterval(() => {
+      peersRef.current.forEach((peer, usrId) => {
+        monitorAudioStats(peer.connection, usrId);
+      });
+    }, 3000);
+
+    return () => {
+      if (audioStatsIntervalRef.current) {
+        clearInterval(audioStatsIntervalRef.current);
+      }
+    };
+  }, [enabled]);
+
   const createPeerConnection = async (userId: string, isInitiator: boolean) => {
     if (peersRef.current.has(userId)) {
       return peersRef.current.get(userId)!;
@@ -293,6 +402,12 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       });
       sendSignal('stream-metadata', userId, { streamId: localScreenStreamRef.current.id, type: 'screen' });
     }
+
+    // Configure audio for optimal voice quality
+    setOpusPreference(peerConnection);
+    
+    // Configure audio sender after tracks are added
+    setTimeout(() => configureAudioSender(peerConnection, userId), 100);
 
     // Handle incoming tracks
     peerConnection.ontrack = (event) => {
