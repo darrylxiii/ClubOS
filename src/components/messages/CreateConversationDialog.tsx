@@ -129,6 +129,7 @@ export const CreateConversationDialog = ({
         .insert({
           title: conversationTitle,
           status: 'active',
+          created_by: user.id,
           metadata: isGroupChat ? {
             is_group: true,
             participant_count: participantIds.length + 1,
