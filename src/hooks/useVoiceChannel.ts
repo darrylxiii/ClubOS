@@ -5,6 +5,7 @@ import { useMeetingTranscription } from './useMeetingTranscription';
 import { useLiveHubWebRTC } from './useLiveHubWebRTC';
 import { useVirtualBackground } from './useVirtualBackground';
 import { useAudioDiagnostics } from './useAudioDiagnostics';
+import { useConnectionQuality, ConnectionQuality, ConnectionStats } from './useConnectionQuality';
 import { toast } from 'sonner';
 
 interface Participant {
@@ -88,11 +89,25 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   // So we can safely pass processedStream || localStream.
   const streamToSend = processedStream || localStream;
 
-  const { remoteStreams, isConnected: isWebRTCConnected, sendReaction, sendWhiteboardEvent } = useLiveHubWebRTC({
+  const { remoteStreams, isConnected: isWebRTCConnected, sendReaction, sendWhiteboardEvent, peerConnection } = useLiveHubWebRTC({
     channelId,
     localStream: streamToSend,
     localScreenStream, // Pass separate screen stream
     enabled: isConnected
+  });
+
+  // Connection quality monitoring (Discord-style)
+  const { stats: connectionStats, quality: connectionQuality } = useConnectionQuality({
+    peerConnection,
+    enabled: isConnected && isWebRTCConnected,
+    onQualityChange: (quality) => {
+      if (quality === 'poor') {
+        toast.warning('Connection quality is poor. Audio may be affected.', {
+          id: 'connection-quality-warning',
+          duration: 5000
+        });
+      }
+    }
   });
 
   // Use the transcription hook
@@ -745,6 +760,24 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     setCurrentRecordingId(null);
   }, [currentRecordingId, transcriptions]);
 
+  // Force reconnect function (for manual reconnection)
+  const forceReconnect = useCallback(async () => {
+    if (!isConnected) return;
+    
+    toast.info('Reconnecting...', { id: 'reconnecting' });
+    
+    try {
+      // Leave and rejoin to establish fresh connection
+      await leaveChannel();
+      await new Promise(resolve => setTimeout(resolve, 500));
+      await joinChannel();
+      toast.success('Reconnected!', { id: 'reconnecting' });
+    } catch (error) {
+      console.error('[Reconnect] Failed:', error);
+      toast.error('Failed to reconnect. Please try again.', { id: 'reconnecting' });
+    }
+  }, [isConnected, leaveChannel, joinChannel]);
+
   return {
     isConnected,
     isMuted,
@@ -759,6 +792,10 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     screenStream: screenStreamRef.current, // Return ref or state? Ref is fine for UI if it re-renders on isScreenSharing change
     remoteStreams, // Now Map<string, {camera, screen}>
     isWebRTCConnected,
+    // Connection quality (Discord-style)
+    connectionQuality,
+    connectionStats,
+    forceReconnect,
     joinChannel,
     leaveChannel,
     toggleMute,

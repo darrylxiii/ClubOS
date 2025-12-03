@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useVoiceChannel } from '@/hooks/useVoiceChannel';
@@ -23,6 +23,7 @@ import { RemoteAudioPlayer } from './RemoteAudioPlayer';
 import { LiveReactions } from './LiveReactions';
 import { Whiteboard } from './Whiteboard';
 import { RecordingSettingsDialog, RecordingSettings } from './RecordingSettingsDialog';
+import { ConnectionQualityIndicator } from './ConnectionQualityIndicator';
 import { toast } from 'sonner';
 
 interface VoiceChannelProps {
@@ -62,6 +63,8 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     screenStream,
     remoteStreams,
     isWebRTCConnected,
+    connectionQuality,
+    connectionStats,
     joinChannel,
     leaveChannel,
     toggleMute,
@@ -72,7 +75,8 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     stopRecording,
     setPushToTalkActive,
     sendReaction,
-    sendWhiteboardEvent
+    sendWhiteboardEvent,
+    forceReconnect
   } = useVoiceChannel(channelId, { pushToTalkEnabled });
 
   const { isPushing } = usePushToTalk({
@@ -220,7 +224,15 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
           <div className="flex items-center gap-2">
             <Volume2 className="w-5 h-5 text-muted-foreground" />
             <h2 className="font-semibold">{channel.name}</h2>
-            {isConnected && (
+            {isConnected && connectionQuality && (
+              <ConnectionQualityIndicator 
+                quality={connectionQuality}
+                stats={connectionStats}
+                showDetails
+                onReconnect={forceReconnect}
+              />
+            )}
+            {isConnected && !connectionQuality && (
               <span className="text-xs text-primary">Connected</span>
             )}
           </div>
