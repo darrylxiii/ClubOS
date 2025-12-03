@@ -498,7 +498,7 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
           settings: newVideoTrack.getSettings() 
         });
 
-        // Add video track to local stream
+        // Add video track to local stream - keep same stream object
         if (localStreamRef.current) {
           // Remove any existing video tracks first
           localStreamRef.current.getVideoTracks().forEach(track => {
@@ -506,18 +506,16 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
             localStreamRef.current?.removeTrack(track);
           });
           
-          // Add new video track
+          // Add new video track to EXISTING stream (don't create new MediaStream)
           localStreamRef.current.addTrack(newVideoTrack);
           
-          // CRITICAL FIX: Keep ref and state in sync with new MediaStream
-          // This triggers re-renders AND ensures WebRTC gets updated
-          const updatedStream = new MediaStream(localStreamRef.current.getTracks());
-          localStreamRef.current = updatedStream;
-          setLocalStream(updatedStream);
+          // Trigger re-render WITHOUT replacing stream object
+          // This keeps the same stream reference, which prevents MediaRecorder issues
+          setLocalStream(localStreamRef.current);
           
-          console.log('[Video] Stream updated with video track:', {
-            streamId: updatedStream.id,
-            tracks: updatedStream.getTracks().map(t => ({ kind: t.kind, label: t.label, enabled: t.enabled }))
+          console.log('[Video] Added video track to existing stream:', {
+            streamId: localStreamRef.current.id,
+            tracks: localStreamRef.current.getTracks().map(t => ({ kind: t.kind, label: t.label, enabled: t.enabled }))
           });
         } else {
           // No existing stream, create new one with video
@@ -529,7 +527,7 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
         await updateParticipantStatus({ is_video_on: true });
       } else {
         console.log('[Video] Turning off camera...');
-        // Stop and remove video tracks
+        // Stop and remove video tracks - keep same stream object
         if (localStreamRef.current) {
           localStreamRef.current.getVideoTracks().forEach(track => {
             console.log('[Video] Stopping track:', track.label);
@@ -537,14 +535,12 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
             localStreamRef.current?.removeTrack(track);
           });
           
-          // CRITICAL FIX: Keep ref and state in sync
-          const updatedStream = new MediaStream(localStreamRef.current.getTracks());
-          localStreamRef.current = updatedStream;
-          setLocalStream(updatedStream);
+          // Trigger re-render WITHOUT replacing stream object
+          setLocalStream(localStreamRef.current);
           
           console.log('[Video] Video track removed, remaining tracks:', {
-            streamId: updatedStream.id,
-            tracks: updatedStream.getTracks().map(t => ({ kind: t.kind, label: t.label }))
+            streamId: localStreamRef.current.id,
+            tracks: localStreamRef.current.getTracks().map(t => ({ kind: t.kind, label: t.label }))
           });
         }
 

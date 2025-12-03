@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 interface TranscriptionChunk {
   id: string;
@@ -28,6 +27,11 @@ export function useMeetingTranscription({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const transcriptionIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Track stream ID to detect when stream object changes
+  const currentStreamIdRef = useRef<string | null>(null);
+  // Track audio-only stream clone for transcription (isolated from video changes)
+  const audioStreamRef = useRef<MediaStream | null>(null);
 
   const processAudioBlob = useCallback(async (audioBlob: Blob) => {
     try {
@@ -81,45 +85,84 @@ export function useMeetingTranscription({
     }
   }, [meetingId, participantName]);
 
+  // Cleanup function for MediaRecorder
+  const cleanupMediaRecorder = useCallback(() => {
+    if (transcriptionIntervalRef.current) {
+      clearInterval(transcriptionIntervalRef.current);
+      transcriptionIntervalRef.current = null;
+    }
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+      try {
+        mediaRecorderRef.current.stop();
+      } catch (e) {
+        console.warn('[Transcription] Error stopping MediaRecorder:', e);
+      }
+    }
+    mediaRecorderRef.current = null;
+    audioChunksRef.current = [];
+    
+    // Cleanup audio-only stream
+    if (audioStreamRef.current) {
+      audioStreamRef.current.getTracks().forEach(track => track.stop());
+      audioStreamRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     if (!enabled || !localStream) {
-      // Cleanup
-      if (transcriptionIntervalRef.current) {
-        clearInterval(transcriptionIntervalRef.current);
-        transcriptionIntervalRef.current = null;
-      }
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-        mediaRecorderRef.current = null;
-      }
-      audioChunksRef.current = [];
+      cleanupMediaRecorder();
+      currentStreamIdRef.current = null;
       setIsTranscribing(false);
       return;
     }
 
+    // Check if stream has audio tracks
+    const audioTracks = localStream.getAudioTracks();
+    if (!audioTracks.length) {
+      console.warn('[Transcription] No audio tracks in stream');
+      setIsTranscribing(false);
+      return;
+    }
+
+    // Check if this is the same stream (by checking audio track IDs)
+    const newStreamId = audioTracks.map(t => t.id).join('-');
+    
+    // If stream audio tracks haven't changed, don't reinitialize
+    if (currentStreamIdRef.current === newStreamId && mediaRecorderRef.current) {
+      console.log('[Transcription] Same audio tracks, keeping existing MediaRecorder');
+      return;
+    }
+
+    // Stream changed - cleanup and reinitialize
+    console.log('[Transcription] Audio tracks changed, reinitializing MediaRecorder', {
+      oldId: currentStreamIdRef.current,
+      newId: newStreamId
+    });
+    
+    cleanupMediaRecorder();
+    currentStreamIdRef.current = newStreamId;
+
     // Initialize MediaRecorder for proper audio format
     const setupAudioCapture = async () => {
       try {
-        // Validate stream has audio tracks and they're enabled
-        const audioTracks = localStream.getAudioTracks();
-        if (!audioTracks.length) {
-          console.warn('[Transcription] No audio tracks in stream');
-          return;
-        }
-
-        // Wait for tracks to be ready
+        // Find an active audio track
         const activeTrack = audioTracks.find(track => track.readyState === 'live' && track.enabled);
         if (!activeTrack) {
           console.warn('[Transcription] No active audio tracks available');
           return;
         }
 
+        // CRITICAL: Create audio-only stream clone for transcription
+        // This isolates transcription from video track changes
+        const audioOnlyStream = new MediaStream([activeTrack.clone()]);
+        audioStreamRef.current = audioOnlyStream;
+
         // Check for supported mime types
         const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
           ? 'audio/webm;codecs=opus'
           : 'audio/webm';
 
-        const mediaRecorder = new MediaRecorder(localStream, {
+        const mediaRecorder = new MediaRecorder(audioOnlyStream, {
           mimeType,
           audioBitsPerSecond: 128000
         });
@@ -133,23 +176,9 @@ export function useMeetingTranscription({
         };
 
         mediaRecorder.onerror = (event: Event) => {
-          console.error('[Transcription] MediaRecorder error:', {
-            error: event,
-            state: mediaRecorder.state,
-            stream: localStream,
-            tracks: localStream.getAudioTracks().map(t => ({
-              id: t.id,
-              enabled: t.enabled,
-              muted: t.muted,
-              readyState: t.readyState
-            }))
-          });
-          
-          // Stop recording on error
-          if (transcriptionIntervalRef.current) {
-            clearInterval(transcriptionIntervalRef.current);
-            transcriptionIntervalRef.current = null;
-          }
+          console.error('[Transcription] MediaRecorder error:', event);
+          // Attempt recovery by cleaning up
+          cleanupMediaRecorder();
           setIsTranscribing(false);
         };
 
@@ -164,28 +193,30 @@ export function useMeetingTranscription({
         };
 
         // Listen for track ended events
-        audioTracks.forEach(track => {
-          track.onended = () => {
-            console.warn('[Transcription] Audio track ended');
-            if (transcriptionIntervalRef.current) {
-              clearInterval(transcriptionIntervalRef.current);
-              transcriptionIntervalRef.current = null;
-            }
-            setIsTranscribing(false);
-          };
-        });
+        activeTrack.onended = () => {
+          console.warn('[Transcription] Audio track ended');
+          cleanupMediaRecorder();
+          setIsTranscribing(false);
+        };
 
         // Record in 5-second intervals
         mediaRecorder.start();
         transcriptionIntervalRef.current = setInterval(() => {
           if (mediaRecorder.state === 'recording') {
             mediaRecorder.stop();
-            mediaRecorder.start(); // Start new recording
+            // Only restart if we still have the same recorder
+            if (mediaRecorderRef.current === mediaRecorder) {
+              try {
+                mediaRecorder.start();
+              } catch (e) {
+                console.warn('[Transcription] Could not restart MediaRecorder:', e);
+              }
+            }
           }
         }, 5000);
 
         setIsTranscribing(true);
-        console.log('[Transcription] Started successfully');
+        console.log('[Transcription] Started successfully with audio-only stream');
       } catch (error) {
         console.error('[Transcription] Setup failed:', error);
         setIsTranscribing(false);
@@ -199,14 +230,9 @@ export function useMeetingTranscription({
 
     return () => {
       clearTimeout(setupTimer);
-      if (transcriptionIntervalRef.current) {
-        clearInterval(transcriptionIntervalRef.current);
-      }
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-        mediaRecorderRef.current.stop();
-      }
+      cleanupMediaRecorder();
     };
-  }, [enabled, localStream, processAudioBlob]);
+  }, [enabled, localStream, processAudioBlob, cleanupMediaRecorder]);
 
   return {
     transcriptions,

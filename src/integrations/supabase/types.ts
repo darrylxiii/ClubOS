@@ -16267,6 +16267,7 @@ export type Database = {
           action_url: string | null
           category: string | null
           created_at: string
+          expires_at: string | null
           id: string
           is_archived: boolean | null
           is_read: boolean
@@ -16281,6 +16282,7 @@ export type Database = {
           action_url?: string | null
           category?: string | null
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_archived?: boolean | null
           is_read?: boolean
@@ -16295,6 +16297,7 @@ export type Database = {
           action_url?: string | null
           category?: string | null
           created_at?: string
+          expires_at?: string | null
           id?: string
           is_archived?: boolean | null
           is_read?: boolean
