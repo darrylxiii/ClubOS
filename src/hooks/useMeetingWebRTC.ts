@@ -359,11 +359,12 @@ export function useMeetingWebRTC({
         
         const offer = await pc.createOffer();
         
-        // Apply SDP optimization with FEC enabled
+        // Apply SDP optimization with FEC and DTX enabled
         const optimizedOffer = optimizeSessionDescription(offer, {
           enableOpusFEC: true,
-          enableOpusDTX: false,
-          opusMaxAverageBitrate: 64000
+          enableOpusDTX: true, // Enable DTX for bandwidth savings during silence
+          opusMaxAverageBitrate: 64000,
+          preferredVideoCodec: 'VP9'
         });
         
         await pc.setLocalDescription(optimizedOffer);

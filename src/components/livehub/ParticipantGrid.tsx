@@ -1,6 +1,8 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Mic, MicOff, Volume2, Monitor, Video, VideoOff, Loader2 } from 'lucide-react';
+import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';
+import { cn } from '@/lib/utils';
 
 interface Participant {
   id: string;
@@ -282,10 +284,12 @@ const ParticipantGrid = ({
         return (
           <div
             key={participant.id}
-            className={`relative aspect-video rounded-lg bg-card flex items-center justify-center transition-all duration-300 ease-in-out ${isSpeaking
-                ? 'ring-4 ring-green-500 shadow-[0_0_20px_rgba(34,197,94,0.4)]'
-                : 'border-2 border-border ring-0 shadow-none'
-              }`}
+            className={cn(
+              "relative aspect-video rounded-lg bg-card flex items-center justify-center transition-all duration-300 ease-in-out",
+              isSpeaking
+                ? 'ring-2 ring-emerald-400/60 shadow-[0_0_24px_rgba(34,197,94,0.3)]'
+                : 'border border-border/50 ring-0 shadow-none'
+            )}
           >
             {/* Video element for video channels */}
             {showVideo ? (
@@ -315,18 +319,10 @@ const ParticipantGrid = ({
               </Avatar>
             )}
 
-            {/* Speaking indicator - enhanced */}
+            {/* Speaking indicator - enhanced with audio level visualization */}
             {isSpeaking && (
               <div className="absolute top-2 left-2 z-10">
-                <div className="relative">
-                  <Volume2 className="w-6 h-6 text-green-500" />
-                  <div className="absolute -inset-1 bg-green-500/20 rounded-full animate-ping" />
-                  <div className="absolute top-0 right-0">
-                    <span className="px-1.5 py-0.5 text-[9px] font-bold bg-green-500 text-white rounded-full">
-                      SPEAKING
-                    </span>
-                  </div>
-                </div>
+                <SpeakingBadge isSpeaking={isSpeaking} level={0.7} />
               </div>
             )}
 

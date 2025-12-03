@@ -13928,11 +13928,16 @@ export type Database = {
       meeting_connection_stats: {
         Row: {
           bitrate_kbps: number | null
+          buffer_underruns: number | null
           codec: string | null
           connection_state: string | null
           created_at: string | null
+          device_type: string | null
+          dtx_enabled: boolean | null
           fec_enabled: boolean | null
           id: string
+          is_mobile: boolean | null
+          jitter_buffer_ms: number | null
           jitter_ms: number | null
           latency_ms: number | null
           meeting_id: string
@@ -13944,11 +13949,16 @@ export type Database = {
         }
         Insert: {
           bitrate_kbps?: number | null
+          buffer_underruns?: number | null
           codec?: string | null
           connection_state?: string | null
           created_at?: string | null
+          device_type?: string | null
+          dtx_enabled?: boolean | null
           fec_enabled?: boolean | null
           id?: string
+          is_mobile?: boolean | null
+          jitter_buffer_ms?: number | null
           jitter_ms?: number | null
           latency_ms?: number | null
           meeting_id: string
@@ -13960,11 +13970,16 @@ export type Database = {
         }
         Update: {
           bitrate_kbps?: number | null
+          buffer_underruns?: number | null
           codec?: string | null
           connection_state?: string | null
           created_at?: string | null
+          device_type?: string | null
+          dtx_enabled?: boolean | null
           fec_enabled?: boolean | null
           id?: string
+          is_mobile?: boolean | null
+          jitter_buffer_ms?: number | null
           jitter_ms?: number | null
           latency_ms?: number | null
           meeting_id?: string
@@ -26137,12 +26152,17 @@ export type Database = {
       voice_connection_stats: {
         Row: {
           bitrate_kbps: number | null
+          buffer_underruns: number | null
           channel_id: string | null
           codec: string | null
           connection_state: string | null
           created_at: string | null
+          device_type: string | null
+          dtx_enabled: boolean | null
           fec_enabled: boolean | null
           id: string
+          is_mobile: boolean | null
+          jitter_buffer_ms: number | null
           jitter_ms: number | null
           latency_ms: number | null
           packet_loss_percent: number | null
@@ -26152,12 +26172,17 @@ export type Database = {
         }
         Insert: {
           bitrate_kbps?: number | null
+          buffer_underruns?: number | null
           channel_id?: string | null
           codec?: string | null
           connection_state?: string | null
           created_at?: string | null
+          device_type?: string | null
+          dtx_enabled?: boolean | null
           fec_enabled?: boolean | null
           id?: string
+          is_mobile?: boolean | null
+          jitter_buffer_ms?: number | null
           jitter_ms?: number | null
           latency_ms?: number | null
           packet_loss_percent?: number | null
@@ -26167,12 +26192,17 @@ export type Database = {
         }
         Update: {
           bitrate_kbps?: number | null
+          buffer_underruns?: number | null
           channel_id?: string | null
           codec?: string | null
           connection_state?: string | null
           created_at?: string | null
+          device_type?: string | null
+          dtx_enabled?: boolean | null
           fec_enabled?: boolean | null
           id?: string
+          is_mobile?: boolean | null
+          jitter_buffer_ms?: number | null
           jitter_ms?: number | null
           latency_ms?: number | null
           packet_loss_percent?: number | null
@@ -26186,6 +26216,60 @@ export type Database = {
             columns: ["channel_id"]
             isOneToOne: false
             referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_quality_alerts: {
+        Row: {
+          alert_type: string
+          channel_id: string | null
+          created_at: string | null
+          details: Json | null
+          id: string
+          meeting_id: string | null
+          resolved: boolean | null
+          resolved_at: string | null
+          severity: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_type: string
+          channel_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          meeting_id?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string
+          channel_id?: string | null
+          created_at?: string | null
+          details?: Json | null
+          id?: string
+          meeting_id?: string | null
+          resolved?: boolean | null
+          resolved_at?: string | null
+          severity?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_quality_alerts_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "voice_quality_alerts_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
             referencedColumns: ["id"]
           },
         ]

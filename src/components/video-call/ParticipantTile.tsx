@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Mic, MicOff, Video, VideoOff, Hand, Monitor, Crown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ScreenShareOverlay } from './ScreenShareOverlay';
+import { SpeakingBadge } from '@/components/shared/AudioLevelIndicator';
 
 interface ParticipantTileProps {
   participant: {
@@ -16,6 +17,7 @@ interface ParticipantTileProps {
     is_hand_raised: boolean;
     is_speaking: boolean;
     stream?: MediaStream;
+    audioLevel?: number; // 0-1 normalized audio level
   };
   isLocal?: boolean;
   isFocused?: boolean;
@@ -163,6 +165,16 @@ export function ParticipantTile({ participant, isLocal, isFocused, className, hi
           <div className="p-2.5 bg-yellow-500/90 backdrop-blur-sm rounded-full shadow-xl shadow-yellow-500/50 border border-yellow-400/30">
             <Hand className="h-5 w-5 text-white" />
           </div>
+        </div>
+      )}
+
+      {/* Speaking Badge - Enhanced with audio level */}
+      {participant.is_speaking && (
+        <div className="absolute top-4 left-4">
+          <SpeakingBadge 
+            isSpeaking={participant.is_speaking} 
+            level={participant.audioLevel || 0.5} 
+          />
         </div>
       )}
 
