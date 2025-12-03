@@ -3230,6 +3230,57 @@ export type Database = {
           },
         ]
       }
+      call_quality_feedback: {
+        Row: {
+          channel_id: string | null
+          comment: string | null
+          connection_stats_snapshot: Json | null
+          created_at: string | null
+          id: string
+          issues: string[] | null
+          meeting_id: string | null
+          rating: number | null
+          user_id: string
+        }
+        Insert: {
+          channel_id?: string | null
+          comment?: string | null
+          connection_stats_snapshot?: Json | null
+          created_at?: string | null
+          id?: string
+          issues?: string[] | null
+          meeting_id?: string | null
+          rating?: number | null
+          user_id: string
+        }
+        Update: {
+          channel_id?: string | null
+          comment?: string | null
+          connection_stats_snapshot?: Json | null
+          created_at?: string | null
+          id?: string
+          issues?: string[] | null
+          meeting_id?: string | null
+          rating?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_quality_feedback_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "call_quality_feedback_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_activity_metrics: {
         Row: {
           applications_completed: number | null
@@ -13841,6 +13892,47 @@ export type Database = {
           },
         ]
       }
+      meeting_audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          id: string
+          ip_hash: string | null
+          meeting_id: string | null
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          meeting_id?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          id?: string
+          ip_hash?: string | null
+          meeting_id?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_audit_logs_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_bot_sessions: {
         Row: {
           bot_id: string | null
@@ -13931,9 +14023,11 @@ export type Database = {
           buffer_underruns: number | null
           codec: string | null
           connection_state: string | null
+          content_type: string | null
           created_at: string | null
           device_type: string | null
           dtx_enabled: boolean | null
+          e2ee_enabled: boolean | null
           fec_enabled: boolean | null
           id: string
           is_mobile: boolean | null
@@ -13941,8 +14035,11 @@ export type Database = {
           jitter_ms: number | null
           latency_ms: number | null
           meeting_id: string
+          noise_cancellation_enabled: boolean | null
           packet_loss_percent: number | null
           quality_level: string | null
+          recording_active: boolean | null
+          simulcast_layers_active: number | null
           turn_used: boolean | null
           user_id: string
           video_bitrate_kbps: number | null
@@ -13952,9 +14049,11 @@ export type Database = {
           buffer_underruns?: number | null
           codec?: string | null
           connection_state?: string | null
+          content_type?: string | null
           created_at?: string | null
           device_type?: string | null
           dtx_enabled?: boolean | null
+          e2ee_enabled?: boolean | null
           fec_enabled?: boolean | null
           id?: string
           is_mobile?: boolean | null
@@ -13962,8 +14061,11 @@ export type Database = {
           jitter_ms?: number | null
           latency_ms?: number | null
           meeting_id: string
+          noise_cancellation_enabled?: boolean | null
           packet_loss_percent?: number | null
           quality_level?: string | null
+          recording_active?: boolean | null
+          simulcast_layers_active?: number | null
           turn_used?: boolean | null
           user_id: string
           video_bitrate_kbps?: number | null
@@ -13973,9 +14075,11 @@ export type Database = {
           buffer_underruns?: number | null
           codec?: string | null
           connection_state?: string | null
+          content_type?: string | null
           created_at?: string | null
           device_type?: string | null
           dtx_enabled?: boolean | null
+          e2ee_enabled?: boolean | null
           fec_enabled?: boolean | null
           id?: string
           is_mobile?: boolean | null
@@ -13983,13 +14087,51 @@ export type Database = {
           jitter_ms?: number | null
           latency_ms?: number | null
           meeting_id?: string
+          noise_cancellation_enabled?: boolean | null
           packet_loss_percent?: number | null
           quality_level?: string | null
+          recording_active?: boolean | null
+          simulcast_layers_active?: number | null
           turn_used?: boolean | null
           user_id?: string
           video_bitrate_kbps?: number | null
         }
         Relationships: []
+      }
+      meeting_encryption_keys: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          key_version: number | null
+          meeting_id: string | null
+          public_key: string
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          key_version?: number | null
+          meeting_id?: string | null
+          public_key: string
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          key_version?: number | null
+          meeting_id?: string | null
+          public_key?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_encryption_keys_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meeting_insights: {
         Row: {
@@ -26151,6 +26293,7 @@ export type Database = {
       }
       voice_connection_stats: {
         Row: {
+          audio_level_db: number | null
           bitrate_kbps: number | null
           buffer_underruns: number | null
           channel_id: string | null
@@ -26165,12 +26308,15 @@ export type Database = {
           jitter_buffer_ms: number | null
           jitter_ms: number | null
           latency_ms: number | null
+          noise_cancellation_enabled: boolean | null
           packet_loss_percent: number | null
           quality_level: string | null
+          speaking_time_ms: number | null
           turn_used: boolean | null
           user_id: string
         }
         Insert: {
+          audio_level_db?: number | null
           bitrate_kbps?: number | null
           buffer_underruns?: number | null
           channel_id?: string | null
@@ -26185,12 +26331,15 @@ export type Database = {
           jitter_buffer_ms?: number | null
           jitter_ms?: number | null
           latency_ms?: number | null
+          noise_cancellation_enabled?: boolean | null
           packet_loss_percent?: number | null
           quality_level?: string | null
+          speaking_time_ms?: number | null
           turn_used?: boolean | null
           user_id: string
         }
         Update: {
+          audio_level_db?: number | null
           bitrate_kbps?: number | null
           buffer_underruns?: number | null
           channel_id?: string | null
@@ -26205,8 +26354,10 @@ export type Database = {
           jitter_buffer_ms?: number | null
           jitter_ms?: number | null
           latency_ms?: number | null
+          noise_cancellation_enabled?: boolean | null
           packet_loss_percent?: number | null
           quality_level?: string | null
+          speaking_time_ms?: number | null
           turn_used?: boolean | null
           user_id?: string
         }
