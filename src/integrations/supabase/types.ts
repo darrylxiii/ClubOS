@@ -26083,6 +26083,97 @@ export type Database = {
           },
         ]
       }
+      voice_connection_stats: {
+        Row: {
+          bitrate_kbps: number | null
+          channel_id: string | null
+          connection_state: string | null
+          created_at: string | null
+          id: string
+          jitter_ms: number | null
+          latency_ms: number | null
+          packet_loss_percent: number | null
+          quality_level: string | null
+          user_id: string
+        }
+        Insert: {
+          bitrate_kbps?: number | null
+          channel_id?: string | null
+          connection_state?: string | null
+          created_at?: string | null
+          id?: string
+          jitter_ms?: number | null
+          latency_ms?: number | null
+          packet_loss_percent?: number | null
+          quality_level?: string | null
+          user_id: string
+        }
+        Update: {
+          bitrate_kbps?: number | null
+          channel_id?: string | null
+          connection_state?: string | null
+          created_at?: string | null
+          id?: string
+          jitter_ms?: number | null
+          latency_ms?: number | null
+          packet_loss_percent?: number | null
+          quality_level?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_connection_stats_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      voice_reconnection_log: {
+        Row: {
+          attempt_number: number | null
+          channel_id: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          reason: string | null
+          retry_delay_ms: number | null
+          success: boolean | null
+          user_id: string
+        }
+        Insert: {
+          attempt_number?: number | null
+          channel_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          reason?: string | null
+          retry_delay_ms?: number | null
+          success?: boolean | null
+          user_id: string
+        }
+        Update: {
+          attempt_number?: number | null
+          channel_id?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          reason?: string | null
+          retry_delay_ms?: number | null
+          success?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voice_reconnection_log_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "live_channels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waitlist: {
         Row: {
           applicant_type: string | null
@@ -27252,6 +27343,7 @@ export type Database = {
       cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
       cleanup_inactive_participants: { Args: never; Returns: undefined }
+      cleanup_old_voice_stats: { Args: never; Returns: number }
       cleanup_old_webrtc_signals: { Args: never; Returns: undefined }
       cleanup_stale_channel_participants: { Args: never; Returns: undefined }
       cleanup_stale_voice_participants: { Args: never; Returns: number }

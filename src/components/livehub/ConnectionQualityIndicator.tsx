@@ -11,6 +11,7 @@ interface ConnectionQualityIndicatorProps {
   showDetails?: boolean;
   onReconnect?: () => void;
   isReconnecting?: boolean;
+  audioBitrate?: number; // Current adaptive audio bitrate in bps
   className?: string;
 }
 
@@ -58,6 +59,7 @@ export function ConnectionQualityIndicator({
   showDetails = false,
   onReconnect,
   isReconnecting,
+  audioBitrate,
   className
 }: ConnectionQualityIndicatorProps) {
   const colors = QUALITY_COLORS[quality];
@@ -187,8 +189,21 @@ export function ConnectionQualityIndicator({
               
               {stats.bitrate > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Bitrate</span>
+                  <span className="text-muted-foreground">Network Bitrate</span>
                   <span>{Math.round(stats.bitrate)} kbps</span>
+                </div>
+              )}
+              
+              {audioBitrate && audioBitrate > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Audio Quality</span>
+                  <span className={cn(
+                    audioBitrate >= 64000 ? 'text-emerald-500' :
+                    audioBitrate >= 48000 ? 'text-green-500' :
+                    audioBitrate >= 32000 ? 'text-yellow-500' : 'text-red-500'
+                  )}>
+                    {Math.round(audioBitrate / 1000)} kbps
+                  </span>
                 </div>
               )}
             </div>
@@ -197,8 +212,8 @@ export function ConnectionQualityIndicator({
               <div className="pt-2 border-t border-border">
                 <p className="text-xs text-muted-foreground mb-2">
                   {quality === 'poor' 
-                    ? 'Your connection is unstable. Try moving closer to your router.'
-                    : 'Connection quality is reduced. Audio may be affected.'
+                    ? 'Your connection is unstable. Audio quality reduced to maintain stability.'
+                    : 'Connection quality is reduced. Audio bitrate adjusted automatically.'
                   }
                 </p>
                 {onReconnect && (
