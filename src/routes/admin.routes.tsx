@@ -31,6 +31,7 @@ const TargetCompaniesOverview = lazy(() => import("@/pages/admin/TargetCompanies
 const AdminRejections = lazy(() => import("@/pages/AdminRejections"));
 const FeedbackDatabase = lazy(() => import("@/pages/FeedbackDatabase"));
 const UserActivity = lazy(() => import("@/pages/admin/UserActivity"));
+const SystemHealth = lazy(() => import("@/pages/admin/SystemHealth"));
 
 export const adminRoutes = (
   <>
@@ -257,6 +258,18 @@ export const adminRoutes = (
           <RouteErrorBoundary>
             <Suspense fallback={<PageLoader />}>
               <UserActivity />
+            </Suspense>
+          </RouteErrorBoundary>
+        </ProtectedRoute>
+      }
+    />
+    <Route
+      path="/admin/system-health"
+      element={
+        <ProtectedRoute>
+          <RouteErrorBoundary>
+            <Suspense fallback={<PageLoader />}>
+              <SystemHealth />
             </Suspense>
           </RouteErrorBoundary>
         </ProtectedRoute>
