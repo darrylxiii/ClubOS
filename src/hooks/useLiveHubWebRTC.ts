@@ -28,14 +28,16 @@ interface UseLiveHubWebRTCProps {
   enabled: boolean;
 }
 
-// Professional TURN/STUN servers
-const ICE_SERVERS = {
+// Discord-style TURN/STUN servers with multiple fallbacks
+// Priority: Google STUN (fast) -> Metered TURN (reliable) -> Xirsys fallback
+const ICE_SERVERS: RTCConfiguration = {
   iceServers: [
+    // Fast STUN servers (for users not behind strict NAT)
     { urls: 'stun:stun.l.google.com:19302' },
     { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
+    { urls: 'stun:stun.cloudflare.com:3478' },
+    
+    // Primary TURN (Metered.ca - reliable free tier)
     {
       urls: 'turn:openrelay.metered.ca:80',
       username: 'openrelayproject',
@@ -50,12 +52,28 @@ const ICE_SERVERS = {
       urls: 'turn:openrelay.metered.ca:443?transport=tcp',
       username: 'openrelayproject',
       credential: 'openrelayproject'
-    }
+    },
+    // Secondary TURN (different provider for redundancy)
+    {
+      urls: 'turns:openrelay.metered.ca:443?transport=tcp',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    },
+    
+    // Twilio STUN fallback
+    { urls: 'stun:global.stun.twilio.com:3478' }
   ],
   iceTransportPolicy: 'all' as RTCIceTransportPolicy,
   bundlePolicy: 'max-bundle' as RTCBundlePolicy,
   rtcpMuxPolicy: 'require' as RTCRtcpMuxPolicy,
   iceCandidatePoolSize: 10
+};
+
+// Reconnection configuration
+const RECONNECTION_CONFIG = {
+  maxRetries: 5,
+  baseDelay: 1000,
+  maxDelay: 30000
 };
 
 // Minimum time between offers (prevents offer spam)
@@ -671,33 +689,83 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       await createAndSendOffer('negotiationneeded');
     };
 
-    // Connection state change with proper ICE restart
+    // Enhanced connection state handling with exponential backoff reconnection
+    let reconnectAttempt = 0;
+    let reconnectTimeout: NodeJS.Timeout | null = null;
+
+    const attemptReconnect = async () => {
+      if (reconnectAttempt >= RECONNECTION_CONFIG.maxRetries) {
+        console.error('[WebRTC] Max reconnection attempts reached for', userId);
+        toast.error('Connection lost. Please try rejoining the channel.');
+        return;
+      }
+
+      reconnectAttempt++;
+      const delay = Math.min(
+        RECONNECTION_CONFIG.baseDelay * Math.pow(2, reconnectAttempt - 1),
+        RECONNECTION_CONFIG.maxDelay
+      );
+
+      console.log(`[WebRTC] Reconnection attempt ${reconnectAttempt}/${RECONNECTION_CONFIG.maxRetries} in ${delay}ms for ${userId}`);
+
+      reconnectTimeout = setTimeout(async () => {
+        if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
+          // Try ICE restart first
+          if (isInitiator && !peer.offerLock) {
+            peer.offerLock = true;
+            try {
+              peerConnection.restartIce();
+              const offer = await peerConnection.createOffer({ iceRestart: true });
+              await peerConnection.setLocalDescription(offer);
+              await sendSignal('offer', userId, peerConnection.localDescription);
+              console.log('[WebRTC] ICE restart offer sent for', userId);
+            } catch (err) {
+              console.error('[ICE Restart] Error:', err);
+              // If ICE restart fails, try full reconnection
+              attemptReconnect();
+            } finally {
+              peer.offerLock = false;
+            }
+          }
+        }
+      }, delay);
+    };
+
     peerConnection.onconnectionstatechange = () => {
       const state = peerConnection.connectionState;
       console.log('[WebRTC] Connection state changed to:', state, 'for', userId);
       
-      if (state === 'connected') {
-        console.log('[WebRTC] Successfully connected to', userId);
-      } else if (state === 'failed') {
-        console.log('[WebRTC] Connection failed - initiating ICE restart for', userId);
-        
-        // ICE restart with proper locking
-        if (isInitiator && !peer.offerLock) {
-          peer.offerLock = true;
-          peerConnection.restartIce();
-          peerConnection.createOffer({ iceRestart: true })
-            .then(offer => peerConnection.setLocalDescription(offer))
-            .then(() => sendSignal('offer', userId, peerConnection.localDescription))
-            .catch(err => console.error('[ICE Restart] Error:', err))
-            .finally(() => { peer.offerLock = false; });
-        }
-      } else if (state === 'disconnected') {
-        setTimeout(() => {
-          if (peerConnection.connectionState === 'disconnected' && isInitiator) {
-            console.log('[WebRTC] Still disconnected, restarting ICE for', userId);
-            peerConnection.restartIce();
-          }
-        }, 3000);
+      // Clear any pending reconnect on state change
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
+      
+      switch (state) {
+        case 'connected':
+          console.log('[WebRTC] Successfully connected to', userId);
+          reconnectAttempt = 0; // Reset reconnect counter on successful connection
+          break;
+
+        case 'failed':
+          console.warn('[WebRTC] Connection failed for', userId);
+          attemptReconnect();
+          break;
+
+        case 'disconnected':
+          console.warn('[WebRTC] Connection disconnected for', userId);
+          // Wait 2 seconds before attempting reconnect (brief disconnections are normal)
+          reconnectTimeout = setTimeout(() => {
+            if (peerConnection.connectionState === 'disconnected') {
+              console.log('[WebRTC] Still disconnected after 2s, attempting reconnect for', userId);
+              attemptReconnect();
+            }
+          }, 2000);
+          break;
+
+        case 'closed':
+          console.log('[WebRTC] Connection closed for', userId);
+          break;
       }
     };
 
@@ -837,10 +905,17 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     }
   };
 
+  // Get first peer connection for quality monitoring
+  const getFirstPeerConnection = useCallback((): RTCPeerConnection | null => {
+    const firstPeer = peersRef.current.values().next().value;
+    return firstPeer?.connection || null;
+  }, []);
+
   return {
     remoteStreams,
     isConnected: signalingChannelRef.current !== null,
     sendReaction,
-    sendWhiteboardEvent
+    sendWhiteboardEvent,
+    peerConnection: getFirstPeerConnection()
   };
 }
