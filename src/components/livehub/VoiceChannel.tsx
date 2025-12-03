@@ -121,6 +121,16 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     }
   }, [autoJoin, channelId]);
 
+  // COMPONENT UNMOUNT CLEANUP - Ensure leaveChannel is called when component unmounts
+  useEffect(() => {
+    return () => {
+      if (isConnected) {
+        console.log('[VoiceChannel] Component unmounting while connected, leaving channel...');
+        leaveChannel();
+      }
+    };
+  }, [isConnected, leaveChannel]);
+
   const loadChannel = async () => {
     const { data, error } = await supabase
       .from('live_channels')
