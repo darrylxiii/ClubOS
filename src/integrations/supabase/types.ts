@@ -7339,6 +7339,7 @@ export type Database = {
           application_id: string | null
           archived_at: string | null
           created_at: string
+          created_by: string | null
           id: string
           is_archived: boolean | null
           is_pinned: boolean | null
@@ -7353,6 +7354,7 @@ export type Database = {
           application_id?: string | null
           archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           is_archived?: boolean | null
           is_pinned?: boolean | null
@@ -7367,6 +7369,7 @@ export type Database = {
           application_id?: string | null
           archived_at?: string | null
           created_at?: string
+          created_by?: string | null
           id?: string
           is_archived?: boolean | null
           is_pinned?: boolean | null
