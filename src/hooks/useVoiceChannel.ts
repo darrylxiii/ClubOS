@@ -6,6 +6,7 @@ import { useLiveHubWebRTC } from './useLiveHubWebRTC';
 import { useVirtualBackground } from './useVirtualBackground';
 import { useAudioDiagnostics } from './useAudioDiagnostics';
 import { useConnectionQuality, ConnectionQuality, ConnectionStats } from './useConnectionQuality';
+import { useAdaptiveAudio } from './useAdaptiveAudio';
 import { toast } from 'sonner';
 
 interface Participant {
@@ -109,6 +110,49 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
       }
     }
   });
+
+  // Adaptive audio bitrate based on connection quality (Discord-style)
+  const { currentConfig: audioConfig, setBitrate } = useAdaptiveAudio({
+    peerConnection,
+    connectionQuality,
+    enabled: isConnected && isWebRTCConnected
+  });
+
+  // Log connection stats periodically for debugging
+  useEffect(() => {
+    if (!isConnected || !connectionStats || !user || !channelId) return;
+
+    // Log stats every 30 seconds for debugging poor connections
+    const logInterval = setInterval(async () => {
+      if (connectionQuality === 'poor' || connectionQuality === 'disconnected') {
+        console.log('[Voice] Connection stats:', {
+          quality: connectionQuality,
+          packetLoss: connectionStats.packetLoss?.toFixed(1) + '%',
+          latency: connectionStats.latency + 'ms',
+          jitter: connectionStats.jitter + 'ms',
+          bitrate: audioConfig?.maxBitrate
+        });
+
+        // Log to database for debugging (fire-and-forget)
+        try {
+          await supabase.from('voice_connection_stats').insert({
+            channel_id: channelId,
+            user_id: user.id,
+            packet_loss_percent: connectionStats.packetLoss,
+            latency_ms: connectionStats.latency,
+            jitter_ms: connectionStats.jitter,
+            bitrate_kbps: audioConfig?.maxBitrate ? Math.round(audioConfig.maxBitrate / 1000) : null,
+            connection_state: 'connected',
+            quality_level: connectionQuality
+          });
+        } catch (e) {
+          // Silently fail - stats logging shouldn't break voice
+        }
+      }
+    }, 30000);
+
+    return () => clearInterval(logInterval);
+  }, [isConnected, connectionStats, connectionQuality, audioConfig, user, channelId]);
 
   // Use the transcription hook
   const { transcriptions, isTranscribing } = useMeetingTranscription({
@@ -760,23 +804,50 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     setCurrentRecordingId(null);
   }, [currentRecordingId, transcriptions]);
 
-  // Force reconnect function (for manual reconnection)
+  // Force reconnect function (for manual reconnection) with logging
   const forceReconnect = useCallback(async () => {
     if (!isConnected) return;
     
     toast.info('Reconnecting...', { id: 'reconnecting' });
     
+    const startTime = Date.now();
+    let attemptNumber = 1;
+    
+    // Helper to log reconnection (fire-and-forget)
+    const logReconnection = async (success: boolean, errorMsg?: string) => {
+      if (!user || !channelId) return;
+      try {
+        await supabase.from('voice_reconnection_log').insert({
+          channel_id: channelId,
+          user_id: user.id,
+          reason: 'manual',
+          attempt_number: attemptNumber,
+          retry_delay_ms: Date.now() - startTime,
+          success,
+          error_message: errorMsg || null
+        });
+      } catch (e) {
+        // Silently fail - logging shouldn't break voice
+      }
+    };
+    
     try {
+      // Log reconnection attempt
+      logReconnection(false);
+      
       // Leave and rejoin to establish fresh connection
       await leaveChannel();
       await new Promise(resolve => setTimeout(resolve, 500));
       await joinChannel();
+      
       toast.success('Reconnected!', { id: 'reconnecting' });
+      logReconnection(true);
     } catch (error) {
       console.error('[Reconnect] Failed:', error);
       toast.error('Failed to reconnect. Please try again.', { id: 'reconnecting' });
+      logReconnection(false, error instanceof Error ? error.message : 'Unknown error');
     }
-  }, [isConnected, leaveChannel, joinChannel]);
+  }, [isConnected, leaveChannel, joinChannel, user, channelId]);
 
   return {
     isConnected,
@@ -788,13 +859,14 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     participants,
     transcriptions,
     isTranscribing,
-    localStream: streamToSend, // Return processed stream for UI to display
-    screenStream: screenStreamRef.current, // Return ref or state? Ref is fine for UI if it re-renders on isScreenSharing change
-    remoteStreams, // Now Map<string, {camera, screen}>
+    localStream: streamToSend,
+    screenStream: screenStreamRef.current,
+    remoteStreams,
     isWebRTCConnected,
     // Connection quality (Discord-style)
     connectionQuality,
     connectionStats,
+    audioConfig, // Adaptive audio config
     forceReconnect,
     joinChannel,
     leaveChannel,

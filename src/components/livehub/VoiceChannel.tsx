@@ -65,6 +65,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
     isWebRTCConnected,
     connectionQuality,
     connectionStats,
+    audioConfig,
     joinChannel,
     leaveChannel,
     toggleMute,
@@ -230,6 +231,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
                 stats={connectionStats}
                 showDetails
                 onReconnect={forceReconnect}
+                audioBitrate={audioConfig?.maxBitrate}
               />
             )}
             {isConnected && !connectionQuality && (
