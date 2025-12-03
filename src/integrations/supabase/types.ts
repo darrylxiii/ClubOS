@@ -25119,6 +25119,7 @@ export type Database = {
           mouse_distance_pixels: number | null
           mouse_idle_time_seconds: number | null
           page_path: string
+          referrer: string | null
           scroll_depth_avg: number | null
           scroll_depth_max: number | null
           scroll_velocity_avg: number | null
@@ -25128,6 +25129,8 @@ export type Database = {
           total_scrolls: number | null
           unique_elements_clicked: number | null
           user_id: string | null
+          viewport_height: number | null
+          viewport_width: number | null
         }
         Insert: {
           bounce?: boolean | null
@@ -25142,6 +25145,7 @@ export type Database = {
           mouse_distance_pixels?: number | null
           mouse_idle_time_seconds?: number | null
           page_path: string
+          referrer?: string | null
           scroll_depth_avg?: number | null
           scroll_depth_max?: number | null
           scroll_velocity_avg?: number | null
@@ -25151,6 +25155,8 @@ export type Database = {
           total_scrolls?: number | null
           unique_elements_clicked?: number | null
           user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
         }
         Update: {
           bounce?: boolean | null
@@ -25165,6 +25171,7 @@ export type Database = {
           mouse_distance_pixels?: number | null
           mouse_idle_time_seconds?: number | null
           page_path?: string
+          referrer?: string | null
           scroll_depth_avg?: number | null
           scroll_depth_max?: number | null
           scroll_velocity_avg?: number | null
@@ -25174,6 +25181,8 @@ export type Database = {
           total_scrolls?: number | null
           unique_elements_clicked?: number | null
           user_id?: string | null
+          viewport_height?: number | null
+          viewport_width?: number | null
         }
         Relationships: []
       }
