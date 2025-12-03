@@ -671,11 +671,12 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
           return;
         }
         
-        // Apply SDP optimization with FEC enabled
+        // Apply SDP optimization with FEC and DTX enabled
         const optimizedOffer = optimizeSessionDescription(offer, {
           enableOpusFEC: true,
-          enableOpusDTX: false,
-          opusMaxAverageBitrate: 64000
+          enableOpusDTX: true, // Enable DTX for 60-80% bandwidth savings during silence
+          opusMaxAverageBitrate: 64000,
+          preferredVideoCodec: 'VP9'
         });
         
         await peerConnection.setLocalDescription(optimizedOffer);

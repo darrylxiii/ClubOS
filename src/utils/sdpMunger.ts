@@ -14,7 +14,7 @@ export interface SDPMungeOptions {
 
 const DEFAULT_OPTIONS: SDPMungeOptions = {
   enableOpusFEC: true,
-  enableOpusDTX: false,
+  enableOpusDTX: true, // Enable DTX by default for 60-80% bandwidth savings during silence
   opusMaxAverageBitrate: 64000,
   preferredAudioCodec: 'opus',
   preferredVideoCodec: 'VP9'
