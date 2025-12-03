@@ -49,6 +49,15 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         const { data: profile, error: profileError } = profileResult;
         const { data: userRoles } = userRolesResult;
 
+        // Handle missing profile gracefully
+        if (profileError || !profile) {
+          logger.warn("[ProtectedRoute] No profile found for user, using safe defaults", { profileError });
+          setOnboardingCompleted(false);
+          setAccountStatus('pending');
+          setCheckingStatus(false);
+          return;
+        }
+
         // Check if user has elevated roles
         const roles = userRoles?.map((r) => r.role) || [];
         const isAdmin = roles.includes('admin');
@@ -60,9 +69,12 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         const needsOnboarding = isPureCandidate && !profile.onboarding_completed_at;
 
         setOnboardingCompleted(!needsOnboarding);
-        setAccountStatus(profile.account_status as 'approved' | 'pending' | 'declined');
+        setAccountStatus((profile.account_status as 'approved' | 'pending' | 'declined') || 'pending');
       } catch (error) {
         logger.error("[ProtectedRoute] Error in status check:", error);
+        // Set safe defaults on error to prevent infinite loading
+        setOnboardingCompleted(false);
+        setAccountStatus('pending');
       } finally {
         setCheckingStatus(false);
       }

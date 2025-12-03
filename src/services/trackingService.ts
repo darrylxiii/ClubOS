@@ -258,28 +258,34 @@ class TrackingService {
     this.pageStartTime = Date.now();
 
     try {
+      // Build insert data with only required fields first
+      const insertData: Record<string, any> = {
+        user_id: userId,
+        session_id: this.sessionId,
+        page_path: entry.pagePath,
+        entry_timestamp: new Date().toISOString(),
+      };
+
+      // Only add optional columns if they have values (handles missing columns gracefully)
+      if (entry.referrer) insertData.referrer = entry.referrer;
+      if (entry.viewportWidth) insertData.viewport_width = entry.viewportWidth;
+      if (entry.viewportHeight) insertData.viewport_height = entry.viewportHeight;
+
       const { data, error } = await supabase
         .from('user_page_analytics')
-        .insert({
-          user_id: userId,
-          session_id: this.sessionId,
-          page_path: entry.pagePath,
-          entry_timestamp: new Date().toISOString(),
-          referrer: entry.referrer || null,
-          viewport_width: entry.viewportWidth,
-          viewport_height: entry.viewportHeight,
-        })
+        .insert(insertData as any)
         .select('id')
         .single();
 
       if (error) {
-        console.error('[TrackingService] Failed to track page entry:', error);
-        console.error('[TrackingService] Entry data:', entry);
+        // Log but don't throw - tracking failures shouldn't break the app
+        console.warn('[TrackingService] Failed to track page entry (non-blocking):', error.message);
       } else if (data) {
         this.currentPageAnalyticsId = data.id;
       }
     } catch (error) {
-      console.error('[TrackingService] Exception tracking page entry:', error);
+      // Silently fail - tracking errors should never break the app
+      console.warn('[TrackingService] Exception tracking page entry (non-blocking):', error);
     }
   }
 
