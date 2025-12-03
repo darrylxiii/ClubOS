@@ -27254,6 +27254,7 @@ export type Database = {
       cleanup_inactive_participants: { Args: never; Returns: undefined }
       cleanup_old_webrtc_signals: { Args: never; Returns: undefined }
       cleanup_stale_channel_participants: { Args: never; Returns: undefined }
+      cleanup_stale_voice_participants: { Args: never; Returns: number }
       cosine_similarity: { Args: { a: string; b: string }; Returns: number }
       detect_churn_risk: { Args: { p_user_id: string }; Returns: string }
       evaluate_user_achievements: {
@@ -27569,6 +27570,10 @@ export type Database = {
         }[]
       }
       join_default_server: { Args: never; Returns: undefined }
+      leave_voice_channel: {
+        Args: { p_channel_id: string; p_user_id: string }
+        Returns: undefined
+      }
       log_achievement_event: {
         Args: { _event_data?: Json; _event_type: string; _user_id: string }
         Returns: string

@@ -116,12 +116,75 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     enabled: isConnected
   });
 
+  // Cleanup ref to prevent double cleanup
+  const cleanupCalledRef = useRef(false);
+
   useEffect(() => {
     if (!channelId) return;
 
     loadParticipants();
-    subscribeToParticipants();
+    const unsubscribe = subscribeToParticipants();
+    
+    return () => {
+      unsubscribe?.();
+    };
   }, [channelId]);
+
+  // HEARTBEAT SYSTEM - Update last_activity_at every 15 seconds while connected
+  useEffect(() => {
+    if (!isConnected || !user || !channelId) return;
+
+    const updateHeartbeat = async () => {
+      try {
+        await supabase
+          .from('live_channel_participants')
+          .update({ last_activity_at: new Date().toISOString() })
+          .eq('channel_id', channelId)
+          .eq('user_id', user.id);
+      } catch (error) {
+        console.warn('[Heartbeat] Failed to update:', error);
+      }
+    };
+
+    // Initial heartbeat immediately on connect
+    updateHeartbeat();
+    
+    // Then every 15 seconds
+    const heartbeatInterval = setInterval(updateHeartbeat, 15000);
+    console.log('[Heartbeat] Started for channel:', channelId);
+
+    return () => {
+      clearInterval(heartbeatInterval);
+      console.log('[Heartbeat] Stopped');
+    };
+  }, [isConnected, user, channelId]);
+
+  // BEFOREUNLOAD CLEANUP - Remove participant when tab closes or navigates away
+  useEffect(() => {
+    if (!isConnected || !user || !channelId) return;
+
+    const cleanup = async () => {
+      // Fire-and-forget delete - heartbeat + stale cleanup handles failures
+      try {
+        await supabase
+          .from('live_channel_participants')
+          .delete()
+          .eq('channel_id', channelId)
+          .eq('user_id', user.id);
+        console.log('[Cleanup] Participant removed on unload');
+      } catch (err) {
+        console.warn('[Cleanup] Failed (stale cleanup will handle):', err);
+      }
+    };
+
+    window.addEventListener('beforeunload', cleanup);
+    window.addEventListener('pagehide', cleanup); // Better for mobile
+    
+    return () => {
+      window.removeEventListener('beforeunload', cleanup);
+      window.removeEventListener('pagehide', cleanup);
+    };
+  }, [isConnected, user, channelId]);
 
   // Optimized Voice Activity Detection using setInterval (lower CPU than requestAnimationFrame)
   useEffect(() => {
@@ -196,6 +259,17 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   }, [isConnected, isMuted, isDeafened, localStream]);
 
   const loadParticipants = async () => {
+    // First, cleanup stale participants (older than 60 seconds) - Discord-style
+    try {
+      const { data: cleanedCount } = await supabase.rpc('cleanup_stale_voice_participants');
+      if (cleanedCount && cleanedCount > 0) {
+        console.log('[Cleanup] Removed', cleanedCount, 'stale participants');
+      }
+    } catch (error) {
+      console.warn('[Cleanup] Failed to cleanup stale participants:', error);
+    }
+
+    // Then load current participants
     const { data, error } = await supabase
       .from('live_channel_participants')
       .select('*')
