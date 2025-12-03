@@ -98,7 +98,11 @@ const formatActivityLevel = (level: string): string => {
   return level.replace('_', ' ');
 };
 
-export function ActivityMonitoringDashboard() {
+interface ActivityMonitoringDashboardProps {
+  onUserClick?: (userId: string) => void;
+}
+
+export function ActivityMonitoringDashboard({ onUserClick }: ActivityMonitoringDashboardProps = {}) {
   const [users, setUsers] = useState<UserActivity[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<UserActivity[]>([]);
   const [stats, setStats] = useState<ActivityStats>({
@@ -522,7 +526,11 @@ export function ActivityMonitoringDashboard() {
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
-                  <TableRow key={user.user_id}>
+                  <TableRow 
+                    key={user.user_id} 
+                    className={onUserClick ? "cursor-pointer hover:bg-muted/50" : ""}
+                    onClick={() => onUserClick?.(user.user_id)}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div className={cn(

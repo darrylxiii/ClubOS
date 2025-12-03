@@ -4,10 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, TrendingUp, Briefcase, FileText, Clock, Mail } from 'lucide-react';
+import { Users, Briefcase, FileText, TrendingUp, Clock, Mail } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-interface CandidateActivity {
+interface RecruiterActivity {
   user_id: string;
   full_name: string | null;
   email: string;
@@ -18,58 +18,57 @@ interface CandidateActivity {
   online_status: 'online' | 'away' | 'offline';
 }
 
-export function CandidateIntelligenceTab() {
-  const { data: candidates, isLoading } = useQuery({
-    queryKey: ['candidate-intelligence-v2'],
+export function RecruiterIntelligenceTab() {
+  const { data: recruiters, isLoading } = useQuery({
+    queryKey: ['recruiter-intelligence'],
     queryFn: async () => {
-      // Get all candidates (users with 'user' role or no special roles)
-      const { data: userRoles, error: rolesError } = await supabase
+      // Get all recruiters from user_roles
+      const { data: recruiterRoles, error: rolesError } = await supabase
         .from('user_roles')
-        .select('user_id, role');
+        .select('user_id')
+        .eq('role', 'recruiter');
 
       if (rolesError) throw rolesError;
 
-      // Get all profiles
+      const recruiterIds = recruiterRoles?.map(r => r.user_id) || [];
+      
+      if (recruiterIds.length === 0) return [];
+
+      // Get profiles for recruiters
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, full_name, email, avatar_url');
+        .select('id, full_name, email, avatar_url')
+        .in('id', recruiterIds);
 
       if (profilesError) throw profilesError;
 
-      // Get activity tracking
+      // Get activity tracking for recruiters
       const { data: activityData, error: activityError } = await supabase
         .from('user_activity_tracking')
-        .select('*');
+        .select('*')
+        .in('user_id', recruiterIds);
 
       if (activityError) throw activityError;
 
-      // Filter to candidates only (users with 'user' role or no admin/partner roles)
-      const adminRoles = ['admin', 'strategist', 'recruiter', 'partner', 'company_admin'];
-      const adminUserIds = new Set(
-        userRoles?.filter(r => adminRoles.includes(r.role)).map(r => r.user_id) || []
-      );
-
-      // Combine data - candidates are users NOT in admin roles
-      const result: CandidateActivity[] = profiles
-        ?.filter(profile => !adminUserIds.has(profile.id))
-        .map(profile => {
-          const activity = activityData?.find(a => a.user_id === profile.id);
-          const lastActivity = activity?.last_activity_at;
-          const minutesAgo = lastActivity 
-            ? (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60)
-            : Infinity;
-          
-          return {
-            user_id: profile.id,
-            full_name: profile.full_name,
-            email: profile.email,
-            avatar_url: profile.avatar_url,
-            last_activity_at: activity?.last_activity_at || null,
-            total_actions: activity?.total_actions || 0,
-            activity_level: activity?.activity_level || 'inactive',
-            online_status: minutesAgo < 2 ? 'online' : minutesAgo < 30 ? 'away' : 'offline',
-          };
-        }) || [];
+      // Combine data
+      const result: RecruiterActivity[] = profiles?.map(profile => {
+        const activity = activityData?.find(a => a.user_id === profile.id);
+        const lastActivity = activity?.last_activity_at;
+        const minutesAgo = lastActivity 
+          ? (Date.now() - new Date(lastActivity).getTime()) / (1000 * 60)
+          : Infinity;
+        
+        return {
+          user_id: profile.id,
+          full_name: profile.full_name,
+          email: profile.email,
+          avatar_url: profile.avatar_url,
+          last_activity_at: activity?.last_activity_at || null,
+          total_actions: activity?.total_actions || 0,
+          activity_level: activity?.activity_level || 'inactive',
+          online_status: minutesAgo < 2 ? 'online' : minutesAgo < 30 ? 'away' : 'offline',
+        };
+      }) || [];
 
       return result.sort((a, b) => {
         if (!a.last_activity_at) return 1;
@@ -82,10 +81,10 @@ export function CandidateIntelligenceTab() {
 
   // Calculate stats
   const stats = {
-    total: candidates?.length || 0,
-    online: candidates?.filter(c => c.online_status === 'online').length || 0,
-    active: candidates?.filter(c => c.activity_level !== 'inactive').length || 0,
-    totalActions: candidates?.reduce((sum, c) => sum + c.total_actions, 0) || 0,
+    total: recruiters?.length || 0,
+    online: recruiters?.filter(r => r.online_status === 'online').length || 0,
+    active: recruiters?.filter(r => r.activity_level !== 'inactive').length || 0,
+    totalActions: recruiters?.reduce((sum, r) => sum + r.total_actions, 0) || 0,
   };
 
   const getStatusColor = (status: string) => {
@@ -107,7 +106,7 @@ export function CandidateIntelligenceTab() {
   };
 
   if (isLoading) {
-    return <div className="p-6">Loading candidate intelligence...</div>;
+    return <div className="p-6">Loading recruiter intelligence...</div>;
   }
 
   return (
@@ -116,12 +115,12 @@ export function CandidateIntelligenceTab() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Candidates</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Recruiters</CardTitle>
             <Users className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground mt-1">Registered users</p>
+            <p className="text-xs text-muted-foreground mt-1">Team members</p>
           </CardContent>
         </Card>
 
@@ -138,7 +137,7 @@ export function CandidateIntelligenceTab() {
 
         <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Active Candidates</CardTitle>
+            <CardTitle className="text-sm font-medium">Active Members</CardTitle>
             <TrendingUp className="w-4 h-4 text-green-500" />
           </CardHeader>
           <CardContent>
@@ -159,52 +158,52 @@ export function CandidateIntelligenceTab() {
         </Card>
       </div>
 
-      {/* Candidate List */}
+      {/* Recruiter List */}
       <Card className="bg-card/30 backdrop-blur-[var(--blur-glass)] border-border/20">
         <CardHeader>
-          <CardTitle>Candidate Activity</CardTitle>
-          <CardDescription>Real-time monitoring of candidate users</CardDescription>
+          <CardTitle>Recruiter Activity</CardTitle>
+          <CardDescription>Real-time monitoring of recruiter team members</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[500px]">
             <div className="space-y-3">
-              {candidates?.map((candidate) => (
+              {recruiters?.map((recruiter) => (
                 <div 
-                  key={candidate.user_id} 
+                  key={recruiter.user_id} 
                   className="p-4 rounded-lg bg-muted/20 border border-border/10 hover:bg-muted/30 transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="relative">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={candidate.avatar_url || undefined} />
+                          <AvatarImage src={recruiter.avatar_url || undefined} />
                           <AvatarFallback>
-                            {candidate.full_name?.charAt(0) || candidate.email.charAt(0).toUpperCase()}
+                            {recruiter.full_name?.charAt(0) || recruiter.email.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${getStatusColor(candidate.online_status)}`} />
+                        <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${getStatusColor(recruiter.online_status)}`} />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="font-medium">
-                            {candidate.full_name || 'Unnamed Candidate'}
+                            {recruiter.full_name || 'Unnamed Recruiter'}
                           </span>
-                          {getActivityBadge(candidate.activity_level)}
+                          {getActivityBadge(recruiter.activity_level)}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <Mail className="w-3 h-3" />
-                          {candidate.email}
+                          {recruiter.email}
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
                       <div className="text-sm font-medium">
-                        {candidate.total_actions.toLocaleString()} actions
+                        {recruiter.total_actions.toLocaleString()} actions
                       </div>
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Clock className="w-3 h-3" />
-                        {candidate.last_activity_at
-                          ? formatDistanceToNow(new Date(candidate.last_activity_at), { addSuffix: true })
+                        {recruiter.last_activity_at
+                          ? formatDistanceToNow(new Date(recruiter.last_activity_at), { addSuffix: true })
                           : 'Never'
                         }
                       </div>
@@ -212,9 +211,9 @@ export function CandidateIntelligenceTab() {
                   </div>
                 </div>
               ))}
-              {(!candidates || candidates.length === 0) && (
+              {(!recruiters || recruiters.length === 0) && (
                 <div className="text-center py-8 text-muted-foreground">
-                  No candidates found
+                  No recruiters found
                 </div>
               )}
             </div>
