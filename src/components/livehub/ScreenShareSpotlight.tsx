@@ -46,7 +46,7 @@ const ScreenShareSpotlight = ({
   }, [stream, userId]);
 
   return (
-    <div className="relative w-full h-full bg-black rounded-lg overflow-hidden group">
+    <div className="relative w-full h-full bg-muted rounded-lg overflow-hidden group">
       {/* Screen Share Video */}
       <video
         ref={videoRef}
@@ -56,7 +56,7 @@ const ScreenShareSpotlight = ({
       />
 
       {/* Overlay Controls */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+      <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         {/* Top Bar */}
         <div className="absolute top-0 left-0 right-0 p-4 flex items-center justify-between">
           <div className="flex items-center gap-3 bg-background/90 backdrop-blur-sm rounded-lg px-3 py-2">

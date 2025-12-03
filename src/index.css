@@ -334,21 +334,9 @@ Bold, minimalist aesthetic inspired by The Quantum Club design system.
     @apply bg-background text-foreground font-sans antialiased;
   }
 
-  /* Bold typography system */
+  /* Bold typography system - only font weight, not sizes (sizes should be set per component) */
   h1, h2, h3, h4, h5, h6 {
     @apply font-bold tracking-tight;
-  }
-
-  h1 {
-    @apply text-5xl md:text-7xl lg:text-8xl;
-  }
-
-  h2 {
-    @apply text-4xl md:text-5xl lg:text-6xl;
-  }
-
-  h3 {
-    @apply text-3xl md:text-4xl;
   }
 }
 
