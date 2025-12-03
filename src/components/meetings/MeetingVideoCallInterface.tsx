@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useMeetingWebRTC } from '@/hooks/useMeetingWebRTC';
+import { useMeetingConnectionQuality } from '@/hooks/useMeetingConnectionQuality';
 import { ControlsPanel } from '@/components/video-call/ControlsPanel';
 import { VideoGrid } from '@/components/video-call/VideoGrid';
 import { PreCallDiagnostics } from '@/components/video-call/PreCallDiagnostics';
@@ -28,6 +29,7 @@ import { VirtualBackgroundSelector } from '@/components/meetings/VirtualBackgrou
 import { InterviewerBackchannel } from '@/components/meetings/InterviewerBackchannel';
 import { InterviewerVotingPanel } from '@/components/meetings/InterviewerVotingPanel';
 import { RecordingIndicator } from '@/components/meetings/RecordingIndicator';
+import { MeetingConnectionIndicator } from '@/components/meetings/MeetingConnectionIndicator';
 import { PresenterHUD } from '@/components/video-call/PresenterHUD';
 import { useMeetingTranscription } from '@/hooks/useMeetingTranscription';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -106,6 +108,7 @@ export function MeetingVideoCallInterface({
     latency,
     error,
     channelStatus,
+    peerConnections,
     initializeMedia,
     toggleVideo,
     toggleAudio,
@@ -189,6 +192,14 @@ export function MeetingVideoCallInterface({
     participantName,
     localStream,
     enabled: transcriptionEnabled && meetingStarted && !showDiagnostics
+  });
+
+  // Connection quality monitoring
+  const { overallStats, worstQuality } = useMeetingConnectionQuality({
+    peerConnections: peerConnections || new Map(),
+    meetingId: meeting.id,
+    userId: participantId,
+    enabled: !showDiagnostics && !!peerConnections
   });
 
   const handleDiagnosticsComplete = async () => {

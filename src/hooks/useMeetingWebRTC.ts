@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useBandwidthMonitor } from './useBandwidthMonitor';
 import { toast } from 'sonner';
+import { optimizeSessionDescription } from '@/utils/sdpMunger';
 
 interface MeetingWebRTCConfig {
   meetingId: string;
@@ -357,12 +358,20 @@ export function useMeetingWebRTC({
         console.log('[WebRTC] 🔄 Negotiation needed for:', targetParticipantId);
         
         const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
+        
+        // Apply SDP optimization with FEC enabled
+        const optimizedOffer = optimizeSessionDescription(offer, {
+          enableOpusFEC: true,
+          enableOpusDTX: false,
+          opusMaxAverageBitrate: 64000
+        });
+        
+        await pc.setLocalDescription(optimizedOffer);
         
         await sendSignal({
           type: 'offer',
           receiverId: targetParticipantId,
-          data: offer
+          data: optimizedOffer
         });
         
         console.log('[WebRTC] ✅ Renegotiation offer sent');
@@ -567,13 +576,21 @@ export function useMeetingWebRTC({
       
       console.log('[WebRTC] 🎤 Creating answer for:', senderId);
       const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
+      
+      // Apply SDP optimization with FEC enabled
+      const optimizedAnswer = optimizeSessionDescription(answer, {
+        enableOpusFEC: true,
+        enableOpusDTX: false,
+        opusMaxAverageBitrate: 64000
+      });
+      
+      await pc.setLocalDescription(optimizedAnswer);
       
       console.log('[WebRTC] 📤 Sending answer to:', senderId);
       await sendSignal({
         type: 'answer',
         receiverId: senderId,
-        data: answer
+        data: optimizedAnswer
       });
       
       console.log('[WebRTC] ✅ Answer sent successfully to:', senderId);
@@ -1291,6 +1308,7 @@ export function useMeetingWebRTC({
     latency: stats.latency,
     error,
     channelStatus,
+    peerConnections: peerConnections.current, // Expose for connection quality monitoring
     initializeMedia,
     toggleVideo,
     toggleAudio,

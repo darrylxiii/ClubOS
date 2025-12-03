@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+import { optimizeSessionDescription } from '@/utils/sdpMunger';
 
 interface Peer {
   userId: string;
@@ -670,8 +671,15 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
           return;
         }
         
-        await peerConnection.setLocalDescription(offer);
-        await sendSignal('offer', userId, peerConnection.localDescription);
+        // Apply SDP optimization with FEC enabled
+        const optimizedOffer = optimizeSessionDescription(offer, {
+          enableOpusFEC: true,
+          enableOpusDTX: false,
+          opusMaxAverageBitrate: 64000
+        });
+        
+        await peerConnection.setLocalDescription(optimizedOffer);
+        await sendSignal('offer', userId, optimizedOffer);
         console.log(`[WebRTC] Offer sent (${reason}) to`, userId);
       } catch (err) {
         console.error('[WebRTC] Error creating offer:', err);
@@ -826,16 +834,24 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
 
     peer.ignoreOffer = false;
 
-    try {
+  try {
       console.log('[WebRTC] Setting remote description (offer) from', fromUserId);
       await peer.connection.setRemoteDescription(new RTCSessionDescription(offer));
       
       // Flush queued ICE candidates now that remote description is set
       await flushPendingCandidates(peer);
       
-      await peer.connection.setLocalDescription();
-      await sendSignal('answer', fromUserId, peer.connection.localDescription);
-      console.log('[WebRTC] Sent answer to', fromUserId);
+      // Create answer with SDP optimization (FEC enabled)
+      const answer = await peer.connection.createAnswer();
+      const optimizedAnswer = optimizeSessionDescription(answer, {
+        enableOpusFEC: true,
+        enableOpusDTX: false,
+        opusMaxAverageBitrate: 64000
+      });
+      
+      await peer.connection.setLocalDescription(optimizedAnswer);
+      await sendSignal('answer', fromUserId, optimizedAnswer);
+      console.log('[WebRTC] Sent optimized answer to', fromUserId);
     } catch (err) {
       console.error('[WebRTC] Error handling offer:', err);
     }

@@ -13925,6 +13925,57 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_connection_stats: {
+        Row: {
+          bitrate_kbps: number | null
+          codec: string | null
+          connection_state: string | null
+          created_at: string | null
+          fec_enabled: boolean | null
+          id: string
+          jitter_ms: number | null
+          latency_ms: number | null
+          meeting_id: string
+          packet_loss_percent: number | null
+          quality_level: string | null
+          turn_used: boolean | null
+          user_id: string
+          video_bitrate_kbps: number | null
+        }
+        Insert: {
+          bitrate_kbps?: number | null
+          codec?: string | null
+          connection_state?: string | null
+          created_at?: string | null
+          fec_enabled?: boolean | null
+          id?: string
+          jitter_ms?: number | null
+          latency_ms?: number | null
+          meeting_id: string
+          packet_loss_percent?: number | null
+          quality_level?: string | null
+          turn_used?: boolean | null
+          user_id: string
+          video_bitrate_kbps?: number | null
+        }
+        Update: {
+          bitrate_kbps?: number | null
+          codec?: string | null
+          connection_state?: string | null
+          created_at?: string | null
+          fec_enabled?: boolean | null
+          id?: string
+          jitter_ms?: number | null
+          latency_ms?: number | null
+          meeting_id?: string
+          packet_loss_percent?: number | null
+          quality_level?: string | null
+          turn_used?: boolean | null
+          user_id?: string
+          video_bitrate_kbps?: number | null
+        }
+        Relationships: []
+      }
       meeting_insights: {
         Row: {
           action_items: Json | null
@@ -26087,37 +26138,46 @@ export type Database = {
         Row: {
           bitrate_kbps: number | null
           channel_id: string | null
+          codec: string | null
           connection_state: string | null
           created_at: string | null
+          fec_enabled: boolean | null
           id: string
           jitter_ms: number | null
           latency_ms: number | null
           packet_loss_percent: number | null
           quality_level: string | null
+          turn_used: boolean | null
           user_id: string
         }
         Insert: {
           bitrate_kbps?: number | null
           channel_id?: string | null
+          codec?: string | null
           connection_state?: string | null
           created_at?: string | null
+          fec_enabled?: boolean | null
           id?: string
           jitter_ms?: number | null
           latency_ms?: number | null
           packet_loss_percent?: number | null
           quality_level?: string | null
+          turn_used?: boolean | null
           user_id: string
         }
         Update: {
           bitrate_kbps?: number | null
           channel_id?: string | null
+          codec?: string | null
           connection_state?: string | null
           created_at?: string | null
+          fec_enabled?: boolean | null
           id?: string
           jitter_ms?: number | null
           latency_ms?: number | null
           packet_loss_percent?: number | null
           quality_level?: string | null
+          turn_used?: boolean | null
           user_id?: string
         }
         Relationships: [
