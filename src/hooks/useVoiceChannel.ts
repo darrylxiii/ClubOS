@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useMeetingTranscription } from './useMeetingTranscription';
 import { useLiveHubWebRTC } from './useLiveHubWebRTC';
 import { useVirtualBackground } from './useVirtualBackground';
+import { useAudioDiagnostics } from './useAudioDiagnostics';
 import { toast } from 'sonner';
 
 interface Participant {
@@ -100,6 +101,19 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     participantName: user?.email || 'Unknown',
     localStream,
     enabled: isConnected && !isMuted
+  });
+
+  // Audio diagnostics for detecting silent streams
+  const { 
+    diagnostics: audioDiagnostics, 
+    hasAudioIssues, 
+    getAudioLevel,
+    isUserAudioWorking 
+  } = useAudioDiagnostics({
+    localStream,
+    remoteStreams,
+    currentUserId: user?.id,
+    enabled: isConnected
   });
 
   useEffect(() => {
@@ -685,6 +699,11 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     stopRecording,
     setPushToTalkActive,
     sendReaction,
-    sendWhiteboardEvent
+    sendWhiteboardEvent,
+    // Audio diagnostics
+    audioDiagnostics,
+    hasAudioIssues,
+    getAudioLevel,
+    isUserAudioWorking
   };
 };
