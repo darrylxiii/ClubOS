@@ -121,15 +121,15 @@ export function useBandwidthAllocator(priorities: BandwidthPriorities = DEFAULT_
         warnings.push('Camera paused to maintain screen share quality');
         qualityLevel = 'degraded';
       } else {
-        cameraAllocation = remainingBandwidth;
+      cameraAllocation = remainingBandwidth;
         warnings.push('Video quality severely limited');
-        if (qualityLevel !== 'critical') qualityLevel = 'poor';
+        qualityLevel = 'poor';
       }
       remainingBandwidth = 0;
     } else {
       shouldPauseCamera = true;
       warnings.push('Insufficient bandwidth for camera');
-      if (qualityLevel !== 'critical') qualityLevel = 'poor';
+      qualityLevel = 'poor';
     }
     
     // Use remaining bandwidth to upgrade audio quality
