@@ -11,7 +11,9 @@ interface Peer {
   makingOffer: boolean;
   ignoreOffer: boolean;
   isSettingRemoteAnswerPending: boolean;
-  pendingCandidates: RTCIceCandidateInit[]; // Queue for ICE candidates before remote description
+  pendingCandidates: RTCIceCandidateInit[];
+  offerLock: boolean; // Prevent simultaneous offers
+  lastOfferTime: number; // Debounce offers
 }
 
 interface RemoteStreamBundle {
@@ -56,6 +58,9 @@ const ICE_SERVERS = {
   iceCandidatePoolSize: 10
 };
 
+// Minimum time between offers (prevents offer spam)
+const OFFER_DEBOUNCE_MS = 500;
+
 export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, enabled }: UseLiveHubWebRTCProps) {
   const { user } = useAuth();
   const [peers, setPeers] = useState<Map<string, Peer>>(new Map());
@@ -72,6 +77,9 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
   
   // Track if we've successfully connected signaling
   const signalingReadyRef = useRef(false);
+  
+  // Global offer lock to prevent simultaneous offers across all peers
+  const globalOfferLockRef = useRef(false);
 
   // Update refs SYNCHRONOUSLY and handle track updates
   useEffect(() => {
@@ -99,6 +107,12 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     console.log(`[WebRTC] Updating ${type} tracks for all peers, track count:`, stream.getTracks().length);
 
     for (const [userId, peer] of peersRef.current.entries()) {
+      // Skip if peer is busy with an offer
+      if (peer.offerLock || peer.makingOffer) {
+        console.log(`[WebRTC] Skipping track update for ${userId} - offer in progress`);
+        continue;
+      }
+      
       const senders = peer.connection.getSenders();
       let addedNewTrack = false;
 
@@ -122,15 +136,24 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         type
       });
 
-      // CRITICAL: Force renegotiation if we added new tracks and negotiation didn't trigger
-      if (addedNewTrack && peer.connection.signalingState === 'stable') {
+      // Force renegotiation with proper locking if we added new tracks
+      if (addedNewTrack && peer.connection.signalingState === 'stable' && !peer.isPolite) {
         console.log(`[WebRTC] Forcing renegotiation for ${userId} after adding tracks`);
-        try {
-          const offer = await peer.connection.createOffer();
-          await peer.connection.setLocalDescription(offer);
-          await sendSignal('offer', userId, peer.connection.localDescription);
-        } catch (err) {
-          console.error('[WebRTC] Renegotiation error:', err);
+        
+        // Use locking
+        if (!peer.offerLock && !peer.makingOffer) {
+          peer.offerLock = true;
+          peer.makingOffer = true;
+          try {
+            const offer = await peer.connection.createOffer();
+            await peer.connection.setLocalDescription(offer);
+            await sendSignal('offer', userId, peer.connection.localDescription);
+          } catch (err) {
+            console.error('[WebRTC] Renegotiation error:', err);
+          } finally {
+            peer.offerLock = false;
+            peer.makingOffer = false;
+          }
         }
       }
     }
@@ -464,7 +487,9 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       makingOffer: false,
       ignoreOffer: false,
       isSettingRemoteAnswerPending: false,
-      pendingCandidates: []
+      pendingCandidates: [],
+      offerLock: false,
+      lastOfferTime: 0
     };
 
     // Store peer FIRST before adding tracks (prevents race conditions)
@@ -578,37 +603,72 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       console.log('[Signaling] State:', peerConnection.signalingState, 'for', userId);
     };
 
-    // Negotiation Needed - ONLY initiator creates offers
-    peerConnection.onnegotiationneeded = async () => {
-      // Only the initiator should create offers
-      if (!isInitiator) {
-        console.log('[WebRTC] Skipping offer - not initiator for', userId);
+    // SINGLE offer creation function with proper locking
+    const createAndSendOffer = async (reason: string) => {
+      // Check debounce
+      const now = Date.now();
+      if (now - peer.lastOfferTime < OFFER_DEBOUNCE_MS) {
+        console.log('[WebRTC] Skipping offer - debounce active for', userId);
         return;
       }
       
-      // Wait a tick to ensure tracks are fully added
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Check locks
+      if (peer.offerLock || peer.makingOffer || globalOfferLockRef.current) {
+        console.log('[WebRTC] Skipping offer - locked for', userId, { 
+          peerLock: peer.offerLock, 
+          makingOffer: peer.makingOffer,
+          globalLock: globalOfferLockRef.current 
+        });
+        return;
+      }
       
       // Check signaling state
       if (peerConnection.signalingState !== 'stable') {
         console.log('[WebRTC] Skipping offer - signaling not stable:', peerConnection.signalingState);
         return;
       }
+      
+      // Only initiator creates offers
+      if (!isInitiator) {
+        console.log('[WebRTC] Skipping offer - not initiator for', userId);
+        return;
+      }
+
+      // Acquire locks
+      peer.offerLock = true;
+      peer.makingOffer = true;
+      globalOfferLockRef.current = true;
+      peer.lastOfferTime = now;
 
       try {
-        peer.makingOffer = true;
         const senders = peerConnection.getSenders();
-        console.log('[WebRTC] Creating offer for', userId, 'with', senders.length, 'senders');
+        console.log(`[WebRTC] Creating offer (${reason}) for`, userId, 'with', senders.length, 'senders');
         
         const offer = await peerConnection.createOffer();
+        
+        // Double check signaling state hasn't changed
+        if (peerConnection.signalingState !== 'stable') {
+          console.log('[WebRTC] Aborting offer - signaling state changed');
+          return;
+        }
+        
         await peerConnection.setLocalDescription(offer);
         await sendSignal('offer', userId, peerConnection.localDescription);
-        console.log('[WebRTC] Offer sent to', userId);
+        console.log(`[WebRTC] Offer sent (${reason}) to`, userId);
       } catch (err) {
-        console.error('[WebRTC] Error during negotiation:', err);
+        console.error('[WebRTC] Error creating offer:', err);
       } finally {
+        peer.offerLock = false;
         peer.makingOffer = false;
+        globalOfferLockRef.current = false;
       }
+    };
+
+    // Negotiation Needed - delegate to single offer function
+    peerConnection.onnegotiationneeded = async () => {
+      // Small delay to batch multiple track additions
+      await new Promise(resolve => setTimeout(resolve, 150));
+      await createAndSendOffer('negotiationneeded');
     };
 
     // Connection state change with proper ICE restart
@@ -620,14 +680,20 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         console.log('[WebRTC] Successfully connected to', userId);
       } else if (state === 'failed') {
         console.log('[WebRTC] Connection failed - initiating ICE restart for', userId);
-        peerConnection.restartIce();
-        peerConnection.createOffer({ iceRestart: true })
-          .then(offer => peerConnection.setLocalDescription(offer))
-          .then(() => sendSignal('offer', userId, peerConnection.localDescription))
-          .catch(err => console.error('[ICE Restart] Error:', err));
+        
+        // ICE restart with proper locking
+        if (isInitiator && !peer.offerLock) {
+          peer.offerLock = true;
+          peerConnection.restartIce();
+          peerConnection.createOffer({ iceRestart: true })
+            .then(offer => peerConnection.setLocalDescription(offer))
+            .then(() => sendSignal('offer', userId, peerConnection.localDescription))
+            .catch(err => console.error('[ICE Restart] Error:', err))
+            .finally(() => { peer.offerLock = false; });
+        }
       } else if (state === 'disconnected') {
         setTimeout(() => {
-          if (peerConnection.connectionState === 'disconnected') {
+          if (peerConnection.connectionState === 'disconnected' && isInitiator) {
             console.log('[WebRTC] Still disconnected, restarting ICE for', userId);
             peerConnection.restartIce();
           }
@@ -635,25 +701,10 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       }
     };
 
-    // CRITICAL: If initiator and we have tracks, create initial offer NOW
-    // This ensures offer is always sent, even if onnegotiationneeded doesn't fire
+    // Create initial offer if initiator with tracks (single path, properly locked)
     if (isInitiator && tracksAdded > 0) {
-      console.log('[WebRTC] Initiator with tracks - creating initial offer for', userId);
-      setTimeout(async () => {
-        if (peerConnection.signalingState === 'stable' && !peer.makingOffer) {
-          try {
-            peer.makingOffer = true;
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            await sendSignal('offer', userId, peerConnection.localDescription);
-            console.log('[WebRTC] Initial offer sent to', userId);
-          } catch (err) {
-            console.error('[WebRTC] Error creating initial offer:', err);
-          } finally {
-            peer.makingOffer = false;
-          }
-        }
-      }, 200);
+      // Delay slightly to allow onnegotiationneeded to fire first
+      setTimeout(() => createAndSendOffer('initial'), 300);
     }
 
     return peer;
