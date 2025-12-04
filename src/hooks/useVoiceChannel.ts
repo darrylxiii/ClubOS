@@ -7,6 +7,7 @@ import { useVirtualBackground } from './useVirtualBackground';
 import { useAudioDiagnostics } from './useAudioDiagnostics';
 import { useConnectionQuality, ConnectionQuality, ConnectionStats } from './useConnectionQuality';
 import { useAdaptiveAudio } from './useAdaptiveAudio';
+import { useMobileOptimizations } from './useMobileOptimizations';
 import { toast } from 'sonner';
 
 interface Participant {
@@ -39,6 +40,11 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [currentRecordingId, setCurrentRecordingId] = useState<string | null>(null);
+
+  // Mobile optimizations for video constraints
+  const { isMobile, isTablet, videoSettings, getMediaConstraints, connectionType } = useMobileOptimizations({ 
+    enableBatterySaving: true 
+  });
 
   // We use state for the stream to trigger re-renders and hook updates
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
@@ -621,13 +627,28 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
     try {
       if (!isVideoOn) {
         console.log('[Video] Requesting camera access...');
-        const videoStream = await navigator.mediaDevices.getUserMedia({ 
-          video: {
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            facingMode: 'user'
-          } 
-        });
+        
+        // Use mobile-optimized constraints for better battery and performance
+        const videoConstraints = isMobile || isTablet 
+          ? {
+              video: {
+                width: { ideal: videoSettings.width, max: videoSettings.width },
+                height: { ideal: videoSettings.height, max: videoSettings.height },
+                frameRate: { ideal: videoSettings.frameRate, max: videoSettings.frameRate },
+                facingMode: 'user'
+              }
+            }
+          : {
+              video: {
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+                frameRate: { ideal: 30 },
+                facingMode: 'user'
+              }
+            };
+        
+        console.log('[Video] Using constraints:', videoConstraints, { isMobile, isTablet, connectionType });
+        const videoStream = await navigator.mediaDevices.getUserMedia(videoConstraints);
 
         const newVideoTrack = videoStream.getVideoTracks()[0];
         console.log('[Video] Camera acquired:', { 
@@ -700,7 +721,7 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
       console.error('[Video] Error toggling video:', error);
       toast.error('Failed to access camera');
     }
-  }, [isVideoOn]);
+  }, [isVideoOn, isMobile, isTablet, videoSettings, connectionType]);
 
   const toggleScreenShare = useCallback(async () => {
     try {
@@ -723,8 +744,21 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
         screenStreamRef.current = screenStream;
         setLocalScreenStream(screenStream); // Set state to trigger WebRTC hook
 
+        // Apply content hint for screen sharing optimization
+        // 'detail' for documents/text, 'motion' for video content
+        const screenTrack = screenStream.getVideoTracks()[0];
+        if (screenTrack) {
+          try {
+            // @ts-ignore - contentHint is not in TypeScript types yet
+            screenTrack.contentHint = 'detail'; // Default to detail for crisp text
+            console.log('[Screen] Applied content hint: detail');
+          } catch (e) {
+            console.warn('[Screen] Content hint not supported');
+          }
+        }
+
         // Handle when user stops sharing via browser UI
-        screenStream.getVideoTracks()[0].onended = async () => {
+        screenTrack.onended = async () => {
           console.log('Screen share ended by user');
           await stopScreenShare();
         };

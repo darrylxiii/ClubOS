@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { optimizeSessionDescription } from '@/utils/sdpMunger';
+import { useSimulcast } from './useSimulcast';
+import { useMobileOptimizations } from './useMobileOptimizations';
 
 interface Peer {
   userId: string;
@@ -99,6 +101,18 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
   
   // Global offer lock to prevent simultaneous offers across all peers
   const globalOfferLockRef = useRef(false);
+
+  // Video optimization hooks
+  const { configureSimulcast, adaptToNetworkConditions, setScreenShareContentHint, getSimulcastStats } = useSimulcast();
+  const { isMobile, isTablet, videoSettings, connectionType } = useMobileOptimizations({ enableBatterySaving: true });
+  
+  // Track video stats for quality monitoring
+  const [videoStats, setVideoStats] = useState<{
+    framesSent: number;
+    framesReceived: number;
+    qualityLimitationReason: string;
+    availableBandwidth: number;
+  }>({ framesSent: 0, framesReceived: 0, qualityLimitationReason: 'none', availableBandwidth: 0 });
 
   // Update refs SYNCHRONOUSLY and handle track updates
   useEffect(() => {
@@ -418,6 +432,57 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     }
   };
 
+  // Configure video sender with simulcast and adaptive quality
+  const configureVideoSender = async (pc: RTCPeerConnection, userId: string, isScreenShare: boolean = false) => {
+    try {
+      const videoSender = pc.getSenders().find(s => s.track?.kind === 'video');
+      if (!videoSender) return;
+
+      // Apply simulcast configuration for 3-layer adaptive quality
+      const simulcastConfigured = await configureSimulcast(videoSender, undefined, isScreenShare);
+      
+      if (!simulcastConfigured) {
+        // Fallback: configure single encoding with adaptive bitrate
+        const params = videoSender.getParameters();
+        if (!params.encodings || params.encodings.length === 0) {
+          params.encodings = [{}];
+        }
+
+        // Adaptive bitrate based on device type and connection
+        let maxBitrate = 2500000; // Default 2.5 Mbps for 720p
+        if (isMobile || connectionType === '3g') {
+          maxBitrate = videoSettings.maxBitrate || 300000;
+        } else if (isTablet || connectionType === '4g') {
+          maxBitrate = videoSettings.maxBitrate || 800000;
+        }
+
+        params.encodings[0].maxBitrate = maxBitrate;
+        params.encodings[0].networkPriority = 'medium'; // Lower than audio
+        params.encodings[0].priority = 'medium';
+        
+        // Set adaptive framerate for mobile
+        if (isMobile || isTablet) {
+          params.encodings[0].maxFramerate = videoSettings.frameRate || 24;
+        }
+
+        await videoSender.setParameters(params);
+        console.log('[Video] Configured sender for', userId, {
+          maxBitrate: maxBitrate / 1000 + 'kbps',
+          device: isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop'
+        });
+      } else {
+        console.log('[Video] Simulcast enabled for', userId, '(3 quality layers)');
+      }
+
+      // Apply content hint for screen sharing (detail for documents, motion for video)
+      if (isScreenShare && videoSender.track) {
+        setScreenShareContentHint(videoSender.track, 'detail');
+      }
+    } catch (error) {
+      console.warn('[Video] Could not configure sender params:', error);
+    }
+  };
+
   // Set Opus as preferred codec for audio
   const setOpusPreference = (pc: RTCPeerConnection) => {
     try {
@@ -437,6 +502,33 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
       }
     } catch (error) {
       console.warn('[Audio] Could not set codec preference:', error);
+    }
+  };
+
+  // Set VP9 as preferred codec for video (better compression than VP8)
+  const setVP9Preference = (pc: RTCPeerConnection) => {
+    try {
+      const transceivers = pc.getTransceivers();
+      const videoTransceiver = transceivers.find(t => 
+        t.receiver.track?.kind === 'video' || t.sender.track?.kind === 'video'
+      );
+      
+      if (videoTransceiver && RTCRtpSender.getCapabilities) {
+        const codecs = RTCRtpSender.getCapabilities('video')?.codecs || [];
+        // Prefer VP9 > VP8 > H264 for best quality/bandwidth ratio
+        const preferredCodecs = [
+          ...codecs.filter(c => c.mimeType === 'video/VP9'),
+          ...codecs.filter(c => c.mimeType === 'video/VP8'),
+          ...codecs.filter(c => c.mimeType === 'video/H264')
+        ];
+        
+        if (preferredCodecs.length > 0 && videoTransceiver.setCodecPreferences) {
+          videoTransceiver.setCodecPreferences(preferredCodecs);
+          console.log('[Video] Set VP9/VP8 as preferred codec');
+        }
+      }
+    } catch (error) {
+      console.warn('[Video] Could not set codec preference:', error);
     }
   };
 
@@ -483,21 +575,101 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     }
   };
 
-  // Audio stats monitoring interval
+  // Monitor video stats for quality tracking and adaptive quality
+  const monitorVideoStats = async (pc: RTCPeerConnection, userId: string) => {
+    try {
+      const stats = await pc.getStats();
+      let localVideoStats = {
+        framesSent: 0,
+        framesReceived: 0,
+        qualityLimitationReason: 'none',
+        availableBandwidth: 0,
+        packetsLost: 0,
+        packetsReceived: 0,
+        rtt: 0
+      };
+
+      stats.forEach(report => {
+        // Outbound video stats (what we're sending)
+        if (report.type === 'outbound-rtp' && report.kind === 'video') {
+          localVideoStats.framesSent = report.framesSent || 0;
+          localVideoStats.qualityLimitationReason = report.qualityLimitationReason || 'none';
+        }
+        // Inbound video stats (what we're receiving)
+        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+          localVideoStats.framesReceived = report.framesReceived || 0;
+          localVideoStats.packetsLost = report.packetsLost || 0;
+          localVideoStats.packetsReceived = report.packetsReceived || 0;
+        }
+        // Bandwidth estimation
+        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+          localVideoStats.availableBandwidth = (report.availableOutgoingBitrate || 0) / 1000; // Convert to kbps
+          localVideoStats.rtt = (report.currentRoundTripTime || 0) * 1000;
+        }
+      });
+
+      // Update video stats state for UI
+      setVideoStats({
+        framesSent: localVideoStats.framesSent,
+        framesReceived: localVideoStats.framesReceived,
+        qualityLimitationReason: localVideoStats.qualityLimitationReason,
+        availableBandwidth: localVideoStats.availableBandwidth
+      });
+
+      // Adaptive quality: adjust simulcast layers based on bandwidth
+      const videoSender = pc.getSenders().find(s => s.track?.kind === 'video');
+      if (videoSender && localVideoStats.availableBandwidth > 0) {
+        await adaptToNetworkConditions(videoSender, localVideoStats.availableBandwidth);
+      }
+
+      // Log quality issues
+      const lossRate = localVideoStats.packetsReceived > 0 
+        ? (localVideoStats.packetsLost / (localVideoStats.packetsLost + localVideoStats.packetsReceived)) * 100 
+        : 0;
+
+      if (lossRate > 3 || localVideoStats.qualityLimitationReason !== 'none') {
+        console.warn('[Video] Quality issue for', userId, {
+          lossRate: lossRate.toFixed(1) + '%',
+          limitation: localVideoStats.qualityLimitationReason,
+          bandwidth: localVideoStats.availableBandwidth.toFixed(0) + 'kbps',
+          rtt: localVideoStats.rtt.toFixed(0) + 'ms'
+        });
+      }
+
+      return localVideoStats;
+    } catch (error) {
+      console.warn('[Video] Stats monitoring error:', error);
+      return null;
+    }
+  };
+
+  // Audio and video stats monitoring interval
   const audioStatsIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const videoStatsIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (!enabled) return;
 
+    // Audio stats every 3 seconds
     audioStatsIntervalRef.current = setInterval(() => {
       peersRef.current.forEach((peer, usrId) => {
         monitorAudioStats(peer.connection, usrId);
       });
     }, 3000);
 
+    // Video stats every 5 seconds (less frequent to reduce overhead)
+    videoStatsIntervalRef.current = setInterval(() => {
+      peersRef.current.forEach((peer, usrId) => {
+        monitorVideoStats(peer.connection, usrId);
+      });
+    }, 5000);
+
     return () => {
       if (audioStatsIntervalRef.current) {
         clearInterval(audioStatsIntervalRef.current);
+      }
+      if (videoStatsIntervalRef.current) {
+        clearInterval(videoStatsIntervalRef.current);
       }
     };
   }, [enabled]);
@@ -576,8 +748,19 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     // Configure audio for optimal voice quality
     setOpusPreference(peerConnection);
     
+    // Configure video for optimal quality
+    setVP9Preference(peerConnection);
+    
     // Configure audio sender after tracks are added
     setTimeout(() => configureAudioSender(peerConnection, userId), 100);
+    
+    // Configure video sender after tracks are added (with simulcast)
+    setTimeout(() => {
+      const hasVideoTrack = localStreamRef.current?.getVideoTracks().length > 0;
+      if (hasVideoTrack) {
+        configureVideoSender(peerConnection, userId, false);
+      }
+    }, 150);
 
     // Handle incoming tracks
     peerConnection.ontrack = (event) => {
@@ -981,6 +1164,8 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     isConnected: signalingChannelRef.current !== null,
     sendReaction,
     sendWhiteboardEvent,
-    peerConnection: getFirstPeerConnection()
+    peerConnection: getFirstPeerConnection(),
+    // Video optimization stats
+    videoStats
   };
 }
