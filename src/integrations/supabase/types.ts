@@ -27719,6 +27719,14 @@ export type Database = {
         Args: { p_api_key_id: string; p_limit: number }
         Returns: boolean
       }
+      check_storage_upload_rate_limit: {
+        Args: {
+          p_bucket_id: string
+          p_max_uploads: number
+          p_window_interval: unknown
+        }
+        Returns: boolean
+      }
       check_tier_limit: {
         Args: { check_user_id: string; limit_type_param: string }
         Returns: Json
