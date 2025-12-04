@@ -325,7 +325,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           currency: formData.currency,
           company_id: formData.company_id,
           created_by: user?.id,
-          status: 'open',
+          status: 'published',
           is_stealth: isStealthEnabled,
           stealth_enabled_by: isStealthEnabled ? user?.id : null,
           stealth_enabled_at: isStealthEnabled ? new Date().toISOString() : null,
