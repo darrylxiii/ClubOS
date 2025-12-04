@@ -21,7 +21,8 @@ import {
   Settings,
   FileStack,
   Download,
-  Lock
+  Lock,
+  Activity
 } from "lucide-react";
 import { ToolSelector } from "@/components/jobs/ToolSelector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,6 +33,8 @@ import { StealthJobToggle } from "@/components/jobs/StealthJobToggle";
 import { StealthViewerSelector } from "@/components/jobs/StealthViewerSelector";
 import { StealthAuditTimeline } from "@/components/jobs/StealthAuditTimeline";
 import { stealthJobAuditService } from "@/services/stealthJobAuditService";
+import { JobStatusManager } from "@/components/jobs/JobStatusManager";
+import { JobStatus } from "@/components/jobs/JobStatusBadge";
 import { History } from "lucide-react";
 
 interface EditJobSheetProps {
@@ -457,7 +460,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
         <ScrollArea className="flex-1">
           <div className="p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4 mb-6">
+              <TabsList className="grid w-full grid-cols-5 mb-6">
                 <TabsTrigger value="basic" className="gap-2">
                   <Settings className="h-4 w-4" />
                   Basic Info
@@ -465,6 +468,10 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                 <TabsTrigger value="tools" className="gap-2">
                   <Briefcase className="h-4 w-4" />
                   Tools & Skills
+                </TabsTrigger>
+                <TabsTrigger value="status" className="gap-2">
+                  <Activity className="h-4 w-4" />
+                  Status
                 </TabsTrigger>
                 <TabsTrigger value="visibility" className="gap-2">
                   <Lock className="h-4 w-4" />
@@ -671,6 +678,16 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                     )}
                   </CardContent>
                 </Card>
+              </TabsContent>
+
+              {/* Status Tab */}
+              <TabsContent value="status" className="space-y-6">
+                <JobStatusManager
+                  jobId={job?.id}
+                  jobTitle={job?.title || formData.title}
+                  currentStatus={(job?.status || 'draft') as JobStatus}
+                  onStatusChange={onJobUpdated}
+                />
               </TabsContent>
 
               {/* Visibility Tab */}
