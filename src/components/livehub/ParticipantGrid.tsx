@@ -285,10 +285,8 @@ const ParticipantGrid = ({
           <div
             key={participant.id}
             className={cn(
-              "relative aspect-video rounded-lg bg-card flex items-center justify-center transition-all duration-300 ease-in-out",
-              isSpeaking
-                ? 'ring-2 ring-emerald-400/60 shadow-[0_0_24px_rgba(34,197,94,0.3)]'
-                : 'border border-border/50 ring-0 shadow-none'
+              "relative aspect-video rounded-2xl bg-card/30 backdrop-blur-sm border border-border/30 flex items-center justify-center transition-all duration-300 ease-in-out",
+              isSpeaking && 'ring-2 ring-emerald-400/60 shadow-[0_0_24px_rgba(34,197,94,0.3)]'
             )}
           >
             {/* Video element for video channels */}
@@ -334,7 +332,7 @@ const ParticipantGrid = ({
             )}
 
             {/* Name and status */}
-            <div className="absolute bottom-2 left-2 right-2 bg-background/90 backdrop-blur-sm rounded px-2 py-1 flex items-center justify-between">
+            <div className="absolute bottom-2 left-2 right-2 bg-card/50 backdrop-blur-md rounded-lg px-3 py-1.5 flex items-center justify-between border border-border/20">
               <span className="text-sm font-medium truncate">
                 {participant.user?.full_name || 'Unknown User'}
               </span>

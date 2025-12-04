@@ -215,12 +215,12 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-background h-full overflow-hidden relative">
+    <div className="flex-1 flex flex-col h-full overflow-hidden relative">
       {/* Live Reactions Overlay */}
       <LiveReactions channelId={channelId} />
 
       {/* Channel Header */}
-      <div className="h-12 px-4 flex items-center justify-between border-b border-border shrink-0">
+      <div className="h-12 px-4 flex items-center justify-between border-b border-border/30 shrink-0">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Volume2 className="w-5 h-5 text-muted-foreground" />
@@ -381,7 +381,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
               )}
 
               {/* Participant Grid */}
-              <div className={`${activeScreenShare ? 'h-48 shrink-0' : 'flex-1'} overflow-auto bg-background transition-all duration-300`}>
+              <div className={`${activeScreenShare ? 'h-48 shrink-0' : 'flex-1'} overflow-auto transition-all duration-300`}>
                 <ParticipantGrid
                   participants={participants}
                   channelType={channelType}
@@ -402,7 +402,7 @@ const VoiceChannel = ({ channelId, channelType, autoJoin = false }: VoiceChannel
           )}
 
           {/* Controls - Fixed at bottom */}
-          <div className="h-20 border-t border-border px-4 flex items-center justify-center gap-2 bg-background shrink-0 relative z-10">
+          <div className="h-20 px-4 flex items-center justify-center gap-3 shrink-0 relative z-10">
             <Button
               variant="secondary"
               size="icon"
