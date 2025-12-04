@@ -106,6 +106,7 @@ export function MeetingVideoCallInterface({
     networkQuality,
     bandwidth,
     latency,
+    videoStats,
     error,
     channelStatus,
     peerConnections,
@@ -822,8 +823,18 @@ export function MeetingVideoCallInterface({
         </div>
       </div>
 
-      {/* Participant Count - Compact */}
-      <div className="absolute top-6 right-6 z-50 animate-in slide-in-from-right duration-500">
+      {/* Participant Count & Video Quality */}
+      <div className="absolute top-6 right-6 z-50 animate-in slide-in-from-right duration-500 flex items-center gap-2">
+        {/* Video Quality Indicator */}
+        {videoStats && videoStats.qualityLimitationReason !== 'none' && (
+          <div className="backdrop-blur-2xl bg-yellow-500/20 border border-yellow-500/30 px-3 py-2 rounded-full text-xs text-yellow-300 shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center gap-2">
+            {videoStats.qualityLimitationReason === 'bandwidth' ? '📶 Low bandwidth' : 
+             videoStats.qualityLimitationReason === 'cpu' ? '🔥 High CPU' : 
+             videoStats.qualityLimitationReason}
+          </div>
+        )}
+        
+        {/* Participant Count */}
         <div className="backdrop-blur-2xl bg-black/50 border border-white/10 px-4 py-2 rounded-full text-sm text-white shadow-[0_8px_32px_rgba(0,0,0,0.4)] flex items-center gap-2">
           <Users className="h-4 w-4 text-white/80" />
           <span className="font-medium">{allParticipants.length}</span>

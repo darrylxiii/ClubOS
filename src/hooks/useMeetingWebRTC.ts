@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { useBandwidthMonitor } from './useBandwidthMonitor';
+import { useSimulcast } from './useSimulcast';
+import { useMobileOptimizations } from './useMobileOptimizations';
 import { toast } from 'sonner';
 import { optimizeSessionDescription } from '@/utils/sdpMunger';
 
@@ -75,6 +77,18 @@ export function useMeetingWebRTC({
   const pendingJoinSignals = useRef<string[]>([]);
   const leftParticipantsRef = useRef<Set<string>>(new Set()); // Track who has left to prevent reconnection
   const { stats, getVideoConstraints } = useBandwidthMonitor();
+  
+  // Video optimization hooks
+  const { configureSimulcast, adaptToNetworkConditions, setScreenShareContentHint, getSimulcastStats } = useSimulcast();
+  const { isMobile, isTablet, videoSettings, connectionType, getMediaConstraints, getSDPOptions } = useMobileOptimizations({ enableBatterySaving: true });
+  
+  // Video stats state
+  const [videoStats, setVideoStats] = useState({ 
+    framesSent: 0, 
+    framesReceived: 0, 
+    qualityLimitationReason: 'none' as string, 
+    availableBandwidth: 0 
+  });
 
   // Helper: Wait for channel to be ready with timeout
   const waitForChannelReady = useCallback((channel: RealtimeChannel | null, timeout: number = 5000): Promise<void> => {
@@ -102,6 +116,111 @@ export function useMeetingWebRTC({
     });
   }, []);
 
+  // Configure video sender with simulcast and adaptive bitrate
+  const configureVideoSender = useCallback(async (pc: RTCPeerConnection, targetParticipantId: string, isScreenShare: boolean = false) => {
+    const videoSender = pc.getSenders().find(s => s.track?.kind === 'video');
+    if (!videoSender) {
+      console.log('[WebRTC] No video sender found for:', targetParticipantId);
+      return;
+    }
+    
+    // Apply simulcast for 3-layer adaptive quality
+    const simulcastConfigured = await configureSimulcast(videoSender, undefined, isScreenShare);
+    
+    if (!simulcastConfigured) {
+      // Fallback: adaptive bitrate based on device type and connection
+      const params = videoSender.getParameters();
+      if (!params.encodings || params.encodings.length === 0) {
+        params.encodings = [{}];
+      }
+      
+      // Set bitrate based on device type and connection
+      let maxBitrate = 2500000; // 2.5 Mbps default
+      if (isMobile || connectionType === '2g') {
+        maxBitrate = 300000; // 300 Kbps for mobile/2G
+      } else if (isTablet || connectionType === '3g') {
+        maxBitrate = 800000; // 800 Kbps for tablet/3G
+      }
+      
+      params.encodings[0].maxBitrate = maxBitrate;
+      params.encodings[0].networkPriority = 'medium' as RTCPriorityType;
+      
+      try {
+        await videoSender.setParameters(params);
+        console.log('[WebRTC] 🎥 Video sender configured with fallback bitrate:', maxBitrate / 1000, 'kbps');
+      } catch (error) {
+        console.warn('[WebRTC] Failed to set video sender parameters:', error);
+      }
+    }
+    
+    // Apply content hint for screen sharing
+    if (isScreenShare && videoSender.track) {
+      setScreenShareContentHint(videoSender.track, 'detail');
+    }
+  }, [configureSimulcast, setScreenShareContentHint, isMobile, isTablet, connectionType]);
+  
+  // Set VP9/VP8 codec preference for better quality
+  const setVP9Preference = useCallback((pc: RTCPeerConnection) => {
+    try {
+      const transceivers = pc.getTransceivers();
+      const videoTransceiver = transceivers.find(t => 
+        t.receiver.track?.kind === 'video' || t.sender.track?.kind === 'video'
+      );
+      
+      if (videoTransceiver && RTCRtpSender.getCapabilities) {
+        const codecs = RTCRtpSender.getCapabilities('video')?.codecs || [];
+        const preferredCodecs = [
+          ...codecs.filter(c => c.mimeType === 'video/VP9'),
+          ...codecs.filter(c => c.mimeType === 'video/VP8'),
+          ...codecs.filter(c => c.mimeType === 'video/H264')
+        ];
+        
+        if (preferredCodecs.length > 0 && videoTransceiver.setCodecPreferences) {
+          videoTransceiver.setCodecPreferences(preferredCodecs);
+          console.log('[WebRTC] 🎬 VP9/VP8 codec preference set');
+        }
+      }
+    } catch (error) {
+      console.warn('[WebRTC] Failed to set codec preferences:', error);
+    }
+  }, []);
+  
+  // Monitor video stats for adaptive quality
+  const monitorVideoStats = useCallback(async (pc: RTCPeerConnection, targetParticipantId: string) => {
+    try {
+      const stats = await pc.getStats();
+      let localVideoStats = { 
+        framesSent: 0, 
+        framesReceived: 0, 
+        qualityLimitationReason: 'none', 
+        availableBandwidth: 0 
+      };
+      
+      stats.forEach(report => {
+        if (report.type === 'outbound-rtp' && report.kind === 'video') {
+          localVideoStats.framesSent = report.framesSent || 0;
+          localVideoStats.qualityLimitationReason = report.qualityLimitationReason || 'none';
+        }
+        if (report.type === 'inbound-rtp' && report.kind === 'video') {
+          localVideoStats.framesReceived = report.framesReceived || 0;
+        }
+        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+          localVideoStats.availableBandwidth = (report.availableOutgoingBitrate || 0) / 1000;
+        }
+      });
+      
+      setVideoStats(localVideoStats);
+      
+      // Adaptive quality based on bandwidth
+      const videoSender = pc.getSenders().find(s => s.track?.kind === 'video');
+      if (videoSender && localVideoStats.availableBandwidth > 0) {
+        await adaptToNetworkConditions(videoSender, localVideoStats.availableBandwidth);
+      }
+    } catch (error) {
+      console.warn('[WebRTC] Failed to monitor video stats:', error);
+    }
+  }, [adaptToNetworkConditions]);
+
   // Initialize local media with strict race condition fixes
   const initializeMedia = useCallback(async () => {
     try {
@@ -109,20 +228,15 @@ export function useMeetingWebRTC({
       setError(null);
       setChannelStatus('connecting');
       
-      // 1. Get local media FIRST (strict ordering)
-      const videoConstraints = getVideoConstraints();
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          width: { ideal: videoConstraints.width },
-          height: { ideal: videoConstraints.height },
-          frameRate: { ideal: videoConstraints.frameRate }
-        },
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true
-        }
+      // 1. Get local media FIRST with mobile-optimized constraints
+      const constraints = getMediaConstraints();
+      console.log('[WebRTC] 📱 Using constraints:', { 
+        device: isMobile ? 'mobile' : isTablet ? 'tablet' : 'desktop',
+        video: videoSettings,
+        connection: connectionType 
       });
+      
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
       
       console.log('[WebRTC] ✅ STEP 2: Media acquired, setting state...');
       setLocalStream(stream);
@@ -228,6 +342,16 @@ export function useMeetingWebRTC({
       const sender = pc.addTrack(track, currentStream);
       console.log('[WebRTC] ✅ Track added, sender:', sender.track?.kind, 'track ID:', sender.track?.id);
     });
+    
+    // Configure VP9 codec preference
+    setVP9Preference(pc);
+    
+    // Configure video sender with simulcast after tracks added
+    setTimeout(() => {
+      if (currentStream.getVideoTracks().length > 0) {
+        configureVideoSender(pc, targetParticipantId, false);
+      }
+    }, 150);
 
     // Handle remote stream
     pc.ontrack = (event) => {
@@ -490,16 +614,17 @@ export function useMeetingWebRTC({
     }
   }, []);
 
-  // Monitor quality every 5 seconds
+  // Monitor quality and video stats every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
-      peerConnections.current.forEach((_, participantId) => {
+      peerConnections.current.forEach((pc, participantId) => {
         adaptVideoQuality(participantId);
+        monitorVideoStats(pc, participantId);
       });
     }, 5000);
     
     return () => clearInterval(interval);
-  }, [adaptVideoQuality]);
+  }, [adaptVideoQuality, monitorVideoStats]);
 
   // Send signal through Supabase with retry logic
   const sendSignal = async (signal: {
@@ -1153,7 +1278,10 @@ export function useMeetingWebRTC({
       // Start screen sharing
       try {
         const stream = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
+          video: {
+            cursor: 'always',
+            displaySurface: 'monitor'
+          } as any,
           audio: false
         });
         
@@ -1161,10 +1289,16 @@ export function useMeetingWebRTC({
         
         // Replace video track in all peer connections
         const screenTrack = stream.getVideoTracks()[0];
-        peerConnections.current.forEach((pc) => {
+        
+        // Apply content hint for screen sharing optimization
+        setScreenShareContentHint(screenTrack, 'detail');
+        
+        peerConnections.current.forEach(async (pc) => {
           const sender = pc.getSenders().find(s => s.track?.kind === 'video');
           if (sender) {
-            sender.replaceTrack(screenTrack);
+            await sender.replaceTrack(screenTrack);
+            // Configure sender for screen sharing (higher bitrate, lower framerate)
+            await configureVideoSender(pc, '', true);
           }
         });
         
@@ -1307,6 +1441,7 @@ export function useMeetingWebRTC({
     networkQuality: stats.quality,
     bandwidth: stats.bandwidth,
     latency: stats.latency,
+    videoStats, // New: video stats for UI display
     error,
     channelStatus,
     peerConnections: peerConnections.current, // Expose for connection quality monitoring
