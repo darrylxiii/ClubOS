@@ -137,8 +137,12 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           ...prev.filter(e => e.field !== field),
           { field, message: fieldError.message }
         ]);
+        return false;
+      } else {
+        // Field is valid - clear any existing error for this field
+        setFieldErrors(prev => prev.filter(e => e.field !== field));
+        return true;
       }
-      return false;
     }
   };
 
