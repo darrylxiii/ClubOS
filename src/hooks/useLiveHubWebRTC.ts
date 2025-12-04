@@ -111,6 +111,34 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
     }
   }, [localStream]);
 
+  // Listen for video track change events (fired when streamVersion changes in useVoiceChannel)
+  // This is a backup mechanism to ensure WebRTC picks up track changes immediately
+  useEffect(() => {
+    const handleVideoTrackChanged = (event: CustomEvent) => {
+      console.log('[WebRTC] Video track change event received:', event.detail);
+      
+      if (!signalingReadyRef.current || !localStreamRef.current) {
+        console.log('[WebRTC] Skipping track update - not ready');
+        return;
+      }
+      
+      // Force immediate track update for all peers
+      const stream = localStreamRef.current;
+      const videoTracks = stream.getVideoTracks();
+      
+      console.log('[WebRTC] Forcing video track update, video tracks:', videoTracks.length);
+      
+      // Update all peer connections with current tracks
+      updateTracksForAllPeers(stream, 'camera');
+    };
+
+    window.addEventListener('local-video-track-changed', handleVideoTrackChanged as EventListener);
+    
+    return () => {
+      window.removeEventListener('local-video-track-changed', handleVideoTrackChanged as EventListener);
+    };
+  }, []);
+
   useEffect(() => {
     console.log('[WebRTC] Screen stream changed:', localScreenStream ? 'present' : 'null');
     localScreenStreamRef.current = localScreenStream;
@@ -578,6 +606,25 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
         console.log('[WebRTC] Inferred stream type:', type, 'from label:', track.label);
       }
 
+      // Listen for future tracks on this stream (critical for video added after audio)
+      remoteStream.onaddtrack = (trackEvent) => {
+        console.log('[WebRTC] Additional track received on stream:', { 
+          userId, 
+          kind: trackEvent.track.kind,
+          label: trackEvent.track.label,
+          streamId: remoteStream.id
+        });
+        
+        // Force remoteStreams update by creating new object reference
+        setRemoteStreams(prev => {
+          const newStreams = new Map(prev);
+          const userStreams = newStreams.get(userId) || { camera: null, screen: null };
+          // Clone to force React update
+          newStreams.set(userId, { ...userStreams, camera: remoteStream });
+          return newStreams;
+        });
+      };
+
       setRemoteStreams(prev => {
         const newStreams = new Map(prev);
         const userStreams = newStreams.get(userId) || { camera: null, screen: null };
@@ -590,7 +637,8 @@ export function useLiveHubWebRTC({ channelId, localStream, localScreenStream, en
 
         console.log('[WebRTC] Updated remote streams for', userId, {
           hasCameraStream: !!userStreams.camera,
-          hasScreenStream: !!userStreams.screen
+          hasScreenStream: !!userStreams.screen,
+          cameraTrackCount: userStreams.camera?.getTracks().length || 0
         });
 
         newStreams.set(userId, { ...userStreams });

@@ -43,6 +43,10 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
   // We use state for the stream to trigger re-renders and hook updates
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const localStreamRef = useRef<MediaStream | null>(null);
+  
+  // Stream version counter - increments when tracks change to force React updates
+  // This is critical because setLocalStream(sameRef) won't trigger re-renders
+  const [streamVersion, setStreamVersion] = useState(0);
 
   const [localScreenStream, setLocalScreenStream] = useState<MediaStream | null>(null);
   const screenStreamRef = useRef<MediaStream | null>(null);
@@ -642,9 +646,15 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
           // Add new video track to EXISTING stream (don't create new MediaStream)
           localStreamRef.current.addTrack(newVideoTrack);
           
-          // Trigger re-render WITHOUT replacing stream object
-          // This keeps the same stream reference, which prevents MediaRecorder issues
+          // CRITICAL: Increment stream version to force React to detect the change
+          // setLocalStream(sameRef) doesn't trigger re-renders, but version change does
+          setStreamVersion(v => v + 1);
           setLocalStream(localStreamRef.current);
+          
+          // Also dispatch event for WebRTC to pick up immediately
+          window.dispatchEvent(new CustomEvent('local-video-track-changed', {
+            detail: { type: 'added', streamId: localStreamRef.current.id }
+          }));
           
           console.log('[Video] Added video track to existing stream:', {
             streamId: localStreamRef.current.id,
@@ -668,8 +678,14 @@ export const useVoiceChannel = (channelId: string, options: VoiceChannelOptions 
             localStreamRef.current?.removeTrack(track);
           });
           
-          // Trigger re-render WITHOUT replacing stream object
+          // Increment version to force React update
+          setStreamVersion(v => v + 1);
           setLocalStream(localStreamRef.current);
+          
+          // Dispatch event for WebRTC
+          window.dispatchEvent(new CustomEvent('local-video-track-changed', {
+            detail: { type: 'removed', streamId: localStreamRef.current.id }
+          }));
           
           console.log('[Video] Video track removed, remaining tracks:', {
             streamId: localStreamRef.current.id,

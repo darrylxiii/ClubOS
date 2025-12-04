@@ -92,19 +92,58 @@ const ParticipantGrid = ({
         setVideoStates(prev => new Map(prev).set(participantId, 'no-tracks'));
       }
       
-      // Retry after delay - tracks might not be ready yet
-      const timeout = setTimeout(() => {
-        if (verifyVideoTracks(stream, participantId)) {
+      // Set up listener for when tracks are added to the stream
+      const handleTrackAdded = (event: MediaStreamTrackEvent) => {
+        console.log('[Video] Track added to stream via event:', { 
+          participantId, 
+          trackKind: event.track.kind,
+          trackLabel: event.track.label 
+        });
+        if (event.track.kind === 'video') {
+          // Re-attempt attachment when video track is added
           attachStream(videoEl, stream, participantId);
         }
-      }, 1000);
-      retryTimeoutsRef.current.set(participantId, timeout);
+      };
+      
+      stream.addEventListener('addtrack', handleTrackAdded);
+      
+      // Also retry on interval - more aggressive retry for instant video
+      let retryCount = 0;
+      const maxRetries = 20; // 10 seconds of retries
+      const retryInterval = setInterval(() => {
+        retryCount++;
+        if (verifyVideoTracks(stream, participantId)) {
+          clearInterval(retryInterval);
+          stream.removeEventListener('addtrack', handleTrackAdded);
+          attachStream(videoEl, stream, participantId);
+        } else if (retryCount >= maxRetries) {
+          clearInterval(retryInterval);
+          stream.removeEventListener('addtrack', handleTrackAdded);
+          console.warn('[Video] Max retries reached for', participantId);
+        }
+      }, 500);
+      
+      // Store cleanup function
+      const cleanup = () => {
+        clearInterval(retryInterval);
+        stream.removeEventListener('addtrack', handleTrackAdded);
+      };
+      retryTimeoutsRef.current.set(participantId, cleanup as any);
+      
       return;
     }
 
-    // Check if already attached to same stream
+    // Check if already attached to same stream with same tracks
     if (videoEl.srcObject === stream) {
-      return;
+      // Stream is same but check if tracks have changed
+      const currentVideoTracks = stream.getVideoTracks();
+      if (currentVideoTracks.length > 0 && currentVideoTracks[0].readyState === 'live') {
+        // Already attached and working - just update state
+        if (mountedRef.current) {
+          setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
+        }
+        return;
+      }
     }
 
     console.log('[Video] Attaching stream', { participantId, streamId: stream.id });
@@ -146,8 +185,8 @@ const ParticipantGrid = ({
         if (err.name === 'NotAllowedError') {
           const timeout = setTimeout(() => {
             videoEl.play().catch(() => {});
-          }, 1000);
-          retryTimeoutsRef.current.set(participantId, timeout);
+          }, 500);
+          retryTimeoutsRef.current.set(participantId, timeout as any);
         }
       });
   }, [verifyVideoTracks]);
