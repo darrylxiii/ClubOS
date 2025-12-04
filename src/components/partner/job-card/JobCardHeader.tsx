@@ -2,6 +2,13 @@ import { memo } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { CardTitle } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Lock } from "lucide-react";
 
 interface JobCardHeaderProps {
   companyLogo: string | null;
@@ -9,6 +16,7 @@ interface JobCardHeaderProps {
   title: string;
   status: string;
   clubSyncBadge: React.ReactNode;
+  isStealth?: boolean;
 }
 
 export const JobCardHeader = memo(({
@@ -16,7 +24,8 @@ export const JobCardHeader = memo(({
   companyName,
   title,
   status,
-  clubSyncBadge
+  clubSyncBadge,
+  isStealth
 }: JobCardHeaderProps) => {
   return (
     <div className="flex items-center gap-3 flex-1">
@@ -38,6 +47,24 @@ export const JobCardHeader = memo(({
           >
             {status}
           </Badge>
+          {isStealth && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge 
+                    variant="outline" 
+                    className="bg-amber-500/10 text-amber-600 border-amber-500/30 gap-1"
+                  >
+                    <Lock className="h-3 w-3" />
+                    Confidential
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>This job is only visible to selected users</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
           {clubSyncBadge}
         </div>
       </div>
