@@ -98,6 +98,7 @@ interface JobWithMetrics {
   conversion_rate: number | null;
   company_name: string;
   company_logo: string | null;
+  is_stealth: boolean;
 }
 
 interface CompanyMetrics {
@@ -158,6 +159,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           created_at,
           company_id,
           club_sync_status,
+          is_stealth,
           companies (
             name,
             logo_url
@@ -255,6 +257,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           conversion_rate: conversionRate,
           company_name: job.companies?.name || 'Unknown Company',
           company_logo: job.companies?.logo_url || null,
+          is_stealth: job.is_stealth || false,
         };
       });
 
@@ -1117,6 +1120,7 @@ const MemoizedJobCard = memo(({
             title={job.title}
             status={job.status}
             clubSyncBadge={getClubSyncBadge(job.club_sync_status)}
+            isStealth={job.is_stealth}
           />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
