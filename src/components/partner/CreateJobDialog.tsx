@@ -127,15 +127,38 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     const testData = { ...formData, [field]: value };
     const result = jobFormSchema.safeParse(testData);
 
+    // For salary fields, we need to check both the field error and cross-field refinement errors
+    const salaryFields = ['salary_min', 'salary_max'];
+    const isSalaryField = salaryFields.includes(field);
+
     if (result.success) {
-      setFieldErrors(prev => prev.filter(e => e.field !== field));
+      // Clear this field's error, and for salary fields, also clear salary_max refinement error
+      setFieldErrors(prev => {
+        let filtered = prev.filter(e => e.field !== field);
+        if (isSalaryField) {
+          filtered = filtered.filter(e => e.field !== 'salary_max' || e.message !== 'Minimum salary cannot exceed maximum salary');
+        }
+        return filtered;
+      });
       return true;
     } else {
       const fieldError = result.error.errors.find(e => e.path[0] === field);
+      // Also check for salary refinement error (path is ["salary_max"] but message is about min/max)
+      const salaryRefinementError = isSalaryField 
+        ? result.error.errors.find(e => e.message === 'Minimum salary cannot exceed maximum salary')
+        : null;
+
       if (fieldError) {
         setFieldErrors(prev => [
           ...prev.filter(e => e.field !== field),
           { field, message: fieldError.message }
+        ]);
+        return false;
+      } else if (salaryRefinementError) {
+        // Show salary refinement error on salary_max
+        setFieldErrors(prev => [
+          ...prev.filter(e => !(e.field === 'salary_max' && e.message === 'Minimum salary cannot exceed maximum salary')),
+          { field: 'salary_max', message: salaryRefinementError.message }
         ]);
         return false;
       } else {
