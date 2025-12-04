@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { FileText, Download, Upload, X, Eye, Loader2 } from "lucide-react";
+import { FileText, Download, X, Eye, Loader2 } from "lucide-react";
 import { validatePostMediaFile } from "@/lib/fileValidation";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { TextDocumentCreator } from "./TextDocumentCreator";
@@ -25,15 +25,17 @@ interface DocumentWithUploader {
 
 export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
   const [jobDescriptionUrl, setJobDescriptionUrl] = useState<string>('');
   const [supportingDocs, setSupportingDocs] = useState<DocumentWithUploader[]>([]);
-  const [newJobDescFile, setNewJobDescFile] = useState<File | null>(null);
-  const [newSupportingFiles, setNewSupportingFiles] = useState<File[]>([]);
+  const [uploadingJobDesc, setUploadingJobDesc] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState<string[]>([]);
   const [viewerOpen, setViewerOpen] = useState(false);
   const [viewerUrl, setViewerUrl] = useState<string>('');
   const [viewerTitle, setViewerTitle] = useState<string>('');
   const [viewerType, setViewerType] = useState<'pdf' | 'docx' | 'other'>('pdf');
+  
+  const jobDescInputRef = useRef<HTMLInputElement>(null);
+  const supportingInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchDocuments();
@@ -80,22 +82,64 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
     }
   };
 
-  const handleJobDescChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Auto-upload job description immediately on file select
+  const handleJobDescChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const validation = validatePostMediaFile(file);
-      if (!validation.valid) {
-        toast.error(validation.error);
-        return;
+    if (!file) return;
+    
+    const validation = validatePostMediaFile(file);
+    if (!validation.valid) {
+      toast.error(validation.error);
+      if (jobDescInputRef.current) jobDescInputRef.current.value = '';
+      return;
+    }
+
+    setUploadingJobDesc(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${jobId}/job-description.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('job-documents')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError);
+        throw new Error(`Failed to upload: ${uploadError.message}`);
       }
-      setNewJobDescFile(file);
+
+      // Update database immediately
+      const { error: updateError } = await supabase
+        .from('jobs')
+        .update({ job_description_url: fileName })
+        .eq('id', jobId);
+
+      if (updateError) {
+        console.error('Database update error:', updateError);
+        throw new Error(`Failed to save: ${updateError.message}`);
+      }
+
+      setJobDescriptionUrl(fileName);
+      toast.success('Job description uploaded successfully');
+      onUpdate?.();
+    } catch (error: any) {
+      console.error('Error uploading job description:', error);
+      toast.error(error.message || 'Failed to upload job description');
+    } finally {
+      setUploadingJobDesc(false);
+      if (jobDescInputRef.current) jobDescInputRef.current.value = '';
     }
   };
 
-  const handleSupportingDocsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Auto-upload supporting documents immediately on file select
+  const handleSupportingDocsChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
     const validFiles: File[] = [];
-    
     for (const file of files) {
       const validation = validatePostMediaFile(file);
       if (!validation.valid) {
@@ -104,12 +148,70 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
       }
       validFiles.push(file);
     }
-    
-    setNewSupportingFiles(prev => [...prev, ...validFiles]);
-  };
 
-  const removeNewSupportingFile = (index: number) => {
-    setNewSupportingFiles(prev => prev.filter((_, i) => i !== index));
+    if (validFiles.length === 0) {
+      if (supportingInputRef.current) supportingInputRef.current.value = '';
+      return;
+    }
+
+    // Track uploading files
+    setUploadingFiles(validFiles.map(f => f.name));
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      const newDocs: DocumentWithUploader[] = [];
+
+      for (let i = 0; i < validFiles.length; i++) {
+        const file = validFiles[i];
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${jobId}/supporting/${Date.now()}-${i}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('job-documents')
+          .upload(fileName, file);
+
+        if (uploadError) {
+          console.error('Storage upload error for supporting doc:', uploadError);
+          toast.error(`Failed to upload ${file.name}`);
+          continue;
+        }
+
+        newDocs.push({
+          url: fileName,
+          name: file.name,
+          uploaded_at: new Date().toISOString(),
+          uploaded_by: user.id,
+          uploader_name: 'You'
+        });
+      }
+
+      if (newDocs.length > 0) {
+        // Update database with new documents
+        const updatedSupportingDocs = [...supportingDocs, ...newDocs];
+        
+        const { error: updateError } = await supabase
+          .from('jobs')
+          .update({ supporting_documents: updatedSupportingDocs as any })
+          .eq('id', jobId);
+
+        if (updateError) {
+          console.error('Database update error:', updateError);
+          throw new Error(`Failed to save: ${updateError.message}`);
+        }
+
+        setSupportingDocs(updatedSupportingDocs);
+        toast.success(`${newDocs.length} document(s) uploaded successfully`);
+        onUpdate?.();
+      }
+    } catch (error: any) {
+      console.error('Error uploading supporting documents:', error);
+      toast.error(error.message || 'Failed to upload documents');
+    } finally {
+      setUploadingFiles([]);
+      if (supportingInputRef.current) supportingInputRef.current.value = '';
+    }
   };
 
   const removeExistingDocument = async (docUrl: string) => {
@@ -159,20 +261,16 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
 
   const viewDocument = async (url: string, name: string) => {
     try {
-      // Determine file type from extension
       const fileExt = url.split('.').pop()?.toLowerCase();
       
       if (fileExt === 'docx' || fileExt === 'doc') {
-        // For Word documents, use Google Docs Viewer
-        // First get a signed URL that's publicly accessible for a short time
         const { data: signedData, error: signedError } = await supabase.storage
           .from('job-documents')
-          .createSignedUrl(url, 3600); // 1 hour expiry
+          .createSignedUrl(url, 3600);
         
         if (signedError) throw signedError;
         
         if (signedData?.signedUrl) {
-          // Use Google Docs Viewer for DOCX files
           const googleDocsUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(signedData.signedUrl)}&embedded=true`;
           setViewerUrl(googleDocsUrl);
           setViewerType('docx');
@@ -180,14 +278,12 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           setViewerOpen(true);
         }
       } else {
-        // For PDFs, download and create blob URL
         const { data: fileData, error: downloadError } = await supabase.storage
           .from('job-documents')
           .download(url);
         
         if (downloadError) throw downloadError;
         
-        // Create blob with PDF MIME type
         const blob = new Blob([fileData], { type: 'application/pdf' });
         const blobUrl = URL.createObjectURL(blob);
         
@@ -199,92 +295,6 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
     } catch (error) {
       console.error('Error viewing document:', error);
       toast.error('Failed to open document viewer');
-    }
-  };
-
-  const uploadDocuments = async () => {
-    setUploading(true);
-    try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-
-      let updatedJobDescUrl = jobDescriptionUrl;
-      const updatedSupportingDocs = [...supportingDocs];
-
-      // Upload job description if new file
-      if (newJobDescFile) {
-        const fileExt = newJobDescFile.name.split('.').pop();
-        const fileName = `${jobId}/job-description.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('job-documents')
-          .upload(fileName, newJobDescFile, { upsert: true });
-
-        if (uploadError) {
-          console.error('Storage upload error:', uploadError);
-          throw new Error(`Failed to upload job description: ${uploadError.message}`);
-        }
-        updatedJobDescUrl = fileName;
-        toast.success('Job description uploaded to storage');
-      }
-
-      // Upload supporting documents
-      for (let i = 0; i < newSupportingFiles.length; i++) {
-        const file = newSupportingFiles[i];
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${jobId}/supporting/${Date.now()}-${i}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('job-documents')
-          .upload(fileName, file);
-
-        if (uploadError) {
-          console.error('Storage upload error for supporting doc:', uploadError);
-          throw new Error(`Failed to upload ${file.name}: ${uploadError.message}`);
-        }
-        updatedSupportingDocs.push({
-          url: fileName,
-          name: file.name,
-          uploaded_at: new Date().toISOString(),
-          uploaded_by: user.id
-        });
-      }
-      
-      if (newSupportingFiles.length > 0) {
-        toast.success(`${newSupportingFiles.length} supporting document(s) uploaded to storage`);
-      }
-
-      // Update job in database
-      const { error: updateError, data: updateData } = await supabase
-        .from('jobs')
-        .update({
-          job_description_url: updatedJobDescUrl,
-          supporting_documents: updatedSupportingDocs as any
-        })
-        .eq('id', jobId)
-        .select();
-
-      if (updateError) {
-        console.error('Database update error:', updateError);
-        throw new Error(`Failed to save to database: ${updateError.message}`);
-      }
-      
-      if (!updateData || updateData.length === 0) {
-        throw new Error('No rows updated. You may not have permission to edit this job.');
-      }
-
-      setJobDescriptionUrl(updatedJobDescUrl);
-      setSupportingDocs(updatedSupportingDocs);
-      setNewJobDescFile(null);
-      setNewSupportingFiles([]);
-      toast.success('All documents saved successfully!');
-      onUpdate?.();
-    } catch (error: any) {
-      console.error('Error uploading documents:', error);
-      toast.error(error.message || 'Failed to upload documents. Check console for details.');
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -307,7 +317,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {jobDescriptionUrl && !newJobDescFile && (
+          {jobDescriptionUrl && (
             <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border-2 border-accent/20">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/10">
@@ -341,7 +351,7 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
             </div>
           )}
           
-          {!jobDescriptionUrl && !newJobDescFile && (
+          {!jobDescriptionUrl && (
             <div className="text-center py-8 border-2 border-dashed border-muted rounded-lg">
               <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground">No job description uploaded yet</p>
@@ -352,26 +362,24 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
             <Label htmlFor="job-desc-upload">
               {jobDescriptionUrl ? 'Replace Job Description' : 'Upload Job Description'}
             </Label>
-            <Input
-              id="job-desc-upload"
-              type="file"
-              accept=".pdf,.doc,.docx"
-              onChange={handleJobDescChange}
-            />
-            {newJobDescFile && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-md border border-primary/20">
-                <FileText className="w-4 h-4" />
-                <span className="text-sm flex-1">{newJobDescFile.name}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setNewJobDescFile(null)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            )}
+            <div className="relative">
+              <Input
+                ref={jobDescInputRef}
+                id="job-desc-upload"
+                type="file"
+                accept=".pdf,.doc,.docx"
+                onChange={handleJobDescChange}
+                disabled={uploadingJobDesc}
+                className={uploadingJobDesc ? 'opacity-50' : ''}
+              />
+              {uploadingJobDesc && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
+                  <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
+                  <span className="text-sm">Uploading...</span>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">File will be uploaded automatically when selected</p>
           </div>
         </CardContent>
       </Card>
@@ -448,109 +456,64 @@ export const JobDocuments = ({ jobId, onUpdate }: JobDocumentsProps) => {
           <div className="space-y-2">
             <Label htmlFor="supporting-docs-upload">Add More Documents</Label>
             <div className="flex gap-2">
-              <Input
-                id="supporting-docs-upload"
-                type="file"
-                accept=".pdf,.doc,.docx"
-                multiple
-                onChange={handleSupportingDocsChange}
-                className="flex-1"
-              />
+              <div className="relative flex-1">
+                <Input
+                  ref={supportingInputRef}
+                  id="supporting-docs-upload"
+                  type="file"
+                  accept=".pdf,.doc,.docx"
+                  multiple
+                  onChange={handleSupportingDocsChange}
+                  disabled={uploadingFiles.length > 0}
+                  className={uploadingFiles.length > 0 ? 'opacity-50' : ''}
+                />
+                {uploadingFiles.length > 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
+                    <Loader2 className="w-5 h-5 animate-spin text-primary mr-2" />
+                    <span className="text-sm">Uploading {uploadingFiles.length} file(s)...</span>
+                  </div>
+                )}
+              </div>
               <TextDocumentCreator 
                 jobId={jobId} 
                 onDocumentCreated={fetchDocuments}
               />
             </div>
-            {newSupportingFiles.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm text-muted-foreground">New files to upload:</p>
-                {newSupportingFiles.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 px-3 py-2 bg-accent/10 rounded-md border border-accent/20">
-                    <FileText className="w-4 h-4" />
-                    <span className="text-sm flex-1">{file.name}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeNewSupportingFile(index)}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Save Button - Always visible to make it clear */}
-          <div className="pt-4 border-t border-border/20">
-            <Button
-              onClick={uploadDocuments}
-              disabled={uploading || (!newJobDescFile && newSupportingFiles.length === 0)}
-              className="w-full gap-2 h-12 text-base font-bold"
-              size="lg"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Saving Documents...
-                </>
-              ) : (
-                <>
-                  <Upload className="w-5 h-5" />
-                  Save All Documents
-                </>
-              )}
-            </Button>
-            {!newJobDescFile && newSupportingFiles.length === 0 && (
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Select files above to save them
-              </p>
-            )}
+            <p className="text-xs text-muted-foreground">Files will be uploaded automatically when selected</p>
           </div>
         </CardContent>
       </Card>
 
       {/* Document Viewer Dialog */}
-      {/* Document Viewer Dialog */}
-      <Dialog open={viewerOpen} onOpenChange={(open) => {
-        setViewerOpen(open);
-        // Clean up blob URL when dialog closes (only for PDF blobs, not Google Docs URLs)
-        if (!open && viewerUrl && viewerType === 'pdf') {
-          URL.revokeObjectURL(viewerUrl);
-          setViewerUrl('');
-        }
-      }}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+      <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
+        <DialogContent className="max-w-4xl h-[80vh] flex flex-col">
           <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>{viewerTitle}</span>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              {viewerTitle}
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 w-full bg-background/50 rounded-lg overflow-hidden border border-border">
-            {viewerUrl && viewerType === 'docx' && (
+          <div className="flex-1 min-h-0">
+            {viewerType === 'pdf' ? (
               <iframe
                 src={viewerUrl}
-                className="w-full h-full border-0"
+                className="w-full h-full rounded-lg border"
                 title={viewerTitle}
-                style={{ minHeight: '70vh' }}
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
               />
-            )}
-            
-            {viewerUrl && viewerType === 'pdf' && (
-              <iframe
-                src={viewerUrl}
-                className="w-full h-full border-0"
-                title={viewerTitle}
-                style={{ minHeight: '70vh' }}
-              />
-            )}
-            
-            {!viewerUrl && (
-              <div className="flex flex-col items-center justify-center h-full p-8 text-center">
-                <FileText className="w-16 h-16 text-muted-foreground mb-4" />
-                <p className="text-lg font-semibold mb-2">Loading document...</p>
+            ) : viewerType === 'docx' ? (
+              <div className="w-full h-full flex flex-col">
+                <iframe
+                  src={viewerUrl}
+                  className="w-full flex-1 rounded-lg border"
+                  title={viewerTitle}
+                />
+                <p className="text-xs text-muted-foreground mt-2 text-center">
+                  Powered by Google Docs Viewer
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground">Preview not available for this file type</p>
               </div>
             )}
           </div>
