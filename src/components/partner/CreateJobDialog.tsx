@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { StealthJobToggle } from "@/components/jobs/StealthJobToggle";
 import { StealthViewerSelector } from "@/components/jobs/StealthViewerSelector";
 import { Separator } from "@/components/ui/separator";
+import { stealthJobAuditService } from "@/services/stealthJobAuditService";
 
 interface CreateJobDialogProps {
   open: boolean;
@@ -312,21 +313,30 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       const jobId = job.id;
 
-      // Insert stealth viewers if stealth mode is enabled
-      if (isStealthEnabled && stealthViewerIds.length > 0) {
-        const viewerInserts = stealthViewerIds.map(viewerId => ({
-          job_id: jobId,
-          user_id: viewerId,
-          granted_by: user?.id,
-        }));
+      // Insert stealth viewers and log audit events if stealth mode is enabled
+      if (isStealthEnabled) {
+        // Log stealth mode enabled
+        const performer = { id: user?.id || '', email: user?.email, full_name: user?.user_metadata?.full_name };
+        stealthJobAuditService.logStealthToggled(jobId, formData.title, true, performer);
 
-        const { error: viewersError } = await supabase
-          .from('job_stealth_viewers')
-          .insert(viewerInserts);
+        if (stealthViewerIds.length > 0) {
+          const viewerInserts = stealthViewerIds.map(viewerId => ({
+            job_id: jobId,
+            user_id: viewerId,
+            granted_by: user?.id,
+          }));
 
-        if (viewersError) {
-          console.error('Error inserting stealth viewers:', viewersError);
-          toast.error("Job created but failed to add some viewers");
+          const { error: viewersError } = await supabase
+            .from('job_stealth_viewers')
+            .insert(viewerInserts);
+
+          if (viewersError) {
+            console.error('Error inserting stealth viewers:', viewersError);
+            toast.error("Job created but failed to add some viewers");
+          } else {
+            // Log bulk add of viewers
+            stealthJobAuditService.logBulkViewersAdded(jobId, formData.title, stealthViewerIds, performer);
+          }
         }
       }
 
