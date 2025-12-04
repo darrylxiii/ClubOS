@@ -60,11 +60,12 @@ const ParticipantGrid = ({
       return false;
     }
 
-    const activeTrack = videoTracks.find(t => t.enabled && t.readyState === 'live');
+    // Accept tracks that are either live, or muted but will unmute
+    const activeTrack = videoTracks.find(t => t.enabled && (t.readyState === 'live' || t.muted));
     if (!activeTrack) {
       console.warn('[Video] No active video track', { 
         participantId, 
-        tracks: videoTracks.map(t => ({ label: t.label, enabled: t.enabled, readyState: t.readyState }))
+        tracks: videoTracks.map(t => ({ label: t.label, enabled: t.enabled, readyState: t.readyState, muted: t.muted }))
       });
       return false;
     }
@@ -72,6 +73,7 @@ const ParticipantGrid = ({
     console.log('[Video] Valid video track found', { 
       participantId, 
       trackLabel: activeTrack.label,
+      muted: activeTrack.muted,
       settings: activeTrack.getSettings?.()
     });
     return true;
@@ -167,6 +169,28 @@ const ParticipantGrid = ({
       console.log('[Video] Can play', { participantId });
     };
 
+    // Listen for track unmute (important for WebRTC tracks that start muted)
+    const videoTracks = stream.getVideoTracks();
+    videoTracks.forEach(track => {
+      track.onunmute = () => {
+        console.log('[Video] Track unmuted, attempting play:', { participantId, trackLabel: track.label });
+        videoEl.play().catch(() => {});
+        if (mountedRef.current) {
+          setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
+        }
+      };
+    });
+
+    // Use requestVideoFrameCallback if available for frame-level detection
+    if ('requestVideoFrameCallback' in videoEl) {
+      (videoEl as any).requestVideoFrameCallback(() => {
+        console.log('[Video] First frame received:', { participantId });
+        if (mountedRef.current) {
+          setVideoStates(prev => new Map(prev).set(participantId, 'ready'));
+        }
+      });
+    }
+
     // Play and handle result
     videoEl.play()
       .then(() => {
@@ -227,6 +251,24 @@ const ParticipantGrid = ({
       }
     });
   }, [localStream, remoteStreams, participants, currentUserId, channelType, attachStream]);
+
+  // Handle visibility change - retry video play on tab focus
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[Video] Tab visible - retrying video playback');
+        videoRefs.current.forEach((videoEl, participantId) => {
+          const state = videoStates.get(participantId);
+          if (state === 'error' || state === 'loading') {
+            videoEl.play().catch(() => {});
+          }
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [videoStates]);
 
   // Cleanup retry timeouts and mark unmounted
   useEffect(() => {
