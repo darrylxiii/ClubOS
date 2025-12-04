@@ -498,7 +498,7 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             <Select
               value={formData.company_id}
               onValueChange={(value) => handleInputChange('company_id', value)}
-              disabled={!!companyId || isSubmitting}
+              disabled={isSubmitting}
             >
               <SelectTrigger
                 id="company"
