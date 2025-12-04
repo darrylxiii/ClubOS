@@ -22456,6 +22456,62 @@ export type Database = {
           },
         ]
       }
+      stealth_viewer_audit_logs: {
+        Row: {
+          action_type: string
+          created_at: string | null
+          id: string
+          job_id: string
+          job_title: string | null
+          metadata: Json | null
+          performed_by: string
+          performed_by_email: string | null
+          performed_by_name: string | null
+          reason: string | null
+          target_user_email: string | null
+          target_user_id: string | null
+          target_user_name: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string | null
+          id?: string
+          job_id: string
+          job_title?: string | null
+          metadata?: Json | null
+          performed_by: string
+          performed_by_email?: string | null
+          performed_by_name?: string | null
+          reason?: string | null
+          target_user_email?: string | null
+          target_user_id?: string | null
+          target_user_name?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string | null
+          id?: string
+          job_id?: string
+          job_title?: string | null
+          metadata?: Json | null
+          performed_by?: string
+          performed_by_email?: string | null
+          performed_by_name?: string | null
+          reason?: string | null
+          target_user_email?: string | null
+          target_user_id?: string | null
+          target_user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stealth_viewer_audit_logs_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stories: {
         Row: {
           caption: string | null

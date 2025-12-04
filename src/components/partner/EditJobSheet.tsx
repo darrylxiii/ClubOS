@@ -30,6 +30,9 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { StealthJobToggle } from "@/components/jobs/StealthJobToggle";
 import { StealthViewerSelector } from "@/components/jobs/StealthViewerSelector";
+import { StealthAuditTimeline } from "@/components/jobs/StealthAuditTimeline";
+import { stealthJobAuditService } from "@/services/stealthJobAuditService";
+import { History } from "lucide-react";
 
 interface EditJobSheetProps {
   open: boolean;
@@ -325,6 +328,15 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
 
       if (updateError) throw updateError;
 
+      // Audit logging helper
+      const performer = { id: user?.id || '', email: user?.email, full_name: user?.user_metadata?.full_name };
+      const previousViewerIds = existingViewers.map(v => v.user_id);
+
+      // Log stealth mode toggle if changed
+      if (isStealthEnabled !== job.is_stealth) {
+        stealthJobAuditService.logStealthToggled(job.id, formData.title, isStealthEnabled, performer);
+      }
+
       // Update stealth viewers
       if (isStealthEnabled) {
         // Remove old viewers
@@ -339,6 +351,15 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
           }));
           await supabase.from('job_stealth_viewers').insert(viewerInserts);
         }
+
+        // Log viewer changes
+        stealthJobAuditService.logViewerChanges(
+          job.id,
+          formData.title,
+          previousViewerIds,
+          stealthViewerIds,
+          performer
+        );
       }
 
       if (jobDescriptionFile || supportingDocuments.length > 0) {
@@ -685,6 +706,24 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                     )}
                   </CardContent>
                 </Card>
+
+                {/* Access History */}
+                {job?.id && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <History className="h-5 w-5" />
+                        Access History
+                      </CardTitle>
+                      <CardDescription>
+                        View all changes to stealth mode and viewer permissions
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <StealthAuditTimeline jobId={job.id} maxHeight="350px" />
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
               {/* Documents Tab */}
