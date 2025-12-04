@@ -313,6 +313,13 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
 
       setSubmitStep("creating");
 
+      // Debug logging for stealth job creation
+      console.log('[Job Creation] Stealth mode:', { 
+        isStealthEnabled, 
+        stealthViewerIds, 
+        viewerCount: stealthViewerIds.length 
+      });
+
       const { data: job, error: jobError } = await supabase
         .from('jobs')
         .insert({
@@ -360,12 +367,14 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
             console.error('Error inserting stealth viewers:', viewersError);
             toast.error("Job created but failed to add some viewers");
           } else {
-            // Log bulk add of viewers
+          // Log bulk add of viewers
             stealthJobAuditService.logBulkViewersAdded(jobId, formData.title, stealthViewerIds, performer);
           }
         }
-      }
 
+        // Visual confirmation for stealth job creation
+        toast.info(`Confidential job created with ${stealthViewerIds.length} viewer(s)`);
+      }
 
       let jobDescriptionUrl = null;
       let supportingDocsUrls: any[] = [];
