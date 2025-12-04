@@ -21,9 +21,9 @@ interface AdvancedJobFiltersProps {
 
 const statusOptions = [
   { value: 'draft', label: 'Draft' },
-  { value: 'published', label: 'Published' },
+  { value: 'published', label: 'Active' }, // Show "Active" for clarity
   { value: 'closed', label: 'Closed' },
-  { value: 'paused', label: 'Paused' },
+  { value: 'archived', label: 'Archived' },
 ];
 
 export const AdvancedJobFilters = memo<AdvancedJobFiltersProps>(({

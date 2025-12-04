@@ -63,6 +63,8 @@ import {
   Lock,
   Building2,
   RefreshCw,
+  EyeOff,
+  Archive,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -440,6 +442,75 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     } catch (error) {
       console.error('Error publishing job:', error);
       toast.error("Failed to publish job");
+    }
+  };
+
+  const handleUnpublishJob = async (jobId: string, jobTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'draft' })
+        .eq('id', jobId);
+
+      if (error) throw error;
+
+      toast.success(`${jobTitle} moved to draft`);
+      fetchJobsWithMetrics();
+    } catch (error) {
+      console.error('Error unpublishing job:', error);
+      toast.error("Failed to unpublish job");
+    }
+  };
+
+  const handleCloseJob = async (jobId: string, jobTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'closed' })
+        .eq('id', jobId);
+
+      if (error) throw error;
+
+      toast.success(`${jobTitle} has been closed`);
+      fetchJobsWithMetrics();
+    } catch (error) {
+      console.error('Error closing job:', error);
+      toast.error("Failed to close job");
+    }
+  };
+
+  const handleReopenJob = async (jobId: string, jobTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'published' })
+        .eq('id', jobId);
+
+      if (error) throw error;
+
+      toast.success(`${jobTitle} has been reopened`);
+      fetchJobsWithMetrics();
+      celebrateAction();
+    } catch (error) {
+      console.error('Error reopening job:', error);
+      toast.error("Failed to reopen job");
+    }
+  };
+
+  const handleArchiveJob = async (jobId: string, jobTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'archived' })
+        .eq('id', jobId);
+
+      if (error) throw error;
+
+      toast.success(`${jobTitle} has been archived`);
+      fetchJobsWithMetrics();
+    } catch (error) {
+      console.error('Error archiving job:', error);
+      toast.error("Failed to archive job");
     }
   };
 
@@ -1081,6 +1152,10 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
               job={job}
               onNavigate={(id) => navigate(`/jobs/${id}/dashboard`)}
               onPublish={handlePublishJob}
+              onUnpublish={handleUnpublishJob}
+              onClose={handleCloseJob}
+              onReopen={handleReopenJob}
+              onArchive={handleArchiveJob}
               onQuickAction={handleQuickAction}
               onClubSync={handleClubSyncAction}
               getClubSyncBadge={getClubSyncBadge}
@@ -1105,7 +1180,11 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
 const MemoizedJobCard = memo(({ 
   job, 
   onNavigate, 
-  onPublish, 
+  onPublish,
+  onUnpublish,
+  onClose,
+  onReopen,
+  onArchive,
   onQuickAction, 
   onClubSync,
   getClubSyncBadge 
@@ -1129,12 +1208,41 @@ const MemoizedJobCard = memo(({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
+              {/* Status Actions */}
+              <DropdownMenuLabel className="text-xs text-muted-foreground">Status Actions</DropdownMenuLabel>
               {job.status === 'draft' && (
                 <DropdownMenuItem onClick={() => onPublish(job.id, job.title)}>
-                  <Flag className="w-4 h-4 mr-2" />
+                  <Flag className="w-4 h-4 mr-2 text-success" />
                   Publish Job
                 </DropdownMenuItem>
               )}
+              {job.status === 'published' && (
+                <>
+                  <DropdownMenuItem onClick={() => onUnpublish(job.id, job.title)}>
+                    <EyeOff className="w-4 h-4 mr-2" />
+                    Unpublish to Draft
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onClose(job.id, job.title)}>
+                    <XCircle className="w-4 h-4 mr-2 text-warning" />
+                    Close Job
+                  </DropdownMenuItem>
+                </>
+              )}
+              {job.status === 'closed' && (
+                <>
+                  <DropdownMenuItem onClick={() => onReopen(job.id, job.title)}>
+                    <RefreshCw className="w-4 h-4 mr-2 text-success" />
+                    Reopen Job
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onArchive(job.id, job.title)}>
+                    <Archive className="w-4 h-4 mr-2" />
+                    Archive Job
+                  </DropdownMenuItem>
+                </>
+              )}
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-xs text-muted-foreground">Quick Actions</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => onQuickAction('invite', job.id, job.title)}>
                 <UserPlus className="w-4 h-4 mr-2" />
                 Invite Candidate

@@ -9,6 +9,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Lock } from "lucide-react";
+import { JobStatusBadge, JobStatus } from "@/components/jobs/JobStatusBadge";
 
 interface JobCardHeaderProps {
   companyLogo: string | null;
@@ -41,12 +42,7 @@ export const JobCardHeader = memo(({
         </CardTitle>
         <p className="text-xs text-muted-foreground mb-2 truncate">{companyName}</p>
         <div className="flex items-center gap-2 flex-wrap">
-          <Badge 
-            variant="outline" 
-            className="border-border/20 text-foreground bg-card/20"
-          >
-            {status}
-          </Badge>
+          <JobStatusBadge status={status as JobStatus} size="sm" />
           {isStealth && (
             <TooltipProvider>
               <Tooltip>
