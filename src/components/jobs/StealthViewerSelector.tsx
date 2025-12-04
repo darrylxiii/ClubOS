@@ -46,6 +46,163 @@ interface StealthViewerSelectorProps {
   disabled?: boolean;
 }
 
+// Helper functions defined outside component
+const getRoleBadgeVariant = (role?: string) => {
+  switch (role) {
+    case 'admin':
+      return 'destructive';
+    case 'strategist':
+      return 'default';
+    case 'partner':
+      return 'secondary';
+    default:
+      return 'outline';
+  }
+};
+
+const getInitials = (name: string) => {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+};
+
+// UserItem component defined OUTSIDE main component to prevent re-creation on each render
+interface UserItemProps {
+  user: UserOption;
+  isSelected: boolean;
+  onToggle: (userId: string) => void;
+  disabled: boolean;
+}
+
+function UserItem({ user, isSelected, onToggle, disabled }: UserItemProps) {
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!disabled) {
+      onToggle(user.id);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={disabled}
+      className={cn(
+        "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all",
+        isSelected
+          ? "bg-primary/10 border border-primary/30"
+          : "hover:bg-muted/50 border border-transparent",
+        disabled && "opacity-50 cursor-not-allowed"
+      )}
+    >
+      <Avatar className="h-9 w-9">
+        <AvatarImage src={user.avatar_url} />
+        <AvatarFallback className="text-xs">{getInitials(user.full_name)}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-sm truncate">{user.full_name}</span>
+          {user.role && (
+            <Badge variant={getRoleBadgeVariant(user.role) as any} className="text-[10px] px-1.5 py-0">
+              {user.role}
+            </Badge>
+          )}
+        </div>
+        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+      </div>
+      {isSelected && (
+        <div className="flex-shrink-0">
+          <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground text-xs">✓</span>
+          </div>
+        </div>
+      )}
+    </button>
+  );
+}
+
+// UserGroup component defined OUTSIDE main component
+interface UserGroupProps {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  users: UserOption[];
+  selectedUserIds: string[];
+  onToggle: (userId: string) => void;
+  disabled: boolean;
+}
+
+function UserGroup({ title, icon: Icon, users, selectedUserIds, onToggle, disabled }: UserGroupProps) {
+  if (users.length === 0) return null;
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 px-1">
+        <Icon className="h-4 w-4 text-muted-foreground" />
+        <span className="text-sm font-medium text-muted-foreground">{title}</span>
+        <Badge variant="outline" className="text-xs">
+          {users.length}
+        </Badge>
+      </div>
+      <div className="space-y-1">
+        {users.map((user) => (
+          <UserItem
+            key={user.id}
+            user={user}
+            isSelected={selectedUserIds.includes(user.id)}
+            onToggle={onToggle}
+            disabled={disabled}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// SelectedUserBadges component for displaying selected users as removable badges
+interface SelectedUserBadgesProps {
+  selectedUserIds: string[];
+  users: UserOption[];
+  onRemove: (userId: string) => void;
+  disabled: boolean;
+}
+
+function SelectedUserBadges({ selectedUserIds, users, onRemove, disabled }: SelectedUserBadgesProps) {
+  if (selectedUserIds.length === 0) return null;
+
+  const selectedUsers = users.filter((u) => selectedUserIds.includes(u.id));
+
+  return (
+    <div className="flex flex-wrap gap-2 p-3 bg-muted/30 rounded-lg border">
+      {selectedUsers.map((user) => (
+        <Badge
+          key={user.id}
+          variant="secondary"
+          className="flex items-center gap-1.5 pr-1"
+        >
+          <span className="max-w-[120px] truncate">{user.full_name}</span>
+          {!disabled && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onRemove(user.id);
+              }}
+              className="ml-1 rounded-full hover:bg-destructive/20 p-0.5 transition-colors"
+            >
+              <X className="h-3 w-3" />
+            </button>
+          )}
+        </Badge>
+      ))}
+    </div>
+  );
+}
+
 export function StealthViewerSelector({
   jobId,
   companyId,
@@ -156,95 +313,6 @@ export function StealthViewerSelector({
     }
   };
 
-  const getRoleBadgeVariant = (role?: string) => {
-    switch (role) {
-      case 'admin':
-        return 'destructive';
-      case 'strategist':
-        return 'default';
-      case 'partner':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const UserItem = ({ u, isSelected }: { u: UserOption; isSelected: boolean }) => (
-    <button
-      type="button"
-      onClick={() => toggleUser(u.id)}
-      disabled={disabled}
-      className={cn(
-        "w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all",
-        isSelected
-          ? "bg-primary/10 border border-primary/30"
-          : "hover:bg-muted/50 border border-transparent",
-        disabled && "opacity-50 cursor-not-allowed"
-      )}
-    >
-      <Avatar className="h-9 w-9">
-        <AvatarImage src={u.avatar_url} />
-        <AvatarFallback className="text-xs">{getInitials(u.full_name)}</AvatarFallback>
-      </Avatar>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-sm truncate">{u.full_name}</span>
-          {u.role && (
-            <Badge variant={getRoleBadgeVariant(u.role)} className="text-[10px] px-1.5 py-0">
-              {u.role}
-            </Badge>
-          )}
-        </div>
-        <p className="text-xs text-muted-foreground truncate">{u.email}</p>
-      </div>
-      {isSelected && (
-        <div className="flex-shrink-0">
-          <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
-            <span className="text-primary-foreground text-xs">✓</span>
-          </div>
-        </div>
-      )}
-    </button>
-  );
-
-  const UserGroup = ({
-    title,
-    icon: Icon,
-    users: groupUsers,
-  }: {
-    title: string;
-    icon: any;
-    users: UserOption[];
-  }) => {
-    if (groupUsers.length === 0) return null;
-
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 px-1">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium text-muted-foreground">{title}</span>
-          <Badge variant="outline" className="text-xs">
-            {groupUsers.length}
-          </Badge>
-        </div>
-        <div className="space-y-1">
-          {groupUsers.map((u) => (
-            <UserItem key={u.id} u={u} isSelected={selectedUserIds.includes(u.id)} />
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   // Show existing viewers with who granted them
   const ExistingViewersList = () => {
     if (existingViewers.length === 0) return null;
@@ -287,7 +355,11 @@ export function StealthViewerSelector({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={() => toggleUser(viewer.user_id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleUser(viewer.user_id);
+                  }}
                   className="text-muted-foreground hover:text-destructive"
                 >
                   <X className="h-4 w-4" />
@@ -315,6 +387,14 @@ export function StealthViewerSelector({
         )}
       </div>
 
+      {/* Selected users as removable badges */}
+      <SelectedUserBadges
+        selectedUserIds={selectedUserIds}
+        users={users}
+        onRemove={toggleUser}
+        disabled={disabled}
+      />
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -339,18 +419,27 @@ export function StealthViewerSelector({
               title="Team Members"
               icon={Building2}
               users={groupedUsers.companyUsers}
+              selectedUserIds={selectedUserIds}
+              onToggle={toggleUser}
+              disabled={disabled}
             />
 
             <UserGroup
               title="Admins & Strategists"
               icon={Shield}
               users={groupedUsers.adminsAndStrategists}
+              selectedUserIds={selectedUserIds}
+              onToggle={toggleUser}
+              disabled={disabled}
             />
 
             <UserGroup
               title="Other Users"
               icon={Users}
               users={groupedUsers.otherUsers}
+              selectedUserIds={selectedUserIds}
+              onToggle={toggleUser}
+              disabled={disabled}
             />
 
             {groupedUsers.companyUsers.length === 0 &&
