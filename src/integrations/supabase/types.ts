@@ -12076,6 +12076,44 @@ export type Database = {
         }
         Relationships: []
       }
+      job_stealth_viewers: {
+        Row: {
+          created_at: string | null
+          granted_at: string | null
+          granted_by: string
+          id: string
+          job_id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          granted_at?: string | null
+          granted_by: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          granted_at?: string | null
+          granted_by?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_stealth_viewers_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_team_assignments: {
         Row: {
           assigned_by: string | null
@@ -12222,6 +12260,7 @@ export type Database = {
           expected_close_date: string | null
           id: string
           is_lost: boolean | null
+          is_stealth: boolean | null
           job_description_url: string | null
           job_embedding: string | null
           last_activity_date: string | null
@@ -12234,6 +12273,8 @@ export type Database = {
           salary_max: number | null
           salary_min: number | null
           status: string | null
+          stealth_enabled_at: string | null
+          stealth_enabled_by: string | null
           supporting_documents: Json | null
           tags: Json | null
           title: string
@@ -12261,6 +12302,7 @@ export type Database = {
           expected_close_date?: string | null
           id?: string
           is_lost?: boolean | null
+          is_stealth?: boolean | null
           job_description_url?: string | null
           job_embedding?: string | null
           last_activity_date?: string | null
@@ -12273,6 +12315,8 @@ export type Database = {
           salary_max?: number | null
           salary_min?: number | null
           status?: string | null
+          stealth_enabled_at?: string | null
+          stealth_enabled_by?: string | null
           supporting_documents?: Json | null
           tags?: Json | null
           title: string
@@ -12300,6 +12344,7 @@ export type Database = {
           expected_close_date?: string | null
           id?: string
           is_lost?: boolean | null
+          is_stealth?: boolean | null
           job_description_url?: string | null
           job_embedding?: string | null
           last_activity_date?: string | null
@@ -12312,6 +12357,8 @@ export type Database = {
           salary_max?: number | null
           salary_min?: number | null
           status?: string | null
+          stealth_enabled_at?: string | null
+          stealth_enabled_by?: string | null
           supporting_documents?: Json | null
           tags?: Json | null
           title?: string
@@ -27581,6 +27628,10 @@ export type Database = {
       }
       can_manage_board: {
         Args: { _board_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_stealth_job: {
+        Args: { _job_id: string; _user_id: string }
         Returns: boolean
       }
       check_booking_conflict: {

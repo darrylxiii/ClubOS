@@ -20,19 +20,38 @@ import {
   Briefcase,
   Settings,
   FileStack,
-  Download
+  Download,
+  Lock
 } from "lucide-react";
 import { ToolSelector } from "@/components/jobs/ToolSelector";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { StealthJobToggle } from "@/components/jobs/StealthJobToggle";
+import { StealthViewerSelector } from "@/components/jobs/StealthViewerSelector";
 
 interface EditJobSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   job: any;
   onJobUpdated: () => void;
+}
+
+interface StealthViewer {
+  id: string;
+  user_id: string;
+  granted_by: string;
+  granted_at: string;
+  user?: {
+    id: string;
+    full_name: string;
+    email: string;
+    avatar_url?: string;
+  };
+  granter?: {
+    full_name: string;
+  };
 }
 
 export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobSheetProps) => {
@@ -48,6 +67,11 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
   const [requiredTools, setRequiredTools] = useState<any[]>([]);
   const [niceToHaveTools, setNiceToHaveTools] = useState<any[]>([]);
   const [existingDocuments, setExistingDocuments] = useState<any[]>([]);
+  
+  // Stealth job state
+  const [isStealthEnabled, setIsStealthEnabled] = useState(false);
+  const [stealthViewerIds, setStealthViewerIds] = useState<string[]>([]);
+  const [existingViewers, setExistingViewers] = useState<StealthViewer[]>([]);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -102,10 +126,27 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
       }
 
       setExistingDocuments(job.supporting_documents || []);
+      setIsStealthEnabled(job.is_stealth || false);
       setHasUnsavedChanges(false);
       fetchCompanies();
+      if (job.id) fetchStealthViewers(job.id);
     }
   }, [open, job?.id]); // CRITICAL: Only depend on open and job.id, NOT the tool arrays
+
+  const fetchStealthViewers = async (jobId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('job_stealth_viewers')
+        .select('id, user_id, granted_by, granted_at')
+        .eq('job_id', jobId);
+
+      if (error) throw error;
+      setExistingViewers((data || []) as StealthViewer[]);
+      setStealthViewerIds((data || []).map((v: any) => v.user_id));
+    } catch (error) {
+      console.error('Error fetching stealth viewers:', error);
+    }
+  };
 
   const fetchCompanies = async () => {
     try {
@@ -276,10 +317,29 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
           currency: formData.currency,
           company_id: formData.company_id,
           updated_at: new Date().toISOString(),
+          is_stealth: isStealthEnabled,
+          stealth_enabled_by: isStealthEnabled ? user?.id : null,
+          stealth_enabled_at: isStealthEnabled ? new Date().toISOString() : null,
         })
         .eq('id', job.id);
 
       if (updateError) throw updateError;
+
+      // Update stealth viewers
+      if (isStealthEnabled) {
+        // Remove old viewers
+        await supabase.from('job_stealth_viewers').delete().eq('job_id', job.id);
+        
+        // Add new viewers
+        if (stealthViewerIds.length > 0) {
+          const viewerInserts = stealthViewerIds.map(viewerId => ({
+            job_id: job.id,
+            user_id: viewerId,
+            granted_by: user?.id,
+          }));
+          await supabase.from('job_stealth_viewers').insert(viewerInserts);
+        }
+      }
 
       if (jobDescriptionFile || supportingDocuments.length > 0) {
         await uploadFiles(job.id);
@@ -376,7 +436,7 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
         <ScrollArea className="flex-1">
           <div className="p-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 mb-6">
+              <TabsList className="grid w-full grid-cols-4 mb-6">
                 <TabsTrigger value="basic" className="gap-2">
                   <Settings className="h-4 w-4" />
                   Basic Info
@@ -384,6 +444,10 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                 <TabsTrigger value="tools" className="gap-2">
                   <Briefcase className="h-4 w-4" />
                   Tools & Skills
+                </TabsTrigger>
+                <TabsTrigger value="visibility" className="gap-2">
+                  <Lock className="h-4 w-4" />
+                  Visibility
                 </TabsTrigger>
                 <TabsTrigger value="documents" className="gap-2">
                   <FileStack className="h-4 w-4" />
@@ -583,6 +647,41 @@ export const EditJobSheet = ({ open, onOpenChange, job, onJobUpdated }: EditJobS
                       <p className="text-sm text-muted-foreground mt-4 text-center py-8">
                         No nice-to-have tools selected. Add tools that would be a plus.
                       </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Visibility Tab */}
+              <TabsContent value="visibility" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Stealth Mode</CardTitle>
+                    <CardDescription>
+                      Control who can see this job posting
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <StealthJobToggle
+                      enabled={isStealthEnabled}
+                      onEnabledChange={(enabled) => {
+                        setIsStealthEnabled(enabled);
+                        setHasUnsavedChanges(true);
+                      }}
+                      showWarning={job?.is_stealth !== isStealthEnabled}
+                    />
+                    
+                    {isStealthEnabled && formData.company_id && (
+                      <StealthViewerSelector
+                        jobId={job?.id}
+                        companyId={formData.company_id}
+                        selectedUserIds={stealthViewerIds}
+                        onSelectedUsersChange={(ids) => {
+                          setStealthViewerIds(ids);
+                          setHasUnsavedChanges(true);
+                        }}
+                        existingViewers={existingViewers}
+                      />
                     )}
                   </CardContent>
                 </Card>
