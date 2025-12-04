@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Building2, MapPin, Clock } from "lucide-react";
+import { Building2, MapPin, Clock, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface JobCardProps {
   job: {
@@ -12,6 +13,7 @@ interface JobCardProps {
     location?: string;
     employment_type?: string;
     created_at: string;
+    is_stealth?: boolean;
     companies?: {
       name: string;
       logo_url?: string;
@@ -46,10 +48,27 @@ export function JobCard({ job }: JobCardProps) {
                 <p className="text-sm text-muted-foreground">{job.companies?.name}</p>
               </div>
             </div>
+        </div>
+          <div className="flex items-center gap-2">
+            {job.is_stealth && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-500/30 gap-1">
+                      <Lock className="h-3 w-3" />
+                      Confidential
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>This job is only visible to selected users</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {job.employment_type && (
+              <Badge variant="secondary">{job.employment_type}</Badge>
+            )}
           </div>
-          {job.employment_type && (
-            <Badge variant="secondary">{job.employment_type}</Badge>
-          )}
         </div>
       </CardHeader>
 

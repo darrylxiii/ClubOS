@@ -16,6 +16,9 @@ import { JobFormProgress } from "@/components/jobs/JobFormProgress";
 import { useJobFormDraft } from "@/hooks/useJobFormDraft";
 import { ErrorBoundary } from "@/components/ui/error-boundary";
 import { cn } from "@/lib/utils";
+import { StealthJobToggle } from "@/components/jobs/StealthJobToggle";
+import { StealthViewerSelector } from "@/components/jobs/StealthViewerSelector";
+import { Separator } from "@/components/ui/separator";
 
 interface CreateJobDialogProps {
   open: boolean;
@@ -52,6 +55,10 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [restoreDraftDialogOpen, setRestoreDraftDialogOpen] = useState(false);
   const [closeConfirmDialogOpen, setCloseConfirmDialogOpen] = useState(false);
+  
+  // Stealth job state
+  const [isStealthEnabled, setIsStealthEnabled] = useState(false);
+  const [stealthViewerIds, setStealthViewerIds] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<JobFormData>({
     title: '',
@@ -62,6 +69,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     salary_max: '',
     currency: 'EUR',
     company_id: companyId || '',
+    is_stealth: false,
+    stealth_viewers: [],
   });
 
   // Draft auto-save
@@ -290,6 +299,9 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
           created_by: user?.id,
           status: 'open',
           is_active: true,
+          is_stealth: isStealthEnabled,
+          stealth_enabled_by: isStealthEnabled ? user?.id : null,
+          stealth_enabled_at: isStealthEnabled ? new Date().toISOString() : null,
         })
         .select()
         .single();
@@ -299,6 +311,25 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       }
 
       const jobId = job.id;
+
+      // Insert stealth viewers if stealth mode is enabled
+      if (isStealthEnabled && stealthViewerIds.length > 0) {
+        const viewerInserts = stealthViewerIds.map(viewerId => ({
+          job_id: jobId,
+          user_id: viewerId,
+          granted_by: user?.id,
+        }));
+
+        const { error: viewersError } = await supabase
+          .from('job_stealth_viewers')
+          .insert(viewerInserts);
+
+        if (viewersError) {
+          console.error('Error inserting stealth viewers:', viewersError);
+          toast.error("Job created but failed to add some viewers");
+        }
+      }
+
 
       let jobDescriptionUrl = null;
       let supportingDocsUrls: any[] = [];
@@ -378,6 +409,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
       salary_max: '',
       currency: 'EUR',
       company_id: companyId || '',
+      is_stealth: false,
+      stealth_viewers: [],
     });
     setJobDescriptionFile(null);
     setSupportingDocuments([]);
@@ -386,6 +419,8 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
     setFieldErrors([]);
     setUploadProgress(0);
     setHasUnsavedChanges(false);
+    setIsStealthEnabled(false);
+    setStealthViewerIds([]);
   };
 
   const handleClose = () => {
@@ -630,6 +665,33 @@ const CreateJobDialogContent = ({ open, onOpenChange, companyId, onJobCreated }:
               </p>
             )}
           </div>
+
+          {/* Stealth Job Section */}
+          <Separator className="my-4" />
+          <div className="space-y-4">
+            <Label className="text-base font-semibold">Visibility Settings</Label>
+            <StealthJobToggle
+              enabled={isStealthEnabled}
+              onEnabledChange={setIsStealthEnabled}
+              disabled={isSubmitting}
+            />
+            
+            {isStealthEnabled && formData.company_id && (
+              <StealthViewerSelector
+                companyId={formData.company_id}
+                selectedUserIds={stealthViewerIds}
+                onSelectedUsersChange={setStealthViewerIds}
+                disabled={isSubmitting}
+              />
+            )}
+            
+            {isStealthEnabled && !formData.company_id && (
+              <p className="text-sm text-muted-foreground">
+                Select a company first to manage stealth viewers
+              </p>
+            )}
+          </div>
+          <Separator className="my-4" />
 
           <div className="space-y-2">
             <Label htmlFor="job-description-file" className="flex items-center gap-2">

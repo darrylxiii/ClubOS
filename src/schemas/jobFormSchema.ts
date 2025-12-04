@@ -21,6 +21,8 @@ export const jobFormSchema = z.object({
   salary_max: z.string().optional(),
   currency: z.string().min(3).max(3),
   company_id: z.string().uuid("Please select a company"),
+  is_stealth: z.boolean().default(false),
+  stealth_viewers: z.array(z.string().uuid()).optional(),
 }).refine(
   (data) => {
     const min = data.salary_min ? parseFloat(data.salary_min) : null;
