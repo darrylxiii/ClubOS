@@ -2,6 +2,11 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import "./i18n/config";
+import { initializeGlobalErrorHandlers } from "./utils/globalErrorHandlers";
+
+// Initialize global error handlers BEFORE React renders
+// This captures any errors during initialization
+initializeGlobalErrorHandlers();
 
 console.log('[Main] 🚀 Starting application initialization...');
 console.log('[Main] Environment check:', {
