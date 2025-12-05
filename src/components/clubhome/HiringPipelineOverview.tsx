@@ -196,7 +196,7 @@ export const HiringPipelineOverview = ({ companyId }: HiringPipelineOverviewProp
         </div>
 
         <Button className="w-full mt-4" variant="outline" asChild>
-          <Link to="/partner-dashboard">View Full Pipeline</Link>
+          <Link to="/company-applications">View Full Pipeline</Link>
         </Button>
       </CardContent>
     </Card>
