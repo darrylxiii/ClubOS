@@ -10103,10 +10103,17 @@ export type Database = {
           error_message: string
           error_stack: string | null
           error_type: string
+          fingerprint: string | null
+          first_seen_at: string | null
           id: string
+          last_seen_at: string | null
           metadata: Json | null
+          occurrence_count: number | null
           page_url: string | null
+          resolution_notes: string | null
           resolved: boolean | null
+          resolved_at: string | null
+          resolved_by: string | null
           severity: string
           user_agent: string | null
           user_id: string | null
@@ -10117,10 +10124,17 @@ export type Database = {
           error_message: string
           error_stack?: string | null
           error_type: string
+          fingerprint?: string | null
+          first_seen_at?: string | null
           id?: string
+          last_seen_at?: string | null
           metadata?: Json | null
+          occurrence_count?: number | null
           page_url?: string | null
+          resolution_notes?: string | null
           resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           severity: string
           user_agent?: string | null
           user_id?: string | null
@@ -10131,10 +10145,17 @@ export type Database = {
           error_message?: string
           error_stack?: string | null
           error_type?: string
+          fingerprint?: string | null
+          first_seen_at?: string | null
           id?: string
+          last_seen_at?: string | null
           metadata?: Json | null
+          occurrence_count?: number | null
           page_url?: string | null
+          resolution_notes?: string | null
           resolved?: boolean | null
+          resolved_at?: string | null
+          resolved_by?: string | null
           severity?: string
           user_agent?: string | null
           user_id?: string | null
@@ -27333,6 +27354,17 @@ export type Database = {
         }
         Relationships: []
       }
+      error_analytics_summary: {
+        Row: {
+          avg_resolution_hours: number | null
+          date: string | null
+          error_count: number | null
+          error_type: string | null
+          resolved_count: number | null
+          severity: string | null
+        }
+        Relationships: []
+      }
       member_requests_unified: {
         Row: {
           additional_data: Json | null
@@ -28258,6 +28290,10 @@ export type Database = {
       reset_user_verification_rate_limit: {
         Args: { _user_id: string; _verification_type?: string }
         Returns: Json
+      }
+      resolve_error: {
+        Args: { p_error_id: string; p_notes?: string }
+        Returns: boolean
       }
       search_candidate_notes: {
         Args: {
