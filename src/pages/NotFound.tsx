@@ -1,31 +1,34 @@
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Home, Calendar, MessageCircle, ArrowLeft, Search } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTheme } from "next-themes";
 
 const NotFound = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
   const [countdown, setCountdown] = useState(15);
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 
-  // Auto-redirect countdown
+  // Auto-redirect countdown using React Router navigation
   useEffect(() => {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          window.location.href = '/';
+          navigate('/home', { replace: true });
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [navigate]);
 
   const quickLinks = [
     { icon: Home, label: "Home", path: "/" },
@@ -65,14 +68,13 @@ const NotFound = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1, duration: 0.5 }}
-          className="text-center mb-8"
+          className="flex justify-center mb-8"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 mb-4">
-            <span className="text-3xl">☘️</span>
-          </div>
-          <p className="text-sm font-medium text-muted-foreground tracking-widest uppercase">
-            The Quantum Club
-          </p>
+          <img
+            src={resolvedTheme === 'dark' ? '/quantum-logo-dark.png' : '/quantum-club-logo.png'}
+            alt="The Quantum Club"
+            className="h-12 w-auto object-contain"
+          />
         </motion.div>
 
         {/* Main Card */}
