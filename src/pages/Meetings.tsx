@@ -222,7 +222,7 @@ export default function Meetings() {
           hoursTranscribed={stats.hours}
         />
 
-        <Tabs value={activeTab} onValueChange={setActiveTabValue}>
+        <Tabs key={activeTab} value={activeTab} onValueChange={setActiveTabValue}>
           <TabsList className="w-full justify-start">
             <TabsTrigger value="calendar" className="gap-2">
               <CalendarIcon className="h-4 w-4" />
