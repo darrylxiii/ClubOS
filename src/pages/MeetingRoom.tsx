@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { MeetingVideoCallInterface } from '@/components/meetings/MeetingVideoCallInterface';
 import { GuestJoinDialog } from '@/components/meetings/GuestJoinDialog';
+import { MinimalHeader } from '@/components/MinimalHeader';
 import { toast } from 'sonner';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -277,34 +278,40 @@ export default function MeetingRoom() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-8">
-        <Card className="max-w-2xl w-full p-8">
-          <div className="text-center space-y-4">
-            <Skeleton className="h-16 w-16 rounded-full mx-auto" />
-            <Skeleton className="h-8 w-3/4 mx-auto" />
-            <Skeleton className="h-4 w-1/2 mx-auto" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-        </Card>
+      <div className="min-h-screen bg-background flex flex-col">
+        <MinimalHeader backPath="/meetings" />
+        <div className="flex-1 flex items-center justify-center p-8">
+          <Card className="max-w-2xl w-full p-8">
+            <div className="text-center space-y-4">
+              <Skeleton className="h-16 w-16 rounded-full mx-auto" />
+              <Skeleton className="h-8 w-3/4 mx-auto" />
+              <Skeleton className="h-4 w-1/2 mx-auto" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </Card>
+        </div>
       </div>
     );
   }
 
   if (!meeting) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-8">
-        <Card className="max-w-2xl w-full p-8 text-center space-y-4">
-          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
-            <Video className="h-8 w-8 text-destructive" />
-          </div>
-          <h2 className="text-2xl font-bold">Meeting Not Found</h2>
-          <p className="text-muted-foreground">
-            The meeting link may be invalid or the meeting may have been deleted.
-          </p>
-          <Button onClick={() => navigate('/meetings')} className="mt-4">
-            View All Meetings
-          </Button>
-        </Card>
+      <div className="min-h-screen bg-background flex flex-col">
+        <MinimalHeader backPath="/meetings" />
+        <div className="flex-1 flex items-center justify-center p-8">
+          <Card className="max-w-2xl w-full p-8 text-center space-y-4">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <Video className="h-8 w-8 text-destructive" />
+            </div>
+            <h2 className="text-2xl font-bold">Meeting Not Found</h2>
+            <p className="text-muted-foreground">
+              The meeting link may be invalid or the meeting may have been deleted.
+            </p>
+            <Button onClick={() => navigate('/meetings')} className="mt-4">
+              View All Meetings
+            </Button>
+          </Card>
+        </div>
       </div>
     );
   }
@@ -349,7 +356,9 @@ export default function MeetingRoom() {
   const canJoin = isHost || isScheduledTimeReached || hostIsPresent;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex items-center justify-center p-8">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/20 flex flex-col">
+      <MinimalHeader backPath="/meetings" />
+      <div className="flex-1 flex items-center justify-center p-8">
       <Card className="max-w-2xl w-full p-8 glass-card">
         {/* Meeting Info */}
         <div className="text-center mb-8">
@@ -437,6 +446,7 @@ export default function MeetingRoom() {
           </div>
         )}
       </Card>
+      </div>
     </div>
   );
 }

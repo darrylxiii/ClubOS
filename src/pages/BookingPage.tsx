@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Calendar, Clock, ArrowLeft } from "lucide-react";
+import { Calendar, Clock, ArrowLeft, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -11,7 +11,7 @@ import { BookingConfirmation } from "@/components/booking/BookingConfirmation";
 import { UnifiedDateTimeSelector } from "@/components/booking/UnifiedDateTimeSelector";
 import { AIBookingAssistant } from "@/components/booking/AIBookingAssistant";
 import { TimezoneSelector } from "@/components/booking/TimezoneSelector";
-import { Sparkles } from "lucide-react";
+import { MinimalHeader } from "@/components/MinimalHeader";
 import { GoogleReCaptchaProvider } from "react-google-recaptcha-v3";
 import { RECAPTCHA_SITE_KEY } from "@/config/recaptcha";
 import { useBookingAnalytics } from "@/hooks/useBookingAnalytics";
@@ -151,8 +151,9 @@ export default function BookingPage() {
 
   return (
     <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_SITE_KEY}>
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
-        <div className="container mx-auto py-8 px-4 max-w-5xl">
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20 flex flex-col">
+        <MinimalHeader showBackButton={false} showHelpLink={true} />
+        <div className="container mx-auto py-8 px-4 max-w-5xl flex-1">
           {/* Header */}
           <div className="mb-8 text-center">
             <Avatar className="h-20 w-20 mx-auto mb-4">
