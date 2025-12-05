@@ -1,22 +1,20 @@
-import { CheckCircle2, Mail, MessageSquare } from "lucide-react";
+import { CheckCircle2, Mail, MessageSquare, UserPlus, Briefcase, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { AssignmentType, StaffAssignment, PipelineAssignment } from "@/types/approval";
 
 interface ApprovalConfirmationStepProps {
   summary: {
     action: 'merge' | 'create';
     mergeCount?: number;
     profileCreated?: boolean;
-    jobAssigned?: boolean;
-    jobAssignment?: {
-      jobId: string;
-      companyId: string;
-      stageIndex: number;
-    };
+    assignmentType?: AssignmentType;
+    staffAssignment?: StaffAssignment;
+    pipelineAssignment?: PipelineAssignment;
   };
   sendEmail: boolean;
   setSendEmail: (value: boolean) => void;
@@ -26,6 +24,18 @@ interface ApprovalConfirmationStepProps {
   onBack: () => void;
   isSubmitting: boolean;
 }
+
+const getRoleLabel = (role: string): string => {
+  const labels: Record<string, string> = {
+    admin: 'Admin',
+    strategist: 'Strategist',
+    partner: 'Partner',
+    recruiter: 'Recruiter',
+    hiring_manager: 'Hiring Manager',
+    user: 'User',
+  };
+  return labels[role] || role;
+};
 
 export const ApprovalConfirmationStep = ({
   summary,
@@ -54,8 +64,9 @@ export const ApprovalConfirmationStep = ({
         <CardContent className="p-6 space-y-4">
           <div>
             <h4 className="font-semibold mb-3">Actions to be performed:</h4>
-            <div className="space-y-2">
-              {summary.action === 'merge' && summary.mergeCount && (
+            <div className="space-y-3">
+              {/* Merge action */}
+              {summary.action === 'merge' && summary.mergeCount && summary.mergeCount > 0 && (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
                   <span>Merge with {summary.mergeCount} existing candidate profile{summary.mergeCount > 1 ? 's' : ''}</span>
@@ -63,6 +74,7 @@ export const ApprovalConfirmationStep = ({
                 </div>
               )}
 
+              {/* Profile creation */}
               {summary.action === 'create' && summary.profileCreated && (
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-primary" />
@@ -71,26 +83,70 @@ export const ApprovalConfirmationStep = ({
                 </div>
               )}
 
-              {summary.action === 'create' && !summary.profileCreated && summary.mergeCount === 0 && (
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-muted-foreground">No candidate profile will be created</span>
-                  <Badge variant="outline">Skip Profile</Badge>
+              {/* Staff/Role assignment */}
+              {summary.assignmentType === 'staff' && summary.staffAssignment && (
+                <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                  <UserPlus className="w-4 h-4 text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Assign as {getRoleLabel(summary.staffAssignment.role)}</span>
+                      <Badge variant="default">Staff Role</Badge>
+                    </div>
+                    {summary.staffAssignment.companyId && (
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+                        <Building2 className="w-3 h-3" />
+                        <span>Will be added to company as partner</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 
-              <div className="flex items-center gap-2">
+              {/* Pipeline/Candidate assignment */}
+              {summary.assignmentType === 'candidate' && summary.pipelineAssignment && (
+                <div className="flex items-start gap-2 p-3 bg-muted/50 rounded-lg">
+                  <Briefcase className="w-4 h-4 text-primary mt-0.5" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Add to job pipeline</span>
+                      <Badge variant="default">Candidate</Badge>
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-1">
+                      {summary.pipelineAssignment.stageName && (
+                        <span>Starting at: <strong>{summary.pipelineAssignment.stageName}</strong> stage</span>
+                      )}
+                    </div>
+                    {!summary.profileCreated && (
+                      <div className="text-sm text-muted-foreground mt-1">
+                        <span className="text-primary">• Candidate profile will be auto-created</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Skip assignment info */}
+              {summary.assignmentType === 'skip' && (
+                <div className="flex items-center gap-2 text-muted-foreground">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>No role or pipeline assignment</span>
+                  <Badge variant="outline">Skip</Badge>
+                </div>
+              )}
+
+              {/* Approve action */}
+              <div className="flex items-center gap-2 pt-2 border-t">
                 <CheckCircle2 className="w-4 h-4 text-primary" />
-                <span>Approve member request and grant access</span>
+                <span>Approve member request and grant platform access</span>
                 <Badge variant="default">Approve</Badge>
               </div>
             </div>
 
-            {/* Show alert when no profile is created */}
-            {!summary.profileCreated && summary.mergeCount === 0 && (
+            {/* Show alert when no profile or assignment */}
+            {!summary.profileCreated && summary.mergeCount === 0 && summary.assignmentType === 'skip' && (
               <Alert className="mt-4">
                 <AlertDescription>
-                  The member will be approved and granted platform access. A candidate profile can be created manually later if needed for talent tracking.
+                  The member will be approved and granted platform access. A candidate profile or role can be assigned manually later if needed.
                 </AlertDescription>
               </Alert>
             )}

@@ -3,7 +3,9 @@ import {
   MergeSuggestionForApproval, 
   CandidateProfileData, 
   ApprovalWorkflowData,
-  ApprovalWorkflowResult 
+  ApprovalWorkflowResult,
+  StaffAssignment,
+  PipelineAssignment
 } from "@/types/approval";
 import { mergeService } from "@/services/mergeService";
 
@@ -43,15 +45,12 @@ export const memberApprovalService = {
 
   /**
    * Create a candidate profile from member request data
-   * FIX #1: Use correct column names (remote_preference instead of remote_work_preference)
-   * FIX #3: Use desired_locations (JSONB) instead of location (doesn't exist)
    */
   async createCandidateFromRequest(
     requestData: CandidateProfileData,
     userId: string
   ): Promise<string | null> {
     try {
-      // Build insert object with correct column names
       const insertData = {
         user_id: userId,
         full_name: requestData.full_name,
@@ -67,9 +66,7 @@ export const memberApprovalService = {
         source_channel: requestData.source_channel,
         source_metadata: requestData.source_metadata || null,
         created_by: requestData.created_by,
-        // FIX #1: Map remote_preference correctly (text enum, not boolean)
         remote_preference: requestData.remote_preference || null,
-        // FIX #3: Handle desired_locations as JSONB array
         desired_locations: requestData.desired_locations && requestData.desired_locations.length > 0 
           ? requestData.desired_locations 
           : null,
@@ -90,6 +87,155 @@ export const memberApprovalService = {
       return data?.id || null;
     } catch (error) {
       console.error('Error creating candidate profile:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Auto-create candidate profile from request data for pipeline assignment
+   */
+  async autoCreateCandidateProfile(
+    requestId: string,
+    adminId: string
+  ): Promise<string | null> {
+    try {
+      // Get the profile data from the request
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('full_name, email, phone, current_title, linkedin_url, location')
+        .eq('id', requestId)
+        .single();
+
+      if (profileError || !profile) {
+        console.error('[MemberApproval] Could not fetch profile for auto-create:', profileError);
+        return null;
+      }
+
+      // Check if candidate profile already exists for this user
+      const { data: existingCandidate } = await supabase
+        .from('candidate_profiles')
+        .select('id')
+        .eq('user_id', requestId)
+        .single();
+
+      if (existingCandidate) {
+        console.log('[MemberApproval] Candidate profile already exists:', existingCandidate.id);
+        return existingCandidate.id;
+      }
+
+      // Create new candidate profile
+      const { data: newCandidate, error: createError } = await supabase
+        .from('candidate_profiles')
+        .insert({
+          user_id: requestId,
+          full_name: profile.full_name || 'Unknown',
+          email: profile.email,
+          phone: profile.phone || null,
+          current_title: profile.current_title || null,
+          linkedin_url: profile.linkedin_url || null,
+          desired_locations: profile.location ? [profile.location] : null,
+          source_channel: 'member_approval',
+          created_by: adminId,
+        })
+        .select('id')
+        .single();
+
+      if (createError) {
+        console.error('[MemberApproval] Auto-create candidate error:', createError);
+        throw createError;
+      }
+
+      console.log('[MemberApproval] Auto-created candidate profile:', newCandidate?.id);
+      return newCandidate?.id || null;
+    } catch (error) {
+      console.error('Error auto-creating candidate profile:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Assign a user role
+   */
+  async assignUserRole(
+    userId: string,
+    role: string,
+    adminId: string
+  ): Promise<boolean> {
+    try {
+      // Check if role already exists
+      const { data: existingRole } = await (supabase as any)
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('role', role)
+        .single();
+
+      if (existingRole) {
+        console.log('[MemberApproval] Role already assigned:', role);
+        return true;
+      }
+
+      // Insert new role
+      const { error } = await (supabase as any)
+        .from('user_roles')
+        .insert({
+          user_id: userId,
+          role: role,
+        });
+
+      if (error) {
+        console.error('[MemberApproval] Assign role error:', error);
+        throw error;
+      }
+
+      console.log('[MemberApproval] Role assigned:', role, 'to user:', userId);
+      return true;
+    } catch (error) {
+      console.error('Error assigning user role:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Assign user to company (for partners)
+   */
+  async assignToCompany(
+    userId: string,
+    companyId: string,
+    role: string
+  ): Promise<boolean> {
+    try {
+      // Check if already a member
+      const { data: existingMember } = await supabase
+        .from('company_members')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('company_id', companyId)
+        .single();
+
+      if (existingMember) {
+        console.log('[MemberApproval] Already a company member');
+        return true;
+      }
+
+      // Add to company_members
+      const { error } = await supabase
+        .from('company_members')
+        .insert({
+          user_id: userId,
+          company_id: companyId,
+          role: role,
+        });
+
+      if (error) {
+        console.error('[MemberApproval] Assign to company error:', error);
+        throw error;
+      }
+
+      console.log('[MemberApproval] User assigned to company:', companyId);
+      return true;
+    } catch (error) {
+      console.error('Error assigning user to company:', error);
       throw error;
     }
   },
@@ -137,10 +283,11 @@ export const memberApprovalService = {
         { name: 'Screening', completed: stageIndex >= 1, date: stageIndex >= 1 ? new Date().toISOString() : undefined },
         { name: 'Interview', completed: stageIndex >= 2, date: stageIndex >= 2 ? new Date().toISOString() : undefined },
         { name: 'Final Round', completed: stageIndex >= 3, date: stageIndex >= 3 ? new Date().toISOString() : undefined },
+        { name: 'Offer', completed: stageIndex >= 4, date: stageIndex >= 4 ? new Date().toISOString() : undefined },
       ];
 
       // Create application
-      const { data: application, error: applicationError } = await supabase
+      const { data: application, error: applicationError } = await (supabase as any)
         .from('applications')
         .insert({
           candidate_id: candidateId,
@@ -153,7 +300,7 @@ export const memberApprovalService = {
           candidate_linkedin_url: candidate.linkedin_url,
           candidate_title: candidate.current_title,
           candidate_resume_url: candidate.resume_url,
-          application_source: 'direct',
+          application_source: 'admin_added',
           sourced_by: adminId,
           status: 'submitted',
           current_stage_index: stageIndex,
@@ -176,7 +323,7 @@ export const memberApprovalService = {
   async logApprovalAction(
     requestId: string,
     approvedBy: string,
-    actionType: 'merge' | 'create_profile' | 'assign_to_job' | 'skip_merge' | 'approve',
+    actionType: 'merge' | 'create_profile' | 'assign_to_job' | 'assign_role' | 'assign_company' | 'skip_merge' | 'approve',
     actionData: any,
     actionResult: 'success' | 'failed' | 'pending',
     errorMessage?: string
@@ -199,7 +346,6 @@ export const memberApprovalService = {
 
   /**
    * Execute the complete approval workflow
-   * FIX #2: Add account_reviewed_at timestamp to profiles update
    */
   async executeApprovalWorkflow(
     workflowData: ApprovalWorkflowData
@@ -279,13 +425,105 @@ export const memberApprovalService = {
         }
       }
 
-      // Step 3: Assign to job if specified
-      if (workflowData.assignToJob && candidateId) {
+      // Step 3: Handle staff assignment (role + optional company)
+      if (workflowData.assignmentType === 'staff' && workflowData.staffAssignment) {
+        try {
+          await this.assignUserRole(
+            workflowData.requestId,
+            workflowData.staffAssignment.role,
+            workflowData.adminId
+          );
+
+          await this.logApprovalAction(
+            workflowData.requestId,
+            workflowData.adminId,
+            'assign_role',
+            { role: workflowData.staffAssignment.role },
+            'success'
+          );
+
+          // If partner role, also assign to company
+          if (workflowData.staffAssignment.role === 'partner' && workflowData.staffAssignment.companyId) {
+            await this.assignToCompany(
+              workflowData.requestId,
+              workflowData.staffAssignment.companyId,
+              'partner'
+            );
+
+            await this.logApprovalAction(
+              workflowData.requestId,
+              workflowData.adminId,
+              'assign_company',
+              { companyId: workflowData.staffAssignment.companyId },
+              'success'
+            );
+          }
+        } catch (error: any) {
+          errors.push(`Role assignment failed: ${error.message}`);
+          await this.logApprovalAction(
+            workflowData.requestId,
+            workflowData.adminId,
+            'assign_role',
+            { role: workflowData.staffAssignment?.role },
+            'failed',
+            error.message
+          );
+        }
+      }
+
+      // Step 4: Handle pipeline assignment (auto-create candidate profile + add to job)
+      const pipelineAssignment = workflowData.pipelineAssignment || workflowData.assignToJob;
+      if (workflowData.assignmentType === 'candidate' && pipelineAssignment) {
+        try {
+          // Auto-create candidate profile if not already created
+          if (!candidateId) {
+            candidateId = await this.autoCreateCandidateProfile(
+              workflowData.requestId,
+              workflowData.adminId
+            );
+          }
+
+          if (candidateId) {
+            applicationId = await this.linkCandidateToJob(
+              candidateId,
+              pipelineAssignment.jobId,
+              workflowData.adminId,
+              pipelineAssignment.stageIndex
+            );
+
+            if (applicationId) {
+              await this.logApprovalAction(
+                workflowData.requestId,
+                workflowData.adminId,
+                'assign_to_job',
+                { candidateId, jobId: pipelineAssignment.jobId, applicationId, stageIndex: pipelineAssignment.stageIndex },
+                'success'
+              );
+            }
+          } else {
+            errors.push('Could not create candidate profile for pipeline assignment');
+          }
+        } catch (error: any) {
+          errors.push(`Pipeline assignment failed: ${error.message}`);
+          await this.logApprovalAction(
+            workflowData.requestId,
+            workflowData.adminId,
+            'assign_to_job',
+            { candidateId, jobId: pipelineAssignment.jobId },
+            'failed',
+            error.message
+          );
+        }
+      }
+
+      // Legacy support: Handle assignToJob without assignmentType
+      if (!workflowData.assignmentType && workflowData.assignToJob && candidateId) {
         try {
           applicationId = await this.linkCandidateToJob(
             candidateId,
             workflowData.assignToJob.jobId,
-            workflowData.adminId
+            workflowData.adminId,
+            workflowData.assignToJob.stageIndex
           );
 
           if (applicationId) {
@@ -299,26 +537,17 @@ export const memberApprovalService = {
           }
         } catch (error: any) {
           errors.push(`Job assignment failed: ${error.message}`);
-          await this.logApprovalAction(
-            workflowData.requestId,
-            workflowData.adminId,
-            'assign_to_job',
-            { candidateId, jobId: workflowData.assignToJob.jobId },
-            'failed',
-            error.message
-          );
         }
       }
 
-      // Step 4: Approve the member request
-      // FIX #2: Include account_reviewed_at timestamp
+      // Step 5: Approve the member request
       try {
         const { error } = await supabase
           .from('profiles')
           .update({
             account_status: 'approved',
             account_approved_by: workflowData.adminId,
-            account_reviewed_at: new Date().toISOString(), // FIX #2: Add reviewed timestamp
+            account_reviewed_at: new Date().toISOString(),
           })
           .eq('id', workflowData.requestId);
 

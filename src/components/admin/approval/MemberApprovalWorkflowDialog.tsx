@@ -1,10 +1,17 @@
 import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ApprovalStep, MemberRequest, CandidateProfileData, JobAssignment } from "@/types/approval";
+import { 
+  ApprovalStep, 
+  MemberRequest, 
+  CandidateProfileData, 
+  AssignmentType,
+  StaffAssignment,
+  PipelineAssignment
+} from "@/types/approval";
 import { ApprovalStepIndicator } from "./ApprovalStepIndicator";
 import { MergeDetectionStep } from "./MergeDetectionStep";
 import { CreateProfileStep } from "./CreateProfileStep";
-import { AssignToJobStep } from "./AssignToJobStep";
+import { AssignmentTypeStep } from "./AssignmentTypeStep";
 import { ApprovalConfirmationStep } from "./ApprovalConfirmationStep";
 import { memberApprovalService } from "@/services/memberApprovalService";
 import { toast } from "sonner";
@@ -28,20 +35,24 @@ export const MemberApprovalWorkflowDialog = ({
   const [completedSteps, setCompletedSteps] = useState<ApprovalStep[]>([]);
   const [mergeActions, setMergeActions] = useState<Array<{ candidateId: string; userId: string }>>([]);
   const [profileData, setProfileData] = useState<CandidateProfileData | null>(null);
-  const [jobAssignment, setJobAssignment] = useState<JobAssignment | null>(null);
+  
+  // Dual-path assignment state
+  const [assignmentType, setAssignmentType] = useState<AssignmentType>('skip');
+  const [staffAssignment, setStaffAssignment] = useState<StaffAssignment | null>(null);
+  const [pipelineAssignment, setPipelineAssignment] = useState<PipelineAssignment | null>(null);
+  
   const [sendEmail, setSendEmail] = useState(true);
   const [sendSMS, setSendSMS] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [skipJobAssignment, setSkipJobAssignment] = useState(false);
   
-  // FIX #4: Prevent duplicate submissions with ref guard
+  // Prevent duplicate submissions
   const submissionInProgress = useRef(false);
 
   const handleMergeSelection = (merges: Array<{ candidateId: string; userId: string }>) => {
     setMergeActions(merges);
     setCompletedSteps([...completedSteps, 'detect']);
     if (merges.length > 0) {
-      // Skip to job assignment after merge
+      // Skip to assignment after merge
       setCurrentStep('assign');
     } else {
       setCurrentStep('create');
@@ -66,14 +77,18 @@ export const MemberApprovalWorkflowDialog = ({
     setCurrentStep('assign');
   };
 
-  const handleJobAssignment = (assignment: JobAssignment | null) => {
-    setJobAssignment(assignment);
-    setSkipJobAssignment(assignment === null);
+  const handleAssignment = (
+    type: AssignmentType,
+    staff: StaffAssignment | null,
+    pipeline: PipelineAssignment | null
+  ) => {
+    setAssignmentType(type);
+    setStaffAssignment(staff);
+    setPipelineAssignment(pipeline);
     setCompletedSteps([...completedSteps, 'assign']);
     setCurrentStep('confirm');
   };
 
-  // FIX #4: Prevent duplicate submissions
   const handleConfirmApproval = async () => {
     // Guard against duplicate submissions
     if (submissionInProgress.current || isSubmitting) {
@@ -87,11 +102,6 @@ export const MemberApprovalWorkflowDialog = ({
       return;
     }
 
-    // Validate at least one action or allow empty approval
-    if (mergeActions.length === 0 && !profileData) {
-      console.log('[MemberApproval] Approving member without profile creation or merge');
-    }
-
     // Set both guards
     submissionInProgress.current = true;
     setIsSubmitting(true);
@@ -102,7 +112,9 @@ export const MemberApprovalWorkflowDialog = ({
         adminId,
         mergeActions,
         createProfile: profileData || undefined,
-        assignToJob: jobAssignment || undefined,
+        assignmentType,
+        staffAssignment: staffAssignment || undefined,
+        pipelineAssignment: pipelineAssignment || undefined,
         sendNotifications: { email: sendEmail, sms: sendSMS },
       });
 
@@ -125,10 +137,9 @@ export const MemberApprovalWorkflowDialog = ({
     }
   };
 
-  // FIX #4: Prevent dialog close during submission
+  // Prevent dialog close during submission
   const handleOpenChange = (newOpen: boolean) => {
     if (isSubmitting && !newOpen) {
-      // Prevent closing while submitting
       return;
     }
     onOpenChange(newOpen);
@@ -138,7 +149,6 @@ export const MemberApprovalWorkflowDialog = ({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent 
         className="max-w-3xl max-h-[90vh] overflow-y-auto"
-        // FIX #4: Prevent escape key close during submission
         onEscapeKeyDown={(e) => isSubmitting && e.preventDefault()}
         onPointerDownOutside={(e) => isSubmitting && e.preventDefault()}
       >
@@ -168,8 +178,9 @@ export const MemberApprovalWorkflowDialog = ({
         )}
 
         {currentStep === 'assign' && (
-          <AssignToJobStep
-            onAssign={handleJobAssignment}
+          <AssignmentTypeStep
+            requestType={request.request_type}
+            onAssign={handleAssignment}
             onBack={() => setCurrentStep(mergeActions.length > 0 ? 'detect' : 'create')}
           />
         )}
@@ -180,8 +191,9 @@ export const MemberApprovalWorkflowDialog = ({
               action: mergeActions.length > 0 ? 'merge' : 'create',
               mergeCount: mergeActions.length,
               profileCreated: !!profileData,
-              jobAssigned: !!jobAssignment,
-              jobAssignment: jobAssignment || undefined,
+              assignmentType,
+              staffAssignment: staffAssignment || undefined,
+              pipelineAssignment: pipelineAssignment || undefined,
             }}
             sendEmail={sendEmail}
             setSendEmail={setSendEmail}

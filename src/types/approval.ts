@@ -36,30 +36,52 @@ export interface CandidateProfileData {
   phone?: string | null;
   current_title?: string;
   linkedin_url?: string | null;
-  desired_locations?: string[]; // Changed from location to desired_locations (JSONB array)
+  desired_locations?: string[];
   skills?: string[];
   years_of_experience?: number;
   desired_salary_min?: number;
   desired_salary_max?: number;
-  remote_preference?: 'remote' | 'hybrid' | 'on-site' | null; // Changed from remote_work_preference boolean
+  remote_preference?: 'remote' | 'hybrid' | 'on-site' | null;
   notice_period?: string;
   source_channel: string;
   source_metadata?: any;
   created_by: string;
 }
 
-export interface JobAssignment {
+// User role from app_role enum
+export type AppRole = 'admin' | 'strategist' | 'partner' | 'recruiter' | 'hiring_manager' | 'user';
+
+// Assignment type - staff/partner OR candidate pipeline
+export type AssignmentType = 'staff' | 'candidate' | 'skip';
+
+// Staff/Partner assignment data
+export interface StaffAssignment {
+  role: AppRole;
+  companyId?: string; // Required for partner role
+}
+
+// Candidate pipeline assignment (renamed from JobAssignment for clarity)
+export interface PipelineAssignment {
   jobId: string;
   companyId: string;
   stageIndex: number;
+  stageName?: string;
 }
+
+// Legacy type alias for backward compatibility
+export type JobAssignment = PipelineAssignment;
 
 export interface ApprovalWorkflowData {
   requestId: string;
   adminId: string;
   mergeActions: Array<{ candidateId: string; userId: string }>;
   createProfile?: CandidateProfileData;
-  assignToJob?: JobAssignment;
+  // Dual-path assignment
+  assignmentType?: AssignmentType;
+  staffAssignment?: StaffAssignment;
+  pipelineAssignment?: PipelineAssignment;
+  // Legacy field for backward compatibility
+  assignToJob?: PipelineAssignment;
   sendNotifications: { email: boolean; sms: boolean };
 }
 
