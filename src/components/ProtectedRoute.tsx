@@ -11,7 +11,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [onboardingCompleted, setOnboardingCompleted] = useState<boolean | null>(null);
   const [checkingStatus, setCheckingStatus] = useState(true);
 
-  logger.debug("[ProtectedRoute] State", { loading, hasUser: !!user });
+  logger.debug("[ProtectedRoute] State", { loading, hasUser: !!user, checkingStatus, accountStatus, onboardingCompleted });
 
   // Reduced timeout to 4s since AuthContext guarantees loading=false within 3s
   useEffect(() => {
@@ -21,6 +21,9 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
         setLoadingTimeout(true);
       }, 4000);
       return () => clearTimeout(timer);
+    } else {
+      // Reset timeout flag when loading completes normally
+      setLoadingTimeout(false);
     }
   }, [loading]);
 
@@ -85,12 +88,13 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }
   }, [user, loading]);
 
-  // If timeout exceeded, redirect to auth
-  if (loadingTimeout) {
-    logger.error("[ProtectedRoute] ⚠️ Auth timeout exceeded, redirecting to /auth");
+  // If timeout exceeded AND no user, redirect to auth
+  if (loadingTimeout && !user) {
+    logger.error("[ProtectedRoute] ⚠️ Auth timeout exceeded with no user, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
 
+  // Still loading - show loading state
   if (loading || checkingStatus) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -100,7 +104,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!user) {
-    logger.info("[ProtectedRoute] No user, redirecting to /auth");
+    logger.info("[ProtectedRoute] No user after loading complete, redirecting to /auth");
     return <Navigate to="/auth" replace />;
   }
 
@@ -116,6 +120,6 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/pending-approval" replace />;
   }
 
-  logger.debug("[ProtectedRoute] User authenticated and approved, rendering protected content");
+  logger.debug("[ProtectedRoute] ✅ User authenticated and approved, rendering protected content");
   return <>{children}</>;
 };
