@@ -10,28 +10,19 @@ const NotFound = () => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [countdown, setCountdown] = useState(15);
-  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 
-  // Wait for route matching to stabilize before starting countdown
+  // Countdown timer - starts immediately since ProtectedRoutesWrapper now stabilizes routes
   useEffect(() => {
-    const stabilizeTimer = setTimeout(() => setIsReady(true), 500);
-    return () => clearTimeout(stabilizeTimer);
-  }, []);
-
-  // Countdown timer - only runs after route stabilization
-  useEffect(() => {
-    if (!isReady) return;
-    
     const timer = setInterval(() => {
       setCountdown((prev) => prev - 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isReady]);
+  }, []);
 
   // Separate effect for navigation - prevents navigate-during-render
   useEffect(() => {
