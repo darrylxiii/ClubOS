@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,17 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting: 5 tickets per hour per IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+                     req.headers.get("x-real-ip") || 
+                     "unknown";
+    
+    const rateLimitResult = await checkUserRateLimit(clientIp, "create-support-ticket", 5, 3600000);
+    if (!rateLimitResult.allowed) {
+      console.log(`[Support Ticket] Rate limit exceeded for IP: ${clientIp}`);
+      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, corsHeaders);
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''

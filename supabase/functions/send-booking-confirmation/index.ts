@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
 import { Button, Card, Heading, Paragraph, Spacer, InfoRow } from "../_shared/email-templates/components.ts";
+import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,6 +15,17 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting: 5 requests per minute per IP
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+                     req.headers.get("x-real-ip") || 
+                     "unknown";
+    
+    const rateLimitResult = await checkUserRateLimit(clientIp, "send-booking-confirmation", 5, 60000);
+    if (!rateLimitResult.allowed) {
+      console.log(`[Booking Confirmation] Rate limit exceeded for IP: ${clientIp}`);
+      return createRateLimitResponse(rateLimitResult.retryAfter || 60, corsHeaders);
+    }
+
     const { booking, bookingLink } = await req.json();
     
     // Initialize Supabase client to fetch owner profile

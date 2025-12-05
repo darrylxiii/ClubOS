@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -12,6 +13,17 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting: 20 requests per hour per IP/user
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+                     req.headers.get("x-real-ip") || 
+                     "unknown";
+    
+    const rateLimitResult = await checkUserRateLimit(clientIp, "generate-embeddings", 20, 3600000);
+    if (!rateLimitResult.allowed) {
+      console.log(`[Embeddings] Rate limit exceeded for IP: ${clientIp}`);
+      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, corsHeaders);
+    }
+
     const { text, entity_type, entity_id } = await req.json();
     
     if (!text) {
