@@ -297,3 +297,6 @@ verify_jwt = true
 [functions.generate-placeholders]
 verify_jwt = true
 
+[functions.predict-aggregated-hiring-outcomes]
+verify_jwt = true
+
