@@ -125,17 +125,49 @@ serve(async (req) => {
 
         const features = featureData.features;
 
+        // Fetch assessment scores for enhanced matching
+        const { data: assessmentResults } = await supabase
+          .from('assessment_results')
+          .select('score, assessment_type, results_data')
+          .eq('user_id', candidate.user_id || candidate.id)
+          .eq('is_latest', true);
+
+        // Fetch interview performance from meeting analysis
+        const { data: meetingAnalysis } = await supabase
+          .from('meeting_analysis')
+          .select('overall_score, communication_score, technical_score')
+          .eq('candidate_id', candidate.id)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        // Enhance features with assessment and interview data
+        const assessmentScore = assessmentResults?.length 
+          ? assessmentResults.reduce((sum, a) => sum + (a.score || 0), 0) / assessmentResults.length / 100
+          : 0.5;
+        
+        const interviewScore = meetingAnalysis?.length
+          ? meetingAnalysis.reduce((sum, m) => sum + (m.overall_score || 0), 0) / meetingAnalysis.length / 100
+          : 0.5;
+
+        const enhancedFeatures = {
+          ...features,
+          assessment_score: assessmentScore,
+          interview_performance: interviewScore,
+          assessment_count: assessmentResults?.length || 0,
+          interview_count: meetingAnalysis?.length || 0,
+        };
+
         let prediction;
         let shapValues;
 
         if (useMLModel) {
           // Use trained ML model
-          prediction = predictWithTrainedModel(features, activeModel.model_weights);
-          shapValues = generateMLShapExplanations(features, activeModel.feature_importance || {});
+          prediction = predictWithTrainedModel(enhancedFeatures, activeModel.model_weights);
+          shapValues = generateMLShapExplanations(enhancedFeatures, activeModel.feature_importance || {});
         } else {
-          // Fallback to baseline
-          prediction = calculateBaselinePrediction(features);
-          shapValues = generateShapExplanations(features, prediction.prediction_score);
+          // Fallback to baseline with enhanced features
+          prediction = calculateBaselinePrediction(enhancedFeatures);
+          shapValues = generateShapExplanations(enhancedFeatures, prediction.prediction_score);
         }
 
         predictions.push({
@@ -146,7 +178,7 @@ serve(async (req) => {
           predicted_time_to_hire_days: prediction.predicted_time_to_hire_days,
           rank_position: 0, // Will be set after sorting
           shap_values: shapValues,
-          features_used: features,
+          features_used: enhancedFeatures,
         });
       } catch (error) {
         console.error(`[ML Match] Error scoring candidate ${candidate.id}:`, error);
@@ -243,14 +275,17 @@ function calculateBaselinePrediction(features: any): {
   interview_probability: number;
   predicted_time_to_hire_days: number;
 } {
+  // Enhanced weights including assessment and interview performance
   const weights = {
-    skills_match: 0.30,
-    experience_match: 0.20,
-    salary_match: 0.15,
-    location_match: 0.10,
-    semantic_similarity: 0.15,
-    profile_quality: 0.08,
+    skills_match: 0.25,
+    experience_match: 0.15,
+    salary_match: 0.12,
+    location_match: 0.08,
+    semantic_similarity: 0.12,
+    profile_quality: 0.06,
     activity_level: 0.02,
+    assessment_score: 0.10, // NEW: Assessment performance
+    interview_performance: 0.10, // NEW: Past interview performance
   };
 
   let score = 0;
@@ -261,14 +296,24 @@ function calculateBaselinePrediction(features: any): {
   score += (features.semantic_similarity_score || 0) * weights.semantic_similarity;
   score += (features.candidate_profile_completeness || 0.5) * weights.profile_quality;
   
+  // NEW: Add assessment and interview scores
+  score += (features.assessment_score || 0.5) * weights.assessment_score;
+  score += (features.interview_performance || 0.5) * weights.interview_performance;
+  
   const daysInactive = features.candidate_last_active_days_ago || 30;
   score += Math.max(0, 1 - (daysInactive / 90)) * weights.activity_level;
 
   const predictionScore = Math.max(0, Math.min(1, score));
-  const interviewProbability = predictionScore * 0.40;
+  
+  // Interview probability boosted by past interview performance
+  const interviewBoost = features.interview_count > 0 ? 1.15 : 1.0;
+  const interviewProbability = Math.min(predictionScore * 0.40 * interviewBoost, 0.95);
+  
+  // Time to hire reduced if candidate has good assessment scores
   const baseTimeToHire = 35;
   const urgencyFactor = features.job_is_urgent ? 0.7 : 1.0;
-  const predictedTimeToHire = Math.round(baseTimeToHire * urgencyFactor);
+  const assessmentFactor = features.assessment_count > 0 ? 0.85 : 1.0;
+  const predictedTimeToHire = Math.round(baseTimeToHire * urgencyFactor * assessmentFactor);
 
   return {
     prediction_score: Math.round(predictionScore * 10000) / 10000,
