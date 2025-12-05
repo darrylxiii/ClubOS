@@ -3,6 +3,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
+import { fetchAI, handleAIError, createTimeoutResponse, AITimeoutError } from '../_shared/ai-fetch.ts';
+import { CommonErrors } from '../_shared/error-responses.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -20,10 +22,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.log('[generate-quick-reply] No auth header');
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return CommonErrors.unauthorized(publicCorsHeaders);
     }
 
     const supabaseAuth = createClient(
@@ -36,10 +35,7 @@ serve(async (req) => {
     
     if (authError || !user) {
       console.log('[generate-quick-reply] Auth failed:', authError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return CommonErrors.unauthorized(publicCorsHeaders);
     }
 
     userId = user.id;
@@ -60,11 +56,6 @@ serve(async (req) => {
     }
 
     const { conversationId, recentMessages } = await req.json();
-    
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY not configured');
-    }
 
     // Build context from recent messages
     const messageHistory = recentMessages.map((msg: any) => ({
@@ -74,59 +65,42 @@ serve(async (req) => {
 
     console.log('[generate-quick-reply] Calling Lovable AI');
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an AI assistant helping draft professional, concise messages in a job application context. 
+    // Use timeout-protected AI fetch (20s timeout for quick replies)
+    const response = await fetchAI({
+      model: 'google/gemini-2.5-flash',
+      messages: [
+        {
+          role: 'system',
+          content: `You are an AI assistant helping draft professional, concise messages in a job application context. 
 Generate a helpful, polite reply based on the conversation history. 
 Keep responses under 150 words, professional, and friendly. 
 Focus on moving the conversation forward constructively.`
-          },
-          ...messageHistory,
-          {
-            role: 'user',
-            content: 'Generate a professional reply to continue this conversation:'
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 200,
-      }),
-    });
+        },
+        ...messageHistory,
+        {
+          role: 'user',
+          content: 'Generate a professional reply to continue this conversation:'
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 200,
+    }, { timeoutMs: 20000 });
 
-    if (!response.ok) {
-      const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
-                          response.status === 402 ? 'AI credits exhausted' :
-                          'AI service error';
-      
+    // Handle AI errors consistently
+    const errorResponse = handleAIError(response, publicCorsHeaders);
+    if (errorResponse) {
       await logAIUsage({
         userId,
         functionName: 'generate-quick-reply',
         ...clientInfo,
         responseTimeMs: Date.now() - startTime,
         success: false,
-        errorMessage
+        errorMessage: `AI error: ${response.status}`
       });
+      return errorResponse;
+    }
 
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-          { status: 429, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: 'AI credits exhausted. Please add funds to your Lovable workspace.' }),
-          { status: 402, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
+    if (!response.ok) {
       throw new Error(`AI API error: ${response.status}`);
     }
 
@@ -150,6 +124,20 @@ Focus on moving the conversation forward constructively.`
 
   } catch (error) {
     console.error('[generate-quick-reply] Error:', error);
+    
+    // Handle timeout errors specifically
+    if (error instanceof AITimeoutError) {
+      await logAIUsage({
+        userId,
+        functionName: 'generate-quick-reply',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage: 'Request timed out'
+      });
+      return createTimeoutResponse(publicCorsHeaders);
+    }
+
     await logAIUsage({
       userId,
       functionName: 'generate-quick-reply',
@@ -158,9 +146,6 @@ Focus on moving the conversation forward constructively.`
       success: false,
       errorMessage: error instanceof Error ? error.message : 'Unknown error'
     });
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Failed to generate suggestion' }),
-      { status: 500, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return CommonErrors.internalError(publicCorsHeaders, 'Failed to generate suggestion');
   }
 });
