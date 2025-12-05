@@ -65,6 +65,7 @@ import {
   RefreshCw,
   EyeOff,
   Archive,
+  RotateCcw,
 } from "lucide-react";
 import { CreateJobDialog } from "./CreateJobDialog";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -80,6 +81,7 @@ import { JobSearchBar } from "./JobSearchBar";
 import { AdvancedJobFilters } from "./AdvancedJobFilters";
 import { usePersistedJobFilters } from "@/hooks/usePersistedJobFilters";
 import { JobFilterState } from "@/types/jobFilters";
+import { JobStatusSummaryBar, JobStatusFilter } from "./JobStatusSummaryBar";
 
 interface PartnerJobsHomeProps {
   companyId: string | null;
@@ -129,6 +131,8 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
   const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
   const [clubSyncInfoOpen, setClubSyncInfoOpen] = useState(false);
   const [isFirstVisit, setIsFirstVisit] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<JobStatusFilter>('all');
+  const [isPublishingAll, setIsPublishingAll] = useState(false);
   const isAdmin = role === 'admin';
   
   // Use persisted filters
@@ -416,6 +420,21 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
       highEngagement
     };
   }, [jobs]);
+
+  // Calculate status counts for status summary bar
+  const statusCounts = useMemo(() => ({
+    all: jobs.length,
+    draft: jobs.filter(j => j.status === 'draft').length,
+    published: jobs.filter(j => j.status === 'published').length,
+    closed: jobs.filter(j => j.status === 'closed').length,
+    archived: jobs.filter(j => j.status === 'archived').length,
+  }), [jobs]);
+
+  // Apply status filter on top of other filters
+  const statusFilteredJobs = useMemo(() => {
+    if (statusFilter === 'all') return filteredJobs;
+    return filteredJobs.filter(job => job.status === statusFilter);
+  }, [filteredJobs, statusFilter]);
   
   // Handler for quick filter change
   const handleQuickFilterChange = (filter: JobFilterType) => {
@@ -511,6 +530,49 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
     } catch (error) {
       console.error('Error archiving job:', error);
       toast.error("Failed to archive job");
+    }
+  };
+
+  const handleRestoreJob = async (jobId: string, jobTitle: string) => {
+    try {
+      const { error } = await supabase
+        .from('jobs')
+        .update({ status: 'closed' })
+        .eq('id', jobId);
+
+      if (error) throw error;
+
+      toast.success(`${jobTitle} has been restored from archive`);
+      fetchJobsWithMetrics();
+    } catch (error) {
+      console.error('Error restoring job:', error);
+      toast.error("Failed to restore job");
+    }
+  };
+
+  const handlePublishAllDrafts = async () => {
+    setIsPublishingAll(true);
+    try {
+      const draftJobs = jobs.filter(j => j.status === 'draft');
+      
+      const { error } = await supabase
+        .from('jobs')
+        .update({ 
+          status: 'published',
+          published_at: new Date().toISOString()
+        })
+        .in('id', draftJobs.map(j => j.id));
+
+      if (error) throw error;
+
+      toast.success(`Published ${draftJobs.length} job${draftJobs.length !== 1 ? 's' : ''} successfully!`);
+      fetchJobsWithMetrics();
+      celebrateAction();
+    } catch (error) {
+      console.error('Error publishing all drafts:', error);
+      toast.error("Failed to publish all drafts");
+    } finally {
+      setIsPublishingAll(false);
     }
   };
 
@@ -1098,11 +1160,20 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
           </h2>
         </div>
         
+        {/* Status Summary Bar with Tabs and Bulk Actions */}
+        <JobStatusSummaryBar
+          counts={statusCounts}
+          currentStatus={statusFilter}
+          onStatusChange={setStatusFilter}
+          onPublishAllDrafts={handlePublishAllDrafts}
+          isPublishingAll={isPublishingAll}
+        />
+        
         {/* Search Bar */}
         <JobSearchBar
           value={filters.search}
           onChange={(value) => updateFilters({ search: value })}
-          resultsCount={filteredJobs.length}
+          resultsCount={statusFilteredJobs.length}
           placeholder="Search by job title, company, or location..."
         />
         
@@ -1146,7 +1217,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          {filteredJobs.map((job) => (
+          {statusFilteredJobs.map((job) => (
             <MemoizedJobCard 
               key={job.id}
               job={job}
@@ -1156,6 +1227,7 @@ export const PartnerJobsHome = ({ companyId }: PartnerJobsHomeProps) => {
               onClose={handleCloseJob}
               onReopen={handleReopenJob}
               onArchive={handleArchiveJob}
+              onRestore={handleRestoreJob}
               onQuickAction={handleQuickAction}
               onClubSync={handleClubSyncAction}
               getClubSyncBadge={getClubSyncBadge}
@@ -1185,6 +1257,7 @@ const MemoizedJobCard = memo(({
   onClose,
   onReopen,
   onArchive,
+  onRestore,
   onQuickAction, 
   onClubSync,
   getClubSyncBadge 
@@ -1207,14 +1280,20 @@ const MemoizedJobCard = memo(({
                 <MoreVertical className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-56 bg-card border-border">
               {/* Status Actions */}
               <DropdownMenuLabel className="text-xs text-muted-foreground">Status Actions</DropdownMenuLabel>
               {job.status === 'draft' && (
-                <DropdownMenuItem onClick={() => onPublish(job.id, job.title)}>
-                  <Flag className="w-4 h-4 mr-2 text-success" />
-                  Publish Job
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => onPublish(job.id, job.title)}>
+                    <Flag className="w-4 h-4 mr-2 text-success" />
+                    Publish Job
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onArchive(job.id, job.title)}>
+                    <Archive className="w-4 h-4 mr-2" />
+                    Archive Draft
+                  </DropdownMenuItem>
+                </>
               )}
               {job.status === 'published' && (
                 <>
@@ -1239,6 +1318,12 @@ const MemoizedJobCard = memo(({
                     Archive Job
                   </DropdownMenuItem>
                 </>
+              )}
+              {job.status === 'archived' && (
+                <DropdownMenuItem onClick={() => onRestore(job.id, job.title)}>
+                  <RotateCcw className="w-4 h-4 mr-2 text-success" />
+                  Restore from Archive
+                </DropdownMenuItem>
               )}
               
               <DropdownMenuSeparator />
