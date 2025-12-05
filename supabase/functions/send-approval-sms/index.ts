@@ -1,8 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { getAppUrl, AppUrls } from '../_shared/app-config.ts';
 
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID");
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN");
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER");
+
+const APP_URL = getAppUrl();
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,8 +42,8 @@ serve(async (req) => {
 
     // SMS message content - discreet, luxury tone
     const message = requestType === 'candidate'
-      ? `Welcome to The Quantum Club, ${fullName}. Your application has been approved. Darryl will contact you within 19 minutes. Log in: https://app.thequantumclub.com/auth`
-      : `Welcome to The Quantum Club. Your partner application has been approved. Darryl will reach out within 19 minutes to discuss your hiring needs. Log in: https://app.thequantumclub.com/auth`;
+      ? `Welcome to The Quantum Club, ${fullName}. Your application has been approved. Darryl will contact you within 19 minutes. Log in: ${AppUrls.auth()}`
+      : `Welcome to The Quantum Club. Your partner application has been approved. Darryl will reach out within 19 minutes to discuss your hiring needs. Log in: ${AppUrls.auth()}`;
 
     // Send SMS via Twilio
     const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
