@@ -1,10 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 interface AnalyticsQuery {
   query: string;
@@ -17,10 +15,16 @@ interface AnalyticsQuery {
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
 
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
+
   try {
+    console.log('[analytics-ai-assistant] Processing request');
+    
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const lovableApiKey = Deno.env.get('LOVABLE_API_KEY')!;
@@ -30,7 +34,11 @@ Deno.serve(async (req) => {
     // Verify admin authentication
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('Missing authorization header');
+      console.log('[analytics-ai-assistant] Missing authorization header');
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const { data: { user }, error: authError } = await supabase.auth.getUser(
@@ -38,8 +46,14 @@ Deno.serve(async (req) => {
     );
 
     if (authError || !user) {
-      throw new Error('Unauthorized');
+      console.log('[analytics-ai-assistant] Unauthorized:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    userId = user.id;
 
     // Verify admin role
     const { data: roles } = await supabase
@@ -49,12 +63,31 @@ Deno.serve(async (req) => {
       .single();
 
     if (roles?.role !== 'admin') {
-      throw new Error('Admin access required');
+      console.log('[analytics-ai-assistant] Admin access required for user:', userId);
+      return new Response(
+        JSON.stringify({ error: 'Admin access required' }),
+        { status: 403, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Rate limiting: 15 requests per hour for admins
+    const rateLimit = await checkUserRateLimit(userId, 'analytics-ai-assistant', 15);
+    if (!rateLimit.allowed) {
+      console.log('[analytics-ai-assistant] Rate limit exceeded for admin:', userId);
+      await logAIUsage({
+        userId,
+        functionName: 'analytics-ai-assistant',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, publicCorsHeaders);
     }
 
     const { query, context }: AnalyticsQuery = await req.json();
 
-    console.log('Analytics query received:', { query, context, userId: user.id });
+    console.log('[analytics-ai-assistant] Query received:', { query, context, userId });
 
     // Fetch relevant analytics context
     const analyticsContext = await fetchAnalyticsContext(supabase, context);
@@ -78,8 +111,10 @@ When asked about:
 - Anomalies: Explain unusual patterns with data-driven reasoning
 - Trends: Project future outcomes with confidence levels`;
 
+    console.log('[analytics-ai-assistant] Calling Lovable AI Gateway');
+
     // Call Lovable AI Gateway
-    const aiResponse = await fetch('https://api.lovable.app/v1/chat/completions', {
+    const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${lovableApiKey}`,
@@ -97,8 +132,21 @@ When asked about:
     });
 
     if (!aiResponse.ok) {
+      const errorMessage = aiResponse.status === 429 ? 'AI rate limit exceeded' :
+                          aiResponse.status === 402 ? 'AI credits exhausted' :
+                          'AI service error';
+      
+      await logAIUsage({
+        userId,
+        functionName: 'analytics-ai-assistant',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage
+      });
+
       const errorText = await aiResponse.text();
-      console.error('AI API error:', errorText);
+      console.error('[analytics-ai-assistant] AI API error:', errorText);
       throw new Error(`AI API error: ${aiResponse.status}`);
     }
 
@@ -130,7 +178,15 @@ When asked about:
       });
     }
 
-    console.log('Club AI response generated successfully');
+    await logAIUsage({
+      userId,
+      functionName: 'analytics-ai-assistant',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
+
+    console.log('[analytics-ai-assistant] Response generated successfully');
 
     return new Response(
       JSON.stringify({
@@ -138,17 +194,25 @@ When asked about:
         context: analyticsContext,
         insight_type: insightType,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in analytics-ai-assistant:', error);
+    console.error('[analytics-ai-assistant] Error:', error);
+    await logAIUsage({
+      userId,
+      functionName: 'analytics-ai-assistant',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    });
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),
       { 
         status: errorMessage.includes('Unauthorized') ? 401 : 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }

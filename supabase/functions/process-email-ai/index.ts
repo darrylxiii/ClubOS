@@ -1,14 +1,11 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 // Helper function to strip markdown code blocks from JSON responses
 function stripMarkdownCodeBlocks(text: string): string {
-  // Remove ```json and ``` markers
   return text
     .replace(/^```json\s*/i, '')
     .replace(/^```\s*/, '')
@@ -44,41 +41,7 @@ Analyze this email comprehensively and provide:
    - relationshipStrength: 'cold' | 'warm' | 'hot' | 'vip'
    - keyTopics: array of main discussion points
 
-Consider:
-- Recruiter emails with "interview" or "opportunity" → HIGH priority
-- Offer letters → HIGHEST priority
-- Networking intros → MEDIUM priority
-- Newsletters/marketing → LOW priority
-
-Respond ONLY with valid JSON in this format:
-{
-  "category": "string",
-  "priority": number,
-  "summary": "string",
-  "sentiment": "string",
-  "action_items": [],
-  "smart_replies": {
-    "professional": "string",
-    "friendly": "string",
-    "decline": "string"
-  },
-  "meeting": {
-    "hasMeeting": boolean,
-    "meetingTitle": "string",
-    "suggestedDates": [],
-    "location": "string"
-  },
-  "follow_up": {
-    "needsFollowUp": boolean,
-    "followUpType": "string",
-    "followUpDays": number,
-    "followUpReason": "string"
-  },
-  "relationship": {
-    "relationshipStrength": "string",
-    "keyTopics": []
-  }
-}`;
+Respond ONLY with valid JSON.`;
 
 interface ProcessRequest {
   emailId: string;
@@ -86,10 +49,16 @@ interface ProcessRequest {
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
 
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
+
   try {
+    console.log('[process-email-ai] Processing request');
+    
     const { emailId }: ProcessRequest = await req.json();
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -105,14 +74,33 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (emailError || !email) {
+      console.log('[process-email-ai] Email not found:', emailId);
       throw new Error("Email not found");
+    }
+
+    userId = email.user_id;
+
+    // Rate limiting: 100 emails per hour per user
+    const rateLimit = await checkUserRateLimit(userId || 'anonymous', 'process-email-ai', 100);
+    if (!rateLimit.allowed) {
+      console.log('[process-email-ai] Rate limit exceeded for user:', userId);
+      await logAIUsage({
+        userId,
+        functionName: 'process-email-ai',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, publicCorsHeaders);
     }
 
     // Skip if already processed
     if (email.ai_processed_at) {
+      console.log('[process-email-ai] Email already processed:', emailId);
       return new Response(
         JSON.stringify({ message: "Email already processed" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...publicCorsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -122,6 +110,8 @@ From: ${email.from_name || email.from_email}
 Subject: ${email.subject}
 Body: ${email.body_text || email.snippet || ""}
     `.trim();
+
+    console.log('[process-email-ai] Calling Lovable AI');
 
     // Call Lovable AI
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -141,6 +131,19 @@ Body: ${email.body_text || email.snippet || ""}
     });
 
     if (!aiResponse.ok) {
+      const errorMessage = aiResponse.status === 429 ? 'AI rate limit exceeded' :
+                          aiResponse.status === 402 ? 'AI credits exhausted' :
+                          'AI service error';
+      
+      await logAIUsage({
+        userId,
+        functionName: 'process-email-ai',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage
+      });
+
       throw new Error(`AI API error: ${aiResponse.statusText}`);
     }
 
@@ -248,20 +251,38 @@ Body: ${email.body_text || email.snippet || ""}
         onConflict: 'user_id,contact_email',
       });
 
+    await logAIUsage({
+      userId,
+      functionName: 'process-email-ai',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
+
+    console.log('[process-email-ai] Email processed successfully:', emailId);
+
     return new Response(
       JSON.stringify({
         success: true,
         analysis,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...publicCorsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
-    console.error("Error processing email with AI:", error);
+    console.error("[process-email-ai] Error:", error);
+    await logAIUsage({
+      userId,
+      functionName: 'process-email-ai',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error.message
+    });
     return new Response(
       JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { ...publicCorsHeaders, "Content-Type": "application/json" },
       }
     );
   }

@@ -1,22 +1,65 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
+import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
 
+  const startTime = Date.now();
+  const clientInfo = extractClientInfo(req);
+  let userId: string | undefined;
+
   try {
-    const { candidateId, jobId } = await req.json();
+    console.log('[generate-executive-briefing] Processing request');
     
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.log('[generate-executive-briefing] No auth header');
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser(
+      authHeader.replace('Bearer ', '')
+    );
+    
+    if (authError || !user) {
+      console.log('[generate-executive-briefing] Auth failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    userId = user.id;
+
+    // Rate limiting: 20 briefings per hour
+    const rateLimit = await checkUserRateLimit(userId, 'generate-executive-briefing', 20);
+    if (!rateLimit.allowed) {
+      console.log('[generate-executive-briefing] Rate limit exceeded for user:', userId);
+      await logAIUsage({
+        userId,
+        functionName: 'generate-executive-briefing',
+        ...clientInfo,
+        rateLimitHit: true,
+        success: false,
+        errorMessage: 'Rate limit exceeded'
+      });
+      return createRateLimitResponse(rateLimit.retryAfter!, publicCorsHeaders);
+    }
+
+    const { candidateId, jobId } = await req.json();
 
     // Fetch candidate and application data
     const { data: candidate } = await supabase
@@ -71,6 +114,8 @@ Generate a JSON response:
   "readTime": "30 seconds"
 }`;
 
+    console.log('[generate-executive-briefing] Calling Lovable AI for candidate:', candidateId);
+
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -86,6 +131,23 @@ Generate a JSON response:
       }),
     });
 
+    if (!aiResponse.ok) {
+      const errorMessage = aiResponse.status === 429 ? 'AI rate limit exceeded' :
+                          aiResponse.status === 402 ? 'AI credits exhausted' :
+                          'AI service error';
+      
+      await logAIUsage({
+        userId,
+        functionName: 'generate-executive-briefing',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage
+      });
+
+      throw new Error(`AI API error: ${aiResponse.status}`);
+    }
+
     const aiData = await aiResponse.json();
     let briefing;
 
@@ -94,7 +156,7 @@ Generate a JSON response:
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       briefing = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(content);
     } catch (e) {
-      console.error('Failed to parse AI response:', e);
+      console.error('[generate-executive-briefing] Failed to parse AI response:', e);
       briefing = {
         headline: `${candidate?.full_name} - Strong candidate pending review`,
         topThreeStrengths: ["Technical competence", "Cultural alignment", "Strong communication"],
@@ -109,15 +171,33 @@ Generate a JSON response:
       };
     }
 
+    await logAIUsage({
+      userId,
+      functionName: 'generate-executive-briefing',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: true
+    });
+
+    console.log('[generate-executive-briefing] Briefing generated successfully');
+
     return new Response(JSON.stringify({ briefing }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error generating briefing:', error);
+    console.error('[generate-executive-briefing] Error:', error);
+    await logAIUsage({
+      userId,
+      functionName: 'generate-executive-briefing',
+      ...clientInfo,
+      responseTimeMs: Date.now() - startTime,
+      success: false,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error'
+    });
     return new Response(JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
