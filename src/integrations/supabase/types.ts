@@ -4134,6 +4134,118 @@ export type Database = {
           },
         ]
       }
+      candidate_offers: {
+        Row: {
+          ai_recommendation: Json | null
+          application_id: string | null
+          base_salary: number | null
+          benchmark_comparison: Json | null
+          bonus_percentage: number | null
+          candidate_id: string | null
+          created_at: string | null
+          created_by: string | null
+          equity_percentage: number | null
+          expires_at: string | null
+          id: string
+          job_id: string | null
+          market_competitiveness_score: number | null
+          notes: string | null
+          responded_at: string | null
+          salary_percentile: number | null
+          sent_at: string | null
+          status: string | null
+          total_compensation: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ai_recommendation?: Json | null
+          application_id?: string | null
+          base_salary?: number | null
+          benchmark_comparison?: Json | null
+          bonus_percentage?: number | null
+          candidate_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          equity_percentage?: number | null
+          expires_at?: string | null
+          id?: string
+          job_id?: string | null
+          market_competitiveness_score?: number | null
+          notes?: string | null
+          responded_at?: string | null
+          salary_percentile?: number | null
+          sent_at?: string | null
+          status?: string | null
+          total_compensation?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ai_recommendation?: Json | null
+          application_id?: string | null
+          base_salary?: number | null
+          benchmark_comparison?: Json | null
+          bonus_percentage?: number | null
+          candidate_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          equity_percentage?: number | null
+          expires_at?: string | null
+          id?: string
+          job_id?: string | null
+          market_competitiveness_score?: number | null
+          notes?: string | null
+          responded_at?: string | null
+          salary_percentile?: number | null
+          sent_at?: string | null
+          status?: string | null
+          total_compensation?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "candidate_offers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_offers_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications_with_deleted_candidates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_offers_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "candidate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_offers_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "potential_merges"
+            referencedColumns: ["candidate_id"]
+          },
+          {
+            foreignKeyName: "candidate_offers_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "unified_candidate_view"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "candidate_offers_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidate_profile_audit: {
         Row: {
           action: string
@@ -4280,6 +4392,7 @@ export type Database = {
           actively_looking: boolean | null
           admin_notes: string | null
           ai_concerns: Json | null
+          ai_recommendation: string | null
           ai_strengths: Json | null
           ai_summary: string | null
           application_status: string | null
@@ -4322,10 +4435,15 @@ export type Database = {
           id: string
           industry_preference: string | null
           internal_rating: number | null
+          interview_count: number | null
+          interview_score_avg: number | null
           invitation_status: string | null
           job_alert_frequency: string | null
+          key_strengths_aggregated: string[] | null
+          key_weaknesses_aggregated: string[] | null
           languages: Json | null
           last_activity_at: string | null
+          last_interview_at: string | null
           last_invite_sent_at: string | null
           last_profile_update: string | null
           linkedin_profile_data: Json | null
@@ -4363,6 +4481,7 @@ export type Database = {
           actively_looking?: boolean | null
           admin_notes?: string | null
           ai_concerns?: Json | null
+          ai_recommendation?: string | null
           ai_strengths?: Json | null
           ai_summary?: string | null
           application_status?: string | null
@@ -4405,10 +4524,15 @@ export type Database = {
           id?: string
           industry_preference?: string | null
           internal_rating?: number | null
+          interview_count?: number | null
+          interview_score_avg?: number | null
           invitation_status?: string | null
           job_alert_frequency?: string | null
+          key_strengths_aggregated?: string[] | null
+          key_weaknesses_aggregated?: string[] | null
           languages?: Json | null
           last_activity_at?: string | null
+          last_interview_at?: string | null
           last_invite_sent_at?: string | null
           last_profile_update?: string | null
           linkedin_profile_data?: Json | null
@@ -4446,6 +4570,7 @@ export type Database = {
           actively_looking?: boolean | null
           admin_notes?: string | null
           ai_concerns?: Json | null
+          ai_recommendation?: string | null
           ai_strengths?: Json | null
           ai_summary?: string | null
           application_status?: string | null
@@ -4488,10 +4613,15 @@ export type Database = {
           id?: string
           industry_preference?: string | null
           internal_rating?: number | null
+          interview_count?: number | null
+          interview_score_avg?: number | null
           invitation_status?: string | null
           job_alert_frequency?: string | null
+          key_strengths_aggregated?: string[] | null
+          key_weaknesses_aggregated?: string[] | null
           languages?: Json | null
           last_activity_at?: string | null
+          last_interview_at?: string | null
           last_invite_sent_at?: string | null
           last_profile_update?: string | null
           linkedin_profile_data?: Json | null
@@ -21132,6 +21262,51 @@ export type Database = {
           steps?: Json
           updated_at?: string | null
           version?: number | null
+        }
+        Relationships: []
+      }
+      reengagement_history: {
+        Row: {
+          campaign_type: string
+          churn_score: number | null
+          clicked_at: string | null
+          converted_at: string | null
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          opened_at: string | null
+          sent_at: string | null
+          template_id: string
+          trigger_reason: string | null
+          user_id: string | null
+        }
+        Insert: {
+          campaign_type: string
+          churn_score?: number | null
+          clicked_at?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          opened_at?: string | null
+          sent_at?: string | null
+          template_id: string
+          trigger_reason?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          campaign_type?: string
+          churn_score?: number | null
+          clicked_at?: string | null
+          converted_at?: string | null
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          opened_at?: string | null
+          sent_at?: string | null
+          template_id?: string
+          trigger_reason?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
