@@ -23,12 +23,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let mounted = true;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     const startTime = Date.now();
     
     console.log("[AuthContext] 🚀 Initializing auth at", new Date().toISOString());
 
+    // Helper to clear timeout safely
+    const clearAuthTimeout = () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+        console.log("[AuthContext] ✅ Timeout cleared");
+      }
+    };
+
     // CRITICAL: Maximum 3-second timeout to prevent infinite loading
-    const maxTimeout = setTimeout(() => {
+    timeoutId = setTimeout(() => {
       if (mounted && loading) {
         const elapsed = Date.now() - startTime;
         console.error("[AuthContext] ⏰ TIMEOUT after", elapsed, "ms - forcing loading to false");
@@ -40,6 +50,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     supabase.auth.getSession()
       .then(({ data: { session }, error }) => {
         if (!mounted) return;
+        
+        // CRITICAL FIX: Clear timeout IMMEDIATELY when session loads
+        clearAuthTimeout();
         
         const elapsed = Date.now() - startTime;
         
@@ -57,6 +70,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       })
       .catch((err) => {
         if (!mounted) return;
+        
+        // Clear timeout on error too
+        clearAuthTimeout();
         
         const elapsed = Date.now() - startTime;
         console.error("[AuthContext] 💥 getSession() rejected at", elapsed, "ms:", err);
@@ -89,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return () => {
       mounted = false;
-      clearTimeout(maxTimeout);
+      clearAuthTimeout();
       subscription.unsubscribe();
     };
   }, []);
