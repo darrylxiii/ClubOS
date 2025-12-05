@@ -172,10 +172,14 @@ export const mergeService = {
       const fieldsToMerge: string[] = [];
       const conflicts: Array<{ field: string; candidateValue: any; profileValue: any }> = [];
 
+      // FIX #5: Use correct column names that exist in both tables
+      // candidate_profiles: full_name, phone, linkedin_url, desired_salary_min, desired_salary_max, 
+      //                     remote_preference (text), notice_period, desired_locations (jsonb)
+      // profiles: full_name, avatar_url, bio, location_city, phone_number, linkedin_url, 
+      //           desired_salary_min, desired_salary_max, preferred_currency, remote_work_preference (bool)
       const mergeableFields = [
-        'full_name', 'avatar_url', 'bio', 'location', 'phone',
-        'linkedin_url', 'desired_salary_min', 'desired_salary_max',
-        'preferred_currency', 'remote_work_preference', 'notice_period'
+        'full_name', 'linkedin_url', 'desired_salary_min', 'desired_salary_max',
+        'notice_period', 'avatar_url', 'bio'
       ];
 
       mergeableFields.forEach(field => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ApprovalStep, MemberRequest, CandidateProfileData, JobAssignment } from "@/types/approval";
 import { ApprovalStepIndicator } from "./ApprovalStepIndicator";
@@ -33,6 +33,9 @@ export const MemberApprovalWorkflowDialog = ({
   const [sendSMS, setSendSMS] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [skipJobAssignment, setSkipJobAssignment] = useState(false);
+  
+  // FIX #4: Prevent duplicate submissions with ref guard
+  const submissionInProgress = useRef(false);
 
   const handleMergeSelection = (merges: Array<{ candidateId: string; userId: string }>) => {
     setMergeActions(merges);
@@ -70,7 +73,14 @@ export const MemberApprovalWorkflowDialog = ({
     setCurrentStep('confirm');
   };
 
+  // FIX #4: Prevent duplicate submissions
   const handleConfirmApproval = async () => {
+    // Guard against duplicate submissions
+    if (submissionInProgress.current || isSubmitting) {
+      console.log('[MemberApproval] Submission already in progress, ignoring duplicate');
+      return;
+    }
+
     // Validate admin ID is set
     if (!adminId) {
       toast.error('Admin ID is missing. Please refresh and try again.');
@@ -82,7 +92,10 @@ export const MemberApprovalWorkflowDialog = ({
       console.log('[MemberApproval] Approving member without profile creation or merge');
     }
 
+    // Set both guards
+    submissionInProgress.current = true;
     setIsSubmitting(true);
+    
     try {
       const result = await memberApprovalService.executeApprovalWorkflow({
         requestId: request.id,
@@ -108,12 +121,27 @@ export const MemberApprovalWorkflowDialog = ({
       });
     } finally {
       setIsSubmitting(false);
+      submissionInProgress.current = false;
     }
   };
 
+  // FIX #4: Prevent dialog close during submission
+  const handleOpenChange = (newOpen: boolean) => {
+    if (isSubmitting && !newOpen) {
+      // Prevent closing while submitting
+      return;
+    }
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent 
+        className="max-w-3xl max-h-[90vh] overflow-y-auto"
+        // FIX #4: Prevent escape key close during submission
+        onEscapeKeyDown={(e) => isSubmitting && e.preventDefault()}
+        onPointerDownOutside={(e) => isSubmitting && e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Approve Member Request</DialogTitle>
         </DialogHeader>

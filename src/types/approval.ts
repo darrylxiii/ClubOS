@@ -36,12 +36,12 @@ export interface CandidateProfileData {
   phone?: string | null;
   current_title?: string;
   linkedin_url?: string | null;
-  location?: string | null;
+  desired_locations?: string[]; // Changed from location to desired_locations (JSONB array)
   skills?: string[];
   years_of_experience?: number;
   desired_salary_min?: number;
   desired_salary_max?: number;
-  remote_work_preference?: boolean;
+  remote_preference?: 'remote' | 'hybrid' | 'on-site' | null; // Changed from remote_work_preference boolean
   notice_period?: string;
   source_channel: string;
   source_metadata?: any;
