@@ -26,6 +26,7 @@ serve(async (req) => {
     const dayAfterTomorrow = new Date(tomorrow);
     dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
 
+    // FIX: Query bookings with booking_links separately, then fetch profile
     const { data: bookings, error: fetchError } = await supabaseClient
       .from("bookings")
       .select(`
@@ -33,8 +34,7 @@ serve(async (req) => {
         booking_links!inner(
           title,
           duration_minutes,
-          user_id,
-          profiles:user_id(full_name, email)
+          user_id
         )
       `)
       .eq("status", "confirmed")
@@ -61,6 +61,13 @@ serve(async (req) => {
     // Send reminder emails
     for (const booking of bookings) {
       try {
+        // FIX: Fetch the profile separately using the user_id from booking_links
+        const { data: profile } = await supabaseClient
+          .from("profiles")
+          .select("full_name, email")
+          .eq("id", booking.booking_links.user_id)
+          .single();
+
         const formattedDate = new Date(booking.scheduled_start).toLocaleDateString("en-US", {
           weekday: "long",
           year: "numeric",
@@ -72,6 +79,8 @@ serve(async (req) => {
           minute: "2-digit",
           timeZoneName: "short",
         });
+
+        const hostName = profile?.full_name || "The Quantum Club";
 
         const content = `
           <div style="text-align: center; margin-bottom: 32px;">
@@ -85,7 +94,7 @@ serve(async (req) => {
           </h1>
 
           <p class="text-secondary" style="font-size: 16px; line-height: 1.6; margin: 0 0 32px 0;">
-            This is a friendly reminder about your upcoming meeting with ${booking.booking_links.profiles?.full_name || "The Quantum Club"}.
+            This is a friendly reminder about your upcoming meeting with ${hostName}.
           </p>
 
           <div class="bg-card" style="padding: 24px; border-radius: 12px; margin-bottom: 32px;">
