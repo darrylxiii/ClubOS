@@ -1,11 +1,12 @@
+/**
+ * Batch Translate Edge Function
+ * Phase 3: Enhanced with standardized CORS and comprehensive logging
+ */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
+import { createFunctionLogger, getClientInfo } from '../_shared/function-logger.ts';
 
 // Input validation schema for security
 const batchTranslateSchema = z.object({
@@ -18,19 +19,19 @@ const batchTranslateSchema = z.object({
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
+
+  const logger = createFunctionLogger('batch-translate');
+  const clientInfo = getClientInfo(req);
+  logger.logRequest(req.method, undefined, { ip: clientInfo.ip });
 
   try {
     // Rate limiting: 10 requests per hour per IP/user
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
-                     req.headers.get("x-real-ip") || 
-                     "unknown";
-    
-    const rateLimitResult = await checkUserRateLimit(clientIp, "batch-translate", 10, 3600000);
+    const rateLimitResult = await checkUserRateLimit(clientInfo.ip, "batch-translate", 10, 3600000);
     if (!rateLimitResult.allowed) {
-      console.log(`[Batch Translate] Rate limit exceeded for IP: ${clientIp}`);
-      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, corsHeaders);
+      logger.logRateLimit(clientInfo.ip);
+      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, publicCorsHeaders);
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -48,13 +49,13 @@ Deno.serve(async (req) => {
     const validationResult = batchTranslateSchema.safeParse(rawInput);
     
     if (!validationResult.success) {
-      console.error('[Batch Translate] Validation failed:', validationResult.error);
+      logger.error('Validation failed', validationResult.error);
       return new Response(
         JSON.stringify({ 
           error: 'Invalid input', 
           details: validationResult.error.flatten() 
         }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -78,31 +79,31 @@ Deno.serve(async (req) => {
       };
       
       textsToTranslate = extractTexts(sourceTranslations);
-      console.log(`[Batch Translate] Extracted ${textsToTranslate.length} texts from sourceTranslations`);
+      logger.info(`Extracted ${textsToTranslate.length} texts from sourceTranslations`);
     } else if (texts && Array.isArray(texts)) {
       textsToTranslate = texts;
     } else {
       return new Response(
         JSON.stringify({ error: 'Either texts array or sourceTranslations object is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     if (textsToTranslate.length === 0) {
       return new Response(
         JSON.stringify({ error: 'No texts found to translate' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     if (!targetLanguage) {
       return new Response(
         JSON.stringify({ error: 'targetLanguage is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`[Batch Translate] Translating ${textsToTranslate.length} texts to ${targetLanguage}`);
+    logger.info(`Translating ${textsToTranslate.length} texts to ${targetLanguage}`);
 
     // Batch translate using Lovable AI with retry logic
     const translations: string[] = [];
@@ -138,7 +139,7 @@ Deno.serve(async (req) => {
           if (response.status === 429) {
             const retryAfter = response.headers.get('retry-after');
             const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : Math.pow(2, attempt) * 1000;
-            console.log(`[Batch Translate] Rate limited (429), waiting ${waitTime}ms before retry ${attempt}/${maxRetries}`);
+            logger.warn(`Rate limited (429), waiting ${waitTime}ms before retry ${attempt}/${maxRetries}`);
             if (attempt < maxRetries) {
               await sleep(waitTime);
               continue;
@@ -147,13 +148,13 @@ Deno.serve(async (req) => {
           }
 
           if (response.status === 402) {
-            console.error('[Batch Translate] Payment required (402) - out of credits');
+            logger.error('Payment required (402) - out of credits');
             throw new Error('PAYMENT_REQUIRED');
           }
 
           if (!response.ok) {
             const errorText = await response.text();
-            console.error(`[Batch Translate] API error (${response.status}):`, errorText);
+            logger.error(`API error (${response.status}):`, errorText);
             throw new Error(`API_ERROR_${response.status}`);
           }
 
@@ -164,11 +165,11 @@ Deno.serve(async (req) => {
             throw error;
           }
           if (attempt === maxRetries) {
-            console.error(`[Batch Translate] Failed after ${maxRetries} attempts:`, error);
+            logger.error(`Failed after ${maxRetries} attempts`, error);
             throw error;
           }
           const backoffTime = Math.pow(2, attempt) * 1000;
-          console.log(`[Batch Translate] Retry ${attempt}/${maxRetries} after ${backoffTime}ms`);
+          logger.info(`Retry ${attempt}/${maxRetries} after ${backoffTime}ms`);
           await sleep(backoffTime);
         }
       }
@@ -187,7 +188,7 @@ Deno.serve(async (req) => {
         const batchResults = await Promise.all(batchPromises);
         translations.push(...batchResults);
         
-        console.log(`[Batch Translate] Completed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(textsToTranslate.length / batchSize)}`);
+        logger.info(`Completed batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(textsToTranslate.length / batchSize)}`);
         
         // Add delay between batches to respect rate limits (500ms)
         if (i + batchSize < textsToTranslate.length) {
@@ -196,32 +197,32 @@ Deno.serve(async (req) => {
       } catch (error: any) {
         // Surface rate limit and payment errors to caller
         if (error.message === 'RATE_LIMIT_EXCEEDED') {
-          console.error('[Batch Translate] Rate limit exceeded, cannot continue');
+          logger.error('Rate limit exceeded, cannot continue');
           return new Response(
             JSON.stringify({ 
               error: 'Rate limit exceeded. Please try again in a few minutes.',
               errorType: 'RATE_LIMIT',
               partialTranslations: translations
             }),
-            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 429, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
           );
         }
         if (error.message === 'PAYMENT_REQUIRED') {
-          console.error('[Batch Translate] Payment required - out of credits');
+          logger.error('Payment required - out of credits');
           return new Response(
             JSON.stringify({ 
               error: 'Translation credits depleted. Please add more credits to continue.',
               errorType: 'PAYMENT_REQUIRED',
               partialTranslations: translations
             }),
-            { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 402, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
           );
         }
         throw error;
       }
     }
 
-    console.log(`[Batch Translate] Successfully translated ${translations.length} texts`);
+    logger.logSuccess(200, { translatedCount: translations.length });
 
     // Reconstruct the translation object if sourceTranslations provided
     const translationObject: Record<string, any> = {};
@@ -253,9 +254,8 @@ Deno.serve(async (req) => {
 
       reconstructObject(sourceTranslations);
 
-      // Store in database if we have namespace
-      if (namespace) {
-        console.log(`[Batch Translate] Storing ${targetLanguage} translation for ${namespace} in database...`);
+        if (namespace) {
+        logger.info(`Storing ${targetLanguage} translation for ${namespace} in database...`);
         
         // Get user from auth header
         const authHeader = req.headers.get('Authorization');
@@ -295,15 +295,15 @@ Deno.serve(async (req) => {
               .eq('version', 1);
 
             if (updateError) {
-              console.error('[Batch Translate] Failed to update translation:', updateError);
+              logger.error('Failed to update translation', updateError);
             } else {
-              console.log(`[Batch Translate] ✓ Updated ${targetLanguage} translation for ${namespace}`);
+              logger.info(`Updated ${targetLanguage} translation for ${namespace}`);
             }
           } else {
-            console.error('[Batch Translate] Failed to insert translation:', insertError);
+            logger.error('Failed to insert translation', insertError);
           }
         } else {
-          console.log(`[Batch Translate] ✓ Stored ${targetLanguage} translation for ${namespace}`);
+          logger.info(`Stored ${targetLanguage} translation for ${namespace}`);
         }
       }
     }
@@ -313,19 +313,19 @@ Deno.serve(async (req) => {
         translations: sourceTranslations ? translationObject : translations 
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
         status: 200 
       }
     );
 
   } catch (error) {
-    console.error('[Batch Translate] Error:', error);
+    logger.error('Translation failed', error);
     return new Response(
       JSON.stringify({ 
         error: error instanceof Error ? error.message : 'Translation failed'
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' },
         status: 500 
       }
     );

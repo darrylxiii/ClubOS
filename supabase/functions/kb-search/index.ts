@@ -1,27 +1,29 @@
+/**
+ * KB Search Edge Function
+ * Phase 3: Enhanced with validation, logging, and standardized CORS
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders, handleCorsPreFlight } from "../_shared/cors-config.ts";
+import { createFunctionLogger, getClientInfo } from "../_shared/function-logger.ts";
+import { kbSearchSchema, validateInputSafe } from "../_shared/validation-schemas.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
+
+  const logger = createFunctionLogger('kb-search');
+  const clientInfo = getClientInfo(req);
+  logger.logRequest(req.method, undefined, { ip: clientInfo.ip });
 
   try {
     // Rate limiting: 30 requests per minute per IP
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
-                     req.headers.get("x-real-ip") || 
-                     "unknown";
-    
-    const rateLimitResult = await checkUserRateLimit(clientIp, "kb-search", 30, 60000);
+    const rateLimitResult = await checkUserRateLimit(clientInfo.ip, "kb-search", 30, 60000);
     if (!rateLimitResult.allowed) {
-      console.log(`[KB Search] Rate limit exceeded for IP: ${clientIp}`);
-      return createRateLimitResponse(rateLimitResult.retryAfter || 60, corsHeaders);
+      logger.logRateLimit(clientInfo.ip);
+      return createRateLimitResponse(rateLimitResult.retryAfter || 60, publicCorsHeaders);
     }
 
     const supabaseClient = createClient(
@@ -29,14 +31,15 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    const { query, category, user_role } = await req.json();
-
-    if (!query || query.length < 2) {
-      return new Response(
-        JSON.stringify({ results: [] }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    const rawInput = await req.json();
+    const validation = validateInputSafe(kbSearchSchema, rawInput, publicCorsHeaders);
+    if (!validation.success) {
+      logger.logError(400, 'Validation failed');
+      return validation.response;
     }
+    
+    const { query, category, user_role } = validation.data;
+    logger.info('Search query received', { queryLength: query.length, category, user_role });
 
     // Build search query
     let dbQuery = supabaseClient
@@ -63,20 +66,22 @@ serve(async (req) => {
 
     if (error) throw error;
 
+    logger.logSuccess(200, { resultCount: results?.length || 0 });
+
     return new Response(
       JSON.stringify({ 
         results: results || [],
         query,
         count: results?.length || 0
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error searching KB:', error);
+    logger.error('Search failed', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });

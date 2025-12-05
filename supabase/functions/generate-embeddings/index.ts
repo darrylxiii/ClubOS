@@ -1,34 +1,40 @@
+/**
+ * Generate Embeddings Edge Function
+ * Phase 3: Enhanced with validation, logging, and standardized CORS
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { checkUserRateLimit, createRateLimitResponse } from "../_shared/rate-limiter.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { publicCorsHeaders, handleCorsPreFlight } from "../_shared/cors-config.ts";
+import { createFunctionLogger, getClientInfo } from "../_shared/function-logger.ts";
+import { embeddingsSchema, validateInputSafe } from "../_shared/validation-schemas.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreFlight(publicCorsHeaders);
   }
+
+  const logger = createFunctionLogger('generate-embeddings');
+  const clientInfo = getClientInfo(req);
+  logger.logRequest(req.method, undefined, { ip: clientInfo.ip });
 
   try {
     // Rate limiting: 20 requests per hour per IP/user
-    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
-                     req.headers.get("x-real-ip") || 
-                     "unknown";
-    
-    const rateLimitResult = await checkUserRateLimit(clientIp, "generate-embeddings", 20, 3600000);
+    const rateLimitResult = await checkUserRateLimit(clientInfo.ip, "generate-embeddings", 20, 3600000);
     if (!rateLimitResult.allowed) {
-      console.log(`[Embeddings] Rate limit exceeded for IP: ${clientIp}`);
-      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, corsHeaders);
+      logger.logRateLimit(clientInfo.ip);
+      return createRateLimitResponse(rateLimitResult.retryAfter || 3600, publicCorsHeaders);
     }
 
-    const { text, entity_type, entity_id } = await req.json();
-    
-    if (!text) {
-      throw new Error('Text is required');
+    const rawInput = await req.json();
+    const validation = validateInputSafe(embeddingsSchema, rawInput, publicCorsHeaders);
+    if (!validation.success) {
+      logger.logError(400, 'Validation failed');
+      return validation.response;
     }
+
+    const { text, entity_type, entity_id } = validation.data;
+    logger.info('Generating embedding', { textLength: text.length, entity_type, entity_id });
 
     // Use Lovable AI to generate embeddings
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -109,8 +115,10 @@ serve(async (req) => {
         throw new Error(`Failed to update database: ${updateError.message}`);
       }
 
-      console.log(`Updated ${tableName}:${entity_id} with embedding`);
+      logger.info(`Updated ${tableName}:${entity_id} with embedding`);
     }
+
+    logger.logSuccess(200, { dimensions: embedding.length });
 
     return new Response(
       JSON.stringify({ 
@@ -119,14 +127,14 @@ serve(async (req) => {
         entity_type,
         entity_id,
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error generating embeddings:', error);
+    logger.error('Embedding generation failed', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });
