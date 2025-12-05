@@ -183,7 +183,8 @@ export default function Meetings() {
   const myMeetings = filterMeetings('my-meetings');
 
   const setActiveTabValue = (value: string) => {
-    setSearchParams({ tab: value });
+    // Use replace to avoid creating new history entries and prevent remounting
+    setSearchParams({ tab: value }, { replace: true });
   };
 
   return (
