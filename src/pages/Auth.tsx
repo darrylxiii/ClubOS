@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
-import { Lock, CheckCircle2, Loader2 } from "lucide-react";
+import { Lock, CheckCircle2, Loader2, AlertTriangle } from "lucide-react";
 import { FaGoogle } from "react-icons/fa";
 import { AssistedPasswordConfirmation } from "@/components/ui/assisted-password-confirmation";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
+import { useLoginLockout } from "@/hooks/useLoginLockout";
+import { generateOAuthState, validateOAuthState, clearOAuthState } from "@/utils/oauthCsrfProtection";
 
 // Lazy load heavy components to reduce initial bundle
 const InputOTP = lazy(() => import("@/components/ui/input-otp").then(m => ({ default: m.InputOTP })));
@@ -45,17 +47,32 @@ const Auth = () => {
   const [mfaCode, setMfaCode] = useState("");
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null);
   const [mfaChallengeId, setMfaChallengeId] = useState<string | null>(null);
+  const [lockoutMessage, setLockoutMessage] = useState<string | null>(null);
+  const { checkLockout, recordAttempt } = useLoginLockout();
   const navigate = useNavigate();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const error = params.get('error');
     const errorDescription = params.get('error_description');
+    const state = params.get('state');
+    
+    // Validate OAuth state parameter if present (CSRF protection)
+    if (state) {
+      if (!validateOAuthState(state)) {
+        console.error('[Auth Page] OAuth CSRF validation failed');
+        toast.error('Authentication failed: Invalid session. Please try again.');
+        window.history.replaceState({}, '', '/auth');
+        return;
+      }
+      console.log('[Auth Page] OAuth CSRF validation passed');
+    }
     
     if (error) {
       console.error('[Auth Page] OAuth error:', error, errorDescription);
       toast.error(`Sign in failed: ${errorDescription || error}`);
       window.history.replaceState({}, '', '/auth');
+      clearOAuthState();
     }
   }, []);
 
@@ -145,12 +162,24 @@ const Auth = () => {
       }
       
       if (isLogin) {
+        // Check for account lockout before attempting login
+        const lockoutStatus = await checkLockout(email);
+        if (lockoutStatus.locked) {
+          setLockoutMessage(lockoutStatus.message || 'Account temporarily locked');
+          toast.error(lockoutStatus.message || 'Too many failed attempts. Please try again later.');
+          return;
+        }
+        setLockoutMessage(null);
+        
         const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         
         if (error) {
+          // Record failed attempt
+          await recordAttempt(email, false);
+          
           if (error.message.includes("Invalid login credentials")) {
             toast.error("Invalid email or password");
           } else if (error.message.includes("Email not confirmed")) {
@@ -161,6 +190,9 @@ const Auth = () => {
           }
           return;
         }
+        
+        // Record successful attempt (clears failed attempts)
+        await recordAttempt(email, true);
 
         if (!data.session && data.user) {
           const factors = data.user.factors || [];
@@ -234,6 +266,9 @@ const Auth = () => {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
       
+      // Generate CSRF state parameter
+      const state = generateOAuthState();
+      
       const redirectUrl = inviteCode 
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
@@ -244,13 +279,15 @@ const Auth = () => {
           redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
-            prompt: 'consent'
+            prompt: 'consent',
+            state
           }
         }
       });
 
       if (error) throw error;
     } catch (error: any) {
+      clearOAuthState();
       toast.error(error.message || "Failed to initiate Google sign-in");
     }
   };
@@ -261,6 +298,9 @@ const Auth = () => {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
       
+      // Generate CSRF state parameter
+      const state = generateOAuthState();
+      
       const redirectUrl = inviteCode 
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
@@ -269,11 +309,13 @@ const Auth = () => {
         provider: 'apple',
         options: {
           redirectTo: redirectUrl,
+          queryParams: { state }
         }
       });
 
       if (error) throw error;
     } catch (error: any) {
+      clearOAuthState();
       toast.error(error.message || "Failed to initiate Apple sign-in");
     }
   };
@@ -284,6 +326,9 @@ const Auth = () => {
         localStorage.setItem('pending_invite_code', inviteCode);
       }
       
+      // Generate CSRF state parameter
+      const state = generateOAuthState();
+      
       const redirectUrl = inviteCode 
         ? `${window.location.origin}/auth?invite=${inviteCode}`
         : `${window.location.origin}/auth`;
@@ -293,11 +338,13 @@ const Auth = () => {
         options: {
           redirectTo: redirectUrl,
           scopes: 'openid profile email',
+          queryParams: { state }
         }
       });
 
       if (error) throw error;
     } catch (error: any) {
+      clearOAuthState();
       toast.error(error.message || "Failed to initiate LinkedIn sign-in");
     }
   };
@@ -472,6 +519,16 @@ const Auth = () => {
             </div>
           ) : (
             <form onSubmit={handleEmailAuth} className="space-y-5">
+              {/* Account Lockout Warning */}
+              {lockoutMessage && (
+                <Alert className="bg-destructive/10 border-destructive/20 rounded-2xl">
+                  <AlertTriangle className="h-4 w-4 text-destructive" />
+                  <AlertDescription className="text-sm font-medium text-destructive">
+                    {lockoutMessage}
+                  </AlertDescription>
+                </Alert>
+              )}
+              
               {!isLogin && (
                 <Input
                   type="text"

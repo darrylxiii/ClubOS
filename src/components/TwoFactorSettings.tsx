@@ -138,11 +138,19 @@ export const TwoFactorSettings = () => {
 
       if (error) throw error;
 
-      // Generate recovery codes (mock for now - should be done server-side)
-      const codes = Array.from({ length: 8 }, () => 
-        Math.random().toString(36).substring(2, 10).toUpperCase()
-      );
-      setRecoveryCodes(codes);
+      // Generate recovery codes securely on server-side
+      toast.loading('Generating secure recovery codes...');
+      
+      const { data: recoveryData, error: recoveryError } = await supabase.functions.invoke('generate-recovery-codes');
+      
+      if (recoveryError) {
+        console.error('Error generating recovery codes:', recoveryError);
+        toast.dismiss();
+        toast.warning('2FA enabled, but failed to generate recovery codes. Please regenerate them in settings.');
+      } else if (recoveryData?.codes) {
+        toast.dismiss();
+        setRecoveryCodes(recoveryData.codes);
+      }
 
       toast.success('2FA enabled successfully!');
       setMfaEnabled(true);
