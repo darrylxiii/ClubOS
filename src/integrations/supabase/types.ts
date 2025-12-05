@@ -2128,6 +2128,39 @@ export type Database = {
           },
         ]
       }
+      auth_security_events: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email?: string | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       backup_policies: {
         Row: {
           created_at: string | null
@@ -13917,6 +13950,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      login_attempts: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          ip_address: string | null
+          success: boolean | null
+          user_agent: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean | null
+          user_agent?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          ip_address?: string | null
+          success?: boolean | null
+          user_agent?: string | null
+        }
+        Relationships: []
       }
       market_intelligence: {
         Row: {
@@ -25889,6 +25949,33 @@ export type Database = {
           },
         ]
       }
+      user_recovery_codes: {
+        Row: {
+          code_hash: string
+          created_at: string | null
+          id: string
+          used: boolean | null
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string | null
+          id?: string
+          used?: boolean | null
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string | null
+          id?: string
+          used?: boolean | null
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_relationships: {
         Row: {
           created_at: string | null
@@ -27914,6 +28001,7 @@ export type Database = {
       cleanup_expired_push_subscriptions: { Args: never; Returns: undefined }
       cleanup_expired_verifications: { Args: never; Returns: undefined }
       cleanup_inactive_participants: { Args: never; Returns: undefined }
+      cleanup_old_login_attempts: { Args: never; Returns: undefined }
       cleanup_old_voice_stats: { Args: never; Returns: number }
       cleanup_old_webrtc_signals: { Args: never; Returns: undefined }
       cleanup_stale_channel_participants: { Args: never; Returns: undefined }
@@ -28184,10 +28272,12 @@ export type Database = {
         Args: { check_user_id: string; check_user_type?: string }
         Returns: boolean
       }
+      has_admin_role: { Args: { check_user_id: string }; Returns: boolean }
       has_company_role: {
         Args: { _company_id: string; _role: string; _user_id: string }
         Returns: boolean
       }
+      has_partner_role: { Args: { check_user_id: string }; Returns: boolean }
       has_role:
         | {
             Args: {
@@ -28197,6 +28287,7 @@ export type Database = {
             Returns: boolean
           }
         | { Args: { _role: string; _user_id: string }; Returns: boolean }
+      has_strategist_role: { Args: { check_user_id: string }; Returns: boolean }
       is_company_blocked_by_candidate: {
         Args: { _candidate_id: string; _company_email: string }
         Returns: boolean
