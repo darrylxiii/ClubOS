@@ -3,6 +3,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.58.0";
 import { publicCorsHeaders, handleCorsPreFlight } from '../_shared/cors-config.ts';
 import { checkUserRateLimit, createRateLimitResponse } from '../_shared/rate-limiter.ts';
 import { logAIUsage, extractClientInfo } from '../_shared/ai-logger.ts';
+import { fetchAI, handleAIError, createTimeoutResponse, AITimeoutError } from '../_shared/ai-fetch.ts';
+import { CommonErrors } from '../_shared/error-responses.ts';
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -20,10 +22,7 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       console.log('[generate-interview-report] No auth header');
-      return new Response(
-        JSON.stringify({ error: 'Authentication required' }),
-        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return CommonErrors.unauthorized(publicCorsHeaders);
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -36,10 +35,7 @@ serve(async (req) => {
     
     if (authError || !user) {
       console.log('[generate-interview-report] Auth failed:', authError?.message);
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...publicCorsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return CommonErrors.unauthorized(publicCorsHeaders);
     }
 
     userId = user.id;
@@ -60,11 +56,6 @@ serve(async (req) => {
     }
 
     const { meetingId, candidateId, roleTitle, companyName } = await req.json();
-    
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY not configured");
-    }
 
     // Fetch meeting transcript
     const { data: transcripts } = await supabase
@@ -84,19 +75,13 @@ serve(async (req) => {
 
     console.log('[generate-interview-report] Calling Lovable AI for meeting:', meetingId);
 
-    // Generate AI report
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: `You are an expert interview analyst. Generate a comprehensive post-interview report.
+    // Generate AI report with 45s timeout (longer for complex analysis)
+    const response = await fetchAI({
+      model: "google/gemini-2.5-flash",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert interview analyst. Generate a comprehensive post-interview report.
 
 Your response must be valid JSON in this exact format:
 {
@@ -113,10 +98,10 @@ Your response must be valid JSON in this exact format:
   "recommendation_confidence": 0-100,
   "recommendation_reasoning": "Detailed reasoning for recommendation"
 }`
-          },
-          {
-            role: "user",
-            content: `Generate a post-interview report for:
+        },
+        {
+          role: "user",
+          content: `Generate a post-interview report for:
 
 Role: ${roleTitle}
 Company: ${companyName}
@@ -131,26 +116,26 @@ ${intelligence ? `Real-time Scores:
 - Overall: ${intelligence.overall_score}/100` : ''}
 
 Generate a comprehensive interview report with all required fields.`
-          }
-        ],
-        temperature: 0.7,
-      }),
-    });
+        }
+      ],
+      temperature: 0.7,
+    }, { timeoutMs: 45000 });
 
-    if (!response.ok) {
-      const errorMessage = response.status === 429 ? 'AI rate limit exceeded' :
-                          response.status === 402 ? 'AI credits exhausted' :
-                          'AI service error';
-      
+    // Handle AI errors consistently
+    const errorResponse = handleAIError(response, publicCorsHeaders);
+    if (errorResponse) {
       await logAIUsage({
         userId,
         functionName: 'generate-interview-report',
         ...clientInfo,
         responseTimeMs: Date.now() - startTime,
         success: false,
-        errorMessage
+        errorMessage: `AI error: ${response.status}`
       });
+      return errorResponse;
+    }
 
+    if (!response.ok) {
       const errorText = await response.text();
       console.error("[generate-interview-report] AI gateway error:", response.status, errorText);
       throw new Error("AI analysis failed");
@@ -225,6 +210,20 @@ Generate a comprehensive interview report with all required fields.`
     );
   } catch (error) {
     console.error("[generate-interview-report] Error:", error);
+    
+    // Handle timeout errors specifically
+    if (error instanceof AITimeoutError) {
+      await logAIUsage({
+        userId,
+        functionName: 'generate-interview-report',
+        ...clientInfo,
+        responseTimeMs: Date.now() - startTime,
+        success: false,
+        errorMessage: 'Request timed out'
+      });
+      return createTimeoutResponse(publicCorsHeaders);
+    }
+
     await logAIUsage({
       userId,
       functionName: 'generate-interview-report',
@@ -233,9 +232,6 @@ Generate a comprehensive interview report with all required fields.`
       success: false,
       errorMessage: error instanceof Error ? error.message : "Unknown error"
     });
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }),
-      { status: 500, headers: { ...publicCorsHeaders, "Content-Type": "application/json" } }
-    );
+    return CommonErrors.internalError(publicCorsHeaders, error instanceof Error ? error.message : "Unknown error");
   }
 });
