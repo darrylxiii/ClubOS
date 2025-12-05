@@ -64,3 +64,33 @@ export interface AnalyticsSnapshot {
   metrics: Record<string, any>;
   created_at: string;
 }
+
+export interface ContinuousPipelineAnalytics {
+  job_id: string;
+  job_title: string;
+  company_id: string;
+  is_continuous: boolean;
+  hired_count: number;
+  target_hire_count: number | null;
+  total_hires: number;
+  avg_days_to_fill: number | null;
+  total_revenue: number;
+  avg_placement_fee: number | null;
+  first_hire_date: string | null;
+  latest_hire_date: string | null;
+  avg_days_between_hires: number | null;
+}
+
+export interface ContinuousPipelineHire {
+  id: string;
+  job_id: string;
+  application_id: string | null;
+  candidate_id: string | null;
+  hire_number: number;
+  hired_at: string;
+  actual_salary: number | null;
+  placement_fee: number | null;
+  days_to_fill: number | null;
+  notes: string | null;
+  created_at: string;
+}
