@@ -43,35 +43,50 @@ export const memberApprovalService = {
 
   /**
    * Create a candidate profile from member request data
+   * FIX #1: Use correct column names (remote_preference instead of remote_work_preference)
+   * FIX #3: Use desired_locations (JSONB) instead of location (doesn't exist)
    */
   async createCandidateFromRequest(
     requestData: CandidateProfileData,
     userId: string
   ): Promise<string | null> {
     try {
+      // Build insert object with correct column names
+      const insertData = {
+        user_id: userId,
+        full_name: requestData.full_name,
+        email: requestData.email,
+        phone: requestData.phone || null,
+        current_title: requestData.current_title || null,
+        linkedin_url: requestData.linkedin_url || null,
+        skills: requestData.skills || [],
+        years_of_experience: requestData.years_of_experience || null,
+        desired_salary_min: requestData.desired_salary_min || null,
+        desired_salary_max: requestData.desired_salary_max || null,
+        notice_period: requestData.notice_period || null,
+        source_channel: requestData.source_channel,
+        source_metadata: requestData.source_metadata || null,
+        created_by: requestData.created_by,
+        // FIX #1: Map remote_preference correctly (text enum, not boolean)
+        remote_preference: requestData.remote_preference || null,
+        // FIX #3: Handle desired_locations as JSONB array
+        desired_locations: requestData.desired_locations && requestData.desired_locations.length > 0 
+          ? requestData.desired_locations 
+          : null,
+      };
+
       const { data, error } = await supabase
         .from('candidate_profiles')
-        .insert({
-          user_id: userId,
-          full_name: requestData.full_name,
-          email: requestData.email,
-          phone: requestData.phone,
-          current_title: requestData.current_title,
-          linkedin_url: requestData.linkedin_url,
-          skills: requestData.skills || [],
-          years_of_experience: requestData.years_of_experience,
-          desired_salary_min: requestData.desired_salary_min,
-          desired_salary_max: requestData.desired_salary_max,
-          remote_work_preference: requestData.remote_work_preference,
-          notice_period: requestData.notice_period,
-          source_channel: requestData.source_channel,
-          source_metadata: requestData.source_metadata,
-          created_by: requestData.created_by,
-        })
+        .insert(insertData)
         .select('id')
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[MemberApproval] Create candidate error:', error);
+        throw error;
+      }
+      
+      console.log('[MemberApproval] Candidate profile created:', data?.id);
       return data?.id || null;
     } catch (error) {
       console.error('Error creating candidate profile:', error);
@@ -184,6 +199,7 @@ export const memberApprovalService = {
 
   /**
    * Execute the complete approval workflow
+   * FIX #2: Add account_reviewed_at timestamp to profiles update
    */
   async executeApprovalWorkflow(
     workflowData: ApprovalWorkflowData
@@ -193,6 +209,8 @@ export const memberApprovalService = {
     let applicationId: string | null = null;
 
     try {
+      console.log('[MemberApproval] Starting approval workflow for:', workflowData.requestId);
+
       // Step 1: Handle merges if any
       if (workflowData.mergeActions.length > 0) {
         for (const mergeAction of workflowData.mergeActions) {
@@ -293,12 +311,14 @@ export const memberApprovalService = {
       }
 
       // Step 4: Approve the member request
+      // FIX #2: Include account_reviewed_at timestamp
       try {
         const { error } = await supabase
           .from('profiles')
           .update({
             account_status: 'approved',
             account_approved_by: workflowData.adminId,
+            account_reviewed_at: new Date().toISOString(), // FIX #2: Add reviewed timestamp
           })
           .eq('id', workflowData.requestId);
 
@@ -311,6 +331,8 @@ export const memberApprovalService = {
           { candidateId, applicationId },
           'success'
         );
+
+        console.log('[MemberApproval] Member approved successfully:', workflowData.requestId);
       } catch (error: any) {
         errors.push(`Approval failed: ${error.message}`);
         await this.logApprovalAction(
@@ -333,6 +355,7 @@ export const memberApprovalService = {
         errors: errors.length > 0 ? errors : undefined,
       };
     } catch (error: any) {
+      console.error('[MemberApproval] Workflow error:', error);
       return {
         success: false,
         message: 'Approval workflow failed',
