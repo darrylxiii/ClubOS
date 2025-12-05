@@ -10,25 +10,35 @@ const NotFound = () => {
   const navigate = useNavigate();
   const { resolvedTheme } = useTheme();
   const [countdown, setCountdown] = useState(15);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     console.error("404 Error: User attempted to access non-existent route:", location.pathname);
   }, [location.pathname]);
 
-  // Auto-redirect countdown using React Router navigation
+  // Wait for route matching to stabilize before starting countdown
   useEffect(() => {
+    const stabilizeTimer = setTimeout(() => setIsReady(true), 500);
+    return () => clearTimeout(stabilizeTimer);
+  }, []);
+
+  // Countdown timer - only runs after route stabilization
+  useEffect(() => {
+    if (!isReady) return;
+    
     const timer = setInterval(() => {
-      setCountdown((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          navigate('/home', { replace: true });
-        }
-        return prev - 1;
-      });
+      setCountdown((prev) => prev - 1);
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [navigate]);
+  }, [isReady]);
+
+  // Separate effect for navigation - prevents navigate-during-render
+  useEffect(() => {
+    if (countdown <= 0) {
+      navigate('/home', { replace: true });
+    }
+  }, [countdown, navigate]);
 
   const quickLinks = [
     { icon: Home, label: "Home", path: "/" },

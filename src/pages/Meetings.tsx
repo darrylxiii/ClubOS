@@ -40,8 +40,15 @@ export default function Meetings() {
   
   const activeTab = searchParams.get('tab') || 'calendar';
 
+  // Debug logging for component lifecycle
+  useEffect(() => {
+    console.log('[Meetings] Component mounted, tab:', activeTab, 'user:', user?.id);
+    return () => console.log('[Meetings] Component unmounted');
+  }, []);
+
   useEffect(() => {
     if (user) {
+      console.log('[Meetings] Loading data for user:', user.id);
       loadMeetings();
       loadStats();
       
