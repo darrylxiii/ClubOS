@@ -15,6 +15,7 @@ interface MentionEmailData {
   candidateName: string;
   noteExcerpt: string;
   noteUrl: string;
+  appUrl?: string; // Optional app URL for links, defaults to production
 }
 
 /**
@@ -128,7 +129,7 @@ export function generateMentionEmailHTML(data: MentionEmailData): string {
       <p>
         This is an automated notification from The Quantum Club.<br>
         <a href="${data.noteUrl}">View in browser</a> | 
-        <a href="https://app.thequantumclub.com/settings?tab=notifications">Notification preferences</a>
+        <a href="${data.appUrl || 'https://app.thequantumclub.com'}/settings?tab=notifications">Notification preferences</a>
       </p>
     </div>
   </div>
@@ -156,7 +157,7 @@ ${data.noteUrl}
 
 ---
 This is an automated notification from The Quantum Club.
-Update your notification preferences: https://app.thequantumclub.com/settings?tab=notifications
+Update your notification preferences: ${data.appUrl || 'https://app.thequantumclub.com'}/settings?tab=notifications
   `.trim();
 }
 

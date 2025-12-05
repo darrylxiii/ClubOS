@@ -158,7 +158,7 @@ serve(async (req: Request) => {
       ` : ''}
       ${Paragraph('You received this email because you have notifications enabled in your settings.', 'muted')}
       ${Spacer(16)}
-      ${Paragraph('<a href="https://app.thequantumclub.com/settings" style="color: #C9A24E; text-decoration: none;">Manage notification preferences</a>', 'muted')}
+      ${Paragraph(`<a href="${Deno.env.get('APP_URL') || 'https://app.thequantumclub.com'}/settings" style="color: #C9A24E; text-decoration: none;">Manage notification preferences</a>`, 'muted')}
     `;
 
     const html = baseEmailTemplate({

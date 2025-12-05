@@ -43,51 +43,110 @@ Deno.serve(async (req) => {
       throw new Error('LinkedIn URL is required');
     }
 
-    console.log('Scraping LinkedIn profile:', linkedinUrl);
+    console.log('[linkedin-scraper] Processing LinkedIn profile:', linkedinUrl);
 
-    // For demo/MVP: Return basic extracted data only
-    // In production, integrate with LinkedIn API or scraping service like:
-    // - RapidAPI LinkedIn Profile Scraper
-    // - Proxycurl
-    // - ScraperAPI
-    // - Or official LinkedIn API (requires partnership)
+    // TODO: PHASE 2 - Integrate with real LinkedIn scraping service
+    // Options (requires API key and paid subscription):
+    // - Proxycurl (recommended): https://proxycurl.com - $49/mo for 1000 credits
+    // - RapidAPI LinkedIn Scraper: https://rapidapi.com/rockapis-rockapis-default/api/linkedin-api8
+    // - ScraperAPI: https://www.scraperapi.com
+    // - Official LinkedIn API (requires LinkedIn partnership approval)
+    //
+    // To enable real scraping:
+    // 1. Add PROXYCURL_API_KEY secret in Supabase settings
+    // 2. Uncomment the Proxycurl integration code below
+    // 3. Remove the mock data fallback
 
-    const extractedName = extractNameFromUrl(linkedinUrl);
+    const PROXYCURL_API_KEY = Deno.env.get('PROXYCURL_API_KEY');
     
-    // Return minimal mock data - user should manually fill in the rest
-    const mockProfile: LinkedInProfile = {
-      fullName: extractedName,
-      email: '', // To be filled manually
-      headline: '', // To be filled manually - check LinkedIn profile
-      location: '',
-      profileUrl: linkedinUrl,
-      imageUrl: '',
-      summary: '',
-      experience: [],
-      education: [],
-      skills: []
-    };
+    let profile: LinkedInProfile;
+    
+    if (PROXYCURL_API_KEY) {
+      // Real Proxycurl integration
+      console.log('[linkedin-scraper] Using Proxycurl API');
+      const response = await fetch(`https://nubela.co/proxycurl/api/v2/linkedin?url=${encodeURIComponent(linkedinUrl)}`, {
+        headers: {
+          'Authorization': `Bearer ${PROXYCURL_API_KEY}`,
+        },
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[linkedin-scraper] Proxycurl error:', response.status, errorText);
+        throw new Error(`LinkedIn scraping failed: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      profile = {
+        fullName: data.full_name || extractNameFromUrl(linkedinUrl),
+        email: data.personal_emails?.[0] || '',
+        headline: data.headline || '',
+        location: data.city ? `${data.city}, ${data.country_full_name}` : '',
+        profileUrl: linkedinUrl,
+        imageUrl: data.profile_pic_url || '',
+        summary: data.summary || '',
+        experience: (data.experiences || []).map((exp: any) => ({
+          title: exp.title,
+          company: exp.company,
+          location: exp.location,
+          startDate: exp.starts_at ? `${exp.starts_at.year}-${exp.starts_at.month || 1}` : undefined,
+          endDate: exp.ends_at ? `${exp.ends_at.year}-${exp.ends_at.month || 1}` : undefined,
+          description: exp.description,
+        })),
+        education: (data.education || []).map((edu: any) => ({
+          school: edu.school,
+          degree: edu.degree_name,
+          field: edu.field_of_study,
+          startYear: edu.starts_at?.year?.toString(),
+          endYear: edu.ends_at?.year?.toString(),
+        })),
+        skills: data.skills || [],
+      };
+    } else {
+      // Fallback: Extract name from URL only - manual data entry required
+      console.log('[linkedin-scraper] No API key configured - using URL extraction only');
+      const extractedName = extractNameFromUrl(linkedinUrl);
+      profile = {
+        fullName: extractedName,
+        email: '',
+        headline: '',
+        location: '',
+        profileUrl: linkedinUrl,
+        imageUrl: '',
+        summary: '',
+        experience: [],
+        education: [],
+        skills: []
+      };
+    }
 
-    // Transform to our candidate profile format with rich data for admin notes
+    // Calculate years of experience from work history
+    const yearsOfExperience = calculateYearsOfExperience(profile.experience || []);
+    
+    // Extract current position from most recent experience
+    const currentPosition = profile.experience?.[0];
+    
+    // Transform to our candidate profile format
     const candidateData = {
-      full_name: mockProfile.fullName,
-      email: '',
-      linkedin_url: mockProfile.profileUrl,
-      avatar_url: '',
-      current_title: '', // Leave empty - must be filled manually from LinkedIn
-      current_company: '', // Leave empty - must be filled manually from LinkedIn
-      years_of_experience: 0,
-      skills: mockProfile.skills || [],
-      education: mockProfile.education || [],
-      work_history: mockProfile.experience || [],
+      full_name: profile.fullName,
+      email: profile.email || '',
+      linkedin_url: profile.profileUrl,
+      avatar_url: profile.imageUrl || '',
+      current_title: currentPosition?.title || '',
+      current_company: currentPosition?.company || '',
+      years_of_experience: yearsOfExperience,
+      skills: profile.skills || [],
+      education: profile.education || [],
+      work_history: profile.experience || [],
       source_channel: 'linkedin',
       source_metadata: {
         scraped_at: new Date().toISOString(),
         profile_url: linkedinUrl,
-        note: 'Imported from LinkedIn - verify details'
+        api_used: PROXYCURL_API_KEY ? 'proxycurl' : 'url_extraction',
+        note: PROXYCURL_API_KEY ? 'Imported from LinkedIn via Proxycurl' : 'Imported from LinkedIn - verify details manually'
       },
-      linkedin_profile_data: mockProfile,
-      ai_summary: generateAiSummary(mockProfile)
+      linkedin_profile_data: profile,
+      ai_summary: generateAiSummary(profile)
     };
 
     return new Response(

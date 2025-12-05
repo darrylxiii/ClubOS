@@ -1,6 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { baseEmailTemplate } from "../_shared/email-templates/base-template.ts";
+import { getAppUrl } from "../_shared/app-config.ts";
+
+const APP_URL = getAppUrl();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -128,7 +131,7 @@ serve(async (req) => {
           ` : ''}
 
           <p class="text-secondary" style="font-size: 14px; line-height: 1.6; margin: 24px 0 0 0; text-align: center;">
-            Need to reschedule? <a href="https://app.thequantumclub.com/bookings/${booking.id}" style="color: #C9A24E; text-decoration: none;">Manage your booking</a>
+            Need to reschedule? <a href="${APP_URL}/bookings/${booking.id}" style="color: #C9A24E; text-decoration: none;">Manage your booking</a>
           </p>
         `;
 
